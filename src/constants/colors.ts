@@ -1,9 +1,18 @@
 export const Colors = {
   blueNight: '#0B0F2A',
+  blueNightLight: '#131836',
+  blueNightCard: '#1A1F3D',
   violet: '#6D28D9',
+  violetLight: '#7C3AED',
+  violetDark: '#5B21B6',
   cyan: '#22D3EE',
+  cyanDark: '#0891B2',
   white: '#FFFFFF',
   gray: '#9CA3AF',
   lightGray: '#E5E7EB',
   darkGray: '#1F2937',
+  green: '#34D399',
+  orange: '#FBBF24',
+  red: '#F87171',
+  pink: '#F472B6',
 } as const;
