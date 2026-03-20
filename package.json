@@ -11,6 +11,7 @@
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/slider": "5.1.2",
     "@react-navigation/bottom-tabs": "^7.15.6",
     "@react-navigation/native": "^7.1.34",
     "expo": "~55.0.8",

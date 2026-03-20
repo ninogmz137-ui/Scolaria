@@ -15,4 +15,14 @@ export const Colors = {
   orange: '#FBBF24',
   red: '#F87171',
   pink: '#F472B6',
+
+  // Warm palette for check-in screens
+  warmOrange: '#FF8C42',
+  warmOrangeLight: '#FFB07A',
+  warmCream: '#FFF5E6',
+  warmCreamDark: '#F5E6D0',
+  warmYellow: '#FFD66B',
+  warmBg: '#1C1208',
+  warmCard: '#2A1E10',
+  warmCardLight: '#3D2E1A',
 } as const;

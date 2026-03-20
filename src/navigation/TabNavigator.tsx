@@ -6,12 +6,13 @@ import NotesScreen from '../screens/NotesScreen';
 import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import ReglagesScreen from '../screens/ReglagesScreen';
+import MonRessentiScreen from '../screens/MonRessentiScreen';
 
 const Tab = createBottomTabNavigator();
 
 const tabConfig: Record<string, keyof typeof Ionicons.glyphMap> = {
   Accueil: 'home',
-  Notes: 'school',
+  Ressenti: 'heart',
   Aria: 'sparkles',
   Agenda: 'calendar',
   Réglages: 'settings',
@@ -43,7 +44,7 @@ export default function TabNavigator() {
       })}
     >
       <Tab.Screen name="Accueil" component={AccueilScreen} />
-      <Tab.Screen name="Notes" component={NotesScreen} />
+      <Tab.Screen name="Ressenti" component={MonRessentiScreen} />
       <Tab.Screen name="Aria" component={AriaScreen} />
       <Tab.Screen name="Agenda" component={AgendaScreen} />
       <Tab.Screen name="Réglages" component={ReglagesScreen} />
