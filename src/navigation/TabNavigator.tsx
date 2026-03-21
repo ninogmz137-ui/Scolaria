@@ -13,18 +13,22 @@ import MonRessentiScreen from '../screens/MonRessentiScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 
+// ─── Shared stack options with slide animation ──────────
+
+const stackScreenOptions = {
+  headerStyle: { backgroundColor: Colors.blueNight },
+  headerTintColor: Colors.white,
+  headerTitleStyle: { fontWeight: 'bold' as const },
+  animation: 'slide_from_right' as const,
+  animationDuration: 250,
+};
+
 // ─── Stack navigators for sub-screens ────────────────────
 
 const AccueilStack = createNativeStackNavigator();
 function AccueilStackScreen() {
   return (
-    <AccueilStack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: Colors.blueNight },
-        headerTintColor: Colors.white,
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
-    >
+    <AccueilStack.Navigator screenOptions={stackScreenOptions}>
       <AccueilStack.Screen
         name="AccueilHome"
         component={AccueilScreen}
@@ -33,7 +37,10 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="MonRessenti"
         component={MonRessentiScreen}
-        options={{ title: 'Mon Ressenti' }}
+        options={{
+          title: 'Mon Ressenti',
+          animation: 'slide_from_bottom',
+        }}
       />
       <AccueilStack.Screen
         name="ProfilEnfant"
@@ -47,13 +54,7 @@ function AccueilStackScreen() {
 const NotesStack = createNativeStackNavigator();
 function NotesStackScreen() {
   return (
-    <NotesStack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: Colors.blueNight },
-        headerTintColor: Colors.white,
-        headerTitleStyle: { fontWeight: 'bold' },
-      }}
-    >
+    <NotesStack.Navigator screenOptions={stackScreenOptions}>
       <NotesStack.Screen
         name="NotesHome"
         component={NotesScreen}
@@ -62,7 +63,11 @@ function NotesStackScreen() {
       <NotesStack.Screen
         name="ScannerBulletin"
         component={ScannerBulletinScreen}
-        options={{ title: 'Scanner un bulletin' }}
+        options={{
+          title: 'Scanner un bulletin',
+          animation: 'slide_from_bottom',
+          presentation: 'modal',
+        }}
       />
     </NotesStack.Navigator>
   );
@@ -74,23 +79,23 @@ const Tab = createBottomTabNavigator();
 
 const tabConfig: Record<
   string,
-  { icon: keyof typeof Ionicons.glyphMap; label: string }
+  { icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap; label: string }
 > = {
-  Accueil: { icon: 'home', label: 'Accueil' },
-  Notes: { icon: 'school', label: 'Notes' },
-  Aria: { icon: 'sparkles', label: 'Aria' },
-  Agenda: { icon: 'calendar', label: 'Agenda' },
-  Réglages: { icon: 'settings', label: 'Réglages' },
+  Accueil: { icon: 'home-outline', iconActive: 'home', label: 'Accueil' },
+  Notes: { icon: 'school-outline', iconActive: 'school', label: 'Notes' },
+  Aria: { icon: 'sparkles-outline', iconActive: 'sparkles', label: 'Aria' },
+  Agenda: { icon: 'calendar-outline', iconActive: 'calendar', label: 'Agenda' },
+  Réglages: { icon: 'settings-outline', iconActive: 'settings', label: 'Réglages' },
 };
 
 export default function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => (
+        tabBarIcon: ({ color, size, focused }) => (
           <Ionicons
-            name={tabConfig[route.name].icon}
-            size={size}
+            name={focused ? tabConfig[route.name].iconActive : tabConfig[route.name].icon}
+            size={focused ? size + 2 : size}
             color={color}
           />
         ),
