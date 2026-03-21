@@ -1,9 +1,28 @@
 export const Colors = {
   blueNight: '#0B0F2A',
+  blueNightLight: '#131836',
+  blueNightCard: '#1A1F3D',
   violet: '#6D28D9',
+  violetLight: '#7C3AED',
+  violetDark: '#5B21B6',
   cyan: '#22D3EE',
+  cyanDark: '#0891B2',
   white: '#FFFFFF',
   gray: '#9CA3AF',
   lightGray: '#E5E7EB',
   darkGray: '#1F2937',
+  green: '#34D399',
+  orange: '#FBBF24',
+  red: '#F87171',
+  pink: '#F472B6',
+
+  // Warm palette for check-in screens
+  warmOrange: '#FF8C42',
+  warmOrangeLight: '#FFB07A',
+  warmCream: '#FFF5E6',
+  warmCreamDark: '#F5E6D0',
+  warmYellow: '#FFD66B',
+  warmBg: '#1C1208',
+  warmCard: '#2A1E10',
+  warmCardLight: '#3D2E1A',
 } as const;

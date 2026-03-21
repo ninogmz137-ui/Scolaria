@@ -1,52 +1,197 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+
+// Screens
 import AccueilScreen from '../screens/AccueilScreen';
 import NotesScreen from '../screens/NotesScreen';
 import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import ReglagesScreen from '../screens/ReglagesScreen';
+import MonRessentiScreen from '../screens/MonRessentiScreen';
+import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
+import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
+import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
+
+// Teacher screens
+import AppreciationsScreen from '../screens/teacher/AppreciationsScreen';
+import MeteoClasseScreen from '../screens/teacher/MeteoClasseScreen';
+import VieDeClasseScreen from '../screens/teacher/VieDeClasseScreen';
+
+// ─── Shared stack options with slide animation ──────────
+
+const stackScreenOptions = {
+  headerStyle: { backgroundColor: Colors.blueNight },
+  headerTintColor: Colors.white,
+  headerTitleStyle: { fontWeight: 'bold' as const },
+  animation: 'slide_from_right' as const,
+  animationDuration: 250,
+};
+
+// ─── Stack navigators for sub-screens ────────────────────
+
+const AccueilStack = createNativeStackNavigator();
+function AccueilStackScreen() {
+  return (
+    <AccueilStack.Navigator screenOptions={stackScreenOptions}>
+      <AccueilStack.Screen
+        name="AccueilHome"
+        component={AccueilScreen}
+        options={{ title: 'Accueil' }}
+      />
+      <AccueilStack.Screen
+        name="MonRessenti"
+        component={MonRessentiScreen}
+        options={{
+          title: 'Mon Ressenti',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <AccueilStack.Screen
+        name="ProfilEnfant"
+        component={ProfilEnfantScreen}
+        options={{ title: 'Profil Enfant' }}
+      />
+      <AccueilStack.Screen
+        name="AjouterEnfant"
+        component={AjouterEnfantScreen}
+        options={{
+          title: 'Ajouter un enfant',
+          animation: 'slide_from_bottom',
+        }}
+      />
+    </AccueilStack.Navigator>
+  );
+}
+
+const NotesStack = createNativeStackNavigator();
+function NotesStackScreen() {
+  return (
+    <NotesStack.Navigator screenOptions={stackScreenOptions}>
+      <NotesStack.Screen
+        name="NotesHome"
+        component={NotesScreen}
+        options={{ title: 'Notes' }}
+      />
+      <NotesStack.Screen
+        name="ScannerBulletin"
+        component={ScannerBulletinScreen}
+        options={{
+          title: 'Scanner un bulletin',
+          animation: 'slide_from_bottom',
+          presentation: 'modal',
+        }}
+      />
+    </NotesStack.Navigator>
+  );
+}
+
+const ReglagesStack = createNativeStackNavigator();
+function ReglagesStackScreen() {
+  return (
+    <ReglagesStack.Navigator screenOptions={stackScreenOptions}>
+      <ReglagesStack.Screen
+        name="ReglagesHome"
+        component={ReglagesScreen}
+        options={{ title: 'Réglages' }}
+      />
+      <ReglagesStack.Screen
+        name="AjouterEnfantReglages"
+        component={AjouterEnfantScreen}
+        options={{
+          title: 'Ajouter un enfant',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      {/* Teacher space screens */}
+      <ReglagesStack.Screen
+        name="Appreciations"
+        component={AppreciationsScreen}
+        options={{ title: 'Appréciations' }}
+      />
+      <ReglagesStack.Screen
+        name="MeteoClasse"
+        component={MeteoClasseScreen}
+        options={{ title: 'Météo de classe' }}
+      />
+      <ReglagesStack.Screen
+        name="VieDeClasse"
+        component={VieDeClasseScreen}
+        options={{ title: 'Vie de classe' }}
+      />
+    </ReglagesStack.Navigator>
+  );
+}
+
+// ─── Tab navigator (5 onglets) ───────────────────────────
 
 const Tab = createBottomTabNavigator();
 
-const tabConfig: Record<string, keyof typeof Ionicons.glyphMap> = {
-  Accueil: 'home',
-  Notes: 'school',
-  Aria: 'sparkles',
-  Agenda: 'calendar',
-  Réglages: 'settings',
+const tabConfig: Record<
+  string,
+  { icon: keyof typeof Ionicons.glyphMap; iconActive: keyof typeof Ionicons.glyphMap; label: string }
+> = {
+  Accueil: { icon: 'home-outline', iconActive: 'home', label: 'Accueil' },
+  Notes: { icon: 'school-outline', iconActive: 'school', label: 'Notes' },
+  Aria: { icon: 'sparkles-outline', iconActive: 'sparkles', label: 'Aria' },
+  Agenda: { icon: 'calendar-outline', iconActive: 'calendar', label: 'Agenda' },
+  Réglages: { icon: 'settings-outline', iconActive: 'settings', label: 'Réglages' },
 };
 
 export default function TabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name={tabConfig[route.name]} size={size} color={color} />
+        tabBarIcon: ({ color, size, focused }) => (
+          <Ionicons
+            name={focused ? tabConfig[route.name].iconActive : tabConfig[route.name].icon}
+            size={focused ? size + 2 : size}
+            color={color}
+          />
         ),
+        tabBarLabel: tabConfig[route.name].label,
         tabBarActiveTintColor: Colors.cyan,
         tabBarInactiveTintColor: Colors.gray,
         tabBarStyle: {
           backgroundColor: Colors.blueNight,
-          borderTopColor: Colors.darkGray,
+          borderTopColor: 'rgba(255,255,255,0.06)',
           borderTopWidth: 1,
           paddingBottom: 5,
-          height: 60,
+          paddingTop: 5,
+          height: 62,
         },
-        headerStyle: {
-          backgroundColor: Colors.blueNight,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
         },
-        headerTintColor: Colors.white,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerShown: false,
       })}
     >
-      <Tab.Screen name="Accueil" component={AccueilScreen} />
-      <Tab.Screen name="Notes" component={NotesScreen} />
-      <Tab.Screen name="Aria" component={AriaScreen} />
-      <Tab.Screen name="Agenda" component={AgendaScreen} />
-      <Tab.Screen name="Réglages" component={ReglagesScreen} />
+      <Tab.Screen name="Accueil" component={AccueilStackScreen} />
+      <Tab.Screen name="Notes" component={NotesStackScreen} />
+      <Tab.Screen
+        name="Aria"
+        component={AriaScreen}
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.blueNight },
+          headerTintColor: Colors.white,
+          headerTitleStyle: { fontWeight: 'bold' },
+          headerTitle: 'Aria ✦',
+        }}
+      />
+      <Tab.Screen
+        name="Agenda"
+        component={AgendaScreen}
+        options={{
+          headerShown: true,
+          headerStyle: { backgroundColor: Colors.blueNight },
+          headerTintColor: Colors.white,
+          headerTitleStyle: { fontWeight: 'bold' },
+        }}
+      />
+      <Tab.Screen name="Réglages" component={ReglagesStackScreen} />
     </Tab.Navigator>
   );
 }

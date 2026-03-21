@@ -1,12 +1,267 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import ChatBubble, { Message } from '../components/chat/ChatBubble';
+import AriaAvatar from '../components/chat/AriaAvatar';
+import { sendToAria, ClaudeMessage } from '../services/ariaApi';
+
+// ─── Initial greeting ────────────────────────────────────
+
+const WELCOME_MESSAGE: Message = {
+  id: '1',
+  text: 'Bonjour ! Je suis Aria ✦, ton assistante scolaire. J\'ai accès au profil complet de Lucas — notes, activités, bien-être. Pose-moi une question ! 📚',
+  sender: 'aria',
+  timestamp: new Date().toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }),
+};
+
+const SUGGESTIONS = [
+  '📊 Résumé de la semaine',
+  '📝 Préparer le contrôle de maths',
+  '💡 Conseils pour progresser',
+  '😊 Comment va Lucas ?',
+  '🎯 Forces et faiblesses',
+];
+
+// ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeChildId] = useState('1'); // Will be switchable later
+  const flatListRef = useRef<FlatList>(null);
+
+  // Conversation history for Claude API (excludes welcome message)
+  const conversationHistoryRef = useRef<ClaudeMessage[]>([]);
+
+  const scrollToEnd = useCallback(() => {
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+  }, []);
+
+  const now = () =>
+    new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+  const sendMessage = useCallback(
+    async (textOverride?: string) => {
+      const trimmed = (textOverride ?? input).trim();
+      if (!trimmed || isTyping) return;
+
+      // Add user message to UI
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        text: trimmed,
+        sender: 'parent',
+        timestamp: now(),
+      };
+
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+      setIsTyping(true);
+      scrollToEnd();
+
+      try {
+        // Call Claude API with conversation history
+        const response = await sendToAria(
+          trimmed,
+          conversationHistoryRef.current,
+          activeChildId,
+        );
+
+        // Update conversation history
+        conversationHistoryRef.current = [
+          ...conversationHistoryRef.current,
+          { role: 'user', content: trimmed },
+          { role: 'assistant', content: response },
+        ];
+
+        // Keep last 20 messages to stay within context limits
+        if (conversationHistoryRef.current.length > 20) {
+          conversationHistoryRef.current =
+            conversationHistoryRef.current.slice(-20);
+        }
+
+        // Add Aria response to UI
+        const ariaMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response,
+          sender: 'aria',
+          timestamp: now(),
+        };
+
+        setMessages((prev) => [...prev, ariaMsg]);
+      } catch (error) {
+        const errorMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          text: '❌ Une erreur est survenue. Réessaie dans quelques instants.',
+          sender: 'aria',
+          timestamp: now(),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      } finally {
+        setIsTyping(false);
+        scrollToEnd();
+      }
+    },
+    [input, isTyping, scrollToEnd, activeChildId],
+  );
+
+  const handleSuggestionPress = useCallback(
+    (suggestion: string) => {
+      sendMessage(suggestion);
+    },
+    [sendMessage],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Message }) => <ChatBubble message={item} />,
+    [],
+  );
+
+  const typingMessage: Message = {
+    id: 'typing',
+    text: '',
+    sender: 'aria',
+    timestamp: '',
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Aria</Text>
-      <Text style={styles.subtitle}>Votre assistant scolaire intelligent</Text>
-    </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={90}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <AriaAvatar size={40} />
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerName}>Aria ✦</Text>
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: isTyping ? Colors.orange : Colors.green },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: isTyping ? Colors.orange : Colors.green },
+              ]}
+            >
+              {isTyping ? 'Réfléchit...' : 'En ligne'}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.headerRight}>
+          <View style={styles.modelBadge}>
+            <Text style={styles.modelText}>Claude Sonnet</Text>
+          </View>
+          <TouchableOpacity style={styles.headerAction}>
+            <Ionicons
+              name="ellipsis-vertical"
+              size={20}
+              color={Colors.gray}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Suggestions banner */}
+      <View style={styles.suggestionsContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={SUGGESTIONS}
+          keyExtractor={(item) => item}
+          contentContainerStyle={styles.suggestionsContent}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.suggestionChip}
+              onPress={() => handleSuggestionPress(item)}
+              activeOpacity={0.7}
+              disabled={isTyping}
+            >
+              <Text
+                style={[
+                  styles.suggestionText,
+                  isTyping && { opacity: 0.4 },
+                ]}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      {/* Messages */}
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.messagesList}
+        onContentSizeChange={scrollToEnd}
+        ListFooterComponent={
+          isTyping ? (
+            <ChatBubble message={typingMessage} isTyping />
+          ) : null
+        }
+      />
+
+      {/* Input bar */}
+      <View style={styles.inputBar}>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Demandez à Aria..."
+            placeholderTextColor={Colors.gray}
+            value={input}
+            onChangeText={setInput}
+            multiline
+            maxLength={500}
+            onSubmitEditing={() => sendMessage()}
+            editable={!isTyping}
+          />
+          {input.trim() ? (
+            <TouchableOpacity
+              style={[styles.sendButton, isTyping && { opacity: 0.4 }]}
+              onPress={() => sendMessage()}
+              activeOpacity={0.7}
+              disabled={isTyping}
+            >
+              <Ionicons name="send" size={20} color={Colors.white} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.micButton} activeOpacity={0.7}>
+              <LinearGradient
+                colors={[Colors.violet, Colors.violetDark]}
+                style={styles.micGradient}
+              >
+                <Ionicons name="mic" size={22} color={Colors.white} />
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -14,18 +269,133 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.blueNight,
+  },
+  // Header
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  headerName: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.white,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modelBadge: {
+    backgroundColor: 'rgba(109,40,217,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(109,40,217,0.3)',
+  },
+  modelText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.violetLight,
+  },
+  headerAction: {
+    padding: 8,
+  },
+  // Suggestions
+  suggestionsContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.04)',
+  },
+  suggestionsContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: Colors.blueNightCard,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginRight: 8,
+  },
+  suggestionText: {
+    fontSize: 13,
+    color: Colors.lightGray,
+    fontWeight: '500',
+  },
+  // Messages
+  messagesList: {
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  // Input bar
+  inputBar: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: Colors.blueNight,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: Colors.blueNightCard,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    paddingLeft: 16,
+    paddingRight: 4,
+    paddingVertical: 4,
+  },
+  textInput: {
+    flex: 1,
+    color: Colors.white,
+    fontSize: 15,
+    maxHeight: 100,
+    paddingVertical: 10,
+  },
+  sendButton: {
+    backgroundColor: Colors.violet,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.cyan,
-    marginBottom: 8,
+  micButton: {
+    width: 40,
+    height: 40,
   },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.gray,
+  micGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
