@@ -6,13 +6,31 @@ import { Colors } from '../../constants/colors';
 interface Props {
   power: string;
   emoji: string;
+  description?: string;
 }
 
-export default function SuperPowerBadge({ power, emoji }: Props) {
+export default function SuperPowerBadge({ power, emoji, description }: Props) {
   const rotation = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
+  const badgeScale = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Entrance animation
+    Animated.sequence([
+      Animated.spring(badgeScale, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeIn, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     // Orbit rotation
     Animated.loop(
       Animated.timing(rotation, {
@@ -38,7 +56,7 @@ export default function SuperPowerBadge({ power, emoji }: Props) {
         }),
       ]),
     ).start();
-  }, [rotation, pulse]);
+  }, []);
 
   const spin = rotation.interpolate({
     inputRange: [0, 1],
@@ -57,7 +75,7 @@ export default function SuperPowerBadge({ power, emoji }: Props) {
       </Animated.View>
 
       {/* Core badge */}
-      <Animated.View style={{ transform: [{ scale: pulse }] }}>
+      <Animated.View style={{ transform: [{ scale: Animated.multiply(pulse, badgeScale) }] }}>
         <LinearGradient
           colors={[Colors.violet, Colors.cyan]}
           start={{ x: 0, y: 0 }}
@@ -69,8 +87,15 @@ export default function SuperPowerBadge({ power, emoji }: Props) {
       </Animated.View>
 
       {/* Label */}
-      <Text style={styles.label}>Super-Pouvoir</Text>
-      <Text style={styles.power}>{power}</Text>
+      <Animated.View style={[styles.labelContainer, { opacity: fadeIn }]}>
+        <Text style={styles.label}>Super-Pouvoir</Text>
+        <Text style={styles.power}>{power}</Text>
+        {description ? (
+          <View style={styles.descriptionBadge}>
+            <Text style={styles.descriptionText}>{description}</Text>
+          </View>
+        ) : null}
+      </Animated.View>
     </View>
   );
 }
@@ -79,7 +104,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 180,
+    height: 220,
   },
   orbitRing: {
     position: 'absolute',
@@ -133,8 +158,11 @@ const styles = StyleSheet.create({
   emoji: {
     fontSize: 42,
   },
-  label: {
+  labelContainer: {
+    alignItems: 'center',
     marginTop: 14,
+  },
+  label: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.gray,
@@ -146,5 +174,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.cyan,
     marginTop: 2,
+  },
+  descriptionBadge: {
+    marginTop: 8,
+    backgroundColor: Colors.blueNightCard,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    maxWidth: 280,
+  },
+  descriptionText: {
+    fontSize: 12,
+    color: Colors.gray,
+    textAlign: 'center',
+    lineHeight: 17,
   },
 });

@@ -1,4 +1,12 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 
@@ -9,6 +17,9 @@ interface Activity {
   category: string;
   level: string;
   color: string;
+  hoursPerWeek?: number;
+  progressPercent?: number;
+  since?: string;
 }
 
 interface Props {
@@ -16,10 +27,41 @@ interface Props {
 }
 
 export default function Portfolio({ activities }: Props) {
+  const fadeAnims = useRef(activities.map(() => new Animated.Value(0))).current;
+  const slideAnims = useRef(activities.map(() => new Animated.Value(20))).current;
+
+  useEffect(() => {
+    Animated.stagger(
+      100,
+      activities.map((_, i) =>
+        Animated.parallel([
+          Animated.timing(fadeAnims[i], {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.spring(slideAnims[i], {
+            toValue: 0,
+            tension: 60,
+            friction: 8,
+            useNativeDriver: true,
+          }),
+        ]),
+      ),
+    ).start();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Portfolio extra-scolaire</Text>
+        <View>
+          <Text style={styles.title}>Portfolio extra-scolaire</Text>
+          <Text style={styles.subtitle}>
+            {activities.length} activité{activities.length > 1 ? 's' : ''}
+            {' '}•{' '}
+            {activities.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0)}h/semaine
+          </Text>
+        </View>
         <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
           <Ionicons name="add" size={18} color={Colors.cyan} />
         </TouchableOpacity>
@@ -30,24 +72,64 @@ export default function Portfolio({ activities }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {activities.map((activity) => (
-          <View key={activity.id} style={styles.card}>
-            <View
-              style={[
-                styles.iconCircle,
-                { backgroundColor: activity.color + '20' },
-              ]}
-            >
-              <Text style={styles.cardEmoji}>{activity.emoji}</Text>
+        {activities.map((activity, i) => (
+          <Animated.View
+            key={activity.id}
+            style={{
+              opacity: fadeAnims[i],
+              transform: [{ translateX: slideAnims[i] }],
+            }}
+          >
+            <View style={styles.card}>
+              {/* Icon */}
+              <View
+                style={[
+                  styles.iconCircle,
+                  { backgroundColor: activity.color + '20' },
+                ]}
+              >
+                <Text style={styles.cardEmoji}>{activity.emoji}</Text>
+              </View>
+
+              <Text style={styles.cardName}>{activity.name}</Text>
+              <Text style={styles.cardCategory}>{activity.category}</Text>
+
+              {/* Progress bar */}
+              {activity.progressPercent != null && (
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBg}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${activity.progressPercent}%`,
+                          backgroundColor: activity.color,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressText, { color: activity.color }]}>
+                    {activity.progressPercent}%
+                  </Text>
+                </View>
+              )}
+
+              {/* Level badge */}
+              <View style={[styles.levelBadge, { borderColor: activity.color }]}>
+                <Text style={[styles.levelText, { color: activity.color }]}>
+                  {activity.level}
+                </Text>
+              </View>
+
+              {/* Hours */}
+              {activity.hoursPerWeek != null && (
+                <Text style={styles.hoursText}>
+                  {activity.hoursPerWeek}h/sem
+                  {activity.since ? ` • ${activity.since}` : ''}
+                </Text>
+              )}
             </View>
-            <Text style={styles.cardName}>{activity.name}</Text>
-            <Text style={styles.cardCategory}>{activity.category}</Text>
-            <View style={[styles.levelBadge, { borderColor: activity.color }]}>
-              <Text style={[styles.levelText, { color: activity.color }]}>
-                {activity.level}
-              </Text>
-            </View>
-          </View>
+          </Animated.View>
         ))}
       </ScrollView>
     </View>
@@ -69,6 +151,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.white,
   },
+  subtitle: {
+    fontSize: 12,
+    color: Colors.gray,
+    marginTop: 2,
+  },
   addButton: {
     width: 32,
     height: 32,
@@ -82,7 +169,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   card: {
-    width: 130,
+    width: 140,
     backgroundColor: Colors.blueNightCard,
     borderRadius: 16,
     padding: 14,
@@ -113,14 +200,42 @@ const styles = StyleSheet.create({
     color: Colors.gray,
     marginBottom: 8,
   },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    width: '100%',
+    marginBottom: 8,
+  },
+  progressBg: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
   levelBadge: {
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
+    marginBottom: 4,
   },
   levelText: {
     fontSize: 10,
     fontWeight: '700',
+  },
+  hoursText: {
+    fontSize: 10,
+    color: Colors.gray,
+    marginTop: 2,
   },
 });

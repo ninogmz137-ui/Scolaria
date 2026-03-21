@@ -1,4 +1,5 @@
-import { StyleSheet, View, Text } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, View, Text, Animated, Easing } from 'react-native';
 import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
 
@@ -18,8 +19,48 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
   const radius = size / 2 - 40;
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
-  // Start from top (-PI/2)
   const startAngle = -Math.PI / 2;
+
+  // Animation
+  const progress = useRef(new Animated.Value(0)).current;
+  const scoreScales = useRef(data.map(() => new Animated.Value(0))).current;
+  const [polyPoints, setPolyPoints] = useState('');
+  const [dotsVisible, setDotsVisible] = useState(false);
+
+  useEffect(() => {
+    const listenerId = progress.addListener(({ value }) => {
+      const pts = data
+        .map((comp, i) => {
+          const p = getPoint(i, comp.value * value);
+          return `${p.x},${p.y}`;
+        })
+        .join(' ');
+      setPolyPoints(pts);
+      if (value >= 0.95 && !dotsVisible) setDotsVisible(true);
+    });
+
+    Animated.sequence([
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+      Animated.stagger(
+        80,
+        scoreScales.map((scale) =>
+          Animated.spring(scale, {
+            toValue: 1,
+            tension: 200,
+            friction: 10,
+            useNativeDriver: true,
+          }),
+        ),
+      ),
+    ]).start();
+
+    return () => progress.removeListener(listenerId);
+  }, []);
 
   const getPoint = (index: number, value: number) => {
     const angle = startAngle + index * angleStep;
@@ -30,13 +71,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
     };
   };
 
-  // Build polygon points for data
-  const dataPoints = data
-    .map((_, i) => {
-      const p = getPoint(i, data[i].value);
-      return `${p.x},${p.y}`;
-    })
-    .join(' ');
+  const finalPoints = data.map((comp, i) => getPoint(i, comp.value));
 
   return (
     <View style={styles.container}>
@@ -77,33 +112,34 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
           );
         })}
 
-        {/* Data polygon */}
-        <Polygon
-          points={dataPoints}
-          fill="rgba(109,40,217,0.25)"
-          stroke={Colors.violet}
-          strokeWidth={2}
-        />
+        {/* Animated data polygon */}
+        {polyPoints ? (
+          <Polygon
+            points={polyPoints}
+            fill="rgba(109,40,217,0.25)"
+            stroke={Colors.violet}
+            strokeWidth={2.5}
+            strokeLinejoin="round"
+          />
+        ) : null}
 
-        {/* Data points */}
-        {data.map((_, i) => {
-          const p = getPoint(i, data[i].value);
-          return (
+        {/* Data point dots */}
+        {dotsVisible &&
+          finalPoints.map((p, i) => (
             <Circle
               key={`point-${i}`}
               cx={p.x}
               cy={p.y}
-              r={4}
+              r={5}
               fill={Colors.cyan}
               stroke={Colors.blueNight}
               strokeWidth={2}
             />
-          );
-        })}
+          ))}
 
         {/* Labels */}
         {data.map((comp, i) => {
-          const p = getPoint(i, 12.5);
+          const p = getPoint(i, 12.8);
           return (
             <SvgText
               key={`label-${i}`}
@@ -115,19 +151,48 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               fontSize={11}
               fontWeight="600"
             >
-              {comp.emoji} {comp.value}
+              {comp.emoji} {comp.label}
             </SvgText>
           );
         })}
       </Svg>
 
-      {/* Legend */}
-      <View style={styles.legend}>
-        {data.map((comp) => (
-          <View key={comp.label} style={styles.legendItem}>
-            <Text style={styles.legendEmoji}>{comp.emoji}</Text>
-            <Text style={styles.legendLabel}>{comp.label}</Text>
-          </View>
+      {/* Animated score badges */}
+      <View style={styles.scoresRow}>
+        {data.map((comp, i) => (
+          <Animated.View
+            key={comp.label}
+            style={[
+              styles.scoreBadge,
+              {
+                transform: [{ scale: scoreScales[i] }],
+                borderColor:
+                  comp.value >= 8
+                    ? Colors.green + '40'
+                    : comp.value >= 6
+                      ? Colors.cyan + '40'
+                      : Colors.orange + '40',
+              },
+            ]}
+          >
+            <Text style={styles.scoreBadgeEmoji}>{comp.emoji}</Text>
+            <Text
+              style={[
+                styles.scoreBadgeValue,
+                {
+                  color:
+                    comp.value >= 8
+                      ? Colors.green
+                      : comp.value >= 6
+                        ? Colors.cyan
+                        : Colors.orange,
+                },
+              ]}
+            >
+              {comp.value}/10
+            </Text>
+            <Text style={styles.scoreBadgeLabel}>{comp.label}</Text>
+          </Animated.View>
         ))}
       </View>
     </View>
@@ -138,28 +203,34 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
-  legend: {
+  scoresRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 10,
-    marginTop: 8,
+    gap: 8,
+    marginTop: 12,
   },
-  legendItem: {
-    flexDirection: 'row',
+  scoreBadge: {
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.blueNightCard,
+    backgroundColor: Colors.blueNightLight,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    minWidth: 62,
   },
-  legendEmoji: {
+  scoreBadgeEmoji: {
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  scoreBadgeValue: {
     fontSize: 13,
+    fontWeight: '800',
   },
-  legendLabel: {
-    fontSize: 11,
-    color: Colors.lightGray,
-    fontWeight: '500',
+  scoreBadgeLabel: {
+    fontSize: 9,
+    color: Colors.gray,
+    fontWeight: '600',
+    marginTop: 1,
   },
 });
