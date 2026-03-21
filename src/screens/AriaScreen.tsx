@@ -14,88 +14,120 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import AriaAvatar from '../components/chat/AriaAvatar';
+import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 
-// ─── Mock conversation ────────────────────────────────────
+// ─── Initial greeting ────────────────────────────────────
 
-const INITIAL_MESSAGES: Message[] = [
-  {
-    id: '1',
-    text: 'Bonjour ! Je suis Aria, ton assistante scolaire. Comment puis-je t\'aider aujourd\'hui ? 📚',
-    sender: 'aria',
-    timestamp: '09:00',
-  },
-  {
-    id: '2',
-    text: 'Lucas a un contrôle de maths vendredi, tu peux m\'aider à le préparer ?',
-    sender: 'parent',
-    timestamp: '09:01',
-  },
-  {
-    id: '3',
-    text: 'Bien sûr ! J\'ai analysé les dernières notes de Lucas en maths. Il maîtrise bien la géométrie (16/20) mais pourrait renforcer les fractions. Je te propose un plan de révision sur 3 jours. On commence ?',
-    sender: 'aria',
-    timestamp: '09:01',
-  },
-];
+const WELCOME_MESSAGE: Message = {
+  id: '1',
+  text: 'Bonjour ! Je suis Aria ✦, ton assistante scolaire. J\'ai accès au profil complet de Lucas — notes, activités, bien-être. Pose-moi une question ! 📚',
+  sender: 'aria',
+  timestamp: new Date().toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }),
+};
 
-const ARIA_RESPONSES = [
-  'D\'après les résultats de Lucas, je recommande de se concentrer sur les exercices de fractions et de proportionnalité. Voulez-vous que je génère des exercices personnalisés ?',
-  'J\'ai remarqué que Lucas obtient de meilleurs résultats le matin. Peut-être planifier les révisions avant 10h serait bénéfique ?',
-  'Les notes d\'Emma en anglais sont en progression constante ce trimestre. C\'est encourageant ! Souhaitez-vous voir le détail ?',
-  'Je peux vous envoyer un résumé hebdomadaire des progrès de vos enfants chaque dimanche. Ça vous intéresse ?',
+const SUGGESTIONS = [
+  '📊 Résumé de la semaine',
+  '📝 Préparer le contrôle de maths',
+  '💡 Conseils pour progresser',
+  '😊 Comment va Lucas ?',
+  '🎯 Forces et faiblesses',
 ];
 
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activeChildId] = useState('1'); // Will be switchable later
   const flatListRef = useRef<FlatList>(null);
-  const responseIndex = useRef(0);
+
+  // Conversation history for Claude API (excludes welcome message)
+  const conversationHistoryRef = useRef<ClaudeMessage[]>([]);
 
   const scrollToEnd = useCallback(() => {
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   }, []);
 
-  const sendMessage = useCallback(() => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
+  const now = () =>
+    new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
 
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      text: trimmed,
-      sender: 'parent',
-      timestamp: new Date().toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
+  const sendMessage = useCallback(
+    async (textOverride?: string) => {
+      const trimmed = (textOverride ?? input).trim();
+      if (!trimmed || isTyping) return;
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
-    scrollToEnd();
-
-    // Simulate Aria typing
-    setIsTyping(true);
-    scrollToEnd();
-
-    setTimeout(() => {
-      const ariaMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        text: ARIA_RESPONSES[responseIndex.current % ARIA_RESPONSES.length],
-        sender: 'aria',
-        timestamp: new Date().toLocaleTimeString('fr-FR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+      // Add user message to UI
+      const userMsg: Message = {
+        id: Date.now().toString(),
+        text: trimmed,
+        sender: 'parent',
+        timestamp: now(),
       };
-      responseIndex.current += 1;
-      setIsTyping(false);
-      setMessages((prev) => [...prev, ariaMsg]);
+
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+      setIsTyping(true);
       scrollToEnd();
-    }, 2000);
-  }, [input, scrollToEnd]);
+
+      try {
+        // Call Claude API with conversation history
+        const response = await sendToAria(
+          trimmed,
+          conversationHistoryRef.current,
+          activeChildId,
+        );
+
+        // Update conversation history
+        conversationHistoryRef.current = [
+          ...conversationHistoryRef.current,
+          { role: 'user', content: trimmed },
+          { role: 'assistant', content: response },
+        ];
+
+        // Keep last 20 messages to stay within context limits
+        if (conversationHistoryRef.current.length > 20) {
+          conversationHistoryRef.current =
+            conversationHistoryRef.current.slice(-20);
+        }
+
+        // Add Aria response to UI
+        const ariaMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response,
+          sender: 'aria',
+          timestamp: now(),
+        };
+
+        setMessages((prev) => [...prev, ariaMsg]);
+      } catch (error) {
+        const errorMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          text: '❌ Une erreur est survenue. Réessaie dans quelques instants.',
+          sender: 'aria',
+          timestamp: now(),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      } finally {
+        setIsTyping(false);
+        scrollToEnd();
+      }
+    },
+    [input, isTyping, scrollToEnd, activeChildId],
+  );
+
+  const handleSuggestionPress = useCallback(
+    (suggestion: string) => {
+      sendMessage(suggestion);
+    },
+    [sendMessage],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: Message }) => <ChatBubble message={item} />,
@@ -121,13 +153,34 @@ export default function AriaScreen() {
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>Aria ✦</Text>
           <View style={styles.statusRow}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>En ligne</Text>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: isTyping ? Colors.orange : Colors.green },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: isTyping ? Colors.orange : Colors.green },
+              ]}
+            >
+              {isTyping ? 'Réfléchit...' : 'En ligne'}
+            </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.headerAction}>
-          <Ionicons name="ellipsis-vertical" size={20} color={Colors.gray} />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <View style={styles.modelBadge}>
+            <Text style={styles.modelText}>Claude Sonnet</Text>
+          </View>
+          <TouchableOpacity style={styles.headerAction}>
+            <Ionicons
+              name="ellipsis-vertical"
+              size={20}
+              color={Colors.gray}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Suggestions banner */}
@@ -135,22 +188,24 @@ export default function AriaScreen() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={[
-            '📊 Résumé de la semaine',
-            '📝 Préparer un contrôle',
-            '💡 Conseils pour Emma',
-          ]}
+          data={SUGGESTIONS}
           keyExtractor={(item) => item}
           contentContainerStyle={styles.suggestionsContent}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.suggestionChip}
-              onPress={() => {
-                setInput(item);
-              }}
+              onPress={() => handleSuggestionPress(item)}
               activeOpacity={0.7}
+              disabled={isTyping}
             >
-              <Text style={styles.suggestionText}>{item}</Text>
+              <Text
+                style={[
+                  styles.suggestionText,
+                  isTyping && { opacity: 0.4 },
+                ]}
+              >
+                {item}
+              </Text>
             </TouchableOpacity>
           )}
         />
@@ -182,13 +237,15 @@ export default function AriaScreen() {
             onChangeText={setInput}
             multiline
             maxLength={500}
-            onSubmitEditing={sendMessage}
+            onSubmitEditing={() => sendMessage()}
+            editable={!isTyping}
           />
           {input.trim() ? (
             <TouchableOpacity
-              style={styles.sendButton}
-              onPress={sendMessage}
+              style={[styles.sendButton, isTyping && { opacity: 0.4 }]}
+              onPress={() => sendMessage()}
               activeOpacity={0.7}
+              disabled={isTyping}
             >
               <Ionicons name="send" size={20} color={Colors.white} />
             </TouchableOpacity>
@@ -241,12 +298,28 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.green,
   },
   statusText: {
     fontSize: 12,
-    color: Colors.green,
     fontWeight: '500',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modelBadge: {
+    backgroundColor: 'rgba(109,40,217,0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(109,40,217,0.3)',
+  },
+  modelText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.violetLight,
   },
   headerAction: {
     padding: 8,
