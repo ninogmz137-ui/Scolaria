@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.99.3",
     "expo": "~55.0.8",
     "expo-constants": "~55.0.9",
+    "expo-dev-client": "~55.0.18",
     "expo-linear-gradient": "~55.0.9",
     "expo-splash-screen": "~55.0.12",
     "expo-status-bar": "~55.0.4",
