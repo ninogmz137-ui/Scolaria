@@ -40,6 +40,7 @@ export async function getChild(childId: string) {
 
 export async function createChild(child: {
   parent_id: string;
+  scolaria_id?: string;
   first_name: string;
   last_name?: string;
   avatar_emoji?: string;

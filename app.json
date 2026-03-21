@@ -17,9 +17,13 @@
       "bundleIdentifier": "com.scolaria.app",
       "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ],
         "NSCameraUsageDescription": "Scolaria utilise la caméra pour scanner les bulletins scolaires.",
-        "NSPhotoLibraryUsageDescription": "Scolaria accède à vos photos pour importer des bulletins scolaires."
+        "NSPhotoLibraryUsageDescription": "Scolaria accède à vos photos pour importer des bulletins scolaires.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -37,20 +41,30 @@
       ],
       "predictiveBackGestureEnabled": false
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#22D3EE",
+          "sounds": []
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "bf7dc734-6f3f-4481-80d7-84fd2c818404"
       }
     },
-    "owner": "",
+    "owner": "nino137",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": ""
+      "url": "https://u.expo.dev/bf7dc734-6f3f-4481-80d7-84fd2c818404"
     }
   }
 }

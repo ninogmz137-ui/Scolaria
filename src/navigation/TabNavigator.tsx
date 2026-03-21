@@ -12,6 +12,7 @@ import ReglagesScreen from '../screens/ReglagesScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
+import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 
 // ─── Shared stack options with slide animation ──────────
 
@@ -47,6 +48,14 @@ function AccueilStackScreen() {
         component={ProfilEnfantScreen}
         options={{ title: 'Profil Enfant' }}
       />
+      <AccueilStack.Screen
+        name="AjouterEnfant"
+        component={AjouterEnfantScreen}
+        options={{
+          title: 'Ajouter un enfant',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </AccueilStack.Navigator>
   );
 }
@@ -70,6 +79,27 @@ function NotesStackScreen() {
         }}
       />
     </NotesStack.Navigator>
+  );
+}
+
+const ReglagesStack = createNativeStackNavigator();
+function ReglagesStackScreen() {
+  return (
+    <ReglagesStack.Navigator screenOptions={stackScreenOptions}>
+      <ReglagesStack.Screen
+        name="ReglagesHome"
+        component={ReglagesScreen}
+        options={{ title: 'Réglages' }}
+      />
+      <ReglagesStack.Screen
+        name="AjouterEnfantReglages"
+        component={AjouterEnfantScreen}
+        options={{
+          title: 'Ajouter un enfant',
+          animation: 'slide_from_bottom',
+        }}
+      />
+    </ReglagesStack.Navigator>
   );
 }
 
@@ -140,16 +170,7 @@ export default function TabNavigator() {
           headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
-      <Tab.Screen
-        name="Réglages"
-        component={ReglagesScreen}
-        options={{
-          headerShown: true,
-          headerStyle: { backgroundColor: Colors.blueNight },
-          headerTintColor: Colors.white,
-          headerTitleStyle: { fontWeight: 'bold' },
-        }}
-      />
+      <Tab.Screen name="Réglages" component={ReglagesStackScreen} />
     </Tab.Navigator>
   );
 }
