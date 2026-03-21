@@ -5,10 +5,12 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  Linking,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { detectCriticalKeywords } from '../profile/JoyAlerts';
 
 interface SliderData {
   key: string;
@@ -161,6 +163,43 @@ export default function LyceeMode({ onSubmit }: Props) {
         <Text style={styles.charCount}>{message.length}/500</Text>
       </View>
 
+      {/* Urgency protocol — appears immediately if critical keywords detected */}
+      {detectCriticalKeywords(message) && (
+        <View style={styles.urgencyBox}>
+          <View style={styles.urgencyHeader}>
+            <Ionicons name="heart" size={18} color={Colors.red} />
+            <Text style={styles.urgencyTitle}>Tu n'es pas seul(e)</Text>
+          </View>
+          <Text style={styles.urgencyMessage}>
+            Si tu traverses un moment difficile, n'hésite pas à en parler. Ces numéros sont gratuits et anonymes :
+          </Text>
+          <TouchableOpacity
+            style={styles.helpLine}
+            onPress={() => Linking.openURL('tel:3020')}
+          >
+            <Text style={styles.helpNumber}>📞 3020</Text>
+            <Text style={styles.helpLabel}>Non au Harcèlement — gratuit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.helpLine}
+            onPress={() => Linking.openURL('tel:3114')}
+          >
+            <Text style={styles.helpNumber}>🆘 3114</Text>
+            <Text style={styles.helpLabel}>Prévention du suicide — 24h/24, 7j/7</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.helpLine}
+            onPress={() => Linking.openURL('tel:119')}
+          >
+            <Text style={styles.helpNumber}>🛡️ 119</Text>
+            <Text style={styles.helpLabel}>Allô Enfance en Danger — 24h/24</Text>
+          </TouchableOpacity>
+          <Text style={styles.urgencyFooter}>
+            Tu peux aussi parler à un adulte de confiance : parent, prof, CPE, infirmier(ère) scolaire.
+          </Text>
+        </View>
+      )}
+
       {/* Submit */}
       <TouchableOpacity
         style={styles.submitButton}
@@ -279,6 +318,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 14,
     lineHeight: 18,
+  },
+  // Urgency protocol
+  urgencyBox: {
+    backgroundColor: '#3D1010',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F8717140',
+  },
+  urgencyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  urgencyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.white,
+  },
+  urgencyMessage: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  helpLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 6,
+  },
+  helpNumber: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: Colors.white,
+  },
+  helpLabel: {
+    fontSize: 12,
+    color: Colors.gray,
+  },
+  urgencyFooter: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 17,
   },
   // Success state
   successContainer: {

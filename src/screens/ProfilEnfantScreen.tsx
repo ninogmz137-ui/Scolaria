@@ -6,17 +6,20 @@ import SuperPowerBadge from '../components/profile/SuperPowerBadge';
 import CompetenceRadar from '../components/profile/CompetenceRadar';
 import JoyHistory from '../components/profile/JoyHistory';
 import Portfolio from '../components/profile/Portfolio';
+import JoyAlerts, { detectJoyAlert, detectCriticalKeywords } from '../components/profile/JoyAlerts';
 
 // ─── Mock data ────────────────────────────────────────────
 
 const CHILD = {
   name: 'Lucas Moreau',
+  firstName: 'Lucas',
   avatar: '👦',
   classe: 'CM2 — École Voltaire',
   scolariaId: 'SCA-2026-FR-048721',
   age: 10,
   superPower: 'Curiosité',
   superPowerEmoji: '🔭',
+  superPowerDescription: 'Lucas pose toujours des questions pertinentes et adore explorer de nouveaux sujets',
 };
 
 const COMPETENCES = [
@@ -28,20 +31,73 @@ const COMPETENCES = [
 ];
 
 const PORTFOLIO = [
-  { id: '1', name: 'Judo', emoji: '🥋', category: 'Sport', level: 'Ceinture verte', color: Colors.green },
-  { id: '2', name: 'Piano', emoji: '🎹', category: 'Musique', level: '3ème année', color: Colors.violet },
-  { id: '3', name: 'Robotique', emoji: '🤖', category: 'Tech', level: 'Intermédiaire', color: Colors.cyan },
-  { id: '4', name: 'Dessin', emoji: '✏️', category: 'Art', level: 'Avancé', color: Colors.pink },
+  {
+    id: '1',
+    name: 'Judo',
+    emoji: '🥋',
+    category: 'Sport',
+    level: 'Ceinture verte',
+    color: Colors.green,
+    hoursPerWeek: 3,
+    progressPercent: 65,
+    since: '2023',
+  },
+  {
+    id: '2',
+    name: 'Piano',
+    emoji: '🎹',
+    category: 'Musique',
+    level: '3ème année',
+    color: Colors.violet,
+    hoursPerWeek: 2,
+    progressPercent: 45,
+    since: '2024',
+  },
+  {
+    id: '3',
+    name: 'Robotique',
+    emoji: '🤖',
+    category: 'Tech',
+    level: 'Intermédiaire',
+    color: Colors.cyan,
+    hoursPerWeek: 1.5,
+    progressPercent: 70,
+    since: '2025',
+  },
+  {
+    id: '4',
+    name: 'Dessin',
+    emoji: '✏️',
+    category: 'Art',
+    level: 'Avancé',
+    color: Colors.pink,
+    hoursPerWeek: 1,
+    progressPercent: 85,
+    since: '2022',
+  },
 ];
 
+// Simulate a slight drop for demo (scores go from ~7.5 average to ~5.5 average)
 const JOY_30_DAYS = Array.from({ length: 30 }, (_, i) => ({
   day: i + 1,
-  score: Math.floor(Math.random() * 5 + 5), // 5-9
+  score:
+    i < 20
+      ? Math.floor(Math.random() * 3 + 6) // 6-8 for first 20 days
+      : i < 25
+        ? Math.floor(Math.random() * 3 + 4) // 4-6 for days 21-25
+        : Math.floor(Math.random() * 3 + 3), // 3-5 for last 5 days
 }));
+
+// Simulate last check-in message (no critical keywords for default)
+const LAST_CHECKIN_MESSAGE = '';
 
 // ─── Component ────────────────────────────────────────────
 
 export default function ProfilEnfantScreen() {
+  // Detect alert level from joy data
+  const joyAlert = detectJoyAlert(JOY_30_DAYS);
+  const hasCriticalMessage = detectCriticalKeywords(LAST_CHECKIN_MESSAGE);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header card */}
@@ -70,11 +126,25 @@ export default function ProfilEnfantScreen() {
       </LinearGradient>
 
       <View style={styles.body}>
+        {/* Joy Alerts — shown first if active */}
+        {(joyAlert.level || hasCriticalMessage) && (
+          <View style={styles.section}>
+            <JoyAlerts
+              level={joyAlert.level}
+              dropPercent={joyAlert.dropPercent}
+              recentAvg={joyAlert.recentAvg}
+              childName={CHILD.firstName}
+              showUrgencyProtocol={hasCriticalMessage}
+            />
+          </View>
+        )}
+
         {/* Super Power Badge */}
         <View style={styles.section}>
           <SuperPowerBadge
             power={CHILD.superPower}
             emoji={CHILD.superPowerEmoji}
+            description={CHILD.superPowerDescription}
           />
         </View>
 
