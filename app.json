@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "scheme": "scolaria",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -13,21 +14,43 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.scolaria.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "UIBackgroundModes": ["fetch", "remote-notification"]
+        "UIBackgroundModes": ["fetch", "remote-notification"],
+        "NSCameraUsageDescription": "Scolaria utilise la caméra pour scanner les bulletins scolaires.",
+        "NSPhotoLibraryUsageDescription": "Scolaria accède à vos photos pour importer des bulletins scolaires."
       }
     },
     "android": {
+      "package": "com.scolaria.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#0B0F2A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    },
+    "owner": "",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": ""
     }
   }
 }
