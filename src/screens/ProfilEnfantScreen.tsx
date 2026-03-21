@@ -23,11 +23,11 @@ const CHILD = {
 };
 
 const COMPETENCES = [
-  { label: 'Logique', value: 8, emoji: '🧠' },
+  { label: 'Connaissances', value: 8, emoji: '📚' },
   { label: 'Créativité', value: 7, emoji: '🎨' },
-  { label: 'Communication', value: 6, emoji: '💬' },
-  { label: 'Autonomie', value: 8, emoji: '🚀' },
-  { label: 'Collaboration', value: 7, emoji: '🤝' },
+  { label: 'Confiance', value: 6, emoji: '💪' },
+  { label: 'Logique', value: 8, emoji: '🧠' },
+  { label: 'Curiosité', value: 7, emoji: '🔍' },
 ];
 
 const PORTFOLIO = [
@@ -55,25 +55,36 @@ const PORTFOLIO = [
   },
   {
     id: '3',
-    name: 'Robotique',
-    emoji: '🤖',
-    category: 'Tech',
-    level: 'Intermédiaire',
+    name: 'Anglais',
+    emoji: '🇬🇧',
+    category: 'Langue',
+    level: 'A2',
     color: Colors.cyan,
-    hoursPerWeek: 1.5,
-    progressPercent: 70,
-    since: '2025',
+    hoursPerWeek: 1,
+    progressPercent: 55,
+    since: '2022',
   },
   {
     id: '4',
-    name: 'Dessin',
-    emoji: '✏️',
-    category: 'Art',
-    level: 'Avancé',
+    name: 'Natation',
+    emoji: '🏊',
+    category: 'Sport',
+    level: 'Dauphin',
+    color: '#38BDF8',
+    hoursPerWeek: 1.5,
+    progressPercent: 80,
+    since: '2024',
+  },
+  {
+    id: '5',
+    name: 'Théâtre',
+    emoji: '🎭',
+    category: 'Activité',
+    level: '2ème année',
     color: Colors.pink,
-    hoursPerWeek: 1,
-    progressPercent: 85,
-    since: '2022',
+    hoursPerWeek: 2,
+    progressPercent: 40,
+    since: '2025',
   },
 ];
 
