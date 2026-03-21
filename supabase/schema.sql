@@ -29,11 +29,19 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, family_name)
-  VALUES (NEW.id, NEW.email, split_part(NEW.email, '@', 1));
+  INSERT INTO public.profiles (id, email, family_name)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.email, ''),
+    COALESCE(NEW.raw_user_meta_data->>'family_name', split_part(COALESCE(NEW.email, ''), '@', 1), '')
+  );
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE WARNING 'handle_new_user failed for user %: %', NEW.id, SQLERRM;
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -193,6 +201,7 @@ ALTER TABLE aria_messages ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: users can only see/edit their own profile
 CREATE POLICY profiles_select ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY profiles_insert ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 CREATE POLICY profiles_update ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Children: parents can only see/manage their own children
