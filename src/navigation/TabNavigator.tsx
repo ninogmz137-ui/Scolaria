@@ -14,6 +14,11 @@ import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 
+// Teacher screens
+import AppreciationsScreen from '../screens/teacher/AppreciationsScreen';
+import MeteoClasseScreen from '../screens/teacher/MeteoClasseScreen';
+import VieDeClasseScreen from '../screens/teacher/VieDeClasseScreen';
+
 // ─── Shared stack options with slide animation ──────────
 
 const stackScreenOptions = {
@@ -98,6 +103,22 @@ function ReglagesStackScreen() {
           title: 'Ajouter un enfant',
           animation: 'slide_from_bottom',
         }}
+      />
+      {/* Teacher space screens */}
+      <ReglagesStack.Screen
+        name="Appreciations"
+        component={AppreciationsScreen}
+        options={{ title: 'Appréciations' }}
+      />
+      <ReglagesStack.Screen
+        name="MeteoClasse"
+        component={MeteoClasseScreen}
+        options={{ title: 'Météo de classe' }}
+      />
+      <ReglagesStack.Screen
+        name="VieDeClasse"
+        component={VieDeClasseScreen}
+        options={{ title: 'Vie de classe' }}
       />
     </ReglagesStack.Navigator>
   );

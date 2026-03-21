@@ -185,7 +185,7 @@ const rowStyles = StyleSheet.create({
 
 // ─── Main screen ─────────────────────────────────────────
 
-export default function ReglagesScreen() {
+export default function ReglagesScreen({ navigation }: { navigation: any }) {
   const [notifications, setNotifications] = useState({
     grades: true,
     agenda: true,
@@ -357,6 +357,35 @@ export default function ReglagesScreen() {
             onToggle={(v) =>
               setNotifications((p) => ({ ...p, checkin: v }))
             }
+            isLast
+          />
+        </SettingsSection>
+
+        {/* Teacher space */}
+        <SettingsSection title="Espace enseignant">
+          <SettingsRowItem
+            icon="create"
+            label="Appréciations"
+            sublabel="Générateur Aria — cochez, c'est rédigé"
+            color={Colors.violet}
+            type="navigate"
+            onPress={() => navigation.navigate('Appreciations')}
+          />
+          <SettingsRowItem
+            icon="partly-sunny"
+            label="Météo de classe"
+            sublabel="Dashboard bien-être anonymisé"
+            color={Colors.cyan}
+            type="navigate"
+            onPress={() => navigation.navigate('MeteoClasse')}
+          />
+          <SettingsRowItem
+            icon="camera"
+            label="Vie de classe"
+            sublabel="Photos, annonces et moments"
+            color={Colors.pink}
+            type="navigate"
+            onPress={() => navigation.navigate('VieDeClasse')}
             isLast
           />
         </SettingsSection>
