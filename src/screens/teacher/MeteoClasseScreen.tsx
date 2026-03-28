@@ -7,14 +7,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   ScrollView,
-  TouchableOpacity,
   Animated,
   Dimensions,
 } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -24,9 +21,9 @@ const { width } = Dimensions.get('window');
 // ─── Types ───────────────────────────────────────────────
 
 interface DayWeather {
-  day: string;      // "Lun", "Mar", etc.
-  date: string;     // "17 mars"
-  avgScore: number;  // 0-10
+  day: string;
+  date: string;
+  avgScore: number;
   responses: number;
   alerts: number;
 }
@@ -84,6 +81,14 @@ const ANONYMOUS_ALERTS = [
   },
 ];
 
+const ANXIETY_DATA = {
+  current: 12,
+  previous: 8,
+};
+
+const ARIA_SUMMARY =
+  'Semaine stable avec un pic de stress jeudi, probablement lié aux évaluations. Le moral général reste bon. La motivation est en légère hausse depuis lundi.';
+
 // ─── Helpers ─────────────────────────────────────────────
 
 function getWeatherEmoji(score: number): string {
@@ -109,10 +114,26 @@ function getScoreColor(score: number): string {
   return Colors.red;
 }
 
+function getAnxietyColor(pct: number): string {
+  if (pct < 10) return Colors.green;
+  if (pct <= 20) return Colors.orange;
+  return Colors.red;
+}
+
+function getWeeklyTrend(data: DayWeather[]): { label: string; icon: string; color: string } {
+  if (data.length < 2) return { label: 'Stable', icon: 'remove', color: Colors.gray };
+  const first = data[0].avgScore;
+  const last = data[data.length - 1].avgScore;
+  const diff = last - first;
+  if (diff > 0.3) return { label: 'En hausse', icon: 'trending-up', color: Colors.green };
+  if (diff < -0.3) return { label: 'En baisse', icon: 'trending-down', color: Colors.red };
+  return { label: 'Stable', icon: 'remove', color: Colors.gray };
+}
+
 // ─── Component ───────────────────────────────────────────
 
 export default function MeteoClasseScreen() {
-  const [selectedDay, setSelectedDay] = useState(4); // Friday
+  const [selectedDay, setSelectedDay] = useState(4);
 
   // Animations
   const headerScale = useRef(new Animated.Value(0)).current;
@@ -134,143 +155,179 @@ export default function MeteoClasseScreen() {
   }, []);
 
   const todayScore = WEEK_DATA[selectedDay].avgScore;
+  const anxietyColor = getAnxietyColor(ANXIETY_DATA.current);
+  const weeklyTrend = getWeeklyTrend(WEEK_DATA);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header with big weather */}
+    <ScrollView style={{ flex: 1, backgroundColor: Colors.blueNight }} showsVerticalScrollIndicator={false}>
+      {/* ── 1. Header with big weather ── */}
       <LinearGradient
         colors={[Colors.cyanDark, Colors.blueNight]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.8 }}
-        style={styles.header}
+        style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24 }}
       >
-        <Text style={styles.className}>
+        <Text className="text-sm font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.6)' }}>
           {CLASS_INFO.name} — {CLASS_INFO.school}
         </Text>
 
-        <Animated.View style={[styles.weatherCenter, { transform: [{ scale: headerScale }] }]}>
-          <Text style={styles.weatherEmoji}>{getWeatherEmoji(todayScore)}</Text>
-          <Text style={styles.weatherScore}>{todayScore.toFixed(1)}</Text>
-          <Text style={styles.weatherLabel}>{getWeatherLabel(todayScore)}</Text>
+        <Animated.View style={{ alignItems: 'center', marginBottom: 16, transform: [{ scale: headerScale }] }}>
+          <Text className="text-[64px] mb-1">{getWeatherEmoji(todayScore)}</Text>
+          <Text className="text-[42px] font-black" style={{ color: Colors.white }}>{todayScore.toFixed(1)}</Text>
+          <Text className="text-base font-semibold mt-0.5" style={{ color: Colors.cyan }}>{getWeatherLabel(todayScore)}</Text>
         </Animated.View>
 
-        <View style={styles.participationBadge}>
+        <HStack className="items-center gap-1.5 px-3.5 py-1.5 rounded-[20px]" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
           <Ionicons name="people" size={14} color={Colors.cyan} />
-          <Text style={styles.participationText}>
+          <Text className="text-[13px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
             {CLASS_INFO.respondedToday}/{CLASS_INFO.totalStudents} élèves ont répondu
           </Text>
-        </View>
+        </HStack>
       </LinearGradient>
 
-      <View style={styles.body}>
-        {/* Week bar chart */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Semaine du 16 mars</Text>
-          <View style={styles.weekChart}>
-            {WEEK_DATA.map((day, i) => {
-              const heightPercent = (day.avgScore / 10) * 100;
-              return (
-                <TouchableOpacity
+      <VStack className="px-5 pt-2">
+        {/* ── 2. Anxiety percentage card ── */}
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Pourcentage d'anxiété</Text>
+          <Box className="rounded-[18px] p-5" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: anxietyColor + '40' }}>
+            <HStack className="justify-between items-center">
+              <VStack className="flex-1">
+                <Text className="text-5xl font-black" style={{ color: anxietyColor, letterSpacing: -1 }}>
+                  {ANXIETY_DATA.current}%
+                </Text>
+                <Text className="text-[13px] mt-0.5" style={{ color: Colors.gray }}>des élèves cette semaine</Text>
+              </VStack>
+              <HStack className="items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+                <Box className="w-2 h-2 rounded-full" style={{ backgroundColor: anxietyColor }} />
+                <Text className="text-[13px] font-bold" style={{ color: anxietyColor }}>
+                  {ANXIETY_DATA.current < 10
+                    ? 'Faible'
+                    : ANXIETY_DATA.current <= 20
+                      ? 'Modéré'
+                      : 'Élevé'}
+                </Text>
+              </HStack>
+            </HStack>
+            <HStack className="items-center gap-1 mt-3.5 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+              <Ionicons
+                name={ANXIETY_DATA.current > ANXIETY_DATA.previous ? 'arrow-up' : 'arrow-down'}
+                size={13}
+                color={ANXIETY_DATA.current > ANXIETY_DATA.previous ? Colors.red : Colors.green}
+              />
+              <Text className="text-[13px]" style={{ color: Colors.gray }}>
+                vs {ANXIETY_DATA.previous}% la semaine dernière
+              </Text>
+            </HStack>
+          </Box>
+        </VStack>
+
+        {/* ── 3. Weekly trend with emoji row ── */}
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Tendance de la semaine</Text>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <HStack className="justify-between mb-4">
+              {WEEK_DATA.map((day, i) => (
+                <Pressable
                   key={day.day}
-                  style={styles.dayColumn}
                   onPress={() => setSelectedDay(i)}
-                  activeOpacity={0.7}
+                  className="items-center flex-1 py-2.5 rounded-[14px]"
+                  style={selectedDay === i ? { backgroundColor: 'rgba(34,211,238,0.1)' } : undefined}
                 >
-                  {/* Score label */}
-                  <Text style={[
-                    styles.dayScore,
-                    selectedDay === i && { color: Colors.white, fontWeight: '800' },
-                  ]}>
-                    {day.avgScore.toFixed(1)}
-                  </Text>
-
-                  {/* Bar */}
-                  <View style={styles.barBg}>
-                    <Animated.View
-                      style={[
-                        styles.barFill,
-                        {
-                          height: barAnims[i].interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ['0%', `${heightPercent}%`],
-                          }),
-                          backgroundColor: getScoreColor(day.avgScore),
-                          opacity: selectedDay === i ? 1 : 0.6,
-                        },
-                      ]}
-                    />
-                  </View>
-
-                  {/* Day label */}
-                  <Text style={[
-                    styles.dayLabel,
-                    selectedDay === i && { color: Colors.cyan, fontWeight: '800' },
-                  ]}>
+                  <Text className="text-[28px] mb-1">{getWeatherEmoji(day.avgScore)}</Text>
+                  <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyan : Colors.gray, fontWeight: selectedDay === i ? '800' : '600' }}>
                     {day.day}
                   </Text>
+                  <Text className="text-xs font-bold" style={{ color: selectedDay === i ? Colors.white : Colors.gray }}>
+                    {day.avgScore.toFixed(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </HStack>
 
-                  {/* Alert dot */}
-                  {day.alerts > 0 && (
-                    <View style={styles.alertDot}>
-                      <Text style={styles.alertDotText}>{day.alerts}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+            <HStack className="items-center gap-2 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+              <Ionicons name={weeklyTrend.icon as any} size={20} color={weeklyTrend.color} />
+              <Text className="text-[15px] font-extrabold" style={{ color: weeklyTrend.color }}>
+                {weeklyTrend.label}
+              </Text>
+              <Text className="text-[13px] ml-auto" style={{ color: Colors.gray }}>
+                {WEEK_DATA[0].avgScore.toFixed(1)} → {WEEK_DATA[WEEK_DATA.length - 1].avgScore.toFixed(1)}
+              </Text>
+            </HStack>
+          </Box>
+        </VStack>
 
-        {/* Emotion distribution */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Répartition des émotions</Text>
-          <View style={styles.distCard}>
-            {/* Bar visualization */}
-            <View style={styles.distBar}>
+        {/* ── 4. Aria summary card ── */}
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Résumé Aria</Text>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: Colors.violet + '30' }}>
+            <HStack className="items-center gap-2.5 mb-3">
+              <LinearGradient
+                colors={[Colors.violet, Colors.cyanDark]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ width: 30, height: 30, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}
+              >
+                <Ionicons name="sparkles" size={16} color={Colors.white} />
+              </LinearGradient>
+              <Text className="text-sm font-bold" style={{ color: Colors.violet + 'CC' }}>Analyse IA de la semaine</Text>
+            </HStack>
+            <Text className="text-sm leading-[21px]" style={{ color: 'rgba(255,255,255,0.8)' }}>{ARIA_SUMMARY}</Text>
+          </Box>
+        </VStack>
+
+        {/* ── 5. Emotion distribution ── */}
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Répartition des émotions</Text>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+            <HStack className="h-3.5 rounded-[7px] overflow-hidden mb-4 gap-0.5">
               {EMOTION_DISTRIBUTION.map((e, i) => (
                 <Animated.View
                   key={e.label}
-                  style={[
-                    styles.distBarSegment,
-                    {
-                      flex: distAnims[i].interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, e.percent],
-                      }),
-                      backgroundColor: e.color,
-                    },
-                  ]}
+                  style={{
+                    flex: distAnims[i].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, e.percent],
+                    }),
+                    backgroundColor: e.color,
+                    borderRadius: 7,
+                  }}
                 />
               ))}
-            </View>
+            </HStack>
 
-            {/* Legend */}
-            <View style={styles.distLegend}>
+            <HStack className="justify-between">
               {EMOTION_DISTRIBUTION.map((e) => (
-                <View key={e.label} style={styles.distItem}>
-                  <Text style={styles.distEmoji}>{e.emoji}</Text>
-                  <View style={styles.distInfo}>
-                    <Text style={styles.distPercent}>{e.percent}%</Text>
-                    <Text style={styles.distLabel}>{e.label}</Text>
-                  </View>
-                </View>
+                <VStack key={e.label} className="items-center flex-1">
+                  <Text className="text-2xl mb-1">{e.emoji}</Text>
+                  <Text className="text-base font-extrabold" style={{ color: Colors.white }}>{e.percent}%</Text>
+                  <Text className="text-[10px] mt-0.5" style={{ color: Colors.gray }}>{e.label}</Text>
+                </VStack>
               ))}
-            </View>
-          </View>
-        </View>
+            </HStack>
+          </Box>
+        </VStack>
 
-        {/* Wellbeing indicators */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Indicateurs de bien-être</Text>
-          <View style={styles.indicatorsGrid}>
+        {/* ── 6. Wellbeing indicators ── */}
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Indicateurs de bien-être</Text>
+          <HStack className="flex-wrap gap-2.5">
             {WELLBEING_INDICATORS.map((ind) => (
-              <View key={ind.label} style={styles.indicatorCard}>
-                <Text style={styles.indicatorIcon}>{ind.icon}</Text>
-                <Text style={[styles.indicatorValue, { color: getScoreColor(ind.label.includes('Stress') ? 10 - ind.value : ind.value) }]}>
+              <VStack
+                key={ind.label}
+                className="items-center p-4 rounded-2xl"
+                style={{
+                  width: (width - 50) / 2,
+                  backgroundColor: Colors.blueNightCard,
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.06)',
+                }}
+              >
+                <Text className="text-2xl mb-1.5">{ind.icon}</Text>
+                <Text className="text-2xl font-black" style={{ color: getScoreColor(ind.label.includes('Stress') ? 10 - ind.value : ind.value) }}>
                   {ind.value.toFixed(1)}
                 </Text>
-                <Text style={styles.indicatorLabel}>{ind.label}</Text>
-                <View style={styles.trendBadge}>
+                <Text className="text-[11px] mt-0.5 text-center" style={{ color: Colors.gray }}>{ind.label}</Text>
+                <HStack className="items-center gap-0.5 mt-1.5 px-2 py-0.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
                   <Ionicons
                     name={ind.trend >= 0 ? 'arrow-up' : 'arrow-down'}
                     size={10}
@@ -280,170 +337,62 @@ export default function MeteoClasseScreen() {
                         : (ind.trend >= 0 ? Colors.green : Colors.red)
                     }
                   />
-                  <Text style={[
-                    styles.trendText,
-                    {
-                      color: ind.label.includes('Stress')
-                        ? (ind.trend <= 0 ? Colors.green : Colors.red)
-                        : (ind.trend >= 0 ? Colors.green : Colors.red),
-                    },
-                  ]}>
+                  <Text className="text-[11px] font-bold" style={{
+                    color: ind.label.includes('Stress')
+                      ? (ind.trend <= 0 ? Colors.green : Colors.red)
+                      : (ind.trend >= 0 ? Colors.green : Colors.red),
+                  }}>
                     {ind.trend >= 0 ? '+' : ''}{ind.trend.toFixed(1)}
                   </Text>
-                </View>
-              </View>
+                </HStack>
+              </VStack>
             ))}
-          </View>
-        </View>
+          </HStack>
+        </VStack>
 
-        {/* Anonymous alerts */}
+        {/* ── 7. Anonymous alerts ── */}
         {ANONYMOUS_ALERTS.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Signalements anonymes</Text>
+          <VStack className="mb-6">
+            <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Signalements anonymes</Text>
             {ANONYMOUS_ALERTS.map((alert) => (
-              <View
+              <Box
                 key={alert.id}
-                style={[
-                  styles.alertCard,
-                  {
-                    borderColor:
-                      alert.level === 'vigilance' ? Colors.orange + '40' : Colors.red + '40',
-                    backgroundColor:
-                      alert.level === 'vigilance' ? '#3D2E10' : '#3D1010',
-                  },
-                ]}
+                className="rounded-[14px] p-3.5 mb-2"
+                style={{
+                  borderWidth: 1,
+                  borderColor: alert.level === 'vigilance' ? Colors.orange + '40' : Colors.red + '40',
+                  backgroundColor: alert.level === 'vigilance' ? '#3D2E10' : '#3D1010',
+                }}
               >
-                <View style={styles.alertHeader}>
-                  <View style={[styles.alertLevelBadge, {
-                    backgroundColor: (alert.level === 'vigilance' ? Colors.orange : Colors.red) + '20',
-                  }]}>
+                <HStack className="justify-between items-center mb-2">
+                  <HStack className="items-center gap-1 px-2 py-[3px] rounded-lg" style={{ backgroundColor: (alert.level === 'vigilance' ? Colors.orange : Colors.red) + '20' }}>
                     <Ionicons
                       name={alert.level === 'vigilance' ? 'warning' : 'alert'}
                       size={14}
                       color={alert.level === 'vigilance' ? Colors.orange : Colors.red}
                     />
-                    <Text style={[styles.alertLevelText, {
-                      color: alert.level === 'vigilance' ? Colors.orange : Colors.red,
-                    }]}>
+                    <Text className="text-xs font-bold uppercase" style={{ color: alert.level === 'vigilance' ? Colors.orange : Colors.red }}>
                       {alert.level === 'vigilance' ? 'Vigilance' : 'Attention'}
                     </Text>
-                  </View>
-                  <Text style={styles.alertDate}>{alert.date}</Text>
-                </View>
-                <Text style={styles.alertMessage}>{alert.message}</Text>
-              </View>
+                  </HStack>
+                  <Text className="text-[11px]" style={{ color: Colors.gray }}>{alert.date}</Text>
+                </HStack>
+                <Text className="text-[13px] leading-[19px]" style={{ color: 'rgba(255,255,255,0.75)' }}>{alert.message}</Text>
+              </Box>
             ))}
 
-            <View style={styles.anonymityNote}>
+            {/* ── 8. Anonymity disclaimer ── */}
+            <HStack className="items-center gap-2 mt-2 px-1">
               <Ionicons name="eye-off" size={14} color={Colors.gray} />
-              <Text style={styles.anonymityText}>
+              <Text className="flex-1 text-[11px] leading-4" style={{ color: Colors.gray }}>
                 Les données sont agrégées et anonymisées. Aucun nom d'élève n'est visible.
               </Text>
-            </View>
-          </View>
+            </HStack>
+          </VStack>
         )}
 
-        <View style={{ height: 40 }} />
-      </View>
+        <Box className="h-10" />
+      </VStack>
     </ScrollView>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.blueNight },
-  // Header
-  header: { alignItems: 'center', paddingTop: 20, paddingBottom: 24 },
-  className: { fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginBottom: 12 },
-  weatherCenter: { alignItems: 'center', marginBottom: 16 },
-  weatherEmoji: { fontSize: 64, marginBottom: 4 },
-  weatherScore: { fontSize: 42, fontWeight: '900', color: Colors.white },
-  weatherLabel: { fontSize: 16, fontWeight: '600', color: Colors.cyan, marginTop: 2 },
-  participationBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.3)', paddingHorizontal: 14,
-    paddingVertical: 6, borderRadius: 20,
-  },
-  participationText: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-  // Body
-  body: { paddingHorizontal: 20, paddingTop: 8 },
-  section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.white, marginBottom: 12 },
-  // Week chart
-  weekChart: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    backgroundColor: Colors.blueNightCard, borderRadius: 18,
-    padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  dayColumn: { alignItems: 'center', flex: 1 },
-  dayScore: { fontSize: 12, fontWeight: '600', color: Colors.gray, marginBottom: 6 },
-  barBg: {
-    width: 28, height: 100, borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)', overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  barFill: { width: '100%', borderRadius: 14 },
-  dayLabel: { fontSize: 12, fontWeight: '600', color: Colors.gray, marginTop: 6 },
-  alertDot: {
-    position: 'absolute', top: -4, right: 4,
-    width: 16, height: 16, borderRadius: 8,
-    backgroundColor: Colors.red, justifyContent: 'center', alignItems: 'center',
-  },
-  alertDotText: { fontSize: 9, fontWeight: '900', color: Colors.white },
-  // Emotion distribution
-  distCard: {
-    backgroundColor: Colors.blueNightCard, borderRadius: 18,
-    padding: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  distBar: {
-    flexDirection: 'row', height: 14, borderRadius: 7,
-    overflow: 'hidden', marginBottom: 16, gap: 2,
-  },
-  distBarSegment: { borderRadius: 7 },
-  distLegend: { flexDirection: 'row', justifyContent: 'space-between' },
-  distItem: { alignItems: 'center', flex: 1 },
-  distEmoji: { fontSize: 24, marginBottom: 4 },
-  distInfo: { alignItems: 'center' },
-  distPercent: { fontSize: 16, fontWeight: '800', color: Colors.white },
-  distLabel: { fontSize: 10, color: Colors.gray, marginTop: 1 },
-  // Indicators
-  indicatorsGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', gap: 10,
-  },
-  indicatorCard: {
-    width: (width - 50) / 2,
-    backgroundColor: Colors.blueNightCard, borderRadius: 16,
-    padding: 16, alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  indicatorIcon: { fontSize: 24, marginBottom: 6 },
-  indicatorValue: { fontSize: 24, fontWeight: '900' },
-  indicatorLabel: { fontSize: 11, color: Colors.gray, marginTop: 2, textAlign: 'center' },
-  trendBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 2,
-    marginTop: 6, paddingHorizontal: 8, paddingVertical: 2,
-    borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  trendText: { fontSize: 11, fontWeight: '700' },
-  // Alerts
-  alertCard: {
-    borderRadius: 14, padding: 14, borderWidth: 1, marginBottom: 8,
-  },
-  alertHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 8,
-  },
-  alertLevelBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-  },
-  alertLevelText: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
-  alertDate: { fontSize: 11, color: Colors.gray },
-  alertMessage: { fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 19 },
-  anonymityNote: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    marginTop: 8, paddingHorizontal: 4,
-  },
-  anonymityText: { flex: 1, fontSize: 11, color: Colors.gray, lineHeight: 16 },
-});

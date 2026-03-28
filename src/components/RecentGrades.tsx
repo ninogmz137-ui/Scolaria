@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
+import { Box, Text, HStack, VStack } from './ui';
 import { Colors } from '../constants/colors';
 
 type Grade = {
@@ -24,103 +25,72 @@ function getGradeColor(grade: number, max: number): string {
 
 export default function RecentGrades({ grades }: Props) {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Notes récentes</Text>
-        <Text style={styles.seeAll}>Voir tout →</Text>
-      </View>
+    <Box className="mt-1">
+      <HStack className="justify-between items-center px-5 mb-3.5">
+        <Text
+          className="text-base font-bold"
+          style={{ color: Colors.white }}
+        >
+          Notes récentes
+        </Text>
+        <Text
+          className="text-[13px] font-medium"
+          style={{ color: Colors.cyan }}
+        >
+          Voir tout →
+        </Text>
+      </HStack>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
       >
         {grades.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <View style={[styles.emojiCircle, { backgroundColor: item.color + '20' }]}>
-              <Text style={styles.emoji}>{item.emoji}</Text>
-            </View>
-            <Text style={styles.subject} numberOfLines={1}>{item.subject}</Text>
-            <View style={styles.gradeRow}>
-              <Text style={[styles.grade, { color: getGradeColor(item.grade, item.maxGrade) }]}>
+          <VStack
+            key={item.id}
+            className="items-center rounded-2xl p-4"
+            style={{
+              backgroundColor: Colors.blueNightCard,
+              width: 130,
+            }}
+          >
+            <Box
+              className="w-11 h-11 rounded-full items-center justify-center mb-2.5"
+              style={{ backgroundColor: item.color + '20' }}
+            >
+              <Text className="text-[22px]">{item.emoji}</Text>
+            </Box>
+            <Text
+              className="text-[13px] font-medium mb-1.5 text-center"
+              numberOfLines={1}
+              style={{ color: Colors.lightGray }}
+            >
+              {item.subject}
+            </Text>
+            <HStack className="items-baseline">
+              <Text
+                className="text-2xl font-extrabold"
+                style={{ color: getGradeColor(item.grade, item.maxGrade) }}
+              >
                 {item.grade}
               </Text>
-              <Text style={styles.maxGrade}>/{item.maxGrade}</Text>
-            </View>
-            <Text style={styles.date}>{item.date}</Text>
-          </View>
+              <Text
+                className="text-[13px] font-medium"
+                style={{ color: Colors.gray }}
+              >
+                /{item.maxGrade}
+              </Text>
+            </HStack>
+            <Text
+              className="text-[11px] mt-1"
+              style={{ color: Colors.gray }}
+            >
+              {item.date}
+            </Text>
+          </VStack>
         ))}
       </ScrollView>
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 4,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 14,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  seeAll: {
-    fontSize: 13,
-    color: Colors.cyan,
-    fontWeight: '500',
-  },
-  scroll: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  card: {
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 16,
-    padding: 16,
-    width: 130,
-    alignItems: 'center',
-  },
-  emojiCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  emoji: {
-    fontSize: 22,
-  },
-  subject: {
-    fontSize: 13,
-    color: Colors.lightGray,
-    fontWeight: '500',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  gradeRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  grade: {
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  maxGrade: {
-    fontSize: 13,
-    color: Colors.gray,
-    fontWeight: '500',
-  },
-  date: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 4,
-  },
-});

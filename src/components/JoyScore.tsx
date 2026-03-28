@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Box, Text, HStack, VStack } from './ui';
 import { Colors } from '../constants/colors';
 
 type DayScore = {
@@ -22,114 +22,75 @@ function getBarColor(score: number): string {
 
 export default function JoyScore({ data, average }: Props) {
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Score de Joie</Text>
-          <Text style={styles.subtitle}>7 derniers jours</Text>
-        </View>
-        <View style={styles.averageBadge}>
-          <Text style={styles.averageValue}>{average.toFixed(1)}</Text>
-          <Text style={styles.averageLabel}>/10</Text>
-        </View>
-      </View>
+    <Box
+      className="mx-5 rounded-[20px] p-5"
+      style={{ backgroundColor: Colors.blueNightCard }}
+    >
+      <HStack className="justify-between items-center mb-5">
+        <VStack>
+          <Text
+            className="text-base font-bold"
+            style={{ color: Colors.white }}
+          >
+            Score de Joie
+          </Text>
+          <Text
+            className="text-xs mt-0.5"
+            style={{ color: Colors.gray }}
+          >
+            7 derniers jours
+          </Text>
+        </VStack>
+        <HStack
+          className="items-baseline px-3 py-1.5 rounded-xl"
+          style={{ backgroundColor: 'rgba(34, 211, 238, 0.1)' }}
+        >
+          <Text
+            className="text-[22px] font-extrabold"
+            style={{ color: Colors.cyan }}
+          >
+            {average.toFixed(1)}
+          </Text>
+          <Text
+            className="text-xs ml-0.5"
+            style={{ color: Colors.gray }}
+          >
+            /10
+          </Text>
+        </HStack>
+      </HStack>
 
-      <View style={styles.chart}>
+      <HStack className="justify-between items-end">
         {data.map((item, index) => {
           const height = Math.max(4, (item.score / 10) * BAR_MAX_HEIGHT);
           return (
-            <View key={index} style={styles.barColumn}>
-              <Text style={styles.emoji}>{item.emoji}</Text>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height,
-                      backgroundColor: getBarColor(item.score),
-                    },
-                  ]}
+            <VStack key={index} className="items-center flex-1">
+              <Text className="text-base mb-1.5">{item.emoji}</Text>
+              <Box
+                className="w-5 rounded-[10px] overflow-hidden justify-end"
+                style={{
+                  height: BAR_MAX_HEIGHT,
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                }}
+              >
+                <Box
+                  className="w-5 rounded-[10px]"
+                  style={{
+                    height,
+                    backgroundColor: getBarColor(item.score),
+                  }}
                 />
-              </View>
-              <Text style={styles.dayLabel}>{item.day}</Text>
-            </View>
+              </Box>
+              <Text
+                className="text-[11px] mt-1.5 font-medium"
+                style={{ color: Colors.gray }}
+              >
+                {item.day}
+              </Text>
+            </VStack>
           );
         })}
-      </View>
-    </View>
+      </HStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: 20,
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 20,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-  averageBadge: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    backgroundColor: 'rgba(34, 211, 238, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  averageValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.cyan,
-  },
-  averageLabel: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginLeft: 2,
-  },
-  chart: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  barColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  emoji: {
-    fontSize: 16,
-    marginBottom: 6,
-  },
-  barTrack: {
-    width: 20,
-    height: BAR_MAX_HEIGHT,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 10,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  bar: {
-    width: 20,
-    borderRadius: 10,
-  },
-  dayLabel: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 6,
-    fontWeight: '500',
-  },
-});

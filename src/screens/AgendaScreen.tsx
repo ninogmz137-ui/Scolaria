@@ -1,15 +1,12 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-} from 'react-native';
+import { ScrollView, FlatList } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import { useI18n } from '../contexts/I18nContext';
+import { useSchoolMode } from '../contexts/SchoolModeContext';
+import { useChildTheme } from '../contexts/ChildThemeContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -43,9 +40,9 @@ const WEEK_DAYS: DayInfo[] = [
   { date: 17, day: 'Mar', month: 'mars', isToday: false },
   { date: 18, day: 'Mer', month: 'mars', isToday: false },
   { date: 19, day: 'Jeu', month: 'mars', isToday: false },
-  { date: 20, day: 'Ven', month: 'mars', isToday: true },
+  { date: 20, day: 'Ven', month: 'mars', isToday: false },
   { date: 21, day: 'Sam', month: 'mars', isToday: false },
-  { date: 22, day: 'Dim', month: 'mars', isToday: false },
+  { date: 22, day: 'Dim', month: 'mars', isToday: true },
 ];
 
 const EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
@@ -91,7 +88,8 @@ const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
-  const [selectedDay, setSelectedDay] = useState(20); // today
+  const { theme } = useChildTheme();
+  const [selectedDay, setSelectedDay] = useState(22); // today
   const [viewMode, setViewMode] = useState<ViewMode>('jour');
 
   const events = EVENTS_BY_DAY[selectedDay] ?? [];
@@ -103,72 +101,76 @@ export default function AgendaScreen() {
     .filter((e) => e.type === 'devoir').length;
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <LinearGradient
-        colors={[Colors.blueNightLight, Colors.blueNight]}
-        style={styles.header}
+        colors={theme.headerGradient}
+        style={{ paddingTop: 12, paddingBottom: 4 }}
       >
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.headerTitle}>Agenda</Text>
-            <Text style={styles.headerSubtitle}>
+        <HStack className="justify-between items-start px-5 mb-3.5">
+          <VStack>
+            <Text className="text-2xl" style={{ fontWeight: '900', color: theme.textPrimary }}>
+              Agenda
+            </Text>
+            <Text className="text-[13px] mt-1" style={{ color: theme.textMuted }}>
               Semaine du 16 — 22 mars 2026
             </Text>
-          </View>
-          <View style={styles.viewToggle}>
-            <TouchableOpacity
-              style={[
-                styles.toggleBtn,
-                viewMode === 'jour' && styles.toggleBtnActive,
-              ]}
+          </VStack>
+          <HStack className="rounded-xl p-[3px]" style={{ backgroundColor: theme.card }}>
+            <Pressable
+              className="px-3 py-1.5 rounded-[10px]"
+              style={viewMode === 'jour' ? { backgroundColor: theme.accent } : undefined}
               onPress={() => setViewMode('jour')}
-              activeOpacity={0.7}
             >
               <Text
-                style={[
-                  styles.toggleText,
-                  viewMode === 'jour' && styles.toggleTextActive,
-                ]}
+                className="text-xs"
+                style={{
+                  fontWeight: '600',
+                  color: viewMode === 'jour' ? Colors.white : Colors.gray,
+                }}
               >
                 Jour
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleBtn,
-                viewMode === 'semaine' && styles.toggleBtnActive,
-              ]}
+            </Pressable>
+            <Pressable
+              className="px-3 py-1.5 rounded-[10px]"
+              style={viewMode === 'semaine' ? { backgroundColor: theme.accent } : undefined}
               onPress={() => setViewMode('semaine')}
-              activeOpacity={0.7}
             >
               <Text
-                style={[
-                  styles.toggleText,
-                  viewMode === 'semaine' && styles.toggleTextActive,
-                ]}
+                className="text-xs"
+                style={{
+                  fontWeight: '600',
+                  color: viewMode === 'semaine' ? Colors.white : Colors.gray,
+                }}
               >
                 Semaine
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Pressable>
+          </HStack>
+        </HStack>
 
         {/* Week summary badges */}
-        <View style={styles.weekBadges}>
-          <View style={[styles.badge, { backgroundColor: 'rgba(248,113,113,0.12)' }]}>
+        <HStack className="px-5 gap-2.5 mb-4">
+          <HStack
+            className="items-center gap-1.5 px-3 py-1.5 rounded-full"
+            style={{ backgroundColor: 'rgba(248,113,113,0.12)' }}
+          >
             <Ionicons name="alert-circle" size={14} color={Colors.red} />
-            <Text style={[styles.badgeText, { color: Colors.red }]}>
+            <Text className="text-xs" style={{ fontWeight: '700', color: Colors.red }}>
               {examCount} examen{examCount > 1 ? 's' : ''}
             </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+          </HStack>
+          <HStack
+            className="items-center gap-1.5 px-3 py-1.5 rounded-full"
+            style={{ backgroundColor: 'rgba(251,191,36,0.12)' }}
+          >
             <Ionicons name="document-text" size={14} color={Colors.orange} />
-            <Text style={[styles.badgeText, { color: Colors.orange }]}>
+            <Text className="text-xs" style={{ fontWeight: '700', color: Colors.orange }}>
               {devoirCount} devoir{devoirCount > 1 ? 's' : ''}
             </Text>
-          </View>
-        </View>
+          </HStack>
+        </HStack>
 
         {/* Day selector */}
         <FlatList
@@ -176,134 +178,143 @@ export default function AgendaScreen() {
           showsHorizontalScrollIndicator={false}
           data={WEEK_DAYS}
           keyExtractor={(d) => d.date.toString()}
-          contentContainerStyle={styles.daySelector}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 6, paddingBottom: 16 }}
           renderItem={({ item }) => {
             const isSelected = item.date === selectedDay;
             const hasEvents = (EVENTS_BY_DAY[item.date]?.length ?? 0) > 0;
 
             return (
-              <TouchableOpacity
-                style={[
-                  styles.dayChip,
-                  isSelected && styles.dayChipSelected,
-                  item.isToday && !isSelected && styles.dayChipToday,
-                ]}
+              <Pressable
+                className="w-[54px] items-center py-2.5 rounded-2xl gap-1"
+                style={{
+                  backgroundColor: isSelected ? theme.accent : theme.card,
+                  ...(item.isToday && !isSelected
+                    ? { borderWidth: 1.5, borderColor: theme.accent }
+                    : {}),
+                }}
                 onPress={() => setSelectedDay(item.date)}
-                activeOpacity={0.7}
               >
                 <Text
-                  style={[
-                    styles.dayLabel,
-                    isSelected && styles.dayLabelSelected,
-                  ]}
+                  className="text-[11px] uppercase"
+                  style={{
+                    fontWeight: '600',
+                    color: isSelected ? 'rgba(255,255,255,0.7)' : Colors.gray,
+                  }}
                 >
                   {item.day}
                 </Text>
                 <Text
-                  style={[
-                    styles.dayDate,
-                    isSelected && styles.dayDateSelected,
-                  ]}
+                  className="text-xl"
+                  style={{
+                    fontWeight: '800',
+                    color: isSelected ? Colors.white : theme.textPrimary,
+                  }}
                 >
                   {item.date}
                 </Text>
                 {hasEvents && (
-                  <View
-                    style={[
-                      styles.dayDot,
-                      isSelected && styles.dayDotSelected,
-                    ]}
+                  <Box
+                    className="w-[5px] h-[5px] rounded-full"
+                    style={{
+                      backgroundColor: isSelected ? Colors.white : Colors.cyan,
+                    }}
                   />
                 )}
-              </TouchableOpacity>
+              </Pressable>
             );
           }}
         />
       </LinearGradient>
 
       {/* Events for selected day */}
-      <View style={styles.body}>
-        <Text style={styles.dayTitle}>
+      <Box className="px-5 pt-4" style={{ backgroundColor: theme.bg }}>
+        <Text className="text-lg mb-[18px]" style={{ fontWeight: '700', color: theme.textPrimary }}>
           {WEEK_DAYS.find((d) => d.date === selectedDay)?.day}{' '}
           {selectedDay} mars
         </Text>
 
         {events.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🌿</Text>
-            <Text style={styles.emptyTitle}>Journée libre</Text>
-            <Text style={styles.emptyText}>
+          <VStack className="items-center py-[50px]">
+            <Text className="text-[48px] mb-3">🌿</Text>
+            <Text className="text-lg mb-1.5" style={{ fontWeight: '700', color: theme.textPrimary }}>
+              Journée libre
+            </Text>
+            <Text className="text-sm" style={{ color: Colors.gray }}>
               Aucun événement prévu ce jour
             </Text>
-          </View>
+          </VStack>
         ) : (
           events.map((event, index) => {
             const isExam = event.type === 'examen';
             const isDevoir = event.type === 'devoir';
 
             return (
-              <View key={event.id} style={styles.eventRow}>
+              <HStack key={event.id} className="mb-3.5">
                 {/* Timeline */}
-                <View style={styles.timeline}>
-                  <Text style={styles.timeText}>{event.time}</Text>
-                  <View
-                    style={[
-                      styles.timelineDot,
-                      { backgroundColor: event.color },
-                    ]}
+                <VStack className="w-[60px] items-center pt-0.5">
+                  <Text className="text-xs mb-1.5" style={{ fontWeight: '700', color: Colors.gray }}>
+                    {event.time}
+                  </Text>
+                  <Box
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: event.color }}
                   />
                   {index < events.length - 1 && (
-                    <View style={styles.timelineLine} />
+                    <Box
+                      className="w-0.5 flex-1 mt-1"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                    />
                   )}
-                </View>
+                </VStack>
 
                 {/* Event card */}
-                <View
-                  style={[
-                    styles.eventCard,
-                    isExam && styles.eventCardExam,
-                    isDevoir && event.done && styles.eventCardDone,
-                  ]}
+                <Box
+                  className="flex-1 rounded-xl p-3.5"
+                  style={{
+                    backgroundColor: isExam ? 'rgba(248,113,113,0.05)' : theme.card,
+                    borderWidth: 1,
+                    borderColor: isExam ? 'rgba(248,113,113,0.25)' : theme.cardBorder,
+                    opacity: isDevoir && event.done ? 0.6 : 1,
+                  }}
                 >
-                  <View style={styles.eventHeader}>
-                    <Text style={styles.eventEmoji}>{event.emoji}</Text>
-                    <View style={styles.eventInfo}>
+                  <HStack className="items-start gap-2.5">
+                    <Text className="text-2xl mt-0.5">{event.emoji}</Text>
+                    <VStack className="flex-1">
                       <Text
-                        style={[
-                          styles.eventTitle,
-                          isDevoir && event.done && styles.eventTitleDone,
-                        ]}
+                        className="text-[15px] mb-1.5"
+                        style={{
+                          fontWeight: '700',
+                          color: isDevoir && event.done ? Colors.gray : theme.textPrimary,
+                          textDecorationLine: isDevoir && event.done ? 'line-through' : 'none',
+                        }}
                       >
                         {event.title}
                       </Text>
-                      <View style={styles.eventTags}>
-                        <View
-                          style={[
-                            styles.typeBadge,
-                            { backgroundColor: event.color + '18' },
-                          ]}
+                      <HStack className="items-center gap-2">
+                        <Box
+                          className="px-2 py-[3px] rounded-lg"
+                          style={{ backgroundColor: event.color + '18' }}
                         >
-                          <Text
-                            style={[styles.typeText, { color: event.color }]}
-                          >
+                          <Text className="text-[11px]" style={{ fontWeight: '700', color: event.color }}>
                             {TYPE_LABELS[event.type]}
                           </Text>
-                        </View>
+                        </Box>
                         {event.endTime && (
-                          <Text style={styles.eventDuration}>
+                          <Text className="text-[11px]" style={{ color: Colors.gray }}>
                             {event.time} — {event.endTime}
                           </Text>
                         )}
-                      </View>
-                    </View>
+                      </HStack>
+                    </VStack>
 
                     {isDevoir && (
-                      <TouchableOpacity
-                        style={[
-                          styles.checkBox,
-                          event.done && styles.checkBoxDone,
-                        ]}
-                        activeOpacity={0.7}
+                      <Pressable
+                        className="w-6 h-6 rounded-full justify-center items-center"
+                        style={{
+                          borderWidth: 2,
+                          borderColor: event.done ? Colors.green : Colors.gray,
+                          backgroundColor: event.done ? Colors.green : 'transparent',
+                        }}
                       >
                         {event.done && (
                           <Ionicons
@@ -312,354 +323,78 @@ export default function AgendaScreen() {
                             color={Colors.white}
                           />
                         )}
-                      </TouchableOpacity>
+                      </Pressable>
                     )}
 
                     {isExam && (
-                      <View style={styles.examAlert}>
+                      <Box
+                        className="w-7 h-7 rounded-full justify-center items-center"
+                        style={{ backgroundColor: 'rgba(248,113,113,0.15)' }}
+                      >
                         <Ionicons name="alert" size={16} color={Colors.red} />
-                      </View>
+                      </Box>
                     )}
-                  </View>
+                  </HStack>
 
                   {/* Details */}
                   {(event.location || event.description) && (
-                    <View style={styles.eventDetails}>
+                    <VStack
+                      className="mt-2.5 pt-2.5 gap-1.5"
+                      style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+                    >
                       {event.location && (
-                        <View style={styles.detailRow}>
+                        <HStack className="items-center gap-1.5">
                           <Ionicons
                             name="location"
                             size={13}
                             color={Colors.gray}
                           />
-                          <Text style={styles.detailText}>
+                          <Text className="text-xs flex-1" style={{ color: Colors.gray }}>
                             {event.location}
                           </Text>
-                        </View>
+                        </HStack>
                       )}
                       {event.description && (
-                        <View style={styles.detailRow}>
+                        <HStack className="items-center gap-1.5">
                           <Ionicons
                             name="information-circle"
                             size={13}
                             color={Colors.gray}
                           />
-                          <Text style={styles.detailText}>
+                          <Text className="text-xs flex-1" style={{ color: Colors.gray }}>
                             {event.description}
                           </Text>
-                        </View>
+                        </HStack>
                       )}
-                    </View>
+                    </VStack>
                   )}
-                </View>
-              </View>
+                </Box>
+              </HStack>
             );
           })
         )}
 
         {/* Add event button */}
-        <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+        <Pressable className="rounded-2xl overflow-hidden mt-2.5">
           <LinearGradient
             colors={[Colors.violet, Colors.violetDark]}
-            style={styles.addGradient}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              paddingVertical: 16,
+            }}
           >
             <Ionicons name="add" size={24} color={Colors.white} />
-            <Text style={styles.addText}>Ajouter un événement</Text>
+            <Text className="text-base" style={{ fontWeight: '700', color: Colors.white }}>
+              Ajouter un événement
+            </Text>
           </LinearGradient>
-        </TouchableOpacity>
+        </Pressable>
 
-        <View style={{ height: 40 }} />
-      </View>
+        <Box className="h-10" />
+      </Box>
     </ScrollView>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.blueNight,
-  },
-  // Header
-  header: {
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 20,
-    marginBottom: 14,
-  },
-  headerTitle: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: Colors.white,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: Colors.gray,
-    marginTop: 4,
-  },
-  viewToggle: {
-    flexDirection: 'row',
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 12,
-    padding: 3,
-  },
-  toggleBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-  },
-  toggleBtnActive: {
-    backgroundColor: Colors.violet,
-  },
-  toggleText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.gray,
-  },
-  toggleTextActive: {
-    color: Colors.white,
-  },
-  // Week badges
-  weekBadges: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 10,
-    marginBottom: 16,
-  },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  // Day selector
-  daySelector: {
-    paddingHorizontal: 16,
-    gap: 6,
-    paddingBottom: 16,
-  },
-  dayChip: {
-    width: 54,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 16,
-    backgroundColor: Colors.blueNightCard,
-    gap: 4,
-  },
-  dayChipSelected: {
-    backgroundColor: Colors.violet,
-  },
-  dayChipToday: {
-    borderWidth: 1.5,
-    borderColor: Colors.cyan,
-  },
-  dayLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: Colors.gray,
-    textTransform: 'uppercase',
-  },
-  dayLabelSelected: {
-    color: 'rgba(255,255,255,0.7)',
-  },
-  dayDate: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.lightGray,
-  },
-  dayDateSelected: {
-    color: Colors.white,
-  },
-  dayDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: Colors.cyan,
-  },
-  dayDotSelected: {
-    backgroundColor: Colors.white,
-  },
-  // Body
-  body: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  dayTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.white,
-    marginBottom: 18,
-  },
-  // Empty state
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.white,
-    marginBottom: 6,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.gray,
-  },
-  // Event row
-  eventRow: {
-    flexDirection: 'row',
-    marginBottom: 14,
-  },
-  // Timeline
-  timeline: {
-    width: 60,
-    alignItems: 'center',
-    paddingTop: 2,
-  },
-  timeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.gray,
-    marginBottom: 6,
-  },
-  timelineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    marginTop: 4,
-  },
-  // Event card
-  eventCard: {
-    flex: 1,
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  eventCardExam: {
-    borderColor: 'rgba(248,113,113,0.25)',
-    backgroundColor: 'rgba(248,113,113,0.05)',
-  },
-  eventCardDone: {
-    opacity: 0.6,
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  eventEmoji: {
-    fontSize: 24,
-    marginTop: 2,
-  },
-  eventInfo: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.white,
-    marginBottom: 6,
-  },
-  eventTitleDone: {
-    textDecorationLine: 'line-through',
-    color: Colors.gray,
-  },
-  eventTags: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  typeBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  typeText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  eventDuration: {
-    fontSize: 11,
-    color: Colors.gray,
-  },
-  checkBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.gray,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkBoxDone: {
-    backgroundColor: Colors.green,
-    borderColor: Colors.green,
-  },
-  examAlert: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(248,113,113,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Details
-  eventDetails: {
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.04)',
-    gap: 6,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  detailText: {
-    fontSize: 12,
-    color: Colors.gray,
-    flex: 1,
-  },
-  // Add button
-  addButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginTop: 10,
-  },
-  addGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-  },
-  addText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-});

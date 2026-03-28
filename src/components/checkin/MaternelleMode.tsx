@@ -1,18 +1,13 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import { Animated } from 'react-native';
+import { Box, Text, Pressable, VStack } from '../ui';
 import { Colors } from '../../constants/colors';
 
 const EMOTIONS = [
   { emoji: '😄', label: 'Super !', value: 'super' },
   { emoji: '🙂', label: 'Bien', value: 'bien' },
   { emoji: '😢', label: 'Triste', value: 'triste' },
-  { emoji: '😠', label: 'En colère', value: 'colere' },
+  { emoji: '😠', label: 'En colere', value: 'colere' },
 ];
 
 interface Props {
@@ -45,111 +40,62 @@ export default function MaternelleMode({ onSubmit }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Comment tu te sens ?</Text>
-      <Text style={styles.subtitle}>Touche le visage qui te ressemble</Text>
+    <VStack className="items-center pt-5">
+      <Text
+        className="text-[26px] font-extrabold mb-1.5 text-center"
+        style={{ color: Colors.warmOrange }}
+      >
+        Comment tu te sens ?
+      </Text>
+      <Text
+        className="text-[15px] text-center mb-[30px]"
+        style={{ color: Colors.warmCreamDark }}
+      >
+        Touche le visage qui te ressemble
+      </Text>
 
-      <View style={styles.grid}>
+      <Box className="flex-row flex-wrap justify-center" style={{ gap: 16 }}>
         {EMOTIONS.map((emotion, index) => (
-          <TouchableOpacity
+          <Pressable
             key={emotion.value}
             onPress={() => handlePress(emotion.value, index)}
-            activeOpacity={0.7}
           >
             <Animated.View
-              style={[
-                styles.emojiCard,
-                selected === emotion.value && styles.emojiCardSelected,
-                { transform: [{ scale: scales[index] }] },
-              ]}
+              style={{
+                width: 140,
+                height: 140,
+                borderRadius: 24,
+                backgroundColor: selected === emotion.value ? Colors.warmCardLight : Colors.warmCard,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 3,
+                borderColor: selected === emotion.value ? Colors.warmOrange : 'transparent',
+                transform: [{ scale: scales[index] }],
+              }}
             >
-              <Text style={styles.emoji}>{emotion.emoji}</Text>
+              <Text style={{ fontSize: 56, marginBottom: 8 }}>{emotion.emoji}</Text>
               <Text
-                style={[
-                  styles.emojiLabel,
-                  selected === emotion.value && styles.emojiLabelSelected,
-                ]}
+                className="text-base font-semibold"
+                style={{ color: selected === emotion.value ? Colors.warmOrange : Colors.warmCreamDark }}
               >
                 {emotion.label}
               </Text>
             </Animated.View>
-          </TouchableOpacity>
+          </Pressable>
         ))}
-      </View>
+      </Box>
 
       {selected && (
-        <TouchableOpacity
-          style={styles.submitButton}
+        <Pressable
+          className="mt-9 px-12 py-[18px] rounded-[30px]"
+          style={{ backgroundColor: Colors.warmOrange }}
           onPress={() => onSubmit(selected)}
-          activeOpacity={0.8}
         >
-          <Text style={styles.submitText}>C'est parti ! 🎉</Text>
-        </TouchableOpacity>
+          <Text className="text-xl font-extrabold" style={{ color: Colors.white }}>
+            C'est parti ! 🎉
+          </Text>
+        </Pressable>
       )}
-    </View>
+    </VStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    paddingTop: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: Colors.warmOrange,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: Colors.warmCreamDark,
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  emojiCard: {
-    width: 140,
-    height: 140,
-    borderRadius: 24,
-    backgroundColor: Colors.warmCard,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'transparent',
-  },
-  emojiCardSelected: {
-    borderColor: Colors.warmOrange,
-    backgroundColor: Colors.warmCardLight,
-  },
-  emoji: {
-    fontSize: 56,
-    marginBottom: 8,
-  },
-  emojiLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.warmCreamDark,
-  },
-  emojiLabelSelected: {
-    color: Colors.warmOrange,
-  },
-  submitButton: {
-    marginTop: 36,
-    backgroundColor: Colors.warmOrange,
-    paddingHorizontal: 48,
-    paddingVertical: 18,
-    borderRadius: 30,
-  },
-  submitText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-});

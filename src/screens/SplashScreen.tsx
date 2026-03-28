@@ -4,14 +4,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  Easing,
-  Dimensions,
-} from 'react-native';
+import { Animated, Easing, Dimensions } from 'react-native';
+import { Box, Text } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 
@@ -94,6 +88,10 @@ export default function SplashScreen({ onFinish }: Props) {
       }),
     ]).start(() => onFinish());
 
+    // Fallback: if animations don't complete (e.g. on web), force finish after 4s
+    const fallback = setTimeout(() => onFinish(), 4000);
+    return () => clearTimeout(fallback);
+
     // Continuous orbit rotation
     Animated.loop(
       Animated.timing(orbitRotation, {
@@ -111,195 +109,124 @@ export default function SplashScreen({ onFinish }: Props) {
   });
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeOut }]}>
+    <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, opacity: fadeOut }}>
       <LinearGradient
         colors={[Colors.blueNight, '#0D1235', Colors.blueNight]}
-        style={styles.gradient}
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
       >
         {/* Background particles */}
-        <View style={styles.particles}>
+        <Box className="absolute top-0 left-0 right-0 bottom-0">
           {Array.from({ length: 12 }).map((_, i) => (
-            <View
+            <Box
               key={i}
-              style={[
-                styles.particle,
-                {
-                  left: `${Math.random() * 90 + 5}%`,
-                  top: `${Math.random() * 90 + 5}%`,
-                  width: Math.random() * 3 + 1,
-                  height: Math.random() * 3 + 1,
-                  opacity: Math.random() * 0.4 + 0.1,
-                },
-              ]}
+              className="absolute rounded-full"
+              style={{
+                left: `${Math.random() * 90 + 5}%`,
+                top: `${Math.random() * 90 + 5}%`,
+                width: Math.random() * 3 + 1,
+                height: Math.random() * 3 + 1,
+                opacity: Math.random() * 0.4 + 0.1,
+                backgroundColor: Colors.cyan,
+              }}
             />
           ))}
-        </View>
+        </Box>
 
         {/* Logo container */}
         <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              transform: [{ scale: logoScale }],
-              opacity: logoOpacity,
-            },
-          ]}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 32,
+            transform: [{ scale: logoScale }],
+            opacity: logoOpacity,
+          }}
         >
           {/* Orbit ring */}
           <Animated.View
-            style={[
-              styles.orbitContainer,
-              {
-                transform: [{ rotate: spin }, { scale: orbitScale }],
-              },
-            ]}
+            style={{
+              position: 'absolute',
+              width: 200,
+              height: 200,
+              justifyContent: 'center',
+              alignItems: 'center',
+              transform: [{ rotate: spin }, { scale: orbitScale }],
+            }}
           >
-            <View style={styles.orbitRing} />
+            <Box
+              className="rounded-full"
+              style={{
+                width: 160,
+                height: 160,
+                borderWidth: 1.5,
+                borderColor: 'rgba(109,40,217,0.25)',
+                borderStyle: 'dashed',
+              }}
+            />
             {/* Orbiting dot */}
-            <View style={styles.orbitDot}>
+            <Box className="absolute overflow-hidden" style={{ top: 10, width: 12, height: 12, borderRadius: 6 }}>
               <LinearGradient
                 colors={[Colors.cyan, Colors.violet]}
-                style={styles.orbitDotGradient}
+                style={{ flex: 1 }}
               />
-            </View>
+            </Box>
           </Animated.View>
 
           {/* Logo text */}
-          <View style={styles.logoTextRow}>
-            <Text style={styles.logoPrefix}>Scolar</Text>
-            <View style={styles.iaContainer}>
-              <Text style={styles.logoIa}>ia</Text>
-            </View>
-          </View>
+          <Box className="flex-row items-baseline">
+            <Text
+              className="text-5xl font-black"
+              style={{ color: Colors.white, letterSpacing: 1 }}
+            >
+              Scolar
+            </Text>
+            <Box className="relative">
+              <Text
+                className="text-5xl font-black"
+                style={{ color: Colors.cyan, letterSpacing: 1 }}
+              >
+                ia
+              </Text>
+            </Box>
+          </Box>
         </Animated.View>
 
         {/* Tagline */}
         <Animated.View
-          style={[
-            styles.taglineContainer,
-            {
-              opacity: taglineOpacity,
-              transform: [{ translateY: taglineTranslateY }],
-            },
-          ]}
+          style={{
+            alignItems: 'center',
+            marginBottom: 60,
+            opacity: taglineOpacity,
+            transform: [{ translateY: taglineTranslateY }],
+          }}
         >
-          <Text style={styles.tagline}>Passeport scolaire numérique</Text>
-          <View style={styles.taglineLine} />
-          <Text style={styles.taglineSub}>pour les familles françaises</Text>
+          <Text
+            className="text-base font-semibold"
+            style={{ color: 'rgba(255,255,255,0.8)', letterSpacing: 0.5 }}
+          >
+            Passeport scolaire num&#233;rique
+          </Text>
+          <Box
+            className="rounded-sm"
+            style={{
+              width: 40,
+              height: 2,
+              backgroundColor: Colors.violet,
+              marginVertical: 12,
+            }}
+          />
+          <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            pour les familles fran&#231;aises
+          </Text>
         </Animated.View>
 
         {/* Loading dots */}
-        <View style={styles.dotsRow}>
-          <Animated.View style={[styles.dot, { opacity: dotOpacity1, backgroundColor: Colors.violet }]} />
-          <Animated.View style={[styles.dot, { opacity: dotOpacity2, backgroundColor: Colors.cyan }]} />
-          <Animated.View style={[styles.dot, { opacity: dotOpacity3, backgroundColor: Colors.violet }]} />
-        </View>
+        <Box className="flex-row" style={{ gap: 8 }}>
+          <Animated.View style={{ width: 8, height: 8, borderRadius: 4, opacity: dotOpacity1, backgroundColor: Colors.violet }} />
+          <Animated.View style={{ width: 8, height: 8, borderRadius: 4, opacity: dotOpacity2, backgroundColor: Colors.cyan }} />
+          <Animated.View style={{ width: 8, height: 8, borderRadius: 4, opacity: dotOpacity3, backgroundColor: Colors.violet }} />
+        </Box>
       </LinearGradient>
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 100,
-  },
-  gradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Particles
-  particles: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  particle: {
-    position: 'absolute',
-    borderRadius: 10,
-    backgroundColor: Colors.cyan,
-  },
-  // Logo
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 32,
-  },
-  logoTextRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  logoPrefix: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: Colors.white,
-    letterSpacing: 1,
-  },
-  iaContainer: {
-    position: 'relative',
-  },
-  logoIa: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: Colors.cyan,
-    letterSpacing: 1,
-  },
-  // Orbit
-  orbitContainer: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  orbitRing: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 1.5,
-    borderColor: 'rgba(109,40,217,0.25)',
-    borderStyle: 'dashed',
-  },
-  orbitDot: {
-    position: 'absolute',
-    top: 10,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-  orbitDotGradient: {
-    flex: 1,
-  },
-  // Tagline
-  taglineContainer: {
-    alignItems: 'center',
-    marginBottom: 60,
-  },
-  tagline: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: 0.5,
-  },
-  taglineLine: {
-    width: 40,
-    height: 2,
-    backgroundColor: Colors.violet,
-    marginVertical: 12,
-    borderRadius: 1,
-  },
-  taglineSub: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.5)',
-  },
-  // Loading dots
-  dotsRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-});

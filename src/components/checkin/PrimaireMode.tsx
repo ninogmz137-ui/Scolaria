@@ -1,12 +1,6 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-  Linking,
-} from 'react-native';
+import { TextInput, Linking } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -44,64 +38,90 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
 
   if (submitted) {
     return (
-      <View style={styles.successContainer}>
-        <Text style={styles.successEmoji}>🌟</Text>
-        <Text style={styles.successTitle}>Bravo !</Text>
-        <Text style={styles.successXP}>+50 XP</Text>
-        <View style={styles.xpBar}>
-          <View
-            style={[
-              styles.xpFill,
-              { width: `${Math.min(((currentXP + 50) / 500) * 100, 100)}%` },
-            ]}
+      <VStack className="items-center pt-10">
+        <Text style={{ fontSize: 72, marginBottom: 12 }}>🌟</Text>
+        <Text
+          className="text-[28px] font-extrabold mb-2"
+          style={{ color: Colors.warmOrange }}
+        >
+          Bravo !
+        </Text>
+        <Text
+          className="text-4xl font-black mb-5"
+          style={{ color: Colors.warmYellow }}
+        >
+          +50 XP
+        </Text>
+        <Box
+          className="w-4/5 h-3.5 rounded-[7px] overflow-hidden mb-2"
+          style={{ backgroundColor: Colors.warmCardLight }}
+        >
+          <Box
+            className="h-full rounded-[7px]"
+            style={{
+              width: `${Math.min(((currentXP + 50) / 500) * 100, 100)}%`,
+              backgroundColor: Colors.warmYellow,
+            }}
           />
-        </View>
-        <Text style={styles.xpTotal}>{currentXP + 50} / 500 XP</Text>
-      </View>
+        </Box>
+        <Text className="text-sm font-semibold" style={{ color: Colors.warmCreamDark }}>
+          {currentXP + 50} / 500 XP
+        </Text>
+      </VStack>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Box className="pt-2.5">
       {/* XP badge */}
-      <View style={styles.xpBadge}>
-        <Text style={styles.xpBadgeText}>⭐ {currentXP} XP</Text>
-      </View>
+      <Box
+        className="self-end px-3.5 py-1.5 rounded-[20px] mb-4"
+        style={{ backgroundColor: Colors.warmCardLight }}
+      >
+        <Text className="text-sm font-bold" style={{ color: Colors.warmYellow }}>
+          ⭐ {currentXP} XP
+        </Text>
+      </Box>
 
       {/* Emotion picker */}
-      <Text style={styles.sectionTitle}>Comment tu te sens ?</Text>
-      <View style={styles.emotionRow}>
+      <Text className="text-lg font-bold mb-3" style={{ color: Colors.warmCream }}>
+        Comment tu te sens ?
+      </Text>
+      <HStack className="justify-between mb-6">
         {EMOTIONS.map((e) => (
-          <TouchableOpacity
+          <Pressable
             key={e.value}
             onPress={() => setEmotion(e.value)}
-            style={[
-              styles.emotionChip,
-              emotion === e.value && styles.emotionChipSelected,
-            ]}
-            activeOpacity={0.7}
+            className="items-center py-3 px-2.5 rounded-2xl flex-1 mx-[3px]"
+            style={{
+              borderWidth: 2,
+              borderColor: emotion === e.value ? Colors.warmOrange : 'transparent',
+              backgroundColor: emotion === e.value ? Colors.warmCardLight : Colors.warmCard,
+            }}
           >
-            <Text style={styles.emotionEmoji}>{e.emoji}</Text>
+            <Text style={{ fontSize: 32, marginBottom: 4 }}>{e.emoji}</Text>
             <Text
-              style={[
-                styles.emotionLabel,
-                emotion === e.value && styles.emotionLabelSelected,
-              ]}
+              className="text-xs font-semibold"
+              style={{ color: emotion === e.value ? Colors.warmOrange : Colors.warmCreamDark }}
             >
               {e.label}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
-      </View>
+      </HStack>
 
       {/* Energy slider */}
-      <View style={styles.sliderSection}>
-        <View style={styles.sliderHeader}>
-          <Text style={styles.sliderLabel}>⚡ Énergie</Text>
-          <Text style={styles.sliderValue}>{energy}/10</Text>
-        </View>
+      <Box className="mb-5">
+        <HStack className="justify-between items-center mb-1.5">
+          <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
+            ⚡ Energie
+          </Text>
+          <Text className="text-base font-bold" style={{ color: Colors.warmOrangeLight }}>
+            {energy}/10
+          </Text>
+        </HStack>
         <Slider
-          style={styles.slider}
+          style={{ width: '100%', height: 40 }}
           minimumValue={0}
           maximumValue={10}
           step={1}
@@ -111,16 +131,20 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
           maximumTrackTintColor={Colors.warmCardLight}
           thumbTintColor={Colors.warmOrange}
         />
-      </View>
+      </Box>
 
       {/* Stress slider */}
-      <View style={styles.sliderSection}>
-        <View style={styles.sliderHeader}>
-          <Text style={styles.sliderLabel}>😰 Stress</Text>
-          <Text style={styles.sliderValue}>{stress}/10</Text>
-        </View>
+      <Box className="mb-5">
+        <HStack className="justify-between items-center mb-1.5">
+          <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
+            😰 Stress
+          </Text>
+          <Text className="text-base font-bold" style={{ color: Colors.warmOrangeLight }}>
+            {stress}/10
+          </Text>
+        </HStack>
         <Slider
-          style={styles.slider}
+          style={{ width: '100%', height: 40 }}
           minimumValue={0}
           maximumValue={10}
           step={1}
@@ -130,15 +154,23 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
           maximumTrackTintColor={Colors.warmCardLight}
           thumbTintColor={Colors.red}
         />
-      </View>
+      </Box>
 
       {/* Optional message */}
-      <Text style={styles.sectionTitle}>
-        Un mot ? <Text style={styles.optional}>(optionnel)</Text>
+      <Text className="text-lg font-bold mb-3" style={{ color: Colors.warmCream }}>
+        Un mot ? <Text className="text-sm font-normal" style={{ color: Colors.warmCreamDark }}>(optionnel)</Text>
       </Text>
       <TextInput
-        style={styles.textInput}
-        placeholder="Raconte ta journée..."
+        className="rounded-2xl p-4 text-[15px] mb-6"
+        style={{
+          backgroundColor: Colors.warmCard,
+          color: Colors.warmCream,
+          minHeight: 80,
+          textAlignVertical: 'top',
+          borderWidth: 1,
+          borderColor: Colors.warmCardLight,
+        }}
+        placeholder="Raconte ta journee..."
         placeholderTextColor={Colors.warmCreamDark}
         value={message}
         onChangeText={setMessage}
@@ -146,243 +178,65 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
         maxLength={200}
       />
 
-      {/* Urgency protocol — appears immediately if critical keywords detected */}
+      {/* Urgency protocol */}
       {detectCriticalKeywords(message) && (
-        <View style={styles.urgencyBox}>
-          <View style={styles.urgencyHeader}>
+        <Box
+          className="rounded-2xl p-4 mb-5"
+          style={{ backgroundColor: '#3D1010', borderWidth: 1, borderColor: '#F8717140' }}
+        >
+          <HStack className="items-center mb-2" style={{ gap: 8 }}>
             <Ionicons name="heart" size={18} color={Colors.red} />
-            <Text style={styles.urgencyTitle}>Tu n'es pas seul(e)</Text>
-          </View>
-          <Text style={styles.urgencyMessage}>
-            Si tu traverses un moment difficile, parle à un adulte de confiance ou appelle :
+            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+              Tu n'es pas seul(e)
+            </Text>
+          </HStack>
+          <Text
+            className="text-[13px] leading-[18px] mb-3"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            Si tu traverses un moment difficile, parle a un adulte de confiance ou appelle :
           </Text>
-          <TouchableOpacity
-            style={styles.helpLine}
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:3020')}
           >
-            <Text style={styles.helpNumber}>📞 3020</Text>
-            <Text style={styles.helpLabel}>Non au Harcèlement</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.helpLine}
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>📞 3020</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Non au Harcelement</Text>
+          </Pressable>
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:3114')}
           >
-            <Text style={styles.helpNumber}>🆘 3114</Text>
-            <Text style={styles.helpLabel}>Prévention du suicide — 24h/24</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.helpLine}
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>🆘 3114</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Prevention du suicide — 24h/24</Text>
+          </Pressable>
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:119')}
           >
-            <Text style={styles.helpNumber}>🛡️ 119</Text>
-            <Text style={styles.helpLabel}>Allô Enfance en Danger</Text>
-          </TouchableOpacity>
-        </View>
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>🛡️ 119</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Allo Enfance en Danger</Text>
+          </Pressable>
+        </Box>
       )}
 
       {/* Submit */}
-      <TouchableOpacity
-        style={[styles.submitButton, !emotion && styles.submitButtonDisabled]}
+      <Pressable
+        className="py-[18px] rounded-[30px] items-center"
+        style={{
+          backgroundColor: Colors.warmOrange,
+          opacity: !emotion ? 0.4 : 1,
+        }}
         onPress={handleSubmit}
         disabled={!emotion}
-        activeOpacity={0.8}
       >
-        <Text style={styles.submitText}>Valider +50 XP ⭐</Text>
-      </TouchableOpacity>
-    </View>
+        <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
+          Valider +50 XP ⭐
+        </Text>
+      </Pressable>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 10,
-  },
-  xpBadge: {
-    alignSelf: 'flex-end',
-    backgroundColor: Colors.warmCardLight,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
-  },
-  xpBadgeText: {
-    color: Colors.warmYellow,
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.warmCream,
-    marginBottom: 12,
-  },
-  optional: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: Colors.warmCreamDark,
-  },
-  emotionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  emotionChip: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    flex: 1,
-    marginHorizontal: 3,
-    backgroundColor: Colors.warmCard,
-  },
-  emotionChipSelected: {
-    borderColor: Colors.warmOrange,
-    backgroundColor: Colors.warmCardLight,
-  },
-  emotionEmoji: {
-    fontSize: 32,
-    marginBottom: 4,
-  },
-  emotionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.warmCreamDark,
-  },
-  emotionLabelSelected: {
-    color: Colors.warmOrange,
-  },
-  sliderSection: {
-    marginBottom: 20,
-  },
-  sliderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  sliderLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.warmCream,
-  },
-  sliderValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.warmOrangeLight,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  textInput: {
-    backgroundColor: Colors.warmCard,
-    borderRadius: 16,
-    padding: 16,
-    color: Colors.warmCream,
-    fontSize: 15,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: Colors.warmCardLight,
-    marginBottom: 24,
-  },
-  submitButton: {
-    backgroundColor: Colors.warmOrange,
-    paddingVertical: 18,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.4,
-  },
-  submitText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  // Urgency protocol
-  urgencyBox: {
-    backgroundColor: '#3D1010',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#F8717140',
-  },
-  urgencyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  urgencyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  urgencyMessage: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  helpLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 6,
-  },
-  helpNumber: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.white,
-  },
-  helpLabel: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-  // Success state
-  successContainer: {
-    alignItems: 'center',
-    paddingTop: 40,
-  },
-  successEmoji: {
-    fontSize: 72,
-    marginBottom: 12,
-  },
-  successTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: Colors.warmOrange,
-    marginBottom: 8,
-  },
-  successXP: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: Colors.warmYellow,
-    marginBottom: 20,
-  },
-  xpBar: {
-    width: '80%',
-    height: 14,
-    backgroundColor: Colors.warmCardLight,
-    borderRadius: 7,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  xpFill: {
-    height: '100%',
-    backgroundColor: Colors.warmYellow,
-    borderRadius: 7,
-  },
-  xpTotal: {
-    fontSize: 14,
-    color: Colors.warmCreamDark,
-    fontWeight: '600',
-  },
-});

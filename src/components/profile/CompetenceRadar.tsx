@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Text, Animated, Easing } from 'react-native';
+import { Animated, Easing } from 'react-native';
+import { Box, Text, HStack } from '../ui';
 import Svg, { Polygon, Line, Circle, Text as SvgText } from 'react-native-svg';
 import { Colors } from '../../constants/colors';
 
@@ -74,7 +75,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
   const finalPoints = data.map((comp, i) => getPoint(i, comp.value));
 
   return (
-    <View style={styles.container}>
+    <Box className="items-center">
       <Svg width={size} height={size}>
         {/* Grid levels */}
         {Array.from({ length: levels }, (_, level) => {
@@ -158,79 +159,50 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
       </Svg>
 
       {/* Animated score badges */}
-      <View style={styles.scoresRow}>
+      <HStack className="flex-wrap justify-center mt-3" style={{ gap: 8 }}>
         {data.map((comp, i) => (
           <Animated.View
             key={comp.label}
-            style={[
-              styles.scoreBadge,
-              {
-                transform: [{ scale: scoreScales[i] }],
-                borderColor:
-                  comp.value >= 8
-                    ? Colors.green + '40'
-                    : comp.value >= 6
-                      ? Colors.cyan + '40'
-                      : Colors.orange + '40',
-              },
-            ]}
+            style={{
+              alignItems: 'center',
+              backgroundColor: Colors.blueNightLight,
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+              borderRadius: 14,
+              borderWidth: 1,
+              minWidth: 62,
+              transform: [{ scale: scoreScales[i] }],
+              borderColor:
+                comp.value >= 8
+                  ? Colors.green + '40'
+                  : comp.value >= 6
+                    ? Colors.cyan + '40'
+                    : Colors.orange + '40',
+            }}
           >
-            <Text style={styles.scoreBadgeEmoji}>{comp.emoji}</Text>
+            <Text style={{ fontSize: 16, marginBottom: 2 }}>{comp.emoji}</Text>
             <Text
-              style={[
-                styles.scoreBadgeValue,
-                {
-                  color:
-                    comp.value >= 8
-                      ? Colors.green
-                      : comp.value >= 6
-                        ? Colors.cyan
-                        : Colors.orange,
-                },
-              ]}
+              className="text-[13px] font-extrabold"
+              style={{
+                color:
+                  comp.value >= 8
+                    ? Colors.green
+                    : comp.value >= 6
+                      ? Colors.cyan
+                      : Colors.orange,
+              }}
             >
               {comp.value}/10
             </Text>
-            <Text style={styles.scoreBadgeLabel}>{comp.label}</Text>
+            <Text
+              className="text-[9px] font-semibold mt-px"
+              style={{ color: Colors.gray }}
+            >
+              {comp.label}
+            </Text>
           </Animated.View>
         ))}
-      </View>
-    </View>
+      </HStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-  },
-  scoresRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 12,
-  },
-  scoreBadge: {
-    alignItems: 'center',
-    backgroundColor: Colors.blueNightLight,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    minWidth: 62,
-  },
-  scoreBadgeEmoji: {
-    fontSize: 16,
-    marginBottom: 2,
-  },
-  scoreBadgeValue: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  scoreBadgeLabel: {
-    fontSize: 9,
-    color: Colors.gray,
-    fontWeight: '600',
-    marginTop: 1,
-  },
-});

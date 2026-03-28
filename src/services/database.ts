@@ -396,6 +396,126 @@ export async function saveAriaMessage(message: {
 }
 
 // ═══════════════════════════════════════════════════════════
+// ACADEMIC YEARS (Millésimes)
+// ═══════════════════════════════════════════════════════════
+
+export type Niveau =
+  | 'PS' | 'MS' | 'GS'
+  | 'CP' | 'CE1' | 'CE2' | 'CM1' | 'CM2'
+  | '6ème' | '5ème' | '4ème' | '3ème'
+  | '2nde' | '1ère' | 'Terminale';
+
+export type AcademicYearStatut = 'active' | 'archivée' | 'importée';
+
+export interface AcademicYear {
+  id: string;
+  student_id: string;
+  annee_scolaire: string;   // e.g. "2025-2026"
+  niveau: Niveau;
+  etablissement: string | null;
+  classe: string | null;     // e.g. "CM2 B"
+  statut: AcademicYearStatut;
+  score_joie_moyen: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getAcademicYears(studentId: string) {
+  if (!isSupabaseConfigured()) return { data: [] as AcademicYear[], error: null };
+
+  return supabase
+    .from('academic_years')
+    .select('*')
+    .eq('student_id', studentId)
+    .order('annee_scolaire', { ascending: false });
+}
+
+export async function getAcademicYear(yearId: string) {
+  if (!isSupabaseConfigured()) return { data: null as AcademicYear | null, error: null };
+
+  return supabase
+    .from('academic_years')
+    .select('*')
+    .eq('id', yearId)
+    .single();
+}
+
+export async function createAcademicYear(year: {
+  student_id: string;
+  annee_scolaire: string;
+  niveau: Niveau;
+  etablissement?: string;
+  classe?: string;
+  statut: AcademicYearStatut;
+  score_joie_moyen?: number;
+}) {
+  if (!isSupabaseConfigured()) return { data: null, error: null };
+
+  return supabase
+    .from('academic_years')
+    .insert(year)
+    .select()
+    .single();
+}
+
+export async function updateAcademicYear(
+  yearId: string,
+  updates: Partial<Pick<AcademicYear, 'niveau' | 'etablissement' | 'classe' | 'statut' | 'score_joie_moyen'>>,
+) {
+  if (!isSupabaseConfigured()) return { data: null, error: null };
+
+  return supabase
+    .from('academic_years')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', yearId)
+    .select()
+    .single();
+}
+
+export async function deleteAcademicYear(yearId: string) {
+  if (!isSupabaseConfigured()) return { error: null };
+
+  // Cascade: delete all bulletins linked to this year first
+  await supabase
+    .from('bulletins')
+    .delete()
+    .eq('academic_year_id', yearId);
+
+  return supabase
+    .from('academic_years')
+    .delete()
+    .eq('id', yearId);
+}
+
+export async function archiveAndRotateYears(studentId: string) {
+  if (!isSupabaseConfigured()) return { error: null };
+
+  // 1. Archive all active years
+  await supabase
+    .from('academic_years')
+    .update({ statut: 'archivée', updated_at: new Date().toISOString() })
+    .eq('student_id', studentId)
+    .eq('statut', 'active');
+
+  // 2. Determine next school year
+  const now = new Date();
+  const nextYearStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  const nextAnneeScolaire = `${nextYearStart}-${nextYearStart + 1}`;
+
+  // 3. Create new active year (niveau must be set by user later)
+  return supabase
+    .from('academic_years')
+    .insert({
+      student_id: studentId,
+      annee_scolaire: nextAnneeScolaire,
+      niveau: 'CP', // placeholder — user will update
+      statut: 'active',
+    })
+    .select()
+    .single();
+}
+
+// ═══════════════════════════════════════════════════════════
 // CHILD OVERVIEW (for dashboard)
 // ═══════════════════════════════════════════════════════════
 

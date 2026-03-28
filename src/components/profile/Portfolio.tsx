@@ -1,12 +1,6 @@
 import { useEffect, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-} from 'react-native';
+import { ScrollView, Animated } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 
@@ -52,25 +46,35 @@ export default function Portfolio({ activities }: Props) {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Portfolio extra-scolaire</Text>
-          <Text style={styles.subtitle}>
+    <Box className="mb-1">
+      <HStack className="justify-between items-center mb-3">
+        <Box>
+          <Text className="text-base font-bold" style={{ color: Colors.white }}>
+            Portfolio extra-scolaire
+          </Text>
+          <Text className="text-xs mt-0.5" style={{ color: Colors.gray }}>
             {activities.length} activité{activities.length > 1 ? 's' : ''}
             {' '}•{' '}
             {activities.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0)}h/semaine
           </Text>
-        </View>
-        <TouchableOpacity style={styles.addButton} activeOpacity={0.7}>
+        </Box>
+        <Pressable
+          className="justify-center items-center"
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: 'rgba(34,211,238,0.1)',
+          }}
+        >
           <Ionicons name="add" size={18} color={Colors.cyan} />
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+      </HStack>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ gap: 10, paddingRight: 20 }}
       >
         {activities.map((activity, i) => (
           <Animated.View
@@ -80,162 +84,78 @@ export default function Portfolio({ activities }: Props) {
               transform: [{ translateX: slideAnims[i] }],
             }}
           >
-            <View style={styles.card}>
+            <VStack
+              className="items-center rounded-2xl p-3.5"
+              style={{
+                width: 140,
+                backgroundColor: Colors.blueNightCard,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.06)',
+              }}
+            >
               {/* Icon */}
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: activity.color + '20' },
-                ]}
+              <Box
+                className="justify-center items-center mb-2.5"
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: activity.color + '20',
+                }}
               >
-                <Text style={styles.cardEmoji}>{activity.emoji}</Text>
-              </View>
+                <Text className="text-2xl">{activity.emoji}</Text>
+              </Box>
 
-              <Text style={styles.cardName}>{activity.name}</Text>
-              <Text style={styles.cardCategory}>{activity.category}</Text>
+              <Text className="text-[13px] font-bold text-center mb-0.5" style={{ color: Colors.white }}>
+                {activity.name}
+              </Text>
+              <Text className="text-[11px] mb-2" style={{ color: Colors.gray }}>
+                {activity.category}
+              </Text>
 
               {/* Progress bar */}
               {activity.progressPercent != null && (
-                <View style={styles.progressContainer}>
-                  <View style={styles.progressBg}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        {
-                          width: `${activity.progressPercent}%`,
-                          backgroundColor: activity.color,
-                        },
-                      ]}
+                <HStack className="items-center gap-1.5 w-full mb-2">
+                  <Box
+                    className="flex-1 rounded-sm overflow-hidden"
+                    style={{ height: 4, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                  >
+                    <Box
+                      className="rounded-sm"
+                      style={{
+                        height: '100%',
+                        width: `${activity.progressPercent}%`,
+                        backgroundColor: activity.color,
+                      }}
                     />
-                  </View>
-                  <Text style={[styles.progressText, { color: activity.color }]}>
+                  </Box>
+                  <Text className="text-[10px] font-bold" style={{ color: activity.color }}>
                     {activity.progressPercent}%
                   </Text>
-                </View>
+                </HStack>
               )}
 
               {/* Level badge */}
-              <View style={[styles.levelBadge, { borderColor: activity.color }]}>
-                <Text style={[styles.levelText, { color: activity.color }]}>
+              <Box
+                className="rounded-xl px-2 py-0.5 mb-1"
+                style={{ borderWidth: 1, borderColor: activity.color }}
+              >
+                <Text className="text-[10px] font-bold" style={{ color: activity.color }}>
                   {activity.level}
                 </Text>
-              </View>
+              </Box>
 
               {/* Hours */}
               {activity.hoursPerWeek != null && (
-                <Text style={styles.hoursText}>
+                <Text className="text-[10px] mt-0.5" style={{ color: Colors.gray }}>
                   {activity.hoursPerWeek}h/sem
                   {activity.since ? ` • ${activity.since}` : ''}
                 </Text>
               )}
-            </View>
+            </VStack>
           </Animated.View>
         ))}
       </ScrollView>
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 4,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  subtitle: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(34,211,238,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scrollContent: {
-    gap: 10,
-    paddingRight: 20,
-  },
-  card: {
-    width: 140,
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 16,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  cardEmoji: {
-    fontSize: 24,
-  },
-  cardName: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  cardCategory: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginBottom: 8,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    width: '100%',
-    marginBottom: 8,
-  },
-  progressBg: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  levelBadge: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginBottom: 4,
-  },
-  levelText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  hoursText: {
-    fontSize: 10,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-});

@@ -49,7 +49,9 @@
           "color": "#22D3EE",
           "sounds": []
         }
-      ]
+      ],
+      "expo-localization",
+      "expo-sharing"
     ],
     "web": {
       "favicon": "./assets/favicon.png"

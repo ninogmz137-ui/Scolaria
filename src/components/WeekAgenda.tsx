@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Box, Text, HStack, VStack } from './ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 
@@ -19,171 +19,116 @@ type Props = {
 
 export default function WeekAgenda({ events, dayLabel }: Props) {
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Agenda</Text>
-        <View style={styles.dayBadge}>
-          <Text style={styles.dayText}>{dayLabel}</Text>
-        </View>
-      </View>
+    <Box className="mx-5">
+      <HStack className="justify-between items-center mb-4">
+        <Text
+          className="text-base font-bold"
+          style={{ color: Colors.white }}
+        >
+          Agenda
+        </Text>
+        <Box
+          className="px-3 py-[5px] rounded-[10px]"
+          style={{ backgroundColor: Colors.blueNightCard }}
+        >
+          <Text
+            className="text-xs font-semibold"
+            style={{ color: Colors.cyan }}
+          >
+            {dayLabel}
+          </Text>
+        </Box>
+      </HStack>
 
-      <View style={styles.timeline}>
+      <VStack>
         {events.map((event, index) => (
-          <View key={event.id} style={styles.eventRow}>
+          <HStack key={event.id} style={{ minHeight: 68 }}>
             {/* Time column */}
-            <View style={styles.timeCol}>
-              <Text style={[styles.time, event.isNow && styles.timeNow]}>
+            <Box className="pt-3.5" style={{ width: 48 }}>
+              <Text
+                className="text-xs font-medium"
+                style={{
+                  color: event.isNow ? Colors.cyan : Colors.gray,
+                  fontWeight: event.isNow ? '700' : '500',
+                }}
+              >
                 {event.time}
               </Text>
-            </View>
+            </Box>
 
             {/* Timeline dot + line */}
-            <View style={styles.dotCol}>
-              <View
-                style={[
-                  styles.dot,
-                  { backgroundColor: event.isNow ? Colors.cyan : event.color },
-                ]}
+            <VStack className="items-center pt-[17px]" style={{ width: 20 }}>
+              <Box
+                className="w-2.5 h-2.5 rounded-full"
+                style={{
+                  backgroundColor: event.isNow ? Colors.cyan : event.color,
+                }}
               />
-              {index < events.length - 1 && <View style={styles.line} />}
-            </View>
+              {index < events.length - 1 && (
+                <Box
+                  className="flex-1 mt-1"
+                  style={{
+                    width: 2,
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                  }}
+                />
+              )}
+            </VStack>
 
             {/* Event card */}
-            <View
-              style={[
-                styles.eventCard,
-                event.isNow && styles.eventCardNow,
-              ]}
+            <HStack
+              className="flex-1 items-center rounded-[14px] p-3 ml-2.5 mb-2"
+              style={{
+                backgroundColor: event.isNow
+                  ? Colors.blueNightLight
+                  : Colors.blueNightCard,
+                ...(event.isNow
+                  ? {
+                      borderWidth: 1,
+                      borderColor: 'rgba(34, 211, 238, 0.3)',
+                    }
+                  : {}),
+              }}
             >
-              <View style={[styles.eventIcon, { backgroundColor: event.color + '20' }]}>
+              <Box
+                className="w-9 h-9 rounded-[10px] items-center justify-center"
+                style={{ backgroundColor: event.color + '20' }}
+              >
                 <Ionicons name={event.icon} size={18} color={event.color} />
-              </View>
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
+              </Box>
+              <VStack className="flex-1 ml-2.5">
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: Colors.white }}
+                >
+                  {event.title}
+                </Text>
                 {event.subtitle && (
-                  <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
+                  <Text
+                    className="text-[11px] mt-0.5"
+                    style={{ color: Colors.gray }}
+                  >
+                    {event.subtitle}
+                  </Text>
                 )}
-              </View>
+              </VStack>
               {event.isNow && (
-                <View style={styles.nowBadge}>
-                  <Text style={styles.nowText}>En cours</Text>
-                </View>
+                <Box
+                  className="px-2 py-[3px] rounded-md"
+                  style={{ backgroundColor: 'rgba(34, 211, 238, 0.15)' }}
+                >
+                  <Text
+                    className="text-[10px] font-bold"
+                    style={{ color: Colors.cyan }}
+                  >
+                    En cours
+                  </Text>
+                </Box>
               )}
-            </View>
-          </View>
+            </HStack>
+          </HStack>
         ))}
-      </View>
-    </View>
+      </VStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  dayBadge: {
-    backgroundColor: Colors.blueNightCard,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  dayText: {
-    fontSize: 12,
-    color: Colors.cyan,
-    fontWeight: '600',
-  },
-  timeline: {
-    gap: 0,
-  },
-  eventRow: {
-    flexDirection: 'row',
-    minHeight: 68,
-  },
-  timeCol: {
-    width: 48,
-    paddingTop: 14,
-  },
-  time: {
-    fontSize: 12,
-    color: Colors.gray,
-    fontWeight: '500',
-  },
-  timeNow: {
-    color: Colors.cyan,
-    fontWeight: '700',
-  },
-  dotCol: {
-    width: 20,
-    alignItems: 'center',
-    paddingTop: 17,
-  },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  line: {
-    width: 2,
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    marginTop: 4,
-  },
-  eventCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 14,
-    padding: 12,
-    marginLeft: 10,
-    marginBottom: 8,
-  },
-  eventCardNow: {
-    borderWidth: 1,
-    borderColor: 'rgba(34, 211, 238, 0.3)',
-    backgroundColor: Colors.blueNightLight,
-  },
-  eventIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  eventInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  eventTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  eventSubtitle: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-  nowBadge: {
-    backgroundColor: 'rgba(34, 211, 238, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  nowText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.cyan,
-  },
-});

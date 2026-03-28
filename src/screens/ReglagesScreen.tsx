@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   ScrollView,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { Colors } from '../constants/colors';
+import { useI18n } from '../contexts/I18nContext';
+import { useChildTheme } from '../contexts/ChildThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -51,13 +51,6 @@ const PERMISSIONS = [
   { id: 'p3', name: 'Mme Moreau', role: 'Grand-mère', avatar: '👵', access: 'Lecture seule' },
 ];
 
-const LANGUAGES = [
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'ar', label: 'العربية', flag: '🇲🇦' },
-];
-
 // ─── Section component ───────────────────────────────────
 
 function SettingsSection({
@@ -67,35 +60,24 @@ function SettingsSection({
   title: string;
   children: React.ReactNode;
 }) {
+  const { theme } = useChildTheme();
   return (
-    <View style={sectionStyles.container}>
-      <Text style={sectionStyles.title}>{title}</Text>
-      <View style={sectionStyles.card}>{children}</View>
-    </View>
+    <Box className="mb-6">
+      <Text
+        className="text-[13px] font-bold uppercase tracking-widest mb-2.5 px-1"
+        style={{ color: theme.textMuted }}
+      >
+        {title}
+      </Text>
+      <Box
+        className="rounded-2xl overflow-hidden"
+        style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+      >
+        {children}
+      </Box>
+    </Box>
   );
 }
-
-const sectionStyles = StyleSheet.create({
-  container: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.gray,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 10,
-    paddingHorizontal: 4,
-  },
-  card: {
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    overflow: 'hidden',
-  },
-});
 
 // ─── Row component ───────────────────────────────────────
 
@@ -116,23 +98,30 @@ function SettingsRowItem({
   onPress?: () => void;
   isLast?: boolean;
 }) {
+  const { theme } = useChildTheme();
   return (
-    <TouchableOpacity
-      style={[rowStyles.container, !isLast && rowStyles.border]}
-      activeOpacity={type === 'toggle' ? 1 : 0.6}
+    <Pressable
+      className="flex-row items-center p-3.5"
+      style={[
+        { gap: 12 },
+        !isLast ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined,
+      ]}
       onPress={onPress}
     >
-      <View style={[rowStyles.iconCircle, { backgroundColor: color + '20' }]}>
+      <Box
+        className="w-9 h-9 rounded-[10px] justify-center items-center"
+        style={{ backgroundColor: color + '20' }}
+      >
         <Ionicons name={icon} size={18} color={color} />
-      </View>
-      <View style={rowStyles.content}>
-        <Text style={rowStyles.label}>{label}</Text>
-        {sublabel && <Text style={rowStyles.sublabel}>{sublabel}</Text>}
-      </View>
+      </Box>
+      <VStack className="flex-1">
+        <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>{label}</Text>
+        {sublabel && <Text className="text-xs mt-0.5" style={{ color: theme.textMuted }}>{sublabel}</Text>}
+      </VStack>
       {type === 'navigate' && (
         <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
       )}
-      {type === 'value' && <Text style={rowStyles.value}>{value}</Text>}
+      {type === 'value' && <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{value}</Text>}
       {type === 'toggle' && (
         <Switch
           value={toggleValue}
@@ -141,183 +130,162 @@ function SettingsRowItem({
           thumbColor={toggleValue ? Colors.cyan : Colors.gray}
         />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
-
-const rowStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 12,
-  },
-  border: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  sublabel: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 2,
-  },
-  value: {
-    fontSize: 14,
-    color: Colors.cyan,
-    fontWeight: '600',
-  },
-});
 
 // ─── Main screen ─────────────────────────────────────────
 
 export default function ReglagesScreen({ navigation }: { navigation: any }) {
+  const { t, locale, setLocale, languages } = useI18n();
+  const { theme } = useChildTheme();
+  const { signOut, setRole, role } = useAuth();
   const [notifications, setNotifications] = useState({
     grades: true,
     agenda: true,
     aria: false,
     checkin: true,
   });
-  const [selectedLang, setSelectedLang] = useState('fr');
   const [showLangPicker, setShowLangPicker] = useState(false);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
       {/* Family profile header */}
-      <View style={styles.profileHeader}>
+      <Box className="mb-2">
         <LinearGradient
-          colors={[Colors.violet, Colors.blueNight]}
+          colors={theme.headerGradient}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={styles.profileGradient}
+          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24 }}
         >
-          <View style={styles.familyAvatar}>
-            <Text style={styles.familyAvatarText}>🏠</Text>
-          </View>
-          <Text style={styles.familyName}>{FAMILY.name}</Text>
-          <Text style={styles.familyEmail}>{FAMILY.email}</Text>
-          <View style={styles.planBadge}>
-            <Ionicons name="diamond" size={14} color={Colors.cyan} />
-            <Text style={styles.planText}>{FAMILY.plan}</Text>
-            <Text style={styles.planSince}>
-              depuis {FAMILY.memberSince}
+          <Box
+            className="w-16 h-16 rounded-full justify-center items-center mb-2.5"
+            style={{ borderWidth: 2, borderColor: theme.accent, backgroundColor: theme.mode === 'primaire' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)' }}
+          >
+            <Text className="text-[30px]">🏠</Text>
+          </Box>
+          <Text className="text-[22px] font-black mb-0.5" style={{ color: theme.textPrimary }}>{FAMILY.name}</Text>
+          <Text className="text-[13px] mb-3" style={{ color: theme.textSecondary }}>{FAMILY.email}</Text>
+          <HStack
+            className="items-center rounded-[20px] px-3.5 py-1.5"
+            style={{ gap: 6, backgroundColor: theme.mode === 'primaire' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)' }}
+          >
+            <Ionicons name="diamond" size={14} color={theme.accent} />
+            <Text className="text-[13px] font-bold" style={{ color: theme.accent }}>{FAMILY.plan}</Text>
+            <Text className="text-xs" style={{ color: theme.textSecondary }}>
+              {t('settings.since')} {FAMILY.memberSince}
             </Text>
-          </View>
+          </HStack>
         </LinearGradient>
-      </View>
+      </Box>
 
-      <View style={styles.body}>
+      <Box className="px-5">
         {/* Children management */}
-        <SettingsSection title="Enfants">
+        <SettingsSection title={t('settings.children')}>
           {CHILDREN.map((child, i) => (
-            <TouchableOpacity
+            <Pressable
               key={child.id}
+              className="flex-row items-center p-3.5"
               style={[
-                styles.childRow,
-                i < CHILDREN.length - 1 && styles.childRowBorder,
+                { gap: 12 },
+                i < CHILDREN.length - 1 ? { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' } : undefined,
               ]}
-              activeOpacity={0.6}
             >
-              <View style={styles.childAvatar}>
-                <Text style={styles.childAvatarText}>{child.avatar}</Text>
-              </View>
-              <View style={styles.childInfo}>
-                <Text style={styles.childName}>{child.name}</Text>
-                <Text style={styles.childClasse}>{child.classe}</Text>
-                <Text style={styles.childId}>{child.scolariaId}</Text>
-              </View>
+              <Box
+                className="w-11 h-11 rounded-full justify-center items-center"
+                style={{ backgroundColor: 'rgba(109,40,217,0.2)' }}
+              >
+                <Text className="text-[22px]">{child.avatar}</Text>
+              </Box>
+              <VStack className="flex-1">
+                <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{child.name}</Text>
+                <Text className="text-xs mt-px" style={{ color: Colors.gray }}>{child.classe}</Text>
+                <Text className="text-[11px] mt-0.5 font-mono" style={{ color: Colors.cyan }}>{child.scolariaId}</Text>
+              </VStack>
               <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
-            </TouchableOpacity>
+            </Pressable>
           ))}
-          <TouchableOpacity style={styles.addChildRow} activeOpacity={0.7}>
+          <Pressable
+            className="flex-row items-center p-3.5"
+            style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+          >
             <Ionicons name="add-circle" size={22} color={Colors.cyan} />
-            <Text style={styles.addChildText}>Ajouter un enfant</Text>
-          </TouchableOpacity>
+            <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.addChild')}</Text>
+          </Pressable>
         </SettingsSection>
 
         {/* Permissions */}
-        <SettingsSection title="Permissions d'accès">
+        <SettingsSection title={t('settings.permissions')}>
           {PERMISSIONS.map((perm, i) => (
-            <TouchableOpacity
+            <Pressable
               key={perm.id}
+              className="flex-row items-center p-3.5"
               style={[
-                styles.permRow,
-                i < PERMISSIONS.length - 1 && styles.childRowBorder,
+                { gap: 10 },
+                i < PERMISSIONS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' } : undefined,
               ]}
-              activeOpacity={0.6}
             >
-              <Text style={styles.permAvatar}>{perm.avatar}</Text>
-              <View style={styles.permInfo}>
-                <Text style={styles.permName}>{perm.name}</Text>
-                <Text style={styles.permRole}>{perm.role}</Text>
-              </View>
-              <View style={styles.permAccessBadge}>
-                <Text style={styles.permAccessText}>{perm.access}</Text>
-              </View>
-            </TouchableOpacity>
+              <Text className="text-[28px]">{perm.avatar}</Text>
+              <VStack className="flex-1">
+                <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>{perm.name}</Text>
+                <Text className="text-xs mt-px" style={{ color: Colors.gray }}>{perm.role}</Text>
+              </VStack>
+              <Box className="rounded-[10px] px-2.5 py-1" style={{ backgroundColor: 'rgba(109,40,217,0.15)' }}>
+                <Text className="text-[11px] font-semibold" style={{ color: Colors.violetLight }}>{perm.access}</Text>
+              </Box>
+            </Pressable>
           ))}
-          <TouchableOpacity style={styles.addChildRow} activeOpacity={0.7}>
+          <Pressable
+            className="flex-row items-center p-3.5"
+            style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+          >
             <Ionicons name="person-add" size={20} color={Colors.cyan} />
-            <Text style={styles.addChildText}>Gérer les permissions</Text>
-          </TouchableOpacity>
+            <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.managePermissions')}</Text>
+          </Pressable>
         </SettingsSection>
 
         {/* Language */}
-        <SettingsSection title="Langue">
-          <TouchableOpacity
-            style={styles.langSelected}
+        <SettingsSection title={t('settings.language')}>
+          <Pressable
+            className="flex-row items-center p-3.5"
+            style={{ gap: 10 }}
             onPress={() => setShowLangPicker(!showLangPicker)}
-            activeOpacity={0.7}
           >
-            <Text style={styles.langFlag}>
-              {LANGUAGES.find((l) => l.code === selectedLang)?.flag}
+            <Text className="text-[22px]">
+              {languages.find((l) => l.code === locale)?.flag}
             </Text>
-            <Text style={styles.langLabel}>
-              {LANGUAGES.find((l) => l.code === selectedLang)?.label}
+            <Text className="flex-1 text-[15px] font-semibold" style={{ color: theme.textPrimary }}>
+              {languages.find((l) => l.code === locale)?.label}
             </Text>
             <Ionicons
               name={showLangPicker ? 'chevron-up' : 'chevron-down'}
               size={18}
               color={Colors.gray}
             />
-          </TouchableOpacity>
+          </Pressable>
           {showLangPicker &&
-            LANGUAGES.filter((l) => l.code !== selectedLang).map((lang) => (
-              <TouchableOpacity
+            languages.filter((l) => l.code !== locale).map((lang) => (
+              <Pressable
                 key={lang.code}
-                style={styles.langOption}
+                className="flex-row items-center p-3.5"
+                style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
                 onPress={() => {
-                  setSelectedLang(lang.code);
+                  setLocale(lang.code);
                   setShowLangPicker(false);
                 }}
-                activeOpacity={0.7}
               >
-                <Text style={styles.langFlag}>{lang.flag}</Text>
-                <Text style={styles.langOptionLabel}>{lang.label}</Text>
-              </TouchableOpacity>
+                <Text className="text-[22px]">{lang.flag}</Text>
+                <Text className="text-[15px]" style={{ color: Colors.gray }}>{lang.label}</Text>
+              </Pressable>
             ))}
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title="Notifications">
+        <SettingsSection title={t('settings.notifications')}>
           <SettingsRowItem
             icon="school"
-            label="Nouvelles notes"
-            sublabel="Alertes à chaque note ajoutée"
+            label={t('settings.notifGrades')}
+            sublabel={t('settings.notifGradesSub')}
             color={Colors.cyan}
             type="toggle"
             toggleValue={notifications.grades}
@@ -327,8 +295,8 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           />
           <SettingsRowItem
             icon="calendar"
-            label="Rappels agenda"
-            sublabel="Événements et devoirs à venir"
+            label={t('settings.notifAgenda')}
+            sublabel={t('settings.notifAgendaSub')}
             color={Colors.violet}
             type="toggle"
             toggleValue={notifications.agenda}
@@ -338,8 +306,8 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           />
           <SettingsRowItem
             icon="sparkles"
-            label="Conseils Aria"
-            sublabel="Recommandations personnalisées"
+            label={t('settings.notifAria')}
+            sublabel={t('settings.notifAriaSub')}
             color={Colors.pink}
             type="toggle"
             toggleValue={notifications.aria}
@@ -349,8 +317,8 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           />
           <SettingsRowItem
             icon="heart"
-            label="Rappel check-in"
-            sublabel="Rappel quotidien Mon Ressenti"
+            label={t('settings.notifCheckin')}
+            sublabel={t('settings.notifCheckinSub')}
             color={Colors.orange}
             type="toggle"
             toggleValue={notifications.checkin}
@@ -361,284 +329,125 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           />
         </SettingsSection>
 
-        {/* Teacher space */}
-        <SettingsSection title="Espace enseignant">
+        {/* RGPD & Privacy */}
+        <SettingsSection title="RGPD & CONFIDENTIALITÉ">
           <SettingsRowItem
-            icon="create"
-            label="Appréciations"
-            sublabel="Générateur Aria — cochez, c'est rédigé"
-            color={Colors.violet}
+            icon="people"
+            label="Permissions d'accès"
+            sublabel="4 niveaux : tuteur, famille, accompagnant, minimal"
+            color={Colors.green}
             type="navigate"
-            onPress={() => navigation.navigate('Appreciations')}
+            onPress={() => navigation.navigate('PermissionsRGPD')}
           />
           <SettingsRowItem
-            icon="partly-sunny"
-            label="Météo de classe"
-            sublabel="Dashboard bien-être anonymisé"
+            icon="list"
+            label="Journal d'accès"
+            sublabel="Qui a consulté quoi et quand"
             color={Colors.cyan}
             type="navigate"
-            onPress={() => navigation.navigate('MeteoClasse')}
+            onPress={() => navigation.navigate('JournalAcces')}
           />
           <SettingsRowItem
-            icon="camera"
-            label="Vie de classe"
-            sublabel="Photos, annonces et moments"
-            color={Colors.pink}
+            icon="swap-horizontal"
+            label="Code de transfert"
+            sublabel="SCA-TRANSFER entre établissements (90 jours)"
+            color={Colors.violet}
             type="navigate"
-            onPress={() => navigation.navigate('VieDeClasse')}
-            isLast
+            onPress={() => navigation.navigate('TransfertCode')}
           />
-        </SettingsSection>
-
-        {/* Privacy & Legal */}
-        <SettingsSection title="Confidentialité et légal">
+          <SettingsRowItem
+            icon="download"
+            label="Export intégral"
+            sublabel="Télécharger toutes vos données en JSON + PDF"
+            color={Colors.orange}
+            type="navigate"
+            onPress={() => navigation.navigate('ExportDonnees')}
+          />
+          <SettingsRowItem
+            icon="trash"
+            label="Droit à l'effacement"
+            sublabel="Suppression définitive du profil (Art. 17)"
+            color={Colors.red}
+            type="navigate"
+            onPress={() => navigation.navigate('Effacement')}
+          />
+          <SettingsRowItem
+            icon="lock-closed"
+            label={t('settings.encryption')}
+            sublabel={t('settings.encryptionSub')}
+            color={Colors.violet}
+            type="value"
+            value={t('settings.encryptionActive')}
+          />
           <SettingsRowItem
             icon="shield-checkmark"
-            label="Politique de confidentialité"
-            sublabel="RGPD · Protection des données"
+            label={t('settings.privacyPolicy')}
+            sublabel={t('settings.privacyPolicySub')}
             color={Colors.green}
             type="navigate"
           />
           <SettingsRowItem
             icon="document-text"
-            label="Conditions d'utilisation"
+            label={t('settings.terms')}
             color={Colors.cyan}
-            type="navigate"
-          />
-          <SettingsRowItem
-            icon="lock-closed"
-            label="Chiffrement des données"
-            sublabel="AES-256 · Vos données sont sécurisées"
-            color={Colors.violet}
-            type="value"
-            value="Actif ✓"
-          />
-          <SettingsRowItem
-            icon="download"
-            label="Exporter mes données"
-            sublabel="Télécharger toutes vos données (RGPD)"
-            color={Colors.orange}
-            type="navigate"
-          />
-          <SettingsRowItem
-            icon="trash"
-            label="Supprimer mon compte"
-            sublabel="Action irréversible"
-            color={Colors.red}
             type="navigate"
             isLast
           />
         </SettingsSection>
 
+        {/* Account actions */}
+        <SettingsSection title="COMPTE">
+          <SettingsRowItem
+            icon="swap-horizontal"
+            label="Changer de rôle"
+            sublabel={`Rôle actuel : ${role === 'parent' ? 'Parent' : role === 'eleve' ? 'Élève' : role === 'enseignant' ? 'Enseignant' : '—'}`}
+            color={Colors.violet}
+            type="navigate"
+            onPress={() => setRole(null as any)}
+          />
+          <SettingsRowItem
+            icon="log-out"
+            label="Se déconnecter"
+            sublabel="Retour à l'écran de connexion"
+            color={Colors.red}
+            type="navigate"
+            onPress={() => signOut()}
+            isLast
+          />
+        </SettingsSection>
+
+        {/* About & Info */}
+        <SettingsSection title="INFORMATIONS">
+          <SettingsRowItem
+            icon="information-circle"
+            label="À propos de Scolaria"
+            sublabel="Mission, Charte Éthique, Technologies"
+            color={Colors.violet}
+            type="navigate"
+            onPress={() => navigation.navigate('APropos')}
+          />
+          <SettingsRowItem
+            icon="document-text"
+            label="Charte Éthique"
+            sublabel="8 engagements fondateurs"
+            color={Colors.green}
+            type="navigate"
+            onPress={() => navigation.navigate('APropos')}
+            isLast
+          />
+        </SettingsSection>
+
         {/* App info */}
-        <View style={styles.appInfo}>
-          <Text style={styles.appName}>Scolaria</Text>
-          <Text style={styles.appVersion}>Version 1.0.0</Text>
-          <Text style={styles.appCopyright}>
+        <VStack className="items-center py-6" style={{ gap: 4 }}>
+          <Text className="text-base font-extrabold" style={{ color: Colors.violet }}>Scolaria</Text>
+          <Text className="text-[13px]" style={{ color: Colors.gray }}>{t('common.version')} 1.0.0</Text>
+          <Text className="text-[11px] mt-1" style={{ color: Colors.gray }}>
             © 2026 Scolaria · Passeport scolaire numérique
           </Text>
-        </View>
+        </VStack>
 
-        <View style={{ height: 40 }} />
-      </View>
+        <Box className="h-10" />
+      </Box>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.blueNight,
-  },
-  // Profile header
-  profileHeader: {
-    marginBottom: 8,
-  },
-  profileGradient: {
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 24,
-  },
-  familyAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: Colors.cyan,
-  },
-  familyAvatarText: {
-    fontSize: 30,
-  },
-  familyName: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: Colors.white,
-    marginBottom: 2,
-  },
-  familyEmail: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    marginBottom: 12,
-  },
-  planBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  planText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.cyan,
-  },
-  planSince: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-  body: {
-    paddingHorizontal: 20,
-  },
-  // Children rows
-  childRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 12,
-  },
-  childRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
-  },
-  childAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(109,40,217,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  childAvatarText: {
-    fontSize: 22,
-  },
-  childInfo: {
-    flex: 1,
-  },
-  childName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  childClasse: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 1,
-  },
-  childId: {
-    fontSize: 11,
-    color: Colors.cyan,
-    fontFamily: 'monospace',
-    marginTop: 2,
-  },
-  addChildRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 14,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.04)',
-  },
-  addChildText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.cyan,
-  },
-  // Permissions
-  permRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 10,
-  },
-  permAvatar: {
-    fontSize: 28,
-  },
-  permInfo: {
-    flex: 1,
-  },
-  permName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  permRole: {
-    fontSize: 12,
-    color: Colors.gray,
-    marginTop: 1,
-  },
-  permAccessBadge: {
-    backgroundColor: 'rgba(109,40,217,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  permAccessText: {
-    fontSize: 11,
-    color: Colors.violetLight,
-    fontWeight: '600',
-  },
-  // Language
-  langSelected: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 10,
-  },
-  langFlag: {
-    fontSize: 22,
-  },
-  langLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  langOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.04)',
-  },
-  langOptionLabel: {
-    fontSize: 15,
-    color: Colors.gray,
-  },
-  // App info
-  appInfo: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    gap: 4,
-  },
-  appName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.violet,
-  },
-  appVersion: {
-    fontSize: 13,
-    color: Colors.gray,
-  },
-  appCopyright: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 4,
-  },
-});

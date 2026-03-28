@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native';
+import { Box, Text, Pressable, HStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
@@ -42,52 +43,52 @@ export default function MonRessentiScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: Colors.warmBg }} showsVerticalScrollIndicator={false}>
       {/* Header with gradient */}
       <LinearGradient
         colors={[Colors.warmOrange, Colors.warmBg]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={styles.headerGradient}
+        style={{ paddingTop: 20, paddingBottom: 30 }}
       >
-        <View style={styles.headerContent}>
-          <Text style={styles.headerEmoji}>💛</Text>
-          <Text style={styles.headerTitle}>Mon Ressenti</Text>
-          <Text style={styles.headerSubtitle}>
+        <Box className="items-center">
+          <Text className="text-[48px] mb-2">💛</Text>
+          <Text className="text-[28px] font-black text-white mb-1">Mon Ressenti</Text>
+          <Text className="text-[15px]" style={{ color: 'rgba(255,255,255,0.8)' }}>
             Prends un moment pour toi
           </Text>
-        </View>
+        </Box>
       </LinearGradient>
 
-      <View style={styles.body}>
+      <Box className="px-5">
         {/* Mode selector */}
-        <View style={styles.modeSelector}>
+        <HStack className="gap-2 mb-5">
           {MODES.map((m) => (
-            <TouchableOpacity
+            <Pressable
               key={m.key}
+              className="flex-1 items-center py-3 rounded-2xl border-2"
               style={[
-                styles.modeChip,
-                mode === m.key && styles.modeChipActive,
+                { backgroundColor: Colors.warmCard, borderColor: 'transparent' },
+                mode === m.key && { borderColor: Colors.warmOrange, backgroundColor: Colors.warmCardLight },
               ]}
               onPress={() => setMode(m.key)}
-              activeOpacity={0.7}
             >
-              <Text style={styles.modeIcon}>{m.icon}</Text>
+              <Text className="text-2xl mb-1">{m.icon}</Text>
               <Text
-                style={[
-                  styles.modeLabel,
-                  mode === m.key && styles.modeLabelActive,
-                ]}
+                className="text-xs font-bold"
+                style={{ color: mode === m.key ? Colors.warmOrange : Colors.warmCreamDark }}
               >
                 {m.label}
               </Text>
-              <Text style={styles.modeAges}>{m.ages}</Text>
-            </TouchableOpacity>
+              <Text className="text-[10px] mt-0.5" style={{ color: Colors.warmCreamDark }}>
+                {m.ages}
+              </Text>
+            </Pressable>
           ))}
-        </View>
+        </HStack>
 
         {/* Divider */}
-        <View style={styles.divider} />
+        <Box className="h-px mb-5" style={{ backgroundColor: Colors.warmCardLight }} />
 
         {/* Mode content */}
         {mode === 'maternelle' && (
@@ -97,83 +98,9 @@ export default function MonRessentiScreen() {
           <PrimaireMode onSubmit={handlePrimaireSubmit} currentXP={230} />
         )}
         {mode === 'lycee' && <LyceeMode onSubmit={handleLyceeSubmit} />}
-      </View>
+      </Box>
 
-      <View style={styles.bottomPadding} />
+      <Box className="h-10" />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.warmBg,
-  },
-  headerGradient: {
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  headerEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: Colors.white,
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  body: {
-    paddingHorizontal: 20,
-  },
-  modeSelector: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-  },
-  modeChip: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 16,
-    backgroundColor: Colors.warmCard,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  modeChipActive: {
-    borderColor: Colors.warmOrange,
-    backgroundColor: Colors.warmCardLight,
-  },
-  modeIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  modeLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.warmCreamDark,
-  },
-  modeLabelActive: {
-    color: Colors.warmOrange,
-  },
-  modeAges: {
-    fontSize: 10,
-    color: Colors.warmCreamDark,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.warmCardLight,
-    marginBottom: 20,
-  },
-  bottomPadding: {
-    height: 40,
-  },
-});

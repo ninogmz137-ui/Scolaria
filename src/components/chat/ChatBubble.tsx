@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Box, Text, HStack } from '../ui';
 import { Colors } from '../../constants/colors';
+import { useChildTheme } from '../../contexts/ChildThemeContext';
 import AriaAvatar from './AriaAvatar';
 import TypingIndicator from './TypingIndicator';
 
@@ -16,106 +17,65 @@ interface Props {
 }
 
 export default function ChatBubble({ message, isTyping }: Props) {
+  const { theme } = useChildTheme();
   const isAria = message.sender === 'aria';
 
   return (
-    <View style={[styles.row, isAria ? styles.rowAria : styles.rowParent]}>
+    <HStack
+      className="mb-3 px-4 items-end gap-2"
+      style={{ justifyContent: isAria ? 'flex-start' : 'flex-end' }}
+    >
       {isAria && <AriaAvatar size={32} />}
-      <View
-        style={[
-          styles.bubble,
-          isAria ? styles.bubbleAria : styles.bubbleParent,
-        ]}
+      <Box
+        className="rounded-2xl px-4 py-3"
+        style={{
+          maxWidth: '75%',
+          ...(isAria
+            ? {
+                backgroundColor: theme.card,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                borderBottomLeftRadius: 6,
+              }
+            : {
+                backgroundColor: theme.accent,
+                borderBottomRightRadius: 6,
+              }),
+        }}
       >
-        {isAria && <Text style={styles.ariaName}>Aria ✦</Text>}
+        {isAria && (
+          <Text className="text-xs font-bold mb-1" style={{ color: theme.accent }}>
+            Aria ✦
+          </Text>
+        )}
         {isTyping ? (
-          <View style={styles.typingRow}>
-            <Text style={styles.typingText}>Aria réfléchit</Text>
+          <HStack className="items-center gap-1.5">
+            <Text className="text-sm italic" style={{ color: Colors.gray }}>
+              Aria réfléchit
+            </Text>
             <TypingIndicator />
-          </View>
+          </HStack>
         ) : (
-          <Text style={[styles.text, isAria ? styles.textAria : styles.textParent]}>
+          <Text
+            className="text-[15px]"
+            style={{
+              lineHeight: 22,
+              color: isAria ? theme.textPrimary : Colors.white,
+            }}
+          >
             {message.text}
           </Text>
         )}
         <Text
-          style={[
-            styles.timestamp,
-            isAria ? styles.timestampAria : styles.timestampParent,
-          ]}
+          className="text-[11px] mt-1.5"
+          style={{
+            color: isAria ? theme.textMuted : 'rgba(255,255,255,0.6)',
+            textAlign: isAria ? 'left' : 'right',
+          }}
         >
           {message.timestamp}
         </Text>
-      </View>
-    </View>
+      </Box>
+    </HStack>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    alignItems: 'flex-end',
-    gap: 8,
-  },
-  rowAria: {
-    justifyContent: 'flex-start',
-  },
-  rowParent: {
-    justifyContent: 'flex-end',
-  },
-  bubble: {
-    maxWidth: '75%',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-  bubbleAria: {
-    backgroundColor: Colors.blueNightCard,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderBottomLeftRadius: 6,
-  },
-  bubbleParent: {
-    backgroundColor: Colors.violet,
-    borderBottomRightRadius: 6,
-  },
-  ariaName: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.cyan,
-    marginBottom: 4,
-  },
-  text: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  textAria: {
-    color: Colors.white,
-  },
-  textParent: {
-    color: Colors.white,
-  },
-  timestamp: {
-    fontSize: 11,
-    marginTop: 6,
-  },
-  timestampAria: {
-    color: Colors.gray,
-  },
-  timestampParent: {
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'right',
-  },
-  typingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  typingText: {
-    fontSize: 14,
-    color: Colors.gray,
-    fontStyle: 'italic',
-  },
-});

@@ -1,12 +1,6 @@
 import { useEffect, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Animated,
-  Linking,
-} from 'react-native';
+import { Animated, Linking } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 
@@ -187,40 +181,43 @@ export default function JoyAlerts({
 
   return (
     <Animated.View
-      style={[
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }, { scale: pulseAnim }],
-        },
-      ]}
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }, { scale: pulseAnim }],
+      }}
     >
       {/* Alert banner */}
-      <View
-        style={[
-          styles.alertCard,
-          {
-            backgroundColor: config.bgColor,
-            borderColor: config.borderColor,
-          },
-        ]}
+      <Box
+        className="rounded-2xl p-4"
+        style={{
+          backgroundColor: config.bgColor,
+          borderWidth: 1,
+          borderColor: config.borderColor,
+        }}
       >
         {/* Header */}
-        <View style={styles.alertHeader}>
-          <View style={[styles.levelBadge, { backgroundColor: config.color + '25' }]}>
+        <HStack className="justify-between items-center mb-2.5">
+          <HStack
+            className="items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
+            style={{ backgroundColor: config.color + '25' }}
+          >
             <Ionicons name={config.icon} size={16} color={config.color} />
-            <Text style={[styles.levelText, { color: config.color }]}>
+            <Text
+              className="text-[13px] font-extrabold uppercase tracking-wide"
+              style={{ color: config.color }}
+            >
               {config.title}
             </Text>
-          </View>
+          </HStack>
           {dropPercent > 0 && (
-            <Text style={[styles.dropText, { color: config.color }]}>
+            <Text className="text-lg font-black" style={{ color: config.color }}>
               -{dropPercent}%
             </Text>
           )}
-        </View>
+        </HStack>
 
         {/* Message */}
-        <Text style={styles.alertMessage}>
+        <Text className="text-sm mb-2.5" style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 20 }}>
           {showUrgencyProtocol
             ? `Un message de ${childName} contient des mots préoccupants. Veuillez prêter attention à son état émotionnel.`
             : config.message}
@@ -228,245 +225,138 @@ export default function JoyAlerts({
 
         {/* Score info */}
         {!showUrgencyProtocol && (
-          <View style={styles.scoreInfo}>
-            <Text style={styles.scoreInfoText}>
+          <Box className="px-3 py-2 rounded-xl mb-3" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+            <Text className="text-[13px]" style={{ color: Colors.gray }}>
               Score moyen sur 5 jours :{' '}
               <Text style={{ color: config.color, fontWeight: '800' }}>
                 {recentAvg.toFixed(1)}/10
               </Text>
             </Text>
-          </View>
+          </Box>
         )}
 
         {/* Action button (non-urgence) */}
         {config.action && !showUrgencyProtocol && (
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: config.color + '20' }]}
+          <Pressable
+            className="flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl"
+            style={{ backgroundColor: config.color + '20' }}
             onPress={onActionPress}
-            activeOpacity={0.7}
           >
-            <Text style={[styles.actionText, { color: config.color }]}>
+            <Text className="text-sm font-bold" style={{ color: config.color }}>
               {config.action}
             </Text>
             <Ionicons name="arrow-forward" size={14} color={config.color} />
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </View>
+      </Box>
 
       {/* Urgency protocol — help numbers */}
       {(effectiveLevel === 'urgence' || showUrgencyProtocol) && (
-        <View style={styles.urgencyProtocol}>
-          <View style={styles.urgencyHeader}>
+        <Box
+          className="mt-3 rounded-2xl p-4"
+          style={{
+            backgroundColor: Colors.blueNightCard,
+            borderWidth: 1,
+            borderColor: Colors.red + '30',
+          }}
+        >
+          <HStack className="items-center gap-2 mb-3.5">
             <Ionicons name="shield-checkmark" size={18} color={Colors.red} />
-            <Text style={styles.urgencyTitle}>Numéros d'aide</Text>
-          </View>
+            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+              Numéros d'aide
+            </Text>
+          </HStack>
 
           {/* 3020 — Harcèlement */}
-          <TouchableOpacity
-            style={styles.helpLine}
+          <Pressable
+            className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
+            style={{ backgroundColor: Colors.blueNightLight }}
             onPress={() => Linking.openURL('tel:3020')}
-            activeOpacity={0.7}
           >
-            <View style={styles.helpLineLeft}>
-              <View style={[styles.helpIcon, { backgroundColor: '#F97316' + '20' }]}>
-                <Text style={styles.helpEmoji}>📞</Text>
-              </View>
-              <View>
-                <Text style={styles.helpNumber}>3020</Text>
-                <Text style={styles.helpLabel}>
+            <HStack className="items-center gap-3 flex-1">
+              <Box
+                className="justify-center items-center"
+                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#F97316' + '20' }}
+              >
+                <Text className="text-xl">📞</Text>
+              </Box>
+              <Box>
+                <Text className="text-xl font-black" style={{ color: Colors.white }}>3020</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
                   Non au Harcèlement — gratuit et anonyme
                 </Text>
-              </View>
-            </View>
-            <View style={styles.callBadge}>
+              </Box>
+            </HStack>
+            <Box
+              className="justify-center items-center"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#F97316' }}
+            >
               <Ionicons name="call" size={14} color={Colors.white} />
-            </View>
-          </TouchableOpacity>
+            </Box>
+          </Pressable>
 
           {/* 3114 — Prévention du suicide */}
-          <TouchableOpacity
-            style={styles.helpLine}
+          <Pressable
+            className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
+            style={{ backgroundColor: Colors.blueNightLight }}
             onPress={() => Linking.openURL('tel:3114')}
-            activeOpacity={0.7}
           >
-            <View style={styles.helpLineLeft}>
-              <View style={[styles.helpIcon, { backgroundColor: Colors.red + '20' }]}>
-                <Text style={styles.helpEmoji}>🆘</Text>
-              </View>
-              <View>
-                <Text style={styles.helpNumber}>3114</Text>
-                <Text style={styles.helpLabel}>
+            <HStack className="items-center gap-3 flex-1">
+              <Box
+                className="justify-center items-center"
+                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.red + '20' }}
+              >
+                <Text className="text-xl">🆘</Text>
+              </Box>
+              <Box>
+                <Text className="text-xl font-black" style={{ color: Colors.white }}>3114</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
                   Prévention du suicide — 24h/24, 7j/7
                 </Text>
-              </View>
-            </View>
-            <View style={[styles.callBadge, { backgroundColor: Colors.red }]}>
+              </Box>
+            </HStack>
+            <Box
+              className="justify-center items-center"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.red }}
+            >
               <Ionicons name="call" size={14} color={Colors.white} />
-            </View>
-          </TouchableOpacity>
+            </Box>
+          </Pressable>
 
           {/* 119 — Enfance en danger */}
-          <TouchableOpacity
-            style={styles.helpLine}
+          <Pressable
+            className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
+            style={{ backgroundColor: Colors.blueNightLight }}
             onPress={() => Linking.openURL('tel:119')}
-            activeOpacity={0.7}
           >
-            <View style={styles.helpLineLeft}>
-              <View style={[styles.helpIcon, { backgroundColor: Colors.violet + '20' }]}>
-                <Text style={styles.helpEmoji}>🛡️</Text>
-              </View>
-              <View>
-                <Text style={styles.helpNumber}>119</Text>
-                <Text style={styles.helpLabel}>
+            <HStack className="items-center gap-3 flex-1">
+              <Box
+                className="justify-center items-center"
+                style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.violet + '20' }}
+              >
+                <Text className="text-xl">🛡️</Text>
+              </Box>
+              <Box>
+                <Text className="text-xl font-black" style={{ color: Colors.white }}>119</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
                   Allô Enfance en Danger — gratuit, 24h/24
                 </Text>
-              </View>
-            </View>
-            <View style={[styles.callBadge, { backgroundColor: Colors.violet }]}>
+              </Box>
+            </HStack>
+            <Box
+              className="justify-center items-center"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.violet }}
+            >
               <Ionicons name="call" size={14} color={Colors.white} />
-            </View>
-          </TouchableOpacity>
+            </Box>
+          </Pressable>
 
-          <Text style={styles.urgencyFooter}>
+          <Text className="text-[11px] text-center mt-2" style={{ color: Colors.gray, lineHeight: 16 }}>
             Ces numéros sont gratuits, confidentiels et disponibles
             pour les enfants comme pour les parents.
           </Text>
-        </View>
+        </Box>
       )}
     </Animated.View>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  alertCard: {
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-  },
-  alertHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  levelBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  levelText: {
-    fontSize: 13,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  dropText: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  alertMessage: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: 20,
-    marginBottom: 10,
-  },
-  scoreInfo: {
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  scoreInfoText: {
-    fontSize: 13,
-    color: Colors.gray,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  // Urgency protocol
-  urgencyProtocol: {
-    marginTop: 12,
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: Colors.red + '30',
-  },
-  urgencyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 14,
-  },
-  urgencyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  helpLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.blueNightLight,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
-  },
-  helpLineLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  helpIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  helpEmoji: {
-    fontSize: 20,
-  },
-  helpNumber: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: Colors.white,
-  },
-  helpLabel: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 1,
-    maxWidth: 200,
-  },
-  callBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F97316',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  urgencyFooter: {
-    fontSize: 11,
-    color: Colors.gray,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginTop: 8,
-  },
-});

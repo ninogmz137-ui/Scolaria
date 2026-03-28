@@ -1,12 +1,6 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-  Linking,
-} from 'react-native';
+import { TextInput, Linking } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -23,7 +17,7 @@ interface SliderData {
 const SLIDERS: SliderData[] = [
   {
     key: 'energy',
-    label: 'Énergie',
+    label: 'Energie',
     icon: '⚡',
     color: Colors.warmOrange,
     emoji: (v) => (v >= 7 ? '🔋' : v >= 4 ? '🔌' : '🪫'),
@@ -88,47 +82,60 @@ export default function LyceeMode({ onSubmit }: Props) {
 
   if (submitted) {
     return (
-      <View style={styles.successContainer}>
-        <Text style={styles.successEmoji}>✅</Text>
-        <Text style={styles.successTitle}>Ressenti enregistré</Text>
-        <Text style={styles.successSubtitle}>
-          Tes données restent confidentielles
+      <VStack className="items-center pt-[50px]">
+        <Text style={{ fontSize: 64, marginBottom: 12 }}>✅</Text>
+        <Text
+          className="text-2xl font-extrabold mb-2"
+          style={{ color: Colors.warmOrange }}
+        >
+          Ressenti enregistre
         </Text>
-        <View style={styles.lockRow}>
-          <Ionicons
-            name="lock-closed"
-            size={16}
-            color={Colors.warmOrangeLight}
-          />
-          <Text style={styles.lockText}>Chiffré · Visible uniquement par toi</Text>
-        </View>
-      </View>
+        <Text
+          className="text-[15px] mb-4"
+          style={{ color: Colors.warmCreamDark }}
+        >
+          Tes donnees restent confidentielles
+        </Text>
+        <HStack className="items-center" style={{ gap: 6 }}>
+          <Ionicons name="lock-closed" size={16} color={Colors.warmOrangeLight} />
+          <Text className="text-[13px] font-semibold" style={{ color: Colors.warmOrangeLight }}>
+            Chiffre · Visible uniquement par toi
+          </Text>
+        </HStack>
+      </VStack>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Box className="pt-2.5">
       {/* Confidentiality badge */}
-      <View style={styles.confidentialBadge}>
+      <HStack
+        className="self-end items-center px-3 py-[5px] rounded-[20px] mb-3"
+        style={{ backgroundColor: Colors.warmCardLight, gap: 6 }}
+      >
         <Ionicons name="lock-closed" size={14} color={Colors.warmOrangeLight} />
-        <Text style={styles.confidentialText}>Confidentiel</Text>
-      </View>
+        <Text className="text-[13px] font-semibold" style={{ color: Colors.warmOrangeLight }}>
+          Confidentiel
+        </Text>
+      </HStack>
 
-      <Text style={styles.title}>Mon ressenti du jour</Text>
+      <Text className="text-[22px] font-extrabold mb-5" style={{ color: Colors.warmCream }}>
+        Mon ressenti du jour
+      </Text>
 
       {/* Sliders */}
       {SLIDERS.map((s) => (
-        <View key={s.key} style={styles.sliderSection}>
-          <View style={styles.sliderHeader}>
-            <Text style={styles.sliderLabel}>
+        <Box key={s.key} className="mb-[18px]">
+          <HStack className="justify-between items-center mb-1">
+            <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
               {s.icon} {s.label}
             </Text>
-            <Text style={styles.sliderFeedback}>
+            <Text className="text-[15px] font-bold" style={{ color: Colors.warmOrangeLight }}>
               {s.emoji(values[s.key])} {values[s.key]}/10
             </Text>
-          </View>
+          </HStack>
           <Slider
-            style={styles.slider}
+            style={{ width: '100%', height: 40 }}
             minimumValue={0}
             maximumValue={10}
             step={1}
@@ -138,21 +145,27 @@ export default function LyceeMode({ onSubmit }: Props) {
             maximumTrackTintColor={Colors.warmCardLight}
             thumbTintColor={s.color}
           />
-        </View>
+        </Box>
       ))}
 
       {/* Confidential message */}
-      <View style={styles.messageSection}>
-        <View style={styles.messageHeader}>
-          <Ionicons
-            name="chatbubble-ellipses"
-            size={18}
-            color={Colors.warmOrangeLight}
-          />
-          <Text style={styles.messageLabel}>Message confidentiel</Text>
-        </View>
+      <Box className="mt-2 mb-6">
+        <HStack className="items-center mb-2.5" style={{ gap: 8 }}>
+          <Ionicons name="chatbubble-ellipses" size={18} color={Colors.warmOrangeLight} />
+          <Text className="text-base font-bold" style={{ color: Colors.warmCream }}>
+            Message confidentiel
+          </Text>
+        </HStack>
         <TextInput
-          style={styles.textInput}
+          className="rounded-2xl p-4 text-[15px]"
+          style={{
+            backgroundColor: Colors.warmCard,
+            color: Colors.warmCream,
+            minHeight: 100,
+            textAlignVertical: 'top',
+            borderWidth: 1,
+            borderColor: Colors.warmCardLight,
+          }}
           placeholder="Ce que tu ressens est important..."
           placeholderTextColor={Colors.warmCreamDark}
           value={message}
@@ -160,244 +173,80 @@ export default function LyceeMode({ onSubmit }: Props) {
           multiline
           maxLength={500}
         />
-        <Text style={styles.charCount}>{message.length}/500</Text>
-      </View>
+        <Text className="text-xs text-right mt-1" style={{ color: Colors.warmCreamDark }}>
+          {message.length}/500
+        </Text>
+      </Box>
 
-      {/* Urgency protocol — appears immediately if critical keywords detected */}
+      {/* Urgency protocol */}
       {detectCriticalKeywords(message) && (
-        <View style={styles.urgencyBox}>
-          <View style={styles.urgencyHeader}>
+        <Box
+          className="rounded-2xl p-4 mb-5"
+          style={{ backgroundColor: '#3D1010', borderWidth: 1, borderColor: '#F8717140' }}
+        >
+          <HStack className="items-center mb-2" style={{ gap: 8 }}>
             <Ionicons name="heart" size={18} color={Colors.red} />
-            <Text style={styles.urgencyTitle}>Tu n'es pas seul(e)</Text>
-          </View>
-          <Text style={styles.urgencyMessage}>
-            Si tu traverses un moment difficile, n'hésite pas à en parler. Ces numéros sont gratuits et anonymes :
+            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+              Tu n'es pas seul(e)
+            </Text>
+          </HStack>
+          <Text
+            className="text-[13px] leading-[18px] mb-3"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            Si tu traverses un moment difficile, n'hesite pas a en parler. Ces numeros sont gratuits et anonymes :
           </Text>
-          <TouchableOpacity
-            style={styles.helpLine}
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:3020')}
           >
-            <Text style={styles.helpNumber}>📞 3020</Text>
-            <Text style={styles.helpLabel}>Non au Harcèlement — gratuit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.helpLine}
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>📞 3020</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Non au Harcelement — gratuit</Text>
+          </Pressable>
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:3114')}
           >
-            <Text style={styles.helpNumber}>🆘 3114</Text>
-            <Text style={styles.helpLabel}>Prévention du suicide — 24h/24, 7j/7</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.helpLine}
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>🆘 3114</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Prevention du suicide — 24h/24, 7j/7</Text>
+          </Pressable>
+          <Pressable
+            className="flex-row items-center p-3 rounded-xl mb-1.5"
+            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
             onPress={() => Linking.openURL('tel:119')}
           >
-            <Text style={styles.helpNumber}>🛡️ 119</Text>
-            <Text style={styles.helpLabel}>Allô Enfance en Danger — 24h/24</Text>
-          </TouchableOpacity>
-          <Text style={styles.urgencyFooter}>
-            Tu peux aussi parler à un adulte de confiance : parent, prof, CPE, infirmier(ère) scolaire.
+            <Text className="text-lg font-black" style={{ color: Colors.white }}>🛡️ 119</Text>
+            <Text className="text-xs" style={{ color: Colors.gray }}>Allo Enfance en Danger — 24h/24</Text>
+          </Pressable>
+          <Text
+            className="text-xs text-center mt-2 leading-[17px]"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
+          >
+            Tu peux aussi parler a un adulte de confiance : parent, prof, CPE, infirmier(ere) scolaire.
           </Text>
-        </View>
+        </Box>
       )}
 
       {/* Submit */}
-      <TouchableOpacity
-        style={styles.submitButton}
+      <Pressable
+        className="py-[18px] rounded-[30px] flex-row items-center justify-center"
+        style={{ backgroundColor: Colors.warmOrange, gap: 10 }}
         onPress={handleSubmit}
-        activeOpacity={0.8}
       >
         <Ionicons name="shield-checkmark" size={22} color={Colors.white} />
-        <Text style={styles.submitText}>Enregistrer mon ressenti</Text>
-      </TouchableOpacity>
+        <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
+          Enregistrer mon ressenti
+        </Text>
+      </Pressable>
 
-      <Text style={styles.disclaimer}>
-        🔒 Tes réponses sont chiffrées et ne sont partagées avec personne.
+      <Text
+        className="text-xs text-center mt-3.5 leading-[18px]"
+        style={{ color: Colors.warmCreamDark }}
+      >
+        🔒 Tes reponses sont chiffrees et ne sont partagees avec personne.
       </Text>
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 10,
-  },
-  confidentialBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: Colors.warmCardLight,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    gap: 6,
-    marginBottom: 12,
-  },
-  confidentialText: {
-    color: Colors.warmOrangeLight,
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.warmCream,
-    marginBottom: 20,
-  },
-  sliderSection: {
-    marginBottom: 18,
-  },
-  sliderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  sliderLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.warmCream,
-  },
-  sliderFeedback: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.warmOrangeLight,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  messageSection: {
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  messageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  messageLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.warmCream,
-  },
-  textInput: {
-    backgroundColor: Colors.warmCard,
-    borderRadius: 16,
-    padding: 16,
-    color: Colors.warmCream,
-    fontSize: 15,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: Colors.warmCardLight,
-  },
-  charCount: {
-    textAlign: 'right',
-    color: Colors.warmCreamDark,
-    fontSize: 12,
-    marginTop: 4,
-  },
-  submitButton: {
-    backgroundColor: Colors.warmOrange,
-    paddingVertical: 18,
-    borderRadius: 30,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  submitText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  disclaimer: {
-    textAlign: 'center',
-    color: Colors.warmCreamDark,
-    fontSize: 12,
-    marginTop: 14,
-    lineHeight: 18,
-  },
-  // Urgency protocol
-  urgencyBox: {
-    backgroundColor: '#3D1010',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#F8717140',
-  },
-  urgencyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  urgencyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  urgencyMessage: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-    lineHeight: 18,
-    marginBottom: 12,
-  },
-  helpLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 6,
-  },
-  helpNumber: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: Colors.white,
-  },
-  helpLabel: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-  urgencyFooter: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 17,
-  },
-  // Success state
-  successContainer: {
-    alignItems: 'center',
-    paddingTop: 50,
-  },
-  successEmoji: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
-  successTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.warmOrange,
-    marginBottom: 8,
-  },
-  successSubtitle: {
-    fontSize: 15,
-    color: Colors.warmCreamDark,
-    marginBottom: 16,
-  },
-  lockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  lockText: {
-    color: Colors.warmOrangeLight,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});

@@ -1,49 +1,64 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   FlatList,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import AriaAvatar from '../components/chat/AriaAvatar';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
+import { useSchoolMode } from '../contexts/SchoolModeContext';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useChildTheme } from '../contexts/ChildThemeContext';
 
-// ─── Initial greeting ────────────────────────────────────
+// ─── Helper: build welcome & suggestions per child ───────
 
-const WELCOME_MESSAGE: Message = {
-  id: '1',
-  text: 'Bonjour ! Je suis Aria ✦, ton assistante scolaire. J\'ai accès au profil complet de Lucas — notes, activités, bien-être. Pose-moi une question ! 📚',
-  sender: 'aria',
-  timestamp: new Date().toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }),
-};
+function makeWelcomeMessage(childName: string): Message {
+  return {
+    id: '1',
+    text: `Bonjour ! Je suis Aria ✦, ton assistante scolaire. J'ai accès au profil complet de ${childName} — notes, activités, bien-être. Pose-moi une question ! 📚`,
+    sender: 'aria',
+    timestamp: new Date().toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
+}
 
-const SUGGESTIONS = [
-  '📊 Résumé de la semaine',
-  '📝 Préparer le contrôle de maths',
-  '💡 Conseils pour progresser',
-  '😊 Comment va Lucas ?',
-  '🎯 Forces et faiblesses',
-];
+function makeSuggestions(childName: string): string[] {
+  return [
+    '📊 Résumé de la semaine',
+    '📝 Préparer le contrôle de maths',
+    '💡 Conseils pour progresser',
+    `😊 Comment va ${childName} ?`,
+    '🎯 Forces et faiblesses',
+  ];
+}
 
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const { theme } = useChildTheme();
+  const { selectedChild } = useActiveChild();
+  const childName = selectedChild?.name ?? 'votre enfant';
+  const childId = selectedChild?.id ?? '1';
+
+  const [messages, setMessages] = useState<Message[]>([makeWelcomeMessage(childName)]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activeChildId] = useState('1'); // Will be switchable later
   const flatListRef = useRef<FlatList>(null);
+
+  // Reset conversation when switching child
+  const suggestions = makeSuggestions(childName);
+  useEffect(() => {
+    setMessages([makeWelcomeMessage(childName)]);
+    conversationHistoryRef.current = [];
+  }, [childId, childName]);
 
   // Conversation history for Claude API (excludes welcome message)
   const conversationHistoryRef = useRef<ClaudeMessage[]>([]);
@@ -81,7 +96,7 @@ export default function AriaScreen() {
         const response = await sendToAria(
           trimmed,
           conversationHistoryRef.current,
-          activeChildId,
+          childId,
         );
 
         // Update conversation history
@@ -119,7 +134,7 @@ export default function AriaScreen() {
         scrollToEnd();
       }
     },
-    [input, isTyping, scrollToEnd, activeChildId],
+    [input, isTyping, scrollToEnd, childId],
   );
 
   const handleSuggestionPress = useCallback(
@@ -143,73 +158,92 @@ export default function AriaScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <HStack
+        className="items-center px-4 py-3"
+        style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+      >
         <AriaAvatar size={40} />
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerName}>Aria ✦</Text>
-          <View style={styles.statusRow}>
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: isTyping ? Colors.orange : Colors.green },
-              ]}
+        <VStack className="flex-1 ml-3">
+          <Text className="text-[17px]" style={{ fontWeight: '800', color: theme.textPrimary }}>
+            {theme.ariaLabel}
+          </Text>
+          <HStack className="items-center gap-[5px] mt-0.5">
+            <Box
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: isTyping ? Colors.orange : Colors.green }}
             />
             <Text
-              style={[
-                styles.statusText,
-                { color: isTyping ? Colors.orange : Colors.green },
-              ]}
+              className="text-xs"
+              style={{
+                fontWeight: '500',
+                color: isTyping ? Colors.orange : Colors.green,
+              }}
             >
               {isTyping ? 'Réfléchit...' : 'En ligne'}
             </Text>
-          </View>
-        </View>
-        <View style={styles.headerRight}>
-          <View style={styles.modelBadge}>
-            <Text style={styles.modelText}>Claude Sonnet</Text>
-          </View>
-          <TouchableOpacity style={styles.headerAction}>
+          </HStack>
+        </VStack>
+        <HStack className="items-center gap-2">
+          <Box
+            className="px-2 py-1 rounded-lg"
+            style={{
+              backgroundColor: 'rgba(109,40,217,0.2)',
+              borderWidth: 1,
+              borderColor: 'rgba(109,40,217,0.3)',
+            }}
+          >
+            <Text className="text-[10px]" style={{ fontWeight: '700', color: Colors.violetLight }}>
+              Claude Sonnet
+            </Text>
+          </Box>
+          <Pressable className="p-2">
             <Ionicons
               name="ellipsis-vertical"
               size={20}
               color={Colors.gray}
             />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </Pressable>
+        </HStack>
+      </HStack>
 
       {/* Suggestions banner */}
-      <View style={styles.suggestionsContainer}>
+      <Box style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={SUGGESTIONS}
+          data={suggestions}
           keyExtractor={(item) => item}
-          contentContainerStyle={styles.suggestionsContent}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.suggestionChip}
+            <Pressable
+              className="rounded-full px-3.5 py-2 mr-2"
+              style={{
+                backgroundColor: theme.card,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+              }}
               onPress={() => handleSuggestionPress(item)}
-              activeOpacity={0.7}
               disabled={isTyping}
             >
               <Text
-                style={[
-                  styles.suggestionText,
-                  isTyping && { opacity: 0.4 },
-                ]}
+                className="text-[13px]"
+                style={{
+                  fontWeight: '500',
+                  color: theme.textSecondary,
+                  opacity: isTyping ? 0.4 : 1,
+                }}
               >
                 {item}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         />
-      </View>
+      </Box>
 
       {/* Messages */}
       <FlatList
@@ -217,7 +251,7 @@ export default function AriaScreen() {
         data={messages}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 8 }}
         onContentSizeChange={scrollToEnd}
         ListFooterComponent={
           isTyping ? (
@@ -227,12 +261,24 @@ export default function AriaScreen() {
       />
 
       {/* Input bar */}
-      <View style={styles.inputBar}>
-        <View style={styles.inputWrapper}>
+      <Box
+        className="px-3 py-2.5"
+        style={{ backgroundColor: theme.bg, borderTopWidth: 1, borderTopColor: theme.cardBorder }}
+      >
+        <HStack
+          className="items-end rounded-3xl pl-4 pr-1 py-1"
+          style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+        >
           <TextInput
-            style={styles.textInput}
+            style={{
+              flex: 1,
+              color: theme.textPrimary,
+              fontSize: 15,
+              maxHeight: 100,
+              paddingVertical: 10,
+            }}
             placeholder="Demandez à Aria..."
-            placeholderTextColor={Colors.gray}
+            placeholderTextColor={theme.textMuted}
             value={input}
             onChangeText={setInput}
             multiline
@@ -241,161 +287,32 @@ export default function AriaScreen() {
             editable={!isTyping}
           />
           {input.trim() ? (
-            <TouchableOpacity
-              style={[styles.sendButton, isTyping && { opacity: 0.4 }]}
+            <Pressable
+              className="w-10 h-10 rounded-full justify-center items-center"
+              style={{ backgroundColor: Colors.violet, opacity: isTyping ? 0.4 : 1 }}
               onPress={() => sendMessage()}
-              activeOpacity={0.7}
               disabled={isTyping}
             >
               <Ionicons name="send" size={20} color={Colors.white} />
-            </TouchableOpacity>
+            </Pressable>
           ) : (
-            <TouchableOpacity style={styles.micButton} activeOpacity={0.7}>
+            <Pressable className="w-10 h-10">
               <LinearGradient
                 colors={[Colors.violet, Colors.violetDark]}
-                style={styles.micGradient}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
               >
                 <Ionicons name="mic" size={22} color={Colors.white} />
               </LinearGradient>
-            </TouchableOpacity>
+            </Pressable>
           )}
-        </View>
-      </View>
+        </HStack>
+      </Box>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.blueNight,
-  },
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-  },
-  headerInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  headerName: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 2,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  modelBadge: {
-    backgroundColor: 'rgba(109,40,217,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(109,40,217,0.3)',
-  },
-  modelText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: Colors.violetLight,
-  },
-  headerAction: {
-    padding: 8,
-  },
-  // Suggestions
-  suggestionsContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.04)',
-  },
-  suggestionsContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  suggestionChip: {
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginRight: 8,
-  },
-  suggestionText: {
-    fontSize: 13,
-    color: Colors.lightGray,
-    fontWeight: '500',
-  },
-  // Messages
-  messagesList: {
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  // Input bar
-  inputBar: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-    backgroundColor: Colors.blueNight,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingLeft: 16,
-    paddingRight: 4,
-    paddingVertical: 4,
-  },
-  textInput: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 15,
-    maxHeight: 100,
-    paddingVertical: 10,
-  },
-  sendButton: {
-    backgroundColor: Colors.violet,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  micButton: {
-    width: 40,
-    height: 40,
-  },
-  micGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

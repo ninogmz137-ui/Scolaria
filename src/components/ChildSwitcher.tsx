@@ -1,20 +1,11 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from 'react-native';
+import { ScrollView } from 'react-native';
+import { Box, Text, Pressable, HStack } from './ui';
 import { Colors } from '../constants/colors';
+import { useSchoolMode } from '../contexts/SchoolModeContext';
+import { type Child } from '../contexts/ActiveChildContext';
 
-export type Child = {
-  id: string;
-  name: string;
-  avatar: string;
-  classe: string;
-};
+export type { Child };
 
 type Props = {
   children: Child[];
@@ -25,91 +16,66 @@ type Props = {
 const AVATAR_COLORS = [Colors.violet, Colors.cyan, Colors.pink, Colors.green];
 
 export default function ChildSwitcher({ children, selectedId, onSelect }: Props) {
+  const { theme } = useSchoolMode();
+
   return (
-    <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+    <Box className="mb-5">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+      >
         {children.map((child, index) => {
           const isSelected = child.id === selectedId;
           const avatarColor = AVATAR_COLORS[index % AVATAR_COLORS.length];
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={child.id}
-              style={[styles.chip, isSelected && styles.chipSelected]}
+              className="flex-row items-center rounded-2xl py-2.5 px-3.5"
+              style={{
+                backgroundColor: isSelected ? theme.bgLight : theme.card,
+                borderWidth: 1.5,
+                borderColor: isSelected ? theme.accent : 'transparent',
+              }}
               onPress={() => onSelect(child.id)}
-              activeOpacity={0.7}
             >
-              <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-                <Text style={styles.avatarText}>{child.avatar}</Text>
-              </View>
-              <View style={styles.info}>
-                <Text style={[styles.name, isSelected && styles.nameSelected]}>
+              <Box
+                className="items-center justify-center"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: avatarColor,
+                }}
+              >
+                <Text className="text-lg">{child.avatar}</Text>
+              </Box>
+              <Box className="ml-2.5">
+                <Text
+                  className="text-sm font-semibold"
+                  style={{ color: isSelected ? theme.textPrimary : theme.textMuted }}
+                >
                   {child.name}
                 </Text>
-                <Text style={styles.classe}>{child.classe}</Text>
-              </View>
-              {isSelected && <View style={styles.activeDot} />}
-            </TouchableOpacity>
+                <Text className="text-[11px] mt-px" style={{ color: theme.textMuted }}>
+                  {child.classe}
+                </Text>
+              </Box>
+              {isSelected && (
+                <Box
+                  className="ml-2.5 rounded-full"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    backgroundColor: theme.accent,
+                  }}
+                />
+              )}
+            </Pressable>
           );
         })}
       </ScrollView>
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: 20,
-  },
-  scroll: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  chipSelected: {
-    borderColor: Colors.cyan,
-    backgroundColor: Colors.blueNightLight,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 18,
-  },
-  info: {
-    marginLeft: 10,
-  },
-  name: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.gray,
-  },
-  nameSelected: {
-    color: Colors.white,
-  },
-  classe: {
-    fontSize: 11,
-    color: Colors.gray,
-    marginTop: 1,
-  },
-  activeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.cyan,
-    marginLeft: 10,
-  },
-});

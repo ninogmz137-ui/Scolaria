@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View, Animated } from 'react-native';
+import { Animated } from 'react-native';
+import { Box, HStack } from '../ui';
 import { Colors } from '../../constants/colors';
 
 export default function TypingIndicator() {
@@ -32,45 +33,30 @@ export default function TypingIndicator() {
   }, [dots]);
 
   return (
-    <View style={styles.container}>
+    <HStack className="items-center py-1 px-0.5" style={{ gap: 5 }}>
       {dots.map((dot, i) => (
         <Animated.View
           key={i}
-          style={[
-            styles.dot,
-            {
-              opacity: dot.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.3, 1],
-              }),
-              transform: [
-                {
-                  translateY: dot.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, -6],
-                  }),
-                },
-              ],
-            },
-          ]}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: Colors.violet,
+            opacity: dot.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.3, 1],
+            }),
+            transform: [
+              {
+                translateY: dot.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, -6],
+                }),
+              },
+            ],
+          }}
         />
       ))}
-    </View>
+    </HStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.violet,
-  },
-});

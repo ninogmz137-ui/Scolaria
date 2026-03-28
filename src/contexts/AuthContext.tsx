@@ -3,6 +3,8 @@
  *
  * If Supabase is not configured, automatically uses a demo user
  * so the app remains fully functional in demo mode.
+ *
+ * Now includes role selection (parent, eleve, enseignant).
  */
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -11,14 +13,19 @@ import { supabase } from '../services/supabase';
 
 // ─── Types ────────────────────────────────────────────────
 
+export type UserRole = 'parent' | 'eleve' | 'enseignant';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isDemo: boolean;
+  role: UserRole | null;
+  setRole: (role: UserRole) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, familyName: string) => Promise<void>;
   signOut: () => Promise<void>;
+  enterDemoMode: () => void;
 }
 
 // ─── Demo user (when Supabase is not configured) ────────
@@ -40,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<UserRole | null>(null);
 
   const isSupabaseConfigured =
     !!process.env.EXPO_PUBLIC_SUPABASE_URL &&
@@ -101,14 +109,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const enterDemoMode = () => {
+    setUser(DEMO_USER);
+    setSession(null);
+  };
+
   const handleSignOut = async () => {
     if (!isSupabaseConfigured) {
       setUser(null);
+      setRole(null);
       return;
     }
 
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    setRole(null);
   };
 
   return (
@@ -118,9 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         loading,
         isDemo,
+        role,
+        setRole,
         signIn: handleSignIn,
         signUp: handleSignUp,
         signOut: handleSignOut,
+        enterDemoMode,
       }}
     >
       {children}

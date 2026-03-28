@@ -6,15 +6,8 @@
  */
 
 import { useEffect, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-  Modal,
-} from 'react-native';
+import { Animated, Dimensions, Modal } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack } from './ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
@@ -139,93 +132,112 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
 
   return (
     <Modal transparent visible={visible} animationType="none">
-      <Animated.View style={[styles.overlay, { opacity: bgOpacity }]}>
-        <TouchableOpacity
-          style={styles.overlayTouch}
-          activeOpacity={1}
-          onPress={handleDismiss}
-        />
+      <Animated.View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', opacity: bgOpacity }}>
+        <Pressable className="flex-1" onPress={handleDismiss} />
 
         <Animated.View
-          style={[
-            styles.cardContainer,
-            {
-              transform: [
-                { translateY: slideUp },
-                { scale: cardScale },
-              ],
-            },
-          ]}
+          style={{
+            marginHorizontal: 16,
+            marginBottom: 32,
+            transform: [
+              { translateY: slideUp },
+              { scale: cardScale },
+            ],
+          }}
         >
           <LinearGradient
             colors={[Colors.blueNightCard, Colors.blueNight]}
-            style={styles.card}
+            style={{
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}
           >
             {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <Text style={styles.sunEmoji}>☀️</Text>
-                <View>
-                  <Text style={styles.headerTitle}>Conseil du Matin</Text>
-                  <Text style={styles.headerDate}>{today}</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={styles.closeButton}
+            <HStack className="justify-between items-center p-5 pb-3.5">
+              <HStack className="items-center gap-3">
+                <Text className="text-[28px]">☀️</Text>
+                <Box>
+                  <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
+                    Conseil du Matin
+                  </Text>
+                  <Text className="text-[13px] mt-0.5 capitalize" style={{ color: Colors.gray }}>
+                    {today}
+                  </Text>
+                </Box>
+              </HStack>
+              <Pressable
+                className="justify-center items-center"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(255,255,255,0.06)',
+                }}
                 onPress={handleDismiss}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Ionicons name="close" size={20} color={Colors.gray} />
-              </TouchableOpacity>
-            </View>
+              </Pressable>
+            </HStack>
 
             {/* Divider */}
-            <View style={styles.divider} />
+            <Box className="mx-5" style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
 
             {/* Tip content */}
-            <View style={styles.tipContent}>
-              <View style={styles.tipEmojiCircle}>
-                <Text style={styles.tipEmoji}>{tip.emoji}</Text>
-              </View>
+            <VStack className="p-5 items-center">
+              <Box
+                className="justify-center items-center mb-3.5"
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: 'rgba(109,40,217,0.12)',
+                }}
+              >
+                <Text className="text-[32px]">{tip.emoji}</Text>
+              </Box>
 
-              <View style={[styles.categoryBadge, { backgroundColor: tip.color + '18' }]}>
-                <Text style={[styles.categoryText, { color: tip.color }]}>
+              <Box
+                className="px-3 py-1 rounded-xl mb-3"
+                style={{ backgroundColor: tip.color + '18' }}
+              >
+                <Text className="text-xs font-bold" style={{ color: tip.color }}>
                   {tip.category}
                 </Text>
-              </View>
+              </Box>
 
-              <Text style={styles.tipTitle}>{tip.title}</Text>
-              <Text style={styles.tipBody}>{tip.body}</Text>
-            </View>
+              <Text className="text-xl font-extrabold text-center mb-2.5" style={{ color: Colors.white }}>
+                {tip.title}
+              </Text>
+              <Text className="text-[15px] text-center" style={{ color: Colors.lightGray, lineHeight: 23 }}>
+                {tip.body}
+              </Text>
+            </VStack>
 
             {/* Actions */}
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={handleDismiss}
-                activeOpacity={0.8}
-              >
+            <VStack className="px-5 gap-2.5">
+              <Pressable className="rounded-3xl overflow-hidden" onPress={handleDismiss}>
                 <LinearGradient
                   colors={[Colors.violet, Colors.violetDark]}
-                  style={styles.primaryGradient}
+                  style={{ alignItems: 'center', paddingVertical: 14 }}
                 >
-                  <Text style={styles.primaryText}>Compris !</Text>
+                  <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+                    Compris !
+                  </Text>
                 </LinearGradient>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={handleDismiss}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.secondaryText}>
+              <Pressable className="items-center py-2.5" onPress={handleDismiss}>
+                <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>
                   Demander à Aria →
                 </Text>
-              </TouchableOpacity>
-            </View>
+              </Pressable>
+            </VStack>
 
             {/* Footer */}
-            <Text style={styles.footer}>
+            <Text className="text-[11px] text-center py-3.5" style={{ color: Colors.gray }}>
               Aria analyse les données de Lucas chaque matin ✦
             </Text>
           </LinearGradient>
@@ -234,137 +246,3 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end',
-  },
-  overlayTouch: {
-    flex: 1,
-  },
-  cardContainer: {
-    marginHorizontal: 16,
-    marginBottom: 32,
-  },
-  card: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    overflow: 'hidden',
-  },
-  // Header
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 14,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  sunEmoji: {
-    fontSize: 28,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  headerDate: {
-    fontSize: 13,
-    color: Colors.gray,
-    marginTop: 2,
-    textTransform: 'capitalize',
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    marginHorizontal: 20,
-  },
-  // Tip
-  tipContent: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  tipEmojiCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(109,40,217,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  tipEmoji: {
-    fontSize: 32,
-  },
-  categoryBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  tipTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.white,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  tipBody: {
-    fontSize: 15,
-    color: Colors.lightGray,
-    textAlign: 'center',
-    lineHeight: 23,
-  },
-  // Actions
-  actions: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  primaryButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  primaryGradient: {
-    alignItems: 'center',
-    paddingVertical: 14,
-  },
-  primaryText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  secondaryText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.cyan,
-  },
-  footer: {
-    textAlign: 'center',
-    fontSize: 11,
-    color: Colors.gray,
-    paddingVertical: 14,
-  },
-});

@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
   View,
+  Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
+import LogoScolaria from '../components/LogoScolaria';
 
 type Mode = 'login' | 'signup';
 
 export default function AuthScreen() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, enterDemoMode } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -74,11 +74,11 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      className="flex-1 bg-blue-night"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -87,23 +87,17 @@ export default function AuthScreen() {
           colors={[Colors.violet, Colors.blueNight]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={styles.header}
+          style={{ alignItems: 'center', paddingTop: 60, paddingBottom: 40 }}
         >
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>S</Text>
-          </View>
-          <Text style={styles.appName}>Scolaria</Text>
-          <Text style={styles.tagline}>
-            Le passeport scolaire numérique
-          </Text>
+          <LogoScolaria size={72} showSubtitle variant="dark" />
         </LinearGradient>
 
         {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.formTitle}>
+        <View className="px-7 pt-2">
+          <Text className="text-2xl font-extrabold text-white">
             {mode === 'login' ? 'Connexion' : 'Créer un compte'}
           </Text>
-          <Text style={styles.formSubtitle}>
+          <Text className="text-sm text-gray-400 mb-7">
             {mode === 'login'
               ? 'Accédez au suivi scolaire de vos enfants'
               : 'Rejoignez Scolaria en quelques secondes'}
@@ -111,12 +105,14 @@ export default function AuthScreen() {
 
           {/* Family name (signup only) */}
           {mode === 'signup' && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nom de famille</Text>
-              <View style={styles.inputWrapper}>
+            <View className="mb-4">
+              <Text className="text-xs font-semibold text-gray-300 mb-2">
+                Nom de famille
+              </Text>
+              <View className="flex-row items-center bg-blue-night-card rounded-xl border border-white/10 px-3.5 gap-2.5">
                 <Ionicons name="people" size={20} color={Colors.gray} />
                 <TextInput
-                  style={styles.input}
+                  className="flex-1 text-white text-sm py-3.5"
                   placeholder="Moreau"
                   placeholderTextColor={Colors.gray}
                   value={familyName}
@@ -128,12 +124,14 @@ export default function AuthScreen() {
           )}
 
           {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputWrapper}>
+          <View className="mb-4">
+            <Text className="text-xs font-semibold text-gray-300 mb-2">
+              Email
+            </Text>
+            <View className="flex-row items-center bg-blue-night-card rounded-xl border border-white/10 px-3.5 gap-2.5">
               <Ionicons name="mail" size={20} color={Colors.gray} />
               <TextInput
-                style={styles.input}
+                className="flex-1 text-white text-sm py-3.5"
                 placeholder="parent@email.fr"
                 placeholderTextColor={Colors.gray}
                 value={email}
@@ -146,12 +144,14 @@ export default function AuthScreen() {
           </View>
 
           {/* Password */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Mot de passe</Text>
-            <View style={styles.inputWrapper}>
+          <View className="mb-4">
+            <Text className="text-xs font-semibold text-gray-300 mb-2">
+              Mot de passe
+            </Text>
+            <View className="flex-row items-center bg-blue-night-card rounded-xl border border-white/10 px-3.5 gap-2.5">
               <Ionicons name="lock-closed" size={20} color={Colors.gray} />
               <TextInput
-                style={styles.input}
+                className="flex-1 text-white text-sm py-3.5"
                 placeholder="••••••••"
                 placeholderTextColor={Colors.gray}
                 value={password}
@@ -159,39 +159,41 @@ export default function AuthScreen() {
                 secureTextEntry={!showPassword}
                 autoComplete="password"
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
+              <Pressable onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
                   name={showPassword ? 'eye-off' : 'eye'}
                   size={20}
                   color={Colors.gray}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
           {/* Error message */}
           {error ? (
-            <View style={styles.errorBox}>
+            <View className="flex-row items-center gap-2 bg-red-500/10 p-3 rounded-xl mb-4">
               <Ionicons name="alert-circle" size={16} color={Colors.red} />
-              <Text style={styles.errorText}>{error}</Text>
+              <Text className="text-xs text-red-400 flex-1">{error}</Text>
             </View>
           ) : null}
 
           {/* Submit button */}
-          <TouchableOpacity
-            style={styles.submitButton}
+          <Pressable
             onPress={handleSubmit}
-            activeOpacity={0.8}
             disabled={loading}
+            className="rounded-full overflow-hidden mt-2"
           >
             <LinearGradient
               colors={[Colors.violet, Colors.violetDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.submitGradient}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                paddingVertical: 16,
+              }}
             >
               {loading ? (
                 <ActivityIndicator color={Colors.white} />
@@ -202,187 +204,45 @@ export default function AuthScreen() {
                     size={22}
                     color={Colors.white}
                   />
-                  <Text style={styles.submitText}>
+                  <Text className="text-lg font-extrabold text-white">
                     {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
                   </Text>
                 </>
               )}
             </LinearGradient>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* Toggle mode */}
-          <TouchableOpacity
-            style={styles.toggleMode}
-            onPress={() => {
-              setMode(mode === 'login' ? 'signup' : 'login');
-              setError('');
-            }}
-          >
-            <Text style={styles.toggleText}>
+          <View className="flex-row justify-center mt-6 gap-1.5">
+            <Text className="text-sm text-gray-400">
               {mode === 'login'
                 ? 'Pas encore de compte ?'
                 : 'Déjà un compte ?'}
             </Text>
-            <Text style={styles.toggleLink}>
-              {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Demo mode hint */}
-          <View style={styles.demoHint}>
-            <Ionicons name="information-circle" size={16} color={Colors.cyan} />
-            <Text style={styles.demoText}>
-              Sans configuration Supabase, l'app fonctionne en mode démo
-            </Text>
+            <Pressable
+              onPress={() => {
+                setMode(mode === 'login' ? 'signup' : 'login');
+                setError('');
+              }}
+            >
+              <Text className="text-sm font-bold" style={{ color: Colors.cyan }}>
+                {mode === 'login' ? 'Créer un compte' : 'Se connecter'}
+              </Text>
+            </Pressable>
           </View>
+
+          {/* Demo mode button */}
+          <Pressable
+            onPress={enterDemoMode}
+            className="flex-row items-center justify-center gap-2 mt-5 mb-10 py-3.5 rounded-full border border-cyan-400/25 bg-cyan-400/5"
+          >
+            <Ionicons name="flask" size={18} color={Colors.cyan} />
+            <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>
+              Explorer en mode démo
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.blueNight,
-  },
-  scroll: {
-    flexGrow: 1,
-  },
-  // Header
-  header: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: Colors.cyan,
-  },
-  logoText: {
-    fontSize: 36,
-    fontWeight: '900',
-    color: Colors.white,
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: Colors.white,
-    letterSpacing: 1,
-  },
-  tagline: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 6,
-  },
-  // Form
-  form: {
-    paddingHorizontal: 28,
-    paddingTop: 8,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.white,
-    marginBottom: 6,
-  },
-  formSubtitle: {
-    fontSize: 14,
-    color: Colors.gray,
-    marginBottom: 28,
-  },
-  inputGroup: {
-    marginBottom: 18,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.lightGray,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    paddingHorizontal: 14,
-    gap: 10,
-  },
-  input: {
-    flex: 1,
-    color: Colors.white,
-    fontSize: 15,
-    paddingVertical: 14,
-  },
-  // Error
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(248,113,113,0.1)',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    color: Colors.red,
-    flex: 1,
-  },
-  // Submit
-  submitButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  submitGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-  },
-  submitText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  // Toggle
-  toggleMode: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 24,
-  },
-  toggleText: {
-    fontSize: 14,
-    color: Colors.gray,
-  },
-  toggleLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.cyan,
-  },
-  // Demo hint
-  demoHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  demoText: {
-    fontSize: 12,
-    color: Colors.gray,
-  },
-});

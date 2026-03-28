@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
+import { Box, Text, HStack, VStack } from '../ui';
 import { Colors } from '../../constants/colors';
 
 interface DayScore {
@@ -35,170 +36,100 @@ export default function JoyHistory({ data, month }: Props) {
   })();
 
   return (
-    <View style={styles.container}>
+    <Box
+      className="rounded-2xl p-4"
+      style={{
+        backgroundColor: Colors.blueNightCard,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.06)',
+      }}
+    >
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Score de Joie</Text>
-        <Text style={styles.month}>{month}</Text>
-      </View>
+      <HStack className="justify-between items-center mb-3.5">
+        <Text className="text-base font-bold" style={{ color: Colors.white }}>
+          Score de Joie
+        </Text>
+        <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>
+          {month}
+        </Text>
+      </HStack>
 
       {/* Stats row */}
-      <View style={styles.statsRow}>
-        <View style={styles.stat}>
-          <Text style={styles.statValue}>{avg.toFixed(1)}</Text>
-          <Text style={styles.statLabel}>Moyenne</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statValue, { color: Colors.green }]}>
+      <HStack
+        className="rounded-xl p-3.5 mb-4"
+        style={{ backgroundColor: Colors.blueNightLight }}
+      >
+        <VStack className="flex-1 items-center">
+          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.cyan }}>
+            {avg.toFixed(1)}
+          </Text>
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>Moyenne</Text>
+        </VStack>
+        <Box style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+        <VStack className="flex-1 items-center">
+          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.green }}>
             {maxStreak}j
           </Text>
-          <Text style={styles.statLabel}>Meilleure série</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.stat}>
-          <Text style={[styles.statValue, { color: Colors.orange }]}>
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>Meilleure série</Text>
+        </VStack>
+        <Box style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+        <VStack className="flex-1 items-center">
+          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.orange }}>
             {data.filter((d) => d.score >= 7).length}
           </Text>
-          <Text style={styles.statLabel}>Jours heureux</Text>
-        </View>
-      </View>
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>Jours heureux</Text>
+        </VStack>
+      </HStack>
 
       {/* Calendar grid */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.grid}>
+        <HStack className="gap-1.5 py-1">
           {data.map((d) => (
-            <View key={d.day} style={styles.dayCell}>
-              <View
-                style={[
-                  styles.dayDot,
-                  { backgroundColor: getColor(d.score) },
-                  d.score >= 8 && styles.dayDotGlow,
-                ]}
+            <VStack key={d.day} className="items-center gap-1" style={{ width: 28 }}>
+              <Box
+                className="rounded-full"
+                style={{
+                  width: 18,
+                  height: 18,
+                  backgroundColor: getColor(d.score),
+                  ...(d.score >= 8
+                    ? {
+                        shadowColor: Colors.green,
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: 0.5,
+                        shadowRadius: 6,
+                        elevation: 4,
+                      }
+                    : {}),
+                }}
               />
-              <Text style={styles.dayNumber}>{d.day}</Text>
-            </View>
+              <Text className="text-[10px] font-medium" style={{ color: Colors.gray }}>
+                {d.day}
+              </Text>
+            </VStack>
           ))}
-        </View>
+        </HStack>
       </ScrollView>
 
       {/* Legend */}
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.green }]} />
-          <Text style={styles.legendText}>8-10</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.cyan }]} />
-          <Text style={styles.legendText}>6-7</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.orange }]} />
-          <Text style={styles.legendText}>4-5</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Colors.red }]} />
-          <Text style={styles.legendText}>0-3</Text>
-        </View>
-      </View>
-    </View>
+      <HStack className="justify-center gap-4 mt-3">
+        <HStack className="items-center gap-1">
+          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.green }} />
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>8-10</Text>
+        </HStack>
+        <HStack className="items-center gap-1">
+          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.cyan }} />
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>6-7</Text>
+        </HStack>
+        <HStack className="items-center gap-1">
+          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.orange }} />
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>4-5</Text>
+        </HStack>
+        <HStack className="items-center gap-1">
+          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.red }} />
+          <Text className="text-[11px]" style={{ color: Colors.gray }}>0-3</Text>
+        </HStack>
+      </HStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.blueNightCard,
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.white,
-  },
-  month: {
-    fontSize: 13,
-    color: Colors.cyan,
-    fontWeight: '600',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: Colors.blueNightLight,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: Colors.cyan,
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: Colors.gray,
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  grid: {
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 4,
-  },
-  dayCell: {
-    alignItems: 'center',
-    gap: 4,
-    width: 28,
-  },
-  dayDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-  },
-  dayDotGlow: {
-    shadowColor: Colors.green,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  dayNumber: {
-    fontSize: 10,
-    color: Colors.gray,
-    fontWeight: '500',
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginTop: 12,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  legendText: {
-    fontSize: 11,
-    color: Colors.gray,
-  },
-});

@@ -1,24 +1,21 @@
 /**
  * Générateur d'appréciations — L'enseignant coche 3 compétences,
- * Aria rédige l'appréciation en 2 secondes.
+ * Aria rédige 2 variantes en 2 secondes. Le professeur choisit,
+ * modifie et valide.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
   ScrollView,
-  TouchableOpacity,
   TextInput,
-  ActivityIndicator,
   Animated,
   Platform,
+  Alert,
 } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { Clipboard as RNClipboard } from 'react-native';
 
 // ─── Compétences disponibles ─────────────────────────────
 
@@ -85,38 +82,34 @@ function generateAppreciation(
   level: Level,
   competences: string[],
   comment: string,
-): string {
+): { variantA: string; variantB: string } {
   const compLabels = competences
     .map((id) => COMPETENCES.find((c) => c.id === id)?.label || '')
     .filter(Boolean);
 
-  const templates: Record<Level, string[]> = {
-    excellent: [
-      `${studentName} fait preuve d'une excellente maîtrise en ${compLabels.slice(0, 2).join(' et ')}. ${compLabels[2] ? `Sa ${compLabels[2].toLowerCase()} est également remarquable. ` : ''}Un élève moteur pour la classe, dont l'investissement et la rigueur sont exemplaires. Continuez ainsi !`,
-      `Trimestre remarquable pour ${studentName}. Les résultats en ${compLabels[0].toLowerCase()} témoignent d'un travail régulier et approfondi. ${compLabels[1] ? `La ${compLabels[1].toLowerCase()} est un vrai point fort. ` : ''}Félicitations pour cet engagement constant.`,
-    ],
-    bien: [
-      `${studentName} réalise un bon trimestre. ${compLabels[0] ? `La ${compLabels[0].toLowerCase()} est satisfaisante` : 'Les résultats sont satisfaisants'}${compLabels[1] ? ` et la ${compLabels[1].toLowerCase()} est en bonne voie` : ''}. ${compLabels[2] ? `Un effort supplémentaire en ${compLabels[2].toLowerCase()} permettrait d'atteindre l'excellence. ` : ''}Bon travail, à poursuivre.`,
-      `Bon ensemble pour ${studentName}. ${compLabels.slice(0, 2).map(l => l.toLowerCase()).join(' et ')} : des acquis solides. Pour progresser encore, il faudrait approfondir le travail personnel. Bilan positif.`,
-    ],
-    assez_bien: [
-      `${studentName} obtient des résultats corrects mais irréguliers. ${compLabels[0] ? `En ${compLabels[0].toLowerCase()}, les bases sont acquises` : 'Les bases sont acquises'} mais ${compLabels[1] ? `la ${compLabels[1].toLowerCase()} demande plus d'attention` : 'un effort supplémentaire est nécessaire'}. ${compLabels[2] ? `La ${compLabels[2].toLowerCase()} doit être renforcée. ` : ''}Un travail plus régulier est attendu pour le prochain trimestre.`,
-      `Trimestre en demi-teinte pour ${studentName}. Des capacités réelles en ${compLabels.slice(0, 2).map(l => l.toLowerCase()).join(' et ')} mais un manque de constance dans l'effort. Plus de rigueur et de concentration sont nécessaires.`,
-    ],
-    insuffisant: [
-      `${studentName} rencontre des difficultés significatives ce trimestre. ${compLabels[0] ? `La ${compLabels[0].toLowerCase()} est fragile` : 'Les fondamentaux sont fragiles'}${compLabels[1] ? ` et la ${compLabels[1].toLowerCase()} nécessite un soutien renforcé` : ''}. ${compLabels[2] ? `Un accompagnement en ${compLabels[2].toLowerCase()} est recommandé. ` : ''}Un plan d'aide sera proposé. La famille est invitée à prendre contact.`,
-      `Des résultats préoccupants pour ${studentName}. Les lacunes en ${compLabels.slice(0, 2).map(l => l.toLowerCase()).join(' et ')} doivent être comblées rapidement. Un dialogue avec la famille et un suivi personnalisé sont indispensables.`,
-    ],
+  const templatesA: Record<Level, string> = {
+    excellent: `${studentName} fait preuve d'une excellente maîtrise en ${compLabels.slice(0, 2).join(' et ')}. ${compLabels[2] ? `Sa ${compLabels[2].toLowerCase()} est également remarquable. ` : ''}Un élève moteur pour la classe, dont l'investissement et la rigueur sont exemplaires. Continuez ainsi !`,
+    bien: `${studentName} réalise un bon trimestre. ${compLabels[0] ? `La ${compLabels[0].toLowerCase()} est satisfaisante` : 'Les résultats sont satisfaisants'}${compLabels[1] ? ` et la ${compLabels[1].toLowerCase()} est en bonne voie` : ''}. ${compLabels[2] ? `Un effort supplémentaire en ${compLabels[2].toLowerCase()} permettrait d'atteindre l'excellence. ` : ''}Bon travail, à poursuivre.`,
+    assez_bien: `${studentName} obtient des résultats corrects mais irréguliers. ${compLabels[0] ? `En ${compLabels[0].toLowerCase()}, les bases sont acquises` : 'Les bases sont acquises'} mais ${compLabels[1] ? `la ${compLabels[1].toLowerCase()} demande plus d'attention` : 'un effort supplémentaire est nécessaire'}. ${compLabels[2] ? `La ${compLabels[2].toLowerCase()} doit être renforcée. ` : ''}Un travail plus régulier est attendu pour le prochain trimestre.`,
+    insuffisant: `${studentName} rencontre des difficultés significatives ce trimestre. ${compLabels[0] ? `La ${compLabels[0].toLowerCase()} est fragile` : 'Les fondamentaux sont fragiles'}${compLabels[1] ? ` et la ${compLabels[1].toLowerCase()} nécessite un soutien renforcé` : ''}. ${compLabels[2] ? `Un accompagnement en ${compLabels[2].toLowerCase()} est recommandé. ` : ''}Un plan d'aide sera proposé. La famille est invitée à prendre contact.`,
   };
 
-  const pool = templates[level];
-  let appreciation = pool[Math.floor(Math.random() * pool.length)];
+  const templatesB: Record<Level, string> = {
+    excellent: `Trimestre remarquable pour ${studentName}. Les résultats en ${compLabels[0].toLowerCase()} témoignent d'un travail régulier et approfondi. ${compLabels[1] ? `La ${compLabels[1].toLowerCase()} est un vrai point fort. ` : ''}${compLabels[2] ? `En ${compLabels[2].toLowerCase()}, ${studentName} se distingue par sa qualité de travail. ` : ''}Félicitations pour cet engagement constant, c'est un plaisir de l'avoir en classe.`,
+    bien: `Bon ensemble pour ${studentName}. ${compLabels.slice(0, 2).map((l) => l.toLowerCase()).join(' et ')} : des acquis solides qui montrent un réel investissement. ${compLabels[2] ? `En ${compLabels[2].toLowerCase()}, quelques progrès encore possibles. ` : ''}Pour progresser encore, il faudrait approfondir le travail personnel. Bilan positif et encourageant.`,
+    assez_bien: `Trimestre en demi-teinte pour ${studentName}. Des capacités réelles en ${compLabels.slice(0, 2).map((l) => l.toLowerCase()).join(' et ')} mais un manque de constance dans l'effort. ${compLabels[2] ? `En ${compLabels[2].toLowerCase()}, il faut davantage s'impliquer. ` : ''}Plus de rigueur et de concentration sont nécessaires. Je reste confiant(e) dans sa capacité à rebondir.`,
+    insuffisant: `Des résultats préoccupants pour ${studentName}. Les lacunes en ${compLabels.slice(0, 2).map((l) => l.toLowerCase()).join(' et ')} doivent être comblées rapidement. ${compLabels[2] ? `En ${compLabels[2].toLowerCase()}, un travail de fond est indispensable. ` : ''}Un dialogue avec la famille et un suivi personnalisé sont indispensables. Je reste disponible pour accompagner ${studentName} dans ses progrès.`,
+  };
+
+  let variantA = templatesA[level];
+  let variantB = templatesB[level];
 
   if (comment.trim()) {
-    appreciation += ` Note personnelle : ${comment.trim()}`;
+    variantA += ` Note personnelle : ${comment.trim()}`;
+    variantB += ` Note personnelle : ${comment.trim()}`;
   }
 
-  return appreciation;
+  return { variantA, variantB };
 }
 
 // ─── Component ───────────────────────────────────────────
@@ -126,8 +119,11 @@ export default function AppreciationsScreen() {
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [selectedComps, setSelectedComps] = useState<string[]>([]);
   const [comment, setComment] = useState('');
-  const [appreciation, setAppreciation] = useState('');
+  const [variantA, setVariantA] = useState('');
+  const [variantB, setVariantB] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [chosenText, setChosenText] = useState('');
+  const [editMode, setEditMode] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Animations
@@ -145,26 +141,34 @@ export default function AppreciationsScreen() {
 
   const canGenerate = selectedStudent && selectedLevel && selectedComps.length >= 1;
 
+  const studentName = STUDENTS.find((s) => s.id === selectedStudent)?.name || '';
+
   const handleGenerate = async () => {
     if (!canGenerate) return;
     setGenerating(true);
-    setAppreciation('');
+    setVariantA('');
+    setVariantB('');
+    setChosenText('');
+    setEditMode(false);
 
-    // Bounce button
     Animated.sequence([
       Animated.timing(buttonPulse, { toValue: 0.95, duration: 100, useNativeDriver: true }),
       Animated.spring(buttonPulse, { toValue: 1, tension: 200, friction: 5, useNativeDriver: true }),
     ]).start();
 
-    // Simulate Aria generation (1.5s)
     await new Promise((r) => setTimeout(r, 1500));
 
     const student = STUDENTS.find((s) => s.id === selectedStudent);
-    const text = generateAppreciation(student!.name, selectedLevel!, selectedComps, comment);
-    setAppreciation(text);
+    const { variantA: a, variantB: b } = generateAppreciation(
+      student!.name,
+      selectedLevel!,
+      selectedComps,
+      comment,
+    );
+    setVariantA(a);
+    setVariantB(b);
     setGenerating(false);
 
-    // Animate result
     resultFade.setValue(0);
     resultSlide.setValue(30);
     Animated.parallel([
@@ -173,9 +177,27 @@ export default function AppreciationsScreen() {
     ]).start();
   };
 
+  const handleChoose = (text: string) => {
+    setChosenText(text);
+    setEditMode(true);
+    setVariantA('');
+    setVariantB('');
+
+    setTimeout(() => {
+      resultFade.setValue(0);
+      resultSlide.setValue(30);
+      Animated.parallel([
+        Animated.timing(resultFade, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.spring(resultSlide, { toValue: 0, tension: 60, friction: 8, useNativeDriver: true }),
+      ]).start();
+    }, 50);
+  };
+
   const handleCopy = () => {
     try {
-      RNClipboard.setString(appreciation);
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        navigator.clipboard.writeText(chosenText);
+      }
     } catch {
       // Clipboard not available in some environments
     }
@@ -183,159 +205,166 @@ export default function AppreciationsScreen() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleValidate = () => {
+    Alert.alert(
+      'Appréciation validée',
+      `Appréciation validée pour ${studentName}. Prête à être copiée dans le bulletin.`,
+      [{ text: 'OK' }],
+    );
+  };
+
   const handleReset = () => {
     setSelectedStudent(null);
     setSelectedLevel(null);
     setSelectedComps([]);
     setComment('');
-    setAppreciation('');
+    setVariantA('');
+    setVariantB('');
+    setChosenText('');
+    setEditMode(false);
   };
+
+  const hasVariants = variantA !== '' && variantB !== '';
 
   // ─── Render ──────────────────────────────────────────
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: Colors.blueNight }} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <LinearGradient
         colors={[Colors.violet, Colors.blueNight]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.7 }}
-        style={styles.header}
+        style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24 }}
       >
-        <Text style={styles.headerEmoji}>✍️</Text>
-        <Text style={styles.headerTitle}>Générateur d'appréciations</Text>
-        <Text style={styles.headerSubtitle}>
+        <Text className="text-[42px] mb-2">✍️</Text>
+        <Text className="text-[22px] font-black mb-1" style={{ color: Colors.white }}>Générateur d'appréciations</Text>
+        <Text className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.65)' }}>
           Cochez les compétences, Aria rédige en 2 secondes
         </Text>
       </LinearGradient>
 
-      <View style={styles.body}>
+      <VStack className="px-5 pt-2">
         {/* Step 1: Select student */}
-        <View style={styles.section}>
-          <View style={styles.stepBadge}>
-            <Text style={styles.stepNumber}>1</Text>
-          </View>
-          <Text style={styles.sectionTitle}>Élève</Text>
+        <VStack className="mb-6">
+          <Box className="w-6 h-6 rounded-full justify-center items-center mb-2" style={{ backgroundColor: Colors.violet + '30' }}>
+            <Text className="text-[13px] font-extrabold" style={{ color: Colors.violet }}>1</Text>
+          </Box>
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Élève</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.studentsRow}>
+            <HStack className="gap-2">
               {STUDENTS.map((s) => (
-                <TouchableOpacity
+                <Pressable
                   key={s.id}
-                  style={[
-                    styles.studentChip,
-                    selectedStudent === s.id && styles.studentChipActive,
-                  ]}
                   onPress={() => setSelectedStudent(s.id)}
-                  activeOpacity={0.7}
+                  className="items-center py-2.5 px-3.5 rounded-[14px]"
+                  style={{
+                    backgroundColor: selectedStudent === s.id ? Colors.cyan + '12' : Colors.blueNightCard,
+                    borderWidth: 2,
+                    borderColor: selectedStudent === s.id ? Colors.cyan : 'transparent',
+                    minWidth: 72,
+                  }}
                 >
-                  <Text style={styles.studentAvatar}>{s.avatar}</Text>
-                  <Text
-                    style={[
-                      styles.studentName,
-                      selectedStudent === s.id && styles.studentNameActive,
-                    ]}
-                  >
+                  <Text className="text-[28px] mb-1">{s.avatar}</Text>
+                  <Text className="text-xs font-semibold" style={{ color: selectedStudent === s.id ? Colors.cyan : Colors.gray }}>
                     {s.name}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
-            </View>
+            </HStack>
           </ScrollView>
-        </View>
+        </VStack>
 
         {/* Step 2: Select level */}
-        <View style={styles.section}>
-          <View style={styles.stepBadge}>
-            <Text style={styles.stepNumber}>2</Text>
-          </View>
-          <Text style={styles.sectionTitle}>Niveau général</Text>
-          <View style={styles.levelsRow}>
+        <VStack className="mb-6">
+          <Box className="w-6 h-6 rounded-full justify-center items-center mb-2" style={{ backgroundColor: Colors.violet + '30' }}>
+            <Text className="text-[13px] font-extrabold" style={{ color: Colors.violet }}>2</Text>
+          </Box>
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Niveau général</Text>
+          <HStack className="gap-2">
             {LEVELS.map((l) => (
-              <TouchableOpacity
+              <Pressable
                 key={l.key}
-                style={[
-                  styles.levelChip,
-                  selectedLevel === l.key && {
-                    borderColor: l.color,
-                    backgroundColor: l.color + '15',
-                  },
-                ]}
                 onPress={() => setSelectedLevel(l.key)}
-                activeOpacity={0.7}
+                className="flex-1 items-center py-3 rounded-[14px]"
+                style={{
+                  backgroundColor: Colors.blueNightCard,
+                  borderWidth: 2,
+                  borderColor: selectedLevel === l.key ? l.color : 'rgba(255,255,255,0.06)',
+                  ...(selectedLevel === l.key ? { backgroundColor: l.color + '15' } : {}),
+                }}
               >
-                <Text style={styles.levelEmoji}>{l.emoji}</Text>
-                <Text
-                  style={[
-                    styles.levelLabel,
-                    selectedLevel === l.key && { color: l.color },
-                  ]}
-                >
+                <Text className="text-[22px] mb-1">{l.emoji}</Text>
+                <Text className="text-[11px] font-bold" style={{ color: selectedLevel === l.key ? l.color : Colors.gray }}>
                   {l.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
-          </View>
-        </View>
+          </HStack>
+        </VStack>
 
         {/* Step 3: Select competences (max 3) */}
-        <View style={styles.section}>
-          <View style={styles.stepBadge}>
-            <Text style={styles.stepNumber}>3</Text>
-          </View>
-          <Text style={styles.sectionTitle}>
+        <VStack className="mb-6">
+          <Box className="w-6 h-6 rounded-full justify-center items-center mb-2" style={{ backgroundColor: Colors.violet + '30' }}>
+            <Text className="text-[13px] font-extrabold" style={{ color: Colors.violet }}>3</Text>
+          </Box>
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>
             Compétences{' '}
-            <Text style={styles.sectionHint}>
+            <Text className="font-semibold" style={{ color: Colors.cyan }}>
               ({selectedComps.length}/3)
             </Text>
           </Text>
 
           {(['savoir', 'savoir-faire', 'savoir-etre'] as const).map((cat) => (
-            <View key={cat} style={styles.compCategory}>
-              <Text style={styles.compCategoryTitle}>
+            <VStack key={cat} className="mb-3.5">
+              <Text className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: Colors.cyan }}>
                 {CATEGORY_LABELS[cat]}
               </Text>
-              <View style={styles.compChips}>
+              <VStack className="gap-1.5">
                 {COMPETENCES.filter((c) => c.category === cat).map((comp) => {
                   const isSelected = selectedComps.includes(comp.id);
                   const isDisabled = !isSelected && selectedComps.length >= 3;
                   return (
-                    <TouchableOpacity
+                    <Pressable
                       key={comp.id}
-                      style={[
-                        styles.compChip,
-                        isSelected && styles.compChipActive,
-                        isDisabled && styles.compChipDisabled,
-                      ]}
                       onPress={() => !isDisabled && toggleComp(comp.id)}
-                      activeOpacity={isDisabled ? 1 : 0.7}
+                      className="rounded-xl"
+                      style={{
+                        flexDirection: 'row', alignItems: 'center', gap: 10,
+                        paddingVertical: 10, paddingHorizontal: 14,
+                        backgroundColor: isSelected ? Colors.cyan + '10' : Colors.blueNightCard,
+                        borderWidth: 1,
+                        borderColor: isSelected ? Colors.cyan + '50' : 'rgba(255,255,255,0.06)',
+                        opacity: isDisabled ? 0.35 : 1,
+                      }}
                     >
-                      <Text style={styles.compEmoji}>{comp.emoji}</Text>
-                      <Text
-                        style={[
-                          styles.compLabel,
-                          isSelected && styles.compLabelActive,
-                        ]}
-                      >
+                      <Text className="text-lg">{comp.emoji}</Text>
+                      <Text className="flex-1 text-sm" style={{ color: isSelected ? Colors.white : Colors.gray, fontWeight: isSelected ? '600' : '500' }}>
                         {comp.label}
                       </Text>
                       {isSelected && (
                         <Ionicons name="checkmark-circle" size={16} color={Colors.cyan} />
                       )}
-                    </TouchableOpacity>
+                    </Pressable>
                   );
                 })}
-              </View>
-            </View>
+              </VStack>
+            </VStack>
           ))}
-        </View>
+        </VStack>
 
         {/* Optional comment */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Note personnelle <Text style={styles.optional}>(optionnel)</Text>
+        <VStack className="mb-6">
+          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>
+            Note personnelle <Text className="text-[13px] font-normal" style={{ color: Colors.gray }}>(optionnel)</Text>
           </Text>
           <TextInput
-            style={styles.commentInput}
+            style={{
+              backgroundColor: Colors.blueNightCard, borderRadius: 14,
+              padding: 14, color: Colors.white, fontSize: 14,
+              minHeight: 60, textAlignVertical: 'top',
+              borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+            }}
             placeholder="Ajouter un commentaire spécifique..."
             placeholderTextColor={Colors.gray}
             value={comment}
@@ -343,201 +372,166 @@ export default function AppreciationsScreen() {
             multiline
             maxLength={150}
           />
-        </View>
+        </VStack>
 
         {/* Generate button */}
         <Animated.View style={{ transform: [{ scale: buttonPulse }] }}>
-          <TouchableOpacity
-            style={[styles.generateButton, !canGenerate && styles.generateButtonDisabled]}
+          <Pressable
             onPress={handleGenerate}
             disabled={!canGenerate || generating}
-            activeOpacity={0.8}
+            className="rounded-[30px] overflow-hidden mb-5"
+            style={{ opacity: canGenerate ? 1 : 0.5 }}
           >
             <LinearGradient
               colors={canGenerate ? [Colors.violet, Colors.cyanDark] : ['#333', '#222']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.generateGradient}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }}
             >
               {generating ? (
                 <>
-                  <ActivityIndicator color={Colors.white} size="small" />
-                  <Text style={styles.generateText}>Aria rédige...</Text>
+                  <Spinner color={Colors.white} size="small" />
+                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Aria rédige...</Text>
                 </>
               ) : (
                 <>
-                  <Text style={styles.generateIcon}>✦</Text>
-                  <Text style={styles.generateText}>Générer l'appréciation</Text>
+                  <Text className="text-xl" style={{ color: Colors.cyan }}>✦</Text>
+                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Générer l'appréciation</Text>
                 </>
               )}
             </LinearGradient>
-          </TouchableOpacity>
+          </Pressable>
         </Animated.View>
 
-        {/* Result */}
-        {appreciation !== '' && (
+        {/* Variant cards */}
+        {hasVariants && (
           <Animated.View
-            style={[
-              styles.resultCard,
-              {
-                opacity: resultFade,
-                transform: [{ translateY: resultSlide }],
-              },
-            ]}
+            style={{
+              opacity: resultFade,
+              transform: [{ translateY: resultSlide }],
+            }}
           >
-            <View style={styles.resultHeader}>
-              <View style={styles.resultAriaTag}>
-                <Text style={styles.resultAriaIcon}>✦</Text>
-                <Text style={styles.resultAriaLabel}>Aria</Text>
-              </View>
-              <Text style={styles.resultStudentName}>
-                {STUDENTS.find((s) => s.id === selectedStudent)?.name}
+            {/* Variant A */}
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: Colors.violet + '30' }}>
+              <HStack className="items-center mb-3 gap-2">
+                <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.violet + '30' }}>
+                  <Text className="text-sm font-black" style={{ color: Colors.white }}>A</Text>
+                </Box>
+                <Text className="text-[15px] font-bold flex-1" style={{ color: Colors.white }}>Variante A</Text>
+                <Text className="text-[11px] font-semibold px-2 py-[3px] rounded-lg" style={{ color: Colors.gray, backgroundColor: 'rgba(255,255,255,0.06)' }}>Formelle</Text>
+              </HStack>
+              <Text className="text-sm mb-3.5 leading-[21px]" style={{ color: 'rgba(255,255,255,0.75)', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }} numberOfLines={6}>
+                {variantA}
               </Text>
-            </View>
+              <Pressable
+                onPress={() => handleChoose(variantA)}
+                className="rounded-xl py-2.5"
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Colors.violet }}
+              >
+                <Ionicons name="checkmark-circle-outline" size={18} color={Colors.white} />
+                <Text className="text-sm font-bold" style={{ color: Colors.white }}>Choisir</Text>
+              </Pressable>
+            </Box>
 
-            <Text style={styles.resultText} selectable>
-              {appreciation}
+            {/* Variant B */}
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: Colors.violet + '30' }}>
+              <HStack className="items-center mb-3 gap-2">
+                <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.cyan + '20' }}>
+                  <Text className="text-sm font-black" style={{ color: Colors.white }}>B</Text>
+                </Box>
+                <Text className="text-[15px] font-bold flex-1" style={{ color: Colors.white }}>Variante B</Text>
+                <Text className="text-[11px] font-semibold px-2 py-[3px] rounded-lg" style={{ color: Colors.gray, backgroundColor: 'rgba(255,255,255,0.06)' }}>Chaleureuse</Text>
+              </HStack>
+              <Text className="text-sm mb-3.5 leading-[21px]" style={{ color: 'rgba(255,255,255,0.75)', fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif' }} numberOfLines={6}>
+                {variantB}
+              </Text>
+              <Pressable
+                onPress={() => handleChoose(variantB)}
+                className="rounded-xl py-2.5"
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Colors.cyanDark }}
+              >
+                <Ionicons name="checkmark-circle-outline" size={18} color={Colors.white} />
+                <Text className="text-sm font-bold" style={{ color: Colors.white }}>Choisir</Text>
+              </Pressable>
+            </Box>
+          </Animated.View>
+        )}
+
+        {/* Edit mode after choosing a variant */}
+        {editMode && (
+          <Animated.View
+            style={{
+              opacity: resultFade,
+              transform: [{ translateY: resultSlide }],
+              backgroundColor: Colors.blueNightCard,
+              borderRadius: 20,
+              padding: 20,
+              borderWidth: 1,
+              borderColor: Colors.violet + '30',
+            }}
+          >
+            <HStack className="items-center justify-between mb-3.5">
+              <HStack className="items-center gap-1.5 px-2.5 py-1 rounded-[10px]" style={{ backgroundColor: Colors.violet + '20' }}>
+                <Text className="text-sm" style={{ color: Colors.cyan }}>✦</Text>
+                <Text className="text-xs font-bold" style={{ color: Colors.violet }}>Aria</Text>
+              </HStack>
+              <Text className="text-sm font-bold" style={{ color: Colors.white }}>{studentName}</Text>
+            </HStack>
+
+            <TextInput
+              style={{
+                backgroundColor: Colors.blueNight, borderRadius: 14,
+                padding: 14, color: Colors.white, fontSize: 15, lineHeight: 23,
+                minHeight: 120, textAlignVertical: 'top',
+                borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+                fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+              }}
+              value={chosenText}
+              onChangeText={setChosenText}
+              multiline
+              scrollEnabled
+            />
+
+            <Text className="text-xs text-right mt-1.5 mb-3.5" style={{ color: Colors.gray }}>
+              {chosenText.length} caractères
             </Text>
 
-            <View style={styles.resultActions}>
-              <TouchableOpacity style={styles.resultAction} onPress={handleCopy}>
+            <HStack className="gap-2.5 items-center pt-3.5" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+              <Pressable onPress={handleCopy} className="rounded-[10px] py-2 px-3" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.05)' }}>
                 <Ionicons
                   name={copied ? 'checkmark-circle' : 'copy-outline'}
                   size={18}
                   color={copied ? Colors.green : Colors.cyan}
                 />
-                <Text style={[styles.resultActionText, copied && { color: Colors.green }]}>
+                <Text className="text-[13px] font-semibold" style={{ color: copied ? Colors.green : Colors.cyan }}>
                   {copied ? 'Copié !' : 'Copier'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
-              <TouchableOpacity style={styles.resultAction} onPress={handleGenerate}>
+              <Pressable onPress={handleGenerate} className="rounded-[10px] py-2 px-3" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.05)' }}>
                 <Ionicons name="refresh" size={18} color={Colors.cyan} />
-                <Text style={styles.resultActionText}>Reformuler</Text>
-              </TouchableOpacity>
+                <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>Reformuler</Text>
+              </Pressable>
 
-              <TouchableOpacity style={styles.resultAction} onPress={handleReset}>
-                <Ionicons name="arrow-back" size={18} color={Colors.gray} />
-                <Text style={[styles.resultActionText, { color: Colors.gray }]}>
-                  Nouvel élève
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <Pressable
+                onPress={handleValidate}
+                className="rounded-[10px] py-2 px-4 ml-auto"
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.green }}
+              >
+                <Ionicons name="checkmark" size={18} color={Colors.white} />
+                <Text className="text-[13px] font-bold" style={{ color: Colors.white }}>Valider</Text>
+              </Pressable>
+            </HStack>
+
+            <Pressable onPress={handleReset} className="items-center mt-3.5 py-1.5" style={{ flexDirection: 'row', justifyContent: 'center', gap: 6 }}>
+              <Ionicons name="arrow-back" size={16} color={Colors.gray} />
+              <Text className="text-[13px] font-medium" style={{ color: Colors.gray }}>Nouvel élève</Text>
+            </Pressable>
           </Animated.View>
         )}
 
-        <View style={{ height: 40 }} />
-      </View>
+        <Box className="h-10" />
+      </VStack>
     </ScrollView>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.blueNight },
-  // Header
-  header: { alignItems: 'center', paddingTop: 20, paddingBottom: 24 },
-  headerEmoji: { fontSize: 42, marginBottom: 8 },
-  headerTitle: { fontSize: 22, fontWeight: '900', color: Colors.white, marginBottom: 4 },
-  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.65)', textAlign: 'center' },
-  // Body
-  body: { paddingHorizontal: 20, paddingTop: 8 },
-  section: { marginBottom: 24 },
-  stepBadge: {
-    width: 24, height: 24, borderRadius: 12,
-    backgroundColor: Colors.violet + '30',
-    justifyContent: 'center', alignItems: 'center',
-    marginBottom: 8,
-  },
-  stepNumber: { fontSize: 13, fontWeight: '800', color: Colors.violet },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.white, marginBottom: 12 },
-  sectionHint: { color: Colors.cyan, fontWeight: '600' },
-  optional: { fontSize: 13, fontWeight: '400', color: Colors.gray },
-  // Students
-  studentsRow: { flexDirection: 'row', gap: 8 },
-  studentChip: {
-    alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 14, backgroundColor: Colors.blueNightCard,
-    borderWidth: 2, borderColor: 'transparent', minWidth: 72,
-  },
-  studentChipActive: { borderColor: Colors.cyan, backgroundColor: Colors.cyan + '12' },
-  studentAvatar: { fontSize: 28, marginBottom: 4 },
-  studentName: { fontSize: 12, fontWeight: '600', color: Colors.gray },
-  studentNameActive: { color: Colors.cyan },
-  // Levels
-  levelsRow: { flexDirection: 'row', gap: 8 },
-  levelChip: {
-    flex: 1, alignItems: 'center', paddingVertical: 12,
-    borderRadius: 14, backgroundColor: Colors.blueNightCard,
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  levelEmoji: { fontSize: 22, marginBottom: 4 },
-  levelLabel: { fontSize: 11, fontWeight: '700', color: Colors.gray },
-  // Competences
-  compCategory: { marginBottom: 14 },
-  compCategoryTitle: {
-    fontSize: 12, fontWeight: '700', color: Colors.cyan,
-    textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8,
-  },
-  compChips: { gap: 6 },
-  compChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 12, backgroundColor: Colors.blueNightCard,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  compChipActive: { borderColor: Colors.cyan + '50', backgroundColor: Colors.cyan + '10' },
-  compChipDisabled: { opacity: 0.35 },
-  compEmoji: { fontSize: 18 },
-  compLabel: { flex: 1, fontSize: 14, color: Colors.gray, fontWeight: '500' },
-  compLabelActive: { color: Colors.white, fontWeight: '600' },
-  // Comment
-  commentInput: {
-    backgroundColor: Colors.blueNightCard, borderRadius: 14,
-    padding: 14, color: Colors.white, fontSize: 14,
-    minHeight: 60, textAlignVertical: 'top',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
-  },
-  // Generate
-  generateButton: { borderRadius: 30, overflow: 'hidden', marginBottom: 20 },
-  generateButtonDisabled: { opacity: 0.5 },
-  generateGradient: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 10, paddingVertical: 16,
-  },
-  generateIcon: { fontSize: 20, color: Colors.cyan },
-  generateText: { fontSize: 17, fontWeight: '800', color: Colors.white },
-  // Result
-  resultCard: {
-    backgroundColor: Colors.blueNightCard, borderRadius: 20,
-    padding: 20, borderWidth: 1, borderColor: Colors.violet + '30',
-  },
-  resultHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 14,
-  },
-  resultAriaTag: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: Colors.violet + '20', paddingHorizontal: 10,
-    paddingVertical: 4, borderRadius: 10,
-  },
-  resultAriaIcon: { fontSize: 14, color: Colors.cyan },
-  resultAriaLabel: { fontSize: 12, fontWeight: '700', color: Colors.violet },
-  resultStudentName: { fontSize: 14, fontWeight: '700', color: Colors.white },
-  resultText: {
-    fontSize: 15, color: 'rgba(255,255,255,0.85)', lineHeight: 23,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-  },
-  resultActions: {
-    flexDirection: 'row', gap: 12, marginTop: 16,
-    borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)',
-    paddingTop: 14,
-  },
-  resultAction: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: 6, paddingHorizontal: 10,
-    borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)',
-  },
-  resultActionText: { fontSize: 13, fontWeight: '600', color: Colors.cyan },
-});

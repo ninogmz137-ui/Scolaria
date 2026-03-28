@@ -1,23 +1,14 @@
 /**
- * Onboarding — 3 slides de présentation pour les nouveaux utilisateurs.
+ * Onboarding — 3 slides de presentation pour les nouveaux utilisateurs.
  *
  * Slide 1: Bienvenue dans Scolaria
  * Slide 2: Aria, votre assistante IA
- * Slide 3: Suivi complet de la scolarité
+ * Slide 3: Suivi complet de la scolarite
  */
 
 import { useState, useRef } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  FlatList,
-  TouchableOpacity,
-  Animated,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from 'react-native';
+import { Dimensions, FlatList, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { Box, Text, Pressable, HStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
@@ -44,9 +35,9 @@ const SLIDES: Slide[] = [
     title: 'Bienvenue dans',
     highlight: 'Scolaria',
     description:
-      'Le passeport scolaire numérique qui accompagne vos enfants tout au long de leur scolarité.',
+      'Le passeport scolaire numerique qui accompagne vos enfants tout au long de leur scolarite.',
     features: [
-      { icon: 'shield-checkmark', label: 'Données sécurisées (RGPD)' },
+      { icon: 'shield-checkmark', label: 'Donnees securisees (RGPD)' },
       { icon: 'people', label: 'Multi-enfants' },
       { icon: 'phone-portrait', label: 'Tout sur mobile' },
     ],
@@ -59,9 +50,9 @@ const SLIDES: Slide[] = [
     title: 'Rencontrez',
     highlight: 'Aria',
     description:
-      'Votre assistante IA personnelle analyse les résultats, détecte les tendances et vous donne des conseils adaptés chaque jour.',
+      'Votre assistante IA personnelle analyse les resultats, detecte les tendances et vous donne des conseils adaptes chaque jour.',
     features: [
-      { icon: 'sparkles', label: 'Conseils personnalisés' },
+      { icon: 'sparkles', label: 'Conseils personnalises' },
       { icon: 'trending-up', label: 'Analyse des tendances' },
       { icon: 'chatbubbles', label: 'Chat intelligent' },
     ],
@@ -72,13 +63,13 @@ const SLIDES: Slide[] = [
     id: '3',
     emoji: '📊',
     title: 'Suivi complet',
-    highlight: 'en un coup d\'œil',
+    highlight: 'en un coup d\'oeil',
     description:
-      'Notes, agenda, bien-être, scanner de bulletins... Tout ce dont vous avez besoin pour suivre la scolarité de vos enfants.',
+      'Notes, agenda, bien-etre, scanner de bulletins... Tout ce dont vous avez besoin pour suivre la scolarite de vos enfants.',
     features: [
       { icon: 'school', label: 'Notes & moyennes' },
       { icon: 'calendar', label: 'Agenda intelligent' },
-      { icon: 'heart', label: 'Score de bien-être' },
+      { icon: 'heart', label: 'Score de bien-etre' },
       { icon: 'scan', label: 'Scanner OCR de bulletins' },
     ],
     gradient: [Colors.violetDark, Colors.blueNight],
@@ -139,51 +130,82 @@ export default function OnboardingScreen({ onComplete }: Props) {
   // ─── Render slide ─────────────────────────────────────
 
   const renderSlide = ({ item, index }: { item: Slide; index: number }) => (
-    <View style={styles.slide}>
+    <Box style={{ width, flex: 1 }}>
       <LinearGradient
         colors={item.gradient}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 0.6 }}
-        style={styles.slideGradient}
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, paddingTop: 80, paddingBottom: 160 }}
       >
         {/* Decorative circles */}
-        <View style={[styles.decorCircle, styles.decorCircle1, { borderColor: item.accentColor + '20' }]} />
-        <View style={[styles.decorCircle, styles.decorCircle2, { borderColor: item.accentColor + '15' }]} />
+        <Box
+          className="absolute rounded-full"
+          style={{ width: 300, height: 300, top: 40, right: -80, borderWidth: 1, borderColor: item.accentColor + '20' }}
+        />
+        <Box
+          className="absolute rounded-full"
+          style={{ width: 200, height: 200, bottom: 200, left: -60, borderWidth: 1, borderColor: item.accentColor + '15' }}
+        />
 
         {/* Emoji hero */}
-        <View style={styles.emojiContainer}>
-          <View style={[styles.emojiGlow, { backgroundColor: item.accentColor + '15' }]} />
-          <Text style={styles.emoji}>{item.emoji}</Text>
-        </View>
+        <Box className="w-[100px] h-[100px] justify-center items-center mb-7">
+          <Box
+            className="absolute w-[100px] h-[100px] rounded-full"
+            style={{ backgroundColor: item.accentColor + '15' }}
+          />
+          <Text style={{ fontSize: 56 }}>{item.emoji}</Text>
+        </Box>
 
         {/* Title */}
-        <Text style={styles.slideTitle}>{item.title}</Text>
-        <Text style={[styles.slideHighlight, { color: item.accentColor }]}>
+        <Text
+          className="text-[28px] font-bold text-center"
+          style={{ color: 'rgba(255,255,255,0.8)' }}
+        >
+          {item.title}
+        </Text>
+        <Text
+          className="text-[34px] font-black text-center mb-[18px]"
+          style={{ color: item.accentColor }}
+        >
           {item.highlight}
         </Text>
 
         {/* Description */}
-        <Text style={styles.slideDescription}>{item.description}</Text>
+        <Text
+          className="text-base text-center leading-6 mb-8"
+          style={{ color: 'rgba(255,255,255,0.65)' }}
+        >
+          {item.description}
+        </Text>
 
         {/* Feature list */}
-        <View style={styles.featuresContainer}>
+        <Box className="self-stretch" style={{ gap: 12 }}>
           {item.features.map((feature, i) => (
-            <View key={i} style={styles.featureRow}>
-              <View style={[styles.featureIconCircle, { backgroundColor: item.accentColor + '18' }]}>
+            <HStack
+              key={i}
+              className="items-center py-3 px-[18px] rounded-2xl"
+              style={{ backgroundColor: 'rgba(255,255,255,0.05)', gap: 14 }}
+            >
+              <Box
+                className="w-9 h-9 rounded-full justify-center items-center"
+                style={{ backgroundColor: item.accentColor + '18' }}
+              >
                 <Ionicons name={feature.icon} size={18} color={item.accentColor} />
-              </View>
-              <Text style={styles.featureLabel}>{feature.label}</Text>
-            </View>
+              </Box>
+              <Text className="text-[15px] font-semibold" style={{ color: Colors.white }}>
+                {feature.label}
+              </Text>
+            </HStack>
           ))}
-        </View>
+        </Box>
       </LinearGradient>
-    </View>
+    </Box>
   );
 
   // ─── Render dots ──────────────────────────────────────
 
   const renderDots = () => (
-    <View style={styles.dotsContainer}>
+    <HStack className="items-center mb-6" style={{ gap: 8 }}>
       {SLIDES.map((_, i) => {
         const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
 
@@ -208,33 +230,33 @@ export default function OnboardingScreen({ onComplete }: Props) {
         return (
           <Animated.View
             key={i}
-            style={[
-              styles.dot,
-              {
-                width: dotWidth,
-                opacity: dotOpacity,
-                backgroundColor: dotColor,
-              },
-            ]}
+            style={{
+              height: 8,
+              borderRadius: 4,
+              width: dotWidth,
+              opacity: dotOpacity,
+              backgroundColor: dotColor,
+            }}
           />
         );
       })}
-    </View>
+    </HStack>
   );
 
   // ─── Main render ──────────────────────────────────────
 
   return (
-    <View style={styles.container}>
+    <Box className="flex-1" style={{ backgroundColor: Colors.blueNight }}>
       {/* Skip button */}
       {!isLastSlide && (
-        <TouchableOpacity
-          style={styles.skipButton}
+        <Pressable
+          className="absolute top-14 right-6 z-10 px-4 py-2 rounded-[20px]"
+          style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
           onPress={handleSkip}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.skipText}>Passer</Text>
-        </TouchableOpacity>
+          <Text className="text-sm font-semibold" style={{ color: Colors.gray }}>Passer</Text>
+        </Pressable>
       )}
 
       {/* Slides */}
@@ -253,207 +275,43 @@ export default function OnboardingScreen({ onComplete }: Props) {
       />
 
       {/* Bottom section */}
-      <View style={styles.bottom}>
+      <Box
+        className="absolute bottom-0 left-0 right-0 items-center pb-[50px] pt-5"
+        style={{ backgroundColor: Colors.blueNight }}
+      >
         {renderDots()}
 
         <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
-          <TouchableOpacity
-            style={styles.nextButton}
+          <Pressable
+            className="rounded-[30px] overflow-hidden mb-3.5"
             onPress={handleNext}
-            activeOpacity={0.8}
           >
             <LinearGradient
               colors={[Colors.violet, Colors.violetDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={styles.nextGradient}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, paddingHorizontal: 48 }}
             >
               {isLastSlide ? (
                 <>
-                  <Text style={styles.nextText}>Commencer</Text>
+                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Commencer</Text>
                   <Ionicons name="rocket" size={20} color={Colors.white} />
                 </>
               ) : (
                 <>
-                  <Text style={styles.nextText}>Suivant</Text>
+                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Suivant</Text>
                   <Ionicons name="arrow-forward" size={20} color={Colors.white} />
                 </>
               )}
             </LinearGradient>
-          </TouchableOpacity>
+          </Pressable>
         </Animated.View>
 
         {/* Page counter */}
-        <Text style={styles.pageCounter}>
+        <Text className="text-xs font-semibold" style={{ color: Colors.gray }}>
           {currentIndex + 1} / {SLIDES.length}
         </Text>
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.blueNight,
-  },
-  // Skip
-  skipButton: {
-    position: 'absolute',
-    top: 56,
-    right: 24,
-    zIndex: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  skipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.gray,
-  },
-  // Slide
-  slide: {
-    width,
-    flex: 1,
-  },
-  slideGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 36,
-    paddingTop: 80,
-    paddingBottom: 160,
-  },
-  // Decorative
-  decorCircle: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderRadius: 999,
-  },
-  decorCircle1: {
-    width: 300,
-    height: 300,
-    top: 40,
-    right: -80,
-  },
-  decorCircle2: {
-    width: 200,
-    height: 200,
-    bottom: 200,
-    left: -60,
-  },
-  // Emoji
-  emojiContainer: {
-    width: 100,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  emojiGlow: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  emoji: {
-    fontSize: 56,
-  },
-  // Text
-  slideTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
-  },
-  slideHighlight: {
-    fontSize: 34,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 18,
-  },
-  slideDescription: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.65)',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 32,
-  },
-  // Features
-  featuresContainer: {
-    alignSelf: 'stretch',
-    gap: 12,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-  },
-  featureIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  featureLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: Colors.white,
-  },
-  // Bottom
-  bottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingBottom: 50,
-    paddingTop: 20,
-    backgroundColor: Colors.blueNight,
-  },
-  // Dots
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-  },
-  // Next button
-  nextButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-    marginBottom: 14,
-  },
-  nextGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-  },
-  nextText: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: Colors.white,
-  },
-  // Counter
-  pageCounter: {
-    fontSize: 12,
-    color: Colors.gray,
-    fontWeight: '600',
-  },
-});
