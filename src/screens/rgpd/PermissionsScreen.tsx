@@ -1,9 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
-import { ScrollView, Switch, Animated, Modal, Alert } from 'react-native';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ScrollView, Switch, Animated, Modal, Alert, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import {
+  getPermissions,
+  updatePermission,
+  deletePermission,
+  type PersonPermission,
+} from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -139,6 +145,14 @@ const MODULE_CONFIG = [
   { key: 'aria' as const, label: 'Aria IA', icon: 'sparkles' as const, color: Colors.violetLight },
 ];
 
+// ─── Shadow & helpers ─────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function PermissionsScreen() {
@@ -149,7 +163,25 @@ export default function PermissionsScreen() {
   const [showLevelInfo, setShowLevelInfo] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  // Load from Supabase, fallback to mock
+  const loadPermissions = useCallback(async () => {
+    const data = await getPermissions();
+    if (data.length > 0) {
+      setPeople(data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        avatar: p.avatar,
+        role: p.role,
+        email: p.email ?? '',
+        level: p.access_level,
+        lastAccess: p.last_access ? new Date(p.last_access).toLocaleDateString('fr-FR') : undefined,
+        modules: p.modules as Person['modules'],
+      })));
+    }
+  }, []);
+
   useEffect(() => {
+    loadPermissions();
     Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, []);
 
@@ -162,18 +194,18 @@ export default function PermissionsScreen() {
   };
 
   const handleToggleModule = (personId: string, moduleKey: keyof Person['modules']) => {
+    const person = people.find((p) => p.id === personId);
+    if (!person) return;
+    const newModules = { ...person.modules, [moduleKey]: !person.modules[moduleKey] };
     setPeople((prev) =>
-      prev.map((p) =>
-        p.id === personId
-          ? { ...p, modules: { ...p.modules, [moduleKey]: !p.modules[moduleKey] } }
-          : p
-      )
+      prev.map((p) => (p.id === personId ? { ...p, modules: newModules } : p))
     );
     if (selectedPerson?.id === personId) {
       setSelectedPerson((prev) =>
-        prev ? { ...prev, modules: { ...prev.modules, [moduleKey]: !prev.modules[moduleKey] } } : prev
+        prev ? { ...prev, modules: newModules } : prev
       );
     }
+    updatePermission(personId, { modules: newModules });
   };
 
   const handleChangeLevel = (personId: string, newLevel: AccessLevel) => {
@@ -189,6 +221,7 @@ export default function PermissionsScreen() {
     setSelectedPerson((prev) =>
       prev?.id === personId ? { ...prev, level: newLevel, modules: defaults[newLevel] } : prev
     );
+    updatePermission(personId, { access_level: newLevel, modules: defaults[newLevel] });
   };
 
   const handleRevokeAccess = (personId: string) => {
@@ -204,6 +237,7 @@ export default function PermissionsScreen() {
             setPeople((prev) => prev.filter((p) => p.id !== personId));
             setShowModal(false);
             setSelectedPerson(null);
+            deletePermission(personId);
           },
         },
       ]
@@ -212,11 +246,11 @@ export default function PermissionsScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
         {/* Header info */}
         <HStack
           className="items-center gap-3.5 m-5 mb-4 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: Colors.green, borderWidth: 1.5, ...CARD_SHADOW }}
         >
           <Box
             className="w-11 h-11 rounded-full items-center justify-center"
@@ -235,7 +269,7 @@ export default function PermissionsScreen() {
         {/* Access levels legend */}
         <Pressable
           className="flex-row items-center gap-2.5 mx-5 mb-3 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           onPress={() => setShowLevelInfo(!showLevelInfo)}
         >
           <Ionicons name="information-circle" size={20} color={Colors.cyan} />
@@ -248,7 +282,7 @@ export default function PermissionsScreen() {
         {showLevelInfo && (
           <Box
             className="mx-5 mb-4 rounded-2xl border overflow-hidden"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             {ACCESS_LEVELS.map((level, i) => (
               <HStack
@@ -279,10 +313,13 @@ export default function PermissionsScreen() {
         )}
 
         {/* People list */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 mt-2 px-6" style={{ color: theme.textMuted }}>PERSONNES AUTORISÉES</Text>
+        <HStack className="items-center gap-2 mb-2.5 mt-2 px-6">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>PERSONNES AUTORISÉES</Text>
+        </HStack>
         <Box
           className="mx-5 rounded-2xl border overflow-hidden"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           {people.map((person, i) => {
             const levelCfg = getLevelConfig(person.level);
@@ -325,14 +362,14 @@ export default function PermissionsScreen() {
         <HStack className="gap-2.5 mx-5 mt-5">
           <VStack
             className="flex-1 items-center p-4 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             <Text className="text-2xl font-black" style={{ color: Colors.cyan }}>{people.length}</Text>
             <Text className="text-[11px] mt-1" style={{ color: theme.textMuted }}>Personnes</Text>
           </VStack>
           <VStack
             className="flex-1 items-center p-4 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             <Text className="text-2xl font-black" style={{ color: Colors.violet }}>
               {people.filter((p) => p.level === 'tuteur').length}
@@ -341,7 +378,7 @@ export default function PermissionsScreen() {
           </VStack>
           <VStack
             className="flex-1 items-center p-4 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             <Text className="text-2xl font-black" style={{ color: Colors.green }}>6</Text>
             <Text className="text-[11px] mt-1" style={{ color: theme.textMuted }}>Modules</Text>
@@ -356,7 +393,7 @@ export default function PermissionsScreen() {
         <Box className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
           <Box
             className="rounded-t-3xl pt-3 px-5"
-            style={{ backgroundColor: theme.bg, maxHeight: '90%' }}
+            style={{ backgroundColor: '#E8EDF5', maxHeight: '90%' }}
           >
             <Box className="w-10 h-1 rounded-sm self-center mb-4" style={{ backgroundColor: Colors.gray }} />
 
@@ -381,10 +418,13 @@ export default function PermissionsScreen() {
                 </VStack>
 
                 {/* Level selector */}
-                <Text className="text-xs font-bold uppercase tracking-wider mb-2.5 mt-1" style={{ color: theme.textMuted }}>NIVEAU D'ACCÈS</Text>
+                <HStack className="items-center gap-2 mb-2.5 mt-1">
+                  <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.violet }} />
+                  <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>NIVEAU D'ACCÈS</Text>
+                </HStack>
                 <Box
                   className="rounded-2xl border overflow-hidden"
-                  style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+                  style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
                 >
                   {ACCESS_LEVELS.map((level, i) => {
                     const isSelected = selectedPerson.level === level.key;
@@ -410,10 +450,13 @@ export default function PermissionsScreen() {
                 </Box>
 
                 {/* Module toggles */}
-                <Text className="text-xs font-bold uppercase tracking-wider mb-2.5 mt-4" style={{ color: theme.textMuted }}>MODULES AUTORISÉS</Text>
+                <HStack className="items-center gap-2 mb-2.5 mt-4">
+                  <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
+                  <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>MODULES AUTORISÉS</Text>
+                </HStack>
                 <Box
                   className="rounded-2xl border overflow-hidden"
-                  style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+                  style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
                 >
                   {MODULE_CONFIG.map((mod, i) => (
                     <HStack

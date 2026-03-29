@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
-import { ScrollView, Animated } from 'react-native';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ScrollView, Animated, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import { getAccessJournal, type AccessEntry as SupabaseAccessEntry } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -90,17 +91,57 @@ const ACCESS_LOG: AccessEntry[] = [
   },
 ];
 
+// ─── Shadow & helpers ─────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function JournalAccesScreen() {
   const { theme } = useChildTheme();
   const [filter, setFilter] = useState<FilterType>('all');
+  const [log, setLog] = useState<AccessEntry[]>(ACCESS_LOG);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
+  const loadJournal = useCallback(async () => {
+    const data = await getAccessJournal(filter);
+    if (data.length > 0) {
+      setLog(data.map((e) => {
+        const d = new Date(e.created_at);
+        const today = new Date();
+        const diffDays = Math.floor((today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+        let dateLabel = d.toLocaleDateString('fr-FR');
+        if (diffDays === 0) dateLabel = "Aujourd'hui";
+        else if (diffDays === 1) dateLabel = 'Hier';
+        else if (diffDays < 7) dateLabel = `Il y a ${diffDays} jours`;
+        return {
+          id: e.id,
+          person: e.person_name,
+          avatar: e.person_avatar,
+          role: e.person_role,
+          action: e.action,
+          module: e.module,
+          moduleIcon: e.module_icon as keyof typeof Ionicons.glyphMap,
+          child: e.child_name ?? '',
+          date: dateLabel,
+          time: d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          ip: e.ip_address ?? undefined,
+          device: e.device ?? undefined,
+          color: e.color,
+        };
+      }));
+    }
+  }, [filter]);
+
   useEffect(() => {
+    loadJournal();
     Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, []);
+  }, [filter]);
 
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: 'Tout' },
@@ -109,12 +150,7 @@ export default function JournalAccesScreen() {
     { key: 'month', label: 'Mois' },
   ];
 
-  const filteredLog = ACCESS_LOG.filter((entry) => {
-    if (filter === 'today') return entry.date === "Aujourd'hui";
-    if (filter === 'week') return ["Aujourd'hui", 'Hier', 'Il y a 2 jours', 'Il y a 3 jours', 'Il y a 5 jours'].includes(entry.date);
-    if (filter === 'month') return true;
-    return true;
-  });
+  const filteredLog = log;
 
   const getActionColor = (action: string) => {
     if (action.includes('Modification')) return Colors.orange;
@@ -133,11 +169,11 @@ export default function JournalAccesScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
         {/* Info header */}
         <HStack
           className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: Colors.cyan, borderWidth: 1.5, ...CARD_SHADOW }}
         >
           <Box
             className="w-11 h-11 rounded-full items-center justify-center"
@@ -157,26 +193,26 @@ export default function JournalAccesScreen() {
         <HStack className="gap-2.5 mx-5 mb-4">
           <VStack
             className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
-            <Text className="text-[22px] font-black" style={{ color: Colors.cyan }}>{ACCESS_LOG.length}</Text>
+            <Text className="text-[22px] font-black" style={{ color: Colors.cyan }}>{log.length}</Text>
             <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Total accès</Text>
           </VStack>
           <VStack
             className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             <Text className="text-[22px] font-black" style={{ color: Colors.green }}>
-              {ACCESS_LOG.filter((e) => e.date === "Aujourd'hui").length}
+              {log.filter((e) => e.date === "Aujourd'hui").length}
             </Text>
             <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Aujourd'hui</Text>
           </VStack>
           <VStack
             className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
           >
             <Text className="text-[22px] font-black" style={{ color: Colors.violet }}>
-              {new Set(ACCESS_LOG.map((e) => e.person)).size}
+              {new Set(log.map((e) => e.person)).size}
             </Text>
             <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Personnes</Text>
           </VStack>
@@ -214,7 +250,7 @@ export default function JournalAccesScreen() {
             <Pressable
               key={entry.id}
               className="mx-5 mb-2.5 p-3.5 rounded-2xl border"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
               onPress={() => setExpandedId(isExpanded ? null : entry.id)}
             >
               {/* Top row */}
@@ -297,7 +333,7 @@ export default function JournalAccesScreen() {
         {/* RGPD notice */}
         <HStack
           className="items-start gap-2.5 mx-5 mt-2 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <Ionicons name="information-circle" size={16} color={Colors.cyan} />
           <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>

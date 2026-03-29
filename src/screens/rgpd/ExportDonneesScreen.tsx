@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ScrollView, Animated, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import { getExportHistory, createExport, type ExportRecord } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -27,6 +28,14 @@ interface ExportHistory {
   status: 'completed' | 'pending';
 }
 
+// ─── Shadow & helpers ─────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function ExportDonneesScreen() {
@@ -46,18 +55,36 @@ export default function ExportDonneesScreen() {
   ]);
   const [exporting, setExporting] = useState(false);
   const [exportDone, setExportDone] = useState(false);
+  const [history, setHistory] = useState<ExportHistory[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, []);
-
-  const EXPORT_HISTORY: ExportHistory[] = [
+  const MOCK_HISTORY: ExportHistory[] = [
     { id: '1', date: '15 mars 2026, 14:30', format: 'json+pdf', size: '4.8 Mo', modules: 'Toutes les données', status: 'completed' },
     { id: '2', date: '1er février 2026, 10:15', format: 'json', size: '623 Ko', modules: 'Notes, Agenda, Profil', status: 'completed' },
     { id: '3', date: '10 janvier 2026, 18:00', format: 'pdf', size: '2.1 Mo', modules: 'Profil complet + Photos', status: 'completed' },
   ];
+
+  const loadHistory = useCallback(async () => {
+    const data = await getExportHistory();
+    if (data.length > 0) {
+      setHistory(data.map((e) => ({
+        id: e.id,
+        date: new Date(e.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        format: e.format,
+        size: e.total_size,
+        modules: e.modules.join(', '),
+        status: e.status === 'completed' ? 'completed' : 'pending',
+      })));
+    } else {
+      setHistory(MOCK_HISTORY);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHistory();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+  }, []);
 
   const toggleModule = (key: string) => {
     setModules((prev) => prev.map((m) => (m.key === key ? { ...m, selected: !m.selected } : m)));
@@ -76,11 +103,18 @@ export default function ExportDonneesScreen() {
   }, 0);
   const totalSizeStr = totalSize > 1024 ? `${(totalSize / 1024).toFixed(1)} Mo` : `${Math.round(totalSize)} Ko`;
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (selectedModules.length === 0) {
       Alert.alert('Sélection vide', 'Veuillez sélectionner au moins un module à exporter.');
       return;
     }
+
+    const dbFormat = exportFormat === 'both' ? 'json+pdf' : exportFormat;
+    await createExport({
+      format: dbFormat as 'json' | 'pdf' | 'json+pdf',
+      modules: selectedModules.map((m) => m.key),
+      total_size: totalSizeStr,
+    });
 
     setExporting(true);
     progressAnim.setValue(0);
@@ -92,6 +126,7 @@ export default function ExportDonneesScreen() {
     }).start(() => {
       setExporting(false);
       setExportDone(true);
+      loadHistory();
 
       const formatLabel = exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase();
       Alert.alert(
@@ -108,11 +143,11 @@ export default function ExportDonneesScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
         {/* Info header */}
         <HStack
           className="items-center gap-3.5 m-5 mb-4 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: Colors.orange, borderWidth: 1.5, ...CARD_SHADOW }}
         >
           <Box
             className="w-11 h-11 rounded-full items-center justify-center"
@@ -129,7 +164,10 @@ export default function ExportDonneesScreen() {
         </HStack>
 
         {/* Format selector */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 px-6" style={{ color: theme.textMuted }}>FORMAT D'EXPORT</Text>
+        <HStack className="items-center gap-2 mb-2.5 px-6">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.orange }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>FORMAT D'EXPORT</Text>
+        </HStack>
         <HStack className="gap-2.5 mx-5 mb-5">
           {([
             { key: 'json' as const, label: 'JSON', icon: 'code-slash' as const, desc: 'Lisible par machine' },
@@ -140,7 +178,7 @@ export default function ExportDonneesScreen() {
               key={fmt.key}
               className="flex-1 items-center p-4 rounded-[14px] border-[1.5px] gap-1.5"
               style={[
-                { backgroundColor: theme.card, borderColor: theme.cardBorder },
+                { backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW },
                 exportFormat === fmt.key && { borderColor: Colors.orange, backgroundColor: Colors.orange + '10' },
               ]}
               onPress={() => setExportFormat(fmt.key)}
@@ -168,7 +206,10 @@ export default function ExportDonneesScreen() {
 
         {/* Module selection */}
         <HStack className="justify-between items-center pr-6 mb-2.5">
-          <Text className="text-[13px] font-bold uppercase tracking-wider px-6" style={{ color: theme.textMuted }}>DONNÉES À EXPORTER</Text>
+          <HStack className="items-center gap-2 px-6">
+            <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
+            <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>DONNÉES À EXPORTER</Text>
+          </HStack>
           <Pressable onPress={selectAll}>
             <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>
               {modules.every((m) => m.selected) ? 'Tout désélectionner' : 'Tout sélectionner'}
@@ -178,7 +219,7 @@ export default function ExportDonneesScreen() {
 
         <Box
           className="mx-5 rounded-2xl border overflow-hidden mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           {modules.map((mod, i) => (
             <HStack
@@ -211,7 +252,7 @@ export default function ExportDonneesScreen() {
         {/* Summary */}
         <VStack
           className="mx-5 p-4 rounded-[14px] border gap-2.5 mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <HStack className="justify-between items-center">
             <Text className="text-[13px]" style={{ color: theme.textMuted }}>Modules sélectionnés</Text>
@@ -259,16 +300,19 @@ export default function ExportDonneesScreen() {
         )}
 
         {/* Export history */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 px-6 mt-6" style={{ color: theme.textMuted }}>HISTORIQUE DES EXPORTS</Text>
+        <HStack className="items-center gap-2 mb-2.5 px-6 mt-6">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.green }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>HISTORIQUE DES EXPORTS</Text>
+        </HStack>
         <Box
           className="mx-5 rounded-2xl border overflow-hidden mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
-          {EXPORT_HISTORY.map((exp, i) => (
+          {history.map((exp, i) => (
             <HStack
               key={exp.id}
               className="items-center p-3.5 gap-3"
-              style={i < EXPORT_HISTORY.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
+              style={i < history.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
             >
               <Box
                 className="w-9 h-9 rounded-[10px] items-center justify-center"
@@ -290,10 +334,13 @@ export default function ExportDonneesScreen() {
         </Box>
 
         {/* JSON preview */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 px-6 mt-2" style={{ color: theme.textMuted }}>APERÇU JSON</Text>
+        <HStack className="items-center gap-2 mb-2.5 px-6 mt-2">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.violet }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>APERÇU JSON</Text>
+        </HStack>
         <Box
           className="mx-5 p-4 rounded-[14px] border mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <Text style={{ fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', color: Colors.green, lineHeight: 17 }}>{`{
   "scolaria_export": {
@@ -321,7 +368,7 @@ export default function ExportDonneesScreen() {
         {/* RGPD notice */}
         <HStack
           className="items-start gap-2.5 mx-5 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <Ionicons name="information-circle" size={16} color={Colors.cyan} />
           <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>

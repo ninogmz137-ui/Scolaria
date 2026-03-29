@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ScrollView, Animated, Alert, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import { getTransferCodes, createTransferCode, revokeTransferCode, type TransferCode as SupabaseTransferCode } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -71,6 +72,14 @@ const CHILDREN = [
   { id: '2', name: 'Emma Moreau', avatar: '👧', classe: '6ème — Collège Hugo' },
 ];
 
+// ─── Shadow & helpers ─────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function TransfertCodeScreen() {
@@ -83,7 +92,36 @@ export default function TransfertCodeScreen() {
   const codeAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  const mapSupabaseCodes = (data: SupabaseTransferCode[]): TransferCode[] =>
+    data.map((c) => {
+      const exp = new Date(c.expires_at);
+      const now = new Date();
+      const daysLeft = Math.max(0, Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      return {
+        id: c.id,
+        code: c.code,
+        child: c.child_name,
+        childAvatar: c.child_avatar,
+        fromSchool: c.from_school,
+        toSchool: c.to_school ?? 'À définir',
+        createdAt: new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        expiresAt: exp.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+        daysLeft,
+        status: c.status === 'revoked' ? 'expired' : c.status as 'active' | 'used' | 'expired',
+        usedBy: c.used_by ?? undefined,
+        usedAt: c.used_at ? new Date(c.used_at).toLocaleDateString('fr-FR') : undefined,
+      };
+    });
+
+  const loadCodes = useCallback(async () => {
+    const data = await getTransferCodes();
+    if (data.length > 0) {
+      setCodes(mapSupabaseCodes(data));
+    }
+  }, []);
+
   useEffect(() => {
+    loadCodes();
     Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, []);
 
@@ -104,35 +142,48 @@ export default function TransfertCodeScreen() {
     return `SCA-TRANSFER-2031-${suffix}`;
   };
 
-  const handleGenerate = (childId: string) => {
+  const handleGenerate = async (childId: string) => {
     setGeneratingFor(childId);
     setShowNewCode(true);
 
-    setTimeout(() => {
+    const child = CHILDREN.find((c) => c.id === childId);
+    if (!child) { setGeneratingFor(null); return; }
+
+    const fromSchool = child.classe.split(' — ')[1] || '';
+
+    const result = await createTransferCode({
+      child_id: childId,
+      child_name: child.name,
+      child_avatar: child.avatar,
+      from_school: fromSchool,
+    });
+
+    if (result) {
+      setNewCode(result.code);
+      Animated.spring(codeAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }).start();
+      loadCodes();
+    } else {
+      // Fallback to local generation when Supabase not configured
       const code = generateCode();
       setNewCode(code);
       Animated.spring(codeAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }).start();
-
-      const child = CHILDREN.find((c) => c.id === childId);
-      if (child) {
-        setCodes((prev) => [
-          {
-            id: Date.now().toString(),
-            code,
-            child: child.name,
-            childAvatar: child.avatar,
-            fromSchool: child.classe.split(' — ')[1] || '',
-            toSchool: 'À définir',
-            createdAt: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-            expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
-            daysLeft: 90,
-            status: 'active',
-          },
-          ...prev,
-        ]);
-      }
-      setGeneratingFor(null);
-    }, 1500);
+      setCodes((prev) => [
+        {
+          id: Date.now().toString(),
+          code,
+          child: child.name,
+          childAvatar: child.avatar,
+          fromSchool,
+          toSchool: 'À définir',
+          createdAt: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+          expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }),
+          daysLeft: 90,
+          status: 'active',
+        },
+        ...prev,
+      ]);
+    }
+    setGeneratingFor(null);
   };
 
   const handleCopy = (code: string) => {
@@ -151,7 +202,10 @@ export default function TransfertCodeScreen() {
         {
           text: 'Révoquer',
           style: 'destructive',
-          onPress: () => setCodes((prev) => prev.filter((c) => c.id !== codeId)),
+          onPress: async () => {
+            await revokeTransferCode(codeId);
+            setCodes((prev) => prev.filter((c) => c.id !== codeId));
+          },
         },
       ]
     );
@@ -168,11 +222,11 @@ export default function TransfertCodeScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
         {/* Info header */}
         <HStack
           className="items-center gap-3.5 m-5 mb-4 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: Colors.violet, borderWidth: 1.5, ...CARD_SHADOW }}
         >
           <Box
             className="w-11 h-11 rounded-full items-center justify-center"
@@ -191,7 +245,7 @@ export default function TransfertCodeScreen() {
         {/* How it works */}
         <Box
           className="mx-5 mb-5 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <Text className="text-[15px] font-bold mb-3.5" style={{ color: theme.textPrimary }}>Comment ça marche ?</Text>
           {[
@@ -213,10 +267,13 @@ export default function TransfertCodeScreen() {
         </Box>
 
         {/* Generate new code */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 px-6" style={{ color: theme.textMuted }}>GÉNÉRER UN NOUVEAU CODE</Text>
+        <HStack className="items-center gap-2 mb-2.5 px-6">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.violet }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>GÉNÉRER UN NOUVEAU CODE</Text>
+        </HStack>
         <Box
           className="mx-5 mb-4 rounded-2xl border overflow-hidden"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           {CHILDREN.map((child, i) => (
             <Pressable
@@ -291,14 +348,17 @@ export default function TransfertCodeScreen() {
         )}
 
         {/* Existing codes */}
-        <Text className="text-[13px] font-bold uppercase tracking-wider mb-2.5 px-6" style={{ color: theme.textMuted }}>CODES EXISTANTS</Text>
+        <HStack className="items-center gap-2 mb-2.5 px-6">
+          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
+          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>CODES EXISTANTS</Text>
+        </HStack>
         {codes.map((tc) => {
           const statusCfg = getStatusConfig(tc.status);
           return (
             <Box
               key={tc.id}
               className="mx-5 mb-3 p-4 rounded-2xl border"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
             >
               {/* Header */}
               <HStack className="items-center gap-2.5 mb-3">
@@ -321,7 +381,7 @@ export default function TransfertCodeScreen() {
               {/* Code display */}
               <Pressable
                 className="flex-row items-center justify-between p-3 rounded-xl border mb-2.5"
-                style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderColor: theme.cardBorder }}
+                style={{ backgroundColor: '#F1F5F9', borderColor: theme.cardBorder }}
                 onPress={() => handleCopy(tc.code)}
               >
                 <Text
@@ -358,7 +418,7 @@ export default function TransfertCodeScreen() {
 
               {/* Actions */}
               {tc.status === 'active' && (
-                <HStack className="gap-2.5 border-t pt-3" style={{ borderTopColor: 'rgba(255,255,255,0.06)' }}>
+                <HStack className="gap-2.5 border-t pt-3" style={{ borderTopColor: '#EEF0F5' }}>
                   <Pressable
                     className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl"
                     style={{ backgroundColor: Colors.red + '12' }}
@@ -384,7 +444,7 @@ export default function TransfertCodeScreen() {
         {/* Security notice */}
         <HStack
           className="items-start gap-2.5 mx-5 mt-2 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
         >
           <Ionicons name="lock-closed" size={16} color={Colors.green} />
           <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>

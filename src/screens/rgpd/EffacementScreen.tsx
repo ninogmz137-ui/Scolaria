@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { ScrollView, Animated, Alert, TextInput } from 'react-native';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { ScrollView, Animated, Alert, TextInput, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import { createDeletionRequest, cancelDeletionRequest, getDeletionRequests, getChildDataCounts } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -24,6 +25,14 @@ interface DataCategory {
   details: string;
 }
 
+// ─── Shadow & helpers ─────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function EffacementScreen() {
@@ -34,10 +43,22 @@ export default function EffacementScreen() {
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
   const [showDataPreview, setShowDataPreview] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
+  const loadExistingRequests = useCallback(async () => {
+    const requests = await getDeletionRequests();
+    const pending = requests.find((r) => r.status === 'pending' || r.status === 'confirmed');
+    if (pending) {
+      setRequestSent(true);
+      setRequestId(pending.id);
+      setCurrentStep(4);
+    }
+  }, []);
+
   useEffect(() => {
+    loadExistingRequests();
     Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   }, []);
 
@@ -94,7 +115,13 @@ export default function EffacementScreen() {
         {
           text: 'Confirmer la suppression',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            const result = await createDeletionRequest({
+              child_id: selectedChild === 'all' ? null : selectedChild,
+              scope: selectedChild === 'all' ? 'account' : 'child',
+              confirm_email: confirmEmail,
+            });
+            if (result) setRequestId(result.id);
             setRequestSent(true);
             setCurrentStep(4);
           },
@@ -105,17 +132,17 @@ export default function EffacementScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
         {/* Warning header */}
         <LinearGradient
-          colors={[Colors.red + '30', theme.bg]}
+          colors={[Colors.red + '30', '#E8EDF5']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 20, paddingHorizontal: 20 }}
         >
           <Box
             className="w-16 h-16 rounded-full items-center justify-center mb-3"
-            style={{ backgroundColor: Colors.red + '15' }}
+            style={{ backgroundColor: Colors.red + '15', borderWidth: 1.5, borderColor: Colors.red }}
           >
             <Ionicons name="warning" size={32} color={Colors.red} />
           </Box>
@@ -162,7 +189,7 @@ export default function EffacementScreen() {
             <Text className="text-lg font-extrabold mb-2" style={{ color: theme.textPrimary }}>Quel profil supprimer ?</Text>
             <Box
               className="rounded-2xl border overflow-hidden mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
             >
               {CHILDREN.map((child, i) => (
                 <Pressable
@@ -218,7 +245,7 @@ export default function EffacementScreen() {
 
             <Box
               className="rounded-2xl border overflow-hidden mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
             >
               {DATA_CATEGORIES.map((cat, i) => (
                 <HStack
@@ -334,7 +361,7 @@ export default function EffacementScreen() {
             {/* Legal notice */}
             <HStack
               className="items-start gap-2.5 p-3.5 rounded-[14px] border mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
             >
               <Ionicons name="information-circle" size={18} color={Colors.cyan} />
               <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>
@@ -380,7 +407,7 @@ export default function EffacementScreen() {
 
             <Box
               className="w-full p-5 rounded-2xl border mb-5"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
             >
               <HStack className="items-center gap-3">
                 <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.green }} />
@@ -418,9 +445,11 @@ export default function EffacementScreen() {
             <Pressable
               className="flex-row items-center gap-2 px-6 py-3.5 rounded-[14px] border-[1.5px]"
               style={{ borderColor: Colors.green }}
-              onPress={() => {
+              onPress={async () => {
+                if (requestId) await cancelDeletionRequest(requestId);
                 Alert.alert('Annulation', 'Demande de suppression annulée avec succès.');
                 setRequestSent(false);
+                setRequestId(null);
                 setCurrentStep(0);
                 setConfirmEmail('');
                 setConfirmText('');
