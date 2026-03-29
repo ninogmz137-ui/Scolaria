@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   RefreshControl,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
 import { Colors } from '../../constants/colors';
 import {
@@ -17,6 +19,12 @@ import {
 } from '../../services/absenceService';
 
 const TEACHER_ORANGE = '#FF8C42';
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
 
 type FilterType = 'toutes' | 'aujourdhui' | 'semaine';
 
@@ -117,28 +125,28 @@ export default function AbsencesEnseignantScreen() {
     const isProcessing = processingIds.has(absence.id);
 
     return (
-      <Box key={absence.id} className="rounded-[14px] p-3.5 mb-2.5" style={{ backgroundColor: Colors.blueNightCard }}>
+      <Box key={absence.id} className="rounded-[14px] p-3.5 mb-2.5" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
         <HStack className="items-start">
-          <Box className="w-11 h-11 rounded-[22px] justify-center items-center mr-3" style={{ backgroundColor: '#ffffff10' }}>
+          <Box className="w-11 h-11 rounded-[22px] justify-center items-center mr-3" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>
             <Text className="text-2xl">
               {absence.student_avatar || '👤'}
             </Text>
           </Box>
 
           <VStack className="flex-1 mr-2.5">
-            <Text className="text-[15px] font-bold mb-[3px]" style={{ color: '#fff' }}>
+            <Text className="text-[15px] font-bold mb-[3px]" style={{ color: '#0F172A' }}>
               {absence.student_name}
             </Text>
-            <Text className="text-xs mb-[3px]" style={{ color: '#ffffff80' }}>
+            <Text className="text-xs mb-[3px]" style={{ color: '#64748B' }}>
               {dateDisplay}
               {demiJourneeLabel ? ` - ${demiJourneeLabel}` : ''}
             </Text>
-            <Text className="text-[13px] mb-0.5" style={{ color: '#ffffffcc' }}>
+            <Text className="text-[13px] mb-0.5" style={{ color: '#0F172A' }}>
               {motifIcon ? `${motifIcon} ` : ''}
               {motifLabel}
             </Text>
             {absence.commentaire ? (
-              <Text className="text-xs italic mt-1" style={{ color: '#ffffff60' }}>{absence.commentaire}</Text>
+              <Text className="text-xs italic mt-1" style={{ color: '#94A3B8' }}>{absence.commentaire}</Text>
             ) : null}
           </VStack>
 
@@ -165,23 +173,33 @@ export default function AbsencesEnseignantScreen() {
   };
 
   return (
-    <Box className="flex-1" style={{ backgroundColor: Colors.blueNight }}>
+    <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
       {/* Header */}
-      <VStack className="px-5 pb-4" style={{ paddingTop: 56 }}>
+      <LinearGradient
+        colors={['#0B1628', TEACHER_ORANGE + 'DD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
+      >
         <Text className="text-[28px] font-bold" style={{ color: '#fff' }}>Absences</Text>
-        <Text className="text-sm mt-1" style={{ color: '#ffffff90' }}>{todayFormatted}</Text>
-      </VStack>
+        <Text className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{todayFormatted}</Text>
+      </LinearGradient>
 
       {/* Filter bar */}
-      <HStack className="px-5 mb-3 gap-2">
+      <HStack className="px-5 mt-4 mb-3 gap-2">
         {FILTER_OPTIONS.map((opt) => (
           <Pressable
             key={opt.key}
             onPress={() => setFilter(opt.key)}
             className="px-4 py-2 rounded-[20px]"
-            style={{ backgroundColor: filter === opt.key ? TEACHER_ORANGE : Colors.blueNightCard }}
+            style={{
+              backgroundColor: filter === opt.key ? TEACHER_ORANGE + '20' : '#FFFFFF',
+              borderWidth: 1.5,
+              borderColor: filter === opt.key ? TEACHER_ORANGE : '#EEF0F5',
+              ...CARD_SHADOW,
+            }}
           >
-            <Text className="text-[13px] font-semibold" style={{ color: filter === opt.key ? '#fff' : '#ffffff80' }}>
+            <Text className="text-[13px] font-semibold" style={{ color: filter === opt.key ? TEACHER_ORANGE : '#64748B' }}>
               {opt.label}
             </Text>
           </Pressable>
@@ -208,16 +226,22 @@ export default function AbsencesEnseignantScreen() {
           {/* Absences du jour */}
           {absencesDuJour.length > 0 && (
             <VStack className="mb-6">
-              <Text className="text-lg font-bold mb-3" style={{ color: TEACHER_ORANGE }}>Absences du jour</Text>
+              <HStack className="items-center gap-2 mb-3">
+                <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+                <Text className="text-lg font-bold" style={{ color: TEACHER_ORANGE }}>Absences du jour</Text>
+              </HStack>
               {absencesDuJour.map((a) => renderAbsenceCard(a, true))}
             </VStack>
           )}
 
           {absencesDuJour.length === 0 && !loading && (
             <VStack className="mb-6">
-              <Text className="text-lg font-bold mb-3" style={{ color: TEACHER_ORANGE }}>Absences du jour</Text>
-              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: Colors.blueNightCard }}>
-                <Text className="text-sm" style={{ color: '#ffffff50' }}>
+              <HStack className="items-center gap-2 mb-3">
+                <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+                <Text className="text-lg font-bold" style={{ color: TEACHER_ORANGE }}>Absences du jour</Text>
+              </HStack>
+              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+                <Text className="text-sm" style={{ color: '#94A3B8' }}>
                   Aucune absence signalée pour aujourd'hui
                 </Text>
               </Box>
@@ -226,12 +250,15 @@ export default function AbsencesEnseignantScreen() {
 
           {/* Historique */}
           <VStack className="mb-6">
-            <Text className="text-lg font-bold mb-3" style={{ color: TEACHER_ORANGE }}>Historique de la classe</Text>
+            <HStack className="items-center gap-2 mb-3">
+              <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+              <Text className="text-lg font-bold" style={{ color: TEACHER_ORANGE }}>Historique de la classe</Text>
+            </HStack>
             {historiqueAbsences.length > 0 ? (
               historiqueAbsences.map((a) => renderAbsenceCard(a, false))
             ) : (
-              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: Colors.blueNightCard }}>
-                <Text className="text-sm" style={{ color: '#ffffff50' }}>Aucune absence dans l'historique</Text>
+              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+                <Text className="text-sm" style={{ color: '#94A3B8' }}>Aucune absence dans l'historique</Text>
               </Box>
             )}
           </VStack>

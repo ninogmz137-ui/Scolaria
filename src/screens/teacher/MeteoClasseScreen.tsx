@@ -5,18 +5,28 @@
  * avec des indicateurs anonymisés (aucun nom d'élève visible).
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { getClassMeteo } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
+
+const TEACHER_ORANGE = '#FF8C42';
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -134,13 +144,39 @@ function getWeeklyTrend(data: DayWeather[]): { label: string; icon: string; colo
 
 export default function MeteoClasseScreen() {
   const [selectedDay, setSelectedDay] = useState(4);
+  const [weekData, setWeekData] = useState(WEEK_DATA);
+  const [emotionDist, setEmotionDist] = useState(EMOTION_DISTRIBUTION);
+  const [classInfo, setClassInfo] = useState(CLASS_INFO);
+  const [anxietyData, setAnxietyData] = useState(ANXIETY_DATA);
 
   // Animations
   const headerScale = useRef(new Animated.Value(0)).current;
   const barAnims = useRef(WEEK_DATA.map(() => new Animated.Value(0))).current;
   const distAnims = useRef(EMOTION_DISTRIBUTION.map(() => new Animated.Value(0))).current;
 
+  const loadMeteo = useCallback(async () => {
+    const data = await getClassMeteo(classInfo.name);
+    if (data && data.weekData.length > 0) {
+      setWeekData(data.weekData);
+      setEmotionDist(data.emotionDistribution.map((e, i) => ({
+        ...e,
+        color: EMOTION_DISTRIBUTION[i]?.color ?? e.color,
+      })));
+      setClassInfo((prev) => ({
+        ...prev,
+        totalStudents: data.totalStudents,
+        respondedToday: data.respondedToday,
+      }));
+      setAnxietyData({
+        current: data.anxietyPercent,
+        previous: data.previousAnxietyPercent,
+      });
+      setSelectedDay(data.weekData.length - 1);
+    }
+  }, []);
+
   useEffect(() => {
+    loadMeteo();
     Animated.sequence([
       Animated.spring(headerScale, {
         toValue: 1, tension: 80, friction: 8, useNativeDriver: true,
@@ -154,33 +190,33 @@ export default function MeteoClasseScreen() {
     ]).start();
   }, []);
 
-  const todayScore = WEEK_DATA[selectedDay].avgScore;
-  const anxietyColor = getAnxietyColor(ANXIETY_DATA.current);
-  const weeklyTrend = getWeeklyTrend(WEEK_DATA);
+  const todayScore = weekData[selectedDay]?.avgScore ?? 0;
+  const anxietyColor = getAnxietyColor(anxietyData.current);
+  const weeklyTrend = getWeeklyTrend(weekData);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: Colors.blueNight }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
       {/* ── 1. Header with big weather ── */}
       <LinearGradient
-        colors={[Colors.cyanDark, Colors.blueNight]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.8 }}
-        style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24 }}
+        colors={['#0B1628', TEACHER_ORANGE + 'DD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
       >
-        <Text className="text-sm font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.6)' }}>
-          {CLASS_INFO.name} — {CLASS_INFO.school}
+        <Text className="text-sm font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.8)' }}>
+          {classInfo.name} — {classInfo.school}
         </Text>
 
         <Animated.View style={{ alignItems: 'center', marginBottom: 16, transform: [{ scale: headerScale }] }}>
           <Text className="text-[64px] mb-1">{getWeatherEmoji(todayScore)}</Text>
           <Text className="text-[42px] font-black" style={{ color: Colors.white }}>{todayScore.toFixed(1)}</Text>
-          <Text className="text-base font-semibold mt-0.5" style={{ color: Colors.cyan }}>{getWeatherLabel(todayScore)}</Text>
+          <Text className="text-base font-semibold mt-0.5" style={{ color: Colors.white }}>{getWeatherLabel(todayScore)}</Text>
         </Animated.View>
 
-        <HStack className="items-center gap-1.5 px-3.5 py-1.5 rounded-[20px]" style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
-          <Ionicons name="people" size={14} color={Colors.cyan} />
-          <Text className="text-[13px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            {CLASS_INFO.respondedToday}/{CLASS_INFO.totalStudents} élèves ont répondu
+        <HStack className="items-center gap-1.5 px-3.5 py-1.5 rounded-[20px]" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+          <Ionicons name="people" size={14} color={Colors.white} />
+          <Text className="text-[13px]" style={{ color: 'rgba(255,255,255,0.9)' }}>
+            {classInfo.respondedToday}/{classInfo.totalStudents} élèves ont répondu
           </Text>
         </HStack>
       </LinearGradient>
@@ -188,34 +224,37 @@ export default function MeteoClasseScreen() {
       <VStack className="px-5 pt-2">
         {/* ── 2. Anxiety percentage card ── */}
         <VStack className="mb-6">
-          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Pourcentage d'anxiété</Text>
-          <Box className="rounded-[18px] p-5" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: anxietyColor + '40' }}>
+          <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Pourcentage d'anxiété</Text>
+          </HStack>
+          <Box className="rounded-[18px] p-5" style={{ backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.cardBorder, ...CARD_SHADOW }}>
             <HStack className="justify-between items-center">
               <VStack className="flex-1">
                 <Text className="text-5xl font-black" style={{ color: anxietyColor, letterSpacing: -1 }}>
-                  {ANXIETY_DATA.current}%
+                  {anxietyData.current}%
                 </Text>
-                <Text className="text-[13px] mt-0.5" style={{ color: Colors.gray }}>des élèves cette semaine</Text>
+                <Text className="text-[13px] mt-0.5" style={{ color: Colors.textSecondary }}>des élèves cette semaine</Text>
               </VStack>
-              <HStack className="items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <HStack className="items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ backgroundColor: Colors.pageBg }}>
                 <Box className="w-2 h-2 rounded-full" style={{ backgroundColor: anxietyColor }} />
                 <Text className="text-[13px] font-bold" style={{ color: anxietyColor }}>
-                  {ANXIETY_DATA.current < 10
+                  {anxietyData.current < 10
                     ? 'Faible'
-                    : ANXIETY_DATA.current <= 20
+                    : anxietyData.current <= 20
                       ? 'Modéré'
                       : 'Élevé'}
                 </Text>
               </HStack>
             </HStack>
-            <HStack className="items-center gap-1 mt-3.5 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+            <HStack className="items-center gap-1 mt-3.5 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: Colors.cardBorder }}>
               <Ionicons
-                name={ANXIETY_DATA.current > ANXIETY_DATA.previous ? 'arrow-up' : 'arrow-down'}
+                name={anxietyData.current > anxietyData.previous ? 'arrow-up' : 'arrow-down'}
                 size={13}
-                color={ANXIETY_DATA.current > ANXIETY_DATA.previous ? Colors.red : Colors.green}
+                color={anxietyData.current > anxietyData.previous ? Colors.red : Colors.green}
               />
-              <Text className="text-[13px]" style={{ color: Colors.gray }}>
-                vs {ANXIETY_DATA.previous}% la semaine dernière
+              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>
+                vs {anxietyData.previous}% la semaine dernière
               </Text>
             </HStack>
           </Box>
@@ -223,10 +262,13 @@ export default function MeteoClasseScreen() {
 
         {/* ── 3. Weekly trend with emoji row ── */}
         <VStack className="mb-6">
-          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Tendance de la semaine</Text>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+          <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Tendance de la semaine</Text>
+          </HStack>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.cardBorder, ...CARD_SHADOW }}>
             <HStack className="justify-between mb-4">
-              {WEEK_DATA.map((day, i) => (
+              {weekData.map((day, i) => (
                 <Pressable
                   key={day.day}
                   onPress={() => setSelectedDay(i)}
@@ -234,23 +276,23 @@ export default function MeteoClasseScreen() {
                   style={selectedDay === i ? { backgroundColor: 'rgba(34,211,238,0.1)' } : undefined}
                 >
                   <Text className="text-[28px] mb-1">{getWeatherEmoji(day.avgScore)}</Text>
-                  <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyan : Colors.gray, fontWeight: selectedDay === i ? '800' : '600' }}>
+                  <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyanDark : Colors.textSecondary, fontWeight: selectedDay === i ? '800' : '600' }}>
                     {day.day}
                   </Text>
-                  <Text className="text-xs font-bold" style={{ color: selectedDay === i ? Colors.white : Colors.gray }}>
+                  <Text className="text-xs font-bold" style={{ color: selectedDay === i ? Colors.textPrimary : Colors.textSecondary }}>
                     {day.avgScore.toFixed(1)}
                   </Text>
                 </Pressable>
               ))}
             </HStack>
 
-            <HStack className="items-center gap-2 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+            <HStack className="items-center gap-2 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: Colors.cardBorder }}>
               <Ionicons name={weeklyTrend.icon as any} size={20} color={weeklyTrend.color} />
               <Text className="text-[15px] font-extrabold" style={{ color: weeklyTrend.color }}>
                 {weeklyTrend.label}
               </Text>
-              <Text className="text-[13px] ml-auto" style={{ color: Colors.gray }}>
-                {WEEK_DATA[0].avgScore.toFixed(1)} → {WEEK_DATA[WEEK_DATA.length - 1].avgScore.toFixed(1)}
+              <Text className="text-[13px] ml-auto" style={{ color: Colors.textSecondary }}>
+                {weekData[0].avgScore.toFixed(1)} → {weekData[weekData.length - 1].avgScore.toFixed(1)}
               </Text>
             </HStack>
           </Box>
@@ -258,8 +300,11 @@ export default function MeteoClasseScreen() {
 
         {/* ── 4. Aria summary card ── */}
         <VStack className="mb-6">
-          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Résumé Aria</Text>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: Colors.violet + '30' }}>
+          <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Résumé Aria</Text>
+          </HStack>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: '#EEF2FF', borderWidth: 1.5, borderColor: '#E0E7FF', ...CARD_SHADOW }}>
             <HStack className="items-center gap-2.5 mb-3">
               <LinearGradient
                 colors={[Colors.violet, Colors.cyanDark]}
@@ -271,16 +316,19 @@ export default function MeteoClasseScreen() {
               </LinearGradient>
               <Text className="text-sm font-bold" style={{ color: Colors.violet + 'CC' }}>Analyse IA de la semaine</Text>
             </HStack>
-            <Text className="text-sm leading-[21px]" style={{ color: 'rgba(255,255,255,0.8)' }}>{ARIA_SUMMARY}</Text>
+            <Text className="text-sm leading-[21px]" style={{ color: Colors.textSecondary }}>{ARIA_SUMMARY}</Text>
           </Box>
         </VStack>
 
         {/* ── 5. Emotion distribution ── */}
         <VStack className="mb-6">
-          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Répartition des émotions</Text>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}>
+          <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Répartition des émotions</Text>
+          </HStack>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.cardBorder, ...CARD_SHADOW }}>
             <HStack className="h-3.5 rounded-[7px] overflow-hidden mb-4 gap-0.5">
-              {EMOTION_DISTRIBUTION.map((e, i) => (
+              {emotionDist.map((e, i) => (
                 <Animated.View
                   key={e.label}
                   style={{
@@ -296,11 +344,11 @@ export default function MeteoClasseScreen() {
             </HStack>
 
             <HStack className="justify-between">
-              {EMOTION_DISTRIBUTION.map((e) => (
+              {emotionDist.map((e) => (
                 <VStack key={e.label} className="items-center flex-1">
                   <Text className="text-2xl mb-1">{e.emoji}</Text>
-                  <Text className="text-base font-extrabold" style={{ color: Colors.white }}>{e.percent}%</Text>
-                  <Text className="text-[10px] mt-0.5" style={{ color: Colors.gray }}>{e.label}</Text>
+                  <Text className="text-base font-extrabold" style={{ color: Colors.textPrimary }}>{e.percent}%</Text>
+                  <Text className="text-[10px] mt-0.5" style={{ color: Colors.textMuted }}>{e.label}</Text>
                 </VStack>
               ))}
             </HStack>
@@ -309,7 +357,10 @@ export default function MeteoClasseScreen() {
 
         {/* ── 6. Wellbeing indicators ── */}
         <VStack className="mb-6">
-          <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Indicateurs de bien-être</Text>
+          <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Indicateurs de bien-être</Text>
+          </HStack>
           <HStack className="flex-wrap gap-2.5">
             {WELLBEING_INDICATORS.map((ind) => (
               <VStack
@@ -317,17 +368,18 @@ export default function MeteoClasseScreen() {
                 className="items-center p-4 rounded-2xl"
                 style={{
                   width: (width - 50) / 2,
-                  backgroundColor: Colors.blueNightCard,
-                  borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.06)',
+                  backgroundColor: Colors.card,
+                  borderWidth: 1.5,
+                  borderColor: Colors.cardBorder,
+                  ...CARD_SHADOW,
                 }}
               >
                 <Text className="text-2xl mb-1.5">{ind.icon}</Text>
                 <Text className="text-2xl font-black" style={{ color: getScoreColor(ind.label.includes('Stress') ? 10 - ind.value : ind.value) }}>
                   {ind.value.toFixed(1)}
                 </Text>
-                <Text className="text-[11px] mt-0.5 text-center" style={{ color: Colors.gray }}>{ind.label}</Text>
-                <HStack className="items-center gap-0.5 mt-1.5 px-2 py-0.5 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                <Text className="text-[11px] mt-0.5 text-center" style={{ color: Colors.textSecondary }}>{ind.label}</Text>
+                <HStack className="items-center gap-0.5 mt-1.5 px-2 py-0.5 rounded-lg" style={{ backgroundColor: Colors.pageBg }}>
                   <Ionicons
                     name={ind.trend >= 0 ? 'arrow-up' : 'arrow-down'}
                     size={10}
@@ -353,7 +405,10 @@ export default function MeteoClasseScreen() {
         {/* ── 7. Anonymous alerts ── */}
         {ANONYMOUS_ALERTS.length > 0 && (
           <VStack className="mb-6">
-            <Text className="text-base font-bold mb-3" style={{ color: Colors.white }}>Signalements anonymes</Text>
+            <HStack className="items-center gap-2 mb-3">
+            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Signalements anonymes</Text>
+          </HStack>
             {ANONYMOUS_ALERTS.map((alert) => (
               <Box
                 key={alert.id}
@@ -361,7 +416,7 @@ export default function MeteoClasseScreen() {
                 style={{
                   borderWidth: 1,
                   borderColor: alert.level === 'vigilance' ? Colors.orange + '40' : Colors.red + '40',
-                  backgroundColor: alert.level === 'vigilance' ? '#3D2E10' : '#3D1010',
+                  backgroundColor: alert.level === 'vigilance' ? '#FFFBEB' : '#FEF2F2',
                 }}
               >
                 <HStack className="justify-between items-center mb-2">
@@ -375,16 +430,16 @@ export default function MeteoClasseScreen() {
                       {alert.level === 'vigilance' ? 'Vigilance' : 'Attention'}
                     </Text>
                   </HStack>
-                  <Text className="text-[11px]" style={{ color: Colors.gray }}>{alert.date}</Text>
+                  <Text className="text-[11px]" style={{ color: Colors.textMuted }}>{alert.date}</Text>
                 </HStack>
-                <Text className="text-[13px] leading-[19px]" style={{ color: 'rgba(255,255,255,0.75)' }}>{alert.message}</Text>
+                <Text className="text-[13px] leading-[19px]" style={{ color: Colors.textSecondary }}>{alert.message}</Text>
               </Box>
             ))}
 
             {/* ── 8. Anonymity disclaimer ── */}
             <HStack className="items-center gap-2 mt-2 px-1">
-              <Ionicons name="eye-off" size={14} color={Colors.gray} />
-              <Text className="flex-1 text-[11px] leading-4" style={{ color: Colors.gray }}>
+              <Ionicons name="eye-off" size={14} color={Colors.textMuted} />
+              <Text className="flex-1 text-[11px] leading-4" style={{ color: Colors.textMuted }}>
                 Les données sont agrégées et anonymisées. Aucun nom d'élève n'est visible.
               </Text>
             </HStack>
