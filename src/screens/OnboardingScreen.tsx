@@ -8,6 +8,7 @@
 
 import { useState, useRef } from 'react';
 import { Dimensions, FlatList, Animated, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Box, Text, Pressable, HStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -93,8 +94,9 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
   const isLastSlide = currentIndex === SLIDES.length - 1;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLastSlide) {
+      await AsyncStorage.setItem('scolaria_onboarding_complete', 'true').catch(() => {});
       // Bounce animation on button press
       Animated.sequence([
         Animated.spring(buttonScale, {
@@ -113,7 +115,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    await AsyncStorage.setItem('scolaria_onboarding_complete', 'true').catch(() => {});
     onComplete();
   };
 
@@ -137,16 +140,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
         end={{ x: 0.5, y: 0.6 }}
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, paddingTop: 80, paddingBottom: 160 }}
       >
-        {/* Decorative circles */}
-        <Box
-          className="absolute rounded-full"
-          style={{ width: 300, height: 300, top: 40, right: -80, borderWidth: 1, borderColor: item.accentColor + '20' }}
-        />
-        <Box
-          className="absolute rounded-full"
-          style={{ width: 200, height: 200, bottom: 200, left: -60, borderWidth: 1, borderColor: item.accentColor + '15' }}
-        />
-
         {/* Emoji hero */}
         <Box className="w-[100px] h-[100px] justify-center items-center mb-7">
           <Box
@@ -314,4 +307,14 @@ export default function OnboardingScreen({ onComplete }: Props) {
       </Box>
     </Box>
   );
+}
+
+// ─── Helper ───────────────────────────────────────────────
+
+export async function hasCompletedOnboarding(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem('scolaria_onboarding_complete')) === 'true';
+  } catch {
+    return false;
+  }
 }

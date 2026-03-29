@@ -1,15 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   Switch,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
+import DecorativeBlobs from '../components/DecorativeBlobs';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { supabase } from '../services/supabase';
+
+// ─── Helpers ─────────────────────────────────────────────
+
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
+}
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -33,18 +52,6 @@ interface ChildProfile {
 
 // ─── Mock data ────────────────────────────────────────────
 
-const FAMILY = {
-  name: 'Famille Moreau',
-  email: 'moreau.famille@email.fr',
-  plan: 'Premium',
-  memberSince: 'Septembre 2025',
-};
-
-const CHILDREN: ChildProfile[] = [
-  { id: '1', name: 'Lucas', avatar: '👦', classe: 'CM2 — École Voltaire', scolariaId: 'SCA-2026-FR-048721' },
-  { id: '2', name: 'Emma', avatar: '👧', classe: '6ème — Collège Hugo', scolariaId: 'SCA-2026-FR-048722' },
-];
-
 const PERMISSIONS = [
   { id: 'p1', name: 'M. Dupont', role: 'Enseignant principal', avatar: '👨‍🏫', access: 'Notes & Agenda' },
   { id: 'p2', name: 'Dr. Martin', role: 'Médecin scolaire', avatar: '👩‍⚕️', access: 'Ressenti (anonymisé)' },
@@ -61,17 +68,26 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   const { theme } = useChildTheme();
+  const accentRgb = hexToRgb(theme.accent);
   return (
     <Box className="mb-6">
-      <Text
-        className="text-[13px] font-bold uppercase tracking-widest mb-2.5 px-1"
-        style={{ color: theme.textMuted }}
-      >
-        {title}
-      </Text>
+      <HStack className="items-center mb-2.5 px-1" style={{ gap: 8 }}>
+        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: theme.accent }} />
+        <Text
+          className="text-[13px] font-bold uppercase tracking-widest"
+          style={{ color: theme.textMuted }}
+        >
+          {title}
+        </Text>
+      </HStack>
       <Box
         className="rounded-2xl overflow-hidden"
-        style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+        style={{
+          backgroundColor: theme.card,
+          borderWidth: 1.5,
+          borderColor: `rgba(${accentRgb},0.15)`,
+          ...CARD_SHADOW,
+        }}
       >
         {children}
       </Box>
@@ -139,7 +155,8 @@ function SettingsRowItem({
 export default function ReglagesScreen({ navigation }: { navigation: any }) {
   const { t, locale, setLocale, languages } = useI18n();
   const { theme } = useChildTheme();
-  const { signOut, setRole, role } = useAuth();
+  const { signOut, setRole, role, user } = useAuth();
+  const { children: childList } = useActiveChild();
   const [notifications, setNotifications] = useState({
     grades: true,
     agenda: true,
@@ -148,47 +165,96 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
   });
   const [showLangPicker, setShowLangPicker] = useState(false);
 
+  // ─── Derive family info from auth user ────────────────────
+  const familyName = 'Famille ' + (user?.user_metadata?.family_name || 'Demo');
+  const familyEmail = user?.email || 'demo@scolaria.fr';
+  const memberSince = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    : 'Septembre 2025';
+
+  // ─── Map context children to ChildProfile shape ───────────
+  const childProfiles: ChildProfile[] = childList.map((child) => ({
+    id: child.id,
+    name: child.name,
+    avatar: child.avatar,
+    classe: child.classe,
+    scolariaId: 'SCA-' + child.id.slice(0, 8).toUpperCase(),
+  }));
+
+  // ─── Load notification preferences from Supabase ─────────
+  const loadPreferences = useCallback(async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('notification_preferences')
+      .eq('id', user.id)
+      .single();
+    if (data?.notification_preferences) {
+      setNotifications((prev) => ({ ...prev, ...data.notification_preferences }));
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadPreferences();
+  }, [loadPreferences]);
+
+  // ─── Persist notification preferences on each toggle ─────
+  const updateNotification = useCallback(
+    async (key: string, value: boolean) => {
+      const next = { ...notifications, [key]: value };
+      setNotifications(next);
+      if (!user?.id) return;
+      await supabase
+        .from('profiles')
+        .update({ notification_preferences: next })
+        .eq('id', user.id);
+    },
+    [notifications, user?.id],
+  );
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
       {/* Family profile header */}
       <Box className="mb-2">
         <LinearGradient
-          colors={theme.headerGradient}
+          colors={['#0B1628', theme.accent + 'DD']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 24 }}
+          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 28, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
         >
           <Box
             className="w-16 h-16 rounded-full justify-center items-center mb-2.5"
-            style={{ borderWidth: 2, borderColor: theme.accent, backgroundColor: theme.mode === 'primaire' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)' }}
+            style={{ borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.10)' }}
           >
             <Text className="text-[30px]">🏠</Text>
           </Box>
-          <Text className="text-[22px] font-black mb-0.5" style={{ color: theme.textPrimary }}>{FAMILY.name}</Text>
-          <Text className="text-[13px] mb-3" style={{ color: theme.textSecondary }}>{FAMILY.email}</Text>
+          <Text className="text-[22px] font-black mb-0.5" style={{ color: '#FFFFFF' }}>{familyName}</Text>
+          <Text className="text-[13px] mb-3" style={{ color: 'rgba(255,255,255,0.7)' }}>{familyEmail}</Text>
           <HStack
             className="items-center rounded-[20px] px-3.5 py-1.5"
-            style={{ gap: 6, backgroundColor: theme.mode === 'primaire' ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)' }}
+            style={{ gap: 6, backgroundColor: 'rgba(255,255,255,0.12)' }}
           >
-            <Ionicons name="diamond" size={14} color={theme.accent} />
-            <Text className="text-[13px] font-bold" style={{ color: theme.accent }}>{FAMILY.plan}</Text>
-            <Text className="text-xs" style={{ color: theme.textSecondary }}>
-              {t('settings.since')} {FAMILY.memberSince}
+            <Ionicons name="diamond" size={14} color="#FBBF24" />
+            <Text className="text-[13px] font-bold" style={{ color: '#FBBF24' }}>Premium</Text>
+            <Text className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              {t('settings.since')} {memberSince}
             </Text>
           </HStack>
         </LinearGradient>
       </Box>
 
+      <DecorativeBlobs accent={theme.accent} />
+
       <Box className="px-5">
         {/* Children management */}
         <SettingsSection title={t('settings.children')}>
-          {CHILDREN.map((child, i) => (
+          {childProfiles.map((child, i) => (
             <Pressable
               key={child.id}
               className="flex-row items-center p-3.5"
               style={[
                 { gap: 12 },
-                i < CHILDREN.length - 1 ? { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' } : undefined,
+                i < childProfiles.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF0F5' } : undefined,
               ]}
             >
               <Box
@@ -199,7 +265,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
               </Box>
               <VStack className="flex-1">
                 <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{child.name}</Text>
-                <Text className="text-xs mt-px" style={{ color: Colors.gray }}>{child.classe}</Text>
+                <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{child.classe}</Text>
                 <Text className="text-[11px] mt-0.5 font-mono" style={{ color: Colors.cyan }}>{child.scolariaId}</Text>
               </VStack>
               <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
@@ -207,7 +273,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           ))}
           <Pressable
             className="flex-row items-center p-3.5"
-            style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+            style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
           >
             <Ionicons name="add-circle" size={22} color={Colors.cyan} />
             <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.addChild')}</Text>
@@ -222,13 +288,13 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
               className="flex-row items-center p-3.5"
               style={[
                 { gap: 10 },
-                i < PERMISSIONS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' } : undefined,
+                i < PERMISSIONS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF0F5' } : undefined,
               ]}
             >
               <Text className="text-[28px]">{perm.avatar}</Text>
               <VStack className="flex-1">
                 <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>{perm.name}</Text>
-                <Text className="text-xs mt-px" style={{ color: Colors.gray }}>{perm.role}</Text>
+                <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{perm.role}</Text>
               </VStack>
               <Box className="rounded-[10px] px-2.5 py-1" style={{ backgroundColor: 'rgba(109,40,217,0.15)' }}>
                 <Text className="text-[11px] font-semibold" style={{ color: Colors.violetLight }}>{perm.access}</Text>
@@ -237,7 +303,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           ))}
           <Pressable
             className="flex-row items-center p-3.5"
-            style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+            style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
           >
             <Ionicons name="person-add" size={20} color={Colors.cyan} />
             <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.managePermissions')}</Text>
@@ -268,14 +334,14 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
               <Pressable
                 key={lang.code}
                 className="flex-row items-center p-3.5"
-                style={{ gap: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+                style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
                 onPress={() => {
                   setLocale(lang.code);
                   setShowLangPicker(false);
                 }}
               >
                 <Text className="text-[22px]">{lang.flag}</Text>
-                <Text className="text-[15px]" style={{ color: Colors.gray }}>{lang.label}</Text>
+                <Text className="text-[15px]" style={{ color: '#64748B' }}>{lang.label}</Text>
               </Pressable>
             ))}
         </SettingsSection>
@@ -289,9 +355,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             color={Colors.cyan}
             type="toggle"
             toggleValue={notifications.grades}
-            onToggle={(v) =>
-              setNotifications((p) => ({ ...p, grades: v }))
-            }
+            onToggle={(v) => updateNotification('grades', v)}
           />
           <SettingsRowItem
             icon="calendar"
@@ -300,9 +364,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             color={Colors.violet}
             type="toggle"
             toggleValue={notifications.agenda}
-            onToggle={(v) =>
-              setNotifications((p) => ({ ...p, agenda: v }))
-            }
+            onToggle={(v) => updateNotification('agenda', v)}
           />
           <SettingsRowItem
             icon="sparkles"
@@ -311,9 +373,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             color={Colors.pink}
             type="toggle"
             toggleValue={notifications.aria}
-            onToggle={(v) =>
-              setNotifications((p) => ({ ...p, aria: v }))
-            }
+            onToggle={(v) => updateNotification('aria', v)}
           />
           <SettingsRowItem
             icon="heart"
@@ -322,9 +382,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             color={Colors.orange}
             type="toggle"
             toggleValue={notifications.checkin}
-            onToggle={(v) =>
-              setNotifications((p) => ({ ...p, checkin: v }))
-            }
+            onToggle={(v) => updateNotification('checkin', v)}
             isLast
           />
         </SettingsSection>
@@ -399,11 +457,11 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
         <SettingsSection title="COMPTE">
           <SettingsRowItem
             icon="swap-horizontal"
-            label="Changer de rôle"
-            sublabel={`Rôle actuel : ${role === 'parent' ? 'Parent' : role === 'eleve' ? 'Élève' : role === 'enseignant' ? 'Enseignant' : '—'}`}
+            label="Changer de compte"
+            sublabel={`Connecté en tant que ${role === 'parent' ? 'Parent' : role === 'eleve' ? 'Élève' : role === 'enseignant' ? 'Enseignant' : '—'}`}
             color={Colors.violet}
             type="navigate"
-            onPress={() => setRole(null as any)}
+            onPress={() => signOut()}
           />
           <SettingsRowItem
             icon="log-out"
@@ -440,8 +498,8 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
         {/* App info */}
         <VStack className="items-center py-6" style={{ gap: 4 }}>
           <Text className="text-base font-extrabold" style={{ color: Colors.violet }}>Scolaria</Text>
-          <Text className="text-[13px]" style={{ color: Colors.gray }}>{t('common.version')} 1.0.0</Text>
-          <Text className="text-[11px] mt-1" style={{ color: Colors.gray }}>
+          <Text className="text-[13px]" style={{ color: '#94A3B8' }}>{t('common.version')} 1.0.0</Text>
+          <Text className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>
             © 2026 Scolaria · Passeport scolaire numérique
           </Text>
         </VStack>
