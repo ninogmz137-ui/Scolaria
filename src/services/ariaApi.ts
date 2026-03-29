@@ -109,7 +109,7 @@ export async function sendToAria(
       console.error('[Aria] API error:', response.status, errorBody);
 
       if (response.status === 401) {
-        return '⚠️ Clé API invalide. Vérifie ta variable d\'environnement EXPO_PUBLIC_ANTHROPIC_API_KEY dans le fichier .env';
+        return '⚠️ Clé API expirée ou invalide. Régénère ta clé sur console.anthropic.com et mets-la à jour dans eas.json + .env';
       }
       if (response.status === 429) {
         return '⏳ Trop de requêtes envoyées. Attends quelques secondes et réessaie.';

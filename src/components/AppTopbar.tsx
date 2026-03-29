@@ -9,6 +9,7 @@
  * Child selection is now handled by ChildSwitcherBar below this topbar.
  */
 
+import { Platform } from 'react-native';
 import { Box, Text, Pressable, HStack } from './ui';
 import { Ionicons } from '@expo/vector-icons';
 import LogoScolaria from './LogoScolaria';
@@ -24,6 +25,8 @@ interface Props {
   onNotificationPress?: () => void;
   /** When true, topbar is transparent with white icons (overlays dark header) */
   transparent?: boolean;
+  /** Called when the Scolaria logo is tapped (navigate to home) */
+  onLogoPress?: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────
@@ -35,6 +38,7 @@ export default function AppTopbar({
   notificationCount = 3,
   onNotificationPress,
   transparent = false,
+  onLogoPress,
 }: Props) {
   const insets = useSafeAreaInsets();
   const iconColor = transparent ? '#FFFFFF' : '#0F172A';
@@ -72,8 +76,14 @@ export default function AppTopbar({
         />
       </Pressable>
 
-      {/* Center: Scolaria branding */}
-      <LogoScolaria size={28} variant={transparent ? 'dark' : 'light'} />
+      {/* Center: Scolaria branding (tappable → home) */}
+      <Pressable
+        onPress={onLogoPress}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        style={{ flex: 1, alignItems: 'center' }}
+      >
+        <LogoScolaria size={24} variant={transparent ? 'dark' : 'light'} />
+      </Pressable>
 
       {/* Right: Notification Bell */}
       <Pressable

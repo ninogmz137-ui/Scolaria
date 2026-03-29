@@ -18,6 +18,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, HStack, VStack } from '../components/ui';
@@ -103,8 +104,7 @@ const TILE_GRADIENTS: Record<string, [string, string]> = {
 
 // ─── Shared shadow (deep, visible) ─────────────────────
 
-// Topbar height to account for (topbar overlays the header in transparent mode)
-const TOPBAR_HEIGHT = Platform.OS === 'ios' ? 104 : 62;
+// TOPBAR_HEIGHT is now computed dynamically inside the component using safe area insets
 
 const CARD_SHADOW = Platform.select({
   ios: {
@@ -128,6 +128,9 @@ export default function AccueilScreen() {
   const { theme } = useChildTheme();
   const { children: allChildren, selectedChild, selectedChildId, selectChild, fadeAnim } = useActiveChild();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  // Dynamic topbar height: safe area top + padding (8) + icon (40) + padding (10)
+  const TOPBAR_HEIGHT = insets.top + 58;
 
   const todayAbsence = getTodayAbsence(selectedChildId);
   const accent = theme.accent;

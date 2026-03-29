@@ -255,6 +255,7 @@ export default function TabNavigator() {
         onBackPress={() => { goBackRef.current?.(); setShowBack(false); }}
         notificationCount={3}
         onNotificationPress={() => notifNavRef.current?.()}
+        onLogoPress={() => logoNavRef.current?.()}
         transparent={isAccueilHome}
       />
 
@@ -273,6 +274,8 @@ const burgerNavRef: { current: ((screen: string) => void) | null } = { current: 
 const goBackRef: { current: (() => void) | null } = { current: null };
 // Nav ref for notification bell
 const notifNavRef: { current: (() => void) | null } = { current: null };
+// Nav ref for logo → home
+const logoNavRef: { current: (() => void) | null } = { current: null };
 
 function TabContentWithBurger({
   burgerVisible,
@@ -295,6 +298,11 @@ function TabContentWithBurger({
   // Register the notification nav function
   notifNavRef.current = () => {
     navigation.navigate('Accueil', { screen: 'NotificationsScreen' });
+  };
+
+  // Register logo → home nav function
+  logoNavRef.current = () => {
+    navigation.navigate('Accueil', { screen: 'AccueilHome' });
   };
 
   // Register the nav function for burger

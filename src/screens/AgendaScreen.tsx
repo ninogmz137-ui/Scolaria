@@ -281,7 +281,8 @@ export default function AgendaScreen() {
       });
 
       if (result?.error) {
-        Alert.alert('Erreur', 'Impossible de créer l\'événement. Veuillez réessayer.');
+        console.error('[Agenda] createAgendaEvent error:', JSON.stringify(result.error));
+        Alert.alert('Erreur', `Impossible de créer l'événement : ${result.error.message || 'Veuillez réessayer.'}`);
       } else {
         setAddModalVisible(false);
         await loadEvents();
