@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ScrollView, FlatList } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
+import { ScrollView, FlatList, Platform } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,16 @@ import { useI18n } from '../contexts/I18nContext';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import { getSubjects, getGrades } from '../services/database';
+import DecorativeBlobs from '../components/DecorativeBlobs';
+import { FontFamily } from '../hooks/useSolariaFonts';
+
+const NOTES_BG = '#E8EDF5';
+const NOTES_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 6 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+}) as Record<string, any>;
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -36,7 +46,7 @@ type FilterTab = 'all' | 'trimestre1' | 'trimestre2' | 'trimestre3';
 
 // ─── Mock data ────────────────────────────────────────────
 
-const SUBJECTS: Subject[] = [
+const MOCK_SUBJECTS: Subject[] = [
   {
     id: '1',
     name: 'Mathématiques',
@@ -208,62 +218,6 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
   },
 ];
 
-// ─── Child-specific data ────────────────────────────────
-
-const CHILD_GRADES: Record<string, { subjects: Subject[]; avatar: string; name: string; classe: string }> = {
-  '2': {
-    avatar: '👦',
-    name: 'Lucas',
-    classe: 'CM2',
-    subjects: SUBJECTS,
-  },
-  '3': {
-    avatar: '👩',
-    name: 'Emma',
-    classe: '3ème',
-    subjects: [
-      {
-        id: '1', name: 'Mathématiques', emoji: '📐', color: Colors.cyan,
-        average: 13.5, classAvg: 12.0, trend: 'up',
-        grades: [
-          { id: 'e1', value: 14, maxValue: 20, date: '14 mars', type: 'Contrôle' },
-          { id: 'e2', value: 13, maxValue: 20, date: '7 mars', type: 'Devoir' },
-        ],
-      },
-      {
-        id: '2', name: 'Français', emoji: '📖', color: Colors.violet,
-        average: 15.0, classAvg: 13.5, trend: 'up',
-        grades: [
-          { id: 'e3', value: 16, maxValue: 20, date: '13 mars', type: 'Rédaction' },
-          { id: 'e4', value: 14, maxValue: 20, date: '6 mars', type: 'Commentaire' },
-        ],
-      },
-      {
-        id: '3', name: 'Histoire-Géo', emoji: '🏛️', color: Colors.orange,
-        average: 14.0, classAvg: 12.2, trend: 'stable',
-        grades: [
-          { id: 'e5', value: 14, maxValue: 20, date: '12 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        id: '4', name: 'Physique-Chimie', emoji: '⚗️', color: Colors.green,
-        average: 12.5, classAvg: 11.8, trend: 'down',
-        grades: [
-          { id: 'e6', value: 12, maxValue: 20, date: '11 mars', type: 'TP' },
-          { id: 'e7', value: 13, maxValue: 20, date: '4 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        id: '5', name: 'Anglais', emoji: '🇬🇧', color: Colors.pink,
-        average: 16.0, classAvg: 13.0, trend: 'up',
-        grades: [
-          { id: 'e8', value: 17, maxValue: 20, date: '10 mars', type: 'Oral' },
-          { id: 'e9', value: 15, maxValue: 20, date: '3 mars', type: 'Devoir' },
-        ],
-      },
-    ],
-  },
-};
 
 const FILTER_TABS: { key: FilterTab; labelKey?: string; label?: string }[] = [
   { key: 'all', labelKey: 'grades.all' },
@@ -273,13 +227,6 @@ const FILTER_TABS: { key: FilterTab; labelKey?: string; label?: string }[] = [
 ];
 
 // ─── Helper ───────────────────────────────────────────────
-
-const overallAvg =
-  SUBJECTS.reduce((sum, s) => sum + s.average, 0) / SUBJECTS.length;
-
-const bestSubject = SUBJECTS.reduce((best, s) =>
-  s.average > best.average ? s : best,
-);
 
 const trendIcon = (t: Subject['trend']): keyof typeof Ionicons.glyphMap =>
   t === 'up' ? 'trending-up' : t === 'down' ? 'trending-down' : 'remove';
@@ -308,6 +255,108 @@ export default function NotesScreen() {
   const [filter, setFilter] = useState<FilterTab>('all');
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+  const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
+
+  const COLOR_PALETTE = [
+    Colors.cyan, Colors.violet, Colors.orange, Colors.green,
+    Colors.pink, Colors.warmOrange,
+  ];
+
+  const FRENCH_MONTHS: Record<string, string> = {
+    '01': 'jan', '02': 'fév', '03': 'mars', '04': 'avr',
+    '05': 'mai', '06': 'juin', '07': 'juil', '08': 'août',
+    '09': 'sep', '10': 'oct', '11': 'nov', '12': 'déc',
+  };
+
+  const toFrenchDate = (iso: string): string => {
+    const parts = iso.split('-');
+    if (parts.length < 3) return iso;
+    const day = parseInt(parts[2], 10);
+    const month = FRENCH_MONTHS[parts[1]] ?? parts[1];
+    return `${day} ${month}`;
+  };
+
+  const loadNotes = useCallback(async () => {
+    if (!selectedChild?.id) return;
+    const childId = selectedChild.id;
+
+    const [subjectsResult, gradesResult] = await Promise.all([
+      getSubjects(childId),
+      getGrades(childId),
+    ]);
+
+    const rawSubjects = subjectsResult.data ?? [];
+    const rawGrades = (gradesResult.data ?? []) as {
+      id: string;
+      subject_id: string;
+      value: number;
+      max_value?: number;
+      class_avg?: number;
+      type?: string;
+      comment?: string;
+      date?: string;
+    }[];
+
+    if (rawSubjects.length === 0) {
+      setSubjects(MOCK_SUBJECTS);
+      return;
+    }
+
+    // Group grades by subject_id
+    const gradesBySubject: Record<string, typeof rawGrades> = {};
+    for (const g of rawGrades) {
+      if (!gradesBySubject[g.subject_id]) gradesBySubject[g.subject_id] = [];
+      gradesBySubject[g.subject_id].push(g);
+    }
+
+    const mapped: Subject[] = rawSubjects.map((sub: { id: string; name: string; emoji?: string; color?: string }, idx: number) => {
+      const subGrades = gradesBySubject[sub.id] ?? [];
+
+      const grades: Grade[] = subGrades.map((g) => ({
+        id: g.id,
+        value: g.value,
+        maxValue: g.max_value ?? 20,
+        date: g.date ? toFrenchDate(g.date) : '',
+        type: g.type ?? 'Contrôle',
+        comment: g.comment,
+      }));
+
+      const avg =
+        grades.length > 0
+          ? grades.reduce((s, g) => s + (g.value / g.maxValue) * 20, 0) / grades.length
+          : 0;
+
+      const classAvg =
+        subGrades.length > 0
+          ? subGrades.reduce((s, g) => s + (g.class_avg ?? 0), 0) / subGrades.length
+          : 0;
+
+      let trend: Subject['trend'] = 'stable';
+      if (grades.length >= 2) {
+        const last = (grades[0].value / grades[0].maxValue) * 20;
+        const prev = (grades[1].value / grades[1].maxValue) * 20;
+        if (last > prev + 0.5) trend = 'up';
+        else if (last < prev - 0.5) trend = 'down';
+      }
+
+      return {
+        id: sub.id,
+        name: sub.name,
+        emoji: sub.emoji ?? '📚',
+        color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length],
+        grades,
+        average: Math.round(avg * 10) / 10,
+        classAvg: Math.round(classAvg * 10) / 10,
+        trend,
+      };
+    });
+
+    setSubjects(mapped);
+  }, [selectedChild?.id]);
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const toggleSubject = (id: string) => {
     setExpandedSubject((prev) => (prev === id ? null : id));
@@ -315,9 +364,7 @@ export default function NotesScreen() {
 
   const isMaternelle = mode === 'maternelle';
 
-  // Get child-specific grade data
-  const childData = CHILD_GRADES[selectedChild.id];
-  const currentSubjects = childData?.subjects ?? SUBJECTS;
+  const currentSubjects = subjects;
   const childAvatar = selectedChild.avatar;
   const childName = selectedChild.name;
   const childClasse = selectedChild.classe.split(' — ')[0] || selectedChild.classe;
@@ -341,49 +388,51 @@ export default function NotesScreen() {
     );
 
     return (
-      <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
+      <Box className="flex-1" style={{ backgroundColor: NOTES_BG }}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <LinearGradient
-          colors={theme.headerGradient}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20 }}
+          colors={['#0B1628', theme.accent + 'CC']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.3, y: 1 }}
+          style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
         >
-          <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: theme.textPrimary }}>
+          <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
             Suivi des apprentissages
           </Text>
-          <Text className="text-sm mb-5" style={{ color: theme.textSecondary }}>
+          <Text className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
             {childAvatar} {childName} — {childClasse}
           </Text>
 
           <HStack className="gap-2.5">
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: theme.accent }}>
+            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
                 🌟 {acquired}
               </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
                 Acquis
               </Text>
             </Box>
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: Colors.orange }}>
+            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
                 🌱 {inProgress}
               </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
                 En cours
               </Text>
             </Box>
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: theme.accent }}>
+            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
                 {totalCompetencies}
               </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
                 Compétences
               </Text>
             </Box>
           </HStack>
         </LinearGradient>
 
-        <Box className="px-5 pt-4" style={{ backgroundColor: theme.bg }}>
+        <Box className="px-5 pt-4" style={{ position: 'relative' }}>
+          <DecorativeBlobs accent={theme.accent} size={90} />
           {/* Progress legend */}
           <HStack className="justify-around py-3 px-2 mb-4" style={{ borderBottomWidth: 1, borderColor: theme.cardBorder }}>
             {Object.entries(COMPETENCY_LEVELS).map(([key, level]) => (
@@ -405,7 +454,7 @@ export default function NotesScreen() {
               <Box
                 key={domain.id}
                 className="rounded-2xl mb-3 overflow-hidden"
-                style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+                style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
               >
                 <Pressable
                   className="flex-row items-center justify-between p-3.5"
@@ -492,7 +541,7 @@ export default function NotesScreen() {
             </Text>
             <Box
               className="rounded-2xl p-4"
-              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
             >
               <Text className="text-[28px] mb-2">👩‍🏫</Text>
               <Text className="text-sm leading-[22px]" style={{ color: theme.textSecondary }}>
@@ -507,56 +556,59 @@ export default function NotesScreen() {
           <Box className="h-10" />
         </Box>
       </ScrollView>
+      </Box>
     );
   }
 
   // ─── Primaire / Lycée view (grades) ───────────────────
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: theme.bg }} showsVerticalScrollIndicator={false}>
-      {/* Overview header */}
+    <Box className="flex-1" style={{ backgroundColor: NOTES_BG }}>
+    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      {/* Overview header — dark gradient */}
       <LinearGradient
-        colors={theme.headerGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20 }}
+        colors={['#0B1628', theme.accent + 'CC']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.3, y: 1 }}
+        style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
       >
-        <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: theme.textPrimary }}>
+        <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
           Notes & Résultats
         </Text>
-        <Text className="text-sm mb-5" style={{ color: theme.textSecondary }}>
+        <Text className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
           {childAvatar} {childName} — {childClasse}
         </Text>
 
-        {/* Summary cards */}
+        {/* Summary cards — glass-style inside header */}
         <HStack className="gap-2.5">
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: theme.accent }}>
+          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
               {currentOverallAvg.toFixed(1)}
             </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
               Moyenne générale
             </Text>
           </Box>
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: Colors.green }}>
+          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
               {currentBestSubject.emoji} {currentBestSubject.average}
             </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
               Meilleure matière
             </Text>
           </Box>
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: theme.accent }}>
+          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
+            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
               {currentSubjects.reduce((s, sub) => s + sub.grades.length, 0)}
             </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: theme.textMuted }}>
+            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
               Notes total
             </Text>
           </Box>
         </HStack>
       </LinearGradient>
 
-      <Box className="px-5 pt-4" style={{ backgroundColor: theme.bg }}>
+      <Box className="px-5 pt-4" style={{ position: 'relative' }}>
+        <DecorativeBlobs accent={theme.accent} size={90} />
         {/* Filter tabs */}
         <HStack className="items-center gap-2 mb-5">
           {FILTER_TABS.map((tab) => (
@@ -601,7 +653,7 @@ export default function NotesScreen() {
             <Box
               key={subject.id}
               className="rounded-2xl mb-3 overflow-hidden"
-              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
             >
               {/* Subject header row */}
               <Pressable
@@ -653,7 +705,7 @@ export default function NotesScreen() {
                   <Ionicons
                     name={isExpanded ? 'chevron-up' : 'chevron-down'}
                     size={16}
-                    color={Colors.gray}
+                    color={theme.textMuted}
                   />
                 </VStack>
               </Pressable>
@@ -661,7 +713,7 @@ export default function NotesScreen() {
               {/* Average bar */}
               <HStack className="items-center px-3.5 pb-3.5 gap-2">
                 <GradeBar value={subject.average} max={20} color={subject.color} />
-                <Text className="text-[11px]" style={{ fontWeight: '600', color: Colors.gray }}>
+                <Text className="text-[11px]" style={{ fontWeight: '600', color: theme.textMuted }}>
                   /20
                 </Text>
               </HStack>
@@ -715,7 +767,7 @@ export default function NotesScreen() {
                     <Text className="text-[13px]" style={{ fontWeight: '700', color: Colors.violetLight }}>
                       Moyenne : {subject.average.toFixed(1)}/20
                     </Text>
-                    <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray }}>
+                    <Text className="text-[11px] mt-0.5" style={{ color: theme.textMuted }}>
                       {subject.grades.length} évaluations ce trimestre
                     </Text>
                   </Box>
@@ -746,7 +798,7 @@ export default function NotesScreen() {
               return (
                 <Box
                   className="w-[110px] rounded-xl p-3 items-center"
-                  style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+                  style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
                 >
                   <Text className="text-2xl mb-1.5">{item.emoji}</Text>
                   <Text className="text-lg mb-1" style={{ fontWeight: '900', color: gradeColor }}>
@@ -798,5 +850,6 @@ export default function NotesScreen() {
         <Box className="h-10" />
       </Box>
     </ScrollView>
+    </Box>
   );
 }

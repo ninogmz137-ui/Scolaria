@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
   Platform,
   Alert,
   ActivityIndicator,
+  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,6 +14,7 @@ import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import DecorativeBlobs from '../components/DecorativeBlobs';
 import SuperPowerBadge, { type ProfileTag } from '../components/profile/SuperPowerBadge';
 import CompetenceRadar from '../components/profile/CompetenceRadar';
 import JoyHistory from '../components/profile/JoyHistory';
@@ -21,17 +23,13 @@ import JoyAlerts, {
   detectJoyAlert,
   detectCriticalKeywords,
 } from '../components/profile/JoyAlerts';
-import YearSelector, { type YearPill } from '../components/profile/YearSelector';
-import ArchiveBanner from '../components/profile/ArchiveBanner';
-import CahierLiaisonParent from '../components/profile/CahierLiaisonParent';
-import ThemeSelector from '../components/profile/ThemeSelector';
 import {
   exportProfilePDF,
   exportTransitionMemo,
   type PDFExportData,
   type TransitionMemoData,
 } from '../services/pdfExport';
-import type { AcademicYearStatut } from '../services/database';
+import { getChild, getCheckins } from '../services/database';
 
 // ─── Per-child profile data ──────────────────────────────
 
@@ -63,98 +61,6 @@ interface ChildProfileData {
   trimesterWeeksLeft: number;
 }
 
-// ─── Mock academic years per child ───────────────────────
-
-function getMockAcademicYears(childId: string): YearPill[] {
-  switch (childId) {
-    case '1': // Léa — maternelle
-      return [
-        { id: 'y1-1', annee_scolaire: '2025-2026', niveau: 'GS', statut: 'active' },
-        { id: 'y1-2', annee_scolaire: '2024-2025', niveau: 'MS', statut: 'archivée' },
-      ];
-    case '2': // Lucas — primaire
-      return [
-        { id: 'y2-1', annee_scolaire: '2025-2026', niveau: 'CM2', statut: 'active' },
-        { id: 'y2-2', annee_scolaire: '2024-2025', niveau: 'CM1', statut: 'archivée' },
-        { id: 'y2-3', annee_scolaire: '2023-2024', niveau: 'CE2', statut: 'archivée' },
-        { id: 'y2-4', annee_scolaire: '2022-2023', niveau: 'CE1', statut: 'importée' },
-      ];
-    case '3': // Emma — collège
-    default:
-      return [
-        { id: 'y3-1', annee_scolaire: '2025-2026', niveau: '3ème', statut: 'active' },
-        { id: 'y3-2', annee_scolaire: '2024-2025', niveau: '4ème', statut: 'archivée' },
-        { id: 'y3-3', annee_scolaire: '2023-2024', niveau: '5ème', statut: 'archivée' },
-        { id: 'y3-4', annee_scolaire: '2022-2023', niveau: '6ème', statut: 'archivée' },
-        { id: 'y3-5', annee_scolaire: '2021-2022', niveau: 'CM2', statut: 'importée' },
-      ];
-  }
-}
-
-// ─── Mock archived data (simplified) ─────────────────────
-
-function getArchivedProfileOverrides(yearId: string): Partial<ChildProfileData> | null {
-  // Return overrides for archived years
-  const archives: Record<string, Partial<ChildProfileData>> = {
-    // Lucas CM1
-    'y2-2': {
-      classe: 'CM1 — École Voltaire',
-      superPower: 'Explorateur Logique',
-      superPowerEmoji: '🧩',
-      superPowerDescription: 'En CM1, Lucas montrait déjà une aptitude remarquable pour la résolution de problèmes et la pensée séquentielle.',
-      tags: [
-        { label: 'Logique', emoji: '🧠', color: Colors.violet },
-        { label: 'Curieux', emoji: '🔍', color: Colors.green },
-        { label: 'Méthodique', emoji: '📋', color: '#38BDF8' },
-      ],
-      competences: [
-        { label: 'Connaissances', value: 7, emoji: '📚' },
-        { label: 'Créativité', value: 6, emoji: '🎨' },
-        { label: 'Confiance', value: 5, emoji: '💪' },
-        { label: 'Logique', value: 7, emoji: '🧠' },
-        { label: 'Curiosité', value: 8, emoji: '🔍' },
-      ],
-    },
-    // Lucas CE2
-    'y2-3': {
-      classe: 'CE2 — École Voltaire',
-      superPower: 'Petit Scientifique',
-      superPowerEmoji: '🔬',
-      superPowerDescription: 'Lucas adorait les expériences et posait toujours des questions sur le pourquoi des choses.',
-      tags: [
-        { label: 'Curieux', emoji: '🔍', color: Colors.green },
-        { label: 'Scientifique', emoji: '🔬', color: Colors.cyan },
-      ],
-      competences: [
-        { label: 'Connaissances', value: 6, emoji: '📚' },
-        { label: 'Créativité', value: 6, emoji: '🎨' },
-        { label: 'Confiance', value: 5, emoji: '💪' },
-        { label: 'Logique', value: 6, emoji: '🧠' },
-        { label: 'Curiosité', value: 7, emoji: '🔍' },
-      ],
-    },
-    // Emma 4ème
-    'y3-2': {
-      classe: '4ème — Collège Hugo',
-      superPower: 'Plume Sensible',
-      superPowerEmoji: '✍️',
-      superPowerDescription: 'En 4ème, Emma a révélé un talent d\'écriture remarquable, mêlant sensibilité et expression artistique.',
-      tags: [
-        { label: 'Littéraire', emoji: '📖', color: Colors.green },
-        { label: 'Sensible', emoji: '💜', color: '#A78BFA' },
-        { label: 'Créative', emoji: '🎨', color: Colors.pink },
-      ],
-      competences: [
-        { label: 'Expression', value: 8, emoji: '✍️' },
-        { label: 'Créativité', value: 8, emoji: '🎨' },
-        { label: 'Analyse', value: 6, emoji: '🔬' },
-        { label: 'Organisation', value: 6, emoji: '📋' },
-        { label: 'Autonomie', value: 7, emoji: '🚀' },
-      ],
-    },
-  };
-  return archives[yearId] ?? null;
-}
 
 function getChildProfileData(childId: string): ChildProfileData {
   switch (childId) {
@@ -277,6 +183,22 @@ function getChildProfileData(childId: string): ChildProfileData {
   }
 }
 
+// ─── Helpers ──────────────────────────────────────────────
+
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function ProfilEnfantScreen() {
@@ -285,30 +207,96 @@ export default function ProfilEnfantScreen() {
   const navigation = useNavigation<any>();
   const childId = selectedChild?.id ?? '2';
 
-  // Academic years
-  const academicYears = useMemo(() => getMockAcademicYears(childId), [childId]);
-  const activeYearId = academicYears.find((y) => y.statut === 'active')?.id ?? academicYears[0]?.id;
-  const [selectedYearId, setSelectedYearId] = useState<string>(activeYearId);
+  const [data, setData] = useState<ChildProfileData>(() => getChildProfileData(childId));
 
-  // Resolve selected year info
-  const selectedYear = academicYears.find((y) => y.id === selectedYearId);
-  const isArchiveMode = selectedYear?.statut === 'archivée' || selectedYear?.statut === 'importée';
+  const loadProfile = useCallback(async () => {
+    const mock = getChildProfileData(childId);
 
-  // Get base profile data, then overlay archived overrides
-  const baseData = useMemo(() => getChildProfileData(childId), [childId]);
-  const archivedOverrides = isArchiveMode ? getArchivedProfileOverrides(selectedYearId) : null;
+    const [childResult, checkinsResult] = await Promise.all([
+      getChild(childId),
+      getCheckins(childId, { days: 30 }),
+    ]);
 
-  const data: ChildProfileData = useMemo(() => {
-    if (!archivedOverrides) return baseData;
-    return { ...baseData, ...archivedOverrides } as ChildProfileData;
-  }, [baseData, archivedOverrides]);
+    const child = childResult?.data;
+    const checkins = checkinsResult?.data ?? [];
+
+    if (!child) {
+      setData(mock);
+      return;
+    }
+
+    // Compute age from birth_date if available, else fall back to stored age
+    let age = child.age ?? mock.age;
+    if (child.birth_date) {
+      const born = new Date(child.birth_date);
+      const today = new Date();
+      age = today.getFullYear() - born.getFullYear();
+      const hasBirthdayPassed =
+        today.getMonth() > born.getMonth() ||
+        (today.getMonth() === born.getMonth() && today.getDate() >= born.getDate());
+      if (!hasBirthdayPassed) age -= 1;
+    }
+
+    // Build joy30Days from real checkins
+    let joy30Days = mock.joy30Days;
+    let lastCheckinMessage = mock.lastCheckinMessage;
+
+    if (checkins.length > 0) {
+      // Sort ascending by date so the most recent ends up last
+      const sorted = [...checkins].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+
+      // Group joy_score by day-of-month and average
+      const byDay: Record<number, number[]> = {};
+      for (const c of sorted) {
+        const day = new Date(c.date).getDate();
+        if (!byDay[day]) byDay[day] = [];
+        if (c.joy_score != null) byDay[day].push(c.joy_score);
+      }
+
+      joy30Days = Array.from({ length: 30 }, (_, i) => {
+        const day = i + 1;
+        const scores = byDay[day];
+        if (!scores || scores.length === 0) return { day, score: 0 };
+        const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+        return { day, score: Math.round(avg) };
+      });
+
+      // Most recent checkin message
+      const latest = sorted[sorted.length - 1];
+      lastCheckinMessage = latest?.message ?? '';
+    }
+
+    setData({
+      ...mock,
+      name: `${child.first_name} ${child.last_name ?? ''}`.trim(),
+      firstName: child.first_name,
+      avatar: child.avatar_emoji || '👦',
+      classe: child.classe && child.school
+        ? `${child.classe} — ${child.school}`
+        : mock.classe,
+      scolariaId: child.scolaria_id || mock.scolariaId,
+      age,
+      superPower: child.super_power || mock.superPower,
+      superPowerEmoji: child.super_power_emoji || mock.superPowerEmoji,
+      joy30Days,
+      lastCheckinMessage,
+    });
+  }, [childId]);
+
+  useEffect(() => {
+    // Immediately show mock while real data loads
+    setData(getChildProfileData(childId));
+    loadProfile();
+  }, [childId, loadProfile]);
 
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
 
-  // Detect alert level — only for active year (spec: no alerts on historical data)
-  const joyAlert = isArchiveMode ? { level: null, dropPercent: 0, recentAvg: 0, previousAvg: 0 } : detectJoyAlert(data.joy30Days);
-  const hasCriticalMessage = isArchiveMode ? false : detectCriticalKeywords(data.lastCheckinMessage);
+  // Detect alert level
+  const joyAlert = detectJoyAlert(data.joy30Days);
+  const hasCriticalMessage = detectCriticalKeywords(data.lastCheckinMessage);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -355,67 +343,62 @@ export default function ProfilEnfantScreen() {
   const accent = theme.accent;
   const accentLight = theme.accentLight ?? theme.accent;
 
+  const accentRgb = hexToRgb(accent);
+
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header card */}
+      {/* Dark gradient header */}
       <LinearGradient
-        colors={theme.headerGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 28 }}
+        colors={['#0B1628', accent + 'DD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          paddingTop: 32,
+          paddingBottom: 28,
+          alignItems: 'center',
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+        }}
       >
         {/* Avatar */}
         <Box
           className="w-20 h-20 rounded-full justify-center items-center mb-3"
-          style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 3, borderColor: accent }}
+          style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 3, borderColor: '#FFFFFF' }}
         >
           <Text className="text-[40px]">{data.avatar}</Text>
         </Box>
 
-        <Text className="text-2xl font-black mb-1" style={{ color: Colors.white }}>{data.name}</Text>
+        <Text className="text-2xl font-black mb-1" style={{ color: '#FFFFFF' }}>{data.name}</Text>
         <Text className="text-sm mb-3.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{data.classe}</Text>
 
-        {/* Scolaria ID */}
+        {/* Scolaria ID — glass pill */}
         <HStack
           className="items-center rounded-[20px] px-3.5 py-2"
-          style={{ gap: 8, backgroundColor: 'rgba(0,0,0,0.3)', borderWidth: 1, borderColor: accent + '30' }}
+          style={{ gap: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}
         >
-          <Ionicons name="finger-print" size={14} color={accent} />
+          <Ionicons name="finger-print" size={14} color="#FFFFFF" />
           <Text
             className="text-[13px] font-bold tracking-wide"
-            style={{ color: accent, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
+            style={{ color: '#FFFFFF', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
           >
             {data.scolariaId}
           </Text>
           <Pressable>
-            <Ionicons name="copy-outline" size={14} color={Colors.gray} />
+            <Ionicons name="copy-outline" size={14} color="rgba(255,255,255,0.5)" />
           </Pressable>
         </HStack>
       </LinearGradient>
 
-      {/* Year selector — horizontal scrollable pills */}
-      <YearSelector
-        years={academicYears}
-        selectedId={selectedYearId}
-        onSelect={setSelectedYearId}
-        onAddYear={() => navigation.navigate('AjouterAnne')}
-        accentColor={accent}
-      />
+      <View style={{ position: 'relative' }}>
+        {/* Decorative blobs */}
+        <DecorativeBlobs accent={accent} size={110} opacity={0.12} />
 
-      {/* Archive banner — shown for non-active years */}
-      {isArchiveMode && selectedYear && (
-        <ArchiveBanner
-          anneeScolaire={selectedYear.annee_scolaire}
-          statut={selectedYear.statut}
-        />
-      )}
-
-      <Box className="px-5">
-        {/* Joy Alerts — only for active year */}
-        {!isArchiveMode && (joyAlert.level || hasCriticalMessage) && (
+        <Box className="px-5 pt-2">
+        {/* Joy Alerts */}
+        {(joyAlert.level || hasCriticalMessage) && (
           <Box className="mb-6">
             <JoyAlerts
               level={joyAlert.level}
@@ -443,67 +426,34 @@ export default function ProfilEnfantScreen() {
 
         {/* Competence Radar */}
         <Box className="mb-6">
-          <Text className="text-lg font-bold mb-3" style={{ color: theme.textPrimary }}>
-            Compétences
-            {isArchiveMode && selectedYear ? ` · ${selectedYear.annee_scolaire}` : ''}
-          </Text>
+          <HStack className="items-center mb-3" style={{ gap: 8 }}>
+            <View style={{ width: 4, height: 20, borderRadius: 2, backgroundColor: accent }} />
+            <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
+              Compétences
+            </Text>
+          </HStack>
           <Box
             className="rounded-[20px] p-4 items-center"
-            style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+            style={{
+              backgroundColor: theme.card,
+              borderWidth: 1.5,
+              borderColor: `rgba(${accentRgb}, 0.15)`,
+              ...CARD_SHADOW,
+            }}
           >
             <CompetenceRadar data={data.competences} />
           </Box>
         </Box>
 
-        {/* Portfolio — only for active year */}
-        {!isArchiveMode && (
-          <Box className="mb-6">
-            <Portfolio activities={data.portfolio} />
-          </Box>
-        )}
+        {/* Portfolio */}
+        <Box className="mb-6">
+          <Portfolio activities={data.portfolio} />
+        </Box>
 
-        {/* Cahier de Liaison — only for active year */}
-        {!isArchiveMode && (
-          <Box className="mb-6">
-            <CahierLiaisonParent
-              childId={childId}
-              childName={data.firstName}
-              accentColor={accent}
-            />
-          </Box>
-        )}
-
-        {/* Theme Selector — only for active year */}
-        {!isArchiveMode && (
-          <Box className="mb-6">
-            <ThemeSelector accentColor={accent} />
-          </Box>
-        )}
-
-        {/* Joy History 30 days — only for active year */}
-        {!isArchiveMode && (
-          <Box className="mb-6">
-            <JoyHistory data={data.joy30Days} month="Mars 2026" />
-          </Box>
-        )}
-
-        {/* Archive: Aria consultation hint */}
-        {isArchiveMode && (
-          <HStack
-            className="rounded-2xl p-4 mb-6 items-start"
-            style={{ gap: 12, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
-          >
-            <Ionicons name="sparkles" size={18} color={accent} />
-            <VStack className="flex-1">
-              <Text className="text-sm font-bold mb-1" style={{ color: theme.textPrimary }}>
-                Aria · Mode consultation
-              </Text>
-              <Text className="text-xs leading-[17px]" style={{ color: theme.textSecondary }}>
-                Aria peut analyser les données historiques de cette année, mais ne génère pas d'alertes sur les archives.
-              </Text>
-            </VStack>
-          </HStack>
-        )}
+        {/* Joy History 30 days */}
+        <Box className="mb-6">
+          <JoyHistory data={data.joy30Days} month="Mars 2026" />
+        </Box>
 
         {/* Export PDF button */}
         <Pressable
@@ -567,6 +517,7 @@ export default function ProfilEnfantScreen() {
 
         <Box className="h-10" />
       </Box>
+      </View>
     </ScrollView>
   );
 }
