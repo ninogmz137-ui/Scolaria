@@ -64,7 +64,7 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
             }}
           />
         </Box>
-        <Text className="text-sm font-semibold" style={{ color: Colors.warmCreamDark }}>
+        <Text className="text-sm font-semibold" style={{ color: '#64748B' }}>
           {currentXP + 50} / 500 XP
         </Text>
       </VStack>
@@ -84,7 +84,7 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
       </Box>
 
       {/* Emotion picker */}
-      <Text className="text-lg font-bold mb-3" style={{ color: Colors.warmCream }}>
+      <Text className="text-lg font-bold mb-3" style={{ color: '#0F172A' }}>
         Comment tu te sens ?
       </Text>
       <HStack className="justify-between mb-6">
@@ -102,7 +102,7 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
             <Text style={{ fontSize: 32, marginBottom: 4 }}>{e.emoji}</Text>
             <Text
               className="text-xs font-semibold"
-              style={{ color: emotion === e.value ? Colors.warmOrange : Colors.warmCreamDark }}
+              style={{ color: emotion === e.value ? Colors.warmOrange : '#64748B' }}
             >
               {e.label}
             </Text>
@@ -113,7 +113,7 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
       {/* Energy slider */}
       <Box className="mb-5">
         <HStack className="justify-between items-center mb-1.5">
-          <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
+          <Text className="text-base font-semibold" style={{ color: '#0F172A' }}>
             ⚡ Energie
           </Text>
           <Text className="text-base font-bold" style={{ color: Colors.warmOrangeLight }}>
@@ -136,7 +136,7 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
       {/* Stress slider */}
       <Box className="mb-5">
         <HStack className="justify-between items-center mb-1.5">
-          <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
+          <Text className="text-base font-semibold" style={{ color: '#0F172A' }}>
             😰 Stress
           </Text>
           <Text className="text-base font-bold" style={{ color: Colors.warmOrangeLight }}>
@@ -157,21 +157,21 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
       </Box>
 
       {/* Optional message */}
-      <Text className="text-lg font-bold mb-3" style={{ color: Colors.warmCream }}>
-        Un mot ? <Text className="text-sm font-normal" style={{ color: Colors.warmCreamDark }}>(optionnel)</Text>
+      <Text className="text-lg font-bold mb-3" style={{ color: '#0F172A' }}>
+        Un mot ? <Text className="text-sm font-normal" style={{ color: '#64748B' }}>(optionnel)</Text>
       </Text>
       <TextInput
         className="rounded-2xl p-4 text-[15px] mb-6"
         style={{
           backgroundColor: Colors.warmCard,
-          color: Colors.warmCream,
+          color: '#0F172A',
           minHeight: 80,
           textAlignVertical: 'top',
           borderWidth: 1,
-          borderColor: Colors.warmCardLight,
+          borderColor: '#EEF0F5',
         }}
         placeholder="Raconte ta journee..."
-        placeholderTextColor={Colors.warmCreamDark}
+        placeholderTextColor={'#94A3B8'}
         value={message}
         onChangeText={setMessage}
         multiline
@@ -182,43 +182,43 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
       {detectCriticalKeywords(message) && (
         <Box
           className="rounded-2xl p-4 mb-5"
-          style={{ backgroundColor: '#3D1010', borderWidth: 1, borderColor: '#F8717140' }}
+          style={{ backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }}
         >
           <HStack className="items-center mb-2" style={{ gap: 8 }}>
             <Ionicons name="heart" size={18} color={Colors.red} />
-            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+            <Text className="text-base font-extrabold" style={{ color: '#991B1B' }}>
               Tu n'es pas seul(e)
             </Text>
           </HStack>
           <Text
             className="text-[13px] leading-[18px] mb-3"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
+            style={{ color: '#7F1D1D' }}
           >
             Si tu traverses un moment difficile, parle a un adulte de confiance ou appelle :
           </Text>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:3020')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>📞 3020</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Non au Harcelement</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>📞 3020</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Non au Harcelement</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:3114')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>🆘 3114</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Prevention du suicide — 24h/24</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>🆘 3114</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Prevention du suicide — 24h/24</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:119')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>🛡️ 119</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Allo Enfance en Danger</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>🛡️ 119</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Allo Enfance en Danger</Text>
           </Pressable>
         </Box>
       )}

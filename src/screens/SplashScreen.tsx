@@ -8,6 +8,8 @@ import { Animated, Easing, Dimensions } from 'react-native';
 import { Box, Text } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
+import LogoScolariaSvg from '../components/LogoScolariaSvg';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 const { width } = Dimensions.get('window');
 
@@ -172,23 +174,8 @@ export default function SplashScreen({ onFinish }: Props) {
             </Box>
           </Animated.View>
 
-          {/* Logo text */}
-          <Box className="flex-row items-baseline">
-            <Text
-              className="text-5xl font-black"
-              style={{ color: Colors.white, letterSpacing: 1 }}
-            >
-              Scolar
-            </Text>
-            <Box className="relative">
-              <Text
-                className="text-5xl font-black"
-                style={{ color: Colors.cyan, letterSpacing: 1 }}
-              >
-                ia
-              </Text>
-            </Box>
-          </Box>
+          {/* Logo SVG icon */}
+          <LogoScolariaSvg width={80} variant="dark" iconOnly />
         </Animated.View>
 
         {/* Tagline */}
@@ -200,11 +187,23 @@ export default function SplashScreen({ onFinish }: Props) {
             transform: [{ translateY: taglineTranslateY }],
           }}
         >
+          {/* Brand name under icon */}
+          <Box className="flex-row items-baseline mb-3">
+            <Text style={{ fontFamily: FontFamily.loraBold, fontSize: 38, color: '#FFFFFF', letterSpacing: -0.3 }}>
+              Scolar
+            </Text>
+            <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 38, color: Colors.cyan, letterSpacing: 0.3 }}>
+              ia
+            </Text>
+            <Text style={{ fontSize: 12, color: Colors.cyan, marginLeft: 3, marginBottom: 14 }}>
+              ✦
+            </Text>
+          </Box>
           <Text
             className="text-base font-semibold"
             style={{ color: 'rgba(255,255,255,0.8)', letterSpacing: 0.5 }}
           >
-            Passeport scolaire num&#233;rique
+            Le copilote éducatif des familles
           </Text>
           <Box
             className="rounded-sm"

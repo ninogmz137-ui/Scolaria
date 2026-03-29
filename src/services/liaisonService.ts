@@ -9,11 +9,7 @@ import { supabase } from './supabase';
 
 // ─── Helper ──────────────────────────────────────────────
 
-// Liaison tables not yet created in Supabase — always use mock for now
-const FORCE_MOCK = true;
-
 function isSupabaseConfigured(): boolean {
-  if (FORCE_MOCK) return false;
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   return !!url && url.length > 0 && !url.includes('your-');
 }
@@ -288,13 +284,33 @@ export async function getTeacherMots(teacherId: string): Promise<{
     return { data: MOCK_MOTS, error: null };
   }
 
-  const { data, error } = await supabase
+  // Fetch mots with signature counts
+  const { data: rawMots, error } = await supabase
     .from('mots_liaison')
-    .select('*')
+    .select('*, signatures(count)')
     .eq('teacher_id', teacherId)
     .order('created_at', { ascending: false });
 
-  return { data: data ?? [], error: error?.message ?? null };
+  if (error) return { data: [], error: error.message };
+
+  // Get total students per classe (for progress display)
+  const classes = [...new Set((rawMots ?? []).map((m: any) => m.classe))];
+  const classCounts: Record<string, number> = {};
+  for (const cls of classes) {
+    const { count } = await supabase
+      .from('children')
+      .select('*', { count: 'exact', head: true })
+      .eq('classe', cls);
+    classCounts[cls] = count ?? 0;
+  }
+
+  const data: MotLiaison[] = (rawMots ?? []).map((m: any) => ({
+    ...m,
+    signatures_count: m.signatures?.[0]?.count ?? 0,
+    total_students: classCounts[m.classe] ?? 0,
+  }));
+
+  return { data, error: null };
 }
 
 export async function getMotSignatures(motId: string): Promise<{
@@ -329,8 +345,37 @@ export async function getUnsignedStudents(motId: string): Promise<{
     return { data: unsigned, error: null };
   }
 
-  // In real impl: join students table with signatures
-  return { data: [], error: null };
+  // Get the mot to know the classe
+  const { data: mot } = await supabase
+    .from('mots_liaison')
+    .select('classe')
+    .eq('id', motId)
+    .single();
+
+  if (!mot) return { data: [], error: 'Mot non trouvé' };
+
+  // Get all students in that class
+  const { data: allStudents } = await supabase
+    .from('children')
+    .select('id, first_name, last_name, avatar_emoji')
+    .eq('classe', mot.classe);
+
+  // Get signed student IDs for this mot
+  const { data: sigs } = await supabase
+    .from('signatures')
+    .select('student_id')
+    .eq('mot_id', motId);
+
+  const signedIds = new Set((sigs ?? []).map((s: any) => s.student_id));
+  const unsigned = (allStudents ?? [])
+    .filter((s: any) => !signedIds.has(s.id))
+    .map((s: any) => ({
+      id: s.id,
+      name: `${s.first_name} ${s.last_name}`.trim(),
+      avatar: s.avatar_emoji ?? '👦',
+    }));
+
+  return { data: unsigned, error: null };
 }
 
 export async function createMotLiaison(mot: {
@@ -400,13 +445,65 @@ export async function getParentMots(childId: string): Promise<{
     return { data: getMockParentMots(childId), error: null };
   }
 
-  // In real impl: join mots_liaison with signatures for this child
-  const { data, error } = await supabase
+  // Get the child's classe to filter mots
+  const { data: child } = await supabase
+    .from('children')
+    .select('classe')
+    .eq('id', childId)
+    .single();
+
+  if (!child) return { data: [], error: 'Enfant non trouvé' };
+
+  // Get mots for this class
+  const { data: mots, error } = await supabase
     .from('mots_liaison')
-    .select('*, signatures!left(signed_at)')
+    .select('*, signatures!left(student_id, signed_at)')
+    .eq('classe', child.classe)
+    .in('statut', ['envoyé', 'clos'])
     .order('created_at', { ascending: false });
 
-  return { data: data ?? [], error: error?.message ?? null };
+  if (error) return { data: [], error: error.message };
+
+  // Check read receipts for this parent
+  const { data: receipts } = await supabase
+    .from('read_receipts')
+    .select('mot_id')
+    .eq('parent_id', (await supabase.auth.getUser()).data.user?.id ?? '');
+
+  const readMotIds = new Set((receipts ?? []).map((r: any) => r.mot_id));
+
+  // Get teacher names
+  const teacherIds = [...new Set((mots ?? []).map((m: any) => m.teacher_id))];
+  const teacherNames: Record<string, string> = {};
+  if (teacherIds.length > 0) {
+    const { data: teachers } = await supabase
+      .from('profiles')
+      .select('id, first_name, family_name')
+      .in('id', teacherIds);
+    for (const t of teachers ?? []) {
+      teacherNames[t.id] = `${t.first_name ?? ''} ${t.family_name ?? ''}`.trim() || 'Enseignant';
+    }
+  }
+
+  const parentMots: MotLiaisonParent[] = (mots ?? []).map((m: any) => {
+    const childSig = (m.signatures ?? []).find((s: any) => s.student_id === childId);
+    return {
+      id: m.id,
+      type: m.type,
+      titre: m.titre,
+      contenu: m.contenu,
+      date_envoi: m.date_envoi,
+      date_limite: m.date_limite,
+      requires_signature: m.requires_signature,
+      is_signed: !!childSig,
+      signed_at: childSig?.signed_at ?? null,
+      is_read: readMotIds.has(m.id),
+      teacher_name: teacherNames[m.teacher_id] ?? 'Enseignant',
+      classe: m.classe,
+    };
+  });
+
+  return { data: parentMots, error: null };
 }
 
 export async function signMotLiaison(

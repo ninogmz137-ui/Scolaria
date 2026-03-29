@@ -35,7 +35,7 @@ function TopBar() {
   return (
     <HStack
       className="justify-center py-3.5 mx-5 mb-2 rounded-2xl"
-      style={{ backgroundColor: 'rgba(255,255,255,0.04)', gap: 24 }}
+      style={{ backgroundColor: '#F1F5F9', gap: 24 }}
     >
       {/* Streak */}
       <HStack className="items-center" style={{ gap: 6 }}>
@@ -97,7 +97,7 @@ function XPRing({ xp, goal, level }: { xp: number; goal: number; level: number }
     <Box className="mb-6 px-5">
       <Box className="rounded-[20px] overflow-hidden">
         <LinearGradient
-          colors={['#1E1B4B', '#312E81']}
+          colors={['#EEF2FF', '#E0E7FF']}
           style={{ padding: 22 }}
         >
           <HStack className="justify-between items-center mb-4">
@@ -112,12 +112,12 @@ function XPRing({ xp, goal, level }: { xp: number; goal: number; level: number }
             </Animated.View>
             <HStack className="items-center" style={{ gap: 4 }}>
               <Ionicons name="flash" size={14} color="#FFD66B" />
-              <Text className="text-sm font-bold" style={{ color: '#9CA3AF' }}>{xp} / {goal} XP</Text>
+              <Text className="text-sm font-bold" style={{ color: '#64748B' }}>{xp} / {goal} XP</Text>
             </HStack>
           </HStack>
 
           {/* Progress bar */}
-          <Box className="h-4 rounded-lg overflow-hidden" style={{ backgroundColor: '#1F2937' }}>
+          <Box className="h-4 rounded-lg overflow-hidden" style={{ backgroundColor: '#E2E8F0' }}>
             <Animated.View style={{ height: '100%', borderRadius: 8, overflow: 'hidden', width: barWidth as any }}>
               <Animated.View style={{ flex: 1, opacity: glowOpacity }}>
                 <LinearGradient
@@ -129,7 +129,7 @@ function XPRing({ xp, goal, level }: { xp: number; goal: number; level: number }
             </Animated.View>
           </Box>
 
-          <Text className="text-[13px] font-semibold text-center mt-3" style={{ color: '#9CA3AF' }}>
+          <Text className="text-[13px] font-semibold text-center mt-3" style={{ color: '#64748B' }}>
             {goal - xp > 0 ? `Encore ${goal - xp} XP pour le niveau ${level + 1} 🚀` : 'Niveau suivant debloque ! 🎉'}
           </Text>
         </LinearGradient>
@@ -186,9 +186,9 @@ function DailyQuests() {
           <Pressable
             className="flex-row items-center mx-5 mb-2.5 rounded-[18px] p-4"
             style={{
-              backgroundColor: '#141830',
+              backgroundColor: '#FFFFFF',
               borderWidth: 1.5,
-              borderColor: q.done ? '#34D39940' : 'rgba(255,255,255,0.04)',
+              borderColor: q.done ? '#34D39940' : '#EEF0F5',
               gap: 14,
             }}
           >
@@ -202,7 +202,7 @@ function DailyQuests() {
               <Text
                 className="text-[15px] font-bold mb-1"
                 style={{
-                  color: q.done ? '#6B7280' : '#E5E7EB',
+                  color: q.done ? '#94A3B8' : '#0F172A',
                   textDecorationLine: q.done ? 'line-through' : 'none',
                 }}
               >
@@ -218,7 +218,7 @@ function DailyQuests() {
                 <Ionicons name="checkmark" size={18} color="#FFFFFF" />
               </Box>
             ) : (
-              <Box className="w-[30px] h-[30px] rounded-[15px]" style={{ borderWidth: 2.5, borderColor: '#4B5563' }} />
+              <Box className="w-[30px] h-[30px] rounded-[15px]" style={{ borderWidth: 2.5, borderColor: '#CBD5E1' }} />
             )}
           </Pressable>
         </Animated.View>
@@ -272,7 +272,7 @@ function BadgesGrid() {
         COLLECTION
       </Text>
       <HStack className="justify-between items-center pr-6">
-        <Text className="text-[22px] font-black px-6 mb-3.5" style={{ color: '#FFFFFF' }}>
+        <Text className="text-[22px] font-black px-6 mb-3.5" style={{ color: '#0F172A' }}>
           Badges 🏅
         </Text>
         <Text className="text-sm font-extrabold" style={{ color: '#22D3EE' }}>
@@ -289,14 +289,14 @@ function BadgesGrid() {
               className="w-[100px] items-center py-[18px] rounded-[20px]"
               style={{
                 borderWidth: 1.5,
-                borderColor: b.earned ? b.color + '40' : 'rgba(255,255,255,0.04)',
-                backgroundColor: b.earned ? b.color + '08' : '#0F1124',
+                borderColor: b.earned ? b.color + '40' : '#EEF0F5',
+                backgroundColor: b.earned ? b.color + '08' : '#F7F8FC',
               }}
               onPress={() => handleBadgeTap(i, b.earned)}
             >
               <Box
                 className="w-12 h-12 rounded-3xl justify-center items-center mb-2"
-                style={{ backgroundColor: b.earned ? b.color + '15' : '#1F2937' }}
+                style={{ backgroundColor: b.earned ? b.color + '15' : '#E2E8F0' }}
               >
                 <Text style={{ fontSize: 26, opacity: b.earned ? 1 : 0.3 }}>
                   {b.earned ? b.emoji : '🔒'}
@@ -304,7 +304,7 @@ function BadgesGrid() {
               </Box>
               <Text
                 className="text-xs font-bold"
-                style={{ color: b.earned ? '#E5E7EB' : '#4B5563' }}
+                style={{ color: b.earned ? '#0F172A' : '#94A3B8' }}
               >
                 {b.name}
               </Text>
@@ -344,7 +344,7 @@ function GradeCards() {
       >
         DERNIERES NOTES
       </Text>
-      <Text className="text-[22px] font-black px-6 mb-3.5" style={{ color: '#FFFFFF' }}>
+      <Text className="text-[22px] font-black px-6 mb-3.5" style={{ color: '#0F172A' }}>
         Resultats 📊
       </Text>
       <Box className="flex-row flex-wrap px-5 justify-between" style={{ gap: 12 }}>
@@ -358,7 +358,7 @@ function GradeCards() {
           >
             <Box
               className="items-center rounded-[20px] p-[18px]"
-              style={{ backgroundColor: '#141830', borderWidth: 1.5, borderColor: g.color + '25' }}
+              style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: g.color + '25' }}
             >
               <Box
                 className="w-11 h-11 rounded-[22px] justify-center items-center mb-2.5"
@@ -367,8 +367,8 @@ function GradeCards() {
                 <Text style={{ fontSize: 24 }}>{g.emoji}</Text>
               </Box>
               <Text className="text-[32px] font-black" style={{ color: g.color }}>{g.grade}</Text>
-              <Text className="text-sm font-semibold -mt-1" style={{ color: '#6B7280' }}>/20</Text>
-              <Text className="text-[13px] font-bold mt-1.5" style={{ color: '#9CA3AF' }}>{g.subject}</Text>
+              <Text className="text-sm font-semibold -mt-1" style={{ color: '#94A3B8' }}>/20</Text>
+              <Text className="text-[13px] font-bold mt-1.5" style={{ color: '#64748B' }}>{g.subject}</Text>
               {g.streak > 1 && (
                 <Box className="mt-2 px-2.5 py-1 rounded-[10px]" style={{ backgroundColor: 'rgba(255,214,107,0.08)' }}>
                   <Text className="text-xs font-bold" style={{ color: '#FFD66B' }}>🔥 {g.streak} serie</Text>
@@ -416,22 +416,22 @@ export default function PrimaireDashboard({ childName, childAvatar }: Props) {
   });
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#0B0F2A' }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#F7F8FC' }} showsVerticalScrollIndicator={false}>
       <LinearGradient
-        colors={['#1E1B4B', '#0F0D27', '#0B0F2A']}
+        colors={['#EEF2FF', '#F5F3FF', '#F7F8FC']}
         style={{ minHeight: '100%', paddingBottom: 20 }}
       >
         {/* Header */}
         <HStack className="justify-between items-center px-6 pt-4 pb-2">
           <Box>
-            <Text className="text-[28px] font-black" style={{ color: '#FFFFFF' }}>
+            <Text className="text-[28px] font-black" style={{ color: '#0F172A' }}>
               Hey {childName} ! 🚀
             </Text>
-            <Text className="text-sm mt-0.5" style={{ color: '#9CA3AF' }}>Pret pour l'aventure ?</Text>
+            <Text className="text-sm mt-0.5" style={{ color: '#64748B' }}>Pret pour l'aventure ?</Text>
           </Box>
           <Box
             className="w-[52px] h-[52px] rounded-[26px] justify-center items-center"
-            style={{ backgroundColor: 'rgba(109,40,217,0.3)', borderWidth: 2.5, borderColor: '#22D3EE' }}
+            style={{ backgroundColor: 'rgba(109,40,217,0.1)', borderWidth: 2.5, borderColor: '#22D3EE' }}
           >
             <Text style={{ fontSize: 26 }}>{childAvatar}</Text>
           </Box>

@@ -76,7 +76,7 @@ export async function sendToAria(
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     console.warn('[Aria] No API key configured — using fallback response');
-    return getFallbackResponse(userMessage);
+    return getFallbackResponse(userMessage, childId);
   }
 
   const systemPrompt = buildSystemPrompt(childId);
@@ -115,7 +115,7 @@ export async function sendToAria(
         return '⏳ Trop de requêtes envoyées. Attends quelques secondes et réessaie.';
       }
 
-      return getFallbackResponse(userMessage);
+      return getFallbackResponse(userMessage, childId);
     }
 
     const data: ClaudeResponse = await response.json();
@@ -125,7 +125,7 @@ export async function sendToAria(
       return textContent.text;
     }
 
-    return getFallbackResponse(userMessage);
+    return getFallbackResponse(userMessage, childId);
   } catch (error) {
     console.error('[Aria] Network error:', error);
     return '📡 Impossible de contacter Aria pour le moment. Vérifie ta connexion internet et réessaie.';
@@ -134,33 +134,69 @@ export async function sendToAria(
 
 // ─── Fallback responses (when no API key) ───────────────
 
-const FALLBACK_RESPONSES = [
-  'Je suis Aria, ton assistante scolaire ! Pour me connecter à l\'IA, configure ta clé API Anthropic dans le fichier .env (EXPO_PUBLIC_ANTHROPIC_API_KEY). En attendant, je fonctionne en mode démo. 🔑',
-  'D\'après les données de Lucas, sa moyenne générale est de 15.1/20 — c\'est très bien ! Sa matière la plus forte est l\'anglais (17/20) et il pourrait progresser en sciences (13/20). Un plan de révision ciblé serait bénéfique. 📊',
-  'Le Score de Joie de Lucas est stable cette semaine (moyenne 7.6/10). Son niveau de stress reste bas, ce qui est positif. Le mercredi semble être sa meilleure journée ! 😊',
-  'Lucas a un contrôle de maths vendredi sur les fractions et la proportionnalité. Je recommande 30 minutes de révision par jour : exercices de fractions lundi, proportionnalité mardi, et un contrôle blanc mercredi. 📐',
-  'Les activités extra-scolaires de Lucas (judo, piano, robotique) sont bien équilibrées entre sport, art et tech. Le judo aide à la concentration et le piano à la mémoire — deux atouts pour les études ! 🎯',
-];
+function buildFallbackResponses(childId: string): string[] {
+  const child = getChildContext(childId);
+  const { profile, grades, activities, recentJoy, upcomingEvents } = child;
+  const name = profile.name.split(' ')[0]; // First name only
+
+  const intro = `Je suis Aria, ton assistante scolaire ! Pour me connecter à l'IA, configure ta clé API Anthropic dans le fichier .env (EXPO_PUBLIC_ANTHROPIC_API_KEY). En attendant, je fonctionne en mode démo pour ${name}. 🔑`;
+
+  if (grades.length === 0) {
+    // Maternelle — no grades
+    const activitiesStr = activities.map((a) => a.name.toLowerCase()).join(', ');
+    const joyAvg = recentJoy.length > 0
+      ? (recentJoy.reduce((s, j) => s + j.score, 0) / recentJoy.length).toFixed(1)
+      : '—';
+    return [
+      intro,
+      `${name} a une journée bien remplie ! Ses activités (${activitiesStr}) contribuent à son épanouissement. Son Score de Joie moyen est de ${joyAvg}/10 — c'est excellent ! 🌈`,
+      `Le Score de Joie de ${name} est très positif cette semaine (moyenne ${joyAvg}/10). ${name} est épanoui(e) et plein(e) d'énergie ! 😊`,
+      upcomingEvents.length > 0
+        ? `Prochain événement pour ${name} : ${upcomingEvents[0]}. Une belle journée en perspective ! 🎨`
+        : `Pas d'événement particulier prévu pour ${name} cette semaine. Un moment de calme bien mérité ! 🌿`,
+      `Les activités de ${name} (${activitiesStr}) sont variées et stimulantes. Un bel équilibre pour son développement ! 🎯`,
+    ];
+  }
+
+  const overallAvg = (grades.reduce((s, g) => s + g.average, 0) / grades.length).toFixed(1);
+  const best = grades.reduce((b, g) => (g.average > b.average ? g : b));
+  const weakest = grades.reduce((w, g) => (g.average < w.average ? g : w));
+  const activitiesStr = activities.map((a) => a.name.toLowerCase()).join(', ');
+  const joyAvg = recentJoy.length > 0
+    ? (recentJoy.reduce((s, j) => s + j.score, 0) / recentJoy.length).toFixed(1)
+    : '—';
+
+  return [
+    intro,
+    `D'après les données de ${name}, sa moyenne générale est de ${overallAvg}/20 — c'est très bien ! Sa matière la plus forte est ${best.subject.toLowerCase()} (${best.average}/20) et il/elle pourrait progresser en ${weakest.subject.toLowerCase()} (${weakest.average}/20). Un plan de révision ciblé serait bénéfique. 📊`,
+    `Le Score de Joie de ${name} est stable cette semaine (moyenne ${joyAvg}/10). Son niveau de stress reste bas, ce qui est positif ! 😊`,
+    upcomingEvents.length > 0
+      ? `${name} a un événement à venir : ${upcomingEvents[0]}. Je recommande de bien se préparer à l'avance avec des sessions courtes et régulières. 📐`
+      : `Pas de contrôle imminent pour ${name}. C'est le bon moment pour consolider les acquis et renforcer ${weakest.subject.toLowerCase()}. 📐`,
+    `Les activités extra-scolaires de ${name} (${activitiesStr}) sont bien équilibrées. Elles contribuent positivement à son épanouissement scolaire ! 🎯`,
+  ];
+}
 
 let fallbackIndex = 0;
 
-function getFallbackResponse(userMessage: string): string {
+function getFallbackResponse(userMessage: string, childId: string): string {
+  const responses = buildFallbackResponses(childId);
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('note') || msg.includes('résultat') || msg.includes('moyenne')) {
-    return FALLBACK_RESPONSES[1];
+    return responses[1];
   }
   if (msg.includes('bien-être') || msg.includes('joie') || msg.includes('ressenti') || msg.includes('stress')) {
-    return FALLBACK_RESPONSES[2];
+    return responses[2];
   }
   if (msg.includes('contrôle') || msg.includes('examen') || msg.includes('révision') || msg.includes('préparer')) {
-    return FALLBACK_RESPONSES[3];
+    return responses[3];
   }
   if (msg.includes('activité') || msg.includes('sport') || msg.includes('extra')) {
-    return FALLBACK_RESPONSES[4];
+    return responses[4];
   }
 
-  const response = FALLBACK_RESPONSES[fallbackIndex % FALLBACK_RESPONSES.length];
+  const response = responses[fallbackIndex % responses.length];
   fallbackIndex++;
   return response;
 }

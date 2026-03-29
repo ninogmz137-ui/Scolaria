@@ -9,6 +9,7 @@ import { useState } from 'react';
 import {
   ScrollView,
   Linking,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +17,29 @@ import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
+import DecorativeBlobs from '../components/DecorativeBlobs';
+
+// ─── Helpers ────────────────────────────────────────────
+
+/** Convert hex color to "r, g, b" string for use in rgba() */
+function hexToRgb(hex: string): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `${r}, ${g}, ${b}`;
+}
+
+// ─── Constants ──────────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
+const VIOLET_RGB = hexToRgb(Colors.violet);
+const ACCENT_BORDER = { borderWidth: 1.5, borderColor: `rgba(${VIOLET_RGB}, 0.15)` };
 
 // ─── Charter data ────────────────────────────────────────
 
@@ -103,6 +127,40 @@ const STATS = [
   { value: 'RGPD', label: 'Conforme', icon: '✅' },
 ];
 
+// ─── Section title with violet left bar ─────────────────
+
+function SectionTitle({ icon, iconColor, title, subtitle }: {
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <Box className="mb-3.5" style={{ paddingLeft: 16 }}>
+      <Box
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 2,
+          bottom: subtitle ? 6 : 2,
+          width: 4,
+          borderRadius: 2,
+          backgroundColor: Colors.violet,
+        }}
+      />
+      <HStack className="items-center mb-1" style={{ gap: 8 }}>
+        <Ionicons name={icon} size={22} color={iconColor} />
+        <Text className="text-xl font-black" style={{ color: Colors.textPrimary }}>{title}</Text>
+      </HStack>
+      {subtitle && (
+        <Text className="text-[13px] mt-1" style={{ color: Colors.textMuted }}>
+          {subtitle}
+        </Text>
+      )}
+    </Box>
+  );
+}
+
 // ─── Component ───────────────────────────────────────────
 
 export default function AProposScreen() {
@@ -115,15 +173,21 @@ export default function AProposScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
     >
       {/* Hero */}
       <LinearGradient
-        colors={[Colors.violet, Colors.blueNight]}
+        colors={['#0B1628', Colors.violet + 'DD']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
-        style={{ alignItems: 'center', paddingTop: 30, paddingBottom: 40 }}
+        style={{
+          alignItems: 'center',
+          paddingTop: 30,
+          paddingBottom: 40,
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+        }}
       >
         <LogoScolaria size={80} variant="dark" />
         <Text className="text-[15px] text-center leading-[22px] mt-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -134,11 +198,14 @@ export default function AProposScreen() {
         </Box>
       </LinearGradient>
 
-      <Box className="px-5 pt-1">
+      <Box className="px-5 pt-1" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative blobs */}
+        <DecorativeBlobs accent={Colors.violet} size={120} opacity={0.12} />
+
         {/* Mission */}
         <Box
           className="rounded-2xl p-5 mb-5"
-          style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+          style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
         >
           <Text className="text-lg font-extrabold mb-2.5" style={{ color: theme.textPrimary }}>Notre mission</Text>
           <Text className="text-sm leading-[22px]" style={{ color: theme.textSecondary }}>
@@ -155,7 +222,7 @@ export default function AProposScreen() {
             <Box
               key={i}
               className="flex-1 rounded-[14px] p-3 items-center"
-              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
             >
               <Text className="text-xl mb-1.5">{stat.icon}</Text>
               <Text className="text-sm font-black mb-0.5" style={{ color: theme.textPrimary }}>{stat.value}</Text>
@@ -165,21 +232,18 @@ export default function AProposScreen() {
         </HStack>
 
         {/* Ethical Charter */}
-        <Box className="mb-3.5">
-          <HStack className="items-center mb-1" style={{ gap: 8 }}>
-            <Ionicons name="document-text" size={22} color={theme.accent} />
-            <Text className="text-xl font-black" style={{ color: theme.textPrimary }}>Charte Éthique</Text>
-          </HStack>
-          <Text className="text-[13px] mt-1" style={{ color: theme.textMuted }}>
-            8 engagements fondateurs qui guident chaque décision produit
-          </Text>
-        </Box>
+        <SectionTitle
+          icon="document-text"
+          iconColor={theme.accent}
+          title="Charte Éthique"
+          subtitle="8 engagements fondateurs qui guident chaque décision produit"
+        />
 
         {CHARTER_ARTICLES.map((article) => (
           <Pressable
             key={article.number}
             className="rounded-[14px] p-4 mb-2.5"
-            style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+            style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
             onPress={() => toggleArticle(article.number)}
           >
             <HStack className="items-center" style={{ gap: 12 }}>
@@ -222,7 +286,11 @@ export default function AProposScreen() {
 
         {/* Technology */}
         <Box className="mt-4 mb-5">
-          <Text className="text-lg font-extrabold mb-3.5" style={{ color: theme.textPrimary }}>Technologies</Text>
+          <SectionTitle
+            icon="hardware-chip-outline"
+            iconColor={theme.accent}
+            title="Technologies"
+          />
           <VStack style={{ gap: 8 }}>
             {[
               { name: 'React Native', desc: 'App mobile cross-platform', icon: 'phone-portrait-outline' as const },
@@ -235,7 +303,7 @@ export default function AProposScreen() {
               <HStack
                 key={i}
                 className="items-center rounded-xl p-3.5"
-                style={{ gap: 12, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+                style={{ gap: 12, backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
               >
                 <Ionicons name={tech.icon} size={20} color={theme.accent} />
                 <VStack className="flex-1">
@@ -250,7 +318,7 @@ export default function AProposScreen() {
         {/* Contact & Legal */}
         <Box
           className="rounded-[14px] p-4 mb-6"
-          style={{ gap: 12, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+          style={{ gap: 12, backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
         >
           <Pressable
             className="flex-row items-center"
@@ -283,7 +351,7 @@ export default function AProposScreen() {
         {/* Footer */}
         <VStack className="items-center py-5" style={{ gap: 8 }}>
           <LogoScolaria size={28} variant={theme.mode === 'primaire' ? 'dark' : 'light'} />
-          <Text className="text-xs mt-1" style={{ color: Colors.gray }}>
+          <Text className="text-xs mt-1" style={{ color: Colors.textMuted }}>
             © 2026 Scolaria · Tous droits réservés
           </Text>
           <Text className="text-[13px] italic text-center mt-1 px-5" style={{ color: Colors.violet }}>

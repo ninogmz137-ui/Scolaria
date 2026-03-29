@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -15,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // Components
 import AppTopbar from '../components/AppTopbar';
@@ -31,11 +33,14 @@ import SignalerAbsenceScreen from '../screens/SignalerAbsenceScreen';
 
 // Burger menu screens
 import ReglagesScreen from '../screens/ReglagesScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
+import MonParcoursScreen from '../screens/MonParcoursScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 // About screen
 import AProposScreen from '../screens/AProposScreen';
@@ -76,6 +81,7 @@ function TabBarIcon({ name, color, size, focused }: {
 // ─── Back arrow state ref (shared between topbar and stack) ──
 
 const backArrowRef: { current: { setShowBack: (v: boolean) => void } | null } = { current: null };
+const activeTabRef: { current: { setActiveTab: (v: string) => void } | null } = { current: null };
 
 // ─── Stack navigators ────────────────────────────────────
 
@@ -106,8 +112,10 @@ function AccueilStackScreen() {
       <AccueilStack.Screen name="ProfilEnfant" component={ProfilEnfantScreen} />
       <AccueilStack.Screen name="AjouterEnfant" component={AjouterEnfantScreen} />
       <AccueilStack.Screen name="AjouterAnne" component={AjouterAnneScreen} />
+      <AccueilStack.Screen name="MonParcours" component={MonParcoursScreen} />
       {/* RGPD & settings screens */}
-      <AccueilStack.Screen name="NotificationsScreen" component={ReglagesScreen} />
+      <AccueilStack.Screen name="ReglagesScreen" component={SettingsScreen} />
+      <AccueilStack.Screen name="NotificationsScreen" component={NotificationsScreen} />
       <AccueilStack.Screen name="PermissionsRGPD" component={PermissionsScreen} />
       <AccueilStack.Screen name="JournalAcces" component={JournalAccesScreen} />
       <AccueilStack.Screen name="TransfertCode" component={TransfertCodeScreen} />
@@ -169,13 +177,17 @@ const TAB_ICONS: Record<string, {
 
 function TabContent() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
       screenListeners={{
-        tabPress: () => {
+        tabPress: (e) => {
           // Reset back arrow when switching tabs
           backArrowRef.current?.setShowBack(false);
+          // Track active tab for transparent topbar on Accueil
+          const tabName = e.target?.split('-')[0] ?? '';
+          activeTabRef.current?.setActiveTab(tabName);
         },
       }}
       screenOptions={({ route }) => ({
@@ -193,9 +205,9 @@ function TabContent() {
           backgroundColor: theme.tabBg,
           borderTopColor: theme.tabBorder,
           borderTopWidth: 1,
-          paddingBottom: 5,
+          paddingBottom: Math.max(insets.bottom, 5),
           paddingTop: 8,
-          height: 62,
+          height: 62 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 11,
@@ -216,25 +228,34 @@ function TabContent() {
 
 export default function TabNavigator() {
   const { theme } = useChildTheme();
+  const { signOut } = useAuth();
   const [burgerVisible, setBurgerVisible] = useState(false);
   const [showBack, setShowBack] = useState(false);
+  const [activeTab, setActiveTab] = useState('Accueil');
 
   // Register the back-arrow state setter
   backArrowRef.current = { setShowBack };
+  // Register the active tab setter for child components
+  activeTabRef.current = { setActiveTab };
 
   const handleBurgerNavigate = useCallback((screen: string) => {
     // This is handled via the ref approach below
     burgerNavRef.current?.(screen);
   }, []);
 
+  // Topbar is transparent (overlaid) when on AccueilHome — dark header shows through
+  const isAccueilHome = activeTab === 'Accueil' && !showBack;
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F8FC' }}>
-      {/* Fixed Topbar */}
+    <View style={{ flex: 1, backgroundColor: '#E8EDF5' }}>
+      {/* Fixed Topbar — transparent on Accueil home so dark header shows through */}
       <AppTopbar
         onBurgerPress={() => setBurgerVisible(true)}
         showBack={showBack}
         onBackPress={() => { goBackRef.current?.(); setShowBack(false); }}
         notificationCount={3}
+        onNotificationPress={() => notifNavRef.current?.()}
+        transparent={isAccueilHome}
       />
 
       {/* Tab content */}
@@ -250,6 +271,8 @@ export default function TabNavigator() {
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
 // Nav ref for back button
 const goBackRef: { current: (() => void) | null } = { current: null };
+// Nav ref for notification bell
+const notifNavRef: { current: (() => void) | null } = { current: null };
 
 function TabContentWithBurger({
   burgerVisible,
@@ -259,6 +282,7 @@ function TabContentWithBurger({
   onCloseBurger: () => void;
 }) {
   const navigation = useNavigation<any>();
+  const { signOut } = useAuth();
 
   // Register the go-back function for topbar back arrow
   goBackRef.current = () => {
@@ -266,6 +290,11 @@ function TabContentWithBurger({
     navigation.navigate('Accueil');
     // Dispatch a pop action within the Accueil stack
     navigation.dispatch(CommonActions.goBack());
+  };
+
+  // Register the notification nav function
+  notifNavRef.current = () => {
+    navigation.navigate('Accueil', { screen: 'NotificationsScreen' });
   };
 
   // Register the nav function for burger
@@ -276,9 +305,10 @@ function TabContentWithBurger({
       Absences: 'SignalerAbsenceScreen',
       BienEtre: 'BienEtreScreen',
       ProfilBadges: 'ProfilEnfant',
-      Archives: 'ProfilEnfant', // Archives are in ProfilEnfant via year selector
+      MonParcours: 'MonParcours',
       ChangerEnfant: '', // Handled by topbar pill
       Permissions: 'PermissionsRGPD',
+      Reglages: 'ReglagesScreen',
       Notifications: 'NotificationsScreen',
       RGPD: 'PermissionsRGPD',
       APropos: 'APropos',
@@ -297,7 +327,7 @@ function TabContentWithBurger({
   };
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <TabContent />
       <BurgerMenu
         visible={burgerVisible}
@@ -306,7 +336,9 @@ function TabContentWithBurger({
           onCloseBurger();
           setTimeout(() => burgerNavRef.current?.(screen), 200);
         }}
+        onChangeRole={() => { onCloseBurger(); signOut(); }}
+        onLogout={() => { onCloseBurger(); signOut(); }}
       />
-    </>
+    </View>
   );
 }

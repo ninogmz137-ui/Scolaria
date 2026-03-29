@@ -24,36 +24,36 @@ export default function JoyScore({ data, average }: Props) {
   return (
     <Box
       className="mx-5 rounded-[20px] p-5"
-      style={{ backgroundColor: Colors.blueNightCard }}
+      style={{ backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.cardBorder }}
     >
       <HStack className="justify-between items-center mb-5">
         <VStack>
           <Text
             className="text-base font-bold"
-            style={{ color: Colors.white }}
+            style={{ color: Colors.textPrimary }}
           >
             Score de Joie
           </Text>
           <Text
             className="text-xs mt-0.5"
-            style={{ color: Colors.gray }}
+            style={{ color: Colors.textSecondary }}
           >
             7 derniers jours
           </Text>
         </VStack>
         <HStack
           className="items-baseline px-3 py-1.5 rounded-xl"
-          style={{ backgroundColor: 'rgba(34, 211, 238, 0.1)' }}
+          style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)' }}
         >
           <Text
             className="text-[22px] font-extrabold"
-            style={{ color: Colors.cyan }}
+            style={{ color: '#F59E0B' }}
           >
             {average.toFixed(1)}
           </Text>
           <Text
             className="text-xs ml-0.5"
-            style={{ color: Colors.gray }}
+            style={{ color: Colors.textSecondary }}
           >
             /10
           </Text>
@@ -70,7 +70,7 @@ export default function JoyScore({ data, average }: Props) {
                 className="w-5 rounded-[10px] overflow-hidden justify-end"
                 style={{
                   height: BAR_MAX_HEIGHT,
-                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  backgroundColor: '#EEF0F5',
                 }}
               >
                 <Box
@@ -83,7 +83,7 @@ export default function JoyScore({ data, average }: Props) {
               </Box>
               <Text
                 className="text-[11px] mt-1.5 font-medium"
-                style={{ color: Colors.gray }}
+                style={{ color: Colors.textSecondary }}
               >
                 {item.day}
               </Text>

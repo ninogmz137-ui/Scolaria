@@ -4,7 +4,7 @@ import { Box, Text, Pressable, VStack, HStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
-import LogoScolaria from '../components/LogoScolaria';
+import LogoScolariaSvg from '../components/LogoScolariaSvg';
 
 const { width } = Dimensions.get('window');
 
@@ -87,7 +87,7 @@ export default function RoleSelectionScreen({ onSelectRole }: Props) {
           end={{ x: 0.5, y: 1 }}
           style={{ alignItems: 'center', paddingTop: 40, paddingBottom: 16 }}
         >
-          <LogoScolaria size={90} variant="dark" />
+          <LogoScolariaSvg width={220} variant="dark" showSubtitle />
           <Text className="text-xl font-bold text-white mt-4">Qui êtes-vous ?</Text>
           <Text className="text-[13px] text-white/60 mt-1.5 text-center px-10">
             Choisissez votre rôle pour une expérience personnalisée

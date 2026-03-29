@@ -50,7 +50,7 @@ export default function ChatBubble({ message, isTyping }: Props) {
         )}
         {isTyping ? (
           <HStack className="items-center gap-1.5">
-            <Text className="text-sm italic" style={{ color: Colors.gray }}>
+            <Text className="text-sm italic" style={{ color: Colors.textSecondary }}>
               Aria réfléchit
             </Text>
             <TypingIndicator />

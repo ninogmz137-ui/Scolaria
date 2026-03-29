@@ -1,10 +1,13 @@
 /**
- * Auth context — wraps the entire app with authentication state.
+ * Auth context — manages authentication state for the entire app.
  *
- * If Supabase is not configured, automatically uses a demo user
- * so the app remains fully functional in demo mode.
+ * Roles:
+ *   - 'parent'      → email+password login → child selector → full access
+ *   - 'enseignant'  → email+password login → teacher dashboard directly
+ *   - 'enfant-pin'  → PIN entry → sandbox (limited navigation)
+ *   - 'eleve'       → email+password login (autonomous teen) → student space
  *
- * Now includes role selection (parent, eleve, enseignant).
+ * If Supabase is not configured, auto-enters demo mode as parent.
  */
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -13,7 +16,7 @@ import { supabase } from '../services/supabase';
 
 // ─── Types ────────────────────────────────────────────────
 
-export type UserRole = 'parent' | 'eleve' | 'enseignant';
+export type UserRole = 'parent' | 'eleve' | 'enseignant' | 'enfant-pin';
 
 interface AuthContextType {
   user: User | null;
@@ -21,11 +24,14 @@ interface AuthContextType {
   loading: boolean;
   isDemo: boolean;
   role: UserRole | null;
-  setRole: (role: UserRole) => void;
+  setRole: (role: UserRole | null) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, familyName: string) => Promise<void>;
   signOut: () => Promise<void>;
   enterDemoMode: () => void;
+  enterChildMode: () => void;
+  exitChildMode: () => void;
+  verifyParentPassword: (password: string) => Promise<boolean>;
 }
 
 // ─── Demo user (when Supabase is not configured) ────────
@@ -34,7 +40,17 @@ const DEMO_USER: User = {
   id: 'demo-user-001',
   email: 'demo@scolaria.fr',
   app_metadata: {},
-  user_metadata: { family_name: 'Moreau' },
+  user_metadata: { family_name: 'Moreau', role: 'parent' },
+  aud: 'authenticated',
+  created_at: '2025-09-01T00:00:00Z',
+} as User;
+
+// Demo teacher user
+const DEMO_TEACHER: User = {
+  id: 'demo-teacher-001',
+  email: 'prof@scolaria.fr',
+  app_metadata: {},
+  user_metadata: { family_name: 'Laurent', role: 'enseignant' },
   aud: 'authenticated',
   created_at: '2025-09-01T00:00:00Z',
 } as User;
@@ -57,8 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
-      // Demo mode: auto-login
-      setUser(DEMO_USER);
+      // Demo mode: don't auto-login, wait for user interaction
       setLoading(false);
       return;
     }
@@ -67,6 +82,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
+      if (s?.user) {
+        // Detect role from user metadata
+        const metaRole = s.user.user_metadata?.role;
+        if (metaRole === 'enseignant') {
+          setRole('enseignant');
+        } else if (metaRole === 'eleve') {
+          setRole('eleve');
+        } else {
+          setRole('parent');
+        }
+      }
       setLoading(false);
     });
 
@@ -83,12 +109,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSignIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured) {
-      setUser(DEMO_USER);
+      // Demo mode: detect role by email
+      if (email.includes('prof') || email.includes('enseignant') || email.includes('teacher')) {
+        setUser(DEMO_TEACHER);
+        setRole('enseignant');
+      } else {
+        setUser(DEMO_USER);
+        setRole('parent');
+      }
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+
+    // Detect role from user metadata
+    const metaRole = data.user?.user_metadata?.role;
+    if (metaRole === 'enseignant') {
+      setRole('enseignant');
+    } else if (metaRole === 'eleve') {
+      setRole('eleve');
+    } else {
+      setRole('parent');
+    }
   };
 
   const handleSignUp = async (
@@ -98,20 +141,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ) => {
     if (!isSupabaseConfigured) {
       setUser(DEMO_USER);
+      setRole('parent');
       return;
     }
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { family_name: familyName } },
+      options: { data: { family_name: familyName, role: 'parent' } },
     });
     if (error) throw error;
   };
 
   const enterDemoMode = () => {
     setUser(DEMO_USER);
+    setRole('parent');
     setSession(null);
+  };
+
+  const enterChildMode = () => {
+    // Enter sandbox mode — user stays the same (parent's device)
+    // but role switches to enfant-pin
+    if (!user) {
+      // If no user yet (direct PIN from login screen), use demo
+      setUser(DEMO_USER);
+    }
+    setRole('enfant-pin');
+  };
+
+  const exitChildMode = () => {
+    // Return to parent mode — requires password verification first
+    setRole('parent');
+  };
+
+  const verifyParentPassword = async (password: string): Promise<boolean> => {
+    if (!isSupabaseConfigured) {
+      // Demo mode: accept "password" or "demo"
+      return password === 'password' || password === 'demo' || password.length >= 6;
+    }
+
+    // Re-authenticate with Supabase
+    try {
+      const email = user?.email;
+      if (!email) return false;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return !error;
+    } catch {
+      return false;
+    }
   };
 
   const handleSignOut = async () => {
@@ -139,6 +216,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp: handleSignUp,
         signOut: handleSignOut,
         enterDemoMode,
+        enterChildMode,
+        exitChildMode,
+        verifyParentPassword,
       }}
     >
       {children}

@@ -40,6 +40,21 @@ function makeSuggestions(childName: string): string[] {
   ];
 }
 
+// ─── Helpers ──────────────────────────────────────────────
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : null;
+}
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
@@ -158,90 +173,107 @@ export default function AriaScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      {/* Header */}
-      <HStack
-        className="items-center px-4 py-3"
-        style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+      {/* Gradient Header */}
+      <LinearGradient
+        colors={['#0B1628', theme.accent + 'DD']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
+          paddingBottom: 18,
+          paddingTop: 12,
+          paddingHorizontal: 16,
+        }}
       >
-        <AriaAvatar size={40} />
-        <VStack className="flex-1 ml-3">
-          <Text className="text-[17px]" style={{ fontWeight: '800', color: theme.textPrimary }}>
-            {theme.ariaLabel}
-          </Text>
-          <HStack className="items-center gap-[5px] mt-0.5">
+        <HStack className="items-center">
+          <AriaAvatar size={40} />
+          <VStack className="flex-1 ml-3">
+            <Text className="text-[17px]" style={{ fontWeight: '800', color: '#FFFFFF' }}>
+              {theme.ariaLabel}
+            </Text>
+            <HStack className="items-center gap-[5px] mt-0.5">
+              <Box
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: isTyping ? Colors.orange : '#34D399' }}
+              />
+              <Text
+                className="text-xs"
+                style={{
+                  fontWeight: '500',
+                  color: isTyping ? Colors.orange : '#34D399',
+                }}
+              >
+                {isTyping ? 'Réfléchit...' : 'En ligne'}
+              </Text>
+            </HStack>
+          </VStack>
+          <HStack className="items-center gap-2">
             <Box
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: isTyping ? Colors.orange : Colors.green }}
-            />
-            <Text
-              className="text-xs"
+              className="px-2 py-1 rounded-lg"
               style={{
-                fontWeight: '500',
-                color: isTyping ? Colors.orange : Colors.green,
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.20)',
               }}
             >
-              {isTyping ? 'Réfléchit...' : 'En ligne'}
-            </Text>
+              <Text className="text-[10px]" style={{ fontWeight: '700', color: '#FFFFFF' }}>
+                Claude Sonnet
+              </Text>
+            </Box>
+            <Pressable className="p-2">
+              <Ionicons
+                name="ellipsis-vertical"
+                size={20}
+                color="rgba(255,255,255,0.6)"
+              />
+            </Pressable>
           </HStack>
-        </VStack>
-        <HStack className="items-center gap-2">
-          <Box
-            className="px-2 py-1 rounded-lg"
-            style={{
-              backgroundColor: 'rgba(109,40,217,0.2)',
-              borderWidth: 1,
-              borderColor: 'rgba(109,40,217,0.3)',
-            }}
-          >
-            <Text className="text-[10px]" style={{ fontWeight: '700', color: Colors.violetLight }}>
-              Claude Sonnet
-            </Text>
-          </Box>
-          <Pressable className="p-2">
-            <Ionicons
-              name="ellipsis-vertical"
-              size={20}
-              color={Colors.gray}
-            />
-          </Pressable>
         </HStack>
-      </HStack>
+      </LinearGradient>
 
       {/* Suggestions banner */}
-      <Box style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}>
+      <Box style={{ backgroundColor: '#E8EDF5', paddingTop: 6 }}>
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
           data={suggestions}
           keyExtractor={(item) => item}
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}
-          renderItem={({ item }) => (
-            <Pressable
-              className="rounded-full px-3.5 py-2 mr-2"
-              style={{
-                backgroundColor: theme.card,
-                borderWidth: 1,
-                borderColor: theme.cardBorder,
-              }}
-              onPress={() => handleSuggestionPress(item)}
-              disabled={isTyping}
-            >
-              <Text
-                className="text-[13px]"
+          renderItem={({ item }) => {
+            const rgb = hexToRgb(theme.accent);
+            const accentBorder = rgb
+              ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`
+              : theme.cardBorder;
+            return (
+              <Pressable
+                className="rounded-full px-3.5 py-2 mr-2"
                 style={{
-                  fontWeight: '500',
-                  color: theme.textSecondary,
-                  opacity: isTyping ? 0.4 : 1,
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 1.5,
+                  borderColor: accentBorder,
+                  ...CARD_SHADOW,
                 }}
+                onPress={() => handleSuggestionPress(item)}
+                disabled={isTyping}
               >
-                {item}
-              </Text>
-            </Pressable>
-          )}
+                <Text
+                  className="text-[13px]"
+                  style={{
+                    fontWeight: '500',
+                    color: theme.textSecondary,
+                    opacity: isTyping ? 0.4 : 1,
+                  }}
+                >
+                  {item}
+                </Text>
+              </Pressable>
+            );
+          }}
         />
       </Box>
 
@@ -251,6 +283,7 @@ export default function AriaScreen() {
         data={messages}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        style={{ backgroundColor: '#E8EDF5' }}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 8 }}
         onContentSizeChange={scrollToEnd}
         ListFooterComponent={
@@ -263,11 +296,16 @@ export default function AriaScreen() {
       {/* Input bar */}
       <Box
         className="px-3 py-2.5"
-        style={{ backgroundColor: theme.bg, borderTopWidth: 1, borderTopColor: theme.cardBorder }}
+        style={{ backgroundColor: '#E8EDF5' }}
       >
         <HStack
           className="items-end rounded-3xl pl-4 pr-1 py-1"
-          style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderWidth: 1.5,
+            borderColor: theme.accent,
+            ...CARD_SHADOW,
+          }}
         >
           <TextInput
             style={{

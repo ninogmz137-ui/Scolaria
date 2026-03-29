@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Screens
 import AccueilScreen from '../screens/AccueilScreen';
@@ -160,6 +161,7 @@ const tabIcons: Record<
 
 export default function EleveTabNavigator() {
   const { theme } = useSchoolMode();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -177,9 +179,9 @@ export default function EleveTabNavigator() {
           backgroundColor: theme.tabBg,
           borderTopColor: theme.tabBorder,
           borderTopWidth: 1,
-          paddingBottom: 5,
+          paddingBottom: Math.max(insets.bottom, 5),
           paddingTop: 5,
-          height: 62,
+          height: 62 + insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 11,

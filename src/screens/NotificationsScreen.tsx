@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ScrollView, Platform, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import DecorativeBlobs from '../components/DecorativeBlobs';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -105,6 +106,7 @@ export default function NotificationsScreen() {
   const { theme } = useChildTheme();
   const { selectedChild } = useActiveChild();
   const accent = theme.accent;
+  const navigation = useNavigation<any>();
 
   const [today, setToday] = useState<Notification[]>([]);
   const [earlier, setEarlier] = useState<Notification[]>([]);
@@ -238,6 +240,32 @@ export default function NotificationsScreen() {
     loadNotifications(selectedChild.id);
   }, [selectedChild.id, loadNotifications]);
 
+  const markRead = useCallback((id: string) => {
+    setToday((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+    setEarlier((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
+  }, []);
+
+  const handleNotifPress = useCallback((notif: Notification) => {
+    markRead(notif.id);
+    switch (notif.type) {
+      case 'liaison':
+        navigation.navigate('Accueil', { screen: 'CahierLiaisonScreen' });
+        break;
+      case 'note':
+        navigation.navigate('Notes');
+        break;
+      case 'agenda':
+        navigation.navigate('Agenda');
+        break;
+      case 'absence':
+        navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' });
+        break;
+      case 'aria':
+        navigation.navigate('Aria');
+        break;
+    }
+  }, [markRead, navigation]);
+
   const unreadCount = today.filter((n) => !n.read).length + earlier.filter((n) => !n.read).length;
 
   return (
@@ -293,7 +321,7 @@ export default function NotificationsScreen() {
                 </Text>
               </HStack>
               {today.map((notif) => (
-                <NotifCard key={notif.id} notif={notif} accent={accent} />
+                <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
               ))}
             </>
           )}
@@ -314,7 +342,7 @@ export default function NotificationsScreen() {
                 </Text>
               </HStack>
               {earlier.map((notif) => (
-                <NotifCard key={notif.id} notif={notif} accent={accent} />
+                <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
               ))}
             </>
           )}
@@ -326,10 +354,20 @@ export default function NotificationsScreen() {
 
 // ─── NotifCard ──────────────────────────────────────────
 
-function NotifCard({ notif, accent }: { notif: Notification; accent: string }) {
+function NotifCard({ notif, accent, onPress }: {
+  notif: Notification;
+  accent: string;
+  onPress: (notif: Notification) => void;
+}) {
   const cfg = NOTIF_ICONS[notif.type] ?? NOTIF_ICONS.aria;
 
   return (
+    <Pressable
+      onPress={() => onPress(notif)}
+      style={({ pressed }) => ({
+        opacity: pressed ? 0.85 : 1,
+      })}
+    >
     <HStack
       style={{
         backgroundColor: '#FFFFFF',
@@ -392,5 +430,6 @@ function NotifCard({ notif, accent }: { notif: Notification; accent: string }) {
         />
       )}
     </HStack>
+    </Pressable>
   );
 }

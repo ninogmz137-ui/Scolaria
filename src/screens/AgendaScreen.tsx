@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, FlatList, Platform } from 'react-native';
+import { ScrollView, FlatList, Platform, Modal, TextInput, Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { getAgendaEvents } from '../services/database';
+import { useAuth } from '../contexts/AuthContext';
+import { getAgendaEvents, createAgendaEvent } from '../services/database';
 import DecorativeBlobs from '../components/DecorativeBlobs';
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -48,6 +49,22 @@ interface AgendaEvent {
 }
 
 type ViewMode = 'semaine' | 'jour';
+
+type NewEventType = 'devoir' | 'controle' | 'sortie' | 'autre';
+
+const NEW_EVENT_TYPE_LABELS: Record<NewEventType, string> = {
+  devoir: 'Devoir',
+  controle: 'Contrôle',
+  sortie: 'Sortie',
+  autre: 'Autre',
+};
+
+const NEW_EVENT_TYPE_EMOJI: Record<NewEventType, string> = {
+  devoir: '📝',
+  controle: '📐',
+  sortie: '🏛️',
+  autre: '📅',
+};
 
 // ─── Week helpers ─────────────────────────────────────────
 
@@ -151,6 +168,7 @@ const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
 export default function AgendaScreen() {
   const { theme } = useChildTheme();
   const { selectedChildId } = useActiveChild();
+  const { user } = useAuth();
 
   const todayDate = new Date().getDate();
   const initialWeekDays = buildWeekDays(new Date());
@@ -159,6 +177,12 @@ export default function AgendaScreen() {
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
   const [selectedDay, setSelectedDay] = useState(todayDate);
   const [viewMode, setViewMode] = useState<ViewMode>('jour');
+
+  // Add event modal state
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventType, setNewEventType] = useState<NewEventType>('devoir');
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadEvents = useCallback(async () => {
     if (!selectedChildId) return;
@@ -214,6 +238,58 @@ export default function AgendaScreen() {
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  const openAddModal = useCallback(() => {
+    if (!process.env.EXPO_PUBLIC_SUPABASE_URL) {
+      Alert.alert('Info', 'Connectez Supabase pour ajouter des événements');
+      return;
+    }
+    setNewEventTitle('');
+    setNewEventType('devoir');
+    setAddModalVisible(true);
+  }, []);
+
+  const handleCreateEvent = useCallback(async () => {
+    if (!newEventTitle.trim()) {
+      Alert.alert('Titre requis', 'Veuillez saisir un titre pour l\'événement.');
+      return;
+    }
+    if (!selectedChildId || !user?.id) return;
+
+    // Build a start_time from the selected day in the current week
+    const selectedDayInfo = weekDays.find((d) => d.date === selectedDay) as (DayInfo & { fullDate?: Date }) | undefined;
+    const dayDate = selectedDayInfo?.fullDate ?? new Date();
+    dayDate.setHours(8, 0, 0, 0);
+    const startTime = dayDate.toISOString();
+
+    const typeMap: Record<NewEventType, AgendaEvent['type']> = {
+      devoir: 'devoir',
+      controle: 'examen',
+      sortie: 'sortie',
+      autre: 'activite',
+    };
+
+    setIsSaving(true);
+    try {
+      const result = await createAgendaEvent({
+        child_id: selectedChildId,
+        parent_id: user.id,
+        title: newEventTitle.trim(),
+        event_type: typeMap[newEventType],
+        emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
+        start_time: startTime,
+      });
+
+      if (result?.error) {
+        Alert.alert('Erreur', 'Impossible de créer l\'événement. Veuillez réessayer.');
+      } else {
+        setAddModalVisible(false);
+        await loadEvents();
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [newEventTitle, newEventType, selectedChildId, user, selectedDay, weekDays, loadEvents]);
 
   const events = eventsByDay[selectedDay] ?? [];
   const examCount = Object.values(eventsByDay)
@@ -526,7 +602,7 @@ export default function AgendaScreen() {
           )}
 
           {/* Add event button */}
-          <Pressable className="rounded-2xl overflow-hidden mt-2.5">
+          <Pressable className="rounded-2xl overflow-hidden mt-2.5" onPress={openAddModal}>
             <LinearGradient
               colors={[theme.accent, '#6366F1']}
               style={{
@@ -547,6 +623,199 @@ export default function AgendaScreen() {
           <Box className="h-10" />
         </Box>
       </Box>
+
+      {/* ─── Add Event Modal ─────────────────────────────── */}
+      <Modal
+        visible={addModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <Box
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(15,23,42,0.55)',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+              <Box
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                  padding: 24,
+                  paddingBottom: 36,
+                  ...Platform.select({
+                    ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 24 },
+                    android: { elevation: 20 },
+                    default: {},
+                  }),
+                }}
+              >
+                {/* Handle bar */}
+                <Box
+                  style={{
+                    width: 40,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: '#CBD5E1',
+                    alignSelf: 'center',
+                    marginBottom: 20,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '700',
+                    color: '#0F172A',
+                    marginBottom: 20,
+                  }}
+                >
+                  Nouvel événement
+                </Text>
+
+                {/* Date indicator */}
+                <HStack
+                  style={{
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 16,
+                    backgroundColor: theme.accent + '12',
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderWidth: 1,
+                    borderColor: theme.accent + '30',
+                  }}
+                >
+                  <Ionicons name="calendar" size={15} color={theme.accent} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: theme.accent }}>
+                    {weekDays.find((d) => d.date === selectedDay)?.day}{' '}
+                    {selectedDay}{' '}
+                    {weekDays.find((d) => d.date === selectedDay)?.month}
+                  </Text>
+                </HStack>
+
+                {/* Title input */}
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#64748B',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                    marginBottom: 8,
+                  }}
+                >
+                  Titre
+                </Text>
+                <TextInput
+                  value={newEventTitle}
+                  onChangeText={setNewEventTitle}
+                  placeholder="Ex: Contrôle de maths, Sortie scolaire…"
+                  placeholderTextColor="#94A3B8"
+                  autoFocus
+                  style={{
+                    backgroundColor: '#F7F8FC',
+                    borderWidth: 1.5,
+                    borderColor: '#EEF0F5',
+                    borderRadius: 12,
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    fontSize: 15,
+                    color: '#0F172A',
+                    marginBottom: 20,
+                  }}
+                />
+
+                {/* Type selector */}
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#64748B',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                    marginBottom: 10,
+                  }}
+                >
+                  Type
+                </Text>
+                <HStack style={{ gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+                  {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
+                    const isActive = newEventType === type;
+                    return (
+                      <Pressable
+                        key={type}
+                        onPress={() => setNewEventType(type)}
+                        style={{
+                          paddingHorizontal: 14,
+                          paddingVertical: 8,
+                          borderRadius: 20,
+                          borderWidth: 1.5,
+                          borderColor: isActive ? theme.accent : '#EEF0F5',
+                          backgroundColor: isActive ? theme.accent + '15' : '#FFFFFF',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: isActive ? theme.accent : '#64748B',
+                          }}
+                        >
+                          {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </HStack>
+
+                {/* Actions */}
+                <HStack style={{ gap: 12 }}>
+                  <Pressable
+                    onPress={() => setAddModalVisible(false)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderWidth: 1.5,
+                      borderColor: '#EEF0F5',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: '#64748B' }}>
+                      Annuler
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={handleCreateEvent}
+                    disabled={isSaving}
+                    style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}
+                  >
+                    <LinearGradient
+                      colors={[theme.accent, '#6366F1']}
+                      style={{
+                        paddingVertical: 14,
+                        alignItems: 'center',
+                        opacity: isSaving ? 0.6 : 1,
+                      }}
+                    >
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                        {isSaving ? 'Création…' : 'Créer'}
+                      </Text>
+                    </LinearGradient>
+                  </Pressable>
+                </HStack>
+              </Box>
+            </KeyboardAvoidingView>
+          </Box>
+        </TouchableWithoutFeedback>
+      </Modal>
     </ScrollView>
   );
 }

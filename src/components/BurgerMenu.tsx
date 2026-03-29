@@ -138,7 +138,7 @@ export default function BurgerMenu({
     { key: 'Absences', icon: 'medical', label: 'Absences' },
     { key: 'BienEtre', icon: 'heart', label: 'Bien-être' },
     { key: 'ProfilBadges', icon: 'trophy', label: 'Profil & Badges' },
-    { key: 'Archives', icon: 'folder', label: 'Archives' },
+    { key: 'MonParcours', icon: 'map', label: 'Mon parcours' },
   ];
 
   const familleItems: MenuItem[] = [
@@ -147,8 +147,8 @@ export default function BurgerMenu({
   ];
 
   const parametresItems: MenuItem[] = [
-    { key: 'Notifications', icon: 'notifications', label: 'Notifications' },
-    { key: 'RGPD', icon: 'shield-checkmark', label: 'RGPD & Confidentialité' },
+    { key: 'Reglages', icon: 'settings', label: 'Réglages' },
+{ key: 'RGPD', icon: 'shield-checkmark', label: 'RGPD & Confidentialité' },
     { key: 'APropos', icon: 'information-circle', label: 'À propos · Charte Éthique' },
   ];
 
@@ -234,7 +234,7 @@ export default function BurgerMenu({
                 className="text-sm font-semibold flex-1"
                 style={{ color: theme.textPrimary }}
               >
-                Changer de rôle
+                Changer de compte
               </Text>
             </Pressable>
             <Pressable

@@ -50,9 +50,39 @@ export interface ChildContext {
 // ─── Mock data (will be replaced by real data store) ─────
 
 export const MOCK_CHILDREN: ChildContext[] = [
+  // ── Léa (id '1') — Maternelle ──
   {
     profile: {
       id: '1',
+      scolariaId: 'SCA-2026-FR-048720',
+      name: 'Léa Moreau',
+      age: 4,
+      classe: 'Grande section',
+      school: 'Maternelle Pasteur',
+      superPower: 'Créativité',
+    },
+    grades: [],
+    activities: [
+      { name: 'Éveil musical', category: 'Musique', level: '1ère année' },
+      { name: 'Bébé nageur', category: 'Sport', level: 'Étoile de mer' },
+      { name: 'Peinture', category: 'Art', level: 'Découverte' },
+    ],
+    recentJoy: [
+      { date: '27 mars', score: 9, energy: 8, stress: 1 },
+      { date: '26 mars', score: 8, energy: 7, stress: 2 },
+      { date: '25 mars', score: 9, energy: 9, stress: 1 },
+      { date: '24 mars', score: 7, energy: 6, stress: 3 },
+      { date: '23 mars', score: 8, energy: 7, stress: 2 },
+    ],
+    upcomingEvents: [
+      'Atelier peinture — vendredi 28 mars 10h',
+      'Sortie au parc — lundi 31 mars',
+    ],
+  },
+  // ── Lucas (id '2') — Primaire ──
+  {
+    profile: {
+      id: '2',
       scolariaId: 'SCA-2026-FR-048721',
       name: 'Lucas Moreau',
       age: 10,
@@ -128,25 +158,26 @@ export const MOCK_CHILDREN: ChildContext[] = [
       { name: 'Robotique', category: 'Tech', level: 'Intermédiaire' },
     ],
     recentJoy: [
-      { date: '20 mars', score: 8, energy: 7, stress: 3 },
-      { date: '19 mars', score: 7, energy: 6, stress: 4 },
-      { date: '18 mars', score: 9, energy: 8, stress: 2 },
-      { date: '17 mars', score: 6, energy: 5, stress: 5 },
-      { date: '16 mars', score: 8, energy: 7, stress: 3 },
+      { date: '27 mars', score: 8, energy: 7, stress: 3 },
+      { date: '26 mars', score: 7, energy: 6, stress: 4 },
+      { date: '25 mars', score: 9, energy: 8, stress: 2 },
+      { date: '24 mars', score: 6, energy: 5, stress: 5 },
+      { date: '23 mars', score: 8, energy: 7, stress: 3 },
     ],
     upcomingEvents: [
-      'Contrôle de Maths — vendredi 20 mars (fractions et proportionnalité)',
-      'Sortie au Musée d\'Orsay — samedi 21 mars',
-      'Réunion parents — jeudi 19 mars 18h',
+      'Contrôle de Maths — vendredi 28 mars (fractions et proportionnalité)',
+      'Sortie au Musée d\'Orsay — samedi 29 mars',
+      'Réunion parents — jeudi 3 avril 18h',
     ],
   },
+  // ── Emma (id '3') — Collège ──
   {
     profile: {
-      id: '2',
+      id: '3',
       scolariaId: 'SCA-2026-FR-048722',
       name: 'Emma Moreau',
-      age: 12,
-      classe: '6ème',
+      age: 13,
+      classe: '3ème',
       school: 'Collège Victor Hugo',
       superPower: 'Créativité',
     },
@@ -185,13 +216,16 @@ export const MOCK_CHILDREN: ChildContext[] = [
     activities: [
       { name: 'Dessin', category: 'Art', level: 'Avancé' },
       { name: 'Danse', category: 'Sport', level: '4ème année' },
+      { name: 'Écriture créative', category: 'Littérature', level: 'Club ado' },
     ],
     recentJoy: [
-      { date: '20 mars', score: 7, energy: 6, stress: 4 },
-      { date: '19 mars', score: 8, energy: 7, stress: 3 },
+      { date: '27 mars', score: 7, energy: 6, stress: 4 },
+      { date: '26 mars', score: 8, energy: 7, stress: 3 },
+      { date: '25 mars', score: 7, energy: 7, stress: 3 },
     ],
     upcomingEvents: [
-      'Contrôle d\'anglais — lundi 23 mars',
+      'Contrôle d\'anglais — lundi 31 mars',
+      'Brevet blanc — 14-15 avril',
     ],
   },
 ];

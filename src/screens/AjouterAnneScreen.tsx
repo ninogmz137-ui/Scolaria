@@ -385,7 +385,7 @@ export default function AjouterAnneScreen() {
 function SummaryRow({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <HStack className="justify-between items-center">
-      <Text className="text-[13px] font-medium" style={{ color: Colors.gray }}>{label}</Text>
+      <Text className="text-[13px] font-medium" style={{ color: Colors.textSecondary }}>{label}</Text>
       <Text className="text-sm font-bold" style={{ color }}>{value}</Text>
     </HStack>
   );

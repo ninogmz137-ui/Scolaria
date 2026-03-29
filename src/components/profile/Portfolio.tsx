@@ -49,10 +49,10 @@ export default function Portfolio({ activities }: Props) {
     <Box className="mb-1">
       <HStack className="justify-between items-center mb-3">
         <Box>
-          <Text className="text-base font-bold" style={{ color: Colors.white }}>
+          <Text className="text-base font-bold" style={{ color: '#0F172A' }}>
             Portfolio extra-scolaire
           </Text>
-          <Text className="text-xs mt-0.5" style={{ color: Colors.gray }}>
+          <Text className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
             {activities.length} activité{activities.length > 1 ? 's' : ''}
             {' '}•{' '}
             {activities.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0)}h/semaine
@@ -88,9 +88,9 @@ export default function Portfolio({ activities }: Props) {
               className="items-center rounded-2xl p-3.5"
               style={{
                 width: 140,
-                backgroundColor: Colors.blueNightCard,
+                backgroundColor: '#FFFFFF',
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.06)',
+                borderColor: '#EEF0F5',
               }}
             >
               {/* Icon */}
@@ -106,10 +106,10 @@ export default function Portfolio({ activities }: Props) {
                 <Text className="text-2xl">{activity.emoji}</Text>
               </Box>
 
-              <Text className="text-[13px] font-bold text-center mb-0.5" style={{ color: Colors.white }}>
+              <Text className="text-[13px] font-bold text-center mb-0.5" style={{ color: '#0F172A' }}>
                 {activity.name}
               </Text>
-              <Text className="text-[11px] mb-2" style={{ color: Colors.gray }}>
+              <Text className="text-[11px] mb-2" style={{ color: '#94A3B8' }}>
                 {activity.category}
               </Text>
 
@@ -118,7 +118,7 @@ export default function Portfolio({ activities }: Props) {
                 <HStack className="items-center gap-1.5 w-full mb-2">
                   <Box
                     className="flex-1 rounded-sm overflow-hidden"
-                    style={{ height: 4, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                    style={{ height: 4, backgroundColor: '#EEF0F5' }}
                   >
                     <Box
                       className="rounded-sm"
@@ -147,7 +147,7 @@ export default function Portfolio({ activities }: Props) {
 
               {/* Hours */}
               {activity.hoursPerWeek != null && (
-                <Text className="text-[10px] mt-0.5" style={{ color: Colors.gray }}>
+                <Text className="text-[10px] mt-0.5" style={{ color: '#94A3B8' }}>
                   {activity.hoursPerWeek}h/sem
                   {activity.since ? ` • ${activity.since}` : ''}
                 </Text>

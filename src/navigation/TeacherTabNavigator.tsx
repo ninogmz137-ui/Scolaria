@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Teacher screens
 import TeacherDashboardScreen from '../screens/teacher/TeacherDashboardScreen';
@@ -26,12 +27,12 @@ import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 // ─── Color constants ─────────────────────────────────────
 
 const TEACHER_ORANGE = '#FF8C42';
-const TEACHER_BG = Colors.blueNight;
-const TEACHER_CARD = Colors.blueNightCard;
+const TEACHER_BG = '#F7F8FC';
+const TEACHER_CARD = '#FFFFFF';
 
 const STACK_OPTS = {
   headerStyle: { backgroundColor: TEACHER_BG },
-  headerTintColor: Colors.white,
+  headerTintColor: '#0F172A',
   headerTitleStyle: { fontWeight: 'bold' as const },
   animation: 'slide_from_right' as const,
   animationDuration: 250,
@@ -118,6 +119,8 @@ const tabIcons: Record<
 };
 
 export default function TeacherTabNavigator() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -129,14 +132,14 @@ export default function TeacherTabNavigator() {
           />
         ),
         tabBarActiveTintColor: TEACHER_ORANGE,
-        tabBarInactiveTintColor: Colors.gray,
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
           backgroundColor: TEACHER_CARD,
-          borderTopColor: 'rgba(255,255,255,0.06)',
+          borderTopColor: '#EEF0F5',
           borderTopWidth: 1,
-          paddingBottom: 5,
+          paddingBottom: Math.max(insets.bottom, 5),
           paddingTop: 5,
-          height: 62,
+          height: 62 + insets.bottom,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         headerShown: false,

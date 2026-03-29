@@ -96,10 +96,10 @@ export default function CahierLiaisonParent({
         <Box
           className="rounded-t-3xl p-6"
           style={{
-            backgroundColor: Colors.blueNight,
+            backgroundColor: '#F7F8FC',
             maxHeight: '85%',
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.08)',
+            borderColor: '#EEF0F5',
           }}
         >
           {/* Header */}
@@ -127,20 +127,20 @@ export default function CahierLiaisonParent({
                 {TYPE_CONFIG[selectedMot.type].label}
               </Text>
             </HStack>
-            <Text className="text-xs" style={{ color: Colors.gray }}>
+            <Text className="text-xs" style={{ color: '#94A3B8' }}>
               {selectedMot.teacher_name}
             </Text>
           </HStack>
 
           {/* Title */}
-          <Text className="text-lg font-extrabold mb-2" style={{ color: Colors.white }}>
+          <Text className="text-lg font-extrabold mb-2" style={{ color: '#0F172A' }}>
             {selectedMot.titre}
           </Text>
 
           {/* Date info */}
           <HStack className="items-center gap-1.5 mb-4">
-            <Ionicons name="calendar-outline" size={14} color={Colors.gray} />
-            <Text className="text-xs" style={{ color: Colors.gray }}>
+            <Ionicons name="calendar-outline" size={14} color={'#94A3B8'} />
+            <Text className="text-xs" style={{ color: '#94A3B8' }}>
               {formatDate(selectedMot.date_envoi)}
               {selectedMot.date_limite && ` · Limite : ${formatDate(selectedMot.date_limite)}`}
             </Text>
@@ -150,12 +150,12 @@ export default function CahierLiaisonParent({
           <Box
             className="p-4 rounded-2xl mb-4"
             style={{
-              backgroundColor: Colors.blueNightCard,
+              backgroundColor: '#FFFFFF',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.06)',
+              borderColor: '#EEF0F5',
             }}
           >
-            <Text className="text-sm" style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 22 }}>
+            <Text className="text-sm" style={{ color: '#0F172A', lineHeight: 22 }}>
               {selectedMot.contenu}
             </Text>
           </Box>
@@ -187,7 +187,7 @@ export default function CahierLiaisonParent({
                     <Text className="text-[15px] font-bold" style={{ color: Colors.green }}>
                       Signé
                     </Text>
-                    <Text className="text-xs mt-0.5" style={{ color: Colors.gray }}>
+                    <Text className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
                       {selectedMot.signed_at && `Le ${formatDateTime(selectedMot.signed_at)}`}
                     </Text>
                   </Box>
@@ -215,9 +215,9 @@ export default function CahierLiaisonParent({
           <Box
             className="w-full p-6 rounded-2xl items-center"
             style={{
-              backgroundColor: Colors.blueNight,
+              backgroundColor: '#F7F8FC',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: '#EEF0F5',
             }}
           >
             <Box
@@ -231,18 +231,18 @@ export default function CahierLiaisonParent({
             >
               <Ionicons name="pencil" size={28} color={accentColor} />
             </Box>
-            <Text className="text-lg font-extrabold mb-2.5" style={{ color: Colors.white }}>
+            <Text className="text-lg font-extrabold mb-2.5" style={{ color: '#0F172A' }}>
               Confirmer la signature
             </Text>
             <Text
               className="text-sm text-center mb-3"
-              style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 20 }}
+              style={{ color: '#64748B', lineHeight: 20 }}
             >
               En signant, vous confirmez avoir pris connaissance de ce document et autorisez votre enfant {childName} à y participer.
             </Text>
             <Text
               className="text-xs italic text-center mb-5 px-3 py-2 w-full rounded-xl"
-              style={{ color: Colors.gray, backgroundColor: Colors.blueNightCard }}
+              style={{ color: '#94A3B8', backgroundColor: '#FFFFFF' }}
             >
               Signature électronique de {parentName}
             </Text>
@@ -250,13 +250,13 @@ export default function CahierLiaisonParent({
               <Pressable
                 className="flex-1 py-3.5 rounded-xl items-center"
                 style={{
-                  backgroundColor: Colors.blueNightCard,
+                  backgroundColor: '#FFFFFF',
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: '#EEF0F5',
                 }}
                 onPress={() => setShowSignModal(false)}
               >
-                <Text className="text-sm font-semibold" style={{ color: Colors.gray }}>
+                <Text className="text-sm font-semibold" style={{ color: '#64748B' }}>
                   Annuler
                 </Text>
               </Pressable>
@@ -285,7 +285,7 @@ export default function CahierLiaisonParent({
       {/* Section header */}
       <HStack className="justify-between items-center mb-3">
         <HStack className="items-center gap-2">
-          <Text className="text-lg font-bold" style={{ color: Colors.white }}>
+          <Text className="text-lg font-bold" style={{ color: '#0F172A' }}>
             Cahier de Liaison
           </Text>
           {unsignedCount > 0 && (
@@ -317,13 +317,13 @@ export default function CahierLiaisonParent({
         <Box
           className="items-center p-8 rounded-2xl"
           style={{
-            backgroundColor: Colors.blueNightCard,
+            backgroundColor: '#FFFFFF',
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.06)',
+            borderColor: '#EEF0F5',
           }}
         >
           <Text className="text-[28px] mb-2">📭</Text>
-          <Text className="text-sm" style={{ color: Colors.gray }}>
+          <Text className="text-sm" style={{ color: '#94A3B8' }}>
             Aucun mot de liaison
           </Text>
         </Box>
@@ -337,13 +337,13 @@ export default function CahierLiaisonParent({
               key={mot.id}
               className="p-3.5 rounded-2xl mb-2.5"
               style={{
-                backgroundColor: Colors.blueNightCard,
+                backgroundColor: '#FFFFFF',
                 borderWidth: 1,
                 borderColor: needsSig
                   ? Colors.orange + '40'
                   : !mot.is_read
                     ? accentColor + '40'
-                    : 'rgba(255,255,255,0.06)',
+                    : '#EEF0F5',
               }}
               onPress={() => handleOpenMot(mot)}
             >
@@ -366,7 +366,7 @@ export default function CahierLiaisonParent({
                   <HStack className="items-center gap-1.5">
                     <Text
                       className="text-sm font-semibold flex-1"
-                      style={{ color: !mot.is_read ? Colors.white : Colors.gray }}
+                      style={{ color: !mot.is_read ? '#0F172A' : '#64748B' }}
                       numberOfLines={1}
                     >
                       {mot.titre}
@@ -375,7 +375,7 @@ export default function CahierLiaisonParent({
                       <Box className="rounded-full" style={{ width: 8, height: 8, backgroundColor: accentColor }} />
                     )}
                   </HStack>
-                  <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray }}>
+                  <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8' }}>
                     {mot.teacher_name} · {formatDateShort(mot.date_envoi)}
                   </Text>
                 </Box>
@@ -416,7 +416,7 @@ export default function CahierLiaisonParent({
               {needsSig && mot.date_limite && (
                 <HStack
                   className="items-center gap-1 mt-2 pt-2"
-                  style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' }}
+                  style={{ borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
                 >
                   <Ionicons name="time" size={12} color={Colors.orange} />
                   <Text className="text-[11px] font-semibold" style={{ color: Colors.orange }}>

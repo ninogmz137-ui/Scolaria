@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Box, Text, Pressable, HStack, VStack } from './ui';
 import { Colors } from '../constants/colors';
@@ -11,16 +10,16 @@ type Props = {
 export default function AriaCard({ childName, onPress }: Props) {
   return (
     <Pressable onPress={onPress} className="active:opacity-85">
-      <LinearGradient
-        colors={[Colors.violetDark, Colors.blueNight]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <Box
         style={{
           marginHorizontal: 20,
           borderRadius: 20,
           padding: 20,
           overflow: 'hidden',
           position: 'relative',
+          backgroundColor: Colors.card,
+          borderWidth: 1,
+          borderColor: Colors.cardBorder,
         }}
       >
         {/* Decorative glow */}
@@ -32,27 +31,27 @@ export default function AriaCard({ childName, onPress }: Props) {
             width: 120,
             height: 120,
             backgroundColor: Colors.violet,
-            opacity: 0.15,
+            opacity: 0.08,
           }}
         />
 
         <HStack className="items-center mb-4">
           <Box
             className="w-10 h-10 rounded-xl items-center justify-center"
-            style={{ backgroundColor: 'rgba(34, 211, 238, 0.1)' }}
+            style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
           >
-            <Ionicons name="sparkles" size={20} color={Colors.cyan} />
+            <Ionicons name="sparkles" size={20} color={Colors.violet} />
           </Box>
           <VStack className="ml-3">
             <Text
               className="text-lg font-bold"
-              style={{ color: Colors.white }}
+              style={{ color: Colors.textPrimary }}
             >
               Aria
             </Text>
             <Text
               className="text-xs mt-0.5"
-              style={{ color: Colors.gray }}
+              style={{ color: Colors.textSecondary }}
             >
               Assistant scolaire intelligent
             </Text>
@@ -61,11 +60,11 @@ export default function AriaCard({ childName, onPress }: Props) {
 
         <Box
           className="rounded-xl p-3.5 mb-3.5"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+          style={{ backgroundColor: '#EEF2FF' }}
         >
           <Text
             className="text-sm italic leading-5"
-            style={{ color: Colors.lightGray }}
+            style={{ color: Colors.textSecondary }}
           >
             « {childName} a progressé en maths cette semaine. Son investissement dans les exercices porte ses fruits ! »
           </Text>
@@ -74,13 +73,13 @@ export default function AriaCard({ childName, onPress }: Props) {
         <HStack className="items-center gap-1.5">
           <Text
             className="text-[13px] font-semibold"
-            style={{ color: Colors.cyan }}
+            style={{ color: Colors.violet }}
           >
             Discuter avec Aria
           </Text>
-          <Ionicons name="arrow-forward" size={16} color={Colors.cyan} />
+          <Ionicons name="arrow-forward" size={16} color={Colors.violet} />
         </HStack>
-      </LinearGradient>
+      </Box>
     </Pressable>
   );
 }

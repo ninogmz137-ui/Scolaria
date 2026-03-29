@@ -8,8 +8,9 @@ import * as ExpoSplashScreen from 'expo-splash-screen';
 import TabNavigator from './src/navigation/TabNavigator';
 import TeacherTabNavigator from './src/navigation/TeacherTabNavigator';
 import EleveTabNavigator from './src/navigation/EleveTabNavigator';
-import AuthScreen from './src/screens/AuthScreen';
-import RoleSelectionScreen from './src/screens/RoleSelectionScreen';
+import SandboxNavigator from './src/navigation/SandboxNavigator';
+import LoginScreen from './src/screens/LoginScreen';
+import PinScreen from './src/screens/PinScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import SplashScreenAnimated from './src/screens/SplashScreen';
 import ConseilDuMatin from './src/components/ConseilDuMatin';
@@ -22,7 +23,7 @@ import { ChildThemeProvider } from './src/contexts/ChildThemeContext';
 import { Colors } from './src/constants/colors';
 import { scheduleConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
-import type { UserRole } from './src/contexts/AuthContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const ONBOARDING_KEY = '@scolaria_onboarding_done';
 
@@ -30,10 +31,11 @@ const ONBOARDING_KEY = '@scolaria_onboarding_done';
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 function AppContent() {
-  const { user, loading, role, setRole } = useAuth();
+  const { user, loading, role } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [showConseil, setShowConseil] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
+  const [authScreen, setAuthScreen] = useState<'login' | 'pin'>('login');
 
   useEffect(() => {
     // Hide the native splash screen once our custom one is ready
@@ -83,22 +85,24 @@ function AppContent() {
     return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
-  // Role selection (before auth form)
-  if (!role) {
-    return <RoleSelectionScreen onSelectRole={(r) => setRole(r)} />;
+  // ─── AUTH SCREENS ─────────────────────────────────────
+  // No role yet = not authenticated → show login or PIN
+  if (!role || !user) {
+    if (authScreen === 'pin') {
+      return <PinScreen onBack={() => setAuthScreen('login')} />;
+    }
+    return <LoginScreen onNavigatePin={() => setAuthScreen('pin')} />;
   }
 
-  if (!user) {
-    return <AuthScreen />;
-  }
-
-  // Route to correct navigator based on role
+  // ─── AUTHENTICATED — Route to correct navigator ──────
   const renderNavigator = () => {
     switch (role) {
       case 'enseignant':
         return <TeacherTabNavigator />;
       case 'eleve':
         return <EleveTabNavigator />;
+      case 'enfant-pin':
+        return <SandboxNavigator />;
       case 'parent':
       default:
         return <TabNavigator />;
@@ -127,19 +131,21 @@ export default function App() {
   }
 
   return (
-    <I18nProvider>
-      <SchoolModeProvider>
-        <ActiveChildProvider>
-          <ChildThemeProvider>
-            <AuthProvider>
-              <NavigationContainer>
-                <StatusBar style="light" />
-                <AppContent />
-              </NavigationContainer>
-            </AuthProvider>
-          </ChildThemeProvider>
-        </ActiveChildProvider>
-      </SchoolModeProvider>
-    </I18nProvider>
+    <SafeAreaProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <SchoolModeProvider>
+            <ActiveChildProvider>
+              <ChildThemeProvider>
+                <NavigationContainer>
+                  <StatusBar style="light" />
+                  <AppContent />
+                </NavigationContainer>
+              </ChildThemeProvider>
+            </ActiveChildProvider>
+          </SchoolModeProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </SafeAreaProvider>
   );
 }

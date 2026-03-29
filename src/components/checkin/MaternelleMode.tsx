@@ -49,7 +49,7 @@ export default function MaternelleMode({ onSubmit }: Props) {
       </Text>
       <Text
         className="text-[15px] text-center mb-[30px]"
-        style={{ color: Colors.warmCreamDark }}
+        style={{ color: '#64748B' }}
       >
         Touche le visage qui te ressemble
       </Text>
@@ -76,7 +76,7 @@ export default function MaternelleMode({ onSubmit }: Props) {
               <Text style={{ fontSize: 56, marginBottom: 8 }}>{emotion.emoji}</Text>
               <Text
                 className="text-base font-semibold"
-                style={{ color: selected === emotion.value ? Colors.warmOrange : Colors.warmCreamDark }}
+                style={{ color: selected === emotion.value ? Colors.warmOrange : '#64748B' }}
               >
                 {emotion.label}
               </Text>

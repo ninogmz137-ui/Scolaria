@@ -145,13 +145,13 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
             ],
           }}
         >
-          <LinearGradient
-            colors={[Colors.blueNightCard, Colors.blueNight]}
+          <Box
             style={{
               borderRadius: 24,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.08)',
+              borderColor: Colors.cardBorder,
               overflow: 'hidden',
+              backgroundColor: Colors.card,
             }}
           >
             {/* Header */}
@@ -159,10 +159,10 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
               <HStack className="items-center gap-3">
                 <Text className="text-[28px]">☀️</Text>
                 <Box>
-                  <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
+                  <Text className="text-lg font-extrabold" style={{ color: Colors.textPrimary }}>
                     Conseil du Matin
                   </Text>
-                  <Text className="text-[13px] mt-0.5 capitalize" style={{ color: Colors.gray }}>
+                  <Text className="text-[13px] mt-0.5 capitalize" style={{ color: Colors.textSecondary }}>
                     {today}
                   </Text>
                 </Box>
@@ -173,17 +173,17 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
                   width: 32,
                   height: 32,
                   borderRadius: 16,
-                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  backgroundColor: '#EEF0F5',
                 }}
                 onPress={handleDismiss}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Ionicons name="close" size={20} color={Colors.gray} />
+                <Ionicons name="close" size={20} color={Colors.textSecondary} />
               </Pressable>
             </HStack>
 
             {/* Divider */}
-            <Box className="mx-5" style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} />
+            <Box className="mx-5" style={{ height: 1, backgroundColor: Colors.cardBorder }} />
 
             {/* Tip content */}
             <VStack className="p-5 items-center">
@@ -193,7 +193,7 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
                   width: 64,
                   height: 64,
                   borderRadius: 32,
-                  backgroundColor: 'rgba(109,40,217,0.12)',
+                  backgroundColor: 'rgba(99, 102, 241, 0.08)',
                 }}
               >
                 <Text className="text-[32px]">{tip.emoji}</Text>
@@ -208,10 +208,10 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
                 </Text>
               </Box>
 
-              <Text className="text-xl font-extrabold text-center mb-2.5" style={{ color: Colors.white }}>
+              <Text className="text-xl font-extrabold text-center mb-2.5" style={{ color: Colors.textPrimary }}>
                 {tip.title}
               </Text>
-              <Text className="text-[15px] text-center" style={{ color: Colors.lightGray, lineHeight: 23 }}>
+              <Text className="text-[15px] text-center" style={{ color: Colors.textSecondary, lineHeight: 23 }}>
                 {tip.body}
               </Text>
             </VStack>
@@ -220,7 +220,9 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
             <VStack className="px-5 gap-2.5">
               <Pressable className="rounded-3xl overflow-hidden" onPress={handleDismiss}>
                 <LinearGradient
-                  colors={[Colors.violet, Colors.violetDark]}
+                  colors={['#6366F1', '#22D3EE']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                   style={{ alignItems: 'center', paddingVertical: 14 }}
                 >
                   <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
@@ -230,17 +232,17 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
               </Pressable>
 
               <Pressable className="items-center py-2.5" onPress={handleDismiss}>
-                <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>
+                <Text className="text-sm font-semibold" style={{ color: Colors.violet }}>
                   Demander à Aria →
                 </Text>
               </Pressable>
             </VStack>
 
             {/* Footer */}
-            <Text className="text-[11px] text-center py-3.5" style={{ color: Colors.gray }}>
+            <Text className="text-[11px] text-center py-3.5" style={{ color: Colors.textMuted }}>
               Aria analyse les données de Lucas chaque matin ✦
             </Text>
-          </LinearGradient>
+          </Box>
         </Animated.View>
       </Animated.View>
     </Modal>

@@ -23,17 +23,17 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
       <HStack className="justify-between items-center mb-4">
         <Text
           className="text-base font-bold"
-          style={{ color: Colors.white }}
+          style={{ color: Colors.textPrimary }}
         >
           Agenda
         </Text>
         <Box
           className="px-3 py-[5px] rounded-[10px]"
-          style={{ backgroundColor: Colors.blueNightCard }}
+          style={{ backgroundColor: '#EEF2FF' }}
         >
           <Text
             className="text-xs font-semibold"
-            style={{ color: Colors.cyan }}
+            style={{ color: Colors.violet }}
           >
             {dayLabel}
           </Text>
@@ -48,7 +48,7 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
               <Text
                 className="text-xs font-medium"
                 style={{
-                  color: event.isNow ? Colors.cyan : Colors.gray,
+                  color: event.isNow ? Colors.violet : Colors.textSecondary,
                   fontWeight: event.isNow ? '700' : '500',
                 }}
               >
@@ -61,7 +61,7 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
               <Box
                 className="w-2.5 h-2.5 rounded-full"
                 style={{
-                  backgroundColor: event.isNow ? Colors.cyan : event.color,
+                  backgroundColor: event.isNow ? Colors.violet : event.color,
                 }}
               />
               {index < events.length - 1 && (
@@ -69,7 +69,7 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
                   className="flex-1 mt-1"
                   style={{
                     width: 2,
-                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    backgroundColor: Colors.cardBorder,
                   }}
                 />
               )}
@@ -79,15 +79,11 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
             <HStack
               className="flex-1 items-center rounded-[14px] p-3 ml-2.5 mb-2"
               style={{
-                backgroundColor: event.isNow
-                  ? Colors.blueNightLight
-                  : Colors.blueNightCard,
-                ...(event.isNow
-                  ? {
-                      borderWidth: 1,
-                      borderColor: 'rgba(34, 211, 238, 0.3)',
-                    }
-                  : {}),
+                backgroundColor: Colors.card,
+                borderWidth: 1,
+                borderColor: event.isNow
+                  ? 'rgba(99, 102, 241, 0.3)'
+                  : Colors.cardBorder,
               }}
             >
               <Box
@@ -99,14 +95,14 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
               <VStack className="flex-1 ml-2.5">
                 <Text
                   className="text-sm font-semibold"
-                  style={{ color: Colors.white }}
+                  style={{ color: Colors.textPrimary }}
                 >
                   {event.title}
                 </Text>
                 {event.subtitle && (
                   <Text
                     className="text-[11px] mt-0.5"
-                    style={{ color: Colors.gray }}
+                    style={{ color: Colors.textSecondary }}
                   >
                     {event.subtitle}
                   </Text>
@@ -115,11 +111,11 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
               {event.isNow && (
                 <Box
                   className="px-2 py-[3px] rounded-md"
-                  style={{ backgroundColor: 'rgba(34, 211, 238, 0.15)' }}
+                  style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)' }}
                 >
                   <Text
                     className="text-[10px] font-bold"
-                    style={{ color: Colors.cyan }}
+                    style={{ color: Colors.violet }}
                   >
                     En cours
                   </Text>

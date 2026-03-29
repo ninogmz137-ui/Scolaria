@@ -3,12 +3,10 @@ import {
   Animated,
   Easing,
   Share,
-  Platform,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../ui';
+import { Box, Text, Pressable, HStack } from '../ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -29,77 +27,6 @@ interface Props {
   accentLight?: string;
 }
 
-// ─── Orbit Particle ───────────────────────────────────────
-
-function OrbitParticle({
-  size,
-  color,
-  orbitRadius,
-  startAngle,
-  duration,
-  delay,
-  glowing,
-}: {
-  size: number;
-  color: string;
-  orbitRadius: number;
-  startAngle: number;
-  duration: number;
-  delay: number;
-  glowing?: boolean;
-}) {
-  const anim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(anim, {
-        toValue: 1,
-        duration,
-        easing: Easing.linear,
-        useNativeDriver: true,
-        delay,
-      }),
-    ).start();
-  }, []);
-
-  const spin = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [`${(startAngle * 180) / Math.PI}deg`, `${(startAngle * 180) / Math.PI + 360}deg`],
-  });
-
-  return (
-    <Animated.View
-      style={{
-        position: 'absolute',
-        width: orbitRadius * 2,
-        height: orbitRadius * 2,
-        transform: [{ rotate: spin }],
-      }}
-    >
-      <Box
-        style={{
-          position: 'absolute',
-          top: -size / 2,
-          left: orbitRadius - size / 2,
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: color,
-          ...(glowing
-            ? {
-                shadowColor: color,
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.8,
-                shadowRadius: 6,
-                elevation: 6,
-              }
-            : {}),
-        }}
-      />
-    </Animated.View>
-  );
-}
-
 // ─── Component ────────────────────────────────────────────
 
 export default function SuperPowerBadge({
@@ -109,10 +36,9 @@ export default function SuperPowerBadge({
   childName,
   tags = [],
   trimesterWeeksLeft = 6,
-  accentColor = Colors.cyan,
-  accentLight = Colors.violet,
+  accentColor = '#22D3EE',
+  accentLight = '#6D28D9',
 }: Props) {
-  const rotation = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
   const badgeScale = useRef(new Animated.Value(0)).current;
@@ -121,7 +47,6 @@ export default function SuperPowerBadge({
   const shareFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Entrance animation sequence
     Animated.sequence([
       Animated.spring(badgeScale, {
         toValue: 1,
@@ -154,16 +79,6 @@ export default function SuperPowerBadge({
       }),
     ]).start();
 
-    // Slow orbit ring rotation
-    Animated.loop(
-      Animated.timing(rotation, {
-        toValue: 1,
-        duration: 20000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-
     // Core pulse
     Animated.loop(
       Animated.sequence([
@@ -183,11 +98,6 @@ export default function SuperPowerBadge({
     ).start();
   }, []);
 
-  const orbitSpin = rotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   const handleShare = async () => {
     const shareText = `${emoji} ${childName} — ${power}\n\n${description ?? ''}\n\n${tags.map((t) => `${t.emoji} ${t.label}`).join(' · ')}\n\n— Profil Scolaria`;
     try {
@@ -204,52 +114,22 @@ export default function SuperPowerBadge({
     <Box className="items-center">
       {/* Section label */}
       <HStack className="items-center justify-between w-full mb-2">
-        <Text className="text-lg font-bold" style={{ color: Colors.white }}>
+        <Text className="text-lg font-bold" style={{ color: '#0F172A' }}>
           Super-Pouvoir
         </Text>
         <HStack
           className="items-center gap-1 px-2 py-1 rounded-lg"
-          style={{ backgroundColor: accentLight + '20', borderWidth: 1, borderColor: accentLight + '30' }}
+          style={{ backgroundColor: accentLight + '12', borderWidth: 1, borderColor: accentLight + '20' }}
         >
-          <Ionicons name="sparkles" size={10} color={accentLight} />
-          <Text className="text-[10px] font-bold" style={{ color: accentLight }}>
+          <Ionicons name="sparkles" size={10} color={accentColor} />
+          <Text className="text-[10px] font-bold" style={{ color: accentColor }}>
             Observé par Aria
           </Text>
         </HStack>
       </HStack>
 
-      {/* Badge area with orbiting particles */}
-      <Box className="justify-center items-center mt-2 mb-1" style={{ width: 180, height: 180 }}>
-        {/* Outer orbit ring (dashed) */}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            width: 160,
-            height: 160,
-            borderRadius: 80,
-            borderWidth: 1.5,
-            borderStyle: 'dashed',
-            transform: [{ rotate: orbitSpin }],
-            borderColor: accentLight + '25',
-          }}
-        />
-
-        {/* Inner orbit ring */}
-        <Box
-          className="absolute rounded-full"
-          style={{ width: 120, height: 120, borderWidth: 1, borderColor: accentColor + '15' }}
-        />
-
-        {/* Orbiting particles */}
-        <Box className="absolute justify-center items-center" style={{ width: 0, height: 0 }}>
-          <OrbitParticle size={12} color={accentColor} orbitRadius={80} startAngle={0} duration={8000} delay={0} glowing />
-          <OrbitParticle size={8} color={accentLight} orbitRadius={80} startAngle={2.1} duration={8000} delay={0} />
-          <OrbitParticle size={6} color={Colors.pink} orbitRadius={80} startAngle={4.2} duration={8000} delay={0} />
-          <OrbitParticle size={10} color={Colors.green} orbitRadius={60} startAngle={1} duration={6000} delay={200} glowing />
-          <OrbitParticle size={5} color={Colors.orange} orbitRadius={60} startAngle={3.5} duration={6000} delay={200} />
-          <OrbitParticle size={7} color={accentColor} orbitRadius={60} startAngle={5.5} duration={6000} delay={200} />
-        </Box>
-
+      {/* Badge area — clean, no orbit rings */}
+      <Box className="justify-center items-center mt-2 mb-1" style={{ width: 140, height: 140 }}>
         {/* Core badge */}
         <Animated.View style={{ transform: [{ scale: Animated.multiply(pulse, badgeScale) }] }}>
           <LinearGradient
@@ -262,11 +142,11 @@ export default function SuperPowerBadge({
               borderRadius: 45,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: Colors.violet,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
-              shadowRadius: 20,
-              elevation: 10,
+              shadowColor: accentColor,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+              elevation: 6,
             }}
           >
             <Text className="text-[42px]">{emoji}</Text>
@@ -287,11 +167,11 @@ export default function SuperPowerBadge({
           style={{
             opacity: fadeIn,
             flexDirection: 'row',
-            backgroundColor: Colors.blueNightCard,
+            backgroundColor: '#FFFFFF',
             borderRadius: 16,
             padding: 14,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.06)',
+            borderColor: '#EEF0F5',
             gap: 10,
             marginBottom: 14,
             width: '100%',
@@ -299,11 +179,11 @@ export default function SuperPowerBadge({
         >
           <Box
             className="justify-center items-center mt-0.5"
-            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: accentLight + '15' }}
+            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: accentColor + '12' }}
           >
-            <Ionicons name="chatbubble-ellipses" size={14} color={accentLight} />
+            <Ionicons name="chatbubble-ellipses" size={14} color={accentColor} />
           </Box>
-          <Text className="flex-1 text-[13px] italic" style={{ color: 'rgba(255,255,255,0.75)', lineHeight: 19 }}>
+          <Text className="flex-1 text-[13px] italic" style={{ color: '#64748B', lineHeight: 19 }}>
             {description}
           </Text>
         </Animated.View>
@@ -327,7 +207,7 @@ export default function SuperPowerBadge({
             <HStack
               key={tag.label}
               className="items-center gap-1.5 px-3 py-1.5 rounded-full"
-              style={{ borderWidth: 1, borderColor: tag.color + '35', backgroundColor: tag.color + '10' }}
+              style={{ borderWidth: 1, borderColor: tag.color + '25', backgroundColor: tag.color + '08' }}
             >
               <Text className="text-[13px]">{tag.emoji}</Text>
               <Text className="text-xs font-bold" style={{ color: tag.color }}>
@@ -340,8 +220,8 @@ export default function SuperPowerBadge({
 
       {/* Trimester observation */}
       <Animated.View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16, opacity: tagsFade }}>
-        <Ionicons name="eye-outline" size={14} color={Colors.gray} />
-        <Text className="text-xs font-medium" style={{ color: Colors.gray }}>
+        <Ionicons name="eye-outline" size={14} color="#94A3B8" />
+        <Text className="text-xs font-medium" style={{ color: '#94A3B8' }}>
           Profil observé ce trimestre · Révisé dans {trimesterWeeksLeft} semaines
         </Text>
       </Animated.View>
@@ -350,11 +230,11 @@ export default function SuperPowerBadge({
       <Animated.View style={{ opacity: shareFade, width: '100%' }}>
         <Pressable
           className="rounded-2xl overflow-hidden"
-          style={{ borderWidth: 1, borderColor: accentColor + '30' }}
+          style={{ borderWidth: 1, borderColor: accentColor + '20' }}
           onPress={handleShare}
         >
           <LinearGradient
-            colors={[accentLight + '15', accentColor + '10']}
+            colors={[accentColor + '08', accentLight + '08']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -371,8 +251,8 @@ export default function SuperPowerBadge({
               Partager la carte Super-Pouvoir
             </Text>
             <HStack className="gap-2">
-              <Ionicons name="logo-whatsapp" size={14} color={Colors.green} />
-              <Ionicons name="mail-outline" size={14} color={Colors.gray} />
+              <Ionicons name="logo-whatsapp" size={14} color="#34D399" />
+              <Ionicons name="mail-outline" size={14} color="#94A3B8" />
             </HStack>
           </LinearGradient>
         </Pressable>

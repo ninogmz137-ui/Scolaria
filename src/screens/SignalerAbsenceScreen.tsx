@@ -11,10 +11,13 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
+import DecorativeBlobs from '../components/DecorativeBlobs';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import {
@@ -28,6 +31,18 @@ import {
   type AbsenceMotif,
   type DemiJournee,
 } from '../services/absenceService';
+
+// ─── Helpers ─────────────────────────────────────────────
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const cleaned = hex.replace('#', '');
+  const bigint = parseInt(cleaned, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255,
+  };
+}
 
 // ─── Date helpers ────────────────────────────────────────
 
@@ -44,6 +59,14 @@ function addDays(dateStr: string, n: number): string {
 const TODAY = toDateStr(new Date());
 const TOMORROW = addDays(TODAY, 1);
 
+// ─── Shadow constant ────────────────────────────────────
+
+const CARD_SHADOW = Platform.select({
+  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+  android: { elevation: 8 },
+  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
+});
+
 // ─── Component ───────────────────────────────────────────
 
 export default function SignalerAbsenceScreen() {
@@ -52,6 +75,7 @@ export default function SignalerAbsenceScreen() {
   const navigation = useNavigation<any>();
 
   const accent = theme.accent;
+  const { r: ar, g: ag, b: ab } = hexToRgb(accent);
 
   // ── Step state ──
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -148,27 +172,42 @@ export default function SignalerAbsenceScreen() {
 
   const demiList: DemiJournee[] = ['matin', 'apres_midi', 'journee'];
 
+  // ── Accent-tinted border color ──
+  const accentBorder = `rgba(${ar}, ${ag}, ${ab}, 0.18)`;
+
   // ── Success screen ──
   if (success) {
     return (
-      <Box className="flex-1" style={{ backgroundColor: theme.bg }}>
+      <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
+        <DecorativeBlobs accent={accent} />
         <VStack className="flex-1 justify-center items-center p-8" style={{ gap: 16 }}>
           <Box
-            className="w-[100px] h-[100px] rounded-full justify-center items-center mb-2"
-            style={{ backgroundColor: '#34D39920' }}
+            className="rounded-[22px] p-8 items-center"
+            style={{
+              backgroundColor: '#FFFFFF',
+              ...CARD_SHADOW,
+              borderWidth: 1.5,
+              borderColor: accentBorder,
+              gap: 16,
+            }}
           >
-            <Ionicons name="checkmark-circle" size={64} color="#34D399" />
+            <Box
+              className="w-[100px] h-[100px] rounded-full justify-center items-center mb-2"
+              style={{ backgroundColor: '#34D39920' }}
+            >
+              <Ionicons name="checkmark-circle" size={64} color="#34D399" />
+            </Box>
+            <Text className="text-[22px] font-black" style={{ color: theme.textPrimary }}>
+              Absence signalée
+            </Text>
+            <Text className="text-[15px] text-center leading-[22px]" style={{ color: theme.textSecondary }}>
+              {selectedChild.name} sera absent(e) {formatDateRange(resolvedDateDebut, resolvedDateFin)}
+              {'\n'}Motif : {motif ? MOTIF_LABELS[motif] : ''}
+            </Text>
+            <Text className="text-xs text-center" style={{ color: theme.textMuted }}>
+              L'enseignant principal a été notifié.
+            </Text>
           </Box>
-          <Text className="text-[22px] font-black" style={{ color: theme.textPrimary }}>
-            Absence signalée
-          </Text>
-          <Text className="text-[15px] text-center leading-[22px]" style={{ color: theme.textSecondary }}>
-            {selectedChild.name} sera absent(e) {formatDateRange(resolvedDateDebut, resolvedDateFin)}
-            {'\n'}Motif : {motif ? MOTIF_LABELS[motif] : ''}
-          </Text>
-          <Text className="text-xs text-center" style={{ color: theme.textMuted }}>
-            L'enseignant principal a été notifié.
-          </Text>
           <Pressable
             className="flex-row items-center justify-center py-4 rounded-2xl w-full"
             style={{ backgroundColor: accent }}
@@ -182,20 +221,29 @@ export default function SignalerAbsenceScreen() {
   }
 
   return (
-    <Box className="flex-1" style={{ backgroundColor: theme.bg }}>
-      {/* Header */}
-      <HStack
-        className="items-center justify-between px-4 py-3.5"
-        style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
+    <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
+      <DecorativeBlobs accent={accent} />
+
+      {/* Mini gradient header */}
+      <LinearGradient
+        colors={['#0B1628', accent + 'DD'] as [string, string]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}
       >
-        <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Ionicons name="arrow-back" size={22} color={theme.textPrimary} />
-        </Pressable>
-        <Text className="text-base font-extrabold" style={{ color: theme.textPrimary }}>
-          Prévenir d'une absence
-        </Text>
-        <Box className="w-[22px]" />
-      </HStack>
+        <HStack
+          className="items-center justify-between px-4 py-3.5"
+          style={{ paddingTop: Platform.OS === 'ios' ? 56 : 14 }}
+        >
+          <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+          </Pressable>
+          <Text className="text-base font-extrabold" style={{ color: '#FFFFFF' }}>
+            Prévenir d'une absence
+          </Text>
+          <Box className="w-[22px]" />
+        </HStack>
+      </LinearGradient>
 
       {/* Steps indicator */}
       <HStack className="justify-around py-4 px-10 relative">
@@ -205,8 +253,9 @@ export default function SignalerAbsenceScreen() {
               className="w-8 h-8 rounded-full justify-center items-center mb-1"
               style={{
                 borderWidth: 2,
-                backgroundColor: s <= step ? accent : theme.card,
+                backgroundColor: s <= step ? accent : '#FFFFFF',
                 borderColor: s <= step ? accent : theme.cardBorder,
+                ...(s <= step ? CARD_SHADOW : {}),
               }}
             >
               <Text className="text-[13px] font-extrabold" style={{ color: s <= step ? '#FFF' : theme.textMuted }}>
@@ -246,7 +295,12 @@ export default function SignalerAbsenceScreen() {
                   <Pressable
                     key={c}
                     className="px-4 py-3 rounded-[14px] min-w-[90px] items-center"
-                    style={{ backgroundColor: active ? accent + '20' : theme.card, borderWidth: 1.5, borderColor: active ? accent : theme.cardBorder }}
+                    style={{
+                      backgroundColor: active ? accent + '20' : '#FFFFFF',
+                      borderWidth: 1.5,
+                      borderColor: active ? accent : accentBorder,
+                      ...CARD_SHADOW,
+                    }}
                     onPress={() => handleDateChoice(c)}
                   >
                     <Text className="text-[13px] font-bold" style={{ color: active ? accent : theme.textPrimary }}>
@@ -261,7 +315,7 @@ export default function SignalerAbsenceScreen() {
             {dateChoice === 'custom' && (
               <Box
                 className="rounded-[14px] p-3.5"
-                style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+                style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
               >
                 <Text className="text-xs font-semibold mb-1.5" style={{ color: theme.textSecondary }}>Date (AAAA-MM-JJ)</Text>
                 <TextInput
@@ -295,7 +349,7 @@ export default function SignalerAbsenceScreen() {
             {multiDay && (
               <Box
                 className="rounded-[14px] p-3.5"
-                style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+                style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
               >
                 <Text className="text-xs font-semibold mb-1.5" style={{ color: theme.textSecondary }}>Date de fin (AAAA-MM-JJ)</Text>
                 <TextInput
@@ -322,7 +376,12 @@ export default function SignalerAbsenceScreen() {
                       <Pressable
                         key={dj}
                         className="px-4 py-3 rounded-[14px] min-w-[90px] items-center"
-                        style={{ backgroundColor: active ? accent + '20' : theme.card, borderWidth: 1.5, borderColor: active ? accent : theme.cardBorder }}
+                        style={{
+                          backgroundColor: active ? accent + '20' : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: active ? accent : accentBorder,
+                          ...CARD_SHADOW,
+                        }}
                         onPress={() => setDemiJournee(dj)}
                       >
                         <Text className="text-[13px] font-bold" style={{ color: active ? accent : theme.textPrimary }}>
@@ -367,9 +426,10 @@ export default function SignalerAbsenceScreen() {
                     className="flex-row items-center p-4 rounded-2xl relative"
                     style={{
                       gap: 12,
-                      backgroundColor: active ? accent + '15' : theme.card,
+                      backgroundColor: active ? accent + '15' : '#FFFFFF',
                       borderWidth: 1.5,
-                      borderColor: active ? accent : theme.cardBorder,
+                      borderColor: active ? accent : accentBorder,
+                      ...CARD_SHADOW,
                     }}
                     onPress={() => setMotif(m)}
                   >
@@ -396,7 +456,7 @@ export default function SignalerAbsenceScreen() {
             </Text>
             <Box
               className="rounded-[14px] p-3.5"
-              style={{ backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder }}
+              style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
             >
               <TextInput
                 style={{ fontSize: 15, fontWeight: '500', padding: 0, minHeight: 60, textAlignVertical: 'top', color: theme.textPrimary }}
@@ -437,7 +497,13 @@ export default function SignalerAbsenceScreen() {
             {/* Recap card */}
             <Box
               className="rounded-[18px] p-[18px]"
-              style={{ borderWidth: 1, backgroundColor: theme.card, borderColor: theme.cardBorder, gap: 14 }}
+              style={{
+                borderWidth: 1.5,
+                backgroundColor: '#FFFFFF',
+                borderColor: accentBorder,
+                gap: 14,
+                ...CARD_SHADOW,
+              }}
             >
               <HStack className="items-center" style={{ gap: 12 }}>
                 <Text className="text-[32px]">{selectedChild.avatar}</Text>

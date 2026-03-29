@@ -51,11 +51,11 @@ interface DashboardData {
   joyScore: { value: number; trend: 'stable' | 'up' | 'down' };
 }
 
-function getMockDashboard(childId: string): DashboardData {
+function getMockDashboard(childId: string, childName: string = 'Votre enfant'): DashboardData {
   switch (childId) {
     case '1':
       return {
-        ariaSummary: 'Léa a une journée tranquille. Atelier peinture prévu ce matin. Aucun mot en attente dans le cahier de liaison.',
+        ariaSummary: `${childName} a une journée tranquille. Atelier peinture prévu ce matin. Aucun mot en attente dans le cahier de liaison.`,
         liaison: { total: 3, unsigned: 0 },
         devoirs: { count: 0, nextDate: '—' },
         notes: { average: 0, trend: 0 },
@@ -64,7 +64,7 @@ function getMockDashboard(childId: string): DashboardData {
       };
     case '2':
       return {
-        ariaSummary: 'Lucas a un contrôle de Maths vendredi. 2 devoirs à rendre cette semaine. 1 mot non signé dans le cahier de liaison.',
+        ariaSummary: `${childName} a un contrôle de Maths vendredi. 2 devoirs à rendre cette semaine. 1 mot non signé dans le cahier de liaison.`,
         liaison: { total: 4, unsigned: 1 },
         devoirs: { count: 2, nextDate: 'Jeudi' },
         notes: { average: 14.2, trend: 0.8 },
@@ -74,7 +74,7 @@ function getMockDashboard(childId: string): DashboardData {
     case '3':
     default:
       return {
-        ariaSummary: 'Bonne journée pour Emma. Aucun devoir urgent. 1 autorisation à signer pour la sortie du 15 avril.',
+        ariaSummary: `Bonne journée pour ${childName}. Aucun devoir urgent. 1 autorisation à signer pour la sortie du 15 avril.`,
         liaison: { total: 4, unsigned: 1 },
         devoirs: { count: 1, nextDate: 'Lundi' },
         notes: { average: 15.6, trend: -0.3 },
@@ -132,9 +132,9 @@ export default function AccueilScreen() {
   const todayAbsence = getTodayAbsence(selectedChildId);
   const accent = theme.accent;
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
-  const [data, setData] = useState<DashboardData>(getMockDashboard(selectedChildId));
+  const [data, setData] = useState<DashboardData>(getMockDashboard(selectedChildId, selectedChild?.name));
 
-  const loadDashboard = useCallback(async (childId: string) => {
+  const loadDashboard = useCallback(async (childId: string, childName: string) => {
     // Compute Monday–Sunday of the current week
     const now = new Date();
     const day = now.getDay(); // 0 = Sunday
@@ -163,7 +163,7 @@ export default function AccueilScreen() {
 
     // If every source returned empty, fall back to mock
     if (!mots.length && !events.length && !grades.length && !checkins.length) {
-      setData(getMockDashboard(childId));
+      setData(getMockDashboard(childId, childName));
       return;
     }
 
@@ -220,14 +220,15 @@ export default function AccueilScreen() {
       }
     }
 
+    const mock = getMockDashboard(childId, childName);
     setData({
       // ariaSummary stays from mock — AI-generated, not from DB yet
-      ariaSummary: getMockDashboard(childId).ariaSummary,
+      ariaSummary: mock.ariaSummary,
       liaison: { total: liaisonTotal, unsigned: liaisonUnsigned },
-      devoirs: getMockDashboard(childId).devoirs, // not in DB yet
+      devoirs: mock.devoirs, // not in DB yet
       notes: { average: Math.round(gradeAverage * 10) / 10, trend: gradeTrend },
       agenda: { weekEvents: events.length, nextEvent: nextEventLabel },
-      joyScore: { value: joyValue || getMockDashboard(childId).joyScore.value, trend: joyTrend },
+      joyScore: { value: joyValue || mock.joyScore.value, trend: joyTrend },
     });
   }, []);
 
@@ -241,7 +242,7 @@ export default function AccueilScreen() {
       delay: 100,
       useNativeDriver: true,
     }).start();
-    loadDashboard(selectedChildId);
+    loadDashboard(selectedChildId, selectedChild?.name || 'Votre enfant');
   }, [selectedChildId, loadDashboard]);
 
   const accentBorder = (color: string) => `rgba(${hexToRgb(color)}, 0.15)`;

@@ -7,12 +7,9 @@
 
 import { supabase } from './supabase';
 
-// ─── Force mock mode ─────────────────────────────────────
-
-const FORCE_MOCK = true;
+// ─── Helper ──────────────────────────────────────────────
 
 function isSupabaseConfigured(): boolean {
-  if (FORCE_MOCK) return false;
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   return !!url && url.length > 0 && !url.includes('your-');
 }
@@ -198,7 +195,10 @@ export async function getStudentAbsences(studentId: string): Promise<Absence[]> 
     .eq('student_id', studentId)
     .order('date_debut', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.warn('[Absences] getStudentAbsences error:', error.message);
+    return [];
+  }
   return data || [];
 }
 
@@ -269,22 +269,25 @@ export async function createAbsence(
   if (!isSupabaseConfigured()) {
     runtimeAbsences.unshift(newAbsence);
     runtimeClassAbsences.unshift(newAbsence);
-    // Send push notification stub
     sendAbsenceNotification(newAbsence);
     return newAbsence;
   }
+
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
     .from('absences')
     .insert({
       student_id: payload.student_id,
+      student_name: studentName,
+      student_avatar: studentAvatar,
       date_debut: payload.date_debut,
       date_fin: payload.date_fin,
       demi_journee: payload.demi_journee,
       motif: payload.motif,
       commentaire: payload.commentaire,
       statut: 'signalée',
-      signalee_par: 'parent-1',
+      signalee_par: user?.id ?? '',
     })
     .select()
     .single();
@@ -311,7 +314,10 @@ export async function getClassAbsences(): Promise<Absence[]> {
     .select('*')
     .order('date_debut', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.warn('[Absences] getClassAbsences error:', error.message);
+    return [];
+  }
   return data || [];
 }
 
@@ -332,7 +338,7 @@ export async function markAbsencePriseEnCompte(absenceId: string): Promise<void>
     .update({ statut: 'prise_en_compte' })
     .eq('id', absenceId);
 
-  if (error) throw error;
+  if (error) console.warn('[Absences] markAbsencePriseEnCompte error:', error.message);
 }
 
 // ─── Notification stubs ──────────────────────────────────

@@ -205,7 +205,7 @@ function EmotionPicker() {
     <Box className="mb-9 z-[1]">
       <Text
         className="text-[11px] font-extrabold uppercase tracking-[2px] px-6 mb-1"
-        style={{ color: '#C4A882' }}
+        style={{ color: '#8B7355' }}
       >
         COMMENT TU TE SENS ?
       </Text>
@@ -272,7 +272,7 @@ function ActivityCarousel() {
     <Box className="mb-9 z-[1]">
       <Text
         className="text-[11px] font-extrabold uppercase tracking-[2px] px-6 mb-1"
-        style={{ color: '#C4A882' }}
+        style={{ color: '#8B7355' }}
       >
         ACTIVITES DU JOUR
       </Text>
@@ -347,7 +347,7 @@ function StarReward() {
     <Box className="mb-9 z-[1]">
       <Text
         className="text-[11px] font-extrabold uppercase tracking-[2px] px-6 mb-1"
-        style={{ color: '#C4A882' }}
+        style={{ color: '#8B7355' }}
       >
         TES RECOMPENSES
       </Text>
@@ -414,7 +414,7 @@ function VisualTimeline() {
     <Box className="mb-9 z-[1]">
       <Text
         className="text-[11px] font-extrabold uppercase tracking-[2px] px-6 mb-1"
-        style={{ color: '#C4A882' }}
+        style={{ color: '#8B7355' }}
       >
         EMPLOI DU TEMPS
       </Text>

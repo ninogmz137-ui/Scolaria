@@ -88,7 +88,7 @@ const ALERT_CONFIG = {
     icon: 'alert-circle' as const,
     title: 'Attention',
     color: Colors.orange,
-    bgColor: '#3D2E10',
+    bgColor: '#FFF8E1',
     borderColor: '#FBBF2440',
     message: 'Le Score de Joie est en baisse ces derniers jours. Pensez à discuter avec votre enfant.',
     action: 'Ouvrir Mon Ressenti',
@@ -97,7 +97,7 @@ const ALERT_CONFIG = {
     icon: 'warning' as const,
     title: 'Vigilance',
     color: '#F97316',
-    bgColor: '#3D1E10',
+    bgColor: '#FFF3E0',
     borderColor: '#F9731640',
     message: 'Baisse significative du bien-être détectée sur 5 jours. Un échange avec l\'enfant est recommandé.',
     action: 'Parler avec Aria',
@@ -106,7 +106,7 @@ const ALERT_CONFIG = {
     icon: 'alert' as const,
     title: 'Urgence',
     color: Colors.red,
-    bgColor: '#3D1010',
+    bgColor: '#FFEBEE',
     borderColor: '#F8717140',
     message: 'Le bien-être de votre enfant nécessite une attention immédiate. N\'hésitez pas à contacter un professionnel.',
     action: null,
@@ -217,7 +217,7 @@ export default function JoyAlerts({
         </HStack>
 
         {/* Message */}
-        <Text className="text-sm mb-2.5" style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 20 }}>
+        <Text className="text-sm mb-2.5" style={{ color: '#0F172A', lineHeight: 20 }}>
           {showUrgencyProtocol
             ? `Un message de ${childName} contient des mots préoccupants. Veuillez prêter attention à son état émotionnel.`
             : config.message}
@@ -225,8 +225,8 @@ export default function JoyAlerts({
 
         {/* Score info */}
         {!showUrgencyProtocol && (
-          <Box className="px-3 py-2 rounded-xl mb-3" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
-            <Text className="text-[13px]" style={{ color: Colors.gray }}>
+          <Box className="px-3 py-2 rounded-xl mb-3" style={{ backgroundColor: '#F1F5F9' }}>
+            <Text className="text-[13px]" style={{ color: '#64748B' }}>
               Score moyen sur 5 jours :{' '}
               <Text style={{ color: config.color, fontWeight: '800' }}>
                 {recentAvg.toFixed(1)}/10
@@ -255,14 +255,14 @@ export default function JoyAlerts({
         <Box
           className="mt-3 rounded-2xl p-4"
           style={{
-            backgroundColor: Colors.blueNightCard,
+            backgroundColor: '#FFFFFF',
             borderWidth: 1,
             borderColor: Colors.red + '30',
           }}
         >
           <HStack className="items-center gap-2 mb-3.5">
             <Ionicons name="shield-checkmark" size={18} color={Colors.red} />
-            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+            <Text className="text-base font-extrabold" style={{ color: '#0F172A' }}>
               Numéros d'aide
             </Text>
           </HStack>
@@ -270,7 +270,7 @@ export default function JoyAlerts({
           {/* 3020 — Harcèlement */}
           <Pressable
             className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
-            style={{ backgroundColor: Colors.blueNightLight }}
+            style={{ backgroundColor: '#F1F5F9' }}
             onPress={() => Linking.openURL('tel:3020')}
           >
             <HStack className="items-center gap-3 flex-1">
@@ -281,8 +281,8 @@ export default function JoyAlerts({
                 <Text className="text-xl">📞</Text>
               </Box>
               <Box>
-                <Text className="text-xl font-black" style={{ color: Colors.white }}>3020</Text>
-                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
+                <Text className="text-xl font-black" style={{ color: '#0F172A' }}>3020</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8', maxWidth: 200 }}>
                   Non au Harcèlement — gratuit et anonyme
                 </Text>
               </Box>
@@ -298,7 +298,7 @@ export default function JoyAlerts({
           {/* 3114 — Prévention du suicide */}
           <Pressable
             className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
-            style={{ backgroundColor: Colors.blueNightLight }}
+            style={{ backgroundColor: '#F1F5F9' }}
             onPress={() => Linking.openURL('tel:3114')}
           >
             <HStack className="items-center gap-3 flex-1">
@@ -309,8 +309,8 @@ export default function JoyAlerts({
                 <Text className="text-xl">🆘</Text>
               </Box>
               <Box>
-                <Text className="text-xl font-black" style={{ color: Colors.white }}>3114</Text>
-                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
+                <Text className="text-xl font-black" style={{ color: '#0F172A' }}>3114</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8', maxWidth: 200 }}>
                   Prévention du suicide — 24h/24, 7j/7
                 </Text>
               </Box>
@@ -326,7 +326,7 @@ export default function JoyAlerts({
           {/* 119 — Enfance en danger */}
           <Pressable
             className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
-            style={{ backgroundColor: Colors.blueNightLight }}
+            style={{ backgroundColor: '#F1F5F9' }}
             onPress={() => Linking.openURL('tel:119')}
           >
             <HStack className="items-center gap-3 flex-1">
@@ -337,8 +337,8 @@ export default function JoyAlerts({
                 <Text className="text-xl">🛡️</Text>
               </Box>
               <Box>
-                <Text className="text-xl font-black" style={{ color: Colors.white }}>119</Text>
-                <Text className="text-[11px] mt-0.5" style={{ color: Colors.gray, maxWidth: 200 }}>
+                <Text className="text-xl font-black" style={{ color: '#0F172A' }}>119</Text>
+                <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8', maxWidth: 200 }}>
                   Allô Enfance en Danger — gratuit, 24h/24
                 </Text>
               </Box>
@@ -351,7 +351,7 @@ export default function JoyAlerts({
             </Box>
           </Pressable>
 
-          <Text className="text-[11px] text-center mt-2" style={{ color: Colors.gray, lineHeight: 16 }}>
+          <Text className="text-[11px] text-center mt-2" style={{ color: '#94A3B8', lineHeight: 16 }}>
             Ces numéros sont gratuits, confidentiels et disponibles
             pour les enfants comme pour les parents.
           </Text>

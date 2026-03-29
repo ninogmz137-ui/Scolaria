@@ -9,10 +9,10 @@
  * Child selection is now handled by ChildSwitcherBar below this topbar.
  */
 
-import { Platform } from 'react-native';
 import { Box, Text, Pressable, HStack } from './ui';
 import { Ionicons } from '@expo/vector-icons';
 import LogoScolaria from './LogoScolaria';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ─── Props ───────────────────────────────────────────────
 
@@ -22,6 +22,8 @@ interface Props {
   onBackPress?: () => void;
   notificationCount?: number;
   onNotificationPress?: () => void;
+  /** When true, topbar is transparent with white icons (overlays dark header) */
+  transparent?: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────
@@ -32,21 +34,29 @@ export default function AppTopbar({
   onBackPress,
   notificationCount = 3,
   onNotificationPress,
+  transparent = false,
 }: Props) {
+  const insets = useSafeAreaInsets();
+  const iconColor = transparent ? '#FFFFFF' : '#0F172A';
+
   return (
     <HStack
       className="items-center justify-between px-4"
       style={{
-        backgroundColor: '#FFFFFF',
-        borderBottomWidth: 1,
+        backgroundColor: transparent ? 'transparent' : '#FFFFFF',
+        borderBottomWidth: transparent ? 0 : 1,
         borderBottomColor: '#EEF0F5',
-        paddingTop: Platform.OS === 'ios' ? 54 : 12,
+        paddingTop: insets.top + 8,
         paddingBottom: 10,
-        ...Platform.select({
-          ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
-          android: { elevation: 2 },
-          default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
-        }),
+        // Transparent mode: overlay on top of content with absolute positioning
+        ...(transparent ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 } : {}),
+        ...(transparent
+          ? {}
+          : Platform.select({
+              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
+              android: { elevation: 2 },
+              default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
+            })),
       }}
     >
       {/* Left: Burger or Back */}
@@ -58,12 +68,12 @@ export default function AppTopbar({
         <Ionicons
           name={showBack ? 'arrow-back' : 'menu'}
           size={24}
-          color="#0F172A"
+          color={iconColor}
         />
       </Pressable>
 
       {/* Center: Scolaria branding */}
-      <LogoScolaria size={28} variant="light" />
+      <LogoScolaria size={28} variant={transparent ? 'dark' : 'light'} />
 
       {/* Right: Notification Bell */}
       <Pressable
@@ -71,7 +81,7 @@ export default function AppTopbar({
         onPress={onNotificationPress}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Ionicons name="notifications-outline" size={22} color="#0F172A" />
+        <Ionicons name="notifications-outline" size={22} color={iconColor} />
         {notificationCount > 0 && (
           <Box className="absolute top-1 right-1 min-w-[16px] h-4 rounded-full items-center justify-center px-0.5"
             style={{ backgroundColor: '#EF4444' }}

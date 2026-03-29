@@ -29,13 +29,13 @@ export default function RecentGrades({ grades }: Props) {
       <HStack className="justify-between items-center px-5 mb-3.5">
         <Text
           className="text-base font-bold"
-          style={{ color: Colors.white }}
+          style={{ color: Colors.textPrimary }}
         >
           Notes récentes
         </Text>
         <Text
           className="text-[13px] font-medium"
-          style={{ color: Colors.cyan }}
+          style={{ color: Colors.violet }}
         >
           Voir tout →
         </Text>
@@ -51,7 +51,9 @@ export default function RecentGrades({ grades }: Props) {
             key={item.id}
             className="items-center rounded-2xl p-4"
             style={{
-              backgroundColor: Colors.blueNightCard,
+              backgroundColor: Colors.card,
+              borderWidth: 1,
+              borderColor: Colors.cardBorder,
               width: 130,
             }}
           >
@@ -64,7 +66,7 @@ export default function RecentGrades({ grades }: Props) {
             <Text
               className="text-[13px] font-medium mb-1.5 text-center"
               numberOfLines={1}
-              style={{ color: Colors.lightGray }}
+              style={{ color: Colors.textSecondary }}
             >
               {item.subject}
             </Text>
@@ -77,14 +79,14 @@ export default function RecentGrades({ grades }: Props) {
               </Text>
               <Text
                 className="text-[13px] font-medium"
-                style={{ color: Colors.gray }}
+                style={{ color: Colors.textMuted }}
               >
                 /{item.maxGrade}
               </Text>
             </HStack>
             <Text
               className="text-[11px] mt-1"
-              style={{ color: Colors.gray }}
+              style={{ color: Colors.textMuted }}
             >
               {item.date}
             </Text>

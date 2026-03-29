@@ -92,7 +92,7 @@ export default function LyceeMode({ onSubmit }: Props) {
         </Text>
         <Text
           className="text-[15px] mb-4"
-          style={{ color: Colors.warmCreamDark }}
+          style={{ color: '#64748B' }}
         >
           Tes donnees restent confidentielles
         </Text>
@@ -119,7 +119,7 @@ export default function LyceeMode({ onSubmit }: Props) {
         </Text>
       </HStack>
 
-      <Text className="text-[22px] font-extrabold mb-5" style={{ color: Colors.warmCream }}>
+      <Text className="text-[22px] font-extrabold mb-5" style={{ color: '#0F172A' }}>
         Mon ressenti du jour
       </Text>
 
@@ -127,7 +127,7 @@ export default function LyceeMode({ onSubmit }: Props) {
       {SLIDERS.map((s) => (
         <Box key={s.key} className="mb-[18px]">
           <HStack className="justify-between items-center mb-1">
-            <Text className="text-base font-semibold" style={{ color: Colors.warmCream }}>
+            <Text className="text-base font-semibold" style={{ color: '#0F172A' }}>
               {s.icon} {s.label}
             </Text>
             <Text className="text-[15px] font-bold" style={{ color: Colors.warmOrangeLight }}>
@@ -152,7 +152,7 @@ export default function LyceeMode({ onSubmit }: Props) {
       <Box className="mt-2 mb-6">
         <HStack className="items-center mb-2.5" style={{ gap: 8 }}>
           <Ionicons name="chatbubble-ellipses" size={18} color={Colors.warmOrangeLight} />
-          <Text className="text-base font-bold" style={{ color: Colors.warmCream }}>
+          <Text className="text-base font-bold" style={{ color: '#0F172A' }}>
             Message confidentiel
           </Text>
         </HStack>
@@ -160,20 +160,20 @@ export default function LyceeMode({ onSubmit }: Props) {
           className="rounded-2xl p-4 text-[15px]"
           style={{
             backgroundColor: Colors.warmCard,
-            color: Colors.warmCream,
+            color: '#0F172A',
             minHeight: 100,
             textAlignVertical: 'top',
             borderWidth: 1,
-            borderColor: Colors.warmCardLight,
+            borderColor: '#EEF0F5',
           }}
           placeholder="Ce que tu ressens est important..."
-          placeholderTextColor={Colors.warmCreamDark}
+          placeholderTextColor={'#94A3B8'}
           value={message}
           onChangeText={setMessage}
           multiline
           maxLength={500}
         />
-        <Text className="text-xs text-right mt-1" style={{ color: Colors.warmCreamDark }}>
+        <Text className="text-xs text-right mt-1" style={{ color: '#94A3B8' }}>
           {message.length}/500
         </Text>
       </Box>
@@ -182,47 +182,47 @@ export default function LyceeMode({ onSubmit }: Props) {
       {detectCriticalKeywords(message) && (
         <Box
           className="rounded-2xl p-4 mb-5"
-          style={{ backgroundColor: '#3D1010', borderWidth: 1, borderColor: '#F8717140' }}
+          style={{ backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA' }}
         >
           <HStack className="items-center mb-2" style={{ gap: 8 }}>
             <Ionicons name="heart" size={18} color={Colors.red} />
-            <Text className="text-base font-extrabold" style={{ color: Colors.white }}>
+            <Text className="text-base font-extrabold" style={{ color: '#991B1B' }}>
               Tu n'es pas seul(e)
             </Text>
           </HStack>
           <Text
             className="text-[13px] leading-[18px] mb-3"
-            style={{ color: 'rgba(255,255,255,0.7)' }}
+            style={{ color: '#7F1D1D' }}
           >
             Si tu traverses un moment difficile, n'hesite pas a en parler. Ces numeros sont gratuits et anonymes :
           </Text>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:3020')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>📞 3020</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Non au Harcelement — gratuit</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>📞 3020</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Non au Harcelement — gratuit</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:3114')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>🆘 3114</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Prevention du suicide — 24h/24, 7j/7</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>🆘 3114</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Prevention du suicide — 24h/24, 7j/7</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center p-3 rounded-xl mb-1.5"
-            style={{ backgroundColor: 'rgba(0,0,0,0.3)', gap: 10 }}
+            style={{ backgroundColor: '#FEE2E2', gap: 10 }}
             onPress={() => Linking.openURL('tel:119')}
           >
-            <Text className="text-lg font-black" style={{ color: Colors.white }}>🛡️ 119</Text>
-            <Text className="text-xs" style={{ color: Colors.gray }}>Allo Enfance en Danger — 24h/24</Text>
+            <Text className="text-lg font-black" style={{ color: '#991B1B' }}>🛡️ 119</Text>
+            <Text className="text-xs" style={{ color: '#7F1D1D' }}>Allo Enfance en Danger — 24h/24</Text>
           </Pressable>
           <Text
             className="text-xs text-center mt-2 leading-[17px]"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
+            style={{ color: '#94A3B8' }}
           >
             Tu peux aussi parler a un adulte de confiance : parent, prof, CPE, infirmier(ere) scolaire.
           </Text>
@@ -243,7 +243,7 @@ export default function LyceeMode({ onSubmit }: Props) {
 
       <Text
         className="text-xs text-center mt-3.5 leading-[18px]"
-        style={{ color: Colors.warmCreamDark }}
+        style={{ color: '#94A3B8' }}
       >
         🔒 Tes reponses sont chiffrees et ne sont partagees avec personne.
       </Text>

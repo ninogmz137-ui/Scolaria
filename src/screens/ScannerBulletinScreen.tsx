@@ -94,27 +94,27 @@ function ScanningState({
         style={{
           width: 200,
           height: 260,
-          backgroundColor: Colors.blueNightCard,
+          backgroundColor: '#FFFFFF',
           borderRadius: 12,
           padding: 20,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.1)',
+          borderColor: '#EEF0F5',
           marginBottom: 30,
           overflow: 'hidden',
           transform: [{ scale: pulse }],
         }}
       >
         <VStack className="flex-1">
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '100%' }} />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '100%' }} />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '60%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '100%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '100%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '60%' }} />
           <Box className="h-3" />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '100%' }} />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '100%' }} />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '75%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '100%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '100%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '75%' }} />
           <Box className="h-3" />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '100%' }} />
-          <Box className="h-2 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.08)', width: '50%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '100%' }} />
+          <Box className="h-2 rounded mb-2" style={{ backgroundColor: '#F1F5F9', width: '50%' }} />
 
           <Animated.View
             style={{
@@ -140,10 +140,10 @@ function ScanningState({
         </VStack>
       </Animated.View>
 
-      <Text className="text-[22px] font-extrabold mb-1.5" style={{ color: Colors.white }}>Analyse en cours...</Text>
-      <Text className="text-sm text-center mb-6" style={{ color: Colors.gray }}>{step}</Text>
+      <Text className="text-[22px] font-extrabold mb-1.5" style={{ color: Colors.textPrimary }}>Analyse en cours...</Text>
+      <Text className="text-sm text-center mb-6" style={{ color: Colors.textSecondary }}>{step}</Text>
 
-      <Box className="w-4/5 h-1.5 rounded-sm overflow-hidden mb-2" style={{ backgroundColor: Colors.blueNightCard }}>
+      <Box className="w-4/5 h-1.5 rounded-sm overflow-hidden mb-2" style={{ backgroundColor: '#E2E8F0' }}>
         <Box className="h-full rounded-sm" style={{ backgroundColor: Colors.cyan, width: `${clampedProgress}%` }} />
       </Box>
       <Text className="text-sm font-bold mb-6" style={{ color: Colors.cyan }}>
@@ -160,11 +160,11 @@ function ScanningState({
                   : 'ellipse-outline'
               }
               size={18}
-              color={clampedProgress >= s.threshold ? Colors.cyan : Colors.gray}
+              color={clampedProgress >= s.threshold ? Colors.cyan : Colors.textMuted}
             />
             <Text
               className="text-sm"
-              style={{ color: clampedProgress >= s.threshold ? Colors.white : Colors.gray }}
+              style={{ color: clampedProgress >= s.threshold ? Colors.textPrimary : Colors.textMuted }}
             >
               {s.label}
             </Text>
@@ -239,96 +239,96 @@ function EditGradeModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' }}
       >
-        <Box className="rounded-t-3xl p-6 pb-10" style={{ backgroundColor: Colors.blueNightCard }}>
+        <Box className="rounded-t-3xl p-6 pb-10" style={{ backgroundColor: '#FFFFFF' }}>
           <Box className="w-10 h-1 rounded-sm self-center mb-5" style={{ backgroundColor: Colors.gray }} />
-          <Text className="text-xl font-extrabold mb-5" style={{ color: Colors.white }}>Corriger la note</Text>
+          <Text className="text-xl font-extrabold mb-5" style={{ color: Colors.textPrimary }}>Corriger la note</Text>
 
-          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.gray }}>Matière</Text>
+          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.textSecondary }}>Matière</Text>
           <TextInput
             style={{
-              backgroundColor: 'rgba(255,255,255,0.06)',
+              backgroundColor: '#F1F5F9',
               borderRadius: 12,
               padding: 14,
               fontSize: 16,
-              color: Colors.white,
+              color: Colors.textPrimary,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.08)',
+              borderColor: '#EEF0F5',
             }}
             value={subject}
             onChangeText={setSubject}
-            placeholderTextColor={Colors.gray}
+            placeholderTextColor={Colors.textMuted}
             placeholder="Matière"
           />
 
           <HStack style={{ gap: 12 }}>
             <VStack className="flex-1">
-              <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.gray }}>Note</Text>
+              <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.textSecondary }}>Note</Text>
               <TextInput
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  backgroundColor: '#F1F5F9',
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 16,
-                  color: Colors.white,
+                  color: Colors.textPrimary,
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: '#EEF0F5',
                 }}
                 value={gradeValue}
                 onChangeText={setGradeValue}
                 keyboardType="decimal-pad"
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={Colors.textMuted}
                 placeholder="15.5"
               />
             </VStack>
             <VStack className="flex-1">
-              <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.gray }}>Sur</Text>
+              <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.textSecondary }}>Sur</Text>
               <TextInput
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.06)',
+                  backgroundColor: '#F1F5F9',
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 16,
-                  color: Colors.white,
+                  color: Colors.textPrimary,
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: '#EEF0F5',
                 }}
                 value={maxGrade}
                 onChangeText={setMaxGrade}
                 keyboardType="number-pad"
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={Colors.textMuted}
                 placeholder="20"
               />
             </VStack>
           </HStack>
 
-          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.gray }}>Moyenne classe</Text>
+          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.textSecondary }}>Moyenne classe</Text>
           <TextInput
             style={{
-              backgroundColor: 'rgba(255,255,255,0.06)',
+              backgroundColor: '#F1F5F9',
               borderRadius: 12,
               padding: 14,
               fontSize: 16,
-              color: Colors.white,
+              color: Colors.textPrimary,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.08)',
+              borderColor: '#EEF0F5',
             }}
             value={classAvg}
             onChangeText={setClassAvg}
             keyboardType="decimal-pad"
-            placeholderTextColor={Colors.gray}
+            placeholderTextColor={Colors.textMuted}
             placeholder="12.3"
           />
 
-          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.gray }}>Appréciation</Text>
+          <Text className="text-[13px] font-semibold mb-1.5 mt-2.5" style={{ color: Colors.textSecondary }}>Appréciation</Text>
           <TextInput
             style={{
-              backgroundColor: 'rgba(255,255,255,0.06)',
+              backgroundColor: '#F1F5F9',
               borderRadius: 12,
               padding: 14,
               fontSize: 16,
-              color: Colors.white,
+              color: Colors.textPrimary,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.08)',
+              borderColor: '#EEF0F5',
               minHeight: 80,
               textAlignVertical: 'top',
             }}
@@ -336,14 +336,14 @@ function EditGradeModal({
             onChangeText={setAppreciation}
             multiline
             numberOfLines={3}
-            placeholderTextColor={Colors.gray}
+            placeholderTextColor={Colors.textMuted}
             placeholder="Appréciation de l'enseignant"
           />
 
           <HStack className="mt-6" style={{ gap: 12 }}>
             <Pressable
               className="flex-1 py-4 rounded-2xl items-center"
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+              style={{ backgroundColor: '#F1F5F9' }}
               onPress={onClose}
             >
               <Text className="text-base font-semibold" style={{ color: Colors.gray }}>Annuler</Text>
@@ -391,13 +391,13 @@ function GradeCard({
   return (
     <Box
       className="rounded-2xl p-4 mb-3"
-      style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+      style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
     >
       <HStack className="justify-between items-center mb-2.5">
         <HStack className="items-center flex-1" style={{ gap: 8 }}>
           <Text className="text-[22px]">{grade.emoji}</Text>
           <VStack>
-            <Text className="text-base font-bold" style={{ color: Colors.white }}>{grade.subject}</Text>
+            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>{grade.subject}</Text>
             {grade.isEdited && (
               <Text className="text-[10px] font-semibold mt-0.5" style={{ color: Colors.cyan }}>Corrigé manuellement</Text>
             )}
@@ -407,14 +407,14 @@ function GradeCard({
           <Text className="text-[28px] font-black" style={{ color: gradeColor }}>
             {grade.grade}
           </Text>
-          <Text className="text-sm font-semibold" style={{ color: Colors.gray }}>/{grade.maxGrade}</Text>
+          <Text className="text-sm font-semibold" style={{ color: Colors.textMuted }}>/{grade.maxGrade}</Text>
         </HStack>
       </HStack>
 
       {grade.classAvg > 0 && (
         <HStack className="items-center mb-2.5" style={{ gap: 6 }}>
-          <Text className="text-[13px]" style={{ color: Colors.gray }}>Moy. classe :</Text>
-          <Text className="text-[13px] font-semibold" style={{ color: Colors.lightGray }}>
+          <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Moy. classe :</Text>
+          <Text className="text-[13px] font-semibold" style={{ color: Colors.textSecondary }}>
             {grade.classAvg}/{grade.maxGrade}
           </Text>
           {grade.grade > grade.classAvg && (
@@ -444,7 +444,7 @@ function GradeCard({
 
       <Text
         className="text-[13px] leading-5 italic mb-3 pl-1"
-        style={{ color: Colors.lightGray, borderLeftWidth: 2, borderLeftColor: Colors.violet }}
+        style={{ color: Colors.textSecondary, borderLeftWidth: 2, borderLeftColor: Colors.violet }}
       >
         {grade.appreciation}
       </Text>
@@ -843,9 +843,9 @@ export default function ScannerBulletinScreen() {
           >
             <Box
               className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+              style={{ backgroundColor: '#EEF0F5' }}
             >
-              <Ionicons name="scan" size={48} color={Colors.white} />
+              <Ionicons name="scan" size={48} color={Colors.violet} />
             </Box>
             <Text className="text-[26px] font-black mb-2" style={{ color: Colors.white }}>Scanner un bulletin</Text>
             <Text className="text-sm text-center leading-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -855,10 +855,10 @@ export default function ScannerBulletinScreen() {
             {selectedChild && (
               <HStack
                 className="items-center mt-3.5 rounded-[20px] px-3.5 py-[7px]"
-                style={{ gap: 6, backgroundColor: 'rgba(255,255,255,0.15)' }}
+                style={{ gap: 6, backgroundColor: '#EEF0F5' }}
               >
                 <Text className="text-lg">{selectedChild.avatar}</Text>
-                <Text className="text-[13px] font-bold" style={{ color: Colors.white }}>
+                <Text className="text-[13px] font-bold" style={{ color: Colors.textPrimary }}>
                   Import pour {selectedChild.name}
                 </Text>
               </HStack>
@@ -867,11 +867,11 @@ export default function ScannerBulletinScreen() {
         </Box>
 
         <Box className="px-5">
-          <Text className="text-lg font-bold mb-1 mt-2" style={{ color: Colors.white }}>Choisir une source</Text>
+          <Text className="text-lg font-bold mb-1 mt-2" style={{ color: Colors.textPrimary }}>Choisir une source</Text>
 
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('camera')}
           >
             <LinearGradient
@@ -881,15 +881,15 @@ export default function ScannerBulletinScreen() {
               <Ionicons name="camera" size={28} color={Colors.white} />
             </LinearGradient>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.white }}>Prendre en photo</Text>
-              <Text className="text-[13px]" style={{ color: Colors.gray }}>Photographiez le bulletin avec votre caméra</Text>
+              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Prendre en photo</Text>
+              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Photographiez le bulletin avec votre caméra</Text>
             </VStack>
             <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
           </Pressable>
 
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('gallery')}
           >
             <LinearGradient
@@ -899,15 +899,15 @@ export default function ScannerBulletinScreen() {
               <Ionicons name="images" size={28} color={Colors.white} />
             </LinearGradient>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.white }}>Depuis la galerie</Text>
-              <Text className="text-[13px]" style={{ color: Colors.gray }}>Sélectionnez une photo ou capture ENT</Text>
+              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Depuis la galerie</Text>
+              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Sélectionnez une photo ou capture ENT</Text>
             </VStack>
             <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
           </Pressable>
 
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('pdf')}
           >
             <LinearGradient
@@ -917,8 +917,8 @@ export default function ScannerBulletinScreen() {
               <Ionicons name="document-text" size={28} color={Colors.white} />
             </LinearGradient>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.white }}>Importer un fichier</Text>
-              <Text className="text-[13px]" style={{ color: Colors.gray }}>Bulletin numérique PDF ou image</Text>
+              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Importer un fichier</Text>
+              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Bulletin numérique PDF ou image</Text>
             </VStack>
             <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
           </Pressable>
@@ -926,9 +926,9 @@ export default function ScannerBulletinScreen() {
           {/* How it works */}
           <Box
             className="rounded-2xl p-[18px] mt-5"
-            style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
           >
-            <Text className="text-[15px] font-bold mb-3.5" style={{ color: Colors.white }}>Comment ça marche ?</Text>
+            <Text className="text-[15px] font-bold mb-3.5" style={{ color: Colors.textPrimary }}>Comment ça marche ?</Text>
             {[
               { icon: 'camera-outline' as const, text: 'Photographiez ou importez le bulletin' },
               { icon: 'eye-outline' as const, text: 'Google Vision extrait le texte (OCR)' },
@@ -943,7 +943,7 @@ export default function ScannerBulletinScreen() {
                   <Text className="text-[11px] font-extrabold" style={{ color: Colors.cyan }}>{i + 1}</Text>
                 </Box>
                 <Ionicons name={s.icon} size={18} color={Colors.cyan} />
-                <Text className="text-[13px] flex-1" style={{ color: Colors.lightGray }}>{s.text}</Text>
+                <Text className="text-[13px] flex-1" style={{ color: Colors.textSecondary }}>{s.text}</Text>
               </HStack>
             ))}
           </Box>
@@ -970,7 +970,7 @@ export default function ScannerBulletinScreen() {
           {/* API notice */}
           <HStack
             className="items-center mt-4 py-2.5 px-3.5 rounded-[10px]"
-            style={{ gap: 8, backgroundColor: 'rgba(255,255,255,0.03)' }}
+            style={{ gap: 8, backgroundColor: '#F1F5F9' }}
           >
             <Ionicons name="key-outline" size={16} color={Colors.gray} />
             <Text className="text-xs flex-1" style={{ color: Colors.gray }}>
@@ -1006,8 +1006,8 @@ export default function ScannerBulletinScreen() {
         <Box className="mb-5">
           <Ionicons name="alert-circle" size={64} color={Colors.red} />
         </Box>
-        <Text className="text-[22px] font-extrabold mb-2.5" style={{ color: Colors.white }}>Analyse échouée</Text>
-        <Text className="text-sm text-center leading-5 mb-[30px]" style={{ color: Colors.gray }}>{errorMessage}</Text>
+        <Text className="text-[22px] font-extrabold mb-2.5" style={{ color: Colors.textPrimary }}>Analyse échouée</Text>
+        <Text className="text-sm text-center leading-5 mb-[30px]" style={{ color: Colors.textSecondary }}>{errorMessage}</Text>
 
         <VStack className="w-full" style={{ gap: 12 }}>
           <Pressable
@@ -1042,7 +1042,7 @@ export default function ScannerBulletinScreen() {
           {imageUri && (
             <Box
               className="mt-4 mb-2 rounded-[14px] overflow-hidden"
-              style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}
+              style={{ borderWidth: 1, borderColor: '#EEF0F5' }}
             >
               <Image
                 source={{ uri: imageUri }}
@@ -1054,7 +1054,7 @@ export default function ScannerBulletinScreen() {
                 style={{ gap: 6, backgroundColor: 'rgba(0,0,0,0.7)' }}
               >
                 <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
-                <Text className="text-[13px] font-semibold" style={{ color: Colors.lightGray }}>Document analysé</Text>
+                <Text className="text-[13px] font-semibold" style={{ color: Colors.textSecondary }}>Document analysé</Text>
               </HStack>
             </Box>
           )}
@@ -1104,7 +1104,7 @@ export default function ScannerBulletinScreen() {
             {/* Summary card */}
             <HStack
               className="rounded-2xl p-[18px]"
-              style={{ backgroundColor: Colors.blueNightCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+              style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             >
               <VStack className="flex-1 items-center">
                 <Text className="text-2xl font-black mb-1" style={{ color: Colors.cyan }}>
@@ -1112,12 +1112,12 @@ export default function ScannerBulletinScreen() {
                 </Text>
                 <Text className="text-xs font-medium" style={{ color: Colors.gray }}>Moyenne</Text>
               </VStack>
-              <Box className="w-px" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+              <Box className="w-px" style={{ backgroundColor: '#F1F5F9' }} />
               <VStack className="flex-1 items-center">
                 <Text className="text-2xl font-black mb-1" style={{ color: Colors.cyan }}>{grades.length}</Text>
                 <Text className="text-xs font-medium" style={{ color: Colors.gray }}>Matières</Text>
               </VStack>
-              <Box className="w-px" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+              <Box className="w-px" style={{ backgroundColor: '#F1F5F9' }} />
               <VStack className="flex-1 items-center">
                 <Text
                   className="text-2xl font-black mb-1"
@@ -1154,7 +1154,7 @@ export default function ScannerBulletinScreen() {
           {/* Section title */}
           <HStack className="justify-between items-start mb-1 mt-2">
             <VStack>
-              <Text className="text-lg font-bold mb-1" style={{ color: Colors.white }}>Données extraites</Text>
+              <Text className="text-lg font-bold mb-1" style={{ color: Colors.textPrimary }}>Données extraites</Text>
               <Text className="text-[13px] mb-4" style={{ color: Colors.gray }}>
                 Vérifiez et corrigez avant d'importer
               </Text>
@@ -1200,7 +1200,7 @@ export default function ScannerBulletinScreen() {
           {showRawText && ocrResult?.rawText && (
             <Box
               className="rounded-xl p-3.5 mb-3"
-              style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }}
+              style={{ backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#EEF0F5' }}
             >
               <Text
                 className="text-[11px] leading-[18px]"

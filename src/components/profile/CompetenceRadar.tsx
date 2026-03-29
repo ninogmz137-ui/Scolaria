@@ -91,7 +91,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               key={`grid-${level}`}
               points={points}
               fill="none"
-              stroke="rgba(255,255,255,0.08)"
+              stroke="#EEF0F5"
               strokeWidth={1}
             />
           );
@@ -107,7 +107,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               y1={center}
               x2={p.x}
               y2={p.y}
-              stroke="rgba(255,255,255,0.06)"
+              stroke="#EEF0F5"
               strokeWidth={1}
             />
           );
@@ -133,7 +133,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               cy={p.y}
               r={5}
               fill={Colors.cyan}
-              stroke={Colors.blueNight}
+              stroke={'#FFFFFF'}
               strokeWidth={2}
             />
           ))}
@@ -148,7 +148,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               y={p.y}
               textAnchor="middle"
               alignmentBaseline="middle"
-              fill={Colors.gray}
+              fill={'#64748B'}
               fontSize={11}
               fontWeight="600"
             >
@@ -165,7 +165,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
             key={comp.label}
             style={{
               alignItems: 'center',
-              backgroundColor: Colors.blueNightLight,
+              backgroundColor: '#F1F5F9',
               paddingHorizontal: 10,
               paddingVertical: 8,
               borderRadius: 14,
@@ -196,7 +196,7 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
             </Text>
             <Text
               className="text-[9px] font-semibold mt-px"
-              style={{ color: Colors.gray }}
+              style={{ color: '#94A3B8' }}
             >
               {comp.label}
             </Text>

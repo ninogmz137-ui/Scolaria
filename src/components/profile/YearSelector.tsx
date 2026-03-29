@@ -64,13 +64,13 @@ export default function YearSelector({
                   : !isSelected && isActive
                     ? accentColor + '50'
                     : isArchived
-                      ? 'rgba(255,255,255,0.06)'
-                      : 'rgba(255,255,255,0.1)',
+                      ? '#EEF0F5'
+                      : '#E2E8F0',
                 backgroundColor: isSelected
                   ? accentColor
                   : isArchived
-                    ? 'rgba(255,255,255,0.04)'
-                    : Colors.blueNightCard,
+                    ? '#F1F5F9'
+                    : '#FFFFFF',
               }}
               onPress={() => onSelect(year.id)}
             >
@@ -95,8 +95,8 @@ export default function YearSelector({
                     color: isSelected
                       ? Colors.white
                       : isArchived
-                        ? Colors.gray
-                        : Colors.white,
+                        ? '#94A3B8'
+                        : '#0F172A',
                   }}
                 >
                   {year.annee_scolaire}
@@ -107,8 +107,8 @@ export default function YearSelector({
                     color: isSelected
                       ? 'rgba(255,255,255,0.85)'
                       : isArchived
-                        ? 'rgba(255,255,255,0.3)'
-                        : 'rgba(255,255,255,0.6)',
+                        ? '#94A3B8'
+                        : '#64748B',
                   }}
                 >
                   {year.niveau}
@@ -116,7 +116,7 @@ export default function YearSelector({
               </Box>
 
               {isSelected && isActive && (
-                <Box className="px-1.5 py-0.5 rounded-md ml-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                <Box className="px-1.5 py-0.5 rounded-md ml-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.25)' }}>
                   <Text className="text-[9px] font-bold uppercase tracking-wide" style={{ color: Colors.white }}>
                     En cours
                   </Text>
@@ -129,11 +129,11 @@ export default function YearSelector({
         {/* Add year button */}
         <Pressable
           className="flex-row items-center gap-1.5 px-3.5 py-2.5 rounded-2xl"
-          style={{ borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}
+          style={{ borderWidth: 1.5, borderColor: '#EEF0F5', borderStyle: 'dashed' }}
           onPress={onAddYear}
         >
-          <Ionicons name="add" size={18} color={Colors.gray} />
-          <Text className="text-xs font-semibold" style={{ color: Colors.gray }}>
+          <Ionicons name="add" size={18} color={'#94A3B8'} />
+          <Text className="text-xs font-semibold" style={{ color: '#94A3B8' }}>
             Ajouter une année
           </Text>
         </Pressable>

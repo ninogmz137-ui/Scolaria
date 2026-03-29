@@ -39,14 +39,14 @@ export default function JoyHistory({ data, month }: Props) {
     <Box
       className="rounded-2xl p-4"
       style={{
-        backgroundColor: Colors.blueNightCard,
+        backgroundColor: Colors.card,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
+        borderColor: Colors.cardBorder,
       }}
     >
       {/* Header */}
       <HStack className="justify-between items-center mb-3.5">
-        <Text className="text-base font-bold" style={{ color: Colors.white }}>
+        <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>
           Score de Joie
         </Text>
         <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>
@@ -57,27 +57,27 @@ export default function JoyHistory({ data, month }: Props) {
       {/* Stats row */}
       <HStack
         className="rounded-xl p-3.5 mb-4"
-        style={{ backgroundColor: Colors.blueNightLight }}
+        style={{ backgroundColor: '#F1F5F9' }}
       >
         <VStack className="flex-1 items-center">
           <Text className="text-xl font-black mb-0.5" style={{ color: Colors.cyan }}>
             {avg.toFixed(1)}
           </Text>
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>Moyenne</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Moyenne</Text>
         </VStack>
-        <Box style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+        <Box style={{ width: 1, backgroundColor: Colors.cardBorder }} />
         <VStack className="flex-1 items-center">
           <Text className="text-xl font-black mb-0.5" style={{ color: Colors.green }}>
             {maxStreak}j
           </Text>
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>Meilleure série</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Meilleure série</Text>
         </VStack>
-        <Box style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.08)' }} />
+        <Box style={{ width: 1, backgroundColor: Colors.cardBorder }} />
         <VStack className="flex-1 items-center">
           <Text className="text-xl font-black mb-0.5" style={{ color: Colors.orange }}>
             {data.filter((d) => d.score >= 7).length}
           </Text>
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>Jours heureux</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Jours heureux</Text>
         </VStack>
       </HStack>
 
@@ -103,7 +103,7 @@ export default function JoyHistory({ data, month }: Props) {
                     : {}),
                 }}
               />
-              <Text className="text-[10px] font-medium" style={{ color: Colors.gray }}>
+              <Text className="text-[10px] font-medium" style={{ color: Colors.textMuted }}>
                 {d.day}
               </Text>
             </VStack>
@@ -115,19 +115,19 @@ export default function JoyHistory({ data, month }: Props) {
       <HStack className="justify-center gap-4 mt-3">
         <HStack className="items-center gap-1">
           <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.green }} />
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>8-10</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>8-10</Text>
         </HStack>
         <HStack className="items-center gap-1">
           <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.cyan }} />
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>6-7</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>6-7</Text>
         </HStack>
         <HStack className="items-center gap-1">
           <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.orange }} />
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>4-5</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>4-5</Text>
         </HStack>
         <HStack className="items-center gap-1">
           <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.red }} />
-          <Text className="text-[11px]" style={{ color: Colors.gray }}>0-3</Text>
+          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>0-3</Text>
         </HStack>
       </HStack>
     </Box>
