@@ -6,11 +6,12 @@
  */
 
 import { supabase } from './supabase';
+import { ENV } from './getEnv';
 
 // ─── Helper: check if Supabase is configured ───────────
 
 function isSupabaseConfigured(): boolean {
-  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const url = ENV.SUPABASE_URL;
   return !!url && url.length > 0 && !url.includes('your-');
 }
 

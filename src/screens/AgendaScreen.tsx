@@ -9,6 +9,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAgendaEvents, createAgendaEvent } from '../services/database';
 import DecorativeBlobs from '../components/DecorativeBlobs';
+import { ENV } from '../services/getEnv';
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -240,7 +241,7 @@ export default function AgendaScreen() {
   }, [loadEvents]);
 
   const openAddModal = useCallback(() => {
-    if (!process.env.EXPO_PUBLIC_SUPABASE_URL) {
+    if (!ENV.SUPABASE_URL) {
       Alert.alert('Info', 'Connectez Supabase pour ajouter des événements');
       return;
     }

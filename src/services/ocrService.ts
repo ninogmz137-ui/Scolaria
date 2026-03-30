@@ -7,6 +7,7 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
+import { ENV } from './getEnv';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ const SUBJECT_MAP: Record<string, { canonical: string; emoji: string }> = {
 // ─── Google Vision API call ──────────────────────────────
 
 async function callGoogleVision(imageUri: string): Promise<string> {
-  const apiKey = process.env.EXPO_PUBLIC_GOOGLE_VISION_KEY;
+  const apiKey = ENV.GOOGLE_VISION_KEY;
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     throw new Error('NO_API_KEY');
@@ -363,7 +364,7 @@ export async function performOCR(imageUri: string): Promise<OCRResult> {
     // Check network connectivity first
     const isOnline = await checkConnectivity();
     if (!isOnline) {
-      const apiKey = process.env.EXPO_PUBLIC_GOOGLE_VISION_KEY;
+      const apiKey = ENV.GOOGLE_VISION_KEY;
       if (apiKey && !apiKey.includes('your-')) {
         return {
           success: false,
@@ -470,7 +471,7 @@ export async function performOCR(imageUri: string): Promise<OCRResult> {
 // ─── Use Aria (Claude) for smart parsing ─────────────────
 
 export async function parseWithAria(rawText: string): Promise<ExtractedGrade[]> {
-  const apiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
+  const apiKey = ENV.ANTHROPIC_API_KEY;
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     // Fall back to regex parsing

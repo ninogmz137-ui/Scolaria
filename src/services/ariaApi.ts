@@ -7,6 +7,7 @@
  */
 
 import { getChildContext, buildChildContextString } from './childContext';
+import { ENV } from './getEnv';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -26,8 +27,7 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 const MAX_TOKENS = 1024;
 
 // ─── Startup diagnostics ────────────────────────────────
-const _ariaKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
-console.log(`[Aria] API key status: ${_ariaKey ? `present (${_ariaKey.substring(0, 12)}...${_ariaKey.slice(-4)})` : 'MISSING'}`);
+console.log(`[Aria] API key status: ${ENV.ANTHROPIC_API_KEY ? `present (${ENV.ANTHROPIC_API_KEY.substring(0, 12)}...)` : 'MISSING'}`);
 
 // ─── System prompt builder ───────────────────────────────
 
@@ -76,7 +76,7 @@ export async function sendToAria(
   conversationHistory: ClaudeMessage[],
   childId: string = '1',
 ): Promise<string> {
-  const apiKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
+  const apiKey = ENV.ANTHROPIC_API_KEY;
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     console.warn('[Aria] No API key configured — using fallback response');

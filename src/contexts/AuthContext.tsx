@@ -13,6 +13,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { ENV } from '../services/getEnv';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -66,8 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
 
   const isSupabaseConfigured =
-    !!process.env.EXPO_PUBLIC_SUPABASE_URL &&
-    !process.env.EXPO_PUBLIC_SUPABASE_URL.includes('your-');
+    !!ENV.SUPABASE_URL &&
+    !ENV.SUPABASE_URL.includes('your-');
 
   const isDemo = !isSupabaseConfigured;
 

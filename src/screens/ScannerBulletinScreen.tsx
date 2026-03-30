@@ -28,6 +28,7 @@ import {
   createGradesBatch,
   getSubjects,
 } from '../services/database';
+import { ENV } from '../services/getEnv';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -974,7 +975,7 @@ export default function ScannerBulletinScreen() {
           >
             <Ionicons name="key-outline" size={16} color={Colors.gray} />
             <Text className="text-xs flex-1" style={{ color: Colors.gray }}>
-              {process.env.EXPO_PUBLIC_GOOGLE_VISION_KEY
+              {ENV.GOOGLE_VISION_KEY
                 ? 'Google Vision API connectée'
                 : 'Mode démo — Ajoutez EXPO_PUBLIC_GOOGLE_VISION_KEY dans .env'}
             </Text>
