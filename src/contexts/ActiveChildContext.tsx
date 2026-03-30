@@ -72,8 +72,12 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
 
   // ─── Load children from Supabase ───────────────────────
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log('[ActiveChild] No user yet, keeping mock children');
+      return;
+    }
 
+    console.log('[ActiveChild] User available:', user.id, '— loading children from Supabase');
     let cancelled = false;
 
     async function load() {
@@ -81,6 +85,12 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       try {
         const result = await getChildren(user!.id);
         if (cancelled) return;
+
+        console.log('[ActiveChild] getChildren result:', JSON.stringify({
+          dataLength: result?.data?.length ?? 0,
+          error: result?.error ?? null,
+          firstId: result?.data?.[0]?.id ?? 'none',
+        }));
 
         const rows = result?.data;
         if (rows && rows.length > 0) {
@@ -99,11 +109,22 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
             classe: [row.classe, row.school].filter(Boolean).join(' — '),
             birthDate: row.birth_date,
           }));
+          console.log('[ActiveChild] Loaded', mapped.length, 'children:', mapped.map((c) => `${c.name}(${c.id.substring(0, 8)})`).join(', '));
           setChildList(mapped);
+          // Also update selectedChildId to first real child if current is a mock ID
+          setSelectedChildId((prev) => {
+            const isRealUUID = prev.includes('-') && prev.length > 10;
+            if (!isRealUUID) {
+              console.log('[ActiveChild] Replacing mock selectedChildId', prev, '→', mapped[0].id);
+              return mapped[0].id;
+            }
+            return prev;
+          });
+        } else {
+          console.log('[ActiveChild] No children found in Supabase, keeping mocks');
         }
-        // Empty or null result → keep MOCK_CHILDREN (already the default state)
-      } catch {
-        // Network / Supabase error → keep MOCK_CHILDREN silently
+      } catch (err) {
+        console.error('[ActiveChild] Error loading children:', err);
       } finally {
         if (!cancelled) setLoading(false);
       }
