@@ -25,6 +25,10 @@ const MODEL = 'claude-sonnet-4-20250514';
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const MAX_TOKENS = 1024;
 
+// ─── Startup diagnostics ────────────────────────────────
+const _ariaKey = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY;
+console.log(`[Aria] API key status: ${_ariaKey ? `present (${_ariaKey.substring(0, 12)}...${_ariaKey.slice(-4)})` : 'MISSING'}`);
+
 // ─── System prompt builder ───────────────────────────────
 
 function buildSystemPrompt(childId: string): string {

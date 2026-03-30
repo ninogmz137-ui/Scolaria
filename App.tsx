@@ -126,6 +126,15 @@ function AppContent() {
 export default function App() {
   const fontsLoaded = useSolariaFonts();
 
+  // ─── Startup env diagnostics (visible in adb logcat / Expo logs) ──
+  useEffect(() => {
+    const keys = ['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_ANON_KEY', 'EXPO_PUBLIC_ANTHROPIC_API_KEY'];
+    keys.forEach((k) => {
+      const v = process.env[k];
+      console.log(`[ENV] ${k}: ${v ? `✓ (${v.substring(0, 15)}...)` : '✗ MISSING'}`);
+    });
+  }, []);
+
   if (!fontsLoaded) {
     return null; // Expo splash screen stays visible while fonts load
   }

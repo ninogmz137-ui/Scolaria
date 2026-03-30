@@ -156,7 +156,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       value={{
         children: childList,
         selectedChild,
-        selectedChildId,
+        selectedChildId: selectedChild?.id ?? selectedChildId,
         selectChild,
         fadeAnim,
         loading,
