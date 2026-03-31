@@ -240,29 +240,31 @@ export default function AgendaScreen() {
     loadEvents();
   }, [loadEvents]);
 
-  const isRealChild = selectedChildId.includes('-') && selectedChildId.length > 10;
-
   const openAddModal = useCallback(() => {
     if (childLoading) {
       Alert.alert('Chargement', 'Les données sont en cours de chargement, veuillez patienter.');
       return;
     }
-    if (!isRealChild) {
+    const currentId = selectedChild?.id ?? selectedChildId;
+    const isReal = currentId.includes('-') && currentId.length > 10;
+    if (!isReal) {
       Alert.alert('Info', 'Aucun enfant connecté. Veuillez vous connecter pour ajouter des événements.');
       return;
     }
     setNewEventTitle('');
     setNewEventType('devoir');
     setAddModalVisible(true);
-  }, [isRealChild, childLoading]);
+  }, [selectedChild, selectedChildId, childLoading]);
 
   const handleCreateEvent = useCallback(async () => {
     if (!newEventTitle.trim()) {
       Alert.alert('Titre requis', 'Veuillez saisir un titre pour l\'événement.');
       return;
     }
-    if (!selectedChildId || !user?.id) return;
-    if (!isRealChild) {
+    const currentChildId = selectedChild?.id ?? selectedChildId;
+    const isReal = currentChildId.includes('-') && currentChildId.length > 10;
+    if (!currentChildId || !user?.id) return;
+    if (!isReal) {
       Alert.alert('Erreur', 'Aucun enfant connecté. Veuillez vous connecter.');
       return;
     }
@@ -283,7 +285,7 @@ export default function AgendaScreen() {
     setIsSaving(true);
     try {
       const result = await createAgendaEvent({
-        child_id: selectedChildId,
+        child_id: selectedChild?.id ?? selectedChildId,
         parent_id: user.id,
         title: newEventTitle.trim(),
         event_type: typeMap[newEventType],
@@ -301,7 +303,7 @@ export default function AgendaScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [newEventTitle, newEventType, selectedChildId, isRealChild, user, selectedDay, weekDays, loadEvents]);
+  }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents]);
 
   const events = eventsByDay[selectedDay] ?? [];
   const examCount = Object.values(eventsByDay)

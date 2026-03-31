@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Modal, Dimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -226,17 +226,24 @@ function TabContent() {
 
 // ─── Main navigator with topbar + burger ─────────────────
 
+// Ref so burger nav handler can open the child selector
+const childSelectorRef: { current: (() => void) | null } = { current: null };
+
 export default function TabNavigator() {
   const { theme } = useChildTheme();
   const { signOut } = useAuth();
+  const { selectedChild, children: childList, selectChild } = useActiveChild();
   const [burgerVisible, setBurgerVisible] = useState(false);
   const [showBack, setShowBack] = useState(false);
   const [activeTab, setActiveTab] = useState('Accueil');
+  const [childSelectorVisible, setChildSelectorVisible] = useState(false);
 
   // Register the back-arrow state setter
   backArrowRef.current = { setShowBack };
   // Register the active tab setter for child components
   activeTabRef.current = { setActiveTab };
+  // Register child selector opener for burger menu
+  childSelectorRef.current = () => setChildSelectorVisible(true);
 
   const handleBurgerNavigate = useCallback((screen: string) => {
     // This is handled via the ref approach below
@@ -253,10 +260,13 @@ export default function TabNavigator() {
         onBurgerPress={() => setBurgerVisible(true)}
         showBack={showBack}
         onBackPress={() => { goBackRef.current?.(); setShowBack(false); }}
-        notificationCount={3}
+        notificationCount={0}
         onNotificationPress={() => notifNavRef.current?.()}
         onLogoPress={() => logoNavRef.current?.()}
         transparent={isAccueilHome}
+        childName={selectedChild.name}
+        childAvatar={selectedChild.avatar}
+        onChildPress={() => setChildSelectorVisible(true)}
       />
 
       {/* Tab content */}
@@ -264,6 +274,75 @@ export default function TabNavigator() {
         burgerVisible={burgerVisible}
         onCloseBurger={() => setBurgerVisible(false)}
       />
+
+      {/* Child selector modal (triggered by topbar pill or burger "Changer d'enfant") */}
+      <Modal
+        visible={childSelectorVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setChildSelectorVisible(false)}
+        statusBarTranslucent
+      >
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              paddingHorizontal: 20,
+              paddingTop: 12,
+              paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+              maxHeight: Dimensions.get('window').height * 0.5,
+            }}
+          >
+            {/* Handle */}
+            <View style={{ alignItems: 'center', marginBottom: 12 }}>
+              <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
+            </View>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A', marginBottom: 14 }}>
+              Changer d'enfant
+            </Text>
+            {childList.map((child) => {
+              const isSelected = child.id === selectedChild.id;
+              return (
+                <View
+                  key={child.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 12,
+                    paddingHorizontal: 12,
+                    borderRadius: 14,
+                    marginBottom: 6,
+                    backgroundColor: isSelected ? '#EEF2FF' : '#F8FAFC',
+                    borderWidth: 1.5,
+                    borderColor: isSelected ? '#6366F1' : '#EEF0F5',
+                  }}
+                >
+                  <View
+                    onTouchEnd={() => {
+                      selectChild(child.id);
+                      setChildSelectorVisible(false);
+                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                  >
+                    <Text style={{ fontSize: 28, marginRight: 12 }}>{child.avatar}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: '#0F172A' }}>{child.name}</Text>
+                      <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>{child.classe}</Text>
+                    </View>
+                    {isSelected && (
+                      <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#FFFFFF', fontSize: 13, fontWeight: '700' }}>✓</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -314,7 +393,7 @@ function TabContentWithBurger({
       BienEtre: 'BienEtreScreen',
       ProfilBadges: 'ProfilEnfant',
       MonParcours: 'MonParcours',
-      ChangerEnfant: '', // Handled by topbar pill
+      ChangerEnfant: '__CHILD_SELECTOR__', // Opens child selector modal
       Permissions: 'PermissionsRGPD',
       Reglages: 'ReglagesScreen',
       Notifications: 'NotificationsScreen',
@@ -324,6 +403,12 @@ function TabContentWithBurger({
 
     const target = routeMap[screen];
     if (!target) return;
+
+    // Special: open child selector modal instead of navigating
+    if (target === '__CHILD_SELECTOR__') {
+      childSelectorRef.current?.();
+      return;
+    }
 
     // Navigate to tab or stack screen
     if (target === 'Notes') {

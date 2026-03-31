@@ -27,6 +27,11 @@ interface Props {
   transparent?: boolean;
   /** Called when the Scolaria logo is tapped (navigate to home) */
   onLogoPress?: () => void;
+  /** Active child name + avatar shown as a pill next to logo */
+  childName?: string;
+  childAvatar?: string;
+  /** Called when the child pill is tapped (open child switcher) */
+  onChildPress?: () => void;
 }
 
 // ─── Component ───────────────────────────────────────────
@@ -35,10 +40,13 @@ export default function AppTopbar({
   onBurgerPress,
   showBack = false,
   onBackPress,
-  notificationCount = 3,
+  notificationCount = 0,
   onNotificationPress,
   transparent = false,
   onLogoPress,
+  childName,
+  childAvatar,
+  onChildPress,
 }: Props) {
   const insets = useSafeAreaInsets();
   const iconColor = transparent ? '#FFFFFF' : '#0F172A';
@@ -76,14 +84,40 @@ export default function AppTopbar({
         />
       </Pressable>
 
-      {/* Center: Scolaria branding (tappable → home) */}
-      <Pressable
-        onPress={onLogoPress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        style={{ flex: 1, alignItems: 'center' }}
-      >
-        <LogoScolaria size={24} variant={transparent ? 'dark' : 'light'} />
-      </Pressable>
+      {/* Center: Scolaria branding + active child pill */}
+      <Box style={{ flex: 1, alignItems: 'center' }}>
+        <Pressable
+          onPress={onLogoPress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={{ alignItems: 'center' }}
+        >
+          <LogoScolaria size={24} variant={transparent ? 'dark' : 'light'} />
+        </Pressable>
+        {childName ? (
+          <Pressable
+            onPress={onChildPress}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginTop: 2,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 12,
+              backgroundColor: transparent ? 'rgba(255,255,255,0.15)' : '#F1F5F9',
+            }}
+          >
+            {childAvatar ? (
+              <Text style={{ fontSize: 12, marginRight: 3 }}>{childAvatar}</Text>
+            ) : null}
+            <Text style={{ fontSize: 11, fontWeight: '600', color: transparent ? '#FFFFFF' : '#64748B' }}>
+              {childName}
+            </Text>
+            <Text style={{ fontSize: 10, marginLeft: 2, color: transparent ? 'rgba(255,255,255,0.6)' : '#94A3B8' }}>
+              ▾
+            </Text>
+          </Pressable>
+        ) : null}
+      </Box>
 
       {/* Right: Notification Bell */}
       <Pressable

@@ -312,6 +312,27 @@ export default function CahierLiaisonParent({
         )}
       </HStack>
 
+      {/* Send message button (Phase 2-3 placeholder) */}
+      <Pressable
+        className="flex-row items-center justify-center gap-2 py-3 rounded-xl mb-3"
+        style={{
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          borderColor: accentColor + '40',
+        }}
+        onPress={() =>
+          Alert.alert(
+            'Bientôt disponible',
+            'Cette fonctionnalité sera disponible prochainement.',
+          )
+        }
+      >
+        <Ionicons name="send-outline" size={16} color={accentColor} />
+        <Text className="text-sm font-semibold" style={{ color: accentColor }}>
+          Envoyer un message à l'enseignant
+        </Text>
+      </Pressable>
+
       {/* Mots list */}
       {mots.length === 0 ? (
         <Box

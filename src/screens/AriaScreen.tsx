@@ -30,7 +30,26 @@ function makeWelcomeMessage(childName: string): Message {
   };
 }
 
-function makeSuggestions(childName: string): string[] {
+function makeSuggestions(childName: string, mode: string): string[] {
+  if (mode === 'maternelle') {
+    return [
+      `🌈 Comment va ${childName} aujourd'hui ?`,
+      '🎨 Activités de la semaine',
+      '😊 Score de Joie',
+      '🌱 Progrès récents',
+      '👩‍🏫 Observation de la maîtresse',
+    ];
+  }
+  if (mode === 'college' || mode === 'lycee') {
+    return [
+      '📊 Bilan de la semaine',
+      '📝 Réviser pour le prochain contrôle',
+      '📈 Évolution des notes',
+      '🎯 Points forts et axes d\'amélioration',
+      '🧠 Méthodes de travail',
+    ];
+  }
+  // primaire (default)
   return [
     '📊 Résumé de la semaine',
     '📝 Préparer le contrôle de maths',
@@ -60,6 +79,7 @@ const CARD_SHADOW = Platform.select({
 export default function AriaScreen() {
   const { theme } = useChildTheme();
   const { selectedChild } = useActiveChild();
+  const { mode } = useSchoolMode();
   const childName = selectedChild?.name ?? 'votre enfant';
   const childId = selectedChild?.id ?? '1';
 
@@ -69,7 +89,7 @@ export default function AriaScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   // Reset conversation when switching child
-  const suggestions = makeSuggestions(childName);
+  const suggestions = makeSuggestions(childName, mode);
   useEffect(() => {
     setMessages([makeWelcomeMessage(childName)]);
     conversationHistoryRef.current = [];

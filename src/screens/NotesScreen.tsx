@@ -394,7 +394,7 @@ export default function NotesScreen() {
           colors={['#0B1628', theme.accent + 'CC']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0.3, y: 1 }}
-          style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
+          style={{ paddingTop: 70, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
         >
           <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
             Suivi des apprentissages
@@ -569,7 +569,7 @@ export default function NotesScreen() {
         colors={['#0B1628', theme.accent + 'CC']}
         start={{ x: 0, y: 0 }}
         end={{ x: 0.3, y: 1 }}
-        style={{ paddingTop: 16, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
+        style={{ paddingTop: 70, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
       >
         <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
           Notes & Résultats
