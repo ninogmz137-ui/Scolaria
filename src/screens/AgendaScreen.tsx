@@ -9,7 +9,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getAgendaEvents, createAgendaEvent } from '../services/database';
 import DecorativeBlobs from '../components/DecorativeBlobs';
-import { ENV } from '../services/getEnv';
+
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -240,15 +240,17 @@ export default function AgendaScreen() {
     loadEvents();
   }, [loadEvents]);
 
+  const isRealChild = selectedChildId.includes('-') && selectedChildId.length > 10;
+
   const openAddModal = useCallback(() => {
-    if (!ENV.SUPABASE_URL) {
-      Alert.alert('Info', 'Connectez Supabase pour ajouter des événements');
+    if (!isRealChild) {
+      Alert.alert('Info', 'Aucun enfant connecté. Veuillez vous connecter pour ajouter des événements.');
       return;
     }
     setNewEventTitle('');
     setNewEventType('devoir');
     setAddModalVisible(true);
-  }, []);
+  }, [isRealChild]);
 
   const handleCreateEvent = useCallback(async () => {
     if (!newEventTitle.trim()) {
@@ -256,6 +258,10 @@ export default function AgendaScreen() {
       return;
     }
     if (!selectedChildId || !user?.id) return;
+    if (!isRealChild) {
+      Alert.alert('Erreur', 'Aucun enfant connecté. Veuillez vous connecter.');
+      return;
+    }
 
     // Build a start_time from the selected day in the current week
     const selectedDayInfo = weekDays.find((d) => d.date === selectedDay) as (DayInfo & { fullDate?: Date }) | undefined;
@@ -291,7 +297,7 @@ export default function AgendaScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [newEventTitle, newEventType, selectedChildId, user, selectedDay, weekDays, loadEvents]);
+  }, [newEventTitle, newEventType, selectedChildId, isRealChild, user, selectedDay, weekDays, loadEvents]);
 
   const events = eventsByDay[selectedDay] ?? [];
   const examCount = Object.values(eventsByDay)
