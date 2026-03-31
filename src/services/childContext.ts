@@ -235,18 +235,6 @@ export const MOCK_CHILDREN: ChildContext[] = [
 export function buildChildContextString(child: ChildContext): string {
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
 
-  const overallAvg = grades.reduce((s, g) => s + g.average, 0) / grades.length;
-  const bestSubject = grades.reduce((best, g) => (g.average > best.average ? g : best));
-  const weakestSubject = grades.reduce((worst, g) => (g.average < worst.average ? g : worst));
-
-  const gradesStr = grades
-    .map((g) => {
-      const trendEmoji = g.trend === 'up' ? '📈' : g.trend === 'down' ? '📉' : '➡️';
-      const recent = g.recentGrades.map((r) => `${r.value}/${r.maxValue} (${r.type}, ${r.date})`).join(', ');
-      return `  - ${g.subject}: moyenne ${g.average}/20 (classe: ${g.classAvg}/20) ${trendEmoji}\n    Notes récentes: ${recent}`;
-    })
-    .join('\n');
-
   const activitiesStr = activities
     .map((a) => `  - ${a.name} (${a.category}) — niveau: ${a.level}`)
     .join('\n');
@@ -262,6 +250,34 @@ export function buildChildContextString(child: ChildContext): string {
 
   const eventsStr = upcomingEvents.map((e) => `  - ${e}`).join('\n');
 
+  // Handle maternelle (no grades)
+  let gradesSection: string;
+  if (grades.length === 0) {
+    gradesSection = `═══ RÉSULTATS SCOLAIRES ═══
+Niveau: Maternelle — pas de notation chiffrée
+Suivi basé sur le bien-être, les activités et les observations enseignantes.`;
+  } else {
+    const overallAvg = grades.reduce((s, g) => s + g.average, 0) / grades.length;
+    const bestSubject = grades.reduce((best, g) => (g.average > best.average ? g : best));
+    const weakestSubject = grades.reduce((worst, g) => (g.average < worst.average ? g : worst));
+
+    const gradesStr = grades
+      .map((g) => {
+        const trendEmoji = g.trend === 'up' ? '📈' : g.trend === 'down' ? '📉' : '➡️';
+        const recent = g.recentGrades.map((r) => `${r.value}/${r.maxValue} (${r.type}, ${r.date})`).join(', ');
+        return `  - ${g.subject}: moyenne ${g.average}/20 (classe: ${g.classAvg}/20) ${trendEmoji}\n    Notes récentes: ${recent}`;
+      })
+      .join('\n');
+
+    gradesSection = `═══ RÉSULTATS SCOLAIRES ═══
+Moyenne générale: ${overallAvg.toFixed(1)}/20
+Meilleure matière: ${bestSubject.subject} (${bestSubject.average}/20)
+Matière à renforcer: ${weakestSubject.subject} (${weakestSubject.average}/20)
+
+Détail par matière:
+${gradesStr}`;
+  }
+
   return `
 ═══ PROFIL ENFANT ═══
 Nom: ${profile.name}
@@ -270,13 +286,7 @@ Classe: ${profile.classe} — ${profile.school}
 ID Scolaria: ${profile.scolariaId}
 Super-pouvoir identifié: ${profile.superPower}
 
-═══ RÉSULTATS SCOLAIRES ═══
-Moyenne générale: ${overallAvg.toFixed(1)}/20
-Meilleure matière: ${bestSubject.subject} (${bestSubject.average}/20)
-Matière à renforcer: ${weakestSubject.subject} (${weakestSubject.average}/20)
-
-Détail par matière:
-${gradesStr}
+${gradesSection}
 
 ═══ ACTIVITÉS EXTRA-SCOLAIRES ═══
 ${activitiesStr}

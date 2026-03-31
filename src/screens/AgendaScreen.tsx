@@ -168,7 +168,7 @@ const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
 
 export default function AgendaScreen() {
   const { theme } = useChildTheme();
-  const { selectedChildId } = useActiveChild();
+  const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
 
   const todayDate = new Date().getDate();
@@ -243,6 +243,10 @@ export default function AgendaScreen() {
   const isRealChild = selectedChildId.includes('-') && selectedChildId.length > 10;
 
   const openAddModal = useCallback(() => {
+    if (childLoading) {
+      Alert.alert('Chargement', 'Les données sont en cours de chargement, veuillez patienter.');
+      return;
+    }
     if (!isRealChild) {
       Alert.alert('Info', 'Aucun enfant connecté. Veuillez vous connecter pour ajouter des événements.');
       return;
@@ -250,7 +254,7 @@ export default function AgendaScreen() {
     setNewEventTitle('');
     setNewEventType('devoir');
     setAddModalVisible(true);
-  }, [isRealChild]);
+  }, [isRealChild, childLoading]);
 
   const handleCreateEvent = useCallback(async () => {
     if (!newEventTitle.trim()) {
