@@ -1,11 +1,9 @@
-import { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
 import { Box, Text, HStack } from '../ui';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
 import AriaAvatar from './AriaAvatar';
 import TypingIndicator from './TypingIndicator';
-import Markdown from 'react-native-markdown-display';
+import SimpleMarkdown from './SimpleMarkdown';
 
 export interface Message {
   id: string;
@@ -22,23 +20,6 @@ interface Props {
 export default function ChatBubble({ message, isTyping }: Props) {
   const { theme } = useChildTheme();
   const isAria = message.sender === 'aria';
-
-  const mdStyles = useMemo(
-    () =>
-      StyleSheet.create({
-        body: { fontSize: 15, lineHeight: 22, color: isAria ? theme.textPrimary : Colors.white },
-        heading2: { fontSize: 16, fontWeight: '700', color: isAria ? theme.textPrimary : Colors.white, marginTop: 8, marginBottom: 4 },
-        heading3: { fontSize: 15, fontWeight: '700', color: isAria ? theme.textPrimary : Colors.white, marginTop: 6, marginBottom: 2 },
-        strong: { fontWeight: '700' },
-        em: { fontStyle: 'italic' },
-        bullet_list: { marginVertical: 4 },
-        ordered_list: { marginVertical: 4 },
-        list_item: { marginVertical: 1 },
-        paragraph: { marginTop: 0, marginBottom: 6 },
-        link: { color: theme.accent },
-      }),
-    [isAria, theme],
-  );
 
   return (
     <HStack
@@ -76,7 +57,15 @@ export default function ChatBubble({ message, isTyping }: Props) {
             <TypingIndicator />
           </HStack>
         ) : isAria ? (
-          <Markdown style={mdStyles}>{message.text}</Markdown>
+          <SimpleMarkdown
+            baseStyle={{
+              fontSize: 15,
+              lineHeight: 22,
+              color: theme.textPrimary,
+            }}
+          >
+            {message.text}
+          </SimpleMarkdown>
         ) : (
           <Text
             className="text-[15px]"
