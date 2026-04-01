@@ -602,8 +602,8 @@ const st = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   weekTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 13,
-    textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8,
+    fontFamily: FontFamily.displayBold, fontSize: 13,
+    textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8,
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
   badgeRow: { flexDirection: 'row', gap: 8 },
@@ -612,31 +612,32 @@ const st = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
     borderWidth: 1,
   },
-  badgeText: { fontFamily: FontFamily.sansBold, fontSize: 11 },
+  badgeText: { fontFamily: FontFamily.displayBold, fontSize: 11 },
 
   dayPill: {
     width: 54, alignItems: 'center', paddingVertical: 10, borderRadius: 16, gap: 4,
     backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
   },
   dayLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase' },
-  dayNumber: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#0F172A' },
+  dayNumber: { fontFamily: FontFamily.displayBold, fontSize: 20, color: '#0F172A' },
   dayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.cyan },
 
   dayTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginVertical: 10 },
   sectionBar: { width: 4, height: 18, borderRadius: 2 },
   sectionText: {
-    fontFamily: FontFamily.sansBold, fontSize: 16,
+    fontFamily: FontFamily.displayBold, fontSize: 13,
+    textTransform: 'uppercase', letterSpacing: 2,
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
 
-  emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A', marginBottom: 4 },
+  emptyTitle: { fontFamily: FontFamily.displayBold, fontSize: 18, color: '#0F172A', marginBottom: 4 },
   emptySubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#94A3B8' },
 
   colorBar: { width: 5, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
 
   eventTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#0F172A' },
   typePill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  typeLabel: { fontFamily: FontFamily.sansBold, fontSize: 11 },
+  typeLabel: { fontFamily: FontFamily.displayBold, fontSize: 11 },
   timeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 
   checkbox: {
@@ -667,10 +668,10 @@ const st = StyleSheet.create({
     }),
   },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginBottom: 20 },
-  modalTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A', marginBottom: 20 },
+  modalTitle: { fontFamily: FontFamily.displayBold, fontSize: 18, color: '#0F172A', marginBottom: 20 },
   modalDateRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, marginBottom: 16 },
   modalDateText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
-  modalLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 },
+  modalLabel: { fontFamily: FontFamily.displayBold, fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 },
   modalInput: {
     backgroundColor: '#F7F8FC', borderWidth: 1.5, borderColor: '#EEF0F5', borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F172A', marginBottom: 20,

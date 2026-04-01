@@ -52,11 +52,11 @@ export default function AriaCard({ summary, accent, delay = 200 }: Props) {
           <Text style={{ fontSize: 13, color: accent }}>✦</Text>
           <Text
             style={{
-              fontFamily: FontFamily.sansBold,
-              fontSize: 11,
+              fontFamily: FontFamily.displayBold,
+              fontSize: 13,
               color: accent,
               textTransform: 'uppercase',
-              letterSpacing: 1,
+              letterSpacing: 2,
             }}
           >
             Synthèse Aria · Ce matin

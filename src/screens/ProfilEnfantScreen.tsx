@@ -597,10 +597,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   exportBtnText: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 17,
     color: '#FFFFFF',
-    fontWeight: '800',
   },
   exportHint: {
     fontFamily: FontFamily.sansRegular,

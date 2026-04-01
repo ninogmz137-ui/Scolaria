@@ -1,22 +1,29 @@
 # TODO — Scolaria
 
-## Phase 1 : Fonds et Headers (refonte visuelle majeure)
+## Phase 2A : Bottom Tab Bar Premium
+- [x] FloatingTabBar — mode-aware bg (dark/light from theme.isDarkBg)
+- [x] Active tab: accent at 15% opacity + accent text label
+- [x] Icon size 24px, Aria always gradient (MaskedView + LinearGradient)
+- [x] Height 64, padding h8 v8, borderRadius 20 on pills
+- [x] Tab label: 11px DM Sans 600 (FontFamily.sansSemiBold)
+- [x] Shadow only on light mode, hairline border
+- [x] Install @react-native-masked-view/masked-view
 
-### Étape 1 — Theme system
-- [ ] SchoolModeContext.tsx: ajouter backgroundColor, headerGradientFull[], isDarkBg, textOnBg, textOnBgSecondary
-- [ ] themes.ts: porter les nouvelles propriétés dans deriveThemePalette
-- [ ] ChildThemeContext.tsx: passer les nouvelles propriétés dans le merge
+## Phase 2B : Typographie Premium
+- [x] Install @expo-google-fonts/barlow-condensed
+- [x] Update useSolariaFonts: replace Lora with BarlowCondensed (600/700/800)
+- [x] Legacy aliases for backward compat
+- [x] FloatingTabBar tab label → FontFamily.sansSemiBold
+- [x] AriaScreen headerTitle → FontFamily.displayBold
+- [x] SettingsScreen sectionTitle → FontFamily.displayBold 13px uppercase ls:2
+- [x] DashboardTile value → FontFamily.displayBold 32px
+- [x] DashboardTile label → FontFamily.displayBold 11px uppercase ls:2
+- [x] AriaCard label → FontFamily.displayBold 13px uppercase ls:2
+- [ ] AccueilScreen — agent running (sectionLabel + tileValue)
+- [ ] NotesScreen — agent running (summaryValue, subjectName, subjectAvg)
+- [ ] AgendaScreen — agent running (weekTitle, dayNumber, badgeText)
+- [ ] ProfilEnfantScreen + SignalerAbsenceScreen — agent fixing fontWeight leaks
 
-### Étape 2 — Composants
-- [ ] Créer ScreenHeader.tsx : header 30-35% écran, gradient courbe, border-radius 28 bas
-- [ ] WallpaperBackground.tsx: rendre mode-aware (fond par mode au lieu de gradient wallpaper)
-
-### Étape 3 — Écrans (parallélisable)
-- [ ] AccueilScreen.tsx: ScreenHeader + fond mode + textes adaptatifs
-- [ ] NotesScreen.tsx: ScreenHeader + fond mode + textes adaptatifs
-- [ ] AriaScreen.tsx: ScreenHeader intégré au header existant + fond mode
-- [ ] AgendaScreen.tsx: ScreenHeader + fond mode + textes adaptatifs
-
-### Étape 4 — Vérification
-- [ ] npx tsc --noEmit = 0 erreurs
-- [ ] Vérifier visuellement les 3 modes (Léa/Lucas/Emma)
+## Pending
+- EAS build in progress (commit 0edce61 — gradient fade-to-bg)
+- Phase 2 commit pending after all agents complete

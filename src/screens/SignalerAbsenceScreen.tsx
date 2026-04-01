@@ -510,10 +510,9 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   headerTitle: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 16,
     color: '#FFFFFF',
-    fontWeight: '800',
     textShadowColor: 'rgba(0,0,0,0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
@@ -543,9 +542,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   stepNum: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 13,
-    fontWeight: '800',
   },
   stepLabel: {
     fontFamily: FontFamily.sansSemiBold,
@@ -573,10 +571,9 @@ const styles = StyleSheet.create({
   },
   // ── Step content ──
   stepQuestion: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 18,
     color: '#FFFFFF',
-    fontWeight: '800',
     marginBottom: 4,
     textShadowColor: 'rgba(0,0,0,0.4)',
     textShadowOffset: { width: 0, height: 1 },
@@ -606,7 +603,6 @@ const styles = StyleSheet.create({
   pillText: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    fontWeight: '700',
   },
   // ── Input ──
   inputCard: {
@@ -688,11 +684,10 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   recapChildName: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 15,
     color: '#FFFFFF',
     flex: 1,
-    fontWeight: '800',
   },
   recapDivider: {
     height: 1,
@@ -743,10 +738,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   primaryBtnText: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayExtraBold,
     fontSize: 15,
     color: '#FFFFFF',
-    fontWeight: '800',
   },
   // ── Success ──
   successContainer: {

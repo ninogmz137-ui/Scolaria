@@ -335,9 +335,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   sectionTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    letterSpacing: 1.2,
+    fontFamily: FontFamily.displayBold,
+    fontSize: 13,
+    letterSpacing: 2,
     textTransform: 'uppercase',
   },
 

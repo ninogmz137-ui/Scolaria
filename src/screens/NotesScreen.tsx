@@ -531,19 +531,19 @@ const s = StyleSheet.create({
 
   summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   summaryCard: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#0F172A', marginBottom: 2 },
+  summaryValue: { fontFamily: FontFamily.displayBold, fontSize: 32, color: '#0F172A', marginBottom: 2 },
   summaryLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, color: '#94A3B8', textTransform: 'uppercase' },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   sectionBar: { width: 4, height: 16, borderRadius: 2 },
   sectionTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 13,
-    textTransform: 'uppercase', letterSpacing: 1.2,
+    fontFamily: FontFamily.displayBold, fontSize: 13,
+    textTransform: 'uppercase', letterSpacing: 2,
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
 
   gradeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
-  gradeBadgeText: { fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF' },
+  gradeBadgeText: { fontFamily: FontFamily.displayExtraBold, fontSize: 13, color: '#FFFFFF' },
 
   carouselSubject: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#64748B', marginTop: 6 },
   carouselDate: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: '#94A3B8' },
@@ -555,10 +555,10 @@ const s = StyleSheet.create({
 
   subjectHeader: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 },
   subjectDot: { width: 4, height: 28, borderRadius: 2 },
-  subjectName: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#0F172A' },
+  subjectName: { fontFamily: FontFamily.displayBold, fontSize: 17, color: '#0F172A' },
   subjectClass: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 2 },
   subjectRight: { alignItems: 'flex-end', gap: 2, marginRight: 6 },
-  subjectAvg: { fontFamily: FontFamily.sansBold, fontSize: 22 },
+  subjectAvg: { fontFamily: FontFamily.displayExtraBold, fontSize: 24 },
 
   barRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 6 },
   barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.15)', overflow: 'hidden' },
@@ -577,7 +577,7 @@ const s = StyleSheet.create({
 
   // Maternelle
   maternelleTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 22, marginBottom: 12,
+    fontFamily: FontFamily.displayBold, fontSize: 22, marginBottom: 12,
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
   legendRow: { flexDirection: 'row', justifyContent: 'space-around' },

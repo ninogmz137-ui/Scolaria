@@ -124,8 +124,8 @@ export default function DashboardTile({
           </HStack>
           <Text
             style={{
-              fontFamily: FontFamily.sansBold,
-              fontSize: 22,
+              fontFamily: FontFamily.displayBold,
+              fontSize: 32,
               color: '#0F172A',
               letterSpacing: -0.5,
               marginBottom: 2,
@@ -135,11 +135,11 @@ export default function DashboardTile({
           </Text>
           <Text
             style={{
-              fontFamily: FontFamily.sansSemiBold,
-              fontSize: 10,
+              fontFamily: FontFamily.displayBold,
+              fontSize: 11,
               color: '#64748B',
               textTransform: 'uppercase',
-              letterSpacing: 1,
+              letterSpacing: 2,
               marginBottom: 4,
             }}
           >

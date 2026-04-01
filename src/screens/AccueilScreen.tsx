@@ -445,11 +445,11 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionBar: { width: 4, height: 16, borderRadius: 2 },
   sectionLabel: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 13,
     // color is applied inline via theme.textOnBg
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 2,
   },
 
   // Tile grid
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   tileIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   tileBadge: { minWidth: 22, height: 22, borderRadius: 11, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   tileBadgeText: { fontFamily: FontFamily.sansBold, fontSize: 10, color: '#FFFFFF' },
-  tileValue: { fontFamily: FontFamily.sansBold, fontSize: 26, color: '#0F172A', marginBottom: 2 },
+  tileValue: { fontFamily: FontFamily.displayBold, fontSize: 32, color: '#0F172A', marginBottom: 2 },
   tileLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   tileDetail: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 
@@ -475,7 +475,7 @@ const styles = StyleSheet.create({
   // Aria
   ariaHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   ariaIcon: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  ariaLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1.2 },
+  ariaLabel: { fontFamily: FontFamily.displayBold, fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1.2 },
   ariaSummary: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#0F172A', lineHeight: 21 },
 
   // Absence
@@ -497,9 +497,9 @@ const styles = StyleSheet.create({
   // Joy score
   joyRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   joyEmoji: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  joyLabel: { fontFamily: FontFamily.sansBold, fontSize: 13, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.8 },
+  joyLabel: { fontFamily: FontFamily.displayBold, fontSize: 13, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 2 },
   joyValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
-  joyValue: { fontFamily: FontFamily.sansBold, fontSize: 24, color: '#0F172A' },
+  joyValue: { fontFamily: FontFamily.displayBold, fontSize: 24, color: '#0F172A' },
   joyMax: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#94A3B8' },
   joyPeriod: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginLeft: 4 },
   joyTrendRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },

@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   headerTitle: {
-    fontFamily: FontFamily.sansBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 17,
     color: '#0F172A',
   },
