@@ -6,35 +6,31 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, Platform, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { Papicons } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
-import DecorativeBlobs from '../components/DecorativeBlobs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { getStudentAbsences } from '../services/absenceService';
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
-}
+const NOTIF_PAPICONS: Record<string, { icon: string; color: string }> = {
+  liaison: { icon: 'Paper',    color: '#FF8C42' },
+  note:    { icon: 'Grades',   color: '#A78BFA' },
+  agenda:  { icon: 'Calendar', color: '#10B981' },
+  aria:    { icon: 'Sparkles', color: '#6366F1' },
+  absence: { icon: 'Warning',  color: '#EF4444' },
+};
 
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.10, shadowRadius: 20 },
-}) as Record<string, any>;
-
-// ─── Mock notifications ──────────────────────────────────
+// ─── Types ────────────────────────────────────────────────
 
 interface Notification {
   id: string;
@@ -45,33 +41,27 @@ interface Notification {
   read: boolean;
 }
 
-const NOTIF_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> = {
-  liaison: { icon: 'book', color: '#FF8C42' },
-  note: { icon: 'bar-chart', color: '#A78BFA' },
-  agenda: { icon: 'calendar', color: '#10B981' },
-  aria: { icon: 'sparkles', color: '#6366F1' },
-  absence: { icon: 'medical', color: '#EF4444' },
-};
+// Internal type used only during aggregation — carries a sortable ISO date
+// that is stripped before the items reach state.
+type NotificationWithDate = Notification & { _isoDate: string };
+
+// ─── Mock notifications ──────────────────────────────────
 
 function getMockNotifications(childId: string): { today: Notification[]; earlier: Notification[] } {
   const today: Notification[] = [
     { id: '1', type: 'liaison', title: 'Nouveau mot', message: 'Sortie scolaire du 15 avril — autorisation à signer', time: '14h30', read: false },
-    { id: '2', type: 'aria', title: 'Aria · Synthèse', message: 'La synthèse du jour est disponible', time: '08h00', read: false },
-    { id: '3', type: 'agenda', title: 'Rappel', message: 'Contrôle de Maths demain', time: '07h30', read: true },
+    { id: '2', type: 'aria',    title: 'Aria · Synthèse', message: 'La synthèse du jour est disponible', time: '08h00', read: false },
+    { id: '3', type: 'agenda',  title: 'Rappel', message: 'Contrôle de Maths demain', time: '07h30', read: true },
   ];
 
   const earlier: Notification[] = [
-    { id: '4', type: 'note', title: 'Nouvelle note', message: 'Français — Dictée : 14/20', time: 'Hier', read: true },
+    { id: '4', type: 'note',    title: 'Nouvelle note', message: 'Français — Dictée : 14/20', time: 'Hier', read: true },
     { id: '5', type: 'liaison', title: 'Mot signé', message: 'Le mot « Piscine » a été signé avec succès', time: 'Hier', read: true },
-    { id: '6', type: 'absence', title: 'Absence prise en compte', message: 'Absence du 25/03 validée par l\'école', time: 'Lun.', read: true },
+    { id: '6', type: 'absence', title: 'Absence prise en compte', message: "Absence du 25/03 validée par l'école", time: 'Lun.', read: true },
   ];
 
   return { today, earlier };
 }
-
-// Internal type used only during aggregation — carries a sortable ISO date
-// that is stripped before the items reach state.
-type NotificationWithDate = Notification & { _isoDate: string };
 
 // ─── Date formatting helpers ─────────────────────────────
 
@@ -107,6 +97,8 @@ export default function NotificationsScreen() {
   const { selectedChild } = useActiveChild();
   const accent = theme.accent;
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
 
   const [today, setToday] = useState<Notification[]>([]);
   const [earlier, setEarlier] = useState<Notification[]>([]);
@@ -269,85 +261,51 @@ export default function NotificationsScreen() {
   const unreadCount = today.filter((n) => !n.read).length + earlier.filter((n) => !n.read).length;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#E8EDF5' }}>
-      {/* Header */}
-      <LinearGradient
-        colors={['#0B1628', accent + 'DD']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          paddingTop: 28,
-          paddingBottom: 24,
-          paddingHorizontal: 20,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
-          overflow: 'hidden',
+    <View style={{ flex: 1 }}>
+      <WallpaperBackground />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: TOPBAR_H + 12,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+          paddingHorizontal: 18,
+          gap: 12,
         }}
       >
-        <DecorativeBlobs accent={accent} size={80} opacity={0.15} />
-
-        <HStack className="items-center" style={{ gap: 10, marginBottom: 4 }}>
-          <Ionicons name="notifications" size={22} color="#FFFFFF" />
-          <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 22, color: '#FFFFFF' }}>
-            Notifications
+        {/* Page title */}
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Notifications</Text>
+          <Text style={styles.subtitle}>
+            {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
           </Text>
-        </HStack>
-        <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>
-          {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
-        </Text>
-      </LinearGradient>
+        </View>
 
-      {/* Content */}
-      <View style={{ flex: 1, position: 'relative' }}>
-        <DecorativeBlobs accent={accent} size={70} opacity={0.08} />
+        {/* Today */}
+        {today.length > 0 && (
+          <>
+            <View style={styles.sectionRow}>
+              <View style={[styles.sectionBar, { backgroundColor: accent }]} />
+              <Text style={styles.sectionLabel}>Aujourd'hui</Text>
+            </View>
+            {today.map((notif) => (
+              <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
+            ))}
+          </>
+        )}
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 18, paddingTop: 20, paddingBottom: 32, gap: 12 }}
-        >
-          {/* Today */}
-          {today.length > 0 && (
-            <>
-              <HStack className="items-center" style={{ gap: 8, marginBottom: 2 }}>
-                <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: accent }} />
-                <Text style={{
-                  fontFamily: FontFamily.sansBold,
-                  fontSize: 13,
-                  color: '#0F172A',
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.2,
-                }}>
-                  Aujourd'hui
-                </Text>
-              </HStack>
-              {today.map((notif) => (
-                <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
-              ))}
-            </>
-          )}
-
-          {/* Earlier */}
-          {earlier.length > 0 && (
-            <>
-              <HStack className="items-center" style={{ gap: 8, marginTop: 8, marginBottom: 2 }}>
-                <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#CBD5E1' }} />
-                <Text style={{
-                  fontFamily: FontFamily.sansBold,
-                  fontSize: 13,
-                  color: '#94A3B8',
-                  textTransform: 'uppercase',
-                  letterSpacing: 1.2,
-                }}>
-                  Plus tôt
-                </Text>
-              </HStack>
-              {earlier.map((notif) => (
-                <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
-              ))}
-            </>
-          )}
-        </ScrollView>
-      </View>
+        {/* Earlier */}
+        {earlier.length > 0 && (
+          <>
+            <View style={[styles.sectionRow, { marginTop: 4 }]}>
+              <View style={[styles.sectionBar, { backgroundColor: 'rgba(203,213,225,0.7)' }]} />
+              <Text style={[styles.sectionLabel, { color: 'rgba(255,255,255,0.6)' }]}>Plus tôt</Text>
+            </View>
+            {earlier.map((notif) => (
+              <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
+            ))}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -359,77 +317,132 @@ function NotifCard({ notif, accent, onPress }: {
   accent: string;
   onPress: (notif: Notification) => void;
 }) {
-  const cfg = NOTIF_ICONS[notif.type] ?? NOTIF_ICONS.aria;
+  const cfg = NOTIF_PAPICONS[notif.type] ?? NOTIF_PAPICONS.aria;
 
   return (
     <Pressable
       onPress={() => onPress(notif)}
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.85 : 1,
-      })}
+      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
     >
-    <HStack
-      style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: 14,
-        padding: 14,
-        gap: 12,
-        alignItems: 'flex-start',
-        borderLeftWidth: notif.read ? 0 : 3,
-        borderLeftColor: accent,
-        ...CARD_SHADOW,
-      }}
-    >
-      {/* Icon */}
-      <Box
-        className="items-center justify-center"
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          backgroundColor: cfg.color + '15',
-        }}
+      <GlassCard
+        noPadding
+        style={notif.read ? undefined : { borderLeftWidth: 3, borderLeftColor: accent }}
       >
-        <Ionicons name={cfg.icon} size={18} color={cfg.color} />
-      </Box>
+        <View style={styles.cardInner}>
+          {/* Icon */}
+          <View style={[styles.iconBox, { backgroundColor: cfg.color + '20' }]}>
+            <Papicons name={cfg.icon} size={18} color={cfg.color} />
+          </View>
 
-      {/* Content */}
-      <VStack style={{ flex: 1, gap: 2 }}>
-        <HStack className="items-center justify-between">
-          <Text style={{
-            fontFamily: notif.read ? FontFamily.sansSemiBold : FontFamily.sansBold,
-            fontSize: 14,
-            color: '#0F172A',
-          }}>
-            {notif.title}
-          </Text>
-          <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' }}>
-            {notif.time}
-          </Text>
-        </HStack>
-        <Text style={{
-          fontFamily: FontFamily.sansRegular,
-          fontSize: 13,
-          color: '#64748B',
-          lineHeight: 18,
-        }}>
-          {notif.message}
-        </Text>
-      </VStack>
+          {/* Content */}
+          <View style={styles.cardContent}>
+            <View style={styles.cardTitleRow}>
+              <Text style={[
+                styles.notifTitle,
+                { fontFamily: notif.read ? FontFamily.sansSemiBold : FontFamily.sansBold },
+              ]}>
+                {notif.title}
+              </Text>
+              <Text style={styles.notifTime}>{notif.time}</Text>
+            </View>
+            <Text style={styles.notifMessage}>{notif.message}</Text>
+          </View>
 
-      {/* Unread dot */}
-      {!notif.read && (
-        <Box
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: accent,
-            marginTop: 4,
-          }}
-        />
-      )}
-    </HStack>
+          {/* Unread dot */}
+          {!notif.read && (
+            <View style={[styles.unreadDot, { backgroundColor: accent }]} />
+          )}
+        </View>
+      </GlassCard>
     </Pressable>
   );
 }
+
+// ─── Styles ──────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  titleRow: {
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 26,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  subtitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+    marginTop: 4,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
+  sectionBar: {
+    width: 4,
+    height: 16,
+    borderRadius: 2,
+  },
+  sectionLabel: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  cardInner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: 14,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardContent: {
+    flex: 1,
+    gap: 2,
+  },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  notifTitle: {
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  notifTime: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  notifMessage: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 4,
+  },
+});

@@ -20,6 +20,7 @@ import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
 import { ChildThemeProvider } from './src/contexts/ChildThemeContext';
+import { WallpaperProvider } from './src/contexts/WallpaperContext';
 import { Colors } from './src/constants/colors';
 import { scheduleConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
@@ -139,10 +140,12 @@ export default function App() {
           <SchoolModeProvider>
             <ActiveChildProvider>
               <ChildThemeProvider>
-                <NavigationContainer>
-                  <StatusBar style="light" />
-                  <AppContent />
-                </NavigationContainer>
+                <WallpaperProvider>
+                  <NavigationContainer>
+                    <StatusBar style="light" />
+                    <AppContent />
+                  </NavigationContainer>
+                </WallpaperProvider>
               </ChildThemeProvider>
             </ActiveChildProvider>
           </SchoolModeProvider>

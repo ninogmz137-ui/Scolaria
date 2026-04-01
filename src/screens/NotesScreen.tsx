@@ -1,24 +1,29 @@
+/**
+ * NotesScreen — Grades dashboard with wallpaper + glass design.
+ *
+ * Structure:
+ * - Summary glass cards (average, best subject, total)
+ * - New grades horizontal carousel
+ * - Expandable accordion subject list with glass cards
+ * - Badge colors: green ≥14, orange 10-13, red <10
+ */
+
 import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, FlatList, Platform } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { View, ScrollView, FlatList, Pressable, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Papicons } from '@getpapillon/papicons';
+import GlassCard from '../components/GlassCard';
+import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { getSubjects, getGrades } from '../services/database';
-import DecorativeBlobs from '../components/DecorativeBlobs';
 import { FontFamily } from '../hooks/useSolariaFonts';
-
-const NOTES_BG = '#E8EDF5';
-const NOTES_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 6 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-}) as Record<string, any>;
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -38,100 +43,11 @@ interface Grade {
   value: number;
   maxValue: number;
   date: string;
-  type: string; // 'Contrôle', 'Devoir', 'Oral', etc.
+  type: string;
   comment?: string;
 }
 
-type FilterTab = 'all' | 'trimestre1' | 'trimestre2' | 'trimestre3';
-
-// ─── Mock data ────────────────────────────────────────────
-
-const MOCK_SUBJECTS: Subject[] = [
-  {
-    id: '1',
-    name: 'Mathématiques',
-    emoji: '📐',
-    color: Colors.cyan,
-    average: 15.5,
-    classAvg: 12.3,
-    trend: 'up',
-    grades: [
-      { id: 'g1', value: 17, maxValue: 20, date: '15 mars', type: 'Contrôle', comment: 'Très bien, géométrie maîtrisée' },
-      { id: 'g2', value: 14, maxValue: 20, date: '8 mars', type: 'Devoir maison' },
-      { id: 'g3', value: 16, maxValue: 20, date: '1 mars', type: 'Contrôle' },
-      { id: 'g4', value: 15, maxValue: 20, date: '15 fév', type: 'Oral' },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Français',
-    emoji: '📖',
-    color: Colors.violet,
-    average: 14.0,
-    classAvg: 13.1,
-    trend: 'stable',
-    grades: [
-      { id: 'g5', value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction', comment: 'Belle progression en expression' },
-      { id: 'g6', value: 13, maxValue: 20, date: '7 mars', type: 'Dictée' },
-      { id: 'g7', value: 14, maxValue: 20, date: '28 fév', type: 'Contrôle' },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Histoire-Géo',
-    emoji: '🏛️',
-    color: Colors.orange,
-    average: 16.0,
-    classAvg: 11.8,
-    trend: 'up',
-    grades: [
-      { id: 'g8', value: 18, maxValue: 20, date: '12 mars', type: 'Exposé', comment: 'Excellent travail de recherche' },
-      { id: 'g9', value: 15, maxValue: 20, date: '5 mars', type: 'Contrôle' },
-      { id: 'g10', value: 15, maxValue: 20, date: '20 fév', type: 'Devoir' },
-    ],
-  },
-  {
-    id: '4',
-    name: 'Anglais',
-    emoji: '🇬🇧',
-    color: Colors.green,
-    average: 17.0,
-    classAvg: 13.7,
-    trend: 'up',
-    grades: [
-      { id: 'g11', value: 18, maxValue: 20, date: '13 mars', type: 'Oral' },
-      { id: 'g12', value: 16, maxValue: 20, date: '6 mars', type: 'Contrôle' },
-      { id: 'g13', value: 17, maxValue: 20, date: '22 fév', type: 'Devoir' },
-    ],
-  },
-  {
-    id: '5',
-    name: 'Sciences',
-    emoji: '🔬',
-    color: Colors.pink,
-    average: 13.0,
-    classAvg: 12.5,
-    trend: 'down',
-    grades: [
-      { id: 'g14', value: 12, maxValue: 20, date: '11 mars', type: 'TP' },
-      { id: 'g15', value: 14, maxValue: 20, date: '4 mars', type: 'Contrôle' },
-      { id: 'g16', value: 13, maxValue: 20, date: '18 fév', type: 'Devoir' },
-    ],
-  },
-  {
-    id: '6',
-    name: 'EPS',
-    emoji: '⚽',
-    color: Colors.warmOrange,
-    average: 15.0,
-    classAvg: 14.2,
-    trend: 'stable',
-    grades: [
-      { id: 'g17', value: 16, maxValue: 20, date: '10 mars', type: 'Course' },
-      { id: 'g18', value: 14, maxValue: 20, date: '24 fév', type: 'Gymnastique' },
-    ],
-  },
-];
+type SortMode = 'alpha' | 'average' | 'trimestre';
 
 // ─── Maternelle competencies ─────────────────────────────
 
@@ -160,10 +76,7 @@ const COMPETENCY_LEVELS: Record<CompetencyLevel, { label: string; emoji: string;
 
 const MATERNELLE_DOMAINS: CompetencyDomain[] = [
   {
-    id: 'd1',
-    name: 'Mobiliser le langage',
-    emoji: '🗣️',
-    color: Colors.violet,
+    id: 'd1', name: 'Mobiliser le langage', emoji: '🗣️', color: Colors.violet,
     competencies: [
       { id: 'c1', name: 'Communiquer avec les adultes', level: 'acquis' },
       { id: 'c2', name: 'S\'exprimer dans un langage oral', level: 'acquis' },
@@ -172,10 +85,7 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
     ],
   },
   {
-    id: 'd2',
-    name: 'Agir, s\'exprimer, comprendre (activités artistiques)',
-    emoji: '🎨',
-    color: Colors.pink,
+    id: 'd2', name: 'Activités artistiques', emoji: '🎨', color: Colors.pink,
     competencies: [
       { id: 'c5', name: 'Dessiner (bonhomme, maison)', level: 'acquis' },
       { id: 'c6', name: 'Chanter en groupe', level: 'acquis' },
@@ -183,10 +93,7 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
     ],
   },
   {
-    id: 'd3',
-    name: 'Agir, s\'exprimer, comprendre (activités physiques)',
-    emoji: '🤸',
-    color: Colors.cyan,
+    id: 'd3', name: 'Activités physiques', emoji: '🤸', color: Colors.cyan,
     competencies: [
       { id: 'c8', name: 'Courir, sauter, lancer', level: 'acquis' },
       { id: 'c9', name: 'Se déplacer avec aisance', level: 'acquis' },
@@ -194,10 +101,7 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
     ],
   },
   {
-    id: 'd4',
-    name: 'Construire les premiers outils pour structurer sa pensée',
-    emoji: '🔢',
-    color: Colors.orange,
+    id: 'd4', name: 'Structurer sa pensée', emoji: '🔢', color: Colors.orange,
     competencies: [
       { id: 'c11', name: 'Compter jusqu\'à 10', level: 'acquis' },
       { id: 'c12', name: 'Reconnaître des formes', level: 'en_cours' },
@@ -206,10 +110,7 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
     ],
   },
   {
-    id: 'd5',
-    name: 'Explorer le monde',
-    emoji: '🌍',
-    color: Colors.green,
+    id: 'd5', name: 'Explorer le monde', emoji: '🌍', color: Colors.green,
     competencies: [
       { id: 'c15', name: 'Connaître les parties du corps', level: 'acquis' },
       { id: 'c16', name: 'Observer le vivant (animaux, plantes)', level: 'en_cours' },
@@ -218,638 +119,455 @@ const MATERNELLE_DOMAINS: CompetencyDomain[] = [
   },
 ];
 
+// ─── Mock data ────────────────────────────────────────────
 
-const FILTER_TABS: { key: FilterTab; labelKey?: string; label?: string }[] = [
-  { key: 'all', labelKey: 'grades.all' },
-  { key: 'trimestre1', label: 'T1' },
-  { key: 'trimestre2', label: 'T2' },
-  { key: 'trimestre3', label: 'T3' },
+const MOCK_SUBJECTS: Subject[] = [
+  { id: '1', name: 'Mathématiques', emoji: '📐', color: Colors.cyan, average: 15.5, classAvg: 12.3, trend: 'up',
+    grades: [
+      { id: 'g1', value: 17, maxValue: 20, date: '15 mars', type: 'Contrôle', comment: 'Très bien' },
+      { id: 'g2', value: 14, maxValue: 20, date: '8 mars', type: 'Devoir maison' },
+      { id: 'g3', value: 16, maxValue: 20, date: '1 mars', type: 'Contrôle' },
+    ] },
+  { id: '2', name: 'Français', emoji: '📖', color: Colors.violet, average: 14.0, classAvg: 13.1, trend: 'stable',
+    grades: [
+      { id: 'g5', value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction' },
+      { id: 'g6', value: 13, maxValue: 20, date: '7 mars', type: 'Dictée' },
+    ] },
+  { id: '3', name: 'Histoire-Géo', emoji: '🏛️', color: Colors.orange, average: 16.0, classAvg: 11.8, trend: 'up',
+    grades: [
+      { id: 'g8', value: 18, maxValue: 20, date: '12 mars', type: 'Exposé' },
+      { id: 'g9', value: 15, maxValue: 20, date: '5 mars', type: 'Contrôle' },
+    ] },
+  { id: '4', name: 'Anglais', emoji: '🇬🇧', color: Colors.green, average: 17.0, classAvg: 13.7, trend: 'up',
+    grades: [
+      { id: 'g11', value: 18, maxValue: 20, date: '13 mars', type: 'Oral' },
+      { id: 'g12', value: 16, maxValue: 20, date: '6 mars', type: 'Contrôle' },
+    ] },
+  { id: '5', name: 'Sciences', emoji: '🔬', color: Colors.pink, average: 13.0, classAvg: 12.5, trend: 'down',
+    grades: [
+      { id: 'g14', value: 12, maxValue: 20, date: '11 mars', type: 'TP' },
+      { id: 'g15', value: 14, maxValue: 20, date: '4 mars', type: 'Contrôle' },
+    ] },
+  { id: '6', name: 'EPS', emoji: '⚽', color: Colors.warmOrange, average: 15.0, classAvg: 14.2, trend: 'stable',
+    grades: [
+      { id: 'g17', value: 16, maxValue: 20, date: '10 mars', type: 'Course' },
+      { id: 'g18', value: 14, maxValue: 20, date: '24 fév', type: 'Gymnastique' },
+    ] },
 ];
 
-// ─── Helper ───────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────
 
-const trendIcon = (t: Subject['trend']): keyof typeof Ionicons.glyphMap =>
-  t === 'up' ? 'trending-up' : t === 'down' ? 'trending-down' : 'remove';
-const trendColor = (t: Subject['trend']) =>
-  t === 'up' ? Colors.green : t === 'down' ? Colors.red : Colors.gray;
-
-// ─── Grade mini bar ──────────────────────────────────────
+const getBadgeColor = (value: number) =>
+  value >= 14 ? '#10B981' : value >= 10 ? '#F59E0B' : '#EF4444';
 
 function GradeBar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = (value / max) * 100;
   return (
-    <Box className="h-1.5 flex-1 overflow-hidden rounded-sm" style={{ backgroundColor: 'rgba(128,128,128,0.15)' }}>
-      <Box className="h-full rounded-sm" style={{ width: `${pct}%`, backgroundColor: color }} />
-    </Box>
+    <View style={[s.barTrack]}>
+      <View style={[s.barFill, { width: `${pct}%`, backgroundColor: color }]} />
+    </View>
   );
 }
 
 // ─── Main screen ─────────────────────────────────────────
 
 export default function NotesScreen() {
-  const { t } = useI18n();
-  const { mode } = useSchoolMode();
   const { theme } = useChildTheme();
   const { selectedChild } = useActiveChild();
+  const { mode } = useSchoolMode();
   const navigation = useNavigation<any>();
-  const [filter, setFilter] = useState<FilterTab>('all');
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
+
+  const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
-  const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
+  const [sortMode, setSortMode] = useState<SortMode>('alpha');
+  const isMaternelle = mode === 'maternelle';
 
-  const COLOR_PALETTE = [
-    Colors.cyan, Colors.violet, Colors.orange, Colors.green,
-    Colors.pink, Colors.warmOrange,
-  ];
+  const COLOR_PALETTE = [Colors.cyan, Colors.violet, Colors.orange, Colors.green, Colors.pink, Colors.warmOrange];
 
   const FRENCH_MONTHS: Record<string, string> = {
     '01': 'jan', '02': 'fév', '03': 'mars', '04': 'avr',
     '05': 'mai', '06': 'juin', '07': 'juil', '08': 'août',
     '09': 'sep', '10': 'oct', '11': 'nov', '12': 'déc',
   };
-
   const toFrenchDate = (iso: string): string => {
     const parts = iso.split('-');
     if (parts.length < 3) return iso;
-    const day = parseInt(parts[2], 10);
-    const month = FRENCH_MONTHS[parts[1]] ?? parts[1];
-    return `${day} ${month}`;
+    return `${parseInt(parts[2], 10)} ${FRENCH_MONTHS[parts[1]] ?? parts[1]}`;
   };
 
   const loadNotes = useCallback(async () => {
     if (!selectedChild?.id) return;
-    const childId = selectedChild.id;
-
     const [subjectsResult, gradesResult] = await Promise.all([
-      getSubjects(childId),
-      getGrades(childId),
+      getSubjects(selectedChild.id),
+      getGrades(selectedChild.id),
     ]);
-
     const rawSubjects = subjectsResult.data ?? [];
-    const rawGrades = (gradesResult.data ?? []) as {
-      id: string;
-      subject_id: string;
-      value: number;
-      max_value?: number;
-      class_avg?: number;
-      type?: string;
-      comment?: string;
-      date?: string;
-    }[];
+    const rawGrades = (gradesResult.data ?? []) as any[];
+    if (rawSubjects.length === 0) { setSubjects(MOCK_SUBJECTS); return; }
 
-    if (rawSubjects.length === 0) {
-      setSubjects(MOCK_SUBJECTS);
-      return;
-    }
-
-    // Group grades by subject_id
-    const gradesBySubject: Record<string, typeof rawGrades> = {};
+    const gradesBySubject: Record<string, any[]> = {};
     for (const g of rawGrades) {
       if (!gradesBySubject[g.subject_id]) gradesBySubject[g.subject_id] = [];
       gradesBySubject[g.subject_id].push(g);
     }
 
-    const mapped: Subject[] = rawSubjects.map((sub: { id: string; name: string; emoji?: string; color?: string }, idx: number) => {
+    const mapped: Subject[] = rawSubjects.map((sub: any, idx: number) => {
       const subGrades = gradesBySubject[sub.id] ?? [];
-
-      const grades: Grade[] = subGrades.map((g) => ({
-        id: g.id,
-        value: g.value,
-        maxValue: g.max_value ?? 20,
-        date: g.date ? toFrenchDate(g.date) : '',
-        type: g.type ?? 'Contrôle',
-        comment: g.comment,
+      const grades: Grade[] = subGrades.map((g: any) => ({
+        id: g.id, value: g.value, maxValue: g.max_value ?? 20,
+        date: g.date ? toFrenchDate(g.date) : '', type: g.type ?? 'Contrôle', comment: g.comment,
       }));
-
-      const avg =
-        grades.length > 0
-          ? grades.reduce((s, g) => s + (g.value / g.maxValue) * 20, 0) / grades.length
-          : 0;
-
-      const classAvg =
-        subGrades.length > 0
-          ? subGrades.reduce((s, g) => s + (g.class_avg ?? 0), 0) / subGrades.length
-          : 0;
-
+      const avg = grades.length > 0 ? grades.reduce((s, g) => s + (g.value / g.maxValue) * 20, 0) / grades.length : 0;
+      const classAvg = subGrades.length > 0 ? subGrades.reduce((s: number, g: any) => s + (g.class_avg ?? 0), 0) / subGrades.length : 0;
       let trend: Subject['trend'] = 'stable';
       if (grades.length >= 2) {
         const last = (grades[0].value / grades[0].maxValue) * 20;
         const prev = (grades[1].value / grades[1].maxValue) * 20;
-        if (last > prev + 0.5) trend = 'up';
-        else if (last < prev - 0.5) trend = 'down';
+        if (last > prev + 0.5) trend = 'up'; else if (last < prev - 0.5) trend = 'down';
       }
-
-      return {
-        id: sub.id,
-        name: sub.name,
-        emoji: sub.emoji ?? '📚',
-        color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length],
-        grades,
-        average: Math.round(avg * 10) / 10,
-        classAvg: Math.round(classAvg * 10) / 10,
-        trend,
-      };
+      return { id: sub.id, name: sub.name, emoji: sub.emoji ?? '📚', color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length], grades, average: Math.round(avg * 10) / 10, classAvg: Math.round(classAvg * 10) / 10, trend };
     });
-
     setSubjects(mapped);
   }, [selectedChild?.id]);
 
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+  useEffect(() => { loadNotes(); }, [loadNotes]);
 
-  const toggleSubject = (id: string) => {
-    setExpandedSubject((prev) => (prev === id ? null : id));
-  };
+  // Sorted subjects
+  const sortedSubjects = [...subjects].sort((a, b) => {
+    if (sortMode === 'alpha') return a.name.localeCompare(b.name);
+    if (sortMode === 'average') return b.average - a.average;
+    return 0;
+  });
 
-  const isMaternelle = mode === 'maternelle';
+  const overallAvg = subjects.reduce((s, sub) => s + sub.average, 0) / (subjects.length || 1);
+  const bestSubject = subjects.reduce((best, sub) => sub.average > best.average ? sub : best, subjects[0]);
+  const totalGrades = subjects.reduce((s, sub) => s + sub.grades.length, 0);
 
-  const currentSubjects = subjects;
-  const childAvatar = selectedChild.avatar;
-  const childName = selectedChild.name;
-  const childClasse = selectedChild.classe.split(' — ')[0] || selectedChild.classe;
-
-  const currentOverallAvg =
-    currentSubjects.reduce((sum, s) => sum + s.average, 0) / currentSubjects.length;
-  const currentBestSubject = currentSubjects.reduce((best, s) =>
-    s.average > best.average ? s : best,
+  // Recent grades for carousel
+  const recentGrades = subjects.flatMap((sub) =>
+    sub.grades.slice(0, 2).map((g) => ({ ...g, subject: sub.name, emoji: sub.emoji, color: sub.color }))
   );
 
-  // ─── Maternelle view ──────────────────────────────────
+  // ─── Maternelle competency view ────────────────────────
   if (isMaternelle) {
     const totalCompetencies = MATERNELLE_DOMAINS.reduce((s, d) => s + d.competencies.length, 0);
     const acquired = MATERNELLE_DOMAINS.reduce(
-      (s, d) => s + d.competencies.filter((c) => c.level === 'acquis').length,
-      0,
+      (s, d) => s + d.competencies.filter((c) => c.level === 'acquis').length, 0,
     );
     const inProgress = MATERNELLE_DOMAINS.reduce(
-      (s, d) => s + d.competencies.filter((c) => c.level === 'en_cours').length,
-      0,
+      (s, d) => s + d.competencies.filter((c) => c.level === 'en_cours').length, 0,
     );
 
     return (
-      <Box className="flex-1" style={{ backgroundColor: NOTES_BG }}>
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <LinearGradient
-          colors={['#0B1628', theme.accent + 'CC']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0.3, y: 1 }}
-          style={{ paddingTop: 70, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
+      <View style={s.root}>
+        <WallpaperBackground />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
         >
-          <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-            Suivi des apprentissages
-          </Text>
-          <Text className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            {childAvatar} {childName} — {childClasse}
-          </Text>
+          {/* Summary */}
+          <Text style={s.maternelleTitle}>Suivi des apprentissages</Text>
+          <View style={s.summaryRow}>
+            <GlassCard style={s.summaryCard}>
+              <Text style={s.summaryValue}>🌟 {acquired}</Text>
+              <Text style={s.summaryLabel}>Acquis</Text>
+            </GlassCard>
+            <GlassCard style={s.summaryCard}>
+              <Text style={s.summaryValue}>🌱 {inProgress}</Text>
+              <Text style={s.summaryLabel}>En cours</Text>
+            </GlassCard>
+            <GlassCard style={s.summaryCard}>
+              <Text style={s.summaryValue}>{totalCompetencies}</Text>
+              <Text style={s.summaryLabel}>Compétences</Text>
+            </GlassCard>
+          </View>
 
-          <HStack className="gap-2.5">
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-                🌟 {acquired}
-              </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-                Acquis
-              </Text>
-            </Box>
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-                🌱 {inProgress}
-              </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-                En cours
-              </Text>
-            </Box>
-            <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-              <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-                {totalCompetencies}
-              </Text>
-              <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-                Compétences
-              </Text>
-            </Box>
-          </HStack>
-        </LinearGradient>
-
-        <Box className="px-5 pt-4" style={{ position: 'relative' }}>
-          <DecorativeBlobs accent={theme.accent} size={90} />
-          {/* Progress legend */}
-          <HStack className="justify-around py-3 px-2 mb-4" style={{ borderBottomWidth: 1, borderColor: theme.cardBorder }}>
-            {Object.entries(COMPETENCY_LEVELS).map(([key, level]) => (
-              <HStack key={key} className="items-center gap-1">
-                <Text className="text-sm">{level.emoji}</Text>
-                <Text className="text-[11px]" style={{ fontWeight: '600', color: theme.textMuted }}>
-                  {level.label}
-                </Text>
-              </HStack>
-            ))}
-          </HStack>
+          {/* Legend */}
+          <GlassCard style={{ marginBottom: 12 }}>
+            <View style={s.legendRow}>
+              {Object.entries(COMPETENCY_LEVELS).map(([key, level]) => (
+                <View key={key} style={s.legendItem}>
+                  <Text style={{ fontSize: 14 }}>{level.emoji}</Text>
+                  <Text style={s.legendLabel}>{level.label}</Text>
+                </View>
+              ))}
+            </View>
+          </GlassCard>
 
           {/* Competency domains */}
           {MATERNELLE_DOMAINS.map((domain) => {
             const isExpanded = expandedDomain === domain.id;
             const domainAcquired = domain.competencies.filter((c) => c.level === 'acquis').length;
-
             return (
-              <Box
-                key={domain.id}
-                className="rounded-2xl mb-3 overflow-hidden"
-                style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
-              >
+              <GlassCard key={domain.id} style={{ marginBottom: 10 }} noPadding>
                 <Pressable
-                  className="flex-row items-center justify-between p-3.5"
+                  style={s.subjectHeader}
                   onPress={() => setExpandedDomain(isExpanded ? null : domain.id)}
                 >
-                  <HStack className="items-center gap-3 flex-1">
-                    <Text className="text-[28px]">{domain.emoji}</Text>
-                    <VStack className="flex-1">
-                      <Text
-                        className="text-[15px] mb-1"
-                        style={{ fontWeight: '700', color: theme.textPrimary }}
-                        numberOfLines={2}
-                      >
-                        {domain.name}
-                      </Text>
-                      <Text className="text-xs" style={{ color: theme.textMuted }}>
-                        {domainAcquired}/{domain.competencies.length} acquis
-                      </Text>
-                    </VStack>
-                  </HStack>
-                  <VStack className="items-end gap-1">
-                    <Text style={{ fontSize: 22, fontWeight: '900', color: domain.color }}>
-                      {domainAcquired}/{domain.competencies.length}
-                    </Text>
-                    <Ionicons
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={16}
-                      color={theme.textMuted}
-                    />
-                  </VStack>
+                  <Text style={{ fontSize: 28 }}>{domain.emoji}</Text>
+                  <View style={s.flex}>
+                    <Text style={s.subjectName} numberOfLines={2}>{domain.name}</Text>
+                    <Text style={s.subjectClass}>{domainAcquired}/{domain.competencies.length} acquis</Text>
+                  </View>
+                  <Text style={[s.subjectAvg, { color: domain.color }]}>
+                    {domainAcquired}/{domain.competencies.length}
+                  </Text>
+                  <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} color="#94A3B8" />
                 </Pressable>
 
-                {/* Progress bar */}
-                <HStack className="items-center px-3.5 pb-3.5 gap-2">
-                  <GradeBar
-                    value={domainAcquired}
-                    max={domain.competencies.length}
-                    color={domain.color}
-                  />
-                  <Text className="text-[11px]" style={{ fontWeight: '600', color: theme.textMuted }}>
-                    {Math.round((domainAcquired / domain.competencies.length) * 100)}%
-                  </Text>
-                </HStack>
+                <View style={s.barRow}>
+                  <GradeBar value={domainAcquired} max={domain.competencies.length} color={domain.color} />
+                  <Text style={s.barLabel}>{Math.round((domainAcquired / domain.competencies.length) * 100)}%</Text>
+                </View>
 
-                {/* Expanded competency list */}
                 {isExpanded && (
-                  <Box style={{ borderTopWidth: 1, borderTopColor: theme.cardBorder }}>
+                  <View style={s.gradeList}>
                     {domain.competencies.map((comp, i) => {
                       const levelInfo = COMPETENCY_LEVELS[comp.level];
                       return (
-                        <HStack
-                          key={comp.id}
-                          className="items-center justify-between px-3.5 py-3"
-                          style={
-                            i < domain.competencies.length - 1
-                              ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder }
-                              : undefined
-                          }
-                        >
-                          <Box className="flex-1">
-                            <Text className="text-sm" style={{ fontWeight: '600', color: theme.textPrimary }}>
-                              {comp.name}
-                            </Text>
-                          </Box>
-                          <HStack className="items-center gap-1.5">
-                            <Text className="text-lg">{levelInfo.emoji}</Text>
-                            <Text className="text-xs" style={{ fontWeight: '700', color: levelInfo.color }}>
-                              {levelInfo.label}
-                            </Text>
-                          </HStack>
-                        </HStack>
+                        <View key={comp.id} style={[s.gradeRow, i < domain.competencies.length - 1 && s.gradeBorder]}>
+                          <View style={s.flex}>
+                            <Text style={s.gradeDate}>{comp.name}</Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
+                            <Text style={[s.competencyLabel, { color: levelInfo.color }]}>{levelInfo.label}</Text>
+                          </View>
+                        </View>
                       );
                     })}
-                  </Box>
+                  </View>
                 )}
-              </Box>
+              </GlassCard>
             );
           })}
 
-          {/* Observation enseignante */}
-          <Box className="mt-6 mb-4">
-            <Text className="text-lg mb-3.5" style={{ fontWeight: '700', color: theme.textPrimary }}>
-              Observation de la maîtresse
+          {/* Teacher observation */}
+          <View style={s.sectionHeader}>
+            <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
+            <Text style={s.sectionTitle}>Observation de la maîtresse</Text>
+          </View>
+          <GlassCard>
+            <Text style={{ fontSize: 28, marginBottom: 8 }}>👩‍🏫</Text>
+            <Text style={s.observationText}>
+              « {selectedChild.name} est une élève curieuse et sociable. Elle progresse bien dans le langage oral et adore les activités artistiques. Elle commence à s'intéresser aux chiffres et aux lettres. Un beau trimestre ! »
             </Text>
-            <Box
-              className="rounded-2xl p-4"
-              style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
-            >
-              <Text className="text-[28px] mb-2">👩‍🏫</Text>
-              <Text className="text-sm leading-[22px]" style={{ color: theme.textSecondary }}>
-                « {childName} est une élève curieuse et sociable. Elle progresse bien dans le langage oral et adore les activités artistiques. Elle commence à s'intéresser aux chiffres et aux lettres. Un beau trimestre ! »
-              </Text>
-              <Text className="text-[11px] mt-2" style={{ fontWeight: '600', color: theme.textMuted }}>
-                Mme Laurent — Mars 2026
-              </Text>
-            </Box>
-          </Box>
-
-          <Box className="h-10" />
-        </Box>
-      </ScrollView>
-      </Box>
+            <Text style={s.observationAuthor}>Mme Laurent — Mars 2026</Text>
+          </GlassCard>
+        </ScrollView>
+      </View>
     );
   }
 
-  // ─── Primaire / Lycée view (grades) ───────────────────
   return (
-    <Box className="flex-1" style={{ backgroundColor: NOTES_BG }}>
-    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-      {/* Overview header — dark gradient */}
-      <LinearGradient
-        colors={['#0B1628', theme.accent + 'CC']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.3, y: 1 }}
-        style={{ paddingTop: 70, paddingBottom: 24, paddingHorizontal: 20, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' }}
+    <View style={s.root}>
+      <WallpaperBackground />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
       >
-        <Text className="text-2xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-          Notes & Résultats
-        </Text>
-        <Text className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-          {childAvatar} {childName} — {childClasse}
-        </Text>
+        {/* ── Summary cards ── */}
+        <View style={s.summaryRow}>
+          <GlassCard style={s.summaryCard}>
+            <Text style={s.summaryValue}>{overallAvg.toFixed(1)}</Text>
+            <Text style={s.summaryLabel}>Moyenne</Text>
+          </GlassCard>
+          <GlassCard style={s.summaryCard}>
+            <Text style={s.summaryValue}>{bestSubject?.emoji} {bestSubject?.average}</Text>
+            <Text style={s.summaryLabel}>Meilleure</Text>
+          </GlassCard>
+          <GlassCard style={s.summaryCard}>
+            <Text style={s.summaryValue}>{totalGrades}</Text>
+            <Text style={s.summaryLabel}>Notes</Text>
+          </GlassCard>
+        </View>
 
-        {/* Summary cards — glass-style inside header */}
-        <HStack className="gap-2.5">
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-              {currentOverallAvg.toFixed(1)}
-            </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-              Moyenne générale
-            </Text>
-          </Box>
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-              {currentBestSubject.emoji} {currentBestSubject.average}
-            </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-              Meilleure matière
-            </Text>
-          </Box>
-          <Box className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}>
-            <Text className="text-xl mb-1" style={{ fontWeight: '900', color: '#FFFFFF' }}>
-              {currentSubjects.reduce((s, sub) => s + sub.grades.length, 0)}
-            </Text>
-            <Text className="text-[10px] text-center" style={{ fontWeight: '600', color: 'rgba(255,255,255,0.6)' }}>
-              Notes total
-            </Text>
-          </Box>
-        </HStack>
-      </LinearGradient>
+        {/* ── New grades carousel ── */}
+        <View style={s.sectionHeader}>
+          <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
+          <Text style={s.sectionTitle}>Nouvelles notes</Text>
+        </View>
 
-      <Box className="px-5 pt-4" style={{ position: 'relative' }}>
-        <DecorativeBlobs accent={theme.accent} size={90} />
-        {/* Filter tabs */}
-        <HStack className="items-center gap-2 mb-5">
-          {FILTER_TABS.map((tab) => (
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={recentGrades}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ gap: 10, paddingRight: 18 }}
+          style={{ marginBottom: 16 }}
+          renderItem={({ item }) => (
+            <GlassCard style={{ width: 110, alignItems: 'center' }}>
+              <Text style={{ fontSize: 24, marginBottom: 6 }}>{item.emoji}</Text>
+              <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(item.value) }]}>
+                <Text style={s.gradeBadgeText}>{item.value}/{item.maxValue}</Text>
+              </View>
+              <Text style={s.carouselSubject} numberOfLines={1}>{item.subject}</Text>
+              <Text style={s.carouselDate}>{item.date}</Text>
+            </GlassCard>
+          )}
+        />
+
+        {/* ── Sort options ── */}
+        <View style={s.sortRow}>
+          {(['alpha', 'average', 'trimestre'] as SortMode[]).map((mode) => (
             <Pressable
-              key={tab.key}
-              className="px-4 py-2 rounded-full"
-              style={{
-                backgroundColor: filter === tab.key ? theme.accent : theme.card,
-                borderWidth: 1,
-                borderColor: theme.cardBorder,
-              }}
-              onPress={() => setFilter(tab.key)}
+              key={mode}
+              style={[s.sortPill, sortMode === mode && { backgroundColor: theme.accent }]}
+              onPress={() => setSortMode(mode)}
             >
-              <Text
-                className="text-[13px]"
-                style={{
-                  fontWeight: '600',
-                  color: filter === tab.key ? Colors.white : theme.textMuted,
-                }}
-              >
-                {tab.label}
+              <Text style={[s.sortText, sortMode === mode && { color: '#FFFFFF' }]}>
+                {mode === 'alpha' ? 'A-Z' : mode === 'average' ? 'Moyenne' : 'Trimestre'}
               </Text>
             </Pressable>
           ))}
-
-          {/* Scanner shortcut */}
           <Pressable
-            className="ml-auto w-[38px] h-[38px] rounded-full justify-center items-center"
-            style={{ backgroundColor: 'rgba(34,211,238,0.1)' }}
+            style={s.scanButton}
             onPress={() => navigation.navigate('ScannerBulletin')}
           >
-            <Ionicons name="scan" size={18} color={theme.accent} />
+            <Papicons name="QrCode" size={18} color={theme.accent} />
           </Pressable>
-        </HStack>
+        </View>
 
-        {/* Subject list */}
-        {currentSubjects.map((subject) => {
+        {/* ── Subject accordion ── */}
+        {sortedSubjects.map((subject) => {
           const isExpanded = expandedSubject === subject.id;
-          const diff = subject.average - subject.classAvg;
-
           return (
-            <Box
-              key={subject.id}
-              className="rounded-2xl mb-3 overflow-hidden"
-              style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
-            >
-              {/* Subject header row */}
+            <GlassCard key={subject.id} style={{ marginBottom: 10 }} noPadding>
               <Pressable
-                className="flex-row items-center justify-between p-3.5"
-                onPress={() => toggleSubject(subject.id)}
+                style={s.subjectHeader}
+                onPress={() => setExpandedSubject(isExpanded ? null : subject.id)}
               >
-                <HStack className="items-center gap-3 flex-1">
-                  <Text className="text-[28px]">{subject.emoji}</Text>
-                  <VStack className="flex-1">
-                    <Text className="text-[15px] mb-1" style={{ fontWeight: '700', color: theme.textPrimary }}>
-                      {subject.name}
-                    </Text>
-                    <HStack className="items-center gap-2">
-                      <Text className="text-xs" style={{ color: theme.textMuted }}>
-                        Classe : {subject.classAvg}
-                      </Text>
-                      <Box
-                        className="px-1.5 py-0.5 rounded-lg"
-                        style={{
-                          backgroundColor:
-                            diff >= 0
-                              ? 'rgba(52,211,153,0.12)'
-                              : 'rgba(248,113,113,0.12)',
-                        }}
-                      >
-                        <Text
-                          className="text-[11px]"
-                          style={{ fontWeight: '700', color: diff >= 0 ? Colors.green : Colors.red }}
-                        >
-                          {diff >= 0 ? '+' : ''}
-                          {diff.toFixed(1)}
-                        </Text>
-                      </Box>
-                    </HStack>
-                  </VStack>
-                </HStack>
-
-                <VStack className="items-end gap-1">
-                  <Text className="text-2xl" style={{ fontWeight: '900', color: subject.color }}>
+                <View style={[s.subjectDot, { backgroundColor: subject.color }]} />
+                <Text style={{ fontSize: 24 }}>{subject.emoji}</Text>
+                <View style={s.flex}>
+                  <Text style={s.subjectName}>{subject.name}</Text>
+                  <Text style={s.subjectClass}>Classe : {subject.classAvg}</Text>
+                </View>
+                <View style={s.subjectRight}>
+                  <Text style={[s.subjectAvg, { color: getBadgeColor(subject.average) }]}>
                     {subject.average.toFixed(1)}
                   </Text>
-                  <HStack className="items-center">
-                    <Ionicons
-                      name={trendIcon(subject.trend)}
-                      size={14}
-                      color={trendColor(subject.trend)}
-                    />
-                  </HStack>
-                  <Ionicons
-                    name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                    size={16}
-                    color={theme.textMuted}
+                  <Papicons
+                    name={subject.trend === 'up' ? 'ArrowUp' : subject.trend === 'down' ? 'ArrowDown' : 'Minus'}
+                    size={14}
+                    color={subject.trend === 'up' ? '#10B981' : subject.trend === 'down' ? '#EF4444' : '#94A3B8'}
                   />
-                </VStack>
+                </View>
+                <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} color="#94A3B8" />
               </Pressable>
 
-              {/* Average bar */}
-              <HStack className="items-center px-3.5 pb-3.5 gap-2">
+              {/* Progress bar */}
+              <View style={s.barRow}>
                 <GradeBar value={subject.average} max={20} color={subject.color} />
-                <Text className="text-[11px]" style={{ fontWeight: '600', color: theme.textMuted }}>
-                  /20
-                </Text>
-              </HStack>
+                <Text style={s.barLabel}>/20</Text>
+              </View>
 
-              {/* Expanded grade list */}
+              {/* Expanded grades */}
               {isExpanded && (
-                <Box style={{ borderTopWidth: 1, borderTopColor: theme.cardBorder }}>
-                  {subject.grades.map((grade, i) => {
-                    const ratio = grade.value / grade.maxValue;
-                    const gradeColor =
-                      ratio >= 0.75
-                        ? Colors.green
-                        : ratio >= 0.5
-                        ? Colors.orange
-                        : Colors.red;
-
-                    return (
-                      <HStack
-                        key={grade.id}
-                        className="items-center justify-between px-3.5 py-3"
-                        style={
-                          i < subject.grades.length - 1
-                            ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder }
-                            : undefined
-                        }
-                      >
-                        <Box className="flex-1">
-                          <VStack>
-                            <Text className="text-[13px]" style={{ fontWeight: '600', color: theme.textSecondary }}>
-                              {grade.date}
-                            </Text>
-                            <Text className="text-[11px] mt-0.5" style={{ color: theme.textMuted }}>
-                              {grade.type}
-                            </Text>
-                          </VStack>
-                        </Box>
-                        <HStack className="items-baseline">
-                          <Text className="text-xl" style={{ fontWeight: '800', color: gradeColor }}>
-                            {grade.value}
-                          </Text>
-                          <Text className="text-[13px]" style={{ fontWeight: '600', color: theme.textMuted }}>
-                            /{grade.maxValue}
-                          </Text>
-                        </HStack>
-                      </HStack>
-                    );
-                  })}
-
-                  {/* Average summary within expanded */}
-                  <Box className="p-3 items-center" style={{ backgroundColor: 'rgba(109,40,217,0.08)' }}>
-                    <Text className="text-[13px]" style={{ fontWeight: '700', color: Colors.violetLight }}>
-                      Moyenne : {subject.average.toFixed(1)}/20
-                    </Text>
-                    <Text className="text-[11px] mt-0.5" style={{ color: theme.textMuted }}>
-                      {subject.grades.length} évaluations ce trimestre
-                    </Text>
-                  </Box>
-                </Box>
+                <View style={s.gradeList}>
+                  {subject.grades.map((grade, i) => (
+                    <View key={grade.id} style={[s.gradeRow, i < subject.grades.length - 1 && s.gradeBorder]}>
+                      <View style={s.flex}>
+                        <Text style={s.gradeDate}>{grade.date}</Text>
+                        <Text style={s.gradeType}>{grade.type}</Text>
+                      </View>
+                      <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(grade.value) }]}>
+                        <Text style={s.gradeBadgeText}>{grade.value}/{grade.maxValue}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
               )}
-            </Box>
+            </GlassCard>
           );
         })}
 
-        {/* Recent grades timeline */}
-        <Box className="mt-6 mb-4">
-          <Text className="text-lg mb-3.5" style={{ fontWeight: '700', color: theme.textPrimary }}>
-            Dernières notes
-          </Text>
-          <FlatList
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={currentSubjects.flatMap((s) =>
-              s.grades.slice(0, 1).map((g) => ({ ...g, subject: s.name, emoji: s.emoji, color: s.color })),
-            )}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ gap: 10 }}
-            renderItem={({ item }) => {
-              const ratio = item.value / item.maxValue;
-              const gradeColor =
-                ratio >= 0.75 ? Colors.green : ratio >= 0.5 ? Colors.orange : Colors.red;
-
-              return (
-                <Box
-                  className="w-[110px] rounded-xl p-3 items-center"
-                  style={{ backgroundColor: theme.card, borderWidth: 1.5, borderColor: `${theme.accent}25`, ...NOTES_SHADOW }}
-                >
-                  <Text className="text-2xl mb-1.5">{item.emoji}</Text>
-                  <Text className="text-lg mb-1" style={{ fontWeight: '900', color: gradeColor }}>
-                    {item.value}/{item.maxValue}
-                  </Text>
-                  <Text
-                    className="text-[11px] mb-0.5"
-                    style={{ fontWeight: '600', color: theme.textSecondary }}
-                    numberOfLines={1}
-                  >
-                    {item.subject}
-                  </Text>
-                  <Text className="text-[10px]" style={{ color: theme.textMuted }}>
-                    {item.date}
-                  </Text>
-                  <Text className="text-[10px] italic mt-0.5" style={{ color: theme.textMuted }}>
-                    {item.type}
-                  </Text>
-                </Box>
-              );
-            }}
-          />
-        </Box>
-
-        {/* Import bulletin CTA */}
-        <Pressable
-          className="rounded-2xl overflow-hidden mt-2"
-          onPress={() => navigation.navigate('ScannerBulletin')}
-        >
+        {/* ── Import bulletin ── */}
+        <Pressable onPress={() => navigation.navigate('ScannerBulletin')}>
           <LinearGradient
             colors={[Colors.violet, Colors.violetDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18 }}
+            style={s.importCta}
           >
-            <Ionicons name="scan" size={22} color={Colors.white} />
-            <VStack className="flex-1">
-              <Text className="text-base" style={{ fontWeight: '700', color: Colors.white }}>
-                Importer un bulletin
-              </Text>
-              <Text className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                Scanner ou importer un PDF
-              </Text>
-            </VStack>
-            <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" />
+            <Papicons name="QrCode" size={22} color="#FFFFFF" />
+            <View style={s.flex}>
+              <Text style={s.importTitle}>Importer un bulletin</Text>
+              <Text style={s.importSub}>Scanner ou importer un PDF</Text>
+            </View>
+            <Papicons name="ChevronRight" size={20} color="rgba(255,255,255,0.6)" />
           </LinearGradient>
         </Pressable>
-
-        <Box className="h-10" />
-      </Box>
-    </ScrollView>
-    </Box>
+      </ScrollView>
+    </View>
   );
 }
+
+// ─── Styles ─────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  root: { flex: 1 },
+  scroll: { paddingHorizontal: 18, gap: 8 },
+  flex: { flex: 1 },
+
+  summaryRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  summaryCard: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#0F172A', marginBottom: 2 },
+  summaryLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, color: '#94A3B8', textTransform: 'uppercase' },
+
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  sectionBar: { width: 4, height: 16, borderRadius: 2 },
+  sectionTitle: {
+    fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF',
+    textTransform: 'uppercase', letterSpacing: 1.2,
+    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+  },
+
+  gradeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
+  gradeBadgeText: { fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF' },
+
+  carouselSubject: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#64748B', marginTop: 6 },
+  carouselDate: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: '#94A3B8' },
+
+  sortRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  sortPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
+  sortText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#64748B' },
+  scanButton: { marginLeft: 'auto', width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' },
+
+  subjectHeader: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 },
+  subjectDot: { width: 4, height: 28, borderRadius: 2 },
+  subjectName: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#0F172A' },
+  subjectClass: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  subjectRight: { alignItems: 'flex-end', gap: 2, marginRight: 6 },
+  subjectAvg: { fontFamily: FontFamily.sansBold, fontSize: 22 },
+
+  barRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 12, gap: 6 },
+  barTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(128,128,128,0.15)', overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 3 },
+  barLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' },
+
+  gradeList: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)' },
+  gradeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12 },
+  gradeBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.06)' },
+  gradeDate: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: '#64748B' },
+  gradeType: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 2 },
+
+  importCta: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18, borderRadius: 16, marginTop: 8 },
+  importTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
+  importSub: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+
+  // Maternelle
+  maternelleTitle: {
+    fontFamily: FontFamily.sansBold, fontSize: 22, color: '#FFFFFF', marginBottom: 12,
+    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+  },
+  legendRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' },
+  competencyLabel: { fontFamily: FontFamily.sansBold, fontSize: 12 },
+  observationText: { fontFamily: FontFamily.sansRegular, fontSize: 14, lineHeight: 22, color: '#64748B' },
+  observationAuthor: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8', marginTop: 8 },
+});

@@ -15,11 +15,14 @@ import {
   type ReactNode,
 } from 'react';
 import { Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
 import { getChildren } from '../services/database';
 
 // ─── Types ─────────────────────────────────────────────
+
+export type AvatarType = 'initials' | 'emoji' | 'photo';
 
 export type Child = {
   id: string;
@@ -28,6 +31,9 @@ export type Child = {
   classe: string;
   birthDate?: string;
   avatar_url?: string;
+  avatarType?: AvatarType;
+  avatarEmoji?: string;
+  avatarPhotoUri?: string;
 };
 
 // ─── Fallback data (demo mode / empty Supabase result) ───
@@ -48,6 +54,7 @@ interface ActiveChildContextValue {
   selectedChild: Child;
   selectedChildId: string;
   selectChild: (id: string) => void;
+  updateChildAvatar: (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => void;
   fadeAnim: Animated.Value;
   loading: boolean;
 }
@@ -57,6 +64,7 @@ const ActiveChildContext = createContext<ActiveChildContextValue>({
   selectedChild: MOCK_CHILDREN[0],
   selectedChildId: MOCK_CHILDREN[0].id,
   selectChild: () => {},
+  updateChildAvatar: () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
 });
@@ -152,6 +160,45 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
     }
   }, [selectedChildId, selectedChild?.birthDate, setModeFromBirthDate]);
 
+  // ─── Load persisted avatars from AsyncStorage ───────────
+  useEffect(() => {
+    async function loadAvatars() {
+      try {
+        const raw = await AsyncStorage.getItem('@scolaria_child_avatars');
+        if (!raw) return;
+        const saved: Record<string, { avatarType: AvatarType; avatarEmoji?: string; avatarPhotoUri?: string }> = JSON.parse(raw);
+        setChildList((prev) =>
+          prev.map((c) => {
+            const s = saved[c.id];
+            return s ? { ...c, avatarType: s.avatarType, avatarEmoji: s.avatarEmoji, avatarPhotoUri: s.avatarPhotoUri } : c;
+          }),
+        );
+      } catch (_) { /* ignore */ }
+    }
+    loadAvatars();
+  }, []);
+
+  // ─── Update child avatar ────────────────────────────────
+  const updateChildAvatar = useCallback(
+    (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => {
+      setChildList((prev) => {
+        const updated = prev.map((c) =>
+          c.id === childId
+            ? { ...c, avatarType, avatarEmoji: emoji, avatarPhotoUri: photoUri, avatar: emoji || c.avatar }
+            : c,
+        );
+        // Persist to AsyncStorage
+        const toSave: Record<string, { avatarType: AvatarType; avatarEmoji?: string; avatarPhotoUri?: string }> = {};
+        for (const c of updated) {
+          if (c.avatarType) toSave[c.id] = { avatarType: c.avatarType, avatarEmoji: c.avatarEmoji, avatarPhotoUri: c.avatarPhotoUri };
+        }
+        AsyncStorage.setItem('@scolaria_child_avatars', JSON.stringify(toSave)).catch(() => {});
+        return updated;
+      });
+    },
+    [],
+  );
+
   // ─── Animated child switch ───────────────────────────────
   const selectChild = useCallback(
     (id: string) => {
@@ -179,6 +226,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         selectedChild,
         selectedChildId: selectedChild?.id ?? selectedChildId,
         selectChild,
+        updateChildAvatar,
         fadeAnim,
         loading,
       }}

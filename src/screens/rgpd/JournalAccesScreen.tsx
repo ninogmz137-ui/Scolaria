@@ -1,10 +1,28 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollView, Animated, Platform } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated } from 'react-native';
+import {
+  List,
+  Info,
+  ArrowDown,
+  Pen,
+  Trash,
+  Clock,
+  Phone,
+  ExternalLink,
+  Calendar,
+  Camera,
+  Check,
+  User,
+  Lock,
+} from '@getpapillon/papicons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import { getAccessJournal, type AccessEntry as SupabaseAccessEntry } from '../../services/rgpdService';
+import WallpaperBackground from '../../components/WallpaperBackground';
+import GlassCard from '../../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FontFamily } from '../../hooks/useSolariaFonts';
+import { getAccessJournal } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -15,7 +33,7 @@ interface AccessEntry {
   role: string;
   action: string;
   module: string;
-  moduleIcon: keyof typeof Ionicons.glyphMap;
+  moduleIcon: string;
   child: string;
   date: string;
   time: string;
@@ -91,18 +109,39 @@ const ACCESS_LOG: AccessEntry[] = [
   },
 ];
 
-// ─── Shadow & helpers ─────────────────────────────────────
+// ─── Icon helpers ──────────────────────────────────────────
 
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
+const getActionColor = (action: string) => {
+  if (action.includes('Modification')) return Colors.orange;
+  if (action.includes('Export') || action.includes('Génération')) return Colors.violet;
+  if (action.includes('Suppression')) return Colors.red;
+  return Colors.cyan;
+};
+
+const ActionIcon = ({ action, color }: { action: string; color: string }) => {
+  const size = 14;
+  if (action.includes('Modification')) return <Pen size={size} color={color} />;
+  if (action.includes('Export')) return <ArrowDown size={size} color={color} />;
+  if (action.includes('Génération')) return <Lock size={size} color={color} />;
+  if (action.includes('Suppression')) return <Trash size={size} color={color} />;
+  return <Check size={size} color={color} />;
+};
+
+const ModuleIcon = ({ icon, color, size = 12 }: { icon: string; color: string; size?: number }) => {
+  if (icon === 'camera') return <Camera size={size} color={color} />;
+  if (icon === 'calendar') return <Calendar size={size} color={color} />;
+  if (icon === 'shield-checkmark') return <Lock size={size} color={color} />;
+  if (icon === 'download') return <ArrowDown size={size} color={color} />;
+  if (icon === 'person') return <User size={size} color={color} />;
+  return <Check size={size} color={color} />;
+};
 
 // ─── Component ────────────────────────────────────────────
 
 export default function JournalAccesScreen() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const [filter, setFilter] = useState<FilterType>('all');
   const [log, setLog] = useState<AccessEntry[]>(ACCESS_LOG);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -126,7 +165,7 @@ export default function JournalAccesScreen() {
           role: e.person_role,
           action: e.action,
           module: e.module,
-          moduleIcon: e.module_icon as keyof typeof Ionicons.glyphMap,
+          moduleIcon: e.module_icon,
           child: e.child_name ?? '',
           date: dateLabel,
           time: d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
@@ -150,199 +189,204 @@ export default function JournalAccesScreen() {
     { key: 'month', label: 'Mois' },
   ];
 
-  const filteredLog = log;
-
-  const getActionColor = (action: string) => {
-    if (action.includes('Modification')) return Colors.orange;
-    if (action.includes('Export') || action.includes('Génération')) return Colors.violet;
-    if (action.includes('Suppression')) return Colors.red;
-    return Colors.cyan;
-  };
-
-  const getActionIcon = (action: string): keyof typeof Ionicons.glyphMap => {
-    if (action.includes('Modification')) return 'create';
-    if (action.includes('Export')) return 'download';
-    if (action.includes('Génération')) return 'key';
-    if (action.includes('Suppression')) return 'trash';
-    return 'eye';
-  };
-
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-        {/* Info header */}
-        <HStack
-          className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: Colors.cyan, borderWidth: 1.5, ...CARD_SHADOW }}
+      <View style={{ flex: 1 }}>
+        <WallpaperBackground />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: TOPBAR_H + 12,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingHorizontal: 18,
+          }}
         >
-          <Box
-            className="w-11 h-11 rounded-full items-center justify-center"
-            style={{ backgroundColor: Colors.cyan + '15' }}
-          >
-            <Ionicons name="list" size={24} color={Colors.cyan} />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-base font-extrabold" style={{ color: theme.textPrimary }}>Journal de transparence</Text>
-            <Text className="text-xs mt-0.5 leading-[17px]" style={{ color: theme.textMuted }}>
-              Chaque consultation, modification et export est enregistré et visible ici.
-            </Text>
-          </Box>
-        </HStack>
+          {/* Info header */}
+          <GlassCard style={[styles.card, { borderColor: Colors.cyan + '60', marginBottom: 14 }]}>
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: Colors.cyan + '20' }]}>
+                <List size={24} color={Colors.cyan} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoTitle}>Journal de transparence</Text>
+                <Text style={styles.infoSubtitle}>
+                  Chaque consultation, modification et export est enregistré et visible ici.
+                </Text>
+              </View>
+            </View>
+          </GlassCard>
 
-        {/* Stats summary */}
-        <HStack className="gap-2.5 mx-5 mb-4">
-          <VStack
-            className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-          >
-            <Text className="text-[22px] font-black" style={{ color: Colors.cyan }}>{log.length}</Text>
-            <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Total accès</Text>
-          </VStack>
-          <VStack
-            className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-          >
-            <Text className="text-[22px] font-black" style={{ color: Colors.green }}>
-              {log.filter((e) => e.date === "Aujourd'hui").length}
-            </Text>
-            <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Aujourd'hui</Text>
-          </VStack>
-          <VStack
-            className="flex-1 items-center p-3.5 rounded-[14px] border"
-            style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-          >
-            <Text className="text-[22px] font-black" style={{ color: Colors.violet }}>
-              {new Set(log.map((e) => e.person)).size}
-            </Text>
-            <Text className="text-[10px] mt-0.5" style={{ color: theme.textMuted }}>Personnes</Text>
-          </VStack>
-        </HStack>
-
-        {/* Filters */}
-        <HStack className="gap-2 mx-5 mb-4">
-          {filters.map((f) => (
-            <Pressable
-              key={f.key}
-              className="px-3.5 py-2 rounded-[20px] border"
-              style={[
-                { backgroundColor: theme.card, borderColor: theme.cardBorder },
-                filter === f.key && { backgroundColor: Colors.cyan + '20', borderColor: Colors.cyan },
-              ]}
-              onPress={() => setFilter(f.key)}
-            >
-              <Text
-                className="text-[13px] font-semibold"
-                style={{ color: filter === f.key ? Colors.cyan : theme.textMuted }}
-              >
-                {f.label}
+          {/* Stats summary */}
+          <View style={styles.statsRow}>
+            <GlassCard style={styles.statCard}>
+              <Text style={[styles.statValue, { color: Colors.cyan }]}>{log.length}</Text>
+              <Text style={styles.statLabel}>Total accès</Text>
+            </GlassCard>
+            <GlassCard style={styles.statCard}>
+              <Text style={[styles.statValue, { color: Colors.green }]}>
+                {log.filter((e) => e.date === "Aujourd'hui").length}
               </Text>
-            </Pressable>
-          ))}
-        </HStack>
+              <Text style={styles.statLabel}>Aujourd'hui</Text>
+            </GlassCard>
+            <GlassCard style={styles.statCard}>
+              <Text style={[styles.statValue, { color: Colors.violet }]}>
+                {new Set(log.map((e) => e.person)).size}
+              </Text>
+              <Text style={styles.statLabel}>Personnes</Text>
+            </GlassCard>
+          </View>
 
-        {/* Log entries */}
-        {filteredLog.map((entry) => {
-          const isExpanded = expandedId === entry.id;
-          const actionColor = getActionColor(entry.action);
-          const actionIcon = getActionIcon(entry.action);
-
-          return (
-            <Pressable
-              key={entry.id}
-              className="mx-5 mb-2.5 p-3.5 rounded-2xl border"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-              onPress={() => setExpandedId(isExpanded ? null : entry.id)}
-            >
-              {/* Top row */}
-              <HStack className="items-center gap-3 mb-2.5">
-                <Box
-                  className="w-[38px] h-[38px] rounded-full items-center justify-center border-2"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderColor: actionColor }}
+          {/* Filters */}
+          <View style={styles.filterRow}>
+            {filters.map((f) => (
+              <Pressable
+                key={f.key}
+                onPress={() => setFilter(f.key)}
+              >
+                <GlassCard
+                  style={[
+                    styles.filterPill,
+                    filter === f.key && { borderColor: Colors.cyan + '80', backgroundColor: undefined },
+                  ]}
+                  opacity={filter === f.key ? 0.85 : 0.55}
                 >
-                  <Text className="text-lg">{entry.avatar}</Text>
-                </Box>
-                <Box className="flex-1">
-                  <HStack className="justify-between items-center">
-                    <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>{entry.person}</Text>
-                    <Text className="text-xs" style={{ color: theme.textMuted }}>{entry.time}</Text>
-                  </HStack>
-                  <Text className="text-[11px]" style={{ color: theme.textMuted }}>{entry.role}</Text>
-                </Box>
-              </HStack>
+                  <Text style={[styles.filterText, filter === f.key && { color: Colors.cyan }]}>
+                    {f.label}
+                  </Text>
+                </GlassCard>
+              </Pressable>
+            ))}
+          </View>
 
-              {/* Action row */}
-              <HStack className="gap-2 mb-2 flex-wrap">
-                <HStack
-                  className="items-center gap-[5px] px-2.5 py-1 rounded-[10px]"
-                  style={{ backgroundColor: actionColor + '15' }}
-                >
-                  <Ionicons name={actionIcon} size={14} color={actionColor} />
-                  <Text className="text-xs font-semibold" style={{ color: actionColor }}>{entry.action}</Text>
-                </HStack>
-                <HStack
-                  className="items-center gap-[5px] px-2.5 py-1 rounded-[10px]"
-                  style={{ backgroundColor: entry.color + '15' }}
-                >
-                  <Ionicons name={entry.moduleIcon} size={12} color={entry.color} />
-                  <Text className="text-xs font-semibold" style={{ color: entry.color }}>{entry.module}</Text>
-                </HStack>
-              </HStack>
+          {/* Log entries */}
+          {log.map((entry) => {
+            const isExpanded = expandedId === entry.id;
+            const actionColor = getActionColor(entry.action);
 
-              {/* Date & child */}
-              <HStack className="gap-4">
-                <Text className="text-[11px]" style={{ color: theme.textMuted }}>
-                  📅 {entry.date}
-                </Text>
-                <Text className="text-[11px]" style={{ color: theme.textMuted }}>
-                  👤 {entry.child}
-                </Text>
-              </HStack>
+            return (
+              <Pressable
+                key={entry.id}
+                onPress={() => setExpandedId(isExpanded ? null : entry.id)}
+              >
+                <GlassCard style={styles.entryCard}>
+                  {/* Top row */}
+                  <View style={[styles.entryTopRow, { marginBottom: 10 }]}>
+                    <View style={[styles.entryAvatar, { borderColor: actionColor }]}>
+                      <Text style={styles.entryAvatarText}>{entry.avatar}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.entryNameRow}>
+                        <Text style={styles.personName}>{entry.person}</Text>
+                        <Text style={styles.entryTime}>{entry.time}</Text>
+                      </View>
+                      <Text style={styles.personRole}>{entry.role}</Text>
+                    </View>
+                  </View>
 
-              {/* Expanded details */}
-              {isExpanded && (
-                <VStack className="mt-2.5 pt-2.5 border-t gap-1.5" style={{ borderTopColor: theme.cardBorder }}>
-                  {entry.device && (
-                    <HStack className="items-center gap-2">
-                      <Ionicons name="phone-portrait" size={14} color={Colors.gray} />
-                      <Text className="text-xs" style={{ color: theme.textMuted }}>Appareil : {entry.device}</Text>
-                    </HStack>
+                  {/* Action row */}
+                  <View style={styles.badgeRow}>
+                    <View style={[styles.actionBadge, { backgroundColor: actionColor + '20' }]}>
+                      <ActionIcon action={entry.action} color={actionColor} />
+                      <Text style={[styles.badgeText, { color: actionColor }]}>{entry.action}</Text>
+                    </View>
+                    <View style={[styles.actionBadge, { backgroundColor: entry.color + '20' }]}>
+                      <ModuleIcon icon={entry.moduleIcon} color={entry.color} />
+                      <Text style={[styles.badgeText, { color: entry.color }]}>{entry.module}</Text>
+                    </View>
+                  </View>
+
+                  {/* Date & child */}
+                  <View style={styles.metaRow}>
+                    <Text style={styles.metaText}>📅 {entry.date}</Text>
+                    <Text style={styles.metaText}>👤 {entry.child}</Text>
+                  </View>
+
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <View style={styles.expandedSection}>
+                      {entry.device && (
+                        <View style={styles.expandedRow}>
+                          <Phone size={14} color="rgba(255,255,255,0.4)" />
+                          <Text style={styles.expandedText}>Appareil : {entry.device}</Text>
+                        </View>
+                      )}
+                      {entry.ip && (
+                        <View style={styles.expandedRow}>
+                          <ExternalLink size={14} color="rgba(255,255,255,0.4)" />
+                          <Text style={styles.expandedText}>IP : {entry.ip}</Text>
+                        </View>
+                      )}
+                      <View style={styles.expandedRow}>
+                        <Clock size={14} color="rgba(255,255,255,0.4)" />
+                        <Text style={styles.expandedText}>Horodatage : {entry.date} à {entry.time}</Text>
+                      </View>
+                    </View>
                   )}
-                  {entry.ip && (
-                    <HStack className="items-center gap-2">
-                      <Ionicons name="globe" size={14} color={Colors.gray} />
-                      <Text className="text-xs" style={{ color: theme.textMuted }}>IP : {entry.ip}</Text>
-                    </HStack>
-                  )}
-                  <HStack className="items-center gap-2">
-                    <Ionicons name="time" size={14} color={Colors.gray} />
-                    <Text className="text-xs" style={{ color: theme.textMuted }}>Horodatage : {entry.date} à {entry.time}</Text>
-                  </HStack>
-                </VStack>
-              )}
-            </Pressable>
-          );
-        })}
+                </GlassCard>
+              </Pressable>
+            );
+          })}
 
-        {filteredLog.length === 0 && (
-          <VStack className="items-center p-10 gap-2.5">
-            <Text className="text-[40px]">📭</Text>
-            <Text className="text-sm" style={{ color: theme.textMuted }}>Aucun accès pour cette période</Text>
-          </VStack>
-        )}
+          {log.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📭</Text>
+              <Text style={styles.emptyText}>Aucun accès pour cette période</Text>
+            </View>
+          )}
 
-        {/* RGPD notice */}
-        <HStack
-          className="items-start gap-2.5 mx-5 mt-2 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <Ionicons name="information-circle" size={16} color={Colors.cyan} />
-          <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>
-            Conformément au RGPD (art. 15), vous avez le droit d'accéder à l'intégralité des données de consultation. Ce journal est conservé 12 mois.
-          </Text>
-        </HStack>
-
-        <Box className="h-10" />
-      </ScrollView>
+          {/* RGPD notice */}
+          <GlassCard style={styles.card}>
+            <View style={styles.noticeRow}>
+              <Info size={16} color={Colors.cyan} />
+              <Text style={styles.noticeText}>
+                Conformément au RGPD (art. 15), vous avez le droit d'accéder à l'intégralité des données de consultation. Ce journal est conservé 12 mois.
+              </Text>
+            </View>
+          </GlassCard>
+        </ScrollView>
+      </View>
     </Animated.View>
   );
 }
+
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+};
+
+const styles = StyleSheet.create({
+  card: { marginBottom: 8 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  statCard: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  statValue: { fontFamily: FontFamily.sansBold, fontSize: 22, ...TEXT_SHADOW },
+  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, ...TEXT_SHADOW },
+  filterRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  filterPill: { paddingHorizontal: 14, paddingVertical: 8 },
+  filterText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: 'rgba(255,255,255,0.7)', ...TEXT_SHADOW },
+  entryCard: { marginBottom: 10 },
+  entryTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  entryAvatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: 'rgba(255,255,255,0.1)' },
+  entryAvatarText: { fontSize: 18 },
+  entryNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  entryTime: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.5)', ...TEXT_SHADOW },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  badgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 8 },
+  actionBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  badgeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
+  metaRow: { flexDirection: 'row', gap: 16 },
+  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.5)' },
+  expandedSection: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)', gap: 6 },
+  expandedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  expandedText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  emptyState: { alignItems: 'center', paddingVertical: 40, gap: 10 },
+  emptyIcon: { fontSize: 40 },
+  emptyText: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.5)' },
+  noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+});

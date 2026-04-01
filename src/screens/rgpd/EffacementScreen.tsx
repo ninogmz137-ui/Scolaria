@@ -1,11 +1,31 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollView, Animated, Alert, TextInput, Platform } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, TextInput } from 'react-native';
+import {
+  Trash,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  InfoBox,
+  Info,
+  Mail,
+  ArrowDown,
+  Cross,
+  User,
+  Calendar,
+  Camera,
+  Heart,
+  Sparkles,
+  List,
+  Lock,
+} from '@getpapillon/papicons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import { createDeletionRequest, cancelDeletionRequest, getDeletionRequests, getChildDataCounts } from '../../services/rgpdService';
+import WallpaperBackground from '../../components/WallpaperBackground';
+import GlassCard from '../../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FontFamily } from '../../hooks/useSolariaFonts';
+import { createDeletionRequest, cancelDeletionRequest, getDeletionRequests } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -13,35 +33,27 @@ interface DeletionStep {
   id: number;
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
   completed: boolean;
 }
 
 interface DataCategory {
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
   count: string;
   color: string;
-  details: string;
 }
-
-// ─── Shadow & helpers ─────────────────────────────────────
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
 
 // ─── Component ────────────────────────────────────────────
 
 export default function EffacementScreen() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const [currentStep, setCurrentStep] = useState(0);
   const [confirmEmail, setConfirmEmail] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [selectedChild, setSelectedChild] = useState<string | null>(null);
-  const [showDataPreview, setShowDataPreview] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -69,21 +81,21 @@ export default function EffacementScreen() {
   ];
 
   const DATA_CATEGORIES: DataCategory[] = [
-    { name: 'Notes & bulletins', icon: 'school', count: '47 notes, 3 bulletins', color: Colors.cyan, details: 'Toutes les notes enregistrées et bulletins scannés' },
-    { name: 'Agenda & événements', icon: 'calendar', count: '156 événements', color: Colors.violet, details: 'Événements scolaires, devoirs, sorties' },
-    { name: 'Ressenti & bien-être', icon: 'heart', count: '89 check-ins', color: Colors.pink, details: 'Historique du Score de Joie et messages' },
-    { name: 'Profil & compétences', icon: 'person', count: '5 compétences, 5 activités', color: Colors.green, details: 'Radar, portfolio, Super-Pouvoir' },
-    { name: 'Photos & médias', icon: 'camera', count: '24 photos', color: Colors.orange, details: 'Photos de vie de classe et galerie' },
-    { name: 'Conversations Aria', icon: 'sparkles', count: '34 conversations', color: Colors.violetLight, details: 'Historique des échanges avec l\'IA' },
-    { name: 'Journal d\'accès', icon: 'list', count: '210 entrées', color: Colors.cyan, details: 'Logs de consultation et modifications' },
-    { name: 'Permissions & partages', icon: 'shield', count: '5 personnes', color: Colors.green, details: 'Autorisations d\'accès configurées' },
+    { name: 'Notes & bulletins', Icon: Check, count: '47 notes, 3 bulletins', color: Colors.cyan },
+    { name: 'Agenda & événements', Icon: Calendar, count: '156 événements', color: Colors.violet },
+    { name: 'Ressenti & bien-être', Icon: Heart, count: '89 check-ins', color: Colors.pink },
+    { name: 'Profil & compétences', Icon: User, count: '5 compétences, 5 activités', color: Colors.green },
+    { name: 'Photos & médias', Icon: Camera, count: '24 photos', color: Colors.orange },
+    { name: 'Conversations Aria', Icon: Sparkles, count: '34 conversations', color: Colors.violetLight },
+    { name: 'Journal d\'accès', Icon: List, count: '210 entrées', color: Colors.cyan },
+    { name: 'Permissions & partages', Icon: Lock, count: '5 personnes', color: Colors.green },
   ];
 
   const STEPS: DeletionStep[] = [
-    { id: 1, title: 'Sélection', description: 'Choisissez le profil à supprimer', icon: 'person', completed: currentStep > 0 },
-    { id: 2, title: 'Aperçu', description: 'Vérifiez les données concernées', icon: 'eye', completed: currentStep > 1 },
-    { id: 3, title: 'Confirmation', description: 'Confirmez par email', icon: 'mail', completed: currentStep > 2 },
-    { id: 4, title: 'Suppression', description: 'Exécution sous 72h', icon: 'trash', completed: requestSent },
+    { id: 1, title: 'Sélection', description: 'Choisissez le profil à supprimer', Icon: User, completed: currentStep > 0 },
+    { id: 2, title: 'Aperçu', description: 'Vérifiez les données concernées', Icon: Info, completed: currentStep > 1 },
+    { id: 3, title: 'Confirmation', description: 'Confirmez par email', Icon: Mail, completed: currentStep > 2 },
+    { id: 4, title: 'Suppression', description: 'Exécution sous 72h', Icon: Trash, completed: requestSent },
   ];
 
   const shakeError = () => {
@@ -108,7 +120,7 @@ export default function EffacementScreen() {
     }
 
     Alert.alert(
-      '⚠️ Dernière confirmation',
+      'Dernière confirmation',
       'Cette action est IRRÉVERSIBLE. Un email de confirmation vous sera envoyé. La suppression sera effective sous 72 heures.\n\nVoulez-vous continuer ?',
       [
         { text: 'Annuler', style: 'cancel' },
@@ -132,340 +144,325 @@ export default function EffacementScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-        {/* Warning header */}
-        <LinearGradient
-          colors={[Colors.red + '30', '#E8EDF5']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 20, paddingHorizontal: 20 }}
+      <View style={{ flex: 1 }}>
+        <WallpaperBackground />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: TOPBAR_H + 12,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingHorizontal: 18,
+          }}
         >
-          <Box
-            className="w-16 h-16 rounded-full items-center justify-center mb-3"
-            style={{ backgroundColor: Colors.red + '15', borderWidth: 1.5, borderColor: Colors.red }}
-          >
-            <Ionicons name="warning" size={32} color={Colors.red} />
-          </Box>
-          <Text className="text-[22px] font-black mb-1.5" style={{ color: theme.textPrimary }}>Droit à l'effacement</Text>
-          <Text className="text-[13px] text-center leading-[19px]" style={{ color: theme.textMuted }}>
-            Article 17 du RGPD — Suppression définitive et irréversible de toutes les données personnelles
-          </Text>
-        </LinearGradient>
-
-        {/* Steps progress */}
-        <HStack className="justify-between px-5 mb-6">
-          {STEPS.map((step, i) => (
-            <VStack key={step.id} className="items-center flex-1">
-              <Box
-                className="w-7 h-7 rounded-full border-2 items-center justify-center mb-1"
-                style={[
-                  { borderColor: Colors.gray, backgroundColor: 'transparent' },
-                  step.completed && { backgroundColor: Colors.green, borderColor: Colors.green },
-                  currentStep === i && !step.completed && { backgroundColor: Colors.violet, borderColor: Colors.violet },
-                ]}
-              >
-                {step.completed ? (
-                  <Ionicons name="checkmark" size={14} color={Colors.white} />
-                ) : (
-                  <Text className="text-xs font-bold" style={{ color: currentStep === i ? Colors.white : Colors.gray }}>{step.id}</Text>
-                )}
-              </Box>
-              <Text className="text-[10px] font-semibold" style={{ color: currentStep >= i ? theme.textPrimary : theme.textMuted }}>
-                {step.title}
+          {/* Warning header */}
+          <GlassCard style={[styles.card, { borderColor: Colors.red + '50', marginBottom: 14 }]}>
+            <View style={styles.warningHeader}>
+              <View style={[styles.warningIcon, { borderColor: Colors.red, backgroundColor: Colors.red + '15' }]}>
+                <InfoBox size={32} color={Colors.red} />
+              </View>
+              <Text style={styles.warningTitle}>Droit à l'effacement</Text>
+              <Text style={styles.warningSubtitle}>
+                Article 17 du RGPD — Suppression définitive et irréversible de toutes les données personnelles
               </Text>
-              {i < STEPS.length - 1 && (
-                <Box
-                  className="absolute top-3.5 -right-5 w-10 h-0.5"
-                  style={{ backgroundColor: step.completed ? Colors.green : Colors.darkGray }}
-                />
-              )}
-            </VStack>
-          ))}
-        </HStack>
+            </View>
+          </GlassCard>
 
-        {/* Step 1: Select child */}
-        {currentStep === 0 && (
-          <Box className="px-5">
-            <Text className="text-lg font-extrabold mb-2" style={{ color: theme.textPrimary }}>Quel profil supprimer ?</Text>
-            <Box
-              className="rounded-2xl border overflow-hidden mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-            >
-              {CHILDREN.map((child, i) => (
-                <Pressable
-                  key={child.id}
-                  className="flex-row items-center p-3.5 gap-3"
+          {/* Steps progress */}
+          <View style={styles.stepsRow}>
+            {STEPS.map((step, i) => (
+              <View key={step.id} style={styles.stepItem}>
+                <View
                   style={[
-                    i < CHILDREN.length - 1 && { borderBottomWidth: 1, borderBottomColor: theme.cardBorder },
-                    selectedChild === child.id && { backgroundColor: Colors.red + '08' },
+                    styles.stepCircle,
+                    step.completed && { backgroundColor: Colors.green, borderColor: Colors.green },
+                    currentStep === i && !step.completed && { backgroundColor: Colors.violet, borderColor: Colors.violet },
                   ]}
-                  onPress={() => setSelectedChild(child.id)}
                 >
-                  <Box
-                    className="w-11 h-11 rounded-full items-center justify-center"
-                    style={{ backgroundColor: child.id === 'all' ? Colors.red + '15' : 'rgba(109,40,217,0.15)' }}
+                  {step.completed
+                    ? <Check size={14} color="#fff" />
+                    : <Text style={[styles.stepNum, { color: currentStep === i ? '#fff' : 'rgba(255,255,255,0.4)' }]}>{step.id}</Text>
+                  }
+                </View>
+                <Text style={[styles.stepLabel, { color: currentStep >= i ? '#fff' : 'rgba(255,255,255,0.4)' }]}>
+                  {step.title}
+                </Text>
+                {i < STEPS.length - 1 && (
+                  <View style={[styles.stepConnector, { backgroundColor: step.completed ? Colors.green : 'rgba(255,255,255,0.15)' }]} />
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Step 1: Select child */}
+          {currentStep === 0 && (
+            <View>
+              <Text style={[styles.stepHeading, { marginBottom: 12 }]}>Quel profil supprimer ?</Text>
+              <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+                {CHILDREN.map((child, i) => (
+                  <Pressable
+                    key={child.id}
+                    style={[
+                      styles.childRow,
+                      i < CHILDREN.length - 1 && styles.rowBorder,
+                      selectedChild === child.id && { backgroundColor: Colors.red + '10' },
+                    ]}
+                    onPress={() => setSelectedChild(child.id)}
                   >
-                    <Text className="text-[22px]">{child.avatar}</Text>
-                  </Box>
-                  <Box className="flex-1">
-                    <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{child.name}</Text>
-                    <Text className="text-xs mt-px" style={{ color: theme.textMuted }}>{child.classe}</Text>
-                  </Box>
-                  <Box
-                    className="w-[22px] h-[22px] rounded-full border-2 items-center justify-center"
-                    style={{ borderColor: selectedChild === child.id ? Colors.red : Colors.gray }}
+                    <View style={[styles.childAvatar, { backgroundColor: child.id === 'all' ? Colors.red + '15' : 'rgba(109,40,217,0.15)' }]}>
+                      <Text style={{ fontSize: 22 }}>{child.avatar}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.personName}>{child.name}</Text>
+                      <Text style={styles.personRole}>{child.classe}</Text>
+                    </View>
+                    <View style={[styles.radioOuter, { borderColor: selectedChild === child.id ? Colors.red : 'rgba(255,255,255,0.3)' }]}>
+                      {selectedChild === child.id && (
+                        <View style={[styles.radioInner, { backgroundColor: Colors.red }]} />
+                      )}
+                    </View>
+                  </Pressable>
+                ))}
+              </GlassCard>
+              <Pressable
+                style={[styles.primaryBtn, { backgroundColor: Colors.violet, opacity: selectedChild ? 1 : 0.4 }]}
+                onPress={() => selectedChild && setCurrentStep(1)}
+                disabled={!selectedChild}
+              >
+                <Text style={styles.primaryBtnText}>Suivant</Text>
+                <ArrowRight size={18} color="#fff" />
+              </Pressable>
+            </View>
+          )}
+
+          {/* Step 2: Data preview */}
+          {currentStep === 1 && (
+            <View>
+              <Text style={[styles.stepHeading, { marginBottom: 4 }]}>Données qui seront supprimées</Text>
+              <Text style={styles.stepSubheading}>Toutes les données suivantes seront définitivement effacées :</Text>
+
+              <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+                {DATA_CATEGORIES.map((cat, i) => (
+                  <View
+                    key={cat.name}
+                    style={[styles.catRow, i < DATA_CATEGORIES.length - 1 && styles.rowBorder]}
                   >
-                    {selectedChild === child.id && (
-                      <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.red }} />
-                    )}
-                  </Box>
+                    <View style={[styles.catIcon, { backgroundColor: cat.color + '20' }]}>
+                      <cat.Icon size={18} color={cat.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.personName}>{cat.name}</Text>
+                      <Text style={styles.personRole}>{cat.count}</Text>
+                    </View>
+                    <Trash size={16} color={Colors.red + '70'} />
+                  </View>
+                ))}
+              </GlassCard>
+
+              {/* Export suggestion */}
+              <GlassCard style={[styles.card, { borderColor: Colors.orange + '40', marginBottom: 14 }]}>
+                <View style={styles.infoRow}>
+                  <ArrowDown size={20} color={Colors.orange} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.personName}>Pensez à exporter vos données d'abord !</Text>
+                    <Text style={styles.personRole}>Téléchargez une copie JSON + PDF avant la suppression.</Text>
+                  </View>
+                </View>
+              </GlassCard>
+
+              <View style={styles.navRow}>
+                <Pressable style={styles.backBtn} onPress={() => setCurrentStep(0)}>
+                  <ArrowLeft size={18} color="#fff" />
+                  <Text style={styles.backBtnText}>Retour</Text>
                 </Pressable>
-              ))}
-            </Box>
-
-            <Pressable
-              className="flex-row items-center justify-center gap-2 py-4 px-6 rounded-[14px]"
-              style={[{ backgroundColor: Colors.violet }, !selectedChild && { opacity: 0.4 }]}
-              onPress={() => selectedChild && setCurrentStep(1)}
-              disabled={!selectedChild}
-            >
-              <Text className="text-[15px] font-bold text-white">Suivant</Text>
-              <Ionicons name="arrow-forward" size={18} color={Colors.white} />
-            </Pressable>
-          </Box>
-        )}
-
-        {/* Step 2: Data preview */}
-        {currentStep === 1 && (
-          <Box className="px-5">
-            <Text className="text-lg font-extrabold mb-2" style={{ color: theme.textPrimary }}>Données qui seront supprimées</Text>
-            <Text className="text-[13px] mb-4 leading-[19px]" style={{ color: theme.textMuted }}>
-              Toutes les données suivantes seront définitivement effacées :
-            </Text>
-
-            <Box
-              className="rounded-2xl border overflow-hidden mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-            >
-              {DATA_CATEGORIES.map((cat, i) => (
-                <HStack
-                  key={cat.name}
-                  className="items-center p-3.5 gap-3"
-                  style={i < DATA_CATEGORIES.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
+                <Pressable
+                  style={[styles.primaryBtn, { flex: 1, backgroundColor: Colors.violet }]}
+                  onPress={() => setCurrentStep(2)}
                 >
-                  <Box
-                    className="w-9 h-9 rounded-[10px] items-center justify-center"
-                    style={{ backgroundColor: cat.color + '15' }}
-                  >
-                    <Ionicons name={cat.icon} size={18} color={cat.color} />
-                  </Box>
-                  <Box className="flex-1">
-                    <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{cat.name}</Text>
-                    <Text className="text-xs mt-px" style={{ color: theme.textMuted }}>{cat.count}</Text>
-                  </Box>
-                  <Ionicons name="trash-outline" size={16} color={Colors.red + '60'} />
-                </HStack>
-              ))}
-            </Box>
+                  <Text style={styles.primaryBtnText}>Confirmer</Text>
+                  <ArrowRight size={18} color="#fff" />
+                </Pressable>
+              </View>
+            </View>
+          )}
 
-            {/* Export suggestion */}
-            <HStack
-              className="items-center gap-3 p-3.5 rounded-[14px] border mb-4"
-              style={{ backgroundColor: Colors.orange + '12', borderColor: Colors.orange + '30' }}
-            >
-              <Ionicons name="download" size={20} color={Colors.orange} />
-              <Box className="flex-1">
-                <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>
-                  Pensez à exporter vos données d'abord !
+          {/* Step 3: Email confirmation */}
+          {currentStep === 2 && (
+            <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+              <Text style={[styles.stepHeading, { marginBottom: 4 }]}>Confirmation de suppression</Text>
+              <Text style={[styles.stepSubheading, { marginBottom: 16 }]}>
+                Pour des raisons de sécurité, confirmez votre identité.
+              </Text>
+
+              {/* Email input */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email du compte</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="votre@email.fr"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  value={confirmEmail}
+                  onChangeText={setConfirmEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              {/* Confirm text */}
+              <View style={[styles.inputGroup, { marginBottom: 14 }]}>
+                <Text style={styles.inputLabel}>
+                  Tapez{' '}
+                  <Text style={{ color: Colors.red, fontFamily: FontFamily.sansBold }}>SUPPRIMER</Text>
+                  {' '}pour confirmer
                 </Text>
-                <Text className="text-xs mt-0.5" style={{ color: theme.textMuted }}>
-                  Téléchargez une copie JSON + PDF avant la suppression.
-                </Text>
-              </Box>
-            </HStack>
+                <TextInput
+                  style={styles.input}
+                  placeholder="SUPPRIMER"
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  value={confirmText}
+                  onChangeText={setConfirmText}
+                  autoCapitalize="characters"
+                />
+              </View>
 
-            <HStack className="gap-3 mt-1">
+              {/* Legal notice */}
+              <GlassCard style={[styles.card, { marginBottom: 16 }]}>
+                <View style={styles.infoRow}>
+                  <Info size={18} color={Colors.cyan} />
+                  <Text style={[styles.noticeText, { flex: 1, marginLeft: 10 }]}>
+                    Conformément à l'article 17 du RGPD, votre demande sera traitée sous 72 heures. Un email de confirmation sera envoyé à l'adresse du compte. Vous disposez de 48h pour annuler la demande après réception de l'email.
+                  </Text>
+                </View>
+              </GlassCard>
+
+              <View style={styles.navRow}>
+                <Pressable style={styles.backBtn} onPress={() => setCurrentStep(1)}>
+                  <ArrowLeft size={18} color="#fff" />
+                  <Text style={styles.backBtnText}>Retour</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.primaryBtn, { flex: 1, backgroundColor: Colors.red }]}
+                  onPress={handleSubmitRequest}
+                >
+                  <Trash size={18} color="#fff" />
+                  <Text style={styles.primaryBtnText}>Demander la suppression</Text>
+                </Pressable>
+              </View>
+            </Animated.View>
+          )}
+
+          {/* Step 4: Confirmation sent */}
+          {currentStep === 4 && requestSent && (
+            <View style={styles.successState}>
+              <View style={[styles.successIcon, { backgroundColor: Colors.cyan + '15' }]}>
+                <Mail size={40} color={Colors.cyan} />
+              </View>
+              <Text style={styles.successTitle}>Demande envoyée</Text>
+              <Text style={styles.successSubtitle}>
+                Un email de confirmation a été envoyé à{'\n'}
+                <Text style={{ color: Colors.cyan, fontFamily: FontFamily.sansBold }}>moreau.famille@email.fr</Text>
+              </Text>
+
+              <GlassCard style={{ width: '100%', marginBottom: 20 }}>
+                {[
+                  { color: Colors.green, label: 'Demande reçue', sub: 'Maintenant' },
+                  { color: Colors.orange, label: 'Email de confirmation', sub: 'Dans quelques minutes' },
+                  { color: Colors.violet, label: 'Période d\'annulation (48h)', sub: 'Vous pouvez encore annuler' },
+                  { color: Colors.red, label: 'Suppression définitive', sub: 'Sous 72 heures' },
+                ].map((item, i) => (
+                  <View key={i}>
+                    <View style={styles.timelineRow}>
+                      <View style={[styles.timelineDot, { backgroundColor: item.color }]} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.personName}>{item.label}</Text>
+                        <Text style={styles.personRole}>{item.sub}</Text>
+                      </View>
+                    </View>
+                    {i < 3 && (
+                      <View style={[styles.timelineLine, { borderLeftColor: 'rgba(255,255,255,0.15)' }]} />
+                    )}
+                  </View>
+                ))}
+              </GlassCard>
+
               <Pressable
-                className="flex-row items-center justify-center gap-1.5 px-5 py-4 rounded-[14px] border"
-                style={{ borderColor: theme.cardBorder }}
-                onPress={() => setCurrentStep(0)}
-              >
-                <Ionicons name="arrow-back" size={18} color={theme.textPrimary} />
-                <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>Retour</Text>
-              </Pressable>
-              <Pressable
-                className="flex-1 flex-row items-center justify-center gap-2 py-4 rounded-[14px]"
-                style={{ backgroundColor: Colors.violet }}
-                onPress={() => setCurrentStep(2)}
-              >
-                <Text className="text-[15px] font-bold text-white">Confirmer</Text>
-                <Ionicons name="arrow-forward" size={18} color={Colors.white} />
-              </Pressable>
-            </HStack>
-          </Box>
-        )}
-
-        {/* Step 3: Email confirmation */}
-        {currentStep === 2 && (
-          <Animated.View style={[{ paddingHorizontal: 20 }, { transform: [{ translateX: shakeAnim }] }]}>
-            <Text className="text-lg font-extrabold mb-2" style={{ color: theme.textPrimary }}>Confirmation de suppression</Text>
-            <Text className="text-[13px] mb-4 leading-[19px]" style={{ color: theme.textMuted }}>
-              Pour des raisons de sécurité, confirmez votre identité.
-            </Text>
-
-            {/* Email input */}
-            <Box className="mb-4">
-              <Text className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>Email du compte</Text>
-              <TextInput
-                style={{
-                  padding: 14,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  fontSize: 16,
-                  backgroundColor: theme.card,
-                  color: theme.textPrimary,
-                  borderColor: theme.cardBorder,
+                style={[styles.cancelBtn, { borderColor: Colors.green }]}
+                onPress={async () => {
+                  if (requestId) await cancelDeletionRequest(requestId);
+                  Alert.alert('Annulation', 'Demande de suppression annulée avec succès.');
+                  setRequestSent(false);
+                  setRequestId(null);
+                  setCurrentStep(0);
+                  setConfirmEmail('');
+                  setConfirmText('');
+                  setSelectedChild(null);
                 }}
-                placeholder="votre@email.fr"
-                placeholderTextColor={Colors.gray}
-                value={confirmEmail}
-                onChangeText={setConfirmEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </Box>
-
-            {/* Confirm text */}
-            <Box className="mb-4">
-              <Text className="text-sm font-semibold mb-2" style={{ color: theme.textPrimary }}>
-                Tapez <Text style={{ color: Colors.red, fontWeight: '900' }}>SUPPRIMER</Text> pour confirmer
-              </Text>
-              <TextInput
-                style={{
-                  padding: 14,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  fontSize: 16,
-                  backgroundColor: theme.card,
-                  color: theme.textPrimary,
-                  borderColor: theme.cardBorder,
-                }}
-                placeholder="SUPPRIMER"
-                placeholderTextColor={Colors.gray}
-                value={confirmText}
-                onChangeText={setConfirmText}
-                autoCapitalize="characters"
-              />
-            </Box>
-
-            {/* Legal notice */}
-            <HStack
-              className="items-start gap-2.5 p-3.5 rounded-[14px] border mb-4"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-            >
-              <Ionicons name="information-circle" size={18} color={Colors.cyan} />
-              <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>
-                Conformément à l'article 17 du RGPD, votre demande sera traitée sous 72 heures. Un email de confirmation sera envoyé à l'adresse du compte. Vous disposez de 48h pour annuler la demande après réception de l'email.
-              </Text>
-            </HStack>
-
-            <HStack className="gap-3 mt-1">
-              <Pressable
-                className="flex-row items-center justify-center gap-1.5 px-5 py-4 rounded-[14px] border"
-                style={{ borderColor: theme.cardBorder }}
-                onPress={() => setCurrentStep(1)}
               >
-                <Ionicons name="arrow-back" size={18} color={theme.textPrimary} />
-                <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>Retour</Text>
+                <Cross size={18} color={Colors.green} />
+                <Text style={[styles.cancelBtnText, { color: Colors.green }]}>Annuler la demande</Text>
               </Pressable>
-              <Pressable
-                className="flex-1 flex-row items-center justify-center gap-2 py-4 rounded-[14px]"
-                style={{ backgroundColor: Colors.red }}
-                onPress={handleSubmitRequest}
-              >
-                <Ionicons name="trash" size={18} color={Colors.white} />
-                <Text className="text-[15px] font-bold text-white">Demander la suppression</Text>
-              </Pressable>
-            </HStack>
-          </Animated.View>
-        )}
-
-        {/* Step 4: Confirmation sent */}
-        {currentStep === 4 && requestSent && (
-          <VStack className="px-5 items-center py-4">
-            <Box
-              className="w-20 h-20 rounded-full items-center justify-center mb-4"
-              style={{ backgroundColor: Colors.cyan + '15' }}
-            >
-              <Ionicons name="mail" size={40} color={Colors.cyan} />
-            </Box>
-            <Text className="text-[22px] font-black mb-2" style={{ color: theme.textPrimary }}>Demande envoyée</Text>
-            <Text className="text-sm text-center leading-5 mb-6" style={{ color: theme.textMuted }}>
-              Un email de confirmation a été envoyé à{'\n'}
-              <Text style={{ color: Colors.cyan, fontWeight: '700' }}>moreau.famille@email.fr</Text>
-            </Text>
-
-            <Box
-              className="w-full p-5 rounded-2xl border mb-5"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-            >
-              <HStack className="items-center gap-3">
-                <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.green }} />
-                <Box className="flex-1">
-                  <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Demande reçue</Text>
-                  <Text className="text-xs" style={{ color: theme.textMuted }}>Maintenant</Text>
-                </Box>
-              </HStack>
-              <Box className="ml-[5px] h-6 border-l-2" style={{ borderLeftColor: theme.cardBorder }} />
-              <HStack className="items-center gap-3">
-                <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.orange }} />
-                <Box className="flex-1">
-                  <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Email de confirmation</Text>
-                  <Text className="text-xs" style={{ color: theme.textMuted }}>Dans quelques minutes</Text>
-                </Box>
-              </HStack>
-              <Box className="ml-[5px] h-6 border-l-2" style={{ borderLeftColor: theme.cardBorder }} />
-              <HStack className="items-center gap-3">
-                <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.violet }} />
-                <Box className="flex-1">
-                  <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Période d'annulation (48h)</Text>
-                  <Text className="text-xs" style={{ color: theme.textMuted }}>Vous pouvez encore annuler</Text>
-                </Box>
-              </HStack>
-              <Box className="ml-[5px] h-6 border-l-2" style={{ borderLeftColor: theme.cardBorder }} />
-              <HStack className="items-center gap-3">
-                <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: Colors.red }} />
-                <Box className="flex-1">
-                  <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Suppression définitive</Text>
-                  <Text className="text-xs" style={{ color: theme.textMuted }}>Sous 72 heures</Text>
-                </Box>
-              </HStack>
-            </Box>
-
-            <Pressable
-              className="flex-row items-center gap-2 px-6 py-3.5 rounded-[14px] border-[1.5px]"
-              style={{ borderColor: Colors.green }}
-              onPress={async () => {
-                if (requestId) await cancelDeletionRequest(requestId);
-                Alert.alert('Annulation', 'Demande de suppression annulée avec succès.');
-                setRequestSent(false);
-                setRequestId(null);
-                setCurrentStep(0);
-                setConfirmEmail('');
-                setConfirmText('');
-                setSelectedChild(null);
-              }}
-            >
-              <Ionicons name="close-circle" size={18} color={Colors.green} />
-              <Text className="text-[15px] font-bold" style={{ color: Colors.green }}>
-                Annuler la demande
-              </Text>
-            </Pressable>
-          </VStack>
-        )}
-
-        <Box className="h-10" />
-      </ScrollView>
+            </View>
+          )}
+        </ScrollView>
+      </View>
     </Animated.View>
   );
 }
+
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+};
+
+const styles = StyleSheet.create({
+  card: { marginBottom: 8 },
+  infoRow: { flexDirection: 'row', alignItems: 'center' },
+  warningHeader: { alignItems: 'center', paddingVertical: 8 },
+  warningIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, marginBottom: 12 },
+  warningTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#fff', marginBottom: 6, ...TEXT_SHADOW },
+  warningSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 19 },
+  stepsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 24 },
+  stepItem: { alignItems: 'center', flex: 1, position: 'relative' },
+  stepCircle: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 4, backgroundColor: 'transparent' },
+  stepNum: { fontFamily: FontFamily.sansBold, fontSize: 12 },
+  stepLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, textAlign: 'center', ...TEXT_SHADOW },
+  stepConnector: { position: 'absolute', top: 14, left: '60%', right: '-40%', height: 2 },
+  stepHeading: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#fff', ...TEXT_SHADOW },
+  stepSubheading: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 14, lineHeight: 19 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  radioOuter: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 12, height: 12, borderRadius: 6 },
+  primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 14 },
+  primaryBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
+  navRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  backBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: '#fff' },
+  catRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  catIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  inputGroup: { marginBottom: 14 },
+  inputLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#fff', marginBottom: 8, ...TEXT_SHADOW },
+  input: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    fontSize: 16,
+    fontFamily: FontFamily.sansRegular,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    color: '#fff',
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.6)' },
+  successState: { alignItems: 'center', paddingTop: 8 },
+  successIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  successTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#fff', marginBottom: 8, ...TEXT_SHADOW },
+  successSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  timelineRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  timelineDot: { width: 12, height: 12, borderRadius: 6 },
+  timelineLine: { marginLeft: 5, height: 24, borderLeftWidth: 2 },
+  cancelBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5 },
+  cancelBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15 },
+});

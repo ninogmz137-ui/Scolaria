@@ -1,10 +1,21 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollView, Animated, Alert, Platform } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, Platform } from 'react-native';
+import {
+  ArrowRight,
+  Check,
+  Cross,
+  ExternalLink,
+  Lock,
+  Password,
+  Info,
+} from '@getpapillon/papicons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import WallpaperBackground from '../../components/WallpaperBackground';
+import GlassCard from '../../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getTransferCodes, createTransferCode, revokeTransferCode, type TransferCode as SupabaseTransferCode } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
@@ -72,18 +83,12 @@ const CHILDREN = [
   { id: '2', name: 'Emma Moreau', avatar: '👧', classe: '6ème — Collège Hugo' },
 ];
 
-// ─── Shadow & helpers ─────────────────────────────────────
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
 // ─── Component ────────────────────────────────────────────
 
 export default function TransfertCodeScreen() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const [codes, setCodes] = useState(EXISTING_CODES);
   const [showNewCode, setShowNewCode] = useState(false);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
@@ -163,7 +168,6 @@ export default function TransfertCodeScreen() {
       Animated.spring(codeAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }).start();
       loadCodes();
     } else {
-      // Fallback to local generation when Supabase not configured
       const code = generateCode();
       setNewCode(code);
       Animated.spring(codeAnim, { toValue: 1, tension: 50, friction: 8, useNativeDriver: true }).start();
@@ -213,247 +217,266 @@ export default function TransfertCodeScreen() {
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'active': return { label: 'Actif', color: Colors.green, icon: 'checkmark-circle' as const };
-      case 'used': return { label: 'Utilisé', color: Colors.cyan, icon: 'checkmark-done' as const };
-      case 'expired': return { label: 'Expiré', color: Colors.red, icon: 'close-circle' as const };
-      default: return { label: status, color: Colors.gray, icon: 'help-circle' as const };
+      case 'active': return { label: 'Actif', color: Colors.green, Icon: Check };
+      case 'used': return { label: 'Utilisé', color: Colors.cyan, Icon: Check };
+      case 'expired': return { label: 'Expiré', color: Colors.red, Icon: Cross };
+      default: return { label: status, color: Colors.gray, Icon: Info };
     }
   };
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-        {/* Info header */}
-        <HStack
-          className="items-center gap-3.5 m-5 mb-4 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: Colors.violet, borderWidth: 1.5, ...CARD_SHADOW }}
+      <View style={{ flex: 1 }}>
+        <WallpaperBackground />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: TOPBAR_H + 12,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingHorizontal: 18,
+          }}
         >
-          <Box
-            className="w-11 h-11 rounded-full items-center justify-center"
-            style={{ backgroundColor: Colors.violet + '15' }}
-          >
-            <Ionicons name="swap-horizontal" size={24} color={Colors.violet} />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-base font-extrabold" style={{ color: theme.textPrimary }}>Code de transfert</Text>
-            <Text className="text-xs mt-0.5 leading-[17px]" style={{ color: theme.textMuted }}>
-              Générez un code sécurisé pour transférer le dossier scolaire vers un nouvel établissement. Valable 90 jours.
-            </Text>
-          </Box>
-        </HStack>
+          {/* Info header */}
+          <GlassCard style={[styles.card, { borderColor: Colors.violet + '60', marginBottom: 14 }]}>
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: Colors.violet + '20' }]}>
+                <ArrowRight size={24} color={Colors.violet} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoTitle}>Code de transfert</Text>
+                <Text style={styles.infoSubtitle}>
+                  Générez un code sécurisé pour transférer le dossier scolaire vers un nouvel établissement. Valable 90 jours.
+                </Text>
+              </View>
+            </View>
+          </GlassCard>
 
-        {/* How it works */}
-        <Box
-          className="mx-5 mb-5 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <Text className="text-[15px] font-bold mb-3.5" style={{ color: theme.textPrimary }}>Comment ça marche ?</Text>
-          {[
-            { step: '1', text: 'Générez un code unique pour votre enfant', icon: '🔑' },
-            { step: '2', text: 'Communiquez le code au nouvel établissement', icon: '📩' },
-            { step: '3', text: 'L\'école saisit le code pour recevoir le dossier', icon: '🏫' },
-            { step: '4', text: 'Vous êtes notifié de l\'utilisation du code', icon: '🔔' },
-          ].map((s, i) => (
-            <HStack key={i} className="items-center gap-3 mb-2.5">
-              <Box
-                className="w-9 h-9 rounded-full items-center justify-center"
-                style={{ backgroundColor: Colors.violet + '20' }}
-              >
-                <Text className="text-lg">{s.icon}</Text>
-              </Box>
-              <Text className="flex-1 text-[13px] leading-[18px]" style={{ color: theme.textMuted }}>{s.text}</Text>
-            </HStack>
-          ))}
-        </Box>
+          {/* How it works */}
+          <GlassCard style={[styles.card, { marginBottom: 18 }]}>
+            <Text style={styles.sectionTitle}>Comment ça marche ?</Text>
+            {[
+              { step: '1', text: 'Générez un code unique pour votre enfant', icon: '🔑' },
+              { step: '2', text: 'Communiquez le code au nouvel établissement', icon: '📩' },
+              { step: '3', text: 'L\'école saisit le code pour recevoir le dossier', icon: '🏫' },
+              { step: '4', text: 'Vous êtes notifié de l\'utilisation du code', icon: '🔔' },
+            ].map((s, i) => (
+              <View key={i} style={styles.howRow}>
+                <View style={[styles.howIcon, { backgroundColor: Colors.violet + '20' }]}>
+                  <Text style={{ fontSize: 18 }}>{s.icon}</Text>
+                </View>
+                <Text style={styles.howText}>{s.text}</Text>
+              </View>
+            ))}
+          </GlassCard>
 
-        {/* Generate new code */}
-        <HStack className="items-center gap-2 mb-2.5 px-6">
-          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.violet }} />
-          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>GÉNÉRER UN NOUVEAU CODE</Text>
-        </HStack>
-        <Box
-          className="mx-5 mb-4 rounded-2xl border overflow-hidden"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          {CHILDREN.map((child, i) => (
-            <Pressable
-              key={child.id}
-              className="flex-row items-center p-3.5 gap-3"
-              style={i < CHILDREN.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
-              onPress={() => handleGenerate(child.id)}
-              disabled={generatingFor === child.id}
-            >
-              <Box
-                className="w-11 h-11 rounded-full items-center justify-center"
-                style={{ backgroundColor: 'rgba(109,40,217,0.2)' }}
-              >
-                <Text className="text-[22px]">{child.avatar}</Text>
-              </Box>
-              <Box className="flex-1">
-                <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{child.name}</Text>
-                <Text className="text-xs mt-px" style={{ color: theme.textMuted }}>{child.classe}</Text>
-              </Box>
-              {generatingFor === child.id ? (
-                <Text style={{ color: Colors.violet, fontSize: 13, fontWeight: '600' }}>Génération...</Text>
-              ) : (
-                <HStack
-                  className="items-center gap-1.5 px-3.5 py-2 rounded-xl"
-                  style={{ backgroundColor: Colors.violet + '20' }}
-                >
-                  <Ionicons name="key" size={16} color={Colors.violet} />
-                  <Text className="text-[13px] font-bold" style={{ color: Colors.violet }}>Générer</Text>
-                </HStack>
-              )}
-            </Pressable>
-          ))}
-        </Box>
+          {/* Generate section label */}
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionBar, { backgroundColor: Colors.violet }]} />
+            <Text style={styles.sectionLabel}>GÉNÉRER UN NOUVEAU CODE</Text>
+          </View>
 
-        {/* New code display */}
-        {newCode && (
-          <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-            <LinearGradient
-              colors={[Colors.violet, Colors.violetDark]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ marginHorizontal: 20, marginBottom: 20, padding: 24, borderRadius: 20, alignItems: 'center' }}
-            >
-              <Ionicons name="checkmark-circle" size={32} color={Colors.green} />
-              <Text className="text-base font-bold text-white mt-2">Code généré avec succès !</Text>
-              <Text
-                className="text-lg font-black text-white tracking-wider mt-3 p-3 rounded-xl overflow-hidden"
-                style={{ fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', backgroundColor: 'rgba(0,0,0,0.3)' }}
-              >
-                {newCode}
-              </Text>
-              <Text className="text-[13px] mt-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Expire dans 90 jours</Text>
-              <HStack className="gap-3 mt-4">
-                <Pressable
-                  className="flex-row items-center gap-1.5 px-5 py-2.5 rounded-xl"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                  onPress={() => handleCopy(newCode)}
-                >
-                  <Ionicons name="copy" size={18} color={Colors.white} />
-                  <Text className="text-sm font-semibold text-white">Copier</Text>
-                </Pressable>
-                <Pressable
-                  className="flex-row items-center gap-1.5 px-5 py-2.5 rounded-xl"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
-                >
-                  <Ionicons name="share" size={18} color={Colors.white} />
-                  <Text className="text-sm font-semibold text-white">Partager</Text>
-                </Pressable>
-              </HStack>
-            </LinearGradient>
-          </Animated.View>
-        )}
-
-        {/* Existing codes */}
-        <HStack className="items-center gap-2 mb-2.5 px-6">
-          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
-          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>CODES EXISTANTS</Text>
-        </HStack>
-        {codes.map((tc) => {
-          const statusCfg = getStatusConfig(tc.status);
-          return (
-            <Box
-              key={tc.id}
-              className="mx-5 mb-3 p-4 rounded-2xl border"
-              style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-            >
-              {/* Header */}
-              <HStack className="items-center gap-2.5 mb-3">
-                <Text className="text-[28px]">{tc.childAvatar}</Text>
-                <Box className="flex-1">
-                  <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{tc.child}</Text>
-                  <Text className="text-xs mt-px" style={{ color: theme.textMuted }}>
-                    {tc.fromSchool} → {tc.toSchool}
-                  </Text>
-                </Box>
-                <HStack
-                  className="items-center gap-1 px-2.5 py-1 rounded-[10px]"
-                  style={{ backgroundColor: statusCfg.color + '15' }}
-                >
-                  <Ionicons name={statusCfg.icon} size={14} color={statusCfg.color} />
-                  <Text className="text-xs font-semibold" style={{ color: statusCfg.color }}>{statusCfg.label}</Text>
-                </HStack>
-              </HStack>
-
-              {/* Code display */}
+          <GlassCard style={[styles.card, { marginBottom: 16 }]} noPadding>
+            {CHILDREN.map((child, i) => (
               <Pressable
-                className="flex-row items-center justify-between p-3 rounded-xl border mb-2.5"
-                style={{ backgroundColor: '#F1F5F9', borderColor: theme.cardBorder }}
-                onPress={() => handleCopy(tc.code)}
+                key={child.id}
+                style={[styles.childRow, i < CHILDREN.length - 1 && styles.rowBorder]}
+                onPress={() => handleGenerate(child.id)}
+                disabled={generatingFor === child.id}
               >
-                <Text
-                  className="text-sm font-extrabold tracking-wider"
-                  style={{
-                    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-                    color: tc.status === 'active' ? Colors.cyan : Colors.gray,
-                  }}
-                >
-                  {tc.code}
-                </Text>
-                <Ionicons name="copy-outline" size={16} color={Colors.gray} />
+                <View style={styles.childAvatar}>
+                  <Text style={{ fontSize: 22 }}>{child.avatar}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.personName}>{child.name}</Text>
+                  <Text style={styles.personRole}>{child.classe}</Text>
+                </View>
+                {generatingFor === child.id ? (
+                  <Text style={[styles.genText, { color: Colors.violet }]}>Génération...</Text>
+                ) : (
+                  <View style={[styles.genBtn, { backgroundColor: Colors.violet + '25' }]}>
+                    <Password size={16} color={Colors.violet} />
+                    <Text style={[styles.genText, { color: Colors.violet }]}>Générer</Text>
+                  </View>
+                )}
               </Pressable>
+            ))}
+          </GlassCard>
 
-              {/* Meta */}
-              <VStack className="gap-1 mb-2.5">
-                <Text className="text-xs" style={{ color: theme.textMuted }}>
-                  📅 Créé le {tc.createdAt}
-                </Text>
-                <Text className="text-xs" style={{ color: theme.textMuted }}>
-                  ⏳ Expire le {tc.expiresAt}
-                </Text>
+          {/* New code display */}
+          {newCode && (
+            <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: 20 }}>
+              <GlassCard style={[styles.newCodeCard, { borderColor: Colors.violet + '60' }]} opacity={0.88}>
+                <View style={{ alignItems: 'center' }}>
+                  <Check size={32} color={Colors.green} />
+                  <Text style={styles.newCodeSuccess}>Code généré avec succès !</Text>
+                  <Text style={styles.newCodeValue}>{newCode}</Text>
+                  <Text style={styles.newCodeExpiry}>Expire dans 90 jours</Text>
+                  <View style={styles.newCodeActions}>
+                    <Pressable
+                      style={[styles.newCodeBtn, { backgroundColor: Colors.violet + '30' }]}
+                      onPress={() => handleCopy(newCode)}
+                    >
+                      <ArrowRight size={18} color="#fff" />
+                      <Text style={styles.newCodeBtnText}>Copier</Text>
+                    </Pressable>
+                    <Pressable style={[styles.newCodeBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
+                      <ExternalLink size={18} color="#fff" />
+                      <Text style={styles.newCodeBtnText}>Partager</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </GlassCard>
+            </Animated.View>
+          )}
+
+          {/* Existing codes label */}
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
+            <Text style={styles.sectionLabel}>CODES EXISTANTS</Text>
+          </View>
+
+          {codes.map((tc) => {
+            const statusCfg = getStatusConfig(tc.status);
+            return (
+              <GlassCard key={tc.id} style={styles.codeCard}>
+                {/* Header */}
+                <View style={styles.codeHeader}>
+                  <Text style={{ fontSize: 28 }}>{tc.childAvatar}</Text>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.personName}>{tc.child}</Text>
+                    <Text style={styles.personRole}>{tc.fromSchool} → {tc.toSchool}</Text>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: statusCfg.color + '20' }]}>
+                    <statusCfg.Icon size={14} color={statusCfg.color} />
+                    <Text style={[styles.statusText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
+                  </View>
+                </View>
+
+                {/* Code display */}
+                <Pressable
+                  style={styles.codeDisplay}
+                  onPress={() => handleCopy(tc.code)}
+                >
+                  <Text
+                    style={[
+                      styles.codeText,
+                      { color: tc.status === 'active' ? Colors.cyan : 'rgba(255,255,255,0.4)' },
+                    ]}
+                  >
+                    {tc.code}
+                  </Text>
+                  <ArrowRight size={16} color="rgba(255,255,255,0.4)" />
+                </Pressable>
+
+                {/* Meta */}
+                <View style={styles.codeMeta}>
+                  <Text style={styles.metaText}>📅 Créé le {tc.createdAt}</Text>
+                  <Text style={styles.metaText}>⏳ Expire le {tc.expiresAt}</Text>
+                  {tc.status === 'active' && (
+                    <Text style={[styles.metaText, { fontFamily: FontFamily.sansBold, color: tc.daysLeft > 30 ? Colors.green : Colors.orange }]}>
+                      {tc.daysLeft} jours restants
+                    </Text>
+                  )}
+                  {tc.usedBy && (
+                    <Text style={[styles.metaText, { color: Colors.cyan }]}>
+                      ✅ Utilisé par {tc.usedBy} le {tc.usedAt}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Actions */}
                 {tc.status === 'active' && (
-                  <Text className="text-xs font-bold mt-0.5" style={{ color: tc.daysLeft > 30 ? Colors.green : Colors.orange }}>
-                    {tc.daysLeft} jours restants
-                  </Text>
+                  <View style={[styles.codeActions, { borderTopColor: 'rgba(255,255,255,0.12)' }]}>
+                    <Pressable
+                      style={[styles.codeActionBtn, { backgroundColor: Colors.red + '18' }]}
+                      onPress={() => handleRevoke(tc.id)}
+                    >
+                      <Cross size={16} color={Colors.red} />
+                      <Text style={[styles.codeActionText, { color: Colors.red }]}>Révoquer</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.codeActionBtn, { backgroundColor: Colors.cyan + '18' }]}
+                      onPress={() => handleCopy(tc.code)}
+                    >
+                      <ExternalLink size={16} color={Colors.cyan} />
+                      <Text style={[styles.codeActionText, { color: Colors.cyan }]}>Partager</Text>
+                    </Pressable>
+                  </View>
                 )}
-                {tc.usedBy && (
-                  <Text className="text-xs" style={{ color: Colors.cyan }}>
-                    ✅ Utilisé par {tc.usedBy} le {tc.usedAt}
-                  </Text>
-                )}
-              </VStack>
+              </GlassCard>
+            );
+          })}
 
-              {/* Actions */}
-              {tc.status === 'active' && (
-                <HStack className="gap-2.5 border-t pt-3" style={{ borderTopColor: '#EEF0F5' }}>
-                  <Pressable
-                    className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl"
-                    style={{ backgroundColor: Colors.red + '12' }}
-                    onPress={() => handleRevoke(tc.id)}
-                  >
-                    <Ionicons name="close-circle" size={16} color={Colors.red} />
-                    <Text className="text-[13px] font-semibold" style={{ color: Colors.red }}>Révoquer</Text>
-                  </Pressable>
-                  <Pressable
-                    className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 rounded-xl"
-                    style={{ backgroundColor: Colors.cyan + '12' }}
-                    onPress={() => handleCopy(tc.code)}
-                  >
-                    <Ionicons name="share" size={16} color={Colors.cyan} />
-                    <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>Partager</Text>
-                  </Pressable>
-                </HStack>
-              )}
-            </Box>
-          );
-        })}
-
-        {/* Security notice */}
-        <HStack
-          className="items-start gap-2.5 mx-5 mt-2 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <Ionicons name="lock-closed" size={16} color={Colors.green} />
-          <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>
-            Les codes de transfert sont chiffrés de bout en bout. Seul l'établissement destinataire peut lire les données transmises. Le transfert est journalisé et visible dans le journal d'accès.
-          </Text>
-        </HStack>
-
-        <Box className="h-10" />
-      </ScrollView>
+          {/* Security notice */}
+          <GlassCard style={styles.card}>
+            <View style={styles.noticeRow}>
+              <Lock size={16} color={Colors.green} />
+              <Text style={styles.noticeText}>
+                Les codes de transfert sont chiffrés de bout en bout. Seul l'établissement destinataire peut lire les données transmises. Le transfert est journalisé et visible dans le journal d'accès.
+              </Text>
+            </View>
+          </GlassCard>
+        </ScrollView>
+      </View>
     </Animated.View>
   );
 }
+
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+};
+
+const styles = StyleSheet.create({
+  card: { marginBottom: 8 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
+  sectionTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', marginBottom: 14, ...TEXT_SHADOW },
+  howRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  howIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  howText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.75)', flex: 1, lineHeight: 18 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  sectionBar: { width: 4, height: 16, borderRadius: 2 },
+  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, ...TEXT_SHADOW },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(109,40,217,0.2)' },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  genBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  genText: { fontFamily: FontFamily.sansBold, fontSize: 13 },
+  newCodeCard: { alignItems: 'center' },
+  newCodeSuccess: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', marginTop: 8, ...TEXT_SHADOW },
+  newCodeValue: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 2,
+    marginTop: 12,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 8 },
+  newCodeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  newCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+  newCodeBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#fff' },
+  codeCard: { marginBottom: 12 },
+  codeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  statusText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
+  codeDisplay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.2)', marginBottom: 10 },
+  codeText: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  codeMeta: { gap: 4, marginBottom: 10 },
+  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  codeActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, paddingTop: 12, marginTop: 2 },
+  codeActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12 },
+  codeActionText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
+  noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+});

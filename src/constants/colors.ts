@@ -40,4 +40,13 @@ export const Colors = {
   warmBg: '#FFFBF5',
   warmCard: '#FFFFFF',
   warmCardLight: '#FFF8F0',
+  // ── Glass morphism ─────────────────────────────────
+  glassBg: 'rgba(255,255,255,0.75)',
+  glassBorder: 'rgba(255,255,255,0.5)',
+  glassBgDark: 'rgba(0,0,0,0.3)',
+  glassBorderDark: 'rgba(255,255,255,0.15)',
+
+  // ── Dark navy (splash/login/burger) ────────────────
+  darkNavy: '#1A2340',
+  darkNavyLight: '#243156',
 } as const;

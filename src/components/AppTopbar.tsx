@@ -1,141 +1,220 @@
 /**
- * AppTopbar — Fixed top bar present on all screens.
+ * AppTopbar — Universal topbar with three rendering modes.
  *
- * Light design system:
- * - Left: burger menu (☰) or back arrow (←)
- * - Center: Scolaria logo/text
- * - Right: notification bell with badge
+ * Mode 1 (Home): Avatar → "Bonjour, {prénom} 👋" → 🎨 + ⚙️ glass buttons
+ * Mode 2 (Main tabs): Avatar → empty → contextual icon
+ * Mode 3 (Stacked screens): ← back → title → empty
  *
- * Child selection is now handled by ChildSwitcherBar below this topbar.
+ * No logo, no notification bell, no child pill.
  */
 
-import { Platform } from 'react-native';
-import { Box, Text, Pressable, HStack } from './ui';
-import { Ionicons } from '@expo/vector-icons';
-import LogoScolaria from './LogoScolaria';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { Papicons } from '@getpapillon/papicons';
+import ChildAvatar from './ChildAvatar';
 
 // ─── Props ───────────────────────────────────────────────
 
+export type TopbarMode = 'home' | 'main' | 'stacked';
+
 interface Props {
-  onBurgerPress: () => void;
-  showBack?: boolean;
+  mode: TopbarMode;
+  /** Burger press (modes: home, main) */
+  onBurgerPress?: () => void;
+  /** Back press (mode: stacked) */
   onBackPress?: () => void;
-  notificationCount?: number;
-  onNotificationPress?: () => void;
-  /** When true, topbar is transparent with white icons (overlays dark header) */
-  transparent?: boolean;
-  /** Called when the Scolaria logo is tapped (navigate to home) */
-  onLogoPress?: () => void;
-  /** Active child name + avatar shown as a pill next to logo */
+  /** Page title (mode: stacked) */
+  title?: string;
+  /** Parent's first name for greeting (mode: home) */
+  parentName?: string;
+  /** Child avatar props */
   childName?: string;
-  childAvatar?: string;
-  /** Called when the child pill is tapped (open child switcher) */
-  onChildPress?: () => void;
+  childEmoji?: string;
+  childPhotoUri?: string;
+  accentColor?: string;
+  /** 🎨 customize button press (mode: home) */
+  onCustomizePress?: () => void;
+  /** ⚙️ settings button press (mode: home) */
+  onSettingsPress?: () => void;
+  /** Right contextual icon (mode: main) */
+  contextualIcon?: string;
+  onContextualPress?: () => void;
+}
+
+// ─── Glass round button ─────────────────────────────────
+
+function GlassButton({
+  icon,
+  onPress,
+}: {
+  icon: string;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+      <View style={styles.glassButton}>
+        {Platform.OS === 'ios' && (
+          <BlurView intensity={15} tint="light" style={StyleSheet.absoluteFill} />
+        )}
+        <View style={styles.glassButtonOverlay} />
+        <Text style={styles.glassButtonIcon}>{icon}</Text>
+      </View>
+    </Pressable>
+  );
 }
 
 // ─── Component ───────────────────────────────────────────
 
 export default function AppTopbar({
+  mode,
   onBurgerPress,
-  showBack = false,
   onBackPress,
-  notificationCount = 0,
-  onNotificationPress,
-  transparent = false,
-  onLogoPress,
+  title,
+  parentName,
   childName,
-  childAvatar,
-  onChildPress,
+  childEmoji,
+  childPhotoUri,
+  accentColor = '#6366F1',
+  onCustomizePress,
+  onSettingsPress,
+  contextualIcon,
+  onContextualPress,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const iconColor = transparent ? '#FFFFFF' : '#0F172A';
 
   return (
-    <HStack
-      className="items-center justify-between px-4"
-      style={{
-        backgroundColor: transparent ? 'transparent' : '#FFFFFF',
-        borderBottomWidth: transparent ? 0 : 1,
-        borderBottomColor: '#EEF0F5',
-        paddingTop: insets.top + 8,
-        paddingBottom: 10,
-        // Transparent mode: overlay on top of content with absolute positioning
-        ...(transparent ? { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 } : {}),
-        ...(transparent
-          ? {}
-          : Platform.select({
-              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
-              android: { elevation: 2 },
-              default: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4 },
-            })),
-      }}
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top + 6, paddingBottom: 8 },
+      ]}
     >
-      {/* Left: Burger or Back */}
-      <Pressable
-        className="w-10 h-10 rounded-full items-center justify-center"
-        onPress={showBack ? onBackPress : onBurgerPress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Ionicons
-          name={showBack ? 'arrow-back' : 'menu'}
-          size={24}
-          color={iconColor}
-        />
-      </Pressable>
-
-      {/* Center: Scolaria branding + active child pill */}
-      <Box style={{ flex: 1, alignItems: 'center' }}>
-        <Pressable
-          onPress={onLogoPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{ alignItems: 'center' }}
-        >
-          <LogoScolaria size={24} variant={transparent ? 'dark' : 'light'} />
-        </Pressable>
-        {childName ? (
+      {/* Left section */}
+      <View style={styles.left}>
+        {mode === 'stacked' ? (
           <Pressable
-            onPress={onChildPress}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginTop: 2,
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              borderRadius: 12,
-              backgroundColor: transparent ? 'rgba(255,255,255,0.15)' : '#F1F5F9',
-            }}
+            onPress={onBackPress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={styles.backButton}
           >
-            {childAvatar ? (
-              <Text style={{ fontSize: 12, marginRight: 3 }}>{childAvatar}</Text>
-            ) : null}
-            <Text style={{ fontSize: 11, fontWeight: '600', color: transparent ? '#FFFFFF' : '#64748B' }}>
-              {childName}
-            </Text>
-            <Text style={{ fontSize: 10, marginLeft: 2, color: transparent ? 'rgba(255,255,255,0.6)' : '#94A3B8' }}>
-              ▾
-            </Text>
+            <Papicons name="ChevronLeft" size={22} color="#FFFFFF" />
           </Pressable>
-        ) : null}
-      </Box>
-
-      {/* Right: Notification Bell */}
-      <Pressable
-        className="w-10 h-10 rounded-full items-center justify-center relative"
-        onPress={onNotificationPress}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Ionicons name="notifications-outline" size={22} color={iconColor} />
-        {notificationCount > 0 && (
-          <Box className="absolute top-1 right-1 min-w-[16px] h-4 rounded-full items-center justify-center px-0.5"
-            style={{ backgroundColor: '#EF4444' }}
+        ) : (
+          <Pressable
+            onPress={onBurgerPress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text className="text-[9px] font-extrabold text-white">
-              {notificationCount > 9 ? '9+' : notificationCount}
-            </Text>
-          </Box>
+            <ChildAvatar
+              name={childName || '?'}
+              emoji={childEmoji}
+              photoUri={childPhotoUri}
+              accentColor={accentColor}
+              size={38}
+              showBurgerBadge
+            />
+          </Pressable>
         )}
-      </Pressable>
-    </HStack>
+      </View>
+
+      {/* Center section */}
+      <View style={styles.center}>
+        {mode === 'home' && parentName ? (
+          <Text style={styles.greeting} numberOfLines={1}>
+            Bonjour, {parentName} 👋
+          </Text>
+        ) : mode === 'stacked' && title ? (
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+        ) : null}
+      </View>
+
+      {/* Right section */}
+      <View style={styles.right}>
+        {mode === 'home' ? (
+          <View style={styles.rightButtons}>
+            <GlassButton icon="🎨" onPress={onCustomizePress} />
+            <GlassButton icon="⚙️" onPress={onSettingsPress} />
+          </View>
+        ) : mode === 'main' && contextualIcon ? (
+          <GlassButton icon={contextualIcon} onPress={onContextualPress} />
+        ) : null}
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  left: {
+    width: 50,
+    alignItems: 'flex-start',
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  right: {
+    width: 90,
+    alignItems: 'flex-end',
+  },
+  greeting: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  rightButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  glassButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    ...Platform.select({
+      android: { backgroundColor: 'rgba(255,255,255,0.2)' },
+    }),
+  },
+  glassButtonOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  glassButtonIcon: {
+    fontSize: 18,
+  },
+});

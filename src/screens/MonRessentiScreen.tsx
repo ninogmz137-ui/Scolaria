@@ -1,7 +1,5 @@
-import { ScrollView, Alert } from 'react-native';
-import { Box, Text } from '../components/ui';
-import { LinearGradient } from 'expo-linear-gradient';
-import DecorativeBlobs from '../components/DecorativeBlobs';
+import { ScrollView, Alert, View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -9,9 +7,12 @@ import { createCheckin } from '../services/database';
 import MaternelleMode from '../components/checkin/MaternelleMode';
 import PrimaireMode from '../components/checkin/PrimaireMode';
 import LyceeMode from '../components/checkin/LyceeMode';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
-
 
 const EMOJI_JOY: Record<string, number> = {
   '😊': 9,
@@ -42,6 +43,8 @@ export default function MonRessentiScreen() {
   const mode: AgeMode = mapSchoolModeToAgeMode(schoolMode);
   const { theme } = useChildTheme();
   const { selectedChildId } = useActiveChild();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
 
   const handleMaternelleSubmit = async (value: string) => {
     try {
@@ -106,43 +109,65 @@ export default function MonRessentiScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-      {/* Header with gradient */}
-      <LinearGradient
-        colors={['#0B1628', theme.accent + 'DD']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={{
-          paddingTop: 20,
-          paddingBottom: 30,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
+    <View style={{ flex: 1 }}>
+      <WallpaperBackground />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: TOPBAR_H + 12,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+          paddingHorizontal: 18,
         }}
       >
-        <Box className="items-center">
-          <Text className="text-[48px] mb-2">💛</Text>
-          <Text className="text-[28px] font-black text-white mb-1">Mon Ressenti</Text>
-          <Text className="text-[15px]" style={{ color: 'rgba(255,255,255,0.7)' }}>
-            Prends un moment pour toi
-          </Text>
-        </Box>
-      </LinearGradient>
+        {/* Page title */}
+        <View style={styles.titleRow}>
+          <Text style={styles.titleEmoji}>💛</Text>
+          <View>
+            <Text style={styles.title}>Mon Ressenti</Text>
+            <Text style={styles.subtitle}>Prends un moment pour toi</Text>
+          </View>
+        </View>
 
-      <Box className="px-5" style={{ position: 'relative' }}>
-        {/* Decorative blobs */}
-        <DecorativeBlobs accent={theme.accent} />
-
-        {/* Mode content */}
-        {mode === 'maternelle' && (
-          <MaternelleMode onSubmit={handleMaternelleSubmit} />
-        )}
-        {mode === 'primaire' && (
-          <PrimaireMode onSubmit={handlePrimaireSubmit} currentXP={230} />
-        )}
-        {mode === 'lycee' && <LyceeMode onSubmit={handleLyceeSubmit} />}
-      </Box>
-
-      <Box className="h-10" />
-    </ScrollView>
+        {/* Mode content wrapped in glass */}
+        <GlassCard style={{ marginTop: 8 }}>
+          {mode === 'maternelle' && (
+            <MaternelleMode onSubmit={handleMaternelleSubmit} />
+          )}
+          {mode === 'primaire' && (
+            <PrimaireMode onSubmit={handlePrimaireSubmit} currentXP={230} />
+          )}
+          {mode === 'lycee' && <LyceeMode onSubmit={handleLyceeSubmit} />}
+        </GlassCard>
+      </ScrollView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 8,
+  },
+  titleEmoji: {
+    fontSize: 40,
+  },
+  title: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 26,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
+  },
+  subtitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+    marginTop: 2,
+  },
+});

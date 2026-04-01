@@ -1,18 +1,37 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollView, Animated, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
+import {
+  ArrowDown,
+  Check,
+  Info,
+  Code,
+  Paper,
+  User,
+  Calendar,
+  Camera,
+  Heart,
+  Sparkles,
+  List,
+  Lock,
+  Pie,
+  Star,
+  ArrowRight,
+} from '@getpapillon/papicons';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import { getExportHistory, createExport, type ExportRecord } from '../../services/rgpdService';
+import WallpaperBackground from '../../components/WallpaperBackground';
+import GlassCard from '../../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FontFamily } from '../../hooks/useSolariaFonts';
+import { getExportHistory, createExport } from '../../services/rgpdService';
 
 // ─── Types ────────────────────────────────────────────────
 
 interface DataModule {
   key: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
   color: string;
   size: string;
   count: string;
@@ -28,30 +47,24 @@ interface ExportHistory {
   status: 'completed' | 'pending';
 }
 
-// ─── Shadow & helpers ─────────────────────────────────────
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
 // ─── Component ────────────────────────────────────────────
 
 export default function ExportDonneesScreen() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const [exportFormat, setExportFormat] = useState<'json' | 'pdf' | 'both'>('both');
   const [modules, setModules] = useState<DataModule[]>([
-    { key: 'profil', name: 'Profil & identité', icon: 'person', color: Colors.violet, size: '12 Ko', count: '2 profils', selected: true },
-    { key: 'notes', name: 'Notes & bulletins', icon: 'school', color: Colors.cyan, size: '145 Ko', count: '47 notes', selected: true },
-    { key: 'agenda', name: 'Agenda & événements', icon: 'calendar', color: Colors.violet, size: '89 Ko', count: '156 événements', selected: true },
-    { key: 'ressenti', name: 'Ressenti & bien-être', icon: 'heart', color: Colors.pink, size: '67 Ko', count: '89 check-ins', selected: true },
-    { key: 'competences', name: 'Compétences & radar', icon: 'analytics', color: Colors.green, size: '8 Ko', count: '5 compétences', selected: true },
-    { key: 'portfolio', name: 'Portfolio extra-scolaire', icon: 'trophy', color: Colors.orange, size: '15 Ko', count: '5 activités', selected: true },
-    { key: 'photos', name: 'Photos & médias', icon: 'camera', color: Colors.orange, size: '4.2 Mo', count: '24 photos', selected: false },
-    { key: 'conversations', name: 'Conversations Aria', icon: 'sparkles', color: Colors.violetLight, size: '234 Ko', count: '34 conversations', selected: true },
-    { key: 'journal', name: 'Journal d\'accès', icon: 'list', color: Colors.cyan, size: '56 Ko', count: '210 entrées', selected: true },
-    { key: 'permissions', name: 'Permissions', icon: 'shield', color: Colors.green, size: '3 Ko', count: '5 personnes', selected: true },
+    { key: 'profil', name: 'Profil & identité', Icon: User, color: Colors.violet, size: '12 Ko', count: '2 profils', selected: true },
+    { key: 'notes', name: 'Notes & bulletins', Icon: Check, color: Colors.cyan, size: '145 Ko', count: '47 notes', selected: true },
+    { key: 'agenda', name: 'Agenda & événements', Icon: Calendar, color: Colors.violet, size: '89 Ko', count: '156 événements', selected: true },
+    { key: 'ressenti', name: 'Ressenti & bien-être', Icon: Heart, color: Colors.pink, size: '67 Ko', count: '89 check-ins', selected: true },
+    { key: 'competences', name: 'Compétences & radar', Icon: Pie, color: Colors.green, size: '8 Ko', count: '5 compétences', selected: true },
+    { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: Colors.orange, size: '15 Ko', count: '5 activités', selected: true },
+    { key: 'photos', name: 'Photos & médias', Icon: Camera, color: Colors.orange, size: '4.2 Mo', count: '24 photos', selected: false },
+    { key: 'conversations', name: 'Conversations Aria', Icon: Sparkles, color: Colors.violetLight, size: '234 Ko', count: '34 conversations', selected: true },
+    { key: 'journal', name: 'Journal d\'accès', Icon: List, color: Colors.cyan, size: '56 Ko', count: '210 entrées', selected: true },
+    { key: 'permissions', name: 'Permissions', Icon: Lock, color: Colors.green, size: '3 Ko', count: '5 personnes', selected: true },
   ]);
   const [exporting, setExporting] = useState(false);
   const [exportDone, setExportDone] = useState(false);
@@ -130,7 +143,7 @@ export default function ExportDonneesScreen() {
 
       const formatLabel = exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase();
       Alert.alert(
-        '✅ Export terminé',
+        'Export terminé',
         `Vos données ont été exportées en ${formatLabel}.\n\nTaille : ${totalSizeStr}\nModules : ${selectedModules.length}/${modules.length}\n\nLe fichier est prêt à être téléchargé.`,
       );
     });
@@ -141,208 +154,183 @@ export default function ExportDonneesScreen() {
     outputRange: ['0%', '100%'],
   });
 
+  const FORMAT_OPTIONS = [
+    { key: 'json' as const, label: 'JSON', Icon: Code as React.ComponentType<{ size?: number; color?: string }>, desc: 'Lisible par machine' },
+    { key: 'pdf' as const, label: 'PDF', Icon: Paper as React.ComponentType<{ size?: number; color?: string }>, desc: 'Lisible par humain' },
+    { key: 'both' as const, label: 'Les deux', Icon: ArrowDown as React.ComponentType<{ size?: number; color?: string }>, desc: 'Recommandé' },
+  ];
+
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-        {/* Info header */}
-        <HStack
-          className="items-center gap-3.5 m-5 mb-4 p-4 rounded-2xl border"
-          style={{ backgroundColor: theme.card, borderColor: Colors.orange, borderWidth: 1.5, ...CARD_SHADOW }}
+      <View style={{ flex: 1 }}>
+        <WallpaperBackground />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: TOPBAR_H + 12,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingHorizontal: 18,
+          }}
         >
-          <Box
-            className="w-11 h-11 rounded-full items-center justify-center"
-            style={{ backgroundColor: Colors.orange + '15' }}
-          >
-            <Ionicons name="download" size={24} color={Colors.orange} />
-          </Box>
-          <Box className="flex-1">
-            <Text className="text-base font-extrabold" style={{ color: theme.textPrimary }}>Export intégral RGPD</Text>
-            <Text className="text-xs mt-0.5 leading-[17px]" style={{ color: theme.textMuted }}>
-              Article 20 du RGPD — Droit à la portabilité. Téléchargez toutes vos données en JSON lisible par machine + PDF lisible par humain.
-            </Text>
-          </Box>
-        </HStack>
-
-        {/* Format selector */}
-        <HStack className="items-center gap-2 mb-2.5 px-6">
-          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.orange }} />
-          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>FORMAT D'EXPORT</Text>
-        </HStack>
-        <HStack className="gap-2.5 mx-5 mb-5">
-          {([
-            { key: 'json' as const, label: 'JSON', icon: 'code-slash' as const, desc: 'Lisible par machine' },
-            { key: 'pdf' as const, label: 'PDF', icon: 'document-text' as const, desc: 'Lisible par humain' },
-            { key: 'both' as const, label: 'Les deux', icon: 'documents' as const, desc: 'Recommandé' },
-          ]).map((fmt) => (
-            <Pressable
-              key={fmt.key}
-              className="flex-1 items-center p-4 rounded-[14px] border-[1.5px] gap-1.5"
-              style={[
-                { backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW },
-                exportFormat === fmt.key && { borderColor: Colors.orange, backgroundColor: Colors.orange + '10' },
-              ]}
-              onPress={() => setExportFormat(fmt.key)}
-            >
-              <Ionicons
-                name={fmt.icon}
-                size={24}
-                color={exportFormat === fmt.key ? Colors.orange : Colors.gray}
-              />
-              <Text className="text-sm font-bold" style={{ color: exportFormat === fmt.key ? Colors.orange : theme.textPrimary }}>
-                {fmt.label}
-              </Text>
-              <Text className="text-[10px]" style={{ color: theme.textMuted }}>{fmt.desc}</Text>
-              {exportFormat === fmt.key && (
-                <Box
-                  className="absolute top-1.5 right-1.5 w-[18px] h-[18px] rounded-full items-center justify-center"
-                  style={{ backgroundColor: Colors.orange }}
-                >
-                  <Ionicons name="checkmark" size={12} color={Colors.white} />
-                </Box>
-              )}
-            </Pressable>
-          ))}
-        </HStack>
-
-        {/* Module selection */}
-        <HStack className="justify-between items-center pr-6 mb-2.5">
-          <HStack className="items-center gap-2 px-6">
-            <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.cyan }} />
-            <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>DONNÉES À EXPORTER</Text>
-          </HStack>
-          <Pressable onPress={selectAll}>
-            <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>
-              {modules.every((m) => m.selected) ? 'Tout désélectionner' : 'Tout sélectionner'}
-            </Text>
-          </Pressable>
-        </HStack>
-
-        <Box
-          className="mx-5 rounded-2xl border overflow-hidden mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          {modules.map((mod, i) => (
-            <HStack
-              key={mod.key}
-              className="items-center p-3.5 gap-3"
-              style={i < modules.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
-            >
-              <Box
-                className="w-9 h-9 rounded-[10px] items-center justify-center"
-                style={{ backgroundColor: mod.color + '15' }}
-              >
-                <Ionicons name={mod.icon} size={18} color={mod.color} />
-              </Box>
-              <Box className="flex-1">
-                <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>{mod.name}</Text>
-                <Text className="text-[11px] mt-px" style={{ color: theme.textMuted }}>
-                  {mod.count} · {mod.size}
+          {/* Info header */}
+          <GlassCard style={[styles.card, { borderColor: Colors.orange + '60', marginBottom: 14 }]}>
+            <View style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: Colors.orange + '20' }]}>
+                <ArrowDown size={24} color={Colors.orange} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoTitle}>Export intégral RGPD</Text>
+                <Text style={styles.infoSubtitle}>
+                  Article 20 du RGPD — Droit à la portabilité. Téléchargez toutes vos données en JSON lisible par machine + PDF lisible par humain.
                 </Text>
-              </Box>
-              <Switch
-                value={mod.selected}
-                onValueChange={() => toggleModule(mod.key)}
-                trackColor={{ false: Colors.darkGray, true: mod.color + '60' }}
-                thumbColor={mod.selected ? mod.color : Colors.gray}
-              />
-            </HStack>
-          ))}
-        </Box>
+              </View>
+            </View>
+          </GlassCard>
 
-        {/* Summary */}
-        <VStack
-          className="mx-5 p-4 rounded-[14px] border gap-2.5 mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <HStack className="justify-between items-center">
-            <Text className="text-[13px]" style={{ color: theme.textMuted }}>Modules sélectionnés</Text>
-            <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>{selectedModules.length}/{modules.length}</Text>
-          </HStack>
-          <HStack className="justify-between items-center">
-            <Text className="text-[13px]" style={{ color: theme.textMuted }}>Taille estimée</Text>
-            <Text className="text-sm font-bold" style={{ color: Colors.cyan }}>{totalSizeStr}</Text>
-          </HStack>
-          <HStack className="justify-between items-center">
-            <Text className="text-[13px]" style={{ color: theme.textMuted }}>Format</Text>
-            <Text className="text-sm font-bold" style={{ color: Colors.orange }}>
-              {exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase()}
-            </Text>
-          </HStack>
-        </VStack>
+          {/* Format selector label */}
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionBar, { backgroundColor: Colors.orange }]} />
+            <Text style={styles.sectionLabel}>FORMAT D'EXPORT</Text>
+          </View>
 
-        {/* Export button */}
-        {exporting ? (
-          <VStack className="mx-5 items-center gap-2.5 p-5">
-            <ActivityIndicator color={Colors.orange} size="small" />
-            <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>Export en cours...</Text>
-            <Box className="w-full h-1.5 rounded-sm overflow-hidden" style={{ backgroundColor: theme.cardBorder }}>
-              <Animated.View style={{ height: '100%', backgroundColor: Colors.orange, borderRadius: 3, width: progressWidth }} />
-            </Box>
-          </VStack>
-        ) : (
-          <Pressable
-            className="mx-5 rounded-[30px] overflow-hidden"
-            onPress={handleExport}
-            disabled={selectedModules.length === 0}
-          >
-            <LinearGradient
-              colors={selectedModules.length > 0 ? [Colors.orange, '#E67E22'] : [Colors.darkGray, Colors.darkGray]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18 }}
+          <View style={styles.formatRow}>
+            {FORMAT_OPTIONS.map((fmt) => {
+              const isSelected = exportFormat === fmt.key;
+              return (
+                <Pressable key={fmt.key} style={{ flex: 1 }} onPress={() => setExportFormat(fmt.key)}>
+                  <GlassCard
+                    style={[styles.formatCard, isSelected && { borderColor: Colors.orange + '80' }]}
+                    opacity={isSelected ? 0.85 : 0.6}
+                  >
+                    {isSelected && (
+                      <View style={[styles.formatCheck, { backgroundColor: Colors.orange }]}>
+                        <Check size={12} color="#fff" />
+                      </View>
+                    )}
+                    <fmt.Icon size={24} color={isSelected ? Colors.orange : 'rgba(255,255,255,0.5)'} />
+                    <Text style={[styles.formatLabel, isSelected && { color: Colors.orange }]}>{fmt.label}</Text>
+                    <Text style={styles.formatDesc}>{fmt.desc}</Text>
+                  </GlassCard>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Module selection label */}
+          <View style={[styles.sectionHeader, { justifyContent: 'space-between' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
+              <Text style={styles.sectionLabel}>DONNÉES À EXPORTER</Text>
+            </View>
+            <Pressable onPress={selectAll}>
+              <Text style={[styles.sectionLabel, { color: Colors.cyan, textTransform: 'none', letterSpacing: 0 }]}>
+                {modules.every((m) => m.selected) ? 'Tout désélectionner' : 'Tout sélectionner'}
+              </Text>
+            </Pressable>
+          </View>
+
+          <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+            {modules.map((mod, i) => (
+              <View
+                key={mod.key}
+                style={[styles.moduleRow, i < modules.length - 1 && styles.rowBorder]}
+              >
+                <View style={[styles.moduleIcon, { backgroundColor: mod.color + '20' }]}>
+                  <mod.Icon size={18} color={mod.color} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.personName}>{mod.name}</Text>
+                  <Text style={styles.personRole}>{mod.count} · {mod.size}</Text>
+                </View>
+                <Switch
+                  value={mod.selected}
+                  onValueChange={() => toggleModule(mod.key)}
+                  trackColor={{ false: Colors.darkGray, true: mod.color + '60' }}
+                  thumbColor={mod.selected ? mod.color : Colors.gray}
+                />
+              </View>
+            ))}
+          </GlassCard>
+
+          {/* Summary */}
+          <GlassCard style={[styles.card, { marginBottom: 14 }]}>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Modules sélectionnés</Text>
+              <Text style={styles.summaryValue}>{selectedModules.length}/{modules.length}</Text>
+            </View>
+            <View style={[styles.summaryRow, { marginTop: 8 }]}>
+              <Text style={styles.summaryLabel}>Taille estimée</Text>
+              <Text style={[styles.summaryValue, { color: Colors.cyan }]}>{totalSizeStr}</Text>
+            </View>
+            <View style={[styles.summaryRow, { marginTop: 8 }]}>
+              <Text style={styles.summaryLabel}>Format</Text>
+              <Text style={[styles.summaryValue, { color: Colors.orange }]}>
+                {exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase()}
+              </Text>
+            </View>
+          </GlassCard>
+
+          {/* Export button */}
+          {exporting ? (
+            <GlassCard style={[styles.card, { alignItems: 'center', gap: 10, marginBottom: 14 }]}>
+              <ActivityIndicator color={Colors.orange} size="small" />
+              <Text style={styles.personName}>Export en cours...</Text>
+              <View style={styles.progressBg}>
+                <Animated.View style={[styles.progressFill, { width: progressWidth, backgroundColor: Colors.orange }]} />
+              </View>
+            </GlassCard>
+          ) : (
+            <Pressable
+              style={[
+                styles.exportBtn,
+                { backgroundColor: selectedModules.length > 0 ? Colors.orange : 'rgba(255,255,255,0.15)', opacity: selectedModules.length > 0 ? 1 : 0.5 },
+              ]}
+              onPress={handleExport}
+              disabled={selectedModules.length === 0}
             >
-              <Ionicons name="download" size={22} color={Colors.white} />
-              <Text className="text-base font-extrabold text-white">
+              <ArrowDown size={22} color="#fff" />
+              <Text style={styles.exportBtnText}>
                 Exporter mes données ({totalSizeStr})
               </Text>
-            </LinearGradient>
-          </Pressable>
-        )}
+            </Pressable>
+          )}
 
-        {/* Export history */}
-        <HStack className="items-center gap-2 mb-2.5 px-6 mt-6">
-          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.green }} />
-          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>HISTORIQUE DES EXPORTS</Text>
-        </HStack>
-        <Box
-          className="mx-5 rounded-2xl border overflow-hidden mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          {history.map((exp, i) => (
-            <HStack
-              key={exp.id}
-              className="items-center p-3.5 gap-3"
-              style={i < history.length - 1 ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined}
-            >
-              <Box
-                className="w-9 h-9 rounded-[10px] items-center justify-center"
-                style={{ backgroundColor: Colors.green + '15' }}
+          {/* Export history label */}
+          <View style={[styles.sectionHeader, { marginTop: 14 }]}>
+            <View style={[styles.sectionBar, { backgroundColor: Colors.green }]} />
+            <Text style={styles.sectionLabel}>HISTORIQUE DES EXPORTS</Text>
+          </View>
+
+          <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+            {history.map((exp, i) => (
+              <View
+                key={exp.id}
+                style={[styles.historyRow, i < history.length - 1 && styles.rowBorder]}
               >
-                <Ionicons name="checkmark-circle" size={18} color={Colors.green} />
-              </Box>
-              <Box className="flex-1">
-                <Text className="text-[13px] font-semibold" style={{ color: theme.textPrimary }}>{exp.date}</Text>
-                <Text className="text-[11px] mt-0.5" style={{ color: theme.textMuted }}>
-                  {exp.format.toUpperCase()} · {exp.size} · {exp.modules}
-                </Text>
-              </Box>
-              <Pressable>
-                <Ionicons name="refresh" size={18} color={Colors.cyan} />
-              </Pressable>
-            </HStack>
-          ))}
-        </Box>
+                <View style={[styles.moduleIcon, { backgroundColor: Colors.green + '20' }]}>
+                  <Check size={18} color={Colors.green} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.personName}>{exp.date}</Text>
+                  <Text style={styles.personRole}>
+                    {exp.format.toUpperCase()} · {exp.size} · {exp.modules}
+                  </Text>
+                </View>
+                <Pressable>
+                  <ArrowRight size={18} color={Colors.cyan} />
+                </Pressable>
+              </View>
+            ))}
+          </GlassCard>
 
-        {/* JSON preview */}
-        <HStack className="items-center gap-2 mb-2.5 px-6 mt-2">
-          <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: Colors.violet }} />
-          <Text className="text-[13px] font-bold uppercase tracking-wider" style={{ color: theme.textMuted }}>APERÇU JSON</Text>
-        </HStack>
-        <Box
-          className="mx-5 p-4 rounded-[14px] border mb-4"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <Text style={{ fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', color: Colors.green, lineHeight: 17 }}>{`{
+          {/* JSON preview label */}
+          <View style={[styles.sectionHeader, { marginTop: 4 }]}>
+            <View style={[styles.sectionBar, { backgroundColor: Colors.violet }]} />
+            <Text style={styles.sectionLabel}>APERÇU JSON</Text>
+          </View>
+
+          <GlassCard style={[styles.card, { marginBottom: 14 }]}>
+            <Text style={styles.jsonPreview}>{`{
   "scolaria_export": {
     "version": "1.0",
     "generated_at": "2026-03-22T14:30:00Z",
@@ -363,21 +351,62 @@ export default function ExportDonneesScreen() {
     }
   }
 }`}</Text>
-        </Box>
+          </GlassCard>
 
-        {/* RGPD notice */}
-        <HStack
-          className="items-start gap-2.5 mx-5 p-3.5 rounded-[14px] border"
-          style={{ backgroundColor: theme.card, borderColor: theme.cardBorder, ...CARD_SHADOW }}
-        >
-          <Ionicons name="information-circle" size={16} color={Colors.cyan} />
-          <Text className="flex-1 text-[11px] leading-4" style={{ color: theme.textMuted }}>
-            Conformément à l'article 20 du RGPD, vos données sont fournies dans un format structuré, couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
-          </Text>
-        </HStack>
-
-        <Box className="h-10" />
-      </ScrollView>
+          {/* RGPD notice */}
+          <GlassCard style={styles.card}>
+            <View style={styles.noticeRow}>
+              <Info size={16} color={Colors.cyan} />
+              <Text style={styles.noticeText}>
+                Conformément à l'article 20 du RGPD, vos données sont fournies dans un format structuré, couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
+              </Text>
+            </View>
+          </GlassCard>
+        </ScrollView>
+      </View>
     </Animated.View>
   );
 }
+
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+};
+
+const styles = StyleSheet.create({
+  card: { marginBottom: 8 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  sectionBar: { width: 4, height: 16, borderRadius: 2 },
+  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, ...TEXT_SHADOW },
+  formatRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+  formatCard: { alignItems: 'center', paddingVertical: 16, gap: 6, position: 'relative' },
+  formatCheck: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  formatLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  formatDesc: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  moduleRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  moduleIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)' },
+  summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
+  progressBg: { width: '100%', height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 3 },
+  exportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18, borderRadius: 30, marginBottom: 8 },
+  exportBtnText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#fff', ...TEXT_SHADOW },
+  historyRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  jsonPreview: {
+    fontSize: 11,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    color: Colors.green,
+    lineHeight: 17,
+  },
+  noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+});

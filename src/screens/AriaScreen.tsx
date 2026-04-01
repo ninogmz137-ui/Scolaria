@@ -1,14 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
+  View,
+  Text,
   FlatList,
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Papicons } from '@getpapillon/papicons';
 import { Colors } from '../constants/colors';
+import { FontFamily } from '../hooks/useSolariaFonts';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import AriaAvatar from '../components/chat/AriaAvatar';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
@@ -68,18 +75,15 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     : null;
 }
 
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
   const { theme } = useChildTheme();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
+
   const childName = selectedChild?.name ?? 'votre enfant';
   const childId = selectedChild?.id ?? '1';
 
@@ -191,186 +195,301 @@ export default function AriaScreen() {
     timestamp: '',
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
-    >
-      {/* Gradient Header */}
-      <LinearGradient
-        colors={['#0B1628', theme.accent + 'DD']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          borderBottomLeftRadius: 20,
-          borderBottomRightRadius: 20,
-          paddingBottom: 18,
-          paddingTop: 12,
-          paddingHorizontal: 16,
-        }}
-      >
-        <HStack className="items-center">
-          <AriaAvatar size={40} />
-          <VStack className="flex-1 ml-3">
-            <Text className="text-[17px]" style={{ fontWeight: '800', color: '#FFFFFF' }}>
-              {theme.ariaLabel}
-            </Text>
-            <HStack className="items-center gap-[5px] mt-0.5">
-              <Box
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: isTyping ? Colors.orange : '#34D399' }}
-              />
-              <Text
-                className="text-xs"
-                style={{
-                  fontWeight: '500',
-                  color: isTyping ? Colors.orange : '#34D399',
-                }}
-              >
-                {isTyping ? 'Réfléchit...' : 'En ligne'}
-              </Text>
-            </HStack>
-          </VStack>
-          <HStack className="items-center gap-2">
-            <Box
-              className="px-2 py-1 rounded-lg"
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.20)',
-              }}
-            >
-              <Text className="text-[10px]" style={{ fontWeight: '700', color: '#FFFFFF' }}>
-                Claude Sonnet
-              </Text>
-            </Box>
-            <Pressable className="p-2">
-              <Ionicons
-                name="ellipsis-vertical"
-                size={20}
-                color="rgba(255,255,255,0.6)"
-              />
-            </Pressable>
-          </HStack>
-        </HStack>
-      </LinearGradient>
+  const rgb = hexToRgb(theme.accent);
+  const accentBorder = rgb
+    ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`
+    : theme.cardBorder;
 
-      {/* Suggestions banner */}
-      <Box style={{ backgroundColor: '#E8EDF5', paddingTop: 6 }}>
+  return (
+    <View style={styles.root}>
+      <WallpaperBackground />
+
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={90}
+      >
+        {/* Messages list — scrolls under topbar, paddingTop pushes content below it */}
         <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={suggestions}
-          keyExtractor={(item) => item}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}
-          renderItem={({ item }) => {
-            const rgb = hexToRgb(theme.accent);
-            const accentBorder = rgb
-              ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.25)`
-              : theme.cardBorder;
-            return (
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          style={styles.messageList}
+          contentContainerStyle={{
+            paddingTop: TOPBAR_H + 8,
+            paddingBottom: 8,
+          }}
+          onContentSizeChange={scrollToEnd}
+          ListHeaderComponent={
+            /* Suggestions banner rendered inside the list so it scrolls with messages */
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={suggestions}
+              keyExtractor={(item) => item}
+              contentContainerStyle={styles.suggestionsContainer}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={[
+                    styles.suggestionPill,
+                    { borderColor: accentBorder },
+                    isTyping && styles.suggestionPillDisabled,
+                  ]}
+                  onPress={() => handleSuggestionPress(item)}
+                  disabled={isTyping}
+                >
+                  <Text
+                    style={[
+                      styles.suggestionText,
+                      { color: theme.textSecondary },
+                      isTyping && styles.textDisabled,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </Pressable>
+              )}
+            />
+          }
+          ListFooterComponent={
+            isTyping ? (
+              <ChatBubble message={typingMessage} isTyping />
+            ) : null
+          }
+        />
+
+        {/* Glass input bar */}
+        <View style={[styles.inputWrapper, { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }]}>
+          <View
+            style={[
+              styles.inputRow,
+              { borderColor: accentBorder },
+            ]}
+          >
+            <TextInput
+              style={[styles.textInput, { color: theme.textPrimary }]}
+              placeholder="Demandez à Aria..."
+              placeholderTextColor={theme.textMuted}
+              value={input}
+              onChangeText={setInput}
+              multiline
+              maxLength={500}
+              onSubmitEditing={() => sendMessage()}
+              editable={!isTyping}
+            />
+            {input.trim() ? (
               <Pressable
-                className="rounded-full px-3.5 py-2 mr-2"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1.5,
-                  borderColor: accentBorder,
-                  ...CARD_SHADOW,
-                }}
-                onPress={() => handleSuggestionPress(item)}
+                style={[
+                  styles.sendButton,
+                  { backgroundColor: Colors.violet },
+                  isTyping && styles.buttonDisabled,
+                ]}
+                onPress={() => sendMessage()}
                 disabled={isTyping}
               >
-                <Text
-                  className="text-[13px]"
-                  style={{
-                    fontWeight: '500',
-                    color: theme.textSecondary,
-                    opacity: isTyping ? 0.4 : 1,
-                  }}
-                >
-                  {item}
-                </Text>
+                <Papicons name="Send" size={20} color={Colors.white} />
               </Pressable>
-            );
-          }}
-        />
-      </Box>
-
-      {/* Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        style={{ backgroundColor: '#E8EDF5' }}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 8 }}
-        onContentSizeChange={scrollToEnd}
-        ListFooterComponent={
-          isTyping ? (
-            <ChatBubble message={typingMessage} isTyping />
-          ) : null
-        }
-      />
-
-      {/* Input bar */}
-      <Box
-        className="px-3 py-2.5"
-        style={{ backgroundColor: '#E8EDF5' }}
-      >
-        <HStack
-          className="items-end rounded-3xl pl-4 pr-1 py-1"
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderWidth: 1.5,
-            borderColor: theme.accent,
-            ...CARD_SHADOW,
-          }}
-        >
-          <TextInput
-            style={{
-              flex: 1,
-              color: theme.textPrimary,
-              fontSize: 15,
-              maxHeight: 100,
-              paddingVertical: 10,
-            }}
-            placeholder="Demandez à Aria..."
-            placeholderTextColor={theme.textMuted}
-            value={input}
-            onChangeText={setInput}
-            multiline
-            maxLength={500}
-            onSubmitEditing={() => sendMessage()}
-            editable={!isTyping}
-          />
-          {input.trim() ? (
-            <Pressable
-              className="w-10 h-10 rounded-full justify-center items-center"
-              style={{ backgroundColor: Colors.violet, opacity: isTyping ? 0.4 : 1 }}
-              onPress={() => sendMessage()}
-              disabled={isTyping}
-            >
-              <Ionicons name="send" size={20} color={Colors.white} />
-            </Pressable>
-          ) : (
-            <Pressable className="w-10 h-10">
-              <LinearGradient
-                colors={[Colors.violet, Colors.violetDark]}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
+            ) : (
+              <Pressable
+                style={[
+                  styles.sendButton,
+                  { backgroundColor: Colors.violet },
+                ]}
               >
-                <Ionicons name="mic" size={22} color={Colors.white} />
-              </LinearGradient>
-            </Pressable>
-          )}
-        </HStack>
-      </Box>
-    </KeyboardAvoidingView>
+                <Papicons name="Microphone" size={22} color={Colors.white} />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Glass header card — rendered last so it floats above the list */}
+      <View style={[styles.headerContainer, { paddingTop: insets.top + 8 }]}>
+        <GlassCard
+          intensity={30}
+          opacity={0.65}
+          borderRadius={20}
+          noPadding
+          style={styles.headerCard}
+        >
+          <View style={styles.headerInner}>
+            {/* Avatar + name + status */}
+            <AriaAvatar size={40} />
+            <View style={styles.headerInfo}>
+              <Text style={styles.headerTitle}>{theme.ariaLabel}</Text>
+              <View style={styles.statusRow}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: isTyping ? Colors.orange : '#34D399' },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.statusText,
+                    { color: isTyping ? Colors.orange : '#34D399' },
+                  ]}
+                >
+                  {isTyping ? 'Réfléchit...' : 'En ligne'}
+                </Text>
+              </View>
+            </View>
+            {/* Claude Sonnet badge + menu */}
+            <View style={styles.headerActions}>
+              <View style={styles.modelBadge}>
+                <Text style={styles.modelBadgeText}>Claude Sonnet</Text>
+              </View>
+              <Pressable style={styles.menuButton}>
+                <Papicons name="Dots" size={20} color="rgba(15,23,42,0.5)" />
+              </Pressable>
+            </View>
+          </View>
+        </GlassCard>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  // ── Messages ──
+  messageList: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  // ── Suggestions ──
+  suggestionsContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  suggestionPill: {
+    backgroundColor: 'rgba(255,255,255,0.50)',
+    borderWidth: 1.5,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  suggestionPillDisabled: {
+    opacity: 0.4,
+  },
+  suggestionText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+  },
+  textDisabled: {
+    opacity: 0.4,
+  },
+  // ── Input bar ──
+  inputWrapper: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderWidth: 1.5,
+    borderRadius: 28,
+    paddingLeft: 16,
+    paddingRight: 4,
+    paddingVertical: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+      },
+      android: { elevation: 4 },
+    }),
+  },
+  textInput: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 15,
+    maxHeight: 100,
+    paddingVertical: 10,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  buttonDisabled: {
+    opacity: 0.4,
+  },
+  // ── Floating glass header ──
+  headerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 12,
+  },
+  headerCard: {
+    // GlassCard handles its own shadow
+  },
+  headerInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  headerTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 17,
+    color: '#0F172A',
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 5,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modelBadge: {
+    backgroundColor: 'rgba(99,102,241,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.25)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  modelBadgeText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 10,
+    color: '#6366F1',
+  },
+  menuButton: {
+    padding: 8,
+  },
+});

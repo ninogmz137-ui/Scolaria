@@ -7,46 +7,45 @@
 
 import { useState } from 'react';
 import {
+  View,
+  Text,
+  Pressable,
   ScrollView,
+  StyleSheet,
   Linking,
-  Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
+import {
+  Heart,
+  Lock,
+  Sparkles,
+  User,
+  TextBubble,
+  Cross,
+  ChevronUp,
+  ChevronDown,
+  Mail,
+  ExternalLink,
+  Check,
+  Gears,
+  Phone,
+  Pillar,
+  Code,
+} from '@getpapillon/papicons';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
-import DecorativeBlobs from '../components/DecorativeBlobs';
-
-// ─── Helpers ────────────────────────────────────────────
-
-/** Convert hex color to "r, g, b" string for use in rgba() */
-function hexToRgb(hex: string): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  return `${r}, ${g}, ${b}`;
-}
-
-// ─── Constants ──────────────────────────────────────────
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
-const VIOLET_RGB = hexToRgb(Colors.violet);
-const ACCENT_BORDER = { borderWidth: 1.5, borderColor: `rgba(${VIOLET_RGB}, 0.15)` };
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Charter data ────────────────────────────────────────
 
 interface CharterArticle {
   number: number;
   title: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  Icon: React.ComponentType<{ size?: number; color?: string }>;
   color: string;
   content: string;
 }
@@ -55,7 +54,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 1,
     title: 'Bien-être de l\'enfant avant tout',
-    icon: 'heart',
+    Icon: Heart,
     color: Colors.pink,
     content:
       'Scolaria place le bien-être et l\'épanouissement de chaque enfant au centre de sa mission. Aucune fonctionnalité ne doit générer de stress, de comparaison malsaine ou de pression scolaire excessive. Le Score de Joie existe pour détecter et prévenir le mal-être, jamais pour juger.',
@@ -63,7 +62,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 2,
     title: 'Protection absolue des données',
-    icon: 'shield-checkmark',
+    Icon: Lock,
     color: Colors.green,
     content:
       'Les données des enfants sont sacrées. Elles sont chiffrées de bout en bout (AES-256), stockées sur des serveurs européens certifiés, et ne sont jamais vendues, partagées ou utilisées à des fins publicitaires. Le parent garde un contrôle total : export, effacement, et transfert à tout moment (RGPD Art. 15, 17, 20).',
@@ -71,7 +70,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 3,
     title: 'IA éthique et transparente',
-    icon: 'sparkles',
+    Icon: Sparkles,
     color: Colors.violet,
     content:
       'Aria, notre assistante IA, est conçue pour accompagner — jamais pour remplacer le jugement humain. Elle ne pose pas de diagnostic médical ou psychologique. Ses recommandations sont toujours des suggestions, validées par le parent. L\'algorithme est explicable : le parent peut comprendre pourquoi une recommandation est faite.',
@@ -79,7 +78,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 4,
     title: 'Anonymisation dans l\'espace enseignant',
-    icon: 'eye-off',
+    Icon: User,
     color: Colors.cyan,
     content:
       'Les enseignants accèdent à des données agrégées et anonymisées. Ils voient les tendances de classe, jamais les données individuelles identifiantes d\'un enfant. L\'anonymisation est conforme aux recommandations de la CNIL pour la protection des mineurs.',
@@ -87,7 +86,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 5,
     title: 'Consentement parental éclairé',
-    icon: 'hand-left',
+    Icon: Check,
     color: Colors.orange,
     content:
       'Chaque partage de données nécessite le consentement explicite du parent ou tuteur légal. Les permissions sont granulaires (4 niveaux d\'accès), révocables à tout instant, et font l\'objet d\'un journal d\'accès transparent consultable par le parent.',
@@ -95,7 +94,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 6,
     title: 'Inclusion et accessibilité',
-    icon: 'people',
+    Icon: User,
     color: '#A78BFA',
     content:
       'Scolaria est conçue pour tous les enfants, quelles que soient leurs capacités, leur situation familiale ou leur parcours scolaire. L\'interface s\'adapte à l\'âge (mode primaire / collège-lycée), supporte 10 langues, et respecte les normes d\'accessibilité WCAG 2.1 AA.',
@@ -103,7 +102,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 7,
     title: 'Bienveillance dans la communication',
-    icon: 'chatbubbles',
+    Icon: TextBubble,
     color: Colors.warmOrange,
     content:
       'La messagerie entre parents et enseignants est encadrée : pas de notifications intrusives la nuit, conservation limitée à 12 mois, et ton toujours constructif. Scolaria facilite la coéducation sans créer de tensions.',
@@ -111,7 +110,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 8,
     title: 'Indépendance et absence de publicité',
-    icon: 'ban',
+    Icon: Cross,
     color: Colors.red,
     content:
       'Scolaria ne contient aucune publicité, aucun contenu sponsorisé, et aucun mécanisme de gamification addictif. Le modèle économique repose sur l\'abonnement transparent, jamais sur la monétisation des données.',
@@ -127,44 +126,23 @@ const STATS = [
   { value: 'RGPD', label: 'Conforme', icon: '✅' },
 ];
 
-// ─── Section title with violet left bar ─────────────────
+// ─── Tech stack data ──────────────────────────────────────
 
-function SectionTitle({ icon, iconColor, title, subtitle }: {
-  icon: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
-  title: string;
-  subtitle?: string;
-}) {
-  return (
-    <Box className="mb-3.5" style={{ paddingLeft: 16 }}>
-      <Box
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 2,
-          bottom: subtitle ? 6 : 2,
-          width: 4,
-          borderRadius: 2,
-          backgroundColor: Colors.violet,
-        }}
-      />
-      <HStack className="items-center mb-1" style={{ gap: 8 }}>
-        <Ionicons name={icon} size={22} color={iconColor} />
-        <Text className="text-xl font-black" style={{ color: Colors.textPrimary }}>{title}</Text>
-      </HStack>
-      {subtitle && (
-        <Text className="text-[13px] mt-1" style={{ color: Colors.textMuted }}>
-          {subtitle}
-        </Text>
-      )}
-    </Box>
-  );
-}
+const TECH_STACK = [
+  { name: 'React Native', desc: 'App mobile cross-platform', Icon: Phone as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', Icon: Sparkles as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Google Vision', desc: 'OCR bulletins scolaires', Icon: Code as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Supabase', desc: 'Base de données sécurisée', Icon: Pillar as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Chiffrement E2E', desc: 'AES-256 bout en bout', Icon: Lock as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Hébergement EU', desc: 'Serveurs France/UE', Icon: Gears as React.ComponentType<{ size?: number; color?: string }> },
+];
 
 // ─── Component ───────────────────────────────────────────
 
 export default function AProposScreen() {
   const { theme } = useChildTheme();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const [expandedArticle, setExpandedArticle] = useState<number | null>(null);
 
   const toggleArticle = (num: number) => {
@@ -172,195 +150,341 @@ export default function AProposScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero */}
-      <LinearGradient
-        colors={['#0B1628', Colors.violet + 'DD']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={{
-          alignItems: 'center',
-          paddingTop: 30,
-          paddingBottom: 40,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
+    <View style={{ flex: 1 }}>
+      <WallpaperBackground />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: TOPBAR_H + 12,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+          paddingHorizontal: 18,
         }}
       >
-        <LogoScolaria size={80} variant="dark" />
-        <Text className="text-[15px] text-center leading-[22px] mt-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-          Pour les familles françaises
-        </Text>
-        <Box className="mt-3.5 rounded-[20px] px-3.5 py-[5px]" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-          <Text className="text-xs font-semibold" style={{ color: Colors.cyan }}>Version 1.0.0</Text>
-        </Box>
-      </LinearGradient>
-
-      <Box className="px-5 pt-1" style={{ position: 'relative', overflow: 'hidden' }}>
-        {/* Decorative blobs */}
-        <DecorativeBlobs accent={Colors.violet} size={120} opacity={0.12} />
+        {/* Logo / Hero */}
+        <GlassCard style={styles.heroCard}>
+          <View style={styles.heroInner}>
+            <LogoScolaria size={72} variant="dark" />
+            <Text style={styles.heroSubtitle}>Pour les familles françaises</Text>
+            <View style={styles.versionPill}>
+              <Text style={styles.versionText}>Version 1.0.0</Text>
+            </View>
+          </View>
+        </GlassCard>
 
         {/* Mission */}
-        <Box
-          className="rounded-2xl p-5 mb-5"
-          style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
-        >
-          <Text className="text-lg font-extrabold mb-2.5" style={{ color: theme.textPrimary }}>Notre mission</Text>
-          <Text className="text-sm leading-[22px]" style={{ color: theme.textSecondary }}>
+        <GlassCard style={styles.card}>
+          <Text style={styles.cardTitle}>Notre mission</Text>
+          <Text style={styles.cardBody}>
             Scolaria accompagne chaque famille dans le parcours scolaire de ses
             enfants, en plaçant le bien-être au centre. Grâce à l'intelligence
             artificielle éthique et au respect absolu des données personnelles,
             nous créons un pont bienveillant entre l'école et la maison.
           </Text>
-        </Box>
+        </GlassCard>
 
         {/* Stats */}
-        <HStack className="mb-6" style={{ gap: 8 }}>
+        <View style={styles.statsRow}>
           {STATS.map((stat, i) => (
-            <Box
-              key={i}
-              className="flex-1 rounded-[14px] p-3 items-center"
-              style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
-            >
-              <Text className="text-xl mb-1.5">{stat.icon}</Text>
-              <Text className="text-sm font-black mb-0.5" style={{ color: theme.textPrimary }}>{stat.value}</Text>
-              <Text className="text-[10px] text-center font-semibold" style={{ color: theme.textMuted }}>{stat.label}</Text>
-            </Box>
+            <GlassCard key={i} style={styles.statCard}>
+              <Text style={styles.statIcon}>{stat.icon}</Text>
+              <Text style={styles.statValue}>{stat.value}</Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
+            </GlassCard>
           ))}
-        </HStack>
+        </View>
 
-        {/* Ethical Charter */}
-        <SectionTitle
-          icon="document-text"
-          iconColor={theme.accent}
-          title="Charte Éthique"
-          subtitle="8 engagements fondateurs qui guident chaque décision produit"
-        />
+        {/* Ethical Charter heading */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionBar} />
+          <View>
+            <Text style={styles.sectionTitle}>Charte Éthique</Text>
+            <Text style={styles.sectionSubtitle}>8 engagements fondateurs qui guident chaque décision produit</Text>
+          </View>
+        </View>
 
-        {CHARTER_ARTICLES.map((article) => (
-          <Pressable
-            key={article.number}
-            className="rounded-[14px] p-4 mb-2.5"
-            style={{ backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
-            onPress={() => toggleArticle(article.number)}
-          >
-            <HStack className="items-center" style={{ gap: 12 }}>
-              <Box
-                className="w-9 h-9 rounded-[10px] justify-center items-center"
-                style={{ backgroundColor: article.color + '20' }}
-              >
-                <Ionicons
-                  name={article.icon}
-                  size={18}
-                  color={article.color}
-                />
-              </Box>
-              <VStack className="flex-1">
-                <Text className="text-[11px] font-bold uppercase tracking-wide" style={{ color: theme.textMuted }}>
-                  Article {article.number}
-                </Text>
-                <Text className="text-sm font-bold mt-px" style={{ color: theme.textPrimary }}>{article.title}</Text>
-              </VStack>
-              <Ionicons
-                name={
-                  expandedArticle === article.number
-                    ? 'chevron-up'
-                    : 'chevron-down'
-                }
-                size={18}
-                color={theme.textMuted}
-              />
-            </HStack>
-            {expandedArticle === article.number && (
-              <Text
-                className="text-[13px] leading-5 mt-3 pt-3"
-                style={{ color: theme.textSecondary, borderTopWidth: 1, borderTopColor: theme.cardBorder }}
-              >
-                {article.content}
-              </Text>
-            )}
-          </Pressable>
+        {CHARTER_ARTICLES.map((article) => {
+          const isExpanded = expandedArticle === article.number;
+          return (
+            <Pressable
+              key={article.number}
+              onPress={() => toggleArticle(article.number)}
+            >
+              <GlassCard style={styles.articleCard}>
+                <View style={styles.articleRow}>
+                  <View style={[styles.articleIconBox, { backgroundColor: article.color + '20' }]}>
+                    <article.Icon size={18} color={article.color} />
+                  </View>
+                  <View style={styles.articleTextBox}>
+                    <Text style={styles.articleNumber}>Article {article.number}</Text>
+                    <Text style={styles.articleTitle}>{article.title}</Text>
+                  </View>
+                  {isExpanded
+                    ? <ChevronUp size={18} color="rgba(255,255,255,0.6)" />
+                    : <ChevronDown size={18} color="rgba(255,255,255,0.6)" />
+                  }
+                </View>
+                {isExpanded && (
+                  <Text style={styles.articleContent}>{article.content}</Text>
+                )}
+              </GlassCard>
+            </Pressable>
+          );
+        })}
+
+        {/* Technologies heading */}
+        <View style={[styles.sectionHeader, { marginTop: 8 }]}>
+          <View style={styles.sectionBar} />
+          <Text style={styles.sectionTitle}>Technologies</Text>
+        </View>
+
+        {TECH_STACK.map((tech, i) => (
+          <GlassCard key={i} style={[styles.techCard, i < TECH_STACK.length - 1 && { marginBottom: 6 }]}>
+            <View style={styles.techRow}>
+              <tech.Icon size={20} color={Colors.violet} />
+              <View style={{ marginLeft: 12, flex: 1 }}>
+                <Text style={styles.techName}>{tech.name}</Text>
+                <Text style={styles.techDesc}>{tech.desc}</Text>
+              </View>
+            </View>
+          </GlassCard>
         ))}
 
-        {/* Technology */}
-        <Box className="mt-4 mb-5">
-          <SectionTitle
-            icon="hardware-chip-outline"
-            iconColor={theme.accent}
-            title="Technologies"
-          />
-          <VStack style={{ gap: 8 }}>
-            {[
-              { name: 'React Native', desc: 'App mobile cross-platform', icon: 'phone-portrait-outline' as const },
-              { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', icon: 'sparkles-outline' as const },
-              { name: 'Google Vision', desc: 'OCR bulletins scolaires', icon: 'eye-outline' as const },
-              { name: 'Supabase', desc: 'Base de données sécurisée', icon: 'server-outline' as const },
-              { name: 'Chiffrement E2E', desc: 'AES-256 bout en bout', icon: 'lock-closed-outline' as const },
-              { name: 'Hébergement EU', desc: 'Serveurs France/UE', icon: 'globe-outline' as const },
-            ].map((tech, i) => (
-              <HStack
-                key={i}
-                className="items-center rounded-xl p-3.5"
-                style={{ gap: 12, backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
-              >
-                <Ionicons name={tech.icon} size={20} color={theme.accent} />
-                <VStack className="flex-1">
-                  <Text className="text-sm font-bold" style={{ color: theme.textPrimary }}>{tech.name}</Text>
-                  <Text className="text-xs mt-px" style={{ color: theme.textMuted }}>{tech.desc}</Text>
-                </VStack>
-              </HStack>
-            ))}
-          </VStack>
-        </Box>
-
         {/* Contact & Legal */}
-        <Box
-          className="rounded-[14px] p-4 mb-6"
-          style={{ gap: 12, backgroundColor: theme.card, ...ACCENT_BORDER, ...CARD_SHADOW }}
-        >
+        <GlassCard style={[styles.card, { marginTop: 14, gap: 14 }]}>
           <Pressable
-            className="flex-row items-center"
-            style={{ gap: 10 }}
+            style={styles.contactRow}
             onPress={() => Linking.openURL('mailto:contact@scolaria.fr')}
           >
-            <Ionicons name="mail-outline" size={18} color={theme.accent} />
-            <Text className="text-[13px] flex-1" style={{ color: theme.textSecondary }}>contact@scolaria.fr</Text>
+            <Mail size={18} color={Colors.violet} />
+            <Text style={styles.contactText}>contact@scolaria.fr</Text>
           </Pressable>
           <Pressable
-            className="flex-row items-center"
-            style={{ gap: 10 }}
+            style={styles.contactRow}
             onPress={() => Linking.openURL('https://scolaria.fr')}
           >
-            <Ionicons name="globe-outline" size={18} color={theme.accent} />
-            <Text className="text-[13px] flex-1" style={{ color: theme.textSecondary }}>scolaria.fr</Text>
+            <ExternalLink size={18} color={Colors.violet} />
+            <Text style={styles.contactText}>scolaria.fr</Text>
           </Pressable>
-          <HStack className="items-center" style={{ gap: 10 }}>
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={18}
-              color={Colors.green}
-            />
-            <Text className="text-[13px] flex-1" style={{ color: theme.textSecondary }}>
-              Conforme RGPD · CNIL · Données hébergées en France
-            </Text>
-          </HStack>
-        </Box>
+          <View style={styles.contactRow}>
+            <Lock size={18} color={Colors.green} />
+            <Text style={styles.contactText}>Conforme RGPD · CNIL · Données hébergées en France</Text>
+          </View>
+        </GlassCard>
 
         {/* Footer */}
-        <VStack className="items-center py-5" style={{ gap: 8 }}>
-          <LogoScolaria size={28} variant={theme.mode === 'primaire' ? 'dark' : 'light'} />
-          <Text className="text-xs mt-1" style={{ color: Colors.textMuted }}>
-            © 2026 Scolaria · Tous droits réservés
-          </Text>
-          <Text className="text-[13px] italic text-center mt-1 px-5" style={{ color: Colors.violet }}>
+        <View style={styles.footer}>
+          <LogoScolaria size={28} variant="light" />
+          <Text style={styles.footerCopy}>© 2026 Scolaria · Tous droits réservés</Text>
+          <Text style={styles.footerQuote}>
             « Chaque enfant mérite d'être compris, pas seulement évalué. »
           </Text>
-        </VStack>
-      </Box>
-
-      <Box className="h-10" />
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
+
+const TEXT_SHADOW = {
+  textShadowColor: 'rgba(0,0,0,0.4)',
+  textShadowOffset: { width: 0, height: 1 },
+  textShadowRadius: 4,
+};
+
+const styles = StyleSheet.create({
+  heroCard: {
+    marginBottom: 14,
+    alignItems: 'center',
+  },
+  heroInner: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  heroSubtitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 6,
+    ...TEXT_SHADOW,
+  },
+  versionPill: {
+    marginTop: 10,
+    backgroundColor: 'rgba(99,102,241,0.25)',
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.4)',
+  },
+  versionText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: Colors.cyan,
+    ...TEXT_SHADOW,
+  },
+  card: {
+    marginBottom: 14,
+  },
+  cardTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 17,
+    color: '#fff',
+    marginBottom: 10,
+    ...TEXT_SHADOW,
+  },
+  cardBody: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    lineHeight: 21,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 18,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+  },
+  statIcon: {
+    fontSize: 20,
+    marginBottom: 6,
+  },
+  statValue: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#fff',
+    marginBottom: 2,
+    ...TEXT_SHADOW,
+  },
+  statLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.65)',
+    textAlign: 'center',
+    ...TEXT_SHADOW,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    gap: 10,
+  },
+  sectionBar: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+    backgroundColor: Colors.violet,
+    marginTop: 2,
+  },
+  sectionTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 18,
+    color: '#fff',
+    ...TEXT_SHADOW,
+  },
+  sectionSubtitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 2,
+    ...TEXT_SHADOW,
+  },
+  articleCard: {
+    marginBottom: 8,
+  },
+  articleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  articleIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  articleTextBox: {
+    flex: 1,
+  },
+  articleNumber: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.5)',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    ...TEXT_SHADOW,
+  },
+  articleTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#fff',
+    marginTop: 1,
+    ...TEXT_SHADOW,
+  },
+  articleContent: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  techCard: {
+    marginBottom: 0,
+  },
+  techRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  techName: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: '#fff',
+    ...TEXT_SHADOW,
+  },
+  techDesc: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 1,
+    ...TEXT_SHADOW,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  contactText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    flex: 1,
+    color: 'rgba(255,255,255,0.8)',
+    ...TEXT_SHADOW,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  footerCopy: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 4,
+    ...TEXT_SHADOW,
+  },
+  footerQuote: {
+    fontFamily: FontFamily.loraItalic,
+    fontSize: 13,
+    color: Colors.violet,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    ...TEXT_SHADOW,
+  },
+});

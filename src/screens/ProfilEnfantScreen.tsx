@@ -1,20 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  View,
+  Text,
+  Pressable,
   ScrollView,
+  StyleSheet,
   Platform,
   Alert,
   ActivityIndicator,
-  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
+import { Papicons } from '@getpapillon/papicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
-import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useActiveChild, type AvatarType } from '../contexts/ActiveChildContext';
+import ChildAvatar from '../components/ChildAvatar';
+import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import DecorativeBlobs from '../components/DecorativeBlobs';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FontFamily } from '../hooks/useSolariaFonts';
 import SuperPowerBadge, { type ProfileTag } from '../components/profile/SuperPowerBadge';
 import CompetenceRadar from '../components/profile/CompetenceRadar';
 import JoyHistory from '../components/profile/JoyHistory';
@@ -183,31 +190,22 @@ function getChildProfileData(childId: string): ChildProfileData {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────
-
-function hexToRgb(hex: string): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.substring(0, 2), 16);
-  const g = parseInt(h.substring(2, 4), 16);
-  const b = parseInt(h.substring(4, 6), 16);
-  return `${r}, ${g}, ${b}`;
-}
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
 // ─── Component ────────────────────────────────────────────
 
 export default function ProfilEnfantScreen() {
   const { theme } = useChildTheme();
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, updateChildAvatar } = useActiveChild();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
   const childId = selectedChild?.id ?? '2';
 
   const [data, setData] = useState<ChildProfileData>(() => getChildProfileData(childId));
+  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+
+  const handleAvatarSelect = useCallback((selection: AvatarSelection) => {
+    updateChildAvatar(childId, selection.type, selection.emoji, selection.photoUri);
+  }, [childId, updateChildAvatar]);
 
   const loadProfile = useCallback(async () => {
     const mock = getChildProfileData(childId);
@@ -339,67 +337,48 @@ export default function ProfilEnfantScreen() {
     }
   };
 
-  // Theme-aware accent colors
   const accent = theme.accent;
-  const accentLight = theme.accentLight ?? theme.accent;
-
-  const accentRgb = hexToRgb(accent);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Dark gradient header */}
-      <LinearGradient
-        colors={['#0B1628', accent + 'DD']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-          paddingTop: 32,
-          paddingBottom: 28,
-          alignItems: 'center',
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
-        }}
+    <View style={styles.root}>
+      <WallpaperBackground />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+        ]}
       >
-        {/* Avatar */}
-        <Box
-          className="w-20 h-20 rounded-full justify-center items-center mb-3"
-          style={{ backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 3, borderColor: '#FFFFFF' }}
-        >
-          <Text className="text-[40px]">{data.avatar}</Text>
-        </Box>
-
-        <Text className="text-2xl font-black mb-1" style={{ color: '#FFFFFF' }}>{data.name}</Text>
-        <Text className="text-sm mb-3.5" style={{ color: 'rgba(255,255,255,0.7)' }}>{data.classe}</Text>
-
-        {/* Scolaria ID — glass pill */}
-        <HStack
-          className="items-center rounded-[20px] px-3.5 py-2"
-          style={{ gap: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}
-        >
-          <Ionicons name="finger-print" size={14} color="#FFFFFF" />
-          <Text
-            className="text-[13px] font-bold tracking-wide"
-            style={{ color: '#FFFFFF', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}
-          >
-            {data.scolariaId}
-          </Text>
-          <Pressable>
-            <Ionicons name="copy-outline" size={14} color="rgba(255,255,255,0.5)" />
+        {/* Profile header card */}
+        <GlassCard style={styles.headerCard} borderRadius={20}>
+          {/* Avatar — tap to customize */}
+          <Pressable onPress={() => setAvatarPickerVisible(true)} style={styles.avatarRing}>
+            <ChildAvatar
+              name={data.name}
+              emoji={selectedChild.avatarType === 'photo' ? undefined : (selectedChild.avatarEmoji || data.avatar)}
+              photoUri={selectedChild.avatarPhotoUri}
+              accentColor={theme.accent}
+              size={72}
+            />
+            <View style={styles.avatarEditBadge}>
+              <Papicons name="Pen" size={12} color="#FFFFFF" />
+            </View>
           </Pressable>
-        </HStack>
-      </LinearGradient>
 
-      <View style={{ position: 'relative' }}>
-        {/* Decorative blobs */}
-        <DecorativeBlobs accent={accent} size={110} opacity={0.12} />
+          <Text style={styles.nameText}>{data.name}</Text>
+          <Text style={styles.classeText}>{data.classe}</Text>
 
-        <Box className="px-5 pt-2">
+          {/* Scolaria ID — pill */}
+          <View style={styles.idPill}>
+            <Papicons name="Fingerprint" size={14} color="rgba(255,255,255,0.8)" />
+            <Text style={styles.idText}>{data.scolariaId}</Text>
+          </View>
+        </GlassCard>
+
         {/* Joy Alerts */}
         {(joyAlert.level || hasCriticalMessage) && (
-          <Box className="mb-6">
+          <View style={styles.section}>
             <JoyAlerts
               level={joyAlert.level}
               dropPercent={joyAlert.dropPercent}
@@ -407,11 +386,11 @@ export default function ProfilEnfantScreen() {
               childName={data.firstName}
               showUrgencyProtocol={hasCriticalMessage}
             />
-          </Box>
+          </View>
         )}
 
-        {/* Super Power Badge — enhanced with tags, description, share */}
-        <Box className="mb-6">
+        {/* Super Power Badge */}
+        <View style={styles.section}>
           <SuperPowerBadge
             power={data.superPower}
             emoji={data.superPowerEmoji}
@@ -420,104 +399,217 @@ export default function ProfilEnfantScreen() {
             tags={data.tags}
             trimesterWeeksLeft={data.trimesterWeeksLeft}
             accentColor={accent}
-            accentLight={accentLight}
+            accentLight={theme.accentLight ?? theme.accent}
           />
-        </Box>
+        </View>
 
-        {/* Competence Radar */}
-        <Box className="mb-6">
-          <HStack className="items-center mb-3" style={{ gap: 8 }}>
-            <View style={{ width: 4, height: 20, borderRadius: 2, backgroundColor: accent }} />
-            <Text className="text-lg font-bold" style={{ color: theme.textPrimary }}>
-              Compétences
-            </Text>
-          </HStack>
-          <Box
-            className="rounded-[20px] p-4 items-center"
-            style={{
-              backgroundColor: theme.card,
-              borderWidth: 1.5,
-              borderColor: `rgba(${accentRgb}, 0.15)`,
-              ...CARD_SHADOW,
-            }}
-          >
-            <CompetenceRadar data={data.competences} />
-          </Box>
-        </Box>
+        {/* Competences */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={[styles.sectionBar, { backgroundColor: accent }]} />
+            <Text style={styles.sectionTitle}>Compétences</Text>
+          </View>
+          <GlassCard borderRadius={20} noPadding>
+            <View style={styles.radarPadding}>
+              <CompetenceRadar data={data.competences} />
+            </View>
+          </GlassCard>
+        </View>
 
         {/* Portfolio */}
-        <Box className="mb-6">
+        <View style={styles.section}>
           <Portfolio activities={data.portfolio} />
-        </Box>
+        </View>
 
         {/* Joy History 30 days */}
-        <Box className="mb-6">
+        <View style={styles.section}>
           <JoyHistory data={data.joy30Days} month="Mars 2026" />
-        </Box>
+        </View>
 
         {/* Export PDF button */}
         <Pressable
-          className="rounded-[30px] overflow-hidden mt-2"
+          style={[styles.exportBtn, { backgroundColor: Colors.violet }]}
           onPress={handleExportPDF}
           disabled={exporting}
         >
-          <LinearGradient
-            colors={[Colors.violet, Colors.violetDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18 }}
-          >
-            {exporting ? (
-              <>
-                <ActivityIndicator color={Colors.white} size="small" />
-                <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>Génération...</Text>
-              </>
-            ) : (
-              <>
-                <Ionicons name="document-text" size={22} color={Colors.white} />
-                <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>Exporter en PDF</Text>
-              </>
-            )}
-          </LinearGradient>
+          {exporting ? (
+            <>
+              <ActivityIndicator color="#FFFFFF" size="small" />
+              <Text style={styles.exportBtnText}>Génération...</Text>
+            </>
+          ) : (
+            <>
+              <Papicons name="Document" size={22} color="#FFFFFF" />
+              <Text style={styles.exportBtnText}>Exporter en PDF</Text>
+            </>
+          )}
         </Pressable>
 
-        <Text className="text-center text-xs mt-2.5" style={{ color: Colors.gray }}>
+        <Text style={styles.exportHint}>
           Génère un passeport scolaire complet au format PDF
         </Text>
 
         {/* Transition Memo button */}
         <Pressable
-          className="rounded-[30px] overflow-hidden mt-4"
+          style={[styles.exportBtn, styles.exportBtnMemo]}
           onPress={handleExportMemo}
           disabled={exportingMemo}
         >
-          <LinearGradient
-            colors={[Colors.cyan, Colors.cyanDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18 }}
-          >
-            {exportingMemo ? (
-              <>
-                <ActivityIndicator color={Colors.white} size="small" />
-                <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>Génération...</Text>
-              </>
-            ) : (
-              <>
-                <Ionicons name="school" size={22} color={Colors.white} />
-                <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>Mémo de bienvenue</Text>
-              </>
-            )}
-          </LinearGradient>
+          {exportingMemo ? (
+            <>
+              <ActivityIndicator color="#FFFFFF" size="small" />
+              <Text style={styles.exportBtnText}>Génération...</Text>
+            </>
+          ) : (
+            <>
+              <Papicons name="GraduationCap" size={22} color="#FFFFFF" />
+              <Text style={styles.exportBtnText}>Mémo de bienvenue</Text>
+            </>
+          )}
         </Pressable>
 
-        <Text className="text-center text-xs mt-2.5" style={{ color: Colors.gray }}>
+        <Text style={styles.exportHint}>
           Document de transition partageable avec le nouvel établissement
         </Text>
+      </ScrollView>
 
-        <Box className="h-10" />
-      </Box>
-      </View>
-    </ScrollView>
+      {/* Avatar Picker Modal */}
+      <AvatarPicker
+        visible={avatarPickerVisible}
+        onClose={() => setAvatarPickerVisible(false)}
+        onSelect={handleAvatarSelect}
+        childName={data.name}
+        accentColor={theme.accent}
+        currentEmoji={selectedChild.avatarEmoji || data.avatar}
+        currentPhotoUri={selectedChild.avatarPhotoUri}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 18,
+  },
+  headerCard: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  avatarRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(99,102,241,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  nameText: {
+    fontFamily: FontFamily.loraBold,
+    fontSize: 22,
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  classeText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.75)',
+    marginBottom: 14,
+  },
+  idPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  idText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  sectionBar: {
+    width: 4,
+    height: 20,
+    borderRadius: 2,
+  },
+  sectionTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 17,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  radarPadding: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 18,
+    borderRadius: 30,
+    marginTop: 8,
+  },
+  exportBtnMemo: {
+    backgroundColor: Colors.cyan ?? '#22D3EE',
+    marginTop: 16,
+  },
+  exportBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 17,
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  exportHint: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+    textAlign: 'center',
+    marginTop: 8,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+});

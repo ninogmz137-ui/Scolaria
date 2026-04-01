@@ -1,10 +1,13 @@
 /**
- * BurgerMenu — Left drawer overlay menu.
+ * BurgerMenu — Dark panel drawer from left.
  *
- * Opens over content with dark overlay, ~75% width.
- * Sections: Mon Enfant, Famille, Paramètres.
+ * Structure:
+ * 1. Small Scolaria logo at top
+ * 2. Child selector (all children, colored dot on active)
+ * 3. Sections: Mon enfant, Famille, Notifications, Infos
+ * 4. Bottom: Change account, Logout
  *
- * Migrated to Gluestack UI v3 + NativeWind.
+ * Dark #1A2340 background, right border-radius 28px.
  */
 
 import { useRef, useEffect } from 'react';
@@ -15,25 +18,20 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  View,
+  Text,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from './ui';
-import { Ionicons } from '@expo/vector-icons';
-import { useSchoolMode } from '../contexts/SchoolModeContext';
+import { Pressable } from './ui';
+import { Papicons } from '@getpapillon/papicons';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import ChildAvatar from './ChildAvatar';
+import LogoScolaria from './LogoScolaria';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.78, 340);
-
-// ─── Menu item type ──────────────────────────────────────
-
-interface MenuItem {
-  key: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  badge?: number;
-  color?: string;
-}
+const DARK_BG = '#1A2340';
+const DARK_BORDER = 'rgba(255,255,255,0.08)';
 
 // ─── Props ───────────────────────────────────────────────
 
@@ -41,74 +39,105 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onNavigate: (screen: string) => void;
-  unsignedMotsCount?: number;
-  familyName?: string;
-  isPremium?: boolean;
   onChangeRole?: () => void;
   onLogout?: () => void;
 }
 
-// ─── Section renderer ────────────────────────────────────
+// ─── Menu item ──────────────────────────────────────────
+
+interface MenuItem {
+  key: string;
+  icon: string;
+  label: string;
+  badge?: number;
+}
 
 function MenuSection({
   title,
   items,
-  theme,
   onNav,
 }: {
   title: string;
   items: MenuItem[];
-  theme: any;
-  onNav: (screen: string) => void;
+  onNav: (key: string) => void;
 }) {
   return (
-    <VStack className="px-3 py-2">
-      <Text
-        className="text-[11px] font-bold tracking-widest uppercase px-2 py-2"
-        style={{ color: theme.textSecondary }}
-      >
-        {title}
-      </Text>
+    <View style={sectionStyles.container}>
+      <Text style={sectionStyles.title}>{title}</Text>
       {items.map((item) => (
         <Pressable
           key={item.key}
-          className="flex-row items-center gap-3.5 px-3 py-[13px] rounded-xl"
+          style={sectionStyles.item}
           onPress={() => onNav(item.key)}
         >
-          <Ionicons name={item.icon} size={20} color={theme.textSecondary} />
-          <Text
-            className="text-sm font-semibold flex-1"
-            style={{ color: theme.textPrimary }}
-          >
-            {item.label}
-          </Text>
+          <View style={sectionStyles.iconWrap}>
+            <Papicons name={item.icon} size={18} color="rgba(255,255,255,0.6)" />
+          </View>
+          <Text style={sectionStyles.label}>{item.label}</Text>
           {item.badge != null && item.badge > 0 && (
-            <Box className="min-w-[20px] h-5 rounded-full bg-red-400 justify-center items-center px-[5px]">
-              <Text className="text-[10px] font-extrabold text-white">
-                {item.badge}
-              </Text>
-            </Box>
+            <View style={sectionStyles.badge}>
+              <Text style={sectionStyles.badgeText}>{item.badge}</Text>
+            </View>
           )}
         </Pressable>
       ))}
-    </VStack>
+    </View>
   );
 }
 
-// ─── Component ───────────────────────────────────────────
+const sectionStyles = StyleSheet.create({
+  container: { paddingHorizontal: 16, paddingVertical: 8 },
+  title: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.35)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  item: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 12,
+  },
+  iconWrap: { width: 24, alignItems: 'center' },
+  label: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  badge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+});
+
+// ─── Main component ─────────────────────────────────────
 
 export default function BurgerMenu({
   visible,
   onClose,
   onNavigate,
-  unsignedMotsCount = 1,
-  familyName = 'Famille Moreau',
-  isPremium = true,
   onChangeRole,
   onLogout,
 }: Props) {
   const { theme } = useChildTheme();
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, children: childList, selectChild } = useActiveChild();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
 
@@ -128,28 +157,37 @@ export default function BurgerMenu({
 
   const handleNav = (screen: string) => {
     onClose();
-    // Small delay so the drawer closes before navigating
     setTimeout(() => onNavigate(screen), 150);
   };
 
+  const handleChildSelect = (childId: string) => {
+    selectChild(childId);
+    // Don't close — let user see the switch
+  };
+
+  // ─── Menu items ──────────────────────────────────────
+
   const monEnfantItems: MenuItem[] = [
-    { key: 'NotesResults', icon: 'bar-chart', label: 'Notes & Résultats' },
-    { key: 'CahierLiaison', icon: 'book', label: 'Cahier de liaison', badge: unsignedMotsCount > 0 ? unsignedMotsCount : undefined },
-    { key: 'Absences', icon: 'medical', label: 'Absences' },
-    { key: 'BienEtre', icon: 'heart', label: 'Bien-être' },
-    { key: 'ProfilBadges', icon: 'trophy', label: 'Profil & Badges' },
-    { key: 'MonParcours', icon: 'map', label: 'Mon parcours' },
+    { key: 'NotesResults', icon: 'Grades', label: 'Notes & Résultats' },
+    { key: 'CahierLiaison', icon: 'Paper', label: 'Cahier de liaison', badge: 1 },
+    { key: 'Absences', icon: 'Calendar', label: 'Absences' },
+    { key: 'BienEtre', icon: 'Heart', label: 'Bien-être' },
+    { key: 'ProfilBadges', icon: 'Star', label: 'Profil & Badges' },
+    { key: 'MonParcours', icon: 'GraduationHat', label: 'Mon parcours' },
   ];
 
   const familleItems: MenuItem[] = [
-    { key: 'ChangerEnfant', icon: 'people', label: 'Changer d\'enfant' },
-    { key: 'Permissions', icon: 'lock-closed', label: 'Permissions d\'accès' },
+    { key: 'Permissions', icon: 'Lock', label: 'Permissions d\'accès' },
+    { key: 'Reglages', icon: 'Gears', label: 'Réglages' },
   ];
 
-  const parametresItems: MenuItem[] = [
-    { key: 'Reglages', icon: 'settings', label: 'Réglages' },
-{ key: 'RGPD', icon: 'shield-checkmark', label: 'RGPD & Confidentialité' },
-    { key: 'APropos', icon: 'information-circle', label: 'À propos · Charte Éthique' },
+  const notifItems: MenuItem[] = [
+    { key: 'Notifications', icon: 'Bell', label: 'Voir toutes les notifications' },
+  ];
+
+  const infosItems: MenuItem[] = [
+    { key: 'RGPD', icon: 'Pillar', label: 'RGPD & Confidentialité' },
+    { key: 'APropos', icon: 'Info', label: 'À propos · Charte Éthique' },
   ];
 
   if (!visible) return null;
@@ -157,100 +195,152 @@ export default function BurgerMenu({
   return (
     <Modal visible transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
       {/* Dark overlay */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.5)', opacity: overlayAnim }]}>
-        <Pressable className="absolute inset-0" onPress={onClose} />
+      <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.6)', opacity: overlayAnim }]}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
       </Animated.View>
 
-      {/* Drawer */}
+      {/* Drawer panel */}
       <Animated.View
         style={[
-          {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: DRAWER_WIDTH,
-            backgroundColor: theme.bg,
-            borderRightWidth: 1,
-            borderRightColor: theme.cardBorder,
-            paddingTop: Platform.OS === 'ios' ? 60 : 40,
-            transform: [{ translateX: slideAnim }],
-            ...Platform.select({
-              ios: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.2, shadowRadius: 16 },
-              android: { elevation: 16 },
-              default: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.2, shadowRadius: 16 },
-            }),
-          },
+          styles.drawer,
+          { transform: [{ translateX: slideAnim }] },
         ]}
       >
         <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-          {/* Header */}
-          <VStack
-            className="px-5 pb-4 mb-2"
-            style={{ borderBottomWidth: 1, borderBottomColor: theme.cardBorder }}
-          >
-            <Text
-              className="text-xl font-extrabold"
-              style={{ color: theme.textPrimary }}
-            >
-              {familyName}
-            </Text>
-            {isPremium && (
-              <HStack
-                className="items-center gap-1 px-2 py-1 rounded-lg self-start mt-2"
-                style={{ backgroundColor: theme.accent + '20' }}
-              >
-                <Ionicons name="diamond" size={12} color={theme.accent} />
-                <Text
-                  className="text-[11px] font-bold"
-                  style={{ color: theme.accent }}
+          {/* Logo */}
+          <View style={styles.logoWrap}>
+            <LogoScolaria size={18} variant="dark" />
+          </View>
+
+          {/* Child selector */}
+          <View style={styles.childSection}>
+            <Text style={styles.childSectionTitle}>ENFANTS</Text>
+            {childList.map((child) => {
+              const isActive = child.id === selectedChild.id;
+              return (
+                <Pressable
+                  key={child.id}
+                  style={[
+                    styles.childRow,
+                    isActive && { backgroundColor: 'rgba(255,255,255,0.06)' },
+                  ]}
+                  onPress={() => handleChildSelect(child.id)}
                 >
-                  Premium
-                </Text>
-              </HStack>
-            )}
-          </VStack>
+                  <ChildAvatar
+                    name={child.name}
+                    emoji={child.avatar}
+                    accentColor={theme.accent}
+                    size={34}
+                  />
+                  <View style={styles.childInfo}>
+                    <Text style={styles.childName}>{child.name}</Text>
+                    <Text style={styles.childClasse} numberOfLines={1}>{child.classe}</Text>
+                  </View>
+                  {isActive && (
+                    <View style={[styles.activeDot, { backgroundColor: theme.accent }]} />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
 
-          {/* Section: Mon Enfant */}
-          <MenuSection title="MON ENFANT" items={monEnfantItems} theme={theme} onNav={handleNav} />
+          {/* Divider */}
+          <View style={styles.divider} />
 
-          {/* Section: Famille */}
-          <MenuSection title="FAMILLE" items={familleItems} theme={theme} onNav={handleNav} />
-
-          {/* Section: Paramètres */}
-          <MenuSection title="PARAMÈTRES" items={parametresItems} theme={theme} onNav={handleNav} />
+          {/* Sections */}
+          <MenuSection title="MON ENFANT" items={monEnfantItems} onNav={handleNav} />
+          <MenuSection title="FAMILLE" items={familleItems} onNav={handleNav} />
+          <MenuSection title="NOTIFICATIONS" items={notifItems} onNav={handleNav} />
+          <MenuSection title="INFOS" items={infosItems} onNav={handleNav} />
 
           {/* Bottom actions */}
-          <VStack
-            className="px-3 pt-2 mt-2"
-            style={{ borderTopWidth: 1, borderTopColor: theme.cardBorder }}
-          >
-            <Pressable
-              className="flex-row items-center gap-3.5 px-3 py-[13px] rounded-xl"
-              onPress={onChangeRole}
-            >
-              <Ionicons name="swap-horizontal" size={20} color={theme.textSecondary} />
-              <Text
-                className="text-sm font-semibold flex-1"
-                style={{ color: theme.textPrimary }}
-              >
-                Changer de compte
-              </Text>
+          <View style={[styles.divider, { marginTop: 8 }]} />
+          <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+            <Pressable style={sectionStyles.item} onPress={onChangeRole}>
+              <View style={sectionStyles.iconWrap}>
+                <Papicons name="Login" size={18} color="rgba(255,255,255,0.6)" />
+              </View>
+              <Text style={sectionStyles.label}>Changer de compte</Text>
             </Pressable>
-            <Pressable
-              className="flex-row items-center gap-3.5 px-3 py-[13px] rounded-xl"
-              onPress={onLogout}
-            >
-              <Ionicons name="log-out" size={20} color="#F87171" />
-              <Text className="text-sm font-semibold flex-1 text-red-400">
-                Se déconnecter
-              </Text>
+            <Pressable style={sectionStyles.item} onPress={onLogout}>
+              <View style={sectionStyles.iconWrap}>
+                <Papicons name="Logout" size={18} color="#F87171" />
+              </View>
+              <Text style={[sectionStyles.label, { color: '#F87171' }]}>Se déconnecter</Text>
             </Pressable>
-          </VStack>
+          </View>
 
-          <Box className="h-10" />
+          <View style={{ height: 40 }} />
         </ScrollView>
       </Animated.View>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  drawer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: DRAWER_WIDTH,
+    backgroundColor: DARK_BG,
+    borderTopRightRadius: 28,
+    borderBottomRightRadius: 28,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 8, height: 0 }, shadowOpacity: 0.4, shadowRadius: 24 },
+      android: { elevation: 20 },
+    }),
+  },
+  logoWrap: {
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+  },
+  childSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  childSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.35)',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  childRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 14,
+    gap: 12,
+    marginBottom: 2,
+  },
+  childInfo: {
+    flex: 1,
+  },
+  childName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  childClasse: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 1,
+  },
+  activeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: DARK_BORDER,
+    marginHorizontal: 20,
+    marginVertical: 4,
+  },
+});

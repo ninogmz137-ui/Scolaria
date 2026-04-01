@@ -8,18 +8,24 @@
 
 import { useState, useCallback } from 'react';
 import {
+  View,
+  Text,
+  Pressable,
   ScrollView,
   TextInput,
+  StyleSheet,
   Alert,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Papicons } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
-import DecorativeBlobs from '../components/DecorativeBlobs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   createAbsence,
   hasActiveAbsence,
@@ -59,20 +65,14 @@ function addDays(dateStr: string, n: number): string {
 const TODAY = toDateStr(new Date());
 const TOMORROW = addDays(TODAY, 1);
 
-// ─── Shadow constant ────────────────────────────────────
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
 // ─── Component ───────────────────────────────────────────
 
 export default function SignalerAbsenceScreen() {
   const { theme } = useChildTheme();
   const { selectedChild, selectedChildId } = useActiveChild();
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const TOPBAR_H = insets.top + 56;
 
   const accent = theme.accent;
   const { r: ar, g: ag, b: ab } = hexToRgb(accent);
@@ -169,242 +169,198 @@ export default function SignalerAbsenceScreen() {
 
   // ── Render helpers ──
   const motifList: AbsenceMotif[] = ['maladie', 'maladie_avec_certificat', 'raison_familiale', 'autre'];
-
   const demiList: DemiJournee[] = ['matin', 'apres_midi', 'journee'];
 
   // ── Accent-tinted border color ──
-  const accentBorder = `rgba(${ar}, ${ag}, ${ab}, 0.18)`;
+  const accentBorder = `rgba(${ar}, ${ag}, ${ab}, 0.25)`;
+  const accentBg = `rgba(${ar}, ${ag}, ${ab}, 0.15)`;
 
   // ── Success screen ──
   if (success) {
     return (
-      <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
-        <DecorativeBlobs accent={accent} />
-        <VStack className="flex-1 justify-center items-center p-8" style={{ gap: 16 }}>
-          <Box
-            className="rounded-[22px] p-8 items-center"
-            style={{
-              backgroundColor: '#FFFFFF',
-              ...CARD_SHADOW,
-              borderWidth: 1.5,
-              borderColor: accentBorder,
-              gap: 16,
-            }}
-          >
-            <Box
-              className="w-[100px] h-[100px] rounded-full justify-center items-center mb-2"
-              style={{ backgroundColor: '#34D39920' }}
-            >
-              <Ionicons name="checkmark-circle" size={64} color="#34D399" />
-            </Box>
-            <Text className="text-[22px] font-black" style={{ color: theme.textPrimary }}>
-              Absence signalée
-            </Text>
-            <Text className="text-[15px] text-center leading-[22px]" style={{ color: theme.textSecondary }}>
+      <View style={styles.root}>
+        <WallpaperBackground />
+        <View style={[styles.successContainer, { paddingTop: TOPBAR_H }]}>
+          <GlassCard borderRadius={22} style={styles.successCard}>
+            <View style={styles.successIconWrap}>
+              <Papicons name="CheckCircle" size={64} color="#34D399" />
+            </View>
+            <Text style={styles.successTitle}>Absence signalée</Text>
+            <Text style={styles.successBody}>
               {selectedChild.name} sera absent(e) {formatDateRange(resolvedDateDebut, resolvedDateFin)}
               {'\n'}Motif : {motif ? MOTIF_LABELS[motif] : ''}
             </Text>
-            <Text className="text-xs text-center" style={{ color: theme.textMuted }}>
+            <Text style={styles.successMuted}>
               L'enseignant principal a été notifié.
             </Text>
-          </Box>
+          </GlassCard>
           <Pressable
-            className="flex-row items-center justify-center py-4 rounded-2xl w-full"
-            style={{ backgroundColor: accent }}
+            style={[styles.primaryBtn, { backgroundColor: accent }]}
             onPress={() => navigation.goBack()}
           >
-            <Text className="text-[15px] font-extrabold text-white">Retour à l'accueil</Text>
+            <Text style={styles.primaryBtnText}>Retour à l'accueil</Text>
           </Pressable>
-        </VStack>
-      </Box>
+        </View>
+      </View>
     );
   }
 
   return (
-    <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
-      <DecorativeBlobs accent={accent} />
+    <View style={styles.root}>
+      <WallpaperBackground />
 
-      {/* Mini gradient header */}
-      <LinearGradient
-        colors={['#0B1628', accent + 'DD'] as [string, string]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}
-      >
-        <HStack
-          className="items-center justify-between px-4 py-3.5"
-          style={{ paddingTop: Platform.OS === 'ios' ? 56 : 14 }}
-        >
-          <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-          </Pressable>
-          <Text className="text-base font-extrabold" style={{ color: '#FFFFFF' }}>
-            Prévenir d'une absence
-          </Text>
-          <Box className="w-[22px]" />
-        </HStack>
-      </LinearGradient>
+      {/* Mini header */}
+      <View style={[styles.miniHeader, { paddingTop: insets.top + 12 }]}>
+        <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Papicons name="ChevronLeft" size={22} color="#FFFFFF" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Prévenir d'une absence</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
       {/* Steps indicator */}
-      <HStack className="justify-around py-4 px-10 relative">
+      <View style={styles.stepsRow}>
         {[1, 2, 3].map((s) => (
-          <VStack key={s} className="items-center z-[2]">
-            <Box
-              className="w-8 h-8 rounded-full justify-center items-center mb-1"
-              style={{
-                borderWidth: 2,
-                backgroundColor: s <= step ? accent : '#FFFFFF',
-                borderColor: s <= step ? accent : theme.cardBorder,
-                ...(s <= step ? CARD_SHADOW : {}),
-              }}
+          <View key={s} style={styles.stepItem}>
+            <View
+              style={[
+                styles.stepCircle,
+                s <= step
+                  ? { backgroundColor: accent, borderColor: accent }
+                  : { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.3)' },
+              ]}
             >
-              <Text className="text-[13px] font-extrabold" style={{ color: s <= step ? '#FFF' : theme.textMuted }}>
+              <Text style={[styles.stepNum, { color: s <= step ? '#FFF' : 'rgba(255,255,255,0.5)' }]}>
                 {s}
               </Text>
-            </Box>
-            <Text className="text-[11px] font-semibold" style={{ color: s === step ? accent : theme.textMuted }}>
+            </View>
+            <Text style={[styles.stepLabel, { color: s === step ? '#FFFFFF' : 'rgba(255,255,255,0.45)' }]}>
               {s === 1 ? 'Date' : s === 2 ? 'Motif' : 'Confirmer'}
             </Text>
-          </VStack>
+          </View>
         ))}
         {/* Connectors */}
-        <Box
-          className="absolute h-0.5 z-[1]"
-          style={{ backgroundColor: step >= 2 ? accent : theme.cardBorder, top: 30, left: '22%', right: '55%' }}
-        />
-        <Box
-          className="absolute h-0.5 z-[1]"
-          style={{ backgroundColor: step >= 3 ? accent : theme.cardBorder, top: 30, left: '55%', right: '22%' }}
-        />
-      </HStack>
+        <View style={[styles.connector, styles.connectorLeft, { backgroundColor: step >= 2 ? accent : 'rgba(255,255,255,0.2)' }]} />
+        <View style={[styles.connector, styles.connectorRight, { backgroundColor: step >= 3 ? accent : 'rgba(255,255,255,0.2)' }]} />
+      </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 20 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* ── STEP 1: Date ── */}
         {step === 1 && (
           <>
-            <Text className="text-lg font-extrabold mb-1" style={{ color: theme.textPrimary }}>
+            <Text style={styles.stepQuestion}>
               Quand {selectedChild.name} sera-t-il absent(e) ?
             </Text>
 
             {/* Quick date buttons */}
-            <HStack className="flex-wrap" style={{ gap: 10 }}>
+            <View style={styles.pillRow}>
               {(['today', 'tomorrow', 'custom'] as const).map((c) => {
                 const label = c === 'today' ? "Aujourd'hui" : c === 'tomorrow' ? 'Demain' : 'Autre date';
                 const active = dateChoice === c;
                 return (
                   <Pressable
                     key={c}
-                    className="px-4 py-3 rounded-[14px] min-w-[90px] items-center"
-                    style={{
-                      backgroundColor: active ? accent + '20' : '#FFFFFF',
-                      borderWidth: 1.5,
-                      borderColor: active ? accent : accentBorder,
-                      ...CARD_SHADOW,
-                    }}
+                    style={[
+                      styles.pill,
+                      active
+                        ? { backgroundColor: accentBg, borderColor: accent }
+                        : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.25)' },
+                    ]}
                     onPress={() => handleDateChoice(c)}
                   >
-                    <Text className="text-[13px] font-bold" style={{ color: active ? accent : theme.textPrimary }}>
+                    <Text style={[styles.pillText, { color: active ? accent : '#FFFFFF' }]}>
                       {label}
                     </Text>
                   </Pressable>
                 );
               })}
-            </HStack>
+            </View>
 
             {/* Custom date input */}
             {dateChoice === 'custom' && (
-              <Box
-                className="rounded-[14px] p-3.5"
-                style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
-              >
-                <Text className="text-xs font-semibold mb-1.5" style={{ color: theme.textSecondary }}>Date (AAAA-MM-JJ)</Text>
+              <GlassCard style={styles.inputCard} borderRadius={14}>
+                <Text style={styles.inputLabel}>Date (AAAA-MM-JJ)</Text>
                 <TextInput
-                  style={{ fontSize: 15, fontWeight: '500', padding: 0, color: theme.textPrimary }}
+                  style={styles.textInput}
                   value={customDateText}
                   onChangeText={setCustomDateText}
                   placeholder="2026-04-01"
-                  placeholderTextColor={theme.textMuted}
+                  placeholderTextColor="rgba(255,255,255,0.35)"
                   keyboardType="default"
                 />
-              </Box>
+              </GlassCard>
             )}
 
             {/* Multi-day toggle */}
             <Pressable
-              className="flex-row items-center py-2"
-              style={{ gap: 10, borderColor: theme.cardBorder }}
+              style={styles.checkRow}
               onPress={() => setMultiDay(!multiDay)}
             >
-              <Ionicons
-                name={multiDay ? 'checkbox' : 'square-outline'}
+              <Papicons
+                name={multiDay ? 'CheckSquare' : 'Square'}
                 size={22}
-                color={multiDay ? accent : theme.textMuted}
+                color={multiDay ? accent : 'rgba(255,255,255,0.5)'}
               />
-              <Text className="text-sm font-semibold" style={{ color: theme.textPrimary }}>
-                Absence sur plusieurs jours
-              </Text>
+              <Text style={styles.checkLabel}>Absence sur plusieurs jours</Text>
             </Pressable>
 
             {/* End date if multi-day */}
             {multiDay && (
-              <Box
-                className="rounded-[14px] p-3.5"
-                style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
-              >
-                <Text className="text-xs font-semibold mb-1.5" style={{ color: theme.textSecondary }}>Date de fin (AAAA-MM-JJ)</Text>
+              <GlassCard style={styles.inputCard} borderRadius={14}>
+                <Text style={styles.inputLabel}>Date de fin (AAAA-MM-JJ)</Text>
                 <TextInput
-                  style={{ fontSize: 15, fontWeight: '500', padding: 0, color: theme.textPrimary }}
+                  style={styles.textInput}
                   value={customEndText}
                   onChangeText={setCustomEndText}
                   placeholder="2026-04-03"
-                  placeholderTextColor={theme.textMuted}
+                  placeholderTextColor="rgba(255,255,255,0.35)"
                   keyboardType="default"
                 />
-              </Box>
+              </GlassCard>
             )}
 
             {/* Half-day selector (only for single day) */}
             {!multiDay && (
               <>
-                <Text className="text-[13px] font-semibold mt-2" style={{ color: theme.textSecondary }}>
-                  Durée
-                </Text>
-                <HStack className="flex-wrap" style={{ gap: 10 }}>
+                <Text style={styles.subLabel}>Durée</Text>
+                <View style={styles.pillRow}>
                   {demiList.map((dj) => {
                     const active = demiJournee === dj;
                     return (
                       <Pressable
                         key={dj}
-                        className="px-4 py-3 rounded-[14px] min-w-[90px] items-center"
-                        style={{
-                          backgroundColor: active ? accent + '20' : '#FFFFFF',
-                          borderWidth: 1.5,
-                          borderColor: active ? accent : accentBorder,
-                          ...CARD_SHADOW,
-                        }}
+                        style={[
+                          styles.pill,
+                          active
+                            ? { backgroundColor: accentBg, borderColor: accent }
+                            : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.25)' },
+                        ]}
                         onPress={() => setDemiJournee(dj)}
                       >
-                        <Text className="text-[13px] font-bold" style={{ color: active ? accent : theme.textPrimary }}>
+                        <Text style={[styles.pillText, { color: active ? accent : '#FFFFFF' }]}>
                           {DEMI_JOURNEE_LABELS[dj]}
                         </Text>
                       </Pressable>
                     );
                   })}
-                </HStack>
+                </View>
               </>
             )}
 
             {/* Next button */}
             <Pressable
-              className="flex-row items-center justify-center py-4 rounded-2xl mt-2"
-              style={{ backgroundColor: canGoStep2 ? accent : theme.card, gap: 8 }}
+              style={[styles.primaryBtn, { backgroundColor: canGoStep2 ? accent : 'rgba(255,255,255,0.2)', marginTop: 8 }]}
               onPress={goNext}
               disabled={!canGoStep2}
             >
-              <Text className="text-[15px] font-extrabold text-white" style={{ opacity: canGoStep2 ? 1 : 0.4 }}>
-                Suivant
-              </Text>
-              <Ionicons name="arrow-forward" size={18} color="#FFF" style={{ opacity: canGoStep2 ? 1 : 0.4 }} />
+              <Text style={[styles.primaryBtnText, { opacity: canGoStep2 ? 1 : 0.5 }]}>Suivant</Text>
+              <Papicons name="ChevronRight" size={18} color="#FFF" />
             </Pressable>
           </>
         )}
@@ -412,77 +368,61 @@ export default function SignalerAbsenceScreen() {
         {/* ── STEP 2: Motif ── */}
         {step === 2 && (
           <>
-            <Text className="text-lg font-extrabold mb-1" style={{ color: theme.textPrimary }}>
+            <Text style={styles.stepQuestion}>
               Quel est le motif de l'absence ?
             </Text>
 
-            {/* Motif buttons */}
-            <VStack style={{ gap: 10 }}>
+            <View style={styles.motifList}>
               {motifList.map((m) => {
                 const active = motif === m;
                 return (
                   <Pressable
                     key={m}
-                    className="flex-row items-center p-4 rounded-2xl relative"
-                    style={{
-                      gap: 12,
-                      backgroundColor: active ? accent + '15' : '#FFFFFF',
-                      borderWidth: 1.5,
-                      borderColor: active ? accent : accentBorder,
-                      ...CARD_SHADOW,
-                    }}
+                    style={[
+                      styles.motifRow,
+                      active
+                        ? { backgroundColor: accentBg, borderColor: accent }
+                        : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.2)' },
+                    ]}
                     onPress={() => setMotif(m)}
                   >
-                    <Text className="text-2xl">{MOTIF_ICONS[m]}</Text>
-                    <Text className="text-sm font-bold flex-1" style={{ color: active ? accent : theme.textPrimary }}>
+                    <Text style={styles.motifEmoji}>{MOTIF_ICONS[m]}</Text>
+                    <Text style={[styles.motifLabel, { color: active ? accent : '#FFFFFF' }]}>
                       {MOTIF_LABELS[m]}
                     </Text>
                     {active && (
-                      <Box
-                        className="w-6 h-6 rounded-full justify-center items-center"
-                        style={{ backgroundColor: accent }}
-                      >
-                        <Ionicons name="checkmark" size={14} color="#FFF" />
-                      </Box>
+                      <View style={[styles.checkDot, { backgroundColor: accent }]}>
+                        <Papicons name="Check" size={14} color="#FFF" />
+                      </View>
                     )}
                   </Pressable>
                 );
               })}
-            </VStack>
+            </View>
 
             {/* Comment field */}
-            <Text className="text-[13px] font-semibold mt-2" style={{ color: theme.textSecondary }}>
-              Précision (optionnel)
-            </Text>
-            <Box
-              className="rounded-[14px] p-3.5"
-              style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: accentBorder, ...CARD_SHADOW }}
-            >
+            <Text style={styles.subLabel}>Précision (optionnel)</Text>
+            <GlassCard style={styles.inputCard} borderRadius={14}>
               <TextInput
-                style={{ fontSize: 15, fontWeight: '500', padding: 0, minHeight: 60, textAlignVertical: 'top', color: theme.textPrimary }}
+                style={[styles.textInput, styles.textArea]}
                 value={commentaire}
                 onChangeText={(t) => setCommentaire(t.slice(0, 200))}
                 placeholder="Ex: Fièvre depuis hier soir..."
-                placeholderTextColor={theme.textMuted}
+                placeholderTextColor="rgba(255,255,255,0.35)"
                 multiline
                 numberOfLines={3}
               />
-              <Text className="text-[11px] text-right mt-1" style={{ color: theme.textMuted }}>
-                {commentaire.length}/200
-              </Text>
-            </Box>
+              <Text style={styles.charCount}>{commentaire.length}/200</Text>
+            </GlassCard>
 
             {/* Next button */}
             <Pressable
-              className="flex-row items-center justify-center py-4 rounded-2xl mt-2"
-              style={{ backgroundColor: canGoStep3 ? accent : theme.card, gap: 8 }}
+              style={[styles.primaryBtn, { backgroundColor: canGoStep3 ? accent : 'rgba(255,255,255,0.2)', marginTop: 8 }]}
               onPress={goNext}
               disabled={!canGoStep3}
             >
-              <Text className="text-[15px] font-extrabold text-white" style={{ opacity: canGoStep3 ? 1 : 0.4 }}>
-                Suivant
-              </Text>
-              <Ionicons name="arrow-forward" size={18} color="#FFF" style={{ opacity: canGoStep3 ? 1 : 0.4 }} />
+              <Text style={[styles.primaryBtnText, { opacity: canGoStep3 ? 1 : 0.5 }]}>Suivant</Text>
+              <Papicons name="ChevronRight" size={18} color="#FFF" />
             </Pressable>
           </>
         )}
@@ -490,90 +430,367 @@ export default function SignalerAbsenceScreen() {
         {/* ── STEP 3: Confirmation ── */}
         {step === 3 && motif && (
           <>
-            <Text className="text-lg font-extrabold mb-1" style={{ color: theme.textPrimary }}>
-              Confirmer l'absence
-            </Text>
+            <Text style={styles.stepQuestion}>Confirmer l'absence</Text>
 
             {/* Recap card */}
-            <Box
-              className="rounded-[18px] p-[18px]"
-              style={{
-                borderWidth: 1.5,
-                backgroundColor: '#FFFFFF',
-                borderColor: accentBorder,
-                gap: 14,
-                ...CARD_SHADOW,
-              }}
-            >
-              <HStack className="items-center" style={{ gap: 12 }}>
-                <Text className="text-[32px]">{selectedChild.avatar}</Text>
-                <VStack className="flex-1">
-                  <Text className="text-base font-extrabold" style={{ color: theme.textPrimary }}>
-                    {selectedChild.name} sera absent(e)
-                  </Text>
-                </VStack>
-              </HStack>
+            <GlassCard style={styles.recapCard} borderRadius={18}>
+              <View style={styles.recapChildRow}>
+                <Text style={styles.recapAvatar}>{selectedChild.avatar}</Text>
+                <Text style={styles.recapChildName}>{selectedChild.name} sera absent(e)</Text>
+              </View>
 
-              <Box className="h-px my-0.5" style={{ backgroundColor: theme.cardBorder }} />
+              <View style={styles.recapDivider} />
 
               {/* Date */}
-              <HStack className="items-center" style={{ gap: 10 }}>
-                <Ionicons name="calendar-outline" size={18} color={accent} />
-                <Text className="text-sm font-medium flex-1" style={{ color: theme.textSecondary }}>
+              <View style={styles.recapRow}>
+                <Papicons name="Calendar" size={18} color={accent} />
+                <Text style={styles.recapValue}>
                   {formatDateRange(resolvedDateDebut, resolvedDateFin)}
                   {!multiDay && ` · ${DEMI_JOURNEE_LABELS[demiJournee]}`}
                 </Text>
-              </HStack>
+              </View>
 
               {/* Motif */}
-              <HStack className="items-center" style={{ gap: 10 }}>
+              <View style={styles.recapRow}>
                 <Text style={{ fontSize: 16 }}>{MOTIF_ICONS[motif]}</Text>
-                <Text className="text-sm font-medium flex-1" style={{ color: theme.textSecondary }}>
-                  {MOTIF_LABELS[motif]}
-                </Text>
-              </HStack>
+                <Text style={styles.recapValue}>{MOTIF_LABELS[motif]}</Text>
+              </View>
 
               {/* Comment */}
               {commentaire.trim() ? (
-                <HStack className="items-center" style={{ gap: 10 }}>
-                  <Ionicons name="chatbubble-outline" size={16} color={theme.textMuted} />
-                  <Text className="text-sm font-medium flex-1" style={{ color: theme.textMuted }} numberOfLines={2}>
+                <View style={styles.recapRow}>
+                  <Papicons name="Chat" size={16} color="rgba(255,255,255,0.5)" />
+                  <Text style={styles.recapMuted} numberOfLines={2}>
                     {commentaire.trim()}
                   </Text>
-                </HStack>
+                </View>
               ) : null}
-            </Box>
+            </GlassCard>
 
             {/* Warning */}
-            <HStack
-              className="items-start p-3.5 rounded-[14px]"
-              style={{ gap: 8, backgroundColor: '#FBBF2412', borderWidth: 1, borderColor: '#FBBF2430' }}
-            >
-              <Ionicons name="warning-outline" size={16} color="#FBBF24" />
-              <Text className="text-xs font-medium flex-1 leading-[18px]" style={{ color: '#FBBF24' }}>
+            <View style={styles.warningBox}>
+              <Papicons name="Warning" size={16} color="#FBBF24" />
+              <Text style={styles.warningText}>
                 L'absence ne pourra pas être modifiée après confirmation. Contactez l'enseignant via le cahier de liaison si besoin.
               </Text>
-            </HStack>
+            </View>
 
             {/* Submit button */}
             <Pressable
-              className="flex-row items-center justify-center py-4 rounded-2xl mt-2"
-              style={{ backgroundColor: accent, gap: 8 }}
+              style={[styles.primaryBtn, { backgroundColor: accent, marginTop: 8 }]}
               onPress={handleSubmit}
               disabled={submitting}
             >
               {submitting ? (
-                <Text className="text-[15px] font-extrabold text-white">Envoi en cours...</Text>
+                <Text style={styles.primaryBtnText}>Envoi en cours...</Text>
               ) : (
                 <>
-                  <Ionicons name="send" size={18} color="#FFF" />
-                  <Text className="text-[15px] font-extrabold text-white">Confirmer l'absence</Text>
+                  <Papicons name="Send" size={18} color="#FFF" />
+                  <Text style={styles.primaryBtnText}>Confirmer l'absence</Text>
                 </>
               )}
             </Pressable>
           </>
         )}
       </ScrollView>
-    </Box>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  // ── Header ──
+  miniHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingBottom: 14,
+  },
+  headerTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  headerSpacer: {
+    width: 22,
+  },
+  // ── Steps ──
+  stepsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 32,
+    paddingBottom: 12,
+    position: 'relative',
+  },
+  stepItem: {
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  stepNum: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  stepLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+  },
+  connector: {
+    position: 'absolute',
+    height: 2,
+    top: 15,
+    zIndex: 1,
+  },
+  connectorLeft: {
+    left: '22%',
+    right: '55%',
+  },
+  connectorRight: {
+    left: '55%',
+    right: '22%',
+  },
+  // ── Scroll ──
+  scrollContent: {
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    gap: 14,
+  },
+  // ── Step content ──
+  stepQuestion: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  subLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 4,
+    marginBottom: -4,
+  },
+  // ── Pills ──
+  pillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  pill: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    minWidth: 90,
+    alignItems: 'center',
+    borderWidth: 1.5,
+  },
+  pillText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  // ── Input ──
+  inputCard: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  inputLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.65)',
+    marginBottom: 6,
+  },
+  textInput: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    color: '#FFFFFF',
+    padding: 0,
+  },
+  textArea: {
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  charCount: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.4)',
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  // ── Multi-day toggle ──
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  checkLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  // ── Motif list ──
+  motifList: {
+    gap: 10,
+  },
+  motifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    gap: 12,
+    borderWidth: 1.5,
+  },
+  motifEmoji: {
+    fontSize: 24,
+  },
+  motifLabel: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    flex: 1,
+  },
+  checkDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // ── Recap ──
+  recapCard: {
+    gap: 14,
+  },
+  recapChildRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  recapAvatar: {
+    fontSize: 32,
+  },
+  recapChildName: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+    flex: 1,
+    fontWeight: '800',
+  },
+  recapDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  recapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  recapValue: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+    flex: 1,
+  },
+  recapMuted: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.55)',
+    flex: 1,
+  },
+  // ── Warning ──
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(251,191,36,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(251,191,36,0.25)',
+    borderRadius: 14,
+    padding: 14,
+  },
+  warningText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: '#FBBF24',
+    flex: 1,
+    lineHeight: 18,
+  },
+  // ── Primary button ──
+  primaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  primaryBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  // ── Success ──
+  successContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    gap: 16,
+  },
+  successCard: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+  },
+  successIconWrap: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(52,211,153,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  successTitle: {
+    fontFamily: FontFamily.loraBold,
+    fontSize: 22,
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  successBody: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  successMuted: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.5)',
+    textAlign: 'center',
+  },
+});
