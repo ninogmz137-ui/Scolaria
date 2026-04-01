@@ -8,7 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import { Box, Text, Pressable, HStack } from '../ui';
-import { Ionicons } from '@expo/vector-icons';
+import { Papicons } from '@getpapillon/papicons';
 import {
   CHILD_THEMES,
   THEME_IDS,
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export default function ThemeSelector({ accentColor }: Props) {
-  const { currentThemeId, setChildTheme } = useChildTheme();
+  const { currentThemeId, setChildTheme, theme } = useChildTheme();
   const { selectedChildId, selectedChild } = useActiveChild();
 
   const [previewThemeId, setPreviewThemeId] = useState<ThemeId>(currentThemeId as ThemeId);
@@ -34,16 +34,22 @@ export default function ThemeSelector({ accentColor }: Props) {
 
   const previewTheme = CHILD_THEMES[previewThemeId] || CHILD_THEMES.ocean;
 
+  // Mode-aware colors derived from theme context
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const cardBg = theme.isDarkBg ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.85)';
+  const cardBorder = theme.isDarkBg ? 'rgba(255,255,255,0.12)' : '#EEF0F5';
+
   return (
     <Box className="mt-2">
       {/* Section header */}
       <HStack className="items-center gap-2 mb-1">
-        <Ionicons name="color-palette" size={20} color={accentColor} />
-        <Text className="text-base font-extrabold" style={{ color: '#0F172A' }}>
+        <Papicons name="ColorPalette" size={20} color={accentColor} />
+        <Text className="text-base font-extrabold" style={{ color: cardText }}>
           Thème de {selectedChild.name}
         </Text>
       </HStack>
-      <Text className="text-xs mb-4" style={{ color: '#94A3B8' }}>
+      <Text className="text-xs mb-4" style={{ color: cardTextMuted }}>
         Personnalisez les couleurs de l'interface
       </Text>
 
@@ -61,9 +67,9 @@ export default function ThemeSelector({ accentColor }: Props) {
                 width: '30.5%',
                 flexGrow: 1,
                 padding: 10,
-                backgroundColor: '#FFFFFF',
+                backgroundColor: cardBg,
                 borderWidth: isSelected ? 2 : 1,
-                borderColor: isSelected ? t.accent : '#EEF0F5',
+                borderColor: isSelected ? t.accent : cardBorder,
               }}
               onPress={() => handleSelect(id)}
             >
@@ -74,14 +80,14 @@ export default function ThemeSelector({ accentColor }: Props) {
               />
 
               {/* Theme name */}
-              <Text style={{ fontSize: 10, fontWeight: '500', color: '#0F172A' }}>
+              <Text style={{ fontSize: 10, fontWeight: '500', color: cardText }}>
                 {t.name}
               </Text>
 
               {/* Checkmark for selected */}
               {isSelected && (
                 <Box className="absolute" style={{ top: 4, right: 4 }}>
-                  <Ionicons name="checkmark-circle" size={14} color={t.accent} />
+                  <Papicons name="Check" size={14} color={t.accent} />
                 </Box>
               )}
             </Pressable>
@@ -93,7 +99,7 @@ export default function ThemeSelector({ accentColor }: Props) {
       <HStack
         className="items-center gap-2.5 p-3.5 rounded-xl"
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: cardBg,
           borderWidth: 1,
           borderColor: previewTheme.accent + '30',
         }}
@@ -102,7 +108,7 @@ export default function ThemeSelector({ accentColor }: Props) {
           className="rounded-full"
           style={{ width: 10, height: 10, backgroundColor: previewTheme.accent }}
         />
-        <Text className="flex-1 text-sm font-semibold" style={{ color: '#0F172A' }}>
+        <Text className="flex-1 text-sm font-semibold" style={{ color: cardText }}>
           Thème actif : {previewTheme.name}
         </Text>
         <Box

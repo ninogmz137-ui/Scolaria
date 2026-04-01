@@ -3,6 +3,8 @@ import { Animated, Modal, Alert } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { useChildTheme } from '../../contexts/ChildThemeContext';
+import GlassCard from '../GlassCard';
 import {
   getParentMots,
   signMotLiaison,
@@ -36,8 +38,23 @@ export default function CahierLiaisonParent({
   childName,
   parentId = 'p1',
   parentName = 'Parent Moreau',
-  accentColor = Colors.cyan,
+  accentColor,
 }: Props) {
+  const { theme } = useChildTheme();
+
+  // Derive accent from theme if not overridden
+  const accent = accentColor ?? theme.accent;
+
+  // Mode-aware text colors
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+
+  // Card surface colors for inline containers (not GlassCard)
+  const inlineBg = theme.isDarkBg ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.75)';
+  const inlineBorder = theme.isDarkBg ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.9)';
+  const dividerColor = theme.isDarkBg ? 'rgba(255,255,255,0.10)' : '#EEF0F5';
+
   const [mots, setMots] = useState<MotLiaisonParent[]>([]);
   const [selectedMot, setSelectedMot] = useState<MotLiaisonParent | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
@@ -62,7 +79,6 @@ export default function CahierLiaisonParent({
 
   const handleOpenMot = async (mot: MotLiaisonParent) => {
     setSelectedMot(mot);
-    // Auto-mark as read
     if (!mot.is_read) {
       await markMotAsRead(mot.id, parentId);
       setMots((prev) => prev.map((m) => (m.id === mot.id ? { ...m, is_read: true } : m)));
@@ -89,7 +105,9 @@ export default function CahierLiaisonParent({
     Alert.alert('Signé !', `Votre signature pour "${selectedMot.titre}" a bien été enregistrée.`);
   };
 
-  // ─── Detail modal ──────────────────────────
+  // ─── Detail modal ──────────────────────────────────────
+  // Modals always render over a dark overlay, so we use a fixed light
+  // bottom sheet surface for readability regardless of school mode.
   const detailModal = selectedMot && (
     <Modal visible={!!selectedMot} animationType="slide" transparent>
       <Box className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
@@ -102,7 +120,7 @@ export default function CahierLiaisonParent({
             borderColor: '#EEF0F5',
           }}
         >
-          {/* Header */}
+          {/* Close button */}
           <Box className="items-end mb-2">
             <Pressable onPress={() => setSelectedMot(null)}>
               <Ionicons name="close" size={24} color={Colors.gray} />
@@ -195,7 +213,7 @@ export default function CahierLiaisonParent({
               ) : (
                 <Pressable
                   className="flex-row items-center justify-center gap-2 p-4 rounded-2xl"
-                  style={{ backgroundColor: accentColor }}
+                  style={{ backgroundColor: accent }}
                   onPress={() => setShowSignModal(true)}
                 >
                   <Ionicons name="pencil" size={20} color={Colors.white} />
@@ -211,7 +229,10 @@ export default function CahierLiaisonParent({
 
       {/* Confirmation modal */}
       <Modal visible={showSignModal} animationType="fade" transparent>
-        <Box className="flex-1 justify-center items-center p-8" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+        <Box
+          className="flex-1 justify-center items-center p-8"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+        >
           <Box
             className="w-full p-6 rounded-2xl items-center"
             style={{
@@ -226,10 +247,10 @@ export default function CahierLiaisonParent({
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: accentColor + '15',
+                backgroundColor: accent + '15',
               }}
             >
-              <Ionicons name="pencil" size={28} color={accentColor} />
+              <Ionicons name="pencil" size={28} color={accent} />
             </Box>
             <Text className="text-lg font-extrabold mb-2.5" style={{ color: '#0F172A' }}>
               Confirmer la signature
@@ -238,7 +259,8 @@ export default function CahierLiaisonParent({
               className="text-sm text-center mb-3"
               style={{ color: '#64748B', lineHeight: 20 }}
             >
-              En signant, vous confirmez avoir pris connaissance de ce document et autorisez votre enfant {childName} à y participer.
+              En signant, vous confirmez avoir pris connaissance de ce document et autorisez votre
+              enfant {childName} à y participer.
             </Text>
             <Text
               className="text-xs italic text-center mb-5 px-3 py-2 w-full rounded-xl"
@@ -262,7 +284,7 @@ export default function CahierLiaisonParent({
               </Pressable>
               <Pressable
                 className="flex-1 flex-row items-center justify-center gap-1.5 py-3.5 rounded-xl"
-                style={{ backgroundColor: accentColor }}
+                style={{ backgroundColor: accent }}
                 onPress={handleSign}
               >
                 <Ionicons name="checkmark" size={18} color={Colors.white} />
@@ -277,15 +299,17 @@ export default function CahierLiaisonParent({
     </Modal>
   );
 
-  // ─── Main view ─────────────────────────────
+  // ─── Main view ─────────────────────────────────────────
   return (
-    <Animated.View style={{ width: '100%', opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+    <Animated.View
+      style={{ width: '100%', opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+    >
       {detailModal}
 
       {/* Section header */}
       <HStack className="justify-between items-center mb-3">
         <HStack className="items-center gap-2">
-          <Text className="text-lg font-bold" style={{ color: '#0F172A' }}>
+          <Text className="text-lg font-bold" style={{ color: cardText }}>
             Cahier de Liaison
           </Text>
           {unsignedCount > 0 && (
@@ -302,10 +326,10 @@ export default function CahierLiaisonParent({
         {unreadCount > 0 && (
           <HStack
             className="items-center gap-1 px-2 py-1 rounded-lg"
-            style={{ backgroundColor: accentColor + '15' }}
+            style={{ backgroundColor: accent + '20' }}
           >
-            <Ionicons name="mail-unread" size={12} color={accentColor} />
-            <Text className="text-[11px] font-bold" style={{ color: accentColor }}>
+            <Ionicons name="mail-unread" size={12} color={accent} />
+            <Text className="text-[11px] font-bold" style={{ color: accent }}>
               {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
             </Text>
           </HStack>
@@ -318,7 +342,7 @@ export default function CahierLiaisonParent({
         style={{
           backgroundColor: 'transparent',
           borderWidth: 1.5,
-          borderColor: accentColor + '40',
+          borderColor: accent + '40',
         }}
         onPress={() =>
           Alert.alert(
@@ -327,27 +351,41 @@ export default function CahierLiaisonParent({
           )
         }
       >
-        <Ionicons name="send-outline" size={16} color={accentColor} />
-        <Text className="text-sm font-semibold" style={{ color: accentColor }}>
+        <Ionicons name="send-outline" size={16} color={accent} />
+        <Text className="text-sm font-semibold" style={{ color: accent }}>
           Envoyer un message à l'enseignant
         </Text>
       </Pressable>
 
       {/* Mots list */}
       {mots.length === 0 ? (
-        <Box
-          className="items-center p-8 rounded-2xl"
-          style={{
-            backgroundColor: '#FFFFFF',
-            borderWidth: 1,
-            borderColor: '#EEF0F5',
-          }}
-        >
-          <Text className="text-[28px] mb-2">📭</Text>
-          <Text className="text-sm" style={{ color: '#94A3B8' }}>
-            Aucun mot de liaison
-          </Text>
-        </Box>
+        <GlassCard style={{ marginTop: 8 }}>
+          <Box className="items-center py-6">
+            <Box
+              className="justify-center items-center mb-4"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: accent + '15',
+              }}
+            >
+              <Ionicons name="mail-open-outline" size={30} color={accent} />
+            </Box>
+            <Text
+              className="text-base font-bold mb-1"
+              style={{ color: cardText }}
+            >
+              Tout est à jour
+            </Text>
+            <Text
+              className="text-sm text-center"
+              style={{ color: cardTextSecondary, maxWidth: 220 }}
+            >
+              Aucun mot de liaison pour le moment. Les nouveaux messages apparaîtront ici.
+            </Text>
+          </Box>
+        </GlassCard>
       ) : (
         mots.map((mot) => {
           const tc = TYPE_CONFIG[mot.type];
@@ -358,13 +396,13 @@ export default function CahierLiaisonParent({
               key={mot.id}
               className="p-3.5 rounded-2xl mb-2.5"
               style={{
-                backgroundColor: '#FFFFFF',
+                backgroundColor: inlineBg,
                 borderWidth: 1,
                 borderColor: needsSig
-                  ? Colors.orange + '40'
+                  ? Colors.orange + '50'
                   : !mot.is_read
-                    ? accentColor + '40'
-                    : '#EEF0F5',
+                    ? accent + '40'
+                    : inlineBorder,
               }}
               onPress={() => handleOpenMot(mot)}
             >
@@ -376,7 +414,7 @@ export default function CahierLiaisonParent({
                     width: 44,
                     height: 44,
                     borderRadius: 22,
-                    backgroundColor: tc.color + '15',
+                    backgroundColor: tc.color + '20',
                   }}
                 >
                   <Text style={{ fontSize: 18 }}>{tc.emoji}</Text>
@@ -387,16 +425,19 @@ export default function CahierLiaisonParent({
                   <HStack className="items-center gap-1.5">
                     <Text
                       className="text-sm font-semibold flex-1"
-                      style={{ color: !mot.is_read ? '#0F172A' : '#64748B' }}
+                      style={{ color: !mot.is_read ? cardText : cardTextSecondary }}
                       numberOfLines={1}
                     >
                       {mot.titre}
                     </Text>
                     {!mot.is_read && (
-                      <Box className="rounded-full" style={{ width: 8, height: 8, backgroundColor: accentColor }} />
+                      <Box
+                        className="rounded-full"
+                        style={{ width: 8, height: 8, backgroundColor: accent }}
+                      />
                     )}
                   </HStack>
-                  <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8' }}>
+                  <Text className="text-[11px] mt-0.5" style={{ color: cardTextMuted }}>
                     {mot.teacher_name} · {formatDateShort(mot.date_envoi)}
                   </Text>
                 </Box>
@@ -411,7 +452,7 @@ export default function CahierLiaisonParent({
                           width: 32,
                           height: 32,
                           borderRadius: 16,
-                          backgroundColor: Colors.green + '15',
+                          backgroundColor: Colors.green + '20',
                         }}
                       >
                         <Ionicons name="checkmark-circle" size={16} color={Colors.green} />
@@ -423,7 +464,7 @@ export default function CahierLiaisonParent({
                           width: 32,
                           height: 32,
                           borderRadius: 16,
-                          backgroundColor: Colors.orange + '15',
+                          backgroundColor: Colors.orange + '20',
                         }}
                       >
                         <Ionicons name="pencil" size={14} color={Colors.orange} />
@@ -437,7 +478,7 @@ export default function CahierLiaisonParent({
               {needsSig && mot.date_limite && (
                 <HStack
                   className="items-center gap-1 mt-2 pt-2"
-                  style={{ borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
+                  style={{ borderTopWidth: 1, borderTopColor: dividerColor }}
                 >
                   <Ionicons name="time" size={12} color={Colors.orange} />
                   <Text className="text-[11px] font-semibold" style={{ color: Colors.orange }}>
@@ -467,6 +508,9 @@ function formatDateShort(dateStr: string): string {
 
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) +
-    ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  return (
+    d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) +
+    ' à ' +
+    d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+  );
 }

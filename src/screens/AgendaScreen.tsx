@@ -7,7 +7,7 @@
  * - Add event modal preserved
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   ScrollView,
@@ -169,9 +169,15 @@ export default function AgendaScreen() {
   const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
 
   const todayDate = new Date().getDate();
-  const initialWeekDays = buildWeekDays(new Date());
 
-  const [weekDays, setWeekDays] = useState(initialWeekDays);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const referenceDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + weekOffset * 7);
+    return d;
+  }, [weekOffset]);
+
+  const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
   const [selectedDay, setSelectedDay] = useState(todayDate);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
@@ -184,8 +190,21 @@ export default function AgendaScreen() {
 
   const loadEvents = useCallback(async () => {
     if (!selectedChildId) return;
-    const computed = buildWeekDays(new Date());
+    const computed = buildWeekDays(referenceDate);
     setWeekDays(computed);
+
+    // When navigating to a different week, auto-select Monday of that week
+    // unless we're on the current week (keep today selected)
+    setSelectedDay((prev) => {
+      const isCurrentWeek = computed.some((d) => d.isToday);
+      if (isCurrentWeek) {
+        const todayInWeek = computed.find((d) => d.isToday);
+        return todayInWeek ? todayInWeek.date : computed[0].date;
+      }
+      // Check if prev selection still exists in the new week
+      const stillValid = computed.find((d) => d.date === prev);
+      return stillValid ? prev : computed[0].date;
+    });
 
     const monday = computed[0].fullDate;
     const sunday = computed[6].fullDate;
@@ -223,7 +242,7 @@ export default function AgendaScreen() {
       grouped[dayNum].push(mapped);
     }
     setEventsByDay(grouped);
-  }, [selectedChildId]);
+  }, [selectedChildId, referenceDate]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
@@ -301,14 +320,40 @@ export default function AgendaScreen() {
       >
         {/* Week header + badges */}
         <View style={st.weekHeader}>
-          <Text
-            style={[
-              st.weekTitle,
-              { textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' },
-            ]}
-          >
-            {formatWeekHeader(weekDays)}
-          </Text>
+          <View style={st.weekTitleRow}>
+            <Pressable
+              onPress={() => setWeekOffset((o) => o - 1)}
+              style={({ pressed }) => [
+                st.weekNavBtn,
+                { borderColor: theme.isDarkBg ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' },
+                pressed && { opacity: 0.6 },
+              ]}
+              hitSlop={8}
+            >
+              <Papicons name="ChevronLeft" size={16} color={theme.textOnBg} />
+            </Pressable>
+
+            <Text
+              style={[
+                st.weekTitle,
+                { color: theme.textOnBg, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent', marginBottom: 0 },
+              ]}
+            >
+              {formatWeekHeader(weekDays)}
+            </Text>
+
+            <Pressable
+              onPress={() => setWeekOffset((o) => o + 1)}
+              style={({ pressed }) => [
+                st.weekNavBtn,
+                { borderColor: theme.isDarkBg ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' },
+                pressed && { opacity: 0.6 },
+              ]}
+              hitSlop={8}
+            >
+              <Papicons name="ChevronRight" size={16} color={theme.textOnBg} />
+            </Pressable>
+          </View>
           <View style={st.badgeRow}>
             <View style={[st.badge, { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(248,113,113,0.25)' }]}>
               <Papicons name="Warning" size={13} color="#FCA5A5" />
@@ -547,8 +592,17 @@ const st = StyleSheet.create({
   root: { flex: 1 },
 
   weekHeader: { paddingHorizontal: 20, marginBottom: 4 },
+  weekTitleRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  weekNavBtn: {
+    width: 30, height: 30, borderRadius: 15,
+    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
   weekTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF',
+    fontFamily: FontFamily.sansBold, fontSize: 13,
     textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8,
     textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },

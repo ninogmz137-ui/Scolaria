@@ -51,17 +51,18 @@ import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 // Placeholder for Cahier Liaison parent view
 import CahierLiaisonParent from '../components/profile/CahierLiaisonParent';
 import { ScrollView } from 'react-native';
+import WallpaperBackground from '../components/WallpaperBackground';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 
 function CahierLiaisonPlaceholder() {
   const { selectedChild, selectedChildId } = useActiveChild();
-  const { theme } = useChildTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+    <View style={{ flex: 1 }}>
+      <WallpaperBackground />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 20 }}>
         <CahierLiaisonParent
           childId={selectedChildId}
           childName={selectedChild.name}
-          accentColor={theme.accent}
         />
       </ScrollView>
     </View>
@@ -207,8 +208,8 @@ export default function TabNavigator() {
   const isHome = activeTab === 'Accueil' && !isStackedScreen;
   const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : isHome ? 'home' : 'main';
 
-  // Parent name from user metadata
-  const parentName = user?.user_metadata?.family_name || 'Parent';
+  // Greeting shows child's first name
+  const parentName = selectedChild?.name || 'Parent';
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>

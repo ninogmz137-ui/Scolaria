@@ -83,7 +83,8 @@ export default function AriaScreen() {
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
+  // Glass header card: insets.top + 8 (container pad) + ~60 (card height) + 8 (gap)
+  const HEADER_CARD_BOTTOM = insets.top + 76;
 
   const childName = selectedChild?.name ?? 'votre enfant';
   const childId = selectedChild?.id ?? '1';
@@ -223,7 +224,7 @@ export default function AriaScreen() {
           keyExtractor={(item) => item.id}
           style={styles.messageList}
           contentContainerStyle={{
-            paddingTop: TOPBAR_H + 8,
+            paddingTop: HEADER_CARD_BOTTOM,
             paddingBottom: 8,
           }}
           onContentSizeChange={scrollToEnd}

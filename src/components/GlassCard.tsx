@@ -34,15 +34,15 @@ interface GlassCardProps {
 // ─── Opacity presets per variant ────────────────────────
 
 const DARK_BG: Record<Intensity, number> = {
-  subtle: 0.05,
-  medium: 0.08,
-  strong: 0.14,
+  subtle: 0.04,
+  medium: 0.06,
+  strong: 0.12,
 };
 
 const LIGHT_BG: Record<Intensity, number> = {
-  subtle: 0.6,
-  medium: 0.75,
-  strong: 0.88,
+  subtle: 0.45,
+  medium: 0.55,
+  strong: 0.75,
 };
 
 // ─── Component ─────────────────────────────────────────

@@ -35,14 +35,16 @@ interface SettingsRow {
 function SettingsSection({
   title,
   children,
+  titleColor,
 }: {
   title: string;
   children: React.ReactNode;
+  titleColor?: string;
 }) {
   return (
     <View style={styles.sectionWrapper}>
       <View style={styles.sectionTitleRow}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text style={[styles.sectionTitle, titleColor ? { color: titleColor } : undefined]}>{title}</Text>
       </View>
       <GlassCard noPadding>
         {children}
@@ -64,17 +66,27 @@ function SettingsRowItem({
   onToggle,
   onPress,
   isLast,
+  labelColor,
+  sublabelColor,
+  chevronColor: chevColor,
+  borderColor: rowBorderColor,
+  switchTrackOff,
 }: SettingsRow & {
   toggleValue?: boolean;
   onToggle?: (v: boolean) => void;
   onPress?: () => void;
   isLast?: boolean;
+  labelColor?: string;
+  sublabelColor?: string;
+  chevronColor?: string;
+  borderColor?: string;
+  switchTrackOff?: string;
 }) {
   return (
     <Pressable
       style={[
         styles.row,
-        !isLast && styles.rowBorder,
+        !isLast && [styles.rowBorder, rowBorderColor ? { borderBottomColor: rowBorderColor } : undefined],
       ]}
       onPress={onPress}
     >
@@ -82,11 +94,11 @@ function SettingsRowItem({
         <Papicons name={icon} size={18} color={color} />
       </View>
       <View style={styles.rowTextStack}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        {sublabel ? <Text style={styles.rowSublabel}>{sublabel}</Text> : null}
+        <Text style={[styles.rowLabel, labelColor ? { color: labelColor } : undefined]}>{label}</Text>
+        {sublabel ? <Text style={[styles.rowSublabel, sublabelColor ? { color: sublabelColor } : undefined]}>{sublabel}</Text> : null}
       </View>
       {type === 'navigate' && (
-        <Papicons name="ChevronRight" size={18} color="rgba(255,255,255,0.45)" />
+        <Papicons name="ChevronRight" size={18} color={chevColor || 'rgba(255,255,255,0.45)'} />
       )}
       {type === 'value' && (
         <Text style={styles.rowValue}>{value}</Text>
@@ -95,7 +107,7 @@ function SettingsRowItem({
         <Switch
           value={toggleValue}
           onValueChange={onToggle}
-          trackColor={{ false: 'rgba(255,255,255,0.2)', true: Colors.violet }}
+          trackColor={{ false: switchTrackOff || 'rgba(255,255,255,0.2)', true: Colors.violet }}
           thumbColor={toggleValue ? Colors.cyan : 'rgba(255,255,255,0.6)'}
         />
       )}
@@ -111,6 +123,17 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   const { signOut, role } = useAuth();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
+
+  // Mode-aware text colors
+  const textPrimary = theme.textOnBg;
+  const textSecondary = theme.textOnBgSecondary;
+  const textMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextSec = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const chevronColor = theme.isDarkBg ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.25)';
+  const borderCol = theme.isDarkBg ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)';
+  const switchTrack = theme.isDarkBg ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
 
   const [notifications, setNotifications] = useState({
     grades: true,
@@ -132,19 +155,19 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         {/* Title section */}
         <View style={styles.titleSection}>
           <Text style={styles.titleEmoji}>⚙️</Text>
-          <Text style={styles.titleText}>Réglages</Text>
-          <Text style={styles.titleSub}>Apparence, notifications et confidentialité</Text>
+          <Text style={[styles.titleText, { color: textPrimary }]}>Réglages</Text>
+          <Text style={[styles.titleSub, { color: textSecondary }]}>Apparence, notifications et confidentialité</Text>
         </View>
 
         {/* Apparence */}
-        <SettingsSection title="APPARENCE">
+        <SettingsSection title="APPARENCE" titleColor={textSecondary}>
           <View style={styles.themeRow}>
             <ThemeSelector accentColor={theme.accent} />
           </View>
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title={t('settings.notifications')}>
+        <SettingsSection title={t('settings.notifications')} titleColor={textSecondary}>
           <SettingsRowItem
             icon="Grades"
             label={t('settings.notifGrades')}
@@ -153,6 +176,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             type="toggle"
             toggleValue={notifications.grades}
             onToggle={(v) => setNotifications((p) => ({ ...p, grades: v }))}
+            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
           />
           <SettingsRowItem
             icon="Calendar"
@@ -162,6 +186,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             type="toggle"
             toggleValue={notifications.agenda}
             onToggle={(v) => setNotifications((p) => ({ ...p, agenda: v }))}
+            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
           />
           <SettingsRowItem
             icon="Sparkles"
@@ -171,6 +196,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             type="toggle"
             toggleValue={notifications.aria}
             onToggle={(v) => setNotifications((p) => ({ ...p, aria: v }))}
+            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
           />
           <SettingsRowItem
             icon="Heart"
@@ -181,11 +207,12 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             toggleValue={notifications.checkin}
             onToggle={(v) => setNotifications((p) => ({ ...p, checkin: v }))}
             isLast
+            labelColor={cardText} sublabelColor={cardTextMuted} switchTrackOff={switchTrack}
           />
         </SettingsSection>
 
         {/* RGPD & Privacy */}
-        <SettingsSection title="RGPD & CONFIDENTIALITÉ">
+        <SettingsSection title="RGPD & CONFIDENTIALITÉ" titleColor={textSecondary}>
           <SettingsRowItem
             icon="User"
             label="Permissions d'accès"
@@ -193,6 +220,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             color={Colors.green}
             type="navigate"
             onPress={() => navigation.navigate('PermissionsRGPD')}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
           />
           <SettingsRowItem
             icon="Paper"
@@ -201,6 +229,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             color={Colors.cyan}
             type="navigate"
             onPress={() => navigation.navigate('JournalAcces')}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
           />
           <SettingsRowItem
             icon="ArrowRight"
@@ -209,6 +238,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             color={Colors.violet}
             type="navigate"
             onPress={() => navigation.navigate('TransfertCode')}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
           />
           <SettingsRowItem
             icon="ArrowDown"
@@ -217,6 +247,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             color={Colors.orange}
             type="navigate"
             onPress={() => navigation.navigate('ExportDonnees')}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
           />
           <SettingsRowItem
             icon="Trash"
@@ -226,11 +257,12 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             type="navigate"
             isLast
             onPress={() => navigation.navigate('Effacement')}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor}
           />
         </SettingsSection>
 
         {/* Account actions */}
-        <SettingsSection title="COMPTE">
+        <SettingsSection title="COMPTE" titleColor={textSecondary}>
           <SettingsRowItem
             icon="ArrowRight"
             label="Changer de compte"
@@ -238,6 +270,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             color={Colors.violet}
             type="navigate"
             onPress={() => signOut()}
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
           />
           <SettingsRowItem
             icon="Logout"
@@ -247,14 +280,15 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             type="navigate"
             onPress={() => signOut()}
             isLast
+            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor}
           />
         </SettingsSection>
 
         {/* App info */}
         <View style={styles.footer}>
-          <Text style={styles.footerBrand}>Scolaria</Text>
-          <Text style={styles.footerVersion}>{t('common.version')} 1.0.0</Text>
-          <Text style={styles.footerCopy}>© 2026 Scolaria · Passeport scolaire numérique</Text>
+          <Text style={[styles.footerBrand, { color: textPrimary }]}>Scolaria</Text>
+          <Text style={[styles.footerVersion, { color: textMuted }]}>{t('common.version')} 1.0.0</Text>
+          <Text style={[styles.footerCopy, { color: textMuted }]}>© 2026 Scolaria · Passeport scolaire numérique</Text>
         </View>
       </ScrollView>
     </View>
@@ -262,12 +296,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────
-
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.45)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-} as const;
 
 const styles = StyleSheet.create({
   root: {
@@ -290,14 +318,10 @@ const styles = StyleSheet.create({
   titleText: {
     fontFamily: FontFamily.loraBold,
     fontSize: 26,
-    color: '#FFFFFF',
-    ...TEXT_SHADOW,
   },
   titleSub: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.72)',
-    ...TEXT_SHADOW,
   },
 
   // Section
@@ -313,10 +337,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 11,
-    color: 'rgba(255,255,255,0.75)',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-    ...TEXT_SHADOW,
   },
 
   // Row
@@ -329,7 +351,7 @@ const styles = StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.18)',
+    // borderBottomColor applied inline via borderColor prop
   },
   iconBox: {
     width: 36,
@@ -345,13 +367,12 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 15,
-    color: '#FFFFFF',
-    ...TEXT_SHADOW,
+    // color applied inline via labelColor
   },
   rowSublabel: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    // color applied inline via sublabelColor
   },
   rowValue: {
     fontFamily: FontFamily.sansSemiBold,
@@ -373,18 +394,14 @@ const styles = StyleSheet.create({
   footerBrand: {
     fontFamily: FontFamily.loraBold,
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    ...TEXT_SHADOW,
   },
   footerVersion: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.55)',
   },
   footerCopy: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
     marginTop: 2,
   },
 });

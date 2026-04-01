@@ -260,6 +260,14 @@ export default function NotificationsScreen() {
 
   const unreadCount = today.filter((n) => !n.read).length + earlier.filter((n) => !n.read).length;
 
+  // Mode-aware text colors
+  const titleColor = theme.textOnBg;
+  const subtitleColor = theme.textOnBgSecondary;
+  const sectionColor = theme.textOnBg;
+  const cardTxt = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTxtSec = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTxtMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+
   return (
     <View style={{ flex: 1 }}>
       <WallpaperBackground />
@@ -274,8 +282,8 @@ export default function NotificationsScreen() {
       >
         {/* Page title */}
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Notifications</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: titleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.45)' : 'transparent' }]}>Notifications</Text>
+          <Text style={[styles.subtitle, { color: subtitleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.35)' : 'transparent' }]}>
             {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
           </Text>
         </View>
@@ -285,7 +293,7 @@ export default function NotificationsScreen() {
           <>
             <View style={styles.sectionRow}>
               <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-              <Text style={styles.sectionLabel}>Aujourd'hui</Text>
+              <Text style={[styles.sectionLabel, { color: sectionColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' }]}>Aujourd'hui</Text>
             </View>
             {today.map((notif) => (
               <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
@@ -298,7 +306,7 @@ export default function NotificationsScreen() {
           <>
             <View style={[styles.sectionRow, { marginTop: 4 }]}>
               <View style={[styles.sectionBar, { backgroundColor: 'rgba(203,213,225,0.7)' }]} />
-              <Text style={[styles.sectionLabel, { color: 'rgba(255,255,255,0.6)' }]}>Plus tôt</Text>
+              <Text style={[styles.sectionLabel, { color: subtitleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' }]}>Plus tôt</Text>
             </View>
             {earlier.map((notif) => (
               <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
@@ -317,6 +325,10 @@ function NotifCard({ notif, accent, onPress }: {
   accent: string;
   onPress: (notif: Notification) => void;
 }) {
+  const { theme: cardTheme } = useChildTheme();
+  const cText = cardTheme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cTextSec = cardTheme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cTextMuted = cardTheme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
   const cfg = NOTIF_PAPICONS[notif.type] ?? NOTIF_PAPICONS.aria;
 
   return (
@@ -339,13 +351,13 @@ function NotifCard({ notif, accent, onPress }: {
             <View style={styles.cardTitleRow}>
               <Text style={[
                 styles.notifTitle,
-                { fontFamily: notif.read ? FontFamily.sansSemiBold : FontFamily.sansBold },
+                { fontFamily: notif.read ? FontFamily.sansSemiBold : FontFamily.sansBold, color: cText },
               ]}>
                 {notif.title}
               </Text>
-              <Text style={styles.notifTime}>{notif.time}</Text>
+              <Text style={[styles.notifTime, { color: cTextMuted }]}>{notif.time}</Text>
             </View>
-            <Text style={styles.notifMessage}>{notif.message}</Text>
+            <Text style={[styles.notifMessage, { color: cTextSec }]}>{notif.message}</Text>
           </View>
 
           {/* Unread dot */}
@@ -367,16 +379,14 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamily.sansBold,
     fontSize: 26,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.45)',
+    // color + textShadowColor applied inline
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },
   subtitle: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    textShadowColor: 'rgba(0,0,0,0.35)',
+    // color + textShadowColor applied inline
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
     marginTop: 4,
@@ -395,10 +405,9 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    color: '#FFFFFF',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
-    textShadowColor: 'rgba(0,0,0,0.4)',
+    // color + textShadowColor applied inline
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
@@ -426,18 +435,18 @@ const styles = StyleSheet.create({
   },
   notifTitle: {
     fontSize: 14,
-    color: '#0F172A',
+    // color applied inline
   },
   notifTime: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: '#94A3B8',
+    // color applied inline
   },
   notifMessage: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: '#64748B',
     lineHeight: 18,
+    // color applied inline
   },
   unreadDot: {
     width: 8,
