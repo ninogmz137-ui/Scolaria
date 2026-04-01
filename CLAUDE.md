@@ -15,126 +15,168 @@ Tagline : "Le copilote éducatif des familles"
 
 ---
 
-## Typographie
-- **Titres / Display** : DM Serif Display ou Barlow Condensed 700-900
-- **Corps / UI** : DM Sans 400-600
-- **Labels uppercase** : DM Sans 600, letter-spacing 1px, text-transform uppercase
-- Ne jamais utiliser Arial, Inter, Roboto ou System fonts par défaut
+## DESIGN LANGUAGE v2.0 — Direction "Premium Modern"
+
+### Philosophie
+Scolaria doit avoir le niveau visuel de Papillon ou supérieur.
+Mots-clés : glass morphism, profondeur, typographie forte,
+animations fluides, premium. JAMAIS plat, JAMAIS générique.
 
 ---
 
-## Palette de couleurs
+### Headers
+- Occupent 30-35% de l'écran sur chaque onglet principal
+- Fond : dégradé depuis couleur accent thème -> transparent
+- Border-radius en bas : 28px
+- Le contenu scrolle SOUS le header (overlap)
+- Composant : `<ScreenHeader>` (src/components/ScreenHeader.tsx)
 
-### Base (fond clair — direction principale)
-- Background : #F7F8FC
-- Surface / Card : #FFFFFF
-- Border : #EEF0F5
-- Text Primary : #0F172A
-- Text Secondary : #64748B
-- Text Muted : #94A3B8
+### Cartes (Glass Cards)
+- TOUJOURS en glass morphism, jamais de View blanc simple
+- Sur fond sombre : rgba(255,255,255,0.08), border rgba(255,255,255,0.12)
+- Sur fond clair : rgba(255,255,255,0.75), border rgba(255,255,255,0.9),
+  shadow forte (shadowOpacity 0.06, shadowRadius 24)
+- borderRadius : 20 partout
+- Composant : `<GlassCard>` (src/components/GlassCard.tsx)
 
-### Accent global Scolaria
+### Tab bar
+- Pill flottante detachee du bas (bottom: 20, left: 20, right: 20)
+- borderRadius: 28
+- Fond semi-transparent + blur si possible
+- L'onglet actif a un fond pill avec couleur accent (opacite 15%)
+- Label visible uniquement sur l'onglet actif
+- Tous les ScrollView ont paddingBottom: 100
+- Composant : `<FloatingTabBar>` (src/components/FloatingTabBar.tsx)
+
+### Typographie
+- Chiffres et titres display : BarlowCondensed_700Bold / 800ExtraBold
+- Corps et UI : DMSans_400Regular / 500Medium / 600SemiBold
+- Titres de section : BarlowCondensed_700Bold, 13px, uppercase, letterSpacing 2
+- JAMAIS de font systeme (Arial, Inter, Roboto, System)
+
+### Icones
+- lucide-react-native pour toute la navigation et l'UI
+- Emoji uniquement dans le contenu (matieres, messages, badges)
+- Taille : 20px listes, 24px tab bar
+- strokeWidth: 2
+
+### Fonds par mode scolaire
+- Maternelle : #FFF8F0 + header orange/ambre (#FF9F43 -> #FFECD2) + motif SVG subtil 3-5%
+- Primaire : #0F1923 + header cyan profond (#0B1628 -> #164E63) + micro-etoiles 5%
+- College-Lycee : #F8F7FF + header violet raffine (#4C1D95 -> #7C3AED) + fond clean
+- Proprietes theme : backgroundColor, headerGradientFull[], isDarkBg, textOnBg, textOnBgSecondary
+
+### Animations (react-native-reanimated)
+- FadeInUp staggered (60ms delay) sur les listes de cartes
+- Spring animation sur tab bar indicator
+- Scale 0.97 sur press des cartes
+- Fade transition au switch d'enfant
+
+---
+
+### Palette de couleurs
+
+#### Accent global Scolaria
 - Violet primaire : #6366F1
 - Cyan secondaire : #22D3EE
-- Dégradé Aria : linear-gradient(135deg, #6366F1, #22D3EE)
+- Degrade Aria : linear-gradient(135deg, #6366F1, #22D3EE)
 
-### Thèmes par enfant (personnalisables)
-- Océan (défaut) : fond #0D1B3E, accent #4A90D9, light #93C5FD
-- Glacier : fond #08141E, accent #0EA5E9, light #BAE6FD
-- Ambre : fond #1F1208, accent #FBBF24, light #FCD34D
-- Corail : fond #1C0E0C, accent #EF4444, light #FCA5A5
-- Rose : fond #1C0C14, accent #EC4899, light #F9A8D4
-- Teal : fond #071A1A, accent #14B8A6, light #5EEAD4
-- Lavande : fond #110C1F, accent #A78BFA, light #C4B5FD
-- Forêt : fond #1A2A1A, accent #4CAF50, light #A5D6A7
-- Violet : fond #1A1A2E, accent #7C3AED, light #A78BFA
+#### Themes par enfant (personnalisables)
+- Ocean (defaut) : accent #4A90D9, light #93C5FD
+- Glacier : accent #0EA5E9, light #BAE6FD
+- Ambre : accent #FBBF24, light #FCD34D
+- Corail : accent #EF4444, light #FCA5A5
+- Rose : accent #EC4899, light #F9A8D4
+- Teal : accent #14B8A6, light #5EEAD4
+- Lavande : accent #A78BFA, light #C4B5FD
+- Foret : accent #4CAF50, light #A5D6A7
+- Violet : accent #7C3AED, light #A78BFA
 
-### Couleurs sémantiques
-- Succès / positif : #10B981
+Couleurs enfant = accents UNIQUEMENT (header, tab bar, badges), jamais sur le texte general.
+
+#### Couleurs semantiques
+- Succes / positif : #10B981
 - Alerte / urgent : #EF4444
 - Attention : #F59E0B
 - Score de Joie : #F59E0B
+
+#### Texte
+- Sur fond clair : #0F172A (principal), #64748B (secondaire), #94A3B8 (muted)
+- Sur fond sombre : #FFFFFF (principal), rgba(255,255,255,0.7) (secondaire)
+- Sur header colore : TOUJOURS blanc
+- JAMAIS de texte blanc sur fond clair
+
+---
+
+### Regles absolues design
+- ZERO texte blanc sur fond clair
+- ZERO emoji comme icone de navigation
+- ZERO carte plate sans glass effect
+- ZERO font systeme
+- ZERO fond blanc pur (#FFFFFF) comme background de page
 
 ---
 
 ## Structure de navigation
 
-### Topbar (fixe, tous les écrans)
-- Gauche : burger menu (☰)
-- Centre : pill enfant sélectionné [Avatar] [Prénom] [▾]
-- Droite : cloche notifications + badge rouge si non lus
+### Topbar (fixe, tous les ecrans)
+- Gauche : avatar enfant (ouvre burger menu)
+- Centre : greeting (accueil) / titre (stacked)
+- Droite : boutons glass contextuels
+- Composant : `<AppTopbar>` (src/components/AppTopbar.tsx)
 
 ### Bottom bar (4 onglets permanents)
-1. 🏠 Accueil
-2. 📊 Notes
-3. ✦ Aria
-4. 📅 Agenda
+1. Accueil (icone lucide: Home)
+2. Notes (icone lucide: GraduationCap)
+3. Aria (icone: Sparkles)
+4. Agenda (icone lucide: Calendar)
 
 ### Menu burger (tiroir gauche)
-Sections : MON ENFANT → FAMILLE → PARAMÈTRES
-Items : Notes & Résultats, Cahier de liaison (badge), Bien-être,
-Profil & Badges, Archives, Changer d'enfant, Permissions d'accès,
-Notifications, RGPD, À propos / Charte Éthique
+Sections : MON ENFANT -> FAMILLE -> PARAMETRES
+Items : Notes & Resultats, Cahier de liaison (badge), Bien-etre,
+Profil & Badges, Archives, Changer d'enfant, Permissions d'acces,
+Notifications, RGPD, A propos / Charte Ethique
 
 ---
 
-## Écran d'accueil
+## Ecran d'accueil
 
 ### Structure
-1. Header sombre (couleur thème enfant) avec :
-   - Topbar
-   - Bandeau fin (4px) dégradé en tout haut
-   - Carte Synthèse Aria (fond semi-transparent)
-2. Section "Aujourd'hui" — grille 2x2 de tuiles blanches
-3. Bandeau Score de Joie
-4. Bottom bar
+1. ScreenHeader gradient (30-35% ecran, couleur theme enfant)
+2. Topbar par-dessus le header
+3. Section "Aujourd'hui" — grille 2x2 de GlassCard tuiles
+4. Cours du jour (GlassCard noPadding)
+5. Carte Aria synthese (GlassCard)
+6. Bandeau Score de Joie
+7. FloatingTabBar
 
 ### Tuiles dynamiques
-- Cahier de liaison : nb mots + badge rouge si non signé
-- Devoirs : nb à rendre + date prochain
-- Notes : moyenne générale + tendance
-- Agenda : nb événements + prochain
+- Cahier de liaison : nb mots + badge rouge si non signe
+- Devoirs : nb a rendre + date prochain
+- Notes : moyenne generale + tendance
+- Agenda : nb evenements + prochain
 
 ---
 
-## Écran sélecteur de profil (ouverture app)
-- Fond sombre #0A0A14 avec halos de lumière violet/cyan
-- Logo "Scolar" + "ia" en dégradé violet→cyan
-- Avatars carrés arrondis (border-radius 14px) par enfant
-- Bouton "Continuer avec [Prénom] →" en bas
+## Ecran selecteur de profil (ouverture app)
+- Fond sombre #0A0A14 avec halos de lumiere violet/cyan (LuminousOrbs)
+- Logo "Scolar" + "ia" en degrade violet->cyan
+- Avatars carres arrondis (border-radius 14px) par enfant
+- Bouton "Continuer avec [Prenom] ->" en bas
 - Badge Famille + PREMIUM
 
 ---
 
-## Composants — règles générales
-
-### Cards / Tuiles
-- Background : #FFFFFF
-- Border : 1px solid #EEF0F5
-- Border-radius : 16px
-- Shadow : 0 1px 4px rgba(0,0,0,0.04)
-- Padding : 13px 12px
-
-### Badges / Pills
+## Badges / Pills
 - Border-radius : 20px
 - Padding : 4px 12px
-- Font : DM Sans 600, 11px
+- Font : DMSans_600SemiBold, 11px
 
-### Icônes de tuile
-- Taille : 32x32px
-- Border-radius : 9px
-- Fond coloré très léger (10% opacité de l'accent)
-
-### Chiffres dans les tuiles
-- Font : DM Sans 600
-- Taille : 22px
-- Couleur : #0F172A
-
-### Boutons primaires
-- Background : dégradé #6366F1 → #22D3EE
+## Boutons primaires
+- Background : degrade #6366F1 -> #22D3EE
 - Couleur texte : #FFFFFF
 - Border-radius : 14px
-- Font : DM Sans 700, 13px
+- Font : DMSans_700Bold, 13px
 
 ---
 

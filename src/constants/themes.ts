@@ -71,8 +71,10 @@ function adjustBrightness(hex: string, factor: number): string {
 }
 
 /**
- * Derive a full light-mode palette from a ChildTheme.
- * Background is always #F7F8FC, cards #FFFFFF — only the accent changes per child.
+ * Derive a full palette from a ChildTheme.
+ * Mode-aware properties (backgroundColor, headerGradientFull, etc.) are NOT
+ * overridden here — they come from SchoolModeTheme and pass through unchanged
+ * in ChildThemeContext's merge. Only accent colors change per child.
  */
 export function deriveThemePalette(theme: ChildTheme) {
   const { accent, accentLight } = theme;

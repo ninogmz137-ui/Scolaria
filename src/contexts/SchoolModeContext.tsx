@@ -46,6 +46,17 @@ export interface SchoolModeTheme {
   ariaColor: string;
   ariaEmoji: string;
   ariaLabel: string;
+  // ─── Phase 1: Mode-aware backgrounds & headers ───
+  /** Page background color per mode */
+  backgroundColor: string;
+  /** Full header gradient colors (top → transparent) */
+  headerGradientFull: string[];
+  /** Is the background dark? (drives text color logic) */
+  isDarkBg: boolean;
+  /** Primary text color on this background (outside cards) */
+  textOnBg: string;
+  /** Secondary text color on this background */
+  textOnBgSecondary: string;
 }
 
 // ─── Theme definitions ─────────────────────────────────
@@ -80,6 +91,12 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaColor: '#FF8C42',
     ariaEmoji: '🧸',
     ariaLabel: 'Aria',
+    // Phase 1
+    backgroundColor: '#FFF8F0',
+    headerGradientFull: ['#FF9F43', '#FFDBB5', '#FFF8F000'],
+    isDarkBg: false,
+    textOnBg: '#0F172A',
+    textOnBgSecondary: '#64748B',
   },
   primaire: {
     ...LIGHT_BASE,
@@ -93,6 +110,12 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaColor: '#22D3EE',
     ariaEmoji: '✦',
     ariaLabel: 'Aria ✦',
+    // Phase 1
+    backgroundColor: '#0F1923',
+    headerGradientFull: ['#0B1628', '#164E63', '#0F192300'],
+    isDarkBg: true,
+    textOnBg: '#FFFFFF',
+    textOnBgSecondary: 'rgba(255,255,255,0.7)',
   },
   lycee: {
     ...LIGHT_BASE,
@@ -106,6 +129,12 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaColor: '#6D28D9',
     ariaEmoji: '🎯',
     ariaLabel: 'Aria Coach',
+    // Phase 1
+    backgroundColor: '#F8F7FF',
+    headerGradientFull: ['#4C1D95', '#7C3AED', '#F8F7FF00'],
+    isDarkBg: false,
+    textOnBg: '#0F172A',
+    textOnBgSecondary: '#64748B',
   },
 };
 

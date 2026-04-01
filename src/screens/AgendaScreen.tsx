@@ -28,6 +28,7 @@ import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
+import ScreenHeader from '../components/ScreenHeader';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -163,6 +164,9 @@ export default function AgendaScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
 
   const todayDate = new Date().getDate();
   const initialWeekDays = buildWeekDays(new Date());
@@ -297,7 +301,14 @@ export default function AgendaScreen() {
       >
         {/* Week header + badges */}
         <View style={st.weekHeader}>
-          <Text style={st.weekTitle}>{formatWeekHeader(weekDays)}</Text>
+          <Text
+            style={[
+              st.weekTitle,
+              { textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' },
+            ]}
+          >
+            {formatWeekHeader(weekDays)}
+          </Text>
           <View style={st.badgeRow}>
             <View style={[st.badge, { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(248,113,113,0.25)' }]}>
               <Papicons name="Warning" size={13} color="#FCA5A5" />
@@ -329,8 +340,8 @@ export default function AgendaScreen() {
                 ]}
                 onPress={() => { setSelectedDay(item.date); setExpandedEvent(null); }}
               >
-                <Text style={[st.dayLabel, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
-                <Text style={[st.dayNumber, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
+                <Text style={[st.dayLabel, !isSelected && { color: theme.isDarkBg ? 'rgba(255,255,255,0.6)' : '#94A3B8' }, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
+                <Text style={[st.dayNumber, !isSelected && { color: theme.isDarkBg ? '#FFFFFF' : '#0F172A' }, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
                 {hasEvents && <View style={[st.dayDot, isSelected && { backgroundColor: '#FFFFFF' }]} />}
               </Pressable>
             );
@@ -340,7 +351,15 @@ export default function AgendaScreen() {
         {/* Day title */}
         <View style={st.dayTitle}>
           <View style={[st.sectionBar, { backgroundColor: theme.accent }]} />
-          <Text style={st.sectionText}>
+          <Text
+            style={[
+              st.sectionText,
+              {
+                color: theme.textOnBg,
+                textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+              },
+            ]}
+          >
             {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
           </Text>
         </View>
@@ -350,8 +369,8 @@ export default function AgendaScreen() {
           {events.length === 0 ? (
             <GlassCard style={{ alignItems: 'center', paddingVertical: 40 }}>
               <Text style={{ fontSize: 48, marginBottom: 10 }}>🌿</Text>
-              <Text style={st.emptyTitle}>Journée libre</Text>
-              <Text style={st.emptySubtitle}>Aucun événement prévu ce jour</Text>
+              <Text style={[st.emptyTitle, { color: cardText }]}>Journée libre</Text>
+              <Text style={[st.emptySubtitle, { color: cardTextMuted }]}>Aucun événement prévu ce jour</Text>
             </GlassCard>
           ) : (
             events.map((event) => {
@@ -377,7 +396,8 @@ export default function AgendaScreen() {
                             <Text
                               style={[
                                 st.eventTitle,
-                                isDevoir && event.done && { textDecorationLine: 'line-through', color: '#94A3B8' },
+                                { color: cardText },
+                                isDevoir && event.done && { textDecorationLine: 'line-through', color: cardTextMuted },
                               ]}
                             >
                               {event.title}
@@ -386,7 +406,7 @@ export default function AgendaScreen() {
                               <View style={[st.typePill, { backgroundColor: event.color + '18' }]}>
                                 <Text style={[st.typeLabel, { color: event.color }]}>{TYPE_LABELS[event.type]}</Text>
                               </View>
-                              <Text style={st.timeText}>
+                              <Text style={[st.timeText, { color: cardTextMuted }]}>
                                 {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
                               </Text>
                             </View>
@@ -416,13 +436,13 @@ export default function AgendaScreen() {
                             {event.location && (
                               <View style={st.detailRow}>
                                 <Papicons name="Pin" size={13} color="#94A3B8" />
-                                <Text style={st.detailText}>{event.location}</Text>
+                                <Text style={[st.detailText, { color: cardTextMuted }]}>{event.location}</Text>
                               </View>
                             )}
                             {event.description && (
                               <View style={st.detailRow}>
                                 <Papicons name="Info" size={13} color="#94A3B8" />
-                                <Text style={st.detailText}>{event.description}</Text>
+                                <Text style={[st.detailText, { color: cardTextMuted }]}>{event.description}</Text>
                               </View>
                             )}
                           </View>
@@ -447,6 +467,8 @@ export default function AgendaScreen() {
           </Pressable>
         </View>
       </ScrollView>
+
+      <ScreenHeader />
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>
@@ -528,7 +550,7 @@ const st = StyleSheet.create({
   weekTitle: {
     fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF',
     textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8,
-    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
   badgeRow: { flexDirection: 'row', gap: 8 },
   badge: {
@@ -549,8 +571,8 @@ const st = StyleSheet.create({
   dayTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginVertical: 10 },
   sectionBar: { width: 4, height: 18, borderRadius: 2 },
   sectionText: {
-    fontFamily: FontFamily.sansBold, fontSize: 16, color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+    fontFamily: FontFamily.sansBold, fontSize: 16,
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
 
   emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A', marginBottom: 4 },

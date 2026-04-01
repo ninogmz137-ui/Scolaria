@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
+import ScreenHeader from '../components/ScreenHeader';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { getTodayAbsence, MOTIF_LABELS } from '../services/absenceService';
@@ -95,6 +96,11 @@ const MOCK_COURS = [
 export default function AccueilScreen() {
   const { theme } = useChildTheme();
   const { selectedChild, selectedChildId, fadeAnim } = useActiveChild();
+
+  // Card-specific text colors — switch on dark background themes (primaire mode)
+  const cardText          = theme.isDarkBg ? '#FFFFFF'              : '#0F172A';
+  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted     = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
@@ -223,7 +229,7 @@ export default function AccueilScreen() {
           {/* ── Quick tiles 2×2 grid ── */}
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-            <Text style={styles.sectionLabel}>Aujourd'hui</Text>
+            <Text style={[styles.sectionLabel, { color: theme.textOnBg }]}>Aujourd'hui</Text>
           </View>
 
           <Animated.View style={[styles.tileGrid, { opacity: enterAnim }]}>
@@ -271,7 +277,7 @@ export default function AccueilScreen() {
           {/* ── Cours du jour ── */}
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-            <Text style={styles.sectionLabel}>Cours du jour</Text>
+            <Text style={[styles.sectionLabel, { color: theme.textOnBg }]}>Cours du jour</Text>
           </View>
 
           <GlassCard style={{ marginBottom: 14 }} noPadding>
@@ -279,10 +285,10 @@ export default function AccueilScreen() {
               {MOCK_COURS.map((cours, i) => (
                 <View key={i} style={styles.coursRow}>
                   <View style={[styles.coursBar, { backgroundColor: cours.color }]} />
-                  <Text style={styles.coursTime}>{cours.time}</Text>
+                  <Text style={[styles.coursTime, { color: cardTextSecondary }]}>{cours.time}</Text>
                   <View style={styles.coursFlex}>
-                    <Text style={styles.coursSubject}>{cours.subject}</Text>
-                    <Text style={styles.coursRoom}>{cours.room}</Text>
+                    <Text style={[styles.coursSubject, { color: cardText }]}>{cours.subject}</Text>
+                    <Text style={[styles.coursRoom, { color: cardTextMuted }]}>{cours.room}</Text>
                   </View>
                 </View>
               ))}
@@ -300,9 +306,9 @@ export default function AccueilScreen() {
               >
                 <Text style={{ fontSize: 12, color: '#FFFFFF', fontFamily: FontFamily.sansBold }}>✦</Text>
               </LinearGradient>
-              <Text style={styles.ariaLabel}>Aria · Synthèse du jour</Text>
+              <Text style={[styles.ariaLabel, { color: cardTextSecondary }]}>Aria · Synthèse du jour</Text>
             </View>
-            <Text style={styles.ariaSummary}>{data.ariaSummary}</Text>
+            <Text style={[styles.ariaSummary, { color: cardText }]}>{data.ariaSummary}</Text>
           </GlassCard>
 
           {/* ── Absence banner ── */}
@@ -310,7 +316,7 @@ export default function AccueilScreen() {
             <GlassCard style={{ marginBottom: 14 }}>
               <View style={styles.absenceRow}>
                 <Papicons name="Calendar" size={18} color={accent} />
-                <Text style={styles.absenceText} numberOfLines={1}>
+                <Text style={[styles.absenceText, { color: cardTextSecondary }]} numberOfLines={1}>
                   {selectedChild.name} absent(e) · {MOTIF_LABELS[todayAbsence.motif]}{' '}
                   {todayAbsence.statut === 'prise_en_compte' ? '✓' : '⏳'}
                 </Text>
@@ -320,7 +326,17 @@ export default function AccueilScreen() {
 
           {/* ── Signal absence button ── */}
           <RNPressable
-            style={styles.absenceButton}
+            style={[
+              styles.absenceButton,
+              {
+                backgroundColor: theme.isDarkBg
+                  ? 'rgba(255,255,255,0.12)'
+                  : 'rgba(0,0,0,0.04)',
+                borderColor: theme.isDarkBg
+                  ? 'rgba(255,255,255,0.25)'
+                  : 'rgba(0,0,0,0.1)',
+              },
+            ]}
             onPress={() => navigation.navigate('SignalerAbsenceScreen')}
           >
             <Papicons name="Add" size={20} color={accent} />
@@ -337,11 +353,11 @@ export default function AccueilScreen() {
                   <Text style={{ fontSize: 24 }}>💛</Text>
                 </View>
                 <View style={styles.flex}>
-                  <Text style={styles.joyLabel}>Score de Joie</Text>
+                  <Text style={[styles.joyLabel, { color: cardTextSecondary }]}>Score de Joie</Text>
                   <View style={styles.joyValueRow}>
-                    <Text style={styles.joyValue}>{data.joyScore.value}</Text>
-                    <Text style={styles.joyMax}>/5</Text>
-                    <Text style={styles.joyPeriod}>cette semaine</Text>
+                    <Text style={[styles.joyValue, { color: cardText }]}>{data.joyScore.value}</Text>
+                    <Text style={[styles.joyMax, { color: cardTextMuted }]}>/5</Text>
+                    <Text style={[styles.joyPeriod, { color: cardTextMuted }]}>cette semaine</Text>
                   </View>
                   <View style={styles.joyTrendRow}>
                     <Papicons
@@ -354,11 +370,14 @@ export default function AccueilScreen() {
                     </Text>
                   </View>
                 </View>
-                <Papicons name="ChevronRight" size={18} color="#94A3B8" />
+                <Papicons name="ChevronRight" size={18} color={cardTextMuted} />
               </View>
             </GlassCard>
           </RNPressable>
         </ScrollView>
+
+        {/* ScreenHeader renders above scroll content (position:absolute, zIndex:1) */}
+        <ScreenHeader />
       </Animated.View>
     </View>
   );
@@ -385,6 +404,11 @@ function GlassTile({
   badge?: number;
   onPress: () => void;
 }) {
+  const { theme: tileTheme } = useChildTheme();
+  const cardText          = tileTheme.isDarkBg ? '#FFFFFF'               : '#0F172A';
+  const cardTextSecondary = tileTheme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted     = tileTheme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+
   return (
     <RNPressable onPress={onPress} style={styles.tileWrap}>
       <GlassCard style={styles.tileFull}>
@@ -398,9 +422,12 @@ function GlassTile({
             </View>
           )}
         </View>
-        <Text style={styles.tileValue}>{value}</Text>
-        <Text style={styles.tileLabel}>{label}</Text>
-        <Text style={[styles.tileDetail, detailColor ? { color: detailColor } : undefined]} numberOfLines={1}>
+        <Text style={[styles.tileValue, { color: cardText }]}>{value}</Text>
+        <Text style={[styles.tileLabel, { color: cardTextSecondary }]}>{label}</Text>
+        <Text
+          style={[styles.tileDetail, { color: detailColor ?? cardTextMuted }]}
+          numberOfLines={1}
+        >
           {detail}
         </Text>
       </GlassCard>
@@ -420,12 +447,9 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    color: '#FFFFFF',
+    // color is applied inline via theme.textOnBg
     textTransform: 'uppercase',
     letterSpacing: 1.2,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
 
   // Tile grid
@@ -464,9 +488,8 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    // backgroundColor and borderColor applied inline via theme.isDarkBg
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.5)',
     borderStyle: 'dashed',
   },
   absenceButtonText: { fontFamily: FontFamily.sansBold, fontSize: 14 },

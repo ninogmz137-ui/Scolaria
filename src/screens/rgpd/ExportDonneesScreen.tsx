@@ -200,7 +200,7 @@ export default function ExportDonneesScreen() {
                 <Pressable key={fmt.key} style={{ flex: 1 }} onPress={() => setExportFormat(fmt.key)}>
                   <GlassCard
                     style={[styles.formatCard, isSelected && { borderColor: Colors.orange + '80' }]}
-                    opacity={isSelected ? 0.85 : 0.6}
+                    intensity={isSelected ? 'strong' : 'subtle'}
                   >
                     {isSelected && (
                       <View style={[styles.formatCheck, { backgroundColor: Colors.orange }]}>

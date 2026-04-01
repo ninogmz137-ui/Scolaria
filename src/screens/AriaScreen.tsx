@@ -22,6 +22,7 @@ import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import ScreenHeader from '../components/ScreenHeader';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
@@ -195,6 +196,10 @@ export default function AriaScreen() {
     timestamp: '',
   };
 
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+
   const rgb = hexToRgb(theme.accent);
   const accentBorder = rgb
     ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`
@@ -203,6 +208,7 @@ export default function AriaScreen() {
   return (
     <View style={styles.root}>
       <WallpaperBackground />
+      <ScreenHeader heightRatio={0.25} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -233,7 +239,12 @@ export default function AriaScreen() {
                 <Pressable
                   style={[
                     styles.suggestionPill,
-                    { borderColor: accentBorder },
+                    {
+                      borderColor: accentBorder,
+                      backgroundColor: theme.isDarkBg
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(255,255,255,0.50)',
+                    },
                     isTyping && styles.suggestionPillDisabled,
                   ]}
                   onPress={() => handleSuggestionPress(item)}
@@ -242,7 +253,7 @@ export default function AriaScreen() {
                   <Text
                     style={[
                       styles.suggestionText,
-                      { color: theme.textSecondary },
+                      { color: theme.isDarkBg ? 'rgba(255,255,255,0.7)' : theme.textSecondary },
                       isTyping && styles.textDisabled,
                     ]}
                   >
@@ -264,7 +275,12 @@ export default function AriaScreen() {
           <View
             style={[
               styles.inputRow,
-              { borderColor: accentBorder },
+              {
+                borderColor: accentBorder,
+                backgroundColor: theme.isDarkBg
+                  ? 'rgba(255,255,255,0.12)'
+                  : 'rgba(255,255,255,0.55)',
+              },
             ]}
           >
             <TextInput
@@ -307,8 +323,7 @@ export default function AriaScreen() {
       {/* Glass header card — rendered last so it floats above the list */}
       <View style={[styles.headerContainer, { paddingTop: insets.top + 8 }]}>
         <GlassCard
-          intensity={30}
-          opacity={0.65}
+          intensity="strong"
           borderRadius={20}
           noPadding
           style={styles.headerCard}
@@ -317,7 +332,7 @@ export default function AriaScreen() {
             {/* Avatar + name + status */}
             <AriaAvatar size={40} />
             <View style={styles.headerInfo}>
-              <Text style={styles.headerTitle}>{theme.ariaLabel}</Text>
+              <Text style={[styles.headerTitle, { color: cardText }]}>{theme.ariaLabel}</Text>
               <View style={styles.statusRow}>
                 <View
                   style={[
@@ -341,7 +356,7 @@ export default function AriaScreen() {
                 <Text style={styles.modelBadgeText}>Claude Sonnet</Text>
               </View>
               <Pressable style={styles.menuButton}>
-                <Papicons name="Dots" size={20} color="rgba(15,23,42,0.5)" />
+                <Papicons name="Dots" size={20} color={theme.isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.5)'} />
               </Pressable>
             </View>
           </View>
@@ -371,7 +386,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionPill: {
-    backgroundColor: 'rgba(255,255,255,0.50)',
     borderWidth: 1.5,
     borderRadius: 20,
     paddingHorizontal: 14,
@@ -396,7 +410,6 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: 'rgba(255,255,255,0.55)',
     borderWidth: 1.5,
     borderRadius: 28,
     paddingLeft: 16,

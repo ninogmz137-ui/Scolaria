@@ -1,8 +1,8 @@
 /**
  * WallpaperBackground — Full-screen fixed background for all screens.
  *
- * Renders the active wallpaper (gradient or custom photo) behind content.
- * Position absolute, covers entire screen. Content scrolls on top.
+ * Phase 1 update: uses mode-aware background color by default.
+ * Custom photo wallpapers still override when set.
  *
  * Usage:
  * <View style={{flex: 1}}>
@@ -11,13 +11,15 @@
  * </View>
  */
 
-import { StyleSheet, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, StyleSheet, Image } from 'react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
+import { useChildTheme } from '../contexts/ChildThemeContext';
 
 export default function WallpaperBackground() {
-  const { currentWallpaper, customPhotoUri, isCustomPhoto } = useWallpaper();
+  const { customPhotoUri, isCustomPhoto } = useWallpaper();
+  const { theme } = useChildTheme();
 
+  // Custom photo still takes priority
   if (isCustomPhoto && customPhotoUri) {
     return (
       <Image
@@ -28,24 +30,9 @@ export default function WallpaperBackground() {
     );
   }
 
-  if (currentWallpaper?.type === 'gradient') {
-    const { colors, direction } = currentWallpaper;
-    return (
-      <LinearGradient
-        colors={colors as [string, string, ...string[]]}
-        start={direction ? { x: direction[0], y: direction[1] } : { x: 0.5, y: 0 }}
-        end={direction ? { x: direction[2], y: direction[3] } : { x: 0.5, y: 1 }}
-        style={styles.background}
-      />
-    );
-  }
-
-  // Fallback: neutral dark gradient
+  // Mode-aware solid background color
   return (
-    <LinearGradient
-      colors={['#1A2340', '#0F172A']}
-      style={styles.background}
-    />
+    <View style={[styles.background, { backgroundColor: theme.backgroundColor }]} />
   );
 }
 

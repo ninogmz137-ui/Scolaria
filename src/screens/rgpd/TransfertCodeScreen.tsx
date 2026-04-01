@@ -305,7 +305,7 @@ export default function TransfertCodeScreen() {
           {/* New code display */}
           {newCode && (
             <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: 20 }}>
-              <GlassCard style={[styles.newCodeCard, { borderColor: Colors.violet + '60' }]} opacity={0.88}>
+              <GlassCard style={[styles.newCodeCard, { borderColor: Colors.violet + '60' }]} intensity="strong">
                 <View style={{ alignItems: 'center' }}>
                   <Check size={32} color={Colors.green} />
                   <Text style={styles.newCodeSuccess}>Code généré avec succès !</Text>

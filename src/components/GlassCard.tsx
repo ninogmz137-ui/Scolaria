@@ -1,67 +1,94 @@
 /**
- * GlassCard — Translucent glass morphism card used across all screens.
+ * GlassCard — Mode-aware glass morphism card.
  *
- * iOS: Uses BlurView from expo-blur for real backdrop blur.
- * Android: Falls back to semi-transparent white (no native blur support).
+ * Auto-detects dark/light mode from the child theme and applies
+ * the correct glass style. On dark backgrounds the card is nearly
+ * transparent with a subtle white border; on light backgrounds it
+ * is frosted white with a stronger shadow.
+ *
+ * borderRadius: 20, borderCurve: 'continuous' everywhere.
  */
 
 import { type ReactNode } from 'react';
 import { View, StyleSheet, Platform, type ViewStyle } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { useChildTheme } from '../contexts/ChildThemeContext';
+
+// ─── Types ─────────────────────────────────────────────
+
+type Intensity = 'subtle' | 'medium' | 'strong';
 
 interface GlassCardProps {
   children: ReactNode;
-  /** Blur intensity (iOS only), default 20 */
-  intensity?: number;
-  /** Border radius, default 16 */
+  /** Glass intensity preset, default 'medium' */
+  intensity?: Intensity;
+  /** Override border radius, default 20 */
   borderRadius?: number;
   /** Additional styles on the outer container */
   style?: ViewStyle | ViewStyle[] | (ViewStyle | false | undefined)[];
-  /** Override background opacity (0-1), default 0.75 */
-  opacity?: number;
   /** No padding inside the card */
   noPadding?: boolean;
+  /** Force dark or light variant (auto-detected if omitted) */
+  variant?: 'dark' | 'light';
 }
+
+// ─── Opacity presets per variant ────────────────────────
+
+const DARK_BG: Record<Intensity, number> = {
+  subtle: 0.05,
+  medium: 0.08,
+  strong: 0.14,
+};
+
+const LIGHT_BG: Record<Intensity, number> = {
+  subtle: 0.6,
+  medium: 0.75,
+  strong: 0.88,
+};
+
+// ─── Component ─────────────────────────────────────────
 
 export default function GlassCard({
   children,
-  intensity = 20,
-  borderRadius = 16,
+  intensity = 'medium',
+  borderRadius = 20,
   style,
-  opacity = 0.75,
   noPadding = false,
+  variant,
 }: GlassCardProps) {
+  const { theme } = useChildTheme();
+  const isDark = variant === 'dark' || (variant === undefined && theme.isDarkBg);
+
+  const bgOpacity = isDark ? DARK_BG[intensity] : LIGHT_BG[intensity];
+  const borderColor = isDark
+    ? `rgba(255,255,255,${0.08 + bgOpacity * 0.5})`   // 0.10 – 0.15
+    : `rgba(255,255,255,${0.85 + bgOpacity * 0.1})`;   // 0.91 – 0.99
+
+  const shadow = isDark
+    ? {} // no shadow on dark glass
+    : Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.06,
+          shadowRadius: 24,
+        },
+        android: { elevation: 8 },
+        default: {},
+      });
+
   return (
     <View
       style={[
         styles.container,
-        { borderRadius },
-        // Android fallback: opaque white bg instead of blur
-        Platform.OS === 'android' && {
-          backgroundColor: `rgba(255,255,255,${Math.min(opacity + 0.1, 0.92)})`,
+        {
+          borderRadius,
+          borderColor,
+          backgroundColor: `rgba(255,255,255,${bgOpacity})`,
+          ...shadow,
         },
         style,
       ]}
     >
-      {/* iOS blur layer */}
-      {Platform.OS === 'ios' && (
-        <BlurView
-          intensity={intensity}
-          tint="light"
-          style={[StyleSheet.absoluteFill, { borderRadius }]}
-          experimentalBlurMethod="dimezisBlurView"
-        />
-      )}
-      {/* Semi-transparent overlay for consistent look on both platforms */}
-      {Platform.OS === 'ios' && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: `rgba(255,255,255,${opacity})`, borderRadius },
-          ]}
-        />
-      )}
-      {/* Content */}
       <View style={noPadding ? undefined : styles.content}>
         {children}
       </View>
@@ -69,24 +96,16 @@ export default function GlassCard({
   );
 }
 
+// ─── Styles ────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    // @ts-ignore — borderCurve is supported on iOS 17+
+    borderCurve: 'continuous',
   },
   content: {
-    padding: 14,
+    padding: 16,
   },
 });

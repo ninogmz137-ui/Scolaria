@@ -248,7 +248,7 @@ export default function JournalAccesScreen() {
                     styles.filterPill,
                     filter === f.key && { borderColor: Colors.cyan + '80', backgroundColor: undefined },
                   ]}
-                  opacity={filter === f.key ? 0.85 : 0.55}
+                  intensity={filter === f.key ? 'strong' : 'subtle'}
                 >
                   <Text style={[styles.filterText, filter === f.key && { color: Colors.cyan }]}>
                     {f.label}

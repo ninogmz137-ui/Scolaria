@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
+import ScreenHeader from '../components/ScreenHeader';
 import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
@@ -185,6 +186,10 @@ export default function NotesScreen() {
   const [sortMode, setSortMode] = useState<SortMode>('alpha');
   const isMaternelle = mode === 'maternelle';
 
+  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
+  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
+  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+
   const COLOR_PALETTE = [Colors.cyan, Colors.violet, Colors.orange, Colors.green, Colors.pink, Colors.warmOrange];
 
   const FRENCH_MONTHS: Record<string, string> = {
@@ -269,19 +274,22 @@ export default function NotesScreen() {
           contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
         >
           {/* Summary */}
-          <Text style={s.maternelleTitle}>Suivi des apprentissages</Text>
+          <Text style={[s.maternelleTitle, {
+            color: theme.textOnBg,
+            textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+          }]}>Suivi des apprentissages</Text>
           <View style={s.summaryRow}>
             <GlassCard style={s.summaryCard}>
-              <Text style={s.summaryValue}>🌟 {acquired}</Text>
-              <Text style={s.summaryLabel}>Acquis</Text>
+              <Text style={[s.summaryValue, { color: cardText }]}>🌟 {acquired}</Text>
+              <Text style={[s.summaryLabel, { color: cardTextMuted }]}>Acquis</Text>
             </GlassCard>
             <GlassCard style={s.summaryCard}>
-              <Text style={s.summaryValue}>🌱 {inProgress}</Text>
-              <Text style={s.summaryLabel}>En cours</Text>
+              <Text style={[s.summaryValue, { color: cardText }]}>🌱 {inProgress}</Text>
+              <Text style={[s.summaryLabel, { color: cardTextMuted }]}>En cours</Text>
             </GlassCard>
             <GlassCard style={s.summaryCard}>
-              <Text style={s.summaryValue}>{totalCompetencies}</Text>
-              <Text style={s.summaryLabel}>Compétences</Text>
+              <Text style={[s.summaryValue, { color: cardText }]}>{totalCompetencies}</Text>
+              <Text style={[s.summaryLabel, { color: cardTextMuted }]}>Compétences</Text>
             </GlassCard>
           </View>
 
@@ -291,7 +299,7 @@ export default function NotesScreen() {
               {Object.entries(COMPETENCY_LEVELS).map(([key, level]) => (
                 <View key={key} style={s.legendItem}>
                   <Text style={{ fontSize: 14 }}>{level.emoji}</Text>
-                  <Text style={s.legendLabel}>{level.label}</Text>
+                  <Text style={[s.legendLabel, { color: cardTextMuted }]}>{level.label}</Text>
                 </View>
               ))}
             </View>
@@ -309,8 +317,8 @@ export default function NotesScreen() {
                 >
                   <Text style={{ fontSize: 28 }}>{domain.emoji}</Text>
                   <View style={s.flex}>
-                    <Text style={s.subjectName} numberOfLines={2}>{domain.name}</Text>
-                    <Text style={s.subjectClass}>{domainAcquired}/{domain.competencies.length} acquis</Text>
+                    <Text style={[s.subjectName, { color: cardText }]} numberOfLines={2}>{domain.name}</Text>
+                    <Text style={[s.subjectClass, { color: cardTextMuted }]}>{domainAcquired}/{domain.competencies.length} acquis</Text>
                   </View>
                   <Text style={[s.subjectAvg, { color: domain.color }]}>
                     {domainAcquired}/{domain.competencies.length}
@@ -320,7 +328,7 @@ export default function NotesScreen() {
 
                 <View style={s.barRow}>
                   <GradeBar value={domainAcquired} max={domain.competencies.length} color={domain.color} />
-                  <Text style={s.barLabel}>{Math.round((domainAcquired / domain.competencies.length) * 100)}%</Text>
+                  <Text style={[s.barLabel, { color: cardTextMuted }]}>{Math.round((domainAcquired / domain.competencies.length) * 100)}%</Text>
                 </View>
 
                 {isExpanded && (
@@ -330,7 +338,7 @@ export default function NotesScreen() {
                       return (
                         <View key={comp.id} style={[s.gradeRow, i < domain.competencies.length - 1 && s.gradeBorder]}>
                           <View style={s.flex}>
-                            <Text style={s.gradeDate}>{comp.name}</Text>
+                            <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{comp.name}</Text>
                           </View>
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                             <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
@@ -348,16 +356,20 @@ export default function NotesScreen() {
           {/* Teacher observation */}
           <View style={s.sectionHeader}>
             <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
-            <Text style={s.sectionTitle}>Observation de la maîtresse</Text>
+            <Text style={[s.sectionTitle, {
+              color: theme.textOnBg,
+              textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+            }]}>Observation de la maîtresse</Text>
           </View>
           <GlassCard>
             <Text style={{ fontSize: 28, marginBottom: 8 }}>👩‍🏫</Text>
-            <Text style={s.observationText}>
+            <Text style={[s.observationText, { color: cardTextSecondary }]}>
               « {selectedChild.name} est une élève curieuse et sociable. Elle progresse bien dans le langage oral et adore les activités artistiques. Elle commence à s'intéresser aux chiffres et aux lettres. Un beau trimestre ! »
             </Text>
-            <Text style={s.observationAuthor}>Mme Laurent — Mars 2026</Text>
+            <Text style={[s.observationAuthor, { color: cardTextMuted }]}>Mme Laurent — Mars 2026</Text>
           </GlassCard>
         </ScrollView>
+        <ScreenHeader />
       </View>
     );
   }
@@ -372,23 +384,26 @@ export default function NotesScreen() {
         {/* ── Summary cards ── */}
         <View style={s.summaryRow}>
           <GlassCard style={s.summaryCard}>
-            <Text style={s.summaryValue}>{overallAvg.toFixed(1)}</Text>
-            <Text style={s.summaryLabel}>Moyenne</Text>
+            <Text style={[s.summaryValue, { color: cardText }]}>{overallAvg.toFixed(1)}</Text>
+            <Text style={[s.summaryLabel, { color: cardTextMuted }]}>Moyenne</Text>
           </GlassCard>
           <GlassCard style={s.summaryCard}>
-            <Text style={s.summaryValue}>{bestSubject?.emoji} {bestSubject?.average}</Text>
-            <Text style={s.summaryLabel}>Meilleure</Text>
+            <Text style={[s.summaryValue, { color: cardText }]}>{bestSubject?.emoji} {bestSubject?.average}</Text>
+            <Text style={[s.summaryLabel, { color: cardTextMuted }]}>Meilleure</Text>
           </GlassCard>
           <GlassCard style={s.summaryCard}>
-            <Text style={s.summaryValue}>{totalGrades}</Text>
-            <Text style={s.summaryLabel}>Notes</Text>
+            <Text style={[s.summaryValue, { color: cardText }]}>{totalGrades}</Text>
+            <Text style={[s.summaryLabel, { color: cardTextMuted }]}>Notes</Text>
           </GlassCard>
         </View>
 
         {/* ── New grades carousel ── */}
         <View style={s.sectionHeader}>
           <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
-          <Text style={s.sectionTitle}>Nouvelles notes</Text>
+          <Text style={[s.sectionTitle, {
+            color: theme.textOnBg,
+            textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+          }]}>Nouvelles notes</Text>
         </View>
 
         <FlatList
@@ -404,8 +419,8 @@ export default function NotesScreen() {
               <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(item.value) }]}>
                 <Text style={s.gradeBadgeText}>{item.value}/{item.maxValue}</Text>
               </View>
-              <Text style={s.carouselSubject} numberOfLines={1}>{item.subject}</Text>
-              <Text style={s.carouselDate}>{item.date}</Text>
+              <Text style={[s.carouselSubject, { color: cardTextSecondary }]} numberOfLines={1}>{item.subject}</Text>
+              <Text style={[s.carouselDate, { color: cardTextMuted }]}>{item.date}</Text>
             </GlassCard>
           )}
         />
@@ -418,7 +433,7 @@ export default function NotesScreen() {
               style={[s.sortPill, sortMode === mode && { backgroundColor: theme.accent }]}
               onPress={() => setSortMode(mode)}
             >
-              <Text style={[s.sortText, sortMode === mode && { color: '#FFFFFF' }]}>
+              <Text style={[s.sortText, { color: theme.textOnBgSecondary }, sortMode === mode && { color: '#FFFFFF' }]}>
                 {mode === 'alpha' ? 'A-Z' : mode === 'average' ? 'Moyenne' : 'Trimestre'}
               </Text>
             </Pressable>
@@ -443,8 +458,8 @@ export default function NotesScreen() {
                 <View style={[s.subjectDot, { backgroundColor: subject.color }]} />
                 <Text style={{ fontSize: 24 }}>{subject.emoji}</Text>
                 <View style={s.flex}>
-                  <Text style={s.subjectName}>{subject.name}</Text>
-                  <Text style={s.subjectClass}>Classe : {subject.classAvg}</Text>
+                  <Text style={[s.subjectName, { color: cardText }]}>{subject.name}</Text>
+                  <Text style={[s.subjectClass, { color: cardTextMuted }]}>Classe : {subject.classAvg}</Text>
                 </View>
                 <View style={s.subjectRight}>
                   <Text style={[s.subjectAvg, { color: getBadgeColor(subject.average) }]}>
@@ -462,7 +477,7 @@ export default function NotesScreen() {
               {/* Progress bar */}
               <View style={s.barRow}>
                 <GradeBar value={subject.average} max={20} color={subject.color} />
-                <Text style={s.barLabel}>/20</Text>
+                <Text style={[s.barLabel, { color: cardTextMuted }]}>/20</Text>
               </View>
 
               {/* Expanded grades */}
@@ -471,8 +486,8 @@ export default function NotesScreen() {
                   {subject.grades.map((grade, i) => (
                     <View key={grade.id} style={[s.gradeRow, i < subject.grades.length - 1 && s.gradeBorder]}>
                       <View style={s.flex}>
-                        <Text style={s.gradeDate}>{grade.date}</Text>
-                        <Text style={s.gradeType}>{grade.type}</Text>
+                        <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{grade.date}</Text>
+                        <Text style={[s.gradeType, { color: cardTextMuted }]}>{grade.type}</Text>
                       </View>
                       <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(grade.value) }]}>
                         <Text style={s.gradeBadgeText}>{grade.value}/{grade.maxValue}</Text>
@@ -502,6 +517,7 @@ export default function NotesScreen() {
           </LinearGradient>
         </Pressable>
       </ScrollView>
+      <ScreenHeader />
     </View>
   );
 }
@@ -521,9 +537,9 @@ const s = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   sectionBar: { width: 4, height: 16, borderRadius: 2 },
   sectionTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 13, color: '#FFFFFF',
+    fontFamily: FontFamily.sansBold, fontSize: 13,
     textTransform: 'uppercase', letterSpacing: 1.2,
-    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
 
   gradeBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
@@ -561,8 +577,8 @@ const s = StyleSheet.create({
 
   // Maternelle
   maternelleTitle: {
-    fontFamily: FontFamily.sansBold, fontSize: 22, color: '#FFFFFF', marginBottom: 12,
-    textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+    fontFamily: FontFamily.sansBold, fontSize: 22, marginBottom: 12,
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
   },
   legendRow: { flexDirection: 'row', justifyContent: 'space-around' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
