@@ -212,7 +212,7 @@ export default function TabNavigator() {
   const parentName = selectedChild?.name || 'Parent';
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
       {/* Fixed Topbar — always transparent over wallpaper */}
       <AppTopbar
         mode={topbarMode}

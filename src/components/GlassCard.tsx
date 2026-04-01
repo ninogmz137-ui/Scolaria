@@ -40,9 +40,9 @@ const DARK_BG: Record<Intensity, number> = {
 };
 
 const LIGHT_BG: Record<Intensity, number> = {
-  subtle: 0.35,
-  medium: 0.45,
-  strong: 0.65,
+  subtle: 0.25,
+  medium: 0.35,
+  strong: 0.55,
 };
 
 // ─── Component ─────────────────────────────────────────

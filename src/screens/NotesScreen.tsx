@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
-import ScreenHeader from '../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
@@ -271,7 +271,7 @@ export default function NotesScreen() {
         <WallpaperBackground />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
+          contentContainerStyle={[s.scroll, { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
         >
           {/* Summary */}
           <Text style={[s.maternelleTitle, {
@@ -379,7 +379,7 @@ export default function NotesScreen() {
       <WallpaperBackground />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
+        contentContainerStyle={[s.scroll, { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
       >
         {/* ── Summary cards ── */}
         <View style={s.summaryRow}>

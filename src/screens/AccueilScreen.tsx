@@ -20,7 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
-import ScreenHeader from '../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { getTodayAbsence, MOTIF_LABELS } from '../services/absenceService';
@@ -223,7 +223,7 @@ export default function AccueilScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+            { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
           ]}
         >
           {/* ── Quick tiles 2×2 grid ── */}
