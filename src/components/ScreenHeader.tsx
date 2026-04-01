@@ -40,6 +40,7 @@ export default function ScreenHeader({ children, heightRatio = HEADER_RATIO }: S
     >
       <LinearGradient
         colors={theme.headerGradientFull as [string, string, ...string[]]}
+        locations={theme.headerGradientLocations as [number, number, ...number[]]}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={[styles.gradient, { borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }]}
@@ -73,9 +74,14 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.10,
+        shadowRadius: 2,
+        borderBottomWidth: 0.5,
+        borderBottomColor: 'rgba(0,0,0,0.08)',
+      },
+      android: {
+        elevation: 2,
       },
     }),
   },

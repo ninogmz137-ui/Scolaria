@@ -121,17 +121,17 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 28,
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: 'rgba(255,255,255,0.4)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 24,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 12,
+        elevation: 3,
         backgroundColor: 'rgba(255,255,255,0.88)',
       },
     }),

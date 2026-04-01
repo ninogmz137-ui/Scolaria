@@ -34,15 +34,15 @@ interface GlassCardProps {
 // ─── Opacity presets per variant ────────────────────────
 
 const DARK_BG: Record<Intensity, number> = {
-  subtle: 0.04,
-  medium: 0.06,
-  strong: 0.12,
+  subtle: 0.03,
+  medium: 0.05,
+  strong: 0.10,
 };
 
 const LIGHT_BG: Record<Intensity, number> = {
-  subtle: 0.45,
-  medium: 0.55,
-  strong: 0.75,
+  subtle: 0.35,
+  medium: 0.45,
+  strong: 0.65,
 };
 
 // ─── Component ─────────────────────────────────────────
@@ -68,11 +68,11 @@ export default function GlassCard({
     : Platform.select({
         ios: {
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.06,
-          shadowRadius: 24,
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.10,
+          shadowRadius: 1.5,
         },
-        android: { elevation: 8 },
+        android: { elevation: 1 },
         default: {},
       });
 
@@ -101,7 +101,7 @@ export default function GlassCard({
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    borderWidth: 1,
+    borderWidth: 0.5,
     // @ts-ignore — borderCurve is supported on iOS 17+
     borderCurve: 'continuous',
   },

@@ -49,8 +49,10 @@ export interface SchoolModeTheme {
   // ─── Phase 1: Mode-aware backgrounds & headers ───
   /** Page background color per mode */
   backgroundColor: string;
-  /** Full header gradient colors (top → transparent) */
+  /** Full header gradient colors (top → page bg) */
   headerGradientFull: string[];
+  /** Gradient stop locations (0-1), must match headerGradientFull length */
+  headerGradientLocations: number[];
   /** Is the background dark? (drives text color logic) */
   isDarkBg: boolean;
   /** Primary text color on this background (outside cards) */
@@ -93,7 +95,8 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaLabel: 'Aria',
     // Phase 1
     backgroundColor: '#FFF8F0',
-    headerGradientFull: ['#FF9F43', '#FFDBB5', '#FFF8F000'],
+    headerGradientFull: ['#FF9F43', '#FFECD2', '#FFF8F0'],
+    headerGradientLocations: [0, 0.5, 1],
     isDarkBg: false,
     textOnBg: '#0F172A',
     textOnBgSecondary: '#64748B',
@@ -112,7 +115,8 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaLabel: 'Aria ✦',
     // Phase 1
     backgroundColor: '#0F1923',
-    headerGradientFull: ['#0B1628', '#164E63', '#0F192300'],
+    headerGradientFull: ['#0B1628', '#164E63', '#0F1923'],
+    headerGradientLocations: [0, 0.5, 1],
     isDarkBg: true,
     textOnBg: '#FFFFFF',
     textOnBgSecondary: 'rgba(255,255,255,0.7)',
@@ -131,7 +135,8 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaLabel: 'Aria Coach',
     // Phase 1
     backgroundColor: '#F8F7FF',
-    headerGradientFull: ['#4C1D95', '#7C3AED', '#F8F7FF00'],
+    headerGradientFull: ['#4C1D95', '#7C3AED', '#F8F7FF'],
+    headerGradientLocations: [0, 0.4, 1],
     isDarkBg: false,
     textOnBg: '#0F172A',
     textOnBgSecondary: '#64748B',
