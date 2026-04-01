@@ -1,14 +1,16 @@
 /**
  * ScreenHeader — Large gradient header for main screens (30-35% of screen).
  *
- * Renders a curved-bottom gradient overlay that fades from the accent color
- * to transparent. Content scrolls UNDER this header for depth effect.
+ * Sits BEHIND the content (zIndex 0). Content scrolls OVER it.
+ * paddingTop on the ScrollView equals HEADER_HEIGHT so the header
+ * is visible when at the top, then disappears under the cards as
+ * the user scrolls down — same pattern as Papillon.
  *
  * Usage:
  *   <View style={{flex:1}}>
- *     <ModeBackground />
- *     <ScrollView>...</ScrollView>
- *     <ScreenHeader />
+ *     <WallpaperBackground />
+ *     <ScreenHeader />        ← behind (zIndex 0)
+ *     <ScrollView>...</ScrollView>  ← in front (default zIndex)
  *   </View>
  */
 
@@ -66,24 +68,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 1,
+    zIndex: 0,
     overflow: 'hidden',
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.10,
-        shadowRadius: 2,
-        borderBottomWidth: 0.5,
-        borderBottomColor: 'rgba(0,0,0,0.08)',
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   content: {
     flex: 1,

@@ -61,7 +61,7 @@ export default function GlassCard({
   const bgOpacity = isDark ? DARK_BG[intensity] : LIGHT_BG[intensity];
   const borderColor = isDark
     ? `rgba(255,255,255,${0.08 + bgOpacity * 0.5})`   // 0.10 – 0.15
-    : `rgba(255,255,255,${0.85 + bgOpacity * 0.1})`;   // 0.91 – 0.99
+    : 'rgba(0, 0, 0, 0.06)';                           // subtle, almost invisible
 
   const shadow = isDark
     ? {} // no shadow on dark glass

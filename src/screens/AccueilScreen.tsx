@@ -219,6 +219,9 @@ export default function AccueilScreen() {
       <WallpaperBackground />
 
       <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
+        {/* ScreenHeader behind content — content scrolls over it */}
+        <ScreenHeader />
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
@@ -376,8 +379,6 @@ export default function AccueilScreen() {
           </RNPressable>
         </ScrollView>
 
-        {/* ScreenHeader renders above scroll content (position:absolute, zIndex:1) */}
-        <ScreenHeader />
       </Animated.View>
     </View>
   );

@@ -1,19 +1,23 @@
 /**
- * AppTopbar — Universal topbar with three rendering modes.
+ * AppTopbar — Universal floating topbar (zIndex 10).
  *
- * Mode 1 (Home): Avatar → "Bonjour, {prénom} 👋" → 🎨 + ⚙️ glass buttons
- * Mode 2 (Main tabs): Avatar → empty → contextual icon
- * Mode 3 (Stacked screens): ← back → title → empty
+ * Mode 1 (Home): Avatar → "Bonjour, {prénom} 👋" → ✦ Aria
+ * Mode 2 (Main tabs): Avatar → tab title → ✦ Aria
+ * Mode 3 (Stacked screens): ← back → title → ✦ Aria
  *
- * No logo, no notification bell, no child pill.
+ * Transparent bg: rgba(255,255,255,0.7) light / rgba(15,20,35,0.7) dark.
+ * Aria button: 40px circle, violet→cyan gradient ✦ icon, always visible.
  */
 
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import { Papicons } from '@getpapillon/papicons';
 import ChildAvatar from './ChildAvatar';
+import { useChildTheme } from '../contexts/ChildThemeContext';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Props ───────────────────────────────────────────────
 
@@ -25,41 +29,41 @@ interface Props {
   onBurgerPress?: () => void;
   /** Back press (mode: stacked) */
   onBackPress?: () => void;
-  /** Page title (mode: stacked) */
+  /** Page title (mode: stacked or main) */
   title?: string;
-  /** Parent's first name for greeting (mode: home) */
+  /** Child's first name for greeting (mode: home) */
   parentName?: string;
   /** Child avatar props */
   childName?: string;
   childEmoji?: string;
   childPhotoUri?: string;
   accentColor?: string;
-  /** 🎨 customize button press (mode: home) */
-  onCustomizePress?: () => void;
-  /** ⚙️ settings button press (mode: home) */
-  onSettingsPress?: () => void;
-  /** Right contextual icon (mode: main) */
-  contextualIcon?: string;
-  onContextualPress?: () => void;
+  /** ✦ Aria button press */
+  onAriaPress?: () => void;
 }
 
-// ─── Glass round button ─────────────────────────────────
+// ─── Aria gradient button ───────────────────────────────
 
-function GlassButton({
-  icon,
-  onPress,
-}: {
-  icon: string;
-  onPress?: () => void;
-}) {
+function AriaButton({ onPress }: { onPress?: () => void }) {
   return (
     <Pressable onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-      <View style={styles.glassButton}>
-        {Platform.OS === 'ios' && (
-          <BlurView intensity={15} tint="light" style={StyleSheet.absoluteFill} />
-        )}
-        <View style={styles.glassButtonOverlay} />
-        <Text style={styles.glassButtonIcon}>{icon}</Text>
+      <View style={styles.ariaButton}>
+        <LinearGradient
+          colors={['#6366F1', '#22D3EE']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <MaskedView
+          maskElement={
+            <Papicons name="Sparkles" size={20} color="#000" />
+          }
+        >
+          <LinearGradient
+            colors={['#FFFFFF', '#FFFFFF']}
+            style={{ width: 20, height: 20 }}
+          />
+        </MaskedView>
       </View>
     </Pressable>
   );
@@ -77,12 +81,18 @@ export default function AppTopbar({
   childEmoji,
   childPhotoUri,
   accentColor = '#6366F1',
-  onCustomizePress,
-  onSettingsPress,
-  contextualIcon,
-  onContextualPress,
+  onAriaPress,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useChildTheme();
+  const isDark = theme.isDarkBg;
+
+  const textColor = isDark ? '#FFFFFF' : '#0F172A';
+  const textShadow = isDark
+    ? { textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }
+    : { textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 };
+  const backBg = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)';
+  const backIconColor = isDark ? '#FFFFFF' : '#0F172A';
 
   return (
     <View
@@ -97,9 +107,9 @@ export default function AppTopbar({
           <Pressable
             onPress={onBackPress}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={styles.backButton}
+            style={[styles.backButton, { backgroundColor: backBg }]}
           >
-            <Papicons name="ChevronLeft" size={22} color="#FFFFFF" />
+            <Papicons name="ChevronLeft" size={22} color={backIconColor} />
           </Pressable>
         ) : (
           <Pressable
@@ -121,26 +131,19 @@ export default function AppTopbar({
       {/* Center section */}
       <View style={styles.center}>
         {mode === 'home' && parentName ? (
-          <Text style={styles.greeting} numberOfLines={1}>
+          <Text style={[styles.greeting, { color: textColor, ...textShadow }]} numberOfLines={1}>
             Bonjour, {parentName} 👋
           </Text>
         ) : mode === 'stacked' && title ? (
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: textColor, ...textShadow }]} numberOfLines={1}>
             {title}
           </Text>
         ) : null}
       </View>
 
-      {/* Right section */}
+      {/* Right section — always Aria button */}
       <View style={styles.right}>
-        {mode === 'home' ? (
-          <View style={styles.rightButtons}>
-            <GlassButton icon="🎨" onPress={onCustomizePress} />
-            <GlassButton icon="⚙️" onPress={onSettingsPress} />
-          </View>
-        ) : mode === 'main' && contextualIcon ? (
-          <GlassButton icon={contextualIcon} onPress={onContextualPress} />
-        ) : null}
+        <AriaButton onPress={onAriaPress} />
       </View>
     </View>
   );
@@ -166,24 +169,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   right: {
-    width: 90,
+    width: 50,
     alignItems: 'flex-end',
   },
   greeting: {
+    fontFamily: FontFamily.sansSemiBold,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   title: {
+    fontFamily: FontFamily.sansBold,
     fontSize: 17,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   backButton: {
     width: 38,
@@ -191,30 +186,24 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
   },
-  rightButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  glassButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  ariaButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
     ...Platform.select({
-      android: { backgroundColor: 'rgba(255,255,255,0.2)' },
+      ios: {
+        shadowColor: '#6366F1',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.35,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
     }),
-  },
-  glassButtonOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  glassButtonIcon: {
-    fontSize: 18,
   },
 });

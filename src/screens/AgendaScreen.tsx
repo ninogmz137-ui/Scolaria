@@ -314,6 +314,7 @@ export default function AgendaScreen() {
   return (
     <View style={st.root}>
       <WallpaperBackground />
+      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: HEADER_HEIGHT + 8, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
@@ -512,8 +513,6 @@ export default function AgendaScreen() {
           </Pressable>
         </View>
       </ScrollView>
-
-      <ScreenHeader />
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>

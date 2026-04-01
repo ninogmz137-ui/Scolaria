@@ -269,6 +269,7 @@ export default function NotesScreen() {
     return (
       <View style={s.root}>
         <WallpaperBackground />
+        <ScreenHeader />
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[s.scroll, { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
@@ -369,7 +370,6 @@ export default function NotesScreen() {
             <Text style={[s.observationAuthor, { color: cardTextMuted }]}>Mme Laurent — Mars 2026</Text>
           </GlassCard>
         </ScrollView>
-        <ScreenHeader />
       </View>
     );
   }
@@ -377,6 +377,7 @@ export default function NotesScreen() {
   return (
     <View style={s.root}>
       <WallpaperBackground />
+      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[s.scroll, { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
@@ -517,7 +518,6 @@ export default function NotesScreen() {
           </LinearGradient>
         </Pressable>
       </ScrollView>
-      <ScreenHeader />
     </View>
   );
 }

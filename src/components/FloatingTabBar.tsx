@@ -1,10 +1,10 @@
 /**
- * FloatingTabBar — Premium floating glass pill tab bar.
+ * FloatingTabBar — Premium floating glass pill tab bar (zIndex 10).
  *
+ * 4 tabs: Accueil | Notes | Agenda | Notifications
+ * Aria removed from tab bar (accessed via topbar ✦ button).
  * Mode-aware: dark bg gets dark glass, light bg gets frosted white.
  * Active tab: accent pill at 15% opacity + accent label.
- * Aria icon always has violet→cyan gradient.
- * Spring animation on tab switch.
  */
 
 import { useEffect, useRef } from 'react';
@@ -12,8 +12,6 @@ import { View, Text, StyleSheet, Platform, Animated } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view';
 import { Papicons } from '@getpapillon/papicons';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -24,8 +22,8 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 const TAB_PAPICONS: Record<string, string> = {
   Accueil: 'Home',
   Notes: 'Grades',
-  Aria: 'Sparkles',
   Agenda: 'Calendar',
+  Notifications: 'Bell',
 };
 
 // ─── Tab bar height for padding calculations ────────────
@@ -54,7 +52,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   }, [state.index, animatedIndex]);
 
   // Mode-aware colors
-  const barBg = isDark ? 'rgba(15, 25, 35, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const barBg = isDark ? 'rgba(15, 20, 35, 0.70)' : 'rgba(255, 255, 255, 0.70)';
   const barBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
   const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8';
   const blurTint = isDark ? 'dark' : 'light';
@@ -95,7 +93,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
             const label = options.tabBarLabel as string ?? options.title ?? route.name;
             const isFocused = state.index === index;
             const iconName = TAB_PAPICONS[route.name] || 'Home';
-            const isAria = route.name === 'Aria';
+            const iconColor = isFocused ? theme.accent : inactiveColor;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -115,8 +113,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
               });
             };
 
-            // Aria always has gradient icon
-            const iconColor = isFocused ? theme.accent : inactiveColor;
+            // TODO: Add badge for Notifications tab when unread count > 0
 
             return (
               <Pressable
@@ -134,26 +131,11 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                   ],
                 ]}
               >
-                {isAria ? (
-                  <MaskedView
-                    maskElement={
-                      <Papicons name={iconName} size={24} color="#000" />
-                    }
-                  >
-                    <LinearGradient
-                      colors={['#6366F1', '#22D3EE']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={{ width: 24, height: 24 }}
-                    />
-                  </MaskedView>
-                ) : (
-                  <Papicons
-                    name={iconName}
-                    size={24}
-                    color={iconColor}
-                  />
-                )}
+                <Papicons
+                  name={iconName}
+                  size={24}
+                  color={iconColor}
+                />
                 {isFocused && (
                   <Text style={[styles.tabLabel, { color: theme.accent }]}>
                     {label}
@@ -173,6 +155,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
+    zIndex: 10,
     alignItems: 'center',
   },
   barOuter: {

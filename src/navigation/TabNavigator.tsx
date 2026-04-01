@@ -93,6 +93,7 @@ const SCREEN_TITLES: Record<string, string> = {
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
+  AriaScreen: 'Aria ✦',
 };
 
 // ─── Stack navigators ────────────────────────────────────
@@ -137,6 +138,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen name="Effacement" component={EffacementScreen} />
       <AccueilStack.Screen name="ExportDonnees" component={ExportDonneesScreen} />
       <AccueilStack.Screen name="APropos" component={AProposScreen} />
+      <AccueilStack.Screen name="AriaScreen" component={AriaScreen} />
     </AccueilStack.Navigator>
   );
 }
@@ -176,8 +178,8 @@ function TabContent() {
     >
       <Tab.Screen name="Accueil" component={AccueilStackScreen} />
       <Tab.Screen name="Notes" component={NotesStackScreen} />
-      <Tab.Screen name="Aria" component={AriaScreen} />
       <Tab.Screen name="Agenda" component={AgendaScreen} />
+      <Tab.Screen name="Notifications" component={NotificationsScreen} />
     </Tab.Navigator>
   );
 }
@@ -188,6 +190,7 @@ function TabContent() {
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
 const goBackRef: { current: (() => void) | null } = { current: null };
 const settingsNavRef: { current: (() => void) | null } = { current: null };
+const ariaNavRef: { current: (() => void) | null } = { current: null };
 
 export default function TabNavigator() {
   const { theme } = useChildTheme();
@@ -213,7 +216,7 @@ export default function TabNavigator() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
-      {/* Fixed Topbar — always transparent over wallpaper */}
+      {/* Fixed Topbar — always transparent, zIndex 10 */}
       <AppTopbar
         mode={topbarMode}
         onBurgerPress={() => setBurgerVisible(true)}
@@ -223,10 +226,7 @@ export default function TabNavigator() {
         childName={selectedChild.name}
         childEmoji={selectedChild.avatar}
         accentColor={theme.accent}
-        onCustomizePress={() => {
-          // TODO: Navigate to CustomizeScreen
-        }}
-        onSettingsPress={() => settingsNavRef.current?.()}
+        onAriaPress={() => ariaNavRef.current?.()}
       />
 
       {/* Tab content */}
@@ -254,6 +254,10 @@ function TabContentWithBurger({
 
   settingsNavRef.current = () => {
     navigation.navigate('Accueil', { screen: 'ReglagesScreen' });
+  };
+
+  ariaNavRef.current = () => {
+    navigation.navigate('Accueil', { screen: 'AriaScreen' });
   };
 
   burgerNavRef.current = (screen: string) => {

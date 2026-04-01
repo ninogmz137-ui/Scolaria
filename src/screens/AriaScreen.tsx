@@ -14,10 +14,8 @@ import { Papicons } from '@getpapillon/papicons';
 import { Colors } from '../constants/colors';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
-import GlassCard from '../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
-import AriaAvatar from '../components/chat/AriaAvatar';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -83,8 +81,8 @@ export default function AriaScreen() {
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const insets = useSafeAreaInsets();
-  // Glass header card: insets.top + 8 (container pad) + ~60 (card height) + 8 (gap)
-  const HEADER_CARD_BOTTOM = insets.top + 76;
+  // Content starts below topbar (insets.top + topbar height + gap)
+  const TOPBAR_BOTTOM = insets.top + 64;
 
   const childName = selectedChild?.name ?? 'votre enfant';
   const childId = selectedChild?.id ?? '1';
@@ -197,10 +195,6 @@ export default function AriaScreen() {
     timestamp: '',
   };
 
-  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
-
   const rgb = hexToRgb(theme.accent);
   const accentBorder = rgb
     ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`
@@ -209,7 +203,7 @@ export default function AriaScreen() {
   return (
     <View style={styles.root}>
       <WallpaperBackground />
-      <ScreenHeader heightRatio={0.25} />
+      <ScreenHeader heightRatio={0.20} />
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -224,7 +218,7 @@ export default function AriaScreen() {
           keyExtractor={(item) => item.id}
           style={styles.messageList}
           contentContainerStyle={{
-            paddingTop: HEADER_CARD_BOTTOM,
+            paddingTop: TOPBAR_BOTTOM,
             paddingBottom: 8,
           }}
           onContentSizeChange={scrollToEnd}
@@ -321,48 +315,6 @@ export default function AriaScreen() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Glass header card — rendered last so it floats above the list */}
-      <View style={[styles.headerContainer, { paddingTop: insets.top + 8 }]}>
-        <GlassCard
-          intensity="strong"
-          borderRadius={20}
-          noPadding
-          style={styles.headerCard}
-        >
-          <View style={styles.headerInner}>
-            {/* Avatar + name + status */}
-            <AriaAvatar size={40} />
-            <View style={styles.headerInfo}>
-              <Text style={[styles.headerTitle, { color: cardText }]}>{theme.ariaLabel}</Text>
-              <View style={styles.statusRow}>
-                <View
-                  style={[
-                    styles.statusDot,
-                    { backgroundColor: isTyping ? Colors.orange : '#34D399' },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.statusText,
-                    { color: isTyping ? Colors.orange : '#34D399' },
-                  ]}
-                >
-                  {isTyping ? 'Réfléchit...' : 'En ligne'}
-                </Text>
-              </View>
-            </View>
-            {/* Claude Sonnet badge + menu */}
-            <View style={styles.headerActions}>
-              <View style={styles.modelBadge}>
-                <Text style={styles.modelBadgeText}>Claude Sonnet</Text>
-              </View>
-              <Pressable style={styles.menuButton}>
-                <Papicons name="Dots" size={20} color={theme.isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(15,23,42,0.5)'} />
-              </Pressable>
-            </View>
-          </View>
-        </GlassCard>
-      </View>
     </View>
   );
 }
@@ -443,65 +395,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.4,
-  },
-  // ── Floating glass header ──
-  headerContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 12,
-  },
-  headerCard: {
-    // GlassCard handles its own shadow
-  },
-  headerInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  headerInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  headerTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 17,
-    color: '#0F172A',
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-    gap: 5,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  modelBadge: {
-    backgroundColor: 'rgba(99,102,241,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(99,102,241,0.25)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  modelBadgeText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 10,
-    color: '#6366F1',
   },
   menuButton: {
     padding: 8,
