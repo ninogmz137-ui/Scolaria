@@ -40,8 +40,6 @@ export default function JoyHistory({ data, month }: Props) {
       className="rounded-2xl p-4"
       style={{
         backgroundColor: Colors.card,
-        borderWidth: 1,
-        borderColor: Colors.cardBorder,
       }}
     >
       {/* Header */}

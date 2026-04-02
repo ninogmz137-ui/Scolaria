@@ -191,8 +191,6 @@ export default function JoyAlerts({
         className="rounded-2xl p-4"
         style={{
           backgroundColor: config.bgColor,
-          borderWidth: 1,
-          borderColor: config.borderColor,
         }}
       >
         {/* Header */}
@@ -256,8 +254,6 @@ export default function JoyAlerts({
           className="mt-3 rounded-2xl p-4"
           style={{
             backgroundColor: '#FFFFFF',
-            borderWidth: 1,
-            borderColor: Colors.red + '30',
           }}
         >
           <HStack className="items-center gap-2 mb-3.5">

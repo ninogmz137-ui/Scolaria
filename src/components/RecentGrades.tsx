@@ -52,8 +52,6 @@ export default function RecentGrades({ grades }: Props) {
             className="items-center rounded-2xl p-4"
             style={{
               backgroundColor: Colors.card,
-              borderWidth: 1,
-              borderColor: Colors.cardBorder,
               width: 130,
             }}
           >

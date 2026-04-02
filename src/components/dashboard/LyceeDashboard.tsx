@@ -46,7 +46,7 @@ function AriaCoach({ c }: { c: typeof light }) {
   return (
     <Box
       className="mx-5 my-3 rounded-xl p-[18px]"
-      style={{ backgroundColor: c.purpleSoft, borderWidth: 1, borderColor: c.border }}
+      style={{ backgroundColor: c.purpleSoft }}
     >
       <HStack style={{ gap: 14 }} className="mb-4">
         <Box className="w-10 h-10 rounded-lg justify-center items-center" style={{ backgroundColor: c.card }}>
@@ -111,9 +111,7 @@ function StatsOverview({ c }: { c: typeof light }) {
               width: '31%',
               borderRadius: 12,
               padding: 16,
-              borderWidth: 1,
               backgroundColor: c.card,
-              borderColor: c.borderLight,
               opacity: anims[i],
               transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
             }}
@@ -165,7 +163,7 @@ function SubjectPerformance({ c }: { c: typeof light }) {
   return (
     <Box className="mb-4">
       <Text className="text-[15px] font-semibold px-6 mb-3" style={{ color: c.text }}>Performance</Text>
-      <Box className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.borderLight }}>
+      <Box className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: c.card }}>
         {/* Table header */}
         <HStack
           className="items-center py-2.5 px-4"
@@ -238,7 +236,7 @@ function WeeklyChart({ c }: { c: typeof light }) {
       <Text className="text-[15px] font-semibold px-6 mb-3" style={{ color: c.text }}>Temps de travail</Text>
       <HStack
         className="mx-5 rounded-xl p-5 items-end"
-        style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.borderLight }}
+        style={{ backgroundColor: c.card }}
       >
         <HStack className="flex-1 items-end" style={{ gap: 6, height: 100 }}>
           {DAYS.map((d, i) => (
@@ -279,7 +277,7 @@ function Deadlines({ c }: { c: typeof light }) {
   return (
     <Box className="mb-4">
       <Text className="text-[15px] font-semibold px-6 mb-3" style={{ color: c.text }}>Echeances</Text>
-      <Box className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.borderLight }}>
+      <Box className="mx-5 rounded-xl overflow-hidden" style={{ backgroundColor: c.card }}>
         {ITEMS.map((item, i) => (
           <Pressable
             key={item.title}

@@ -80,10 +80,6 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
               className="flex-1 items-center rounded-[14px] p-3 ml-2.5 mb-2"
               style={{
                 backgroundColor: Colors.card,
-                borderWidth: 1,
-                borderColor: event.isNow
-                  ? 'rgba(99, 102, 241, 0.3)'
-                  : Colors.cardBorder,
               }}
             >
               <Box

@@ -148,8 +148,6 @@ export default function ConseilDuMatin({ visible, onDismiss }: Props) {
           <Box
             style={{
               borderRadius: 24,
-              borderWidth: 1,
-              borderColor: Colors.cardBorder,
               overflow: 'hidden',
               backgroundColor: Colors.card,
             }}

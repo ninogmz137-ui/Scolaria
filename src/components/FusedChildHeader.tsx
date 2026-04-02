@@ -76,8 +76,6 @@ export default function FusedChildHeader({ onAddChild }: Props) {
             className="flex-1 items-center rounded-[14px] px-3.5 py-2.5"
             style={{
               backgroundColor: '#FFFFFF',
-              borderWidth: 1.5,
-              borderColor: accent + '25',
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.04,

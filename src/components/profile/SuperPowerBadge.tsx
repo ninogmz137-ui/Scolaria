@@ -170,8 +170,6 @@ export default function SuperPowerBadge({
             backgroundColor: '#FFFFFF',
             borderRadius: 16,
             padding: 14,
-            borderWidth: 1,
-            borderColor: '#EEF0F5',
             gap: 10,
             marginBottom: 14,
             width: '100%',

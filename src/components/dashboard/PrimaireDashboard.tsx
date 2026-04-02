@@ -187,8 +187,6 @@ function DailyQuests() {
             className="flex-row items-center mx-5 mb-2.5 rounded-[18px] p-4"
             style={{
               backgroundColor: '#FFFFFF',
-              borderWidth: 1.5,
-              borderColor: q.done ? '#34D39940' : '#EEF0F5',
               gap: 14,
             }}
           >
@@ -288,8 +286,6 @@ function BadgesGrid() {
             <Pressable
               className="w-[100px] items-center py-[18px] rounded-[20px]"
               style={{
-                borderWidth: 1.5,
-                borderColor: b.earned ? b.color + '40' : '#EEF0F5',
                 backgroundColor: b.earned ? b.color + '08' : '#F7F8FC',
               }}
               onPress={() => handleBadgeTap(i, b.earned)}
@@ -358,7 +354,7 @@ function GradeCards() {
           >
             <Box
               className="items-center rounded-[20px] p-[18px]"
-              style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: g.color + '25' }}
+              style={{ backgroundColor: '#FFFFFF' }}
             >
               <Box
                 className="w-11 h-11 rounded-[22px] justify-center items-center mb-2.5"

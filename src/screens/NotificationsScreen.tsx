@@ -101,8 +101,10 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
 
-  const [today, setToday] = useState<Notification[]>([]);
-  const [earlier, setEarlier] = useState<Notification[]>([]);
+  // Initialize with mock data so the screen is never blank while loading
+  const initMock = getMockNotifications(selectedChild.id);
+  const [today, setToday] = useState<Notification[]>(initMock.today);
+  const [earlier, setEarlier] = useState<Notification[]>(initMock.earlier);
 
   const loadNotifications = useCallback(async (childId: string) => {
     const threeDaysAgo = new Date();
@@ -214,14 +216,16 @@ export default function NotificationsScreen() {
       return;
     }
 
-    // Sort all by date descending
+    // Sort all by date descending, then strip any entry missing title or message
+    // (can happen when Supabase returns null fields, e.g. mot.titre or event.title)
     items.sort((a, b) => b._isoDate.localeCompare(a._isoDate));
+    const validItems = items.filter((n) => n.title && n.message);
 
     // Split into today / earlier — strip _isoDate before storing in state
-    const todayItems: Notification[] = items
+    const todayItems: Notification[] = validItems
       .filter((n) => isToday(n._isoDate))
       .map(({ _isoDate, ...rest }) => rest);
-    const earlierItems: Notification[] = items
+    const earlierItems: Notification[] = validItems
       .filter((n) => !isToday(n._isoDate))
       .map(({ _isoDate, ...rest }) => rest);
 

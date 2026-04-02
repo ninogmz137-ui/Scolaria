@@ -34,8 +34,6 @@ export default function ChatBubble({ message, isTyping }: Props) {
           ...(isAria
             ? {
                 backgroundColor: theme.card,
-                borderWidth: 1,
-                borderColor: theme.cardBorder,
                 borderBottomLeftRadius: 6,
               }
             : {

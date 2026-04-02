@@ -24,7 +24,7 @@ export default function JoyScore({ data, average }: Props) {
   return (
     <Box
       className="mx-5 rounded-[20px] p-5"
-      style={{ backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.cardBorder }}
+      style={{ backgroundColor: Colors.card }}
     >
       <HStack className="justify-between items-center mb-5">
         <VStack>

@@ -18,8 +18,6 @@ export default function AriaCard({ childName, onPress }: Props) {
           overflow: 'hidden',
           position: 'relative',
           backgroundColor: Colors.card,
-          borderWidth: 1,
-          borderColor: Colors.cardBorder,
         }}
       >
         {/* Decorative glow */}

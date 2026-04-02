@@ -377,7 +377,7 @@ function StarReward() {
               <Box
                 key={i}
                 className="w-10 h-10 rounded-[20px] justify-center items-center"
-                style={{ backgroundColor: '#FFF8E1', borderWidth: 2, borderColor: '#FFD54F40' }}
+                style={{ backgroundColor: '#FFF8E1' }}
               >
                 <Text style={{ fontSize: 18 }}>⭐</Text>
               </Box>
@@ -445,7 +445,7 @@ function VisualTimeline() {
             {/* Card */}
             <HStack
               className="flex-1 items-center ml-3 p-4 rounded-[20px] mb-1.5"
-              style={{ backgroundColor: m.bg, borderWidth: 1.5, borderColor: m.color + '25', gap: 14 }}
+              style={{ backgroundColor: m.bg, gap: 14 }}
             >
               <Text style={{ fontSize: 36 }}>{m.emoji}</Text>
               <Box>

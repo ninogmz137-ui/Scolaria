@@ -89,8 +89,6 @@ export default function Portfolio({ activities }: Props) {
               style={{
                 width: 140,
                 backgroundColor: '#FFFFFF',
-                borderWidth: 1,
-                borderColor: '#EEF0F5',
               }}
             >
               {/* Icon */}

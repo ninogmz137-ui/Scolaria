@@ -169,15 +169,8 @@ export default function CompetenceRadar({ data, size = 260 }: Props) {
               paddingHorizontal: 10,
               paddingVertical: 8,
               borderRadius: 14,
-              borderWidth: 1,
               minWidth: 62,
               transform: [{ scale: scoreScales[i] }],
-              borderColor:
-                comp.value >= 8
-                  ? Colors.green + '40'
-                  : comp.value >= 6
-                    ? Colors.cyan + '40'
-                    : Colors.orange + '40',
             }}
           >
             <Text style={{ fontSize: 16, marginBottom: 2 }}>{comp.emoji}</Text>

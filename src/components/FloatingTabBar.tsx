@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 28,
     overflow: 'hidden',
-    borderWidth: 0.5,
+    borderWidth: 0,
   },
   barShadow: Platform.select({
     ios: {

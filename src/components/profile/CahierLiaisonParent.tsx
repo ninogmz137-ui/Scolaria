@@ -116,8 +116,6 @@ export default function CahierLiaisonParent({
           style={{
             backgroundColor: '#F7F8FC',
             maxHeight: '85%',
-            borderWidth: 1,
-            borderColor: '#EEF0F5',
           }}
         >
           {/* Close button */}
@@ -169,8 +167,6 @@ export default function CahierLiaisonParent({
             className="p-4 rounded-2xl mb-4"
             style={{
               backgroundColor: '#FFFFFF',
-              borderWidth: 1,
-              borderColor: '#EEF0F5',
             }}
           >
             <Text className="text-sm" style={{ color: '#0F172A', lineHeight: 22 }}>
@@ -237,8 +233,6 @@ export default function CahierLiaisonParent({
             className="w-full p-6 rounded-2xl items-center"
             style={{
               backgroundColor: '#F7F8FC',
-              borderWidth: 1,
-              borderColor: '#EEF0F5',
             }}
           >
             <Box
@@ -376,12 +370,6 @@ export default function CahierLiaisonParent({
               className="p-3.5 rounded-2xl mb-2.5"
               style={{
                 backgroundColor: inlineBg,
-                borderWidth: 1,
-                borderColor: needsSig
-                  ? Colors.orange + '50'
-                  : !mot.is_read
-                    ? accent + '40'
-                    : inlineBorder,
               }}
               onPress={() => handleOpenMot(mot)}
             >
