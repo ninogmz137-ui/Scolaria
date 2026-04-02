@@ -130,8 +130,8 @@ function AriaMascot({ childName }: { childName: string }) {
         width: 88, height: 88, borderRadius: 44,
         backgroundColor: '#FFFFFF',
         justifyContent: 'center', alignItems: 'center',
-        shadowColor: '#FF8C42', shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15, shadowRadius: 24, elevation: 8,
+        shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0, shadowRadius: 0, elevation: 0,
         borderWidth: 3, borderColor: '#FFE0C0',
         transform: [{ scale }],
       }}>
@@ -143,8 +143,8 @@ function AriaMascot({ childName }: { childName: string }) {
         className="absolute bottom-0 rounded-[20px] px-5 py-3"
         style={{
           backgroundColor: '#FFFFFF',
-          shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06, shadowRadius: 12, elevation: 4,
+          shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0, shadowRadius: 0, elevation: 0,
           maxWidth: 220,
         }}
       >
@@ -222,11 +222,11 @@ function EmotionPicker() {
                 borderColor: e.border,
                 borderWidth: 2.5,
                 ...(selectedEmotion === i ? {
-                  shadowColor: e.border,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.35,
-                  shadowRadius: 10,
-                  elevation: 8,
+                  shadowColor: 'transparent',
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0,
+                  shadowRadius: 0,
+                  elevation: 0,
                 } : {}),
               }}
               onPress={() => handleEmotionPress(i)}
@@ -300,8 +300,8 @@ function ActivityCarousel() {
                 style={{
                   width: 140, height: 170, borderRadius: 24,
                   padding: 18, justifyContent: 'flex-end',
-                  shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.1, shadowRadius: 16, elevation: 6,
+                  shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: 0, shadowRadius: 0, elevation: 0,
                 }}
               >
                 <Box
@@ -357,8 +357,8 @@ function StarReward() {
       <Box
         className="mx-5 rounded-3xl overflow-hidden"
         style={{
-          shadowColor: '#FFD66B', shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.15, shadowRadius: 20, elevation: 6,
+          shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0, shadowRadius: 0, elevation: 0,
         }}
       >
         <LinearGradient

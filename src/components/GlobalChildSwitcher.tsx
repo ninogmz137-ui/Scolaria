@@ -106,7 +106,7 @@ function ChildSwitcherModal({
                 shadowRadius: 12,
               },
               android: {
-                elevation: 12,
+                elevation: 0,
               },
               default: {
                 shadowColor: '#000',

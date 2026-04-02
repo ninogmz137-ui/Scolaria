@@ -92,11 +92,11 @@ export default function JoyHistory({ data, month }: Props) {
                   backgroundColor: getColor(d.score),
                   ...(d.score >= 8
                     ? {
-                        shadowColor: Colors.green,
+                        shadowColor: 'transparent',
                         shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: 0.5,
-                        shadowRadius: 6,
-                        elevation: 4,
+                        shadowOpacity: 0,
+                        shadowRadius: 0,
+                        elevation: 0,
                       }
                     : {}),
                 }}

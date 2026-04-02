@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.08,
         shadowRadius: 16,
       },
-      android: { elevation: 4 },
+      android: { elevation: 0 },
     }),
   },
   textInput: {

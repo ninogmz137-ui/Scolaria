@@ -142,11 +142,11 @@ export default function SuperPowerBadge({
               borderRadius: 45,
               justifyContent: 'center',
               alignItems: 'center',
-              shadowColor: accentColor,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.25,
-              shadowRadius: 12,
-              elevation: 6,
+              shadowColor: 'transparent',
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0,
+              shadowRadius: 0,
+              elevation: 0,
             }}
           >
             <Text className="text-[42px]">{emoji}</Text>

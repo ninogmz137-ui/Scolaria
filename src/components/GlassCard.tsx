@@ -71,18 +71,15 @@ const styles = StyleSheet.create({
     // @ts-ignore — borderCurve is supported on iOS 17+
     borderCurve: 'continuous',
   },
-  shadow: Platform.select({
-    ios: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 8,
-    },
-    android: {
-      elevation: 0,
-    },
-    default: {},
-  }) as any,
+  shadow: {
+    // Zero shadow/elevation — no grey outline on any platform
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    borderColor: 'transparent',
+  },
   content: {
     padding: 16,
   },

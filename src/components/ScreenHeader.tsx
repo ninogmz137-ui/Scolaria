@@ -21,7 +21,7 @@ import { useChildTheme } from '../contexts/ChildThemeContext';
 import type { ReactNode } from 'react';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const HEADER_PX = 130; // fixed pixel height — compact header
+const HEADER_PX = 110; // fixed pixel height — minimal header
 
 interface ScreenHeaderProps {
   /** Optional content rendered inside the header (below topbar area) */

@@ -26,7 +26,7 @@ function hexToRgb(hex: string): string {
 
 const CARD_SHADOW = Platform.select({
   ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
+  android: { elevation: 0 },
   default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
 });
 
