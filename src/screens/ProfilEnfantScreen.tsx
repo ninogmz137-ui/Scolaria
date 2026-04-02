@@ -371,7 +371,7 @@ export default function ProfilEnfantScreen() {
 
           {/* Scolaria ID — pill */}
           <View style={styles.idPill}>
-            <Papicons name="Fingerprint" size={14} color="rgba(255,255,255,0.8)" />
+            <Papicons name="Fingerprint" size={14} color="#64748B" />
             <Text style={styles.idText}>{data.scolariaId}</Text>
           </View>
         </GlassCard>
@@ -527,25 +527,22 @@ const styles = StyleSheet.create({
   nameText: {
     fontFamily: FontFamily.loraBold,
     fontSize: 22,
-    color: '#FFFFFF',
+    color: '#0F172A',
     marginBottom: 4,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   classeText: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#64748B',
     marginBottom: 14,
   },
   idPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(15,23,42,0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(15,23,42,0.10)',
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -554,7 +551,7 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 13,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#0F172A',
     letterSpacing: 0.5,
   },
   section: {
@@ -574,10 +571,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FontFamily.sansBold,
     fontSize: 17,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    color: '#0F172A',
   },
   radarPadding: {
     padding: 16,
@@ -604,11 +598,8 @@ const styles = StyleSheet.create({
   exportHint: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: '#94A3B8',
     textAlign: 'center',
     marginTop: 8,
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
 });

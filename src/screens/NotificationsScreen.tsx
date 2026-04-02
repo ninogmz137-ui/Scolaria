@@ -15,6 +15,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
+import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
@@ -260,21 +261,22 @@ export default function NotificationsScreen() {
 
   const unreadCount = today.filter((n) => !n.read).length + earlier.filter((n) => !n.read).length;
 
-  // Mode-aware text colors
-  const titleColor = theme.textOnBg;
-  const subtitleColor = theme.textOnBgSecondary;
-  const sectionColor = theme.textOnBg;
-  const cardTxt = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTxtSec = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTxtMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  // Text colors (all modes are light bg now)
+  const titleColor = '#0F172A';
+  const subtitleColor = '#64748B';
+  const sectionColor = '#0F172A';
+  const cardTxt = '#0F172A';
+  const cardTxtSec = '#64748B';
+  const cardTxtMuted = '#94A3B8';
 
   return (
     <View style={{ flex: 1 }}>
       <WallpaperBackground />
+      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: TOPBAR_H + 12,
+          paddingTop: HEADER_HEIGHT + 12,
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
           paddingHorizontal: 18,
           gap: 12,
@@ -282,8 +284,8 @@ export default function NotificationsScreen() {
       >
         {/* Page title */}
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: titleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.45)' : 'transparent' }]}>Notifications</Text>
-          <Text style={[styles.subtitle, { color: subtitleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.35)' : 'transparent' }]}>
+          <Text style={[styles.title, { color: titleColor, textShadowColor: 'transparent' }]}>Notifications</Text>
+          <Text style={[styles.subtitle, { color: subtitleColor, textShadowColor: 'transparent' }]}>
             {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
           </Text>
         </View>
@@ -293,7 +295,7 @@ export default function NotificationsScreen() {
           <>
             <View style={styles.sectionRow}>
               <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-              <Text style={[styles.sectionLabel, { color: sectionColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' }]}>Aujourd'hui</Text>
+              <Text style={[styles.sectionLabel, { color: sectionColor, textShadowColor: 'transparent' }]}>Aujourd'hui</Text>
             </View>
             {today.map((notif) => (
               <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />
@@ -306,7 +308,7 @@ export default function NotificationsScreen() {
           <>
             <View style={[styles.sectionRow, { marginTop: 4 }]}>
               <View style={[styles.sectionBar, { backgroundColor: 'rgba(203,213,225,0.7)' }]} />
-              <Text style={[styles.sectionLabel, { color: subtitleColor, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent' }]}>Plus tôt</Text>
+              <Text style={[styles.sectionLabel, { color: subtitleColor, textShadowColor: 'transparent' }]}>Plus tôt</Text>
             </View>
             {earlier.map((notif) => (
               <NotifCard key={notif.id} notif={notif} accent={accent} onPress={handleNotifPress} />

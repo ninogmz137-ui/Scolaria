@@ -215,18 +215,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamily.sansBold,
     fontSize: 26,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.45)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
+    color: '#0F172A',
   },
   subtitle: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: '#64748B',
     marginTop: 4,
   },
   timelineRow: {
@@ -253,12 +247,9 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    color: '#FFFFFF',
+    color: '#0F172A',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   cardInner: {
     padding: 16,

@@ -6,7 +6,10 @@
  */
 
 import { useState, useCallback } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, Pressable, Text, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { FontFamily } from '../hooks/useSolariaFonts';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -59,12 +62,65 @@ function CahierLiaisonPlaceholder() {
   return (
     <View style={{ flex: 1 }}>
       <WallpaperBackground />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 20 }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 72 + 20,
+        }}
+      >
         <CahierLiaisonParent
           childId={selectedChildId}
           childName={selectedChild.name}
         />
       </ScrollView>
+
+      {/* Floating action button — fixed above tab bar */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 100,
+          left: 20,
+          right: 20,
+          shadowColor: '#6366F1',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.30,
+          shadowRadius: 12,
+          elevation: 8,
+          borderRadius: 16,
+        }}
+      >
+        <Pressable
+          onPress={() =>
+            Alert.alert('Bientôt disponible', 'Cette fonctionnalité sera disponible prochainement.')
+          }
+          style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}
+        >
+          <LinearGradient
+            colors={['#6366F1', '#22D3EE']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{
+              height: 52,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            <Ionicons name="send-outline" size={18} color="#FFFFFF" />
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontSize: 15,
+                fontFamily: FontFamily.sansBold,
+              }}
+            >
+              Envoyer un message à l&apos;enseignant
+            </Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
     </View>
   );
 }

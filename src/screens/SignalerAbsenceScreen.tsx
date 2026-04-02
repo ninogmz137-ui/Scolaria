@@ -212,9 +212,9 @@ export default function SignalerAbsenceScreen() {
       {/* Mini header */}
       <View style={[styles.miniHeader, { paddingTop: insets.top + 12 }]}>
         <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Papicons name="ChevronLeft" size={22} color="#FFFFFF" />
+          <Papicons name="ChevronLeft" size={22} color="#0F172A" />
         </Pressable>
-        <Text style={styles.headerTitle}>Prévenir d'une absence</Text>
+        <Text style={styles.headerTitle}>Signaler une absence</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -227,21 +227,21 @@ export default function SignalerAbsenceScreen() {
                 styles.stepCircle,
                 s <= step
                   ? { backgroundColor: accent, borderColor: accent }
-                  : { backgroundColor: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.3)' },
+                  : { backgroundColor: 'rgba(0,0,0,0.06)', borderColor: 'rgba(0,0,0,0.15)' },
               ]}
             >
-              <Text style={[styles.stepNum, { color: s <= step ? '#FFF' : 'rgba(255,255,255,0.5)' }]}>
+              <Text style={[styles.stepNum, { color: s <= step ? '#FFF' : '#94A3B8' }]}>
                 {s}
               </Text>
             </View>
-            <Text style={[styles.stepLabel, { color: s === step ? '#FFFFFF' : 'rgba(255,255,255,0.45)' }]}>
+            <Text style={[styles.stepLabel, { color: s === step ? '#0F172A' : '#94A3B8' }]}>
               {s === 1 ? 'Date' : s === 2 ? 'Motif' : 'Confirmer'}
             </Text>
           </View>
         ))}
         {/* Connectors */}
-        <View style={[styles.connector, styles.connectorLeft, { backgroundColor: step >= 2 ? accent : 'rgba(255,255,255,0.2)' }]} />
-        <View style={[styles.connector, styles.connectorRight, { backgroundColor: step >= 3 ? accent : 'rgba(255,255,255,0.2)' }]} />
+        <View style={[styles.connector, styles.connectorLeft, { backgroundColor: step >= 2 ? accent : 'rgba(0,0,0,0.12)' }]} />
+        <View style={[styles.connector, styles.connectorRight, { backgroundColor: step >= 3 ? accent : 'rgba(0,0,0,0.12)' }]} />
       </View>
 
       <ScrollView
@@ -270,11 +270,11 @@ export default function SignalerAbsenceScreen() {
                       styles.pill,
                       active
                         ? { backgroundColor: accentBg, borderColor: accent }
-                        : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.25)' },
+                        : { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.12)' },
                     ]}
                     onPress={() => handleDateChoice(c)}
                   >
-                    <Text style={[styles.pillText, { color: active ? accent : '#FFFFFF' }]}>
+                    <Text style={[styles.pillText, { color: active ? accent : '#64748B' }]}>
                       {label}
                     </Text>
                   </Pressable>
@@ -291,7 +291,7 @@ export default function SignalerAbsenceScreen() {
                   value={customDateText}
                   onChangeText={setCustomDateText}
                   placeholder="2026-04-01"
-                  placeholderTextColor="rgba(255,255,255,0.35)"
+                  placeholderTextColor="#94A3B8"
                   keyboardType="default"
                 />
               </GlassCard>
@@ -305,7 +305,7 @@ export default function SignalerAbsenceScreen() {
               <Papicons
                 name={multiDay ? 'CheckSquare' : 'Square'}
                 size={22}
-                color={multiDay ? accent : 'rgba(255,255,255,0.5)'}
+                color={multiDay ? accent : '#94A3B8'}
               />
               <Text style={styles.checkLabel}>Absence sur plusieurs jours</Text>
             </Pressable>
@@ -319,7 +319,7 @@ export default function SignalerAbsenceScreen() {
                   value={customEndText}
                   onChangeText={setCustomEndText}
                   placeholder="2026-04-03"
-                  placeholderTextColor="rgba(255,255,255,0.35)"
+                  placeholderTextColor="#94A3B8"
                   keyboardType="default"
                 />
               </GlassCard>
@@ -339,11 +339,11 @@ export default function SignalerAbsenceScreen() {
                           styles.pill,
                           active
                             ? { backgroundColor: accentBg, borderColor: accent }
-                            : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.25)' },
+                            : { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.12)' },
                         ]}
                         onPress={() => setDemiJournee(dj)}
                       >
-                        <Text style={[styles.pillText, { color: active ? accent : '#FFFFFF' }]}>
+                        <Text style={[styles.pillText, { color: active ? accent : '#64748B' }]}>
                           {DEMI_JOURNEE_LABELS[dj]}
                         </Text>
                       </Pressable>
@@ -355,7 +355,7 @@ export default function SignalerAbsenceScreen() {
 
             {/* Next button */}
             <Pressable
-              style={[styles.primaryBtn, { backgroundColor: canGoStep2 ? accent : 'rgba(255,255,255,0.2)', marginTop: 8 }]}
+              style={[styles.primaryBtn, { backgroundColor: canGoStep2 ? accent : 'rgba(0,0,0,0.08)', marginTop: 8 }]}
               onPress={goNext}
               disabled={!canGoStep2}
             >
@@ -382,12 +382,12 @@ export default function SignalerAbsenceScreen() {
                       styles.motifRow,
                       active
                         ? { backgroundColor: accentBg, borderColor: accent }
-                        : { backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.2)' },
+                        : { backgroundColor: 'rgba(0,0,0,0.04)', borderColor: 'rgba(0,0,0,0.10)' },
                     ]}
                     onPress={() => setMotif(m)}
                   >
                     <Text style={styles.motifEmoji}>{MOTIF_ICONS[m]}</Text>
-                    <Text style={[styles.motifLabel, { color: active ? accent : '#FFFFFF' }]}>
+                    <Text style={[styles.motifLabel, { color: active ? accent : '#0F172A' }]}>
                       {MOTIF_LABELS[m]}
                     </Text>
                     {active && (
@@ -408,7 +408,7 @@ export default function SignalerAbsenceScreen() {
                 value={commentaire}
                 onChangeText={(t) => setCommentaire(t.slice(0, 200))}
                 placeholder="Ex: Fièvre depuis hier soir..."
-                placeholderTextColor="rgba(255,255,255,0.35)"
+                placeholderTextColor="#94A3B8"
                 multiline
                 numberOfLines={3}
               />
@@ -417,7 +417,7 @@ export default function SignalerAbsenceScreen() {
 
             {/* Next button */}
             <Pressable
-              style={[styles.primaryBtn, { backgroundColor: canGoStep3 ? accent : 'rgba(255,255,255,0.2)', marginTop: 8 }]}
+              style={[styles.primaryBtn, { backgroundColor: canGoStep3 ? accent : 'rgba(0,0,0,0.08)', marginTop: 8 }]}
               onPress={goNext}
               disabled={!canGoStep3}
             >
@@ -459,7 +459,7 @@ export default function SignalerAbsenceScreen() {
               {/* Comment */}
               {commentaire.trim() ? (
                 <View style={styles.recapRow}>
-                  <Papicons name="Chat" size={16} color="rgba(255,255,255,0.5)" />
+                  <Papicons name="Chat" size={16} color="#94A3B8" />
                   <Text style={styles.recapMuted} numberOfLines={2}>
                     {commentaire.trim()}
                   </Text>
@@ -512,10 +512,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: FontFamily.displayExtraBold,
     fontSize: 16,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: '#0F172A',
   },
   headerSpacer: {
     width: 22,
@@ -573,16 +570,13 @@ const styles = StyleSheet.create({
   stepQuestion: {
     fontFamily: FontFamily.displayExtraBold,
     fontSize: 18,
-    color: '#FFFFFF',
+    color: '#0F172A',
     marginBottom: 4,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
   },
   subLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#64748B',
     marginTop: 4,
     marginBottom: -4,
   },
@@ -612,13 +606,13 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
+    color: '#64748B',
     marginBottom: 6,
   },
   textInput: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: '#0F172A',
     padding: 0,
   },
   textArea: {
@@ -628,7 +622,7 @@ const styles = StyleSheet.create({
   charCount: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
+    color: '#94A3B8',
     textAlign: 'right',
     marginTop: 4,
   },
@@ -642,7 +636,7 @@ const styles = StyleSheet.create({
   checkLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   // ── Motif list ──
   motifList: {
@@ -686,12 +680,12 @@ const styles = StyleSheet.create({
   recapChildName: {
     fontFamily: FontFamily.displayExtraBold,
     fontSize: 15,
-    color: '#FFFFFF',
+    color: '#0F172A',
     flex: 1,
   },
   recapDivider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
   },
   recapRow: {
     flexDirection: 'row',
@@ -701,13 +695,13 @@ const styles = StyleSheet.create({
   recapValue: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
+    color: '#0F172A',
     flex: 1,
   },
   recapMuted: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.55)',
+    color: '#64748B',
     flex: 1,
   },
   // ── Warning ──
@@ -769,22 +763,19 @@ const styles = StyleSheet.create({
   successTitle: {
     fontFamily: FontFamily.loraBold,
     fontSize: 22,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: '#0F172A',
   },
   successBody: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 22,
   },
   successMuted: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: '#94A3B8',
     textAlign: 'center',
   },
 });

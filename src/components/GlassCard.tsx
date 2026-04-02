@@ -1,17 +1,12 @@
 /**
- * GlassCard — Mode-aware glass morphism card.
+ * GlassCard — Glass morphism card on light backgrounds.
  *
- * Auto-detects dark/light mode from the child theme and applies
- * the correct glass style. On dark backgrounds the card is nearly
- * transparent with a subtle white border; on light backgrounds it
- * is frosted white with a stronger shadow.
- *
- * borderRadius: 20, borderCurve: 'continuous' everywhere.
+ * All modes are now light. Cards are frosted white with a soft shadow,
+ * NO border. borderRadius: 20, borderCurve: 'continuous' everywhere.
  */
 
 import { type ReactNode } from 'react';
 import { View, StyleSheet, Platform, type ViewStyle } from 'react-native';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -27,19 +22,11 @@ interface GlassCardProps {
   style?: ViewStyle | ViewStyle[] | (ViewStyle | false | undefined)[];
   /** No padding inside the card */
   noPadding?: boolean;
-  /** Force dark or light variant (auto-detected if omitted) */
-  variant?: 'dark' | 'light';
 }
 
-// ─── Opacity presets per variant ────────────────────────
+// ─── Opacity presets ───────────────────────────────────
 
-const DARK_BG: Record<Intensity, number> = {
-  subtle: 0.03,
-  medium: 0.05,
-  strong: 0.10,
-};
-
-const LIGHT_BG: Record<Intensity, number> = {
+const BG_OPACITY: Record<Intensity, number> = {
   subtle: 0.25,
   medium: 0.35,
   strong: 0.55,
@@ -53,38 +40,17 @@ export default function GlassCard({
   borderRadius = 20,
   style,
   noPadding = false,
-  variant,
 }: GlassCardProps) {
-  const { theme } = useChildTheme();
-  const isDark = variant === 'dark' || (variant === undefined && theme.isDarkBg);
-
-  const bgOpacity = isDark ? DARK_BG[intensity] : LIGHT_BG[intensity];
-  const borderColor = isDark
-    ? `rgba(255,255,255,${0.08 + bgOpacity * 0.5})`   // 0.10 – 0.15
-    : 'rgba(0, 0, 0, 0.06)';                           // subtle, almost invisible
-
-  const shadow = isDark
-    ? {} // no shadow on dark glass
-    : Platform.select({
-        ios: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.10,
-          shadowRadius: 1.5,
-        },
-        android: { elevation: 1 },
-        default: {},
-      });
+  const bgOpacity = BG_OPACITY[intensity];
 
   return (
     <View
       style={[
         styles.container,
+        styles.shadow,
         {
           borderRadius,
-          borderColor,
           backgroundColor: `rgba(255,255,255,${bgOpacity})`,
-          ...shadow,
         },
         style,
       ]}
@@ -101,10 +67,22 @@ export default function GlassCard({
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    borderWidth: 0.5,
+    borderWidth: 0,
     // @ts-ignore — borderCurve is supported on iOS 17+
     borderCurve: 'continuous',
   },
+  shadow: Platform.select({
+    ios: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 8,
+    },
+    android: {
+      elevation: 2,
+    },
+    default: {},
+  }) as any,
   content: {
     padding: 16,
   },

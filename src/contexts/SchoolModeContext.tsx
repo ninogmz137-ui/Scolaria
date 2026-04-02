@@ -114,12 +114,12 @@ export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
     ariaEmoji: '✦',
     ariaLabel: 'Aria ✦',
     // Phase 1
-    backgroundColor: '#0F1923',
-    headerGradientFull: ['#0B1628', '#164E63', '#0F1923'],
+    backgroundColor: '#F0F7FF',
+    headerGradientFull: ['#0B1628', '#164E63', '#F0F7FF'],
     headerGradientLocations: [0, 0.5, 1],
-    isDarkBg: true,
-    textOnBg: '#FFFFFF',
-    textOnBgSecondary: 'rgba(255,255,255,0.7)',
+    isDarkBg: false,
+    textOnBg: '#0F172A',
+    textOnBgSecondary: '#64748B',
   },
   lycee: {
     ...LIGHT_BASE,

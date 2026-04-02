@@ -45,15 +45,15 @@ export default function CahierLiaisonParent({
   // Derive accent from theme if not overridden
   const accent = accentColor ?? theme.accent;
 
-  // Mode-aware text colors
-  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  // All modes are light — always use dark text
+  const cardText = '#0F172A';
+  const cardTextSecondary = '#64748B';
+  const cardTextMuted = '#94A3B8';
 
   // Card surface colors for inline containers (not GlassCard)
-  const inlineBg = theme.isDarkBg ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.75)';
-  const inlineBorder = theme.isDarkBg ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.9)';
-  const dividerColor = theme.isDarkBg ? 'rgba(255,255,255,0.10)' : '#EEF0F5';
+  const inlineBg = 'rgba(255,255,255,0.75)';
+  const inlineBorder = 'rgba(255,255,255,0.9)';
+  const dividerColor = '#EEF0F5';
 
   const [mots, setMots] = useState<MotLiaisonParent[]>([]);
   const [selectedMot, setSelectedMot] = useState<MotLiaisonParent | null>(null);
@@ -335,27 +335,6 @@ export default function CahierLiaisonParent({
           </HStack>
         )}
       </HStack>
-
-      {/* Send message button (Phase 2-3 placeholder) */}
-      <Pressable
-        className="flex-row items-center justify-center gap-2 py-3 rounded-xl mb-3"
-        style={{
-          backgroundColor: 'transparent',
-          borderWidth: 1.5,
-          borderColor: accent + '40',
-        }}
-        onPress={() =>
-          Alert.alert(
-            'Bientôt disponible',
-            'Cette fonctionnalité sera disponible prochainement.',
-          )
-        }
-      >
-        <Ionicons name="send-outline" size={16} color={accent} />
-        <Text className="text-sm font-semibold" style={{ color: accent }}>
-          Envoyer un message à l'enseignant
-        </Text>
-      </Pressable>
 
       {/* Mots list */}
       {mots.length === 0 ? (

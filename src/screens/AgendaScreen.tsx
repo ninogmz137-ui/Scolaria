@@ -22,13 +22,15 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
-import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
+import ScreenHeader from '../components/ScreenHeader';
+const AGENDA_HEADER_HEIGHT = Dimensions.get('window').height * 0.22;
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -314,10 +316,10 @@ export default function AgendaScreen() {
   return (
     <View style={st.root}>
       <WallpaperBackground />
-      <ScreenHeader />
+      <ScreenHeader heightRatio={0.22} />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + 8, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+        contentContainerStyle={{ paddingTop: AGENDA_HEADER_HEIGHT + 8, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
       >
         {/* Week header + badges */}
         <View style={st.weekHeader}>
@@ -386,8 +388,8 @@ export default function AgendaScreen() {
                 ]}
                 onPress={() => { setSelectedDay(item.date); setExpandedEvent(null); }}
               >
-                <Text style={[st.dayLabel, !isSelected && { color: theme.isDarkBg ? 'rgba(255,255,255,0.6)' : '#94A3B8' }, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
-                <Text style={[st.dayNumber, !isSelected && { color: theme.isDarkBg ? '#FFFFFF' : '#0F172A' }, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
+                <Text style={[st.dayLabel, !isSelected && { color: '#94A3B8' }, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
+                <Text style={[st.dayNumber, !isSelected && { color: '#0F172A' }, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
                 {hasEvents && <View style={[st.dayDot, isSelected && { backgroundColor: '#FFFFFF' }]} />}
               </Pressable>
             );
