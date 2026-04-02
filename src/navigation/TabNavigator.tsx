@@ -7,6 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { View, Platform, Pressable, Text, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -59,12 +60,14 @@ import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 
 function CahierLiaisonPlaceholder() {
   const { selectedChild, selectedChildId } = useActiveChild();
+  const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1 }}>
       <WallpaperBackground />
       <ScrollView
         contentContainerStyle={{
           padding: 20,
+          paddingTop: insets.top + 64,
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + 72 + 20,
         }}
       >
@@ -78,7 +81,7 @@ function CahierLiaisonPlaceholder() {
       <View
         style={{
           position: 'absolute',
-          bottom: 100,
+          bottom: FLOATING_TAB_BAR_HEIGHT + 20,
           left: 20,
           right: 20,
           shadowColor: '#6366F1',

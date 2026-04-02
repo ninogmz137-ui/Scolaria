@@ -9,14 +9,13 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, ScrollView, FlatList, Pressable, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
-import ScreenHeader from '../components/ScreenHeader';
-const NOTES_HEADER_HEIGHT = Dimensions.get('window').height * 0.18;
+import ScreenHeader, { HEADER_HEIGHT as NOTES_HEADER_HEIGHT } from '../components/ScreenHeader';
 import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
@@ -270,7 +269,7 @@ export default function NotesScreen() {
     return (
       <View style={s.root}>
         <WallpaperBackground />
-        <ScreenHeader heightRatio={0.18} />
+        <ScreenHeader />
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[s.scroll, { paddingTop: NOTES_HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
@@ -378,7 +377,7 @@ export default function NotesScreen() {
   return (
     <View style={s.root}>
       <WallpaperBackground />
-      <ScreenHeader heightRatio={0.18} />
+      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[s.scroll, { paddingTop: NOTES_HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}

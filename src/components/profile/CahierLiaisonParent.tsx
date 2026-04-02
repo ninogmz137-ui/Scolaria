@@ -130,9 +130,7 @@ export default function CahierLiaisonParent({
             <HStack
               className="items-center gap-1 px-2.5 py-1.5 rounded-xl"
               style={{
-                borderWidth: 1,
                 backgroundColor: TYPE_CONFIG[selectedMot.type].color + '15',
-                borderColor: TYPE_CONFIG[selectedMot.type].color + '25',
               }}
             >
               <Text style={{ fontSize: 14 }}>{TYPE_CONFIG[selectedMot.type].emoji}</Text>
@@ -182,8 +180,6 @@ export default function CahierLiaisonParent({
                   className="items-center gap-3 p-3.5 rounded-xl"
                   style={{
                     backgroundColor: Colors.green + '08',
-                    borderWidth: 1,
-                    borderColor: Colors.green + '20',
                   }}
                 >
                   <Box
@@ -267,8 +263,6 @@ export default function CahierLiaisonParent({
                 className="flex-1 py-3.5 rounded-xl items-center"
                 style={{
                   backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#EEF0F5',
                 }}
                 onPress={() => setShowSignModal(false)}
               >

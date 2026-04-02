@@ -91,7 +91,7 @@ export default function DashboardTile({
             borderLeftColor: borderColor,
             ...Platform.select({
               ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6 },
-              android: { elevation: 1 },
+              android: { elevation: 0 },
               default: {},
             }),
           }}

@@ -80,7 +80,7 @@ export default function FusedChildHeader({ onAddChild }: Props) {
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.04,
               shadowRadius: 4,
-              elevation: 2,
+              elevation: 0,
               gap: 10,
             }}
           >
@@ -88,8 +88,6 @@ export default function FusedChildHeader({ onAddChild }: Props) {
               className="w-11 h-11 rounded-xl items-center justify-center"
               style={{
                 backgroundColor: accent + '12',
-                borderWidth: 1.5,
-                borderColor: accent + '20',
               }}
             >
               <Text style={{ fontSize: 24 }}>{selectedChild.avatar}</Text>

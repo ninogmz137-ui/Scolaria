@@ -21,19 +21,19 @@ import { useChildTheme } from '../contexts/ChildThemeContext';
 import type { ReactNode } from 'react';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const HEADER_RATIO = 0.18; // 18% of screen height — compact header
+const HEADER_PX = 130; // fixed pixel height — compact header
 
 interface ScreenHeaderProps {
   /** Optional content rendered inside the header (below topbar area) */
   children?: ReactNode;
-  /** Override header height ratio (0-1), default 0.33 */
+  /** Override header height as a ratio (0-1). If omitted, defaults to HEADER_PX. */
   heightRatio?: number;
 }
 
-export default function ScreenHeader({ children, heightRatio = HEADER_RATIO }: ScreenHeaderProps) {
+export default function ScreenHeader({ children, heightRatio }: ScreenHeaderProps) {
   const { theme } = useChildTheme();
   const insets = useSafeAreaInsets();
-  const headerHeight = SCREEN_HEIGHT * heightRatio;
+  const headerHeight = heightRatio ? SCREEN_HEIGHT * heightRatio : HEADER_PX;
 
   return (
     <View
@@ -60,7 +60,7 @@ export default function ScreenHeader({ children, heightRatio = HEADER_RATIO }: S
   );
 }
 
-export const HEADER_HEIGHT = SCREEN_HEIGHT * HEADER_RATIO;
+export const HEADER_HEIGHT = HEADER_PX;
 
 const styles = StyleSheet.create({
   container: {
