@@ -46,7 +46,7 @@ export default function ThemeSelector({ accentColor }: Props) {
       <HStack className="items-center gap-2 mb-1">
         <Papicons name="ColorPalette" size={20} color={accentColor} />
         <Text className="text-base font-extrabold" style={{ color: cardText }}>
-          Thème de {selectedChild.name}
+          Thème de {selectedChild.name.split(' ')[0]}
         </Text>
       </HStack>
       <Text className="text-xs mb-4" style={{ color: cardTextMuted }}>

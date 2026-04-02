@@ -25,6 +25,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Papicons } from '@getpapillon/papicons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -380,8 +381,11 @@ export default function MessagerieScreen() {
 
   const hasUnread = unreadCount > 0;
 
-  const visibleToday   = showUnreadOnly ? todayItems.filter((n) => !n.read)   : todayItems;
-  const visibleEarlier = showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems;
+  // Double-filter: strip any items with empty/null title or message at render time
+  const safeFilter = (arr: MessagerieItem[]) =>
+    arr.filter((n) => n.title && n.title.trim() !== '' && n.message && n.message.trim() !== '');
+  const visibleToday   = safeFilter(showUnreadOnly ? todayItems.filter((n) => !n.read) : todayItems);
+  const visibleEarlier = safeFilter(showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems);
   const isEmpty        = visibleToday.length === 0 && visibleEarlier.length === 0;
 
   // ─── FAB actions ─────────────────────────────────────────
@@ -583,10 +587,21 @@ function MessageCard({ item, onPress }: MessageCardProps) {
         style={!item.read ? { borderLeftWidth: 3, borderLeftColor: cfg.color } : undefined}
       >
         <View style={styles.cardInner}>
-          {/* Type icon */}
-          <View style={[styles.iconCircle, { backgroundColor: cfg.color + '20' }]}>
-            <Papicons name={cfg.icon} size={18} color={cfg.color} />
-          </View>
+          {/* Type icon — Aria gets gradient circle, others get flat tinted circle */}
+          {item.type === 'aria' ? (
+            <LinearGradient
+              colors={['#8B5CF6', '#06B6D4']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.iconCircle}
+            >
+              <Text style={{ fontSize: 12, color: '#FFFFFF' }}>✦</Text>
+            </LinearGradient>
+          ) : (
+            <View style={[styles.iconCircle, { backgroundColor: cfg.color + '20' }]}>
+              <Papicons name={cfg.icon} size={18} color={cfg.color} />
+            </View>
+          )}
 
           {/* Text content */}
           <View style={styles.cardBody}>

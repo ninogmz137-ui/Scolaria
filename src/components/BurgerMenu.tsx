@@ -84,7 +84,7 @@ const MAIN_ITEMS: MenuItemDef[] = [
 ];
 
 const BOTTOM_ITEMS: MenuItemDef[] = [
-  { key: 'rgpd',   icon: Shield,  label: 'RGPD & Confidentialité', screen: 'ReglagesScreen' },
+  { key: 'rgpd',   icon: Shield,  label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
   { key: 'logout', icon: LogOut,  label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 

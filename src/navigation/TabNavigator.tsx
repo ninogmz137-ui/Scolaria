@@ -40,6 +40,9 @@ import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 // About
 import AProposScreen from '../screens/AProposScreen';
 
+// RGPD hub
+import RGPDScreen from '../screens/RGPDScreen';
+
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
 import JournalAccesScreen from '../screens/rgpd/JournalAccesScreen';
@@ -62,6 +65,7 @@ const SCREEN_TITLES: Record<string, string> = {
   AjouterAnne: 'Ajouter une année',
   MonParcours: 'Mon parcours',
   ReglagesScreen: 'Réglages',
+  RGPDScreen: 'RGPD & Confidentialité',
   PermissionsRGPD: 'Permissions',
   JournalAcces: "Journal d'accès",
   TransfertCode: 'Code de transfert',
@@ -136,6 +140,11 @@ function AccueilStackScreen() {
         name="ReglagesScreen"
         component={SettingsScreen}
         options={{ title: 'Réglages' }}
+      />
+      <AccueilStack.Screen
+        name="RGPDScreen"
+        component={RGPDScreen}
+        options={{ title: 'RGPD & Confidentialité' }}
       />
       <AccueilStack.Screen
         name="PermissionsRGPD"
@@ -349,6 +358,7 @@ function TabContentWithBurger({
       BienEtre: { tab: 'Accueil', screen: 'BienEtreScreen' },
       WallpaperPicker: { tab: 'Accueil', screen: 'WallpaperPicker' },
       ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
+      RGPDScreen:     { tab: 'Accueil', screen: 'RGPDScreen' },
     };
 
     const target = routeMap[screen];

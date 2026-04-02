@@ -406,7 +406,7 @@ export default function NotesScreen() {
           <GlassCard>
             <Text style={{ fontSize: 28, marginBottom: 8 }}>👩‍🏫</Text>
             <Text style={[s.observationText, { color: cardTextSecondary }]}>
-              « {selectedChild.name} est une élève curieuse et sociable. Elle progresse bien dans le langage oral et adore les activités artistiques. Elle commence à s'intéresser aux chiffres et aux lettres. Un beau trimestre ! »
+              « {selectedChild.name.split(' ')[0]} est une élève curieuse et sociable. Elle progresse bien dans le langage oral et adore les activités artistiques. Elle commence à s'intéresser aux chiffres et aux lettres. Un beau trimestre ! »
             </Text>
             <Text style={[s.observationAuthor, { color: cardTextMuted }]}>Mme Laurent — Mars 2026</Text>
           </GlassCard>

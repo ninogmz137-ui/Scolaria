@@ -53,7 +53,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   }, [state.index, animatedIndex]);
 
   // Unified colors — always light
-  const ACCENT = '#3B82F6';
+  const ACCENT = '#374151';
   const barBg = 'rgba(255, 255, 255, 0.55)';
   const barBorder = 'rgba(0,0,0,0.05)';
   const inactiveColor = '#94A3B8';

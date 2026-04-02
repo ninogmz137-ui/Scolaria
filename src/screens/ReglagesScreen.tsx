@@ -164,7 +164,7 @@ function SettingsRowItem({
 export default function ReglagesScreen({ navigation }: { navigation: any }) {
   const { t, locale, setLocale, languages } = useI18n();
   useChildTheme(); // kept for future theme re-integration
-  const { signOut, setRole, role, user } = useAuth();
+  const { user } = useAuth();
   const { children: childList } = useActiveChild();
   const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
   const [notifications, setNotifications] = useState({
@@ -521,93 +521,6 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             type="toggle"
             toggleValue={notifications.checkin}
             onToggle={(v) => updateNotification('checkin', v)}
-            isLast
-          />
-        </SettingsSection>
-
-        {/* RGPD & Privacy */}
-        <SettingsSection title="RGPD & CONFIDENTIALITÉ">
-          <SettingsRowItem
-            icon="people"
-            label="Permissions d'accès"
-            sublabel="4 niveaux : tuteur, famille, accompagnant, minimal"
-            color={Colors.green}
-            type="navigate"
-            onPress={() => navigation.navigate('PermissionsRGPD')}
-          />
-          <SettingsRowItem
-            icon="list"
-            label="Journal d'accès"
-            sublabel="Qui a consulté quoi et quand"
-            color={Colors.cyan}
-            type="navigate"
-            onPress={() => navigation.navigate('JournalAcces')}
-          />
-          <SettingsRowItem
-            icon="swap-horizontal"
-            label="Code de transfert"
-            sublabel="SCA-TRANSFER entre établissements (90 jours)"
-            color={Colors.violet}
-            type="navigate"
-            onPress={() => navigation.navigate('TransfertCode')}
-          />
-          <SettingsRowItem
-            icon="download"
-            label="Export intégral"
-            sublabel="Télécharger toutes vos données en JSON + PDF"
-            color={Colors.orange}
-            type="navigate"
-            onPress={() => navigation.navigate('ExportDonnees')}
-          />
-          <SettingsRowItem
-            icon="trash"
-            label="Droit à l'effacement"
-            sublabel="Suppression définitive du profil (Art. 17)"
-            color={Colors.red}
-            type="navigate"
-            onPress={() => navigation.navigate('Effacement')}
-          />
-          <SettingsRowItem
-            icon="lock-closed"
-            label={t('settings.encryption')}
-            sublabel={t('settings.encryptionSub')}
-            color={Colors.violet}
-            type="value"
-            value={t('settings.encryptionActive')}
-          />
-          <SettingsRowItem
-            icon="shield-checkmark"
-            label={t('settings.privacyPolicy')}
-            sublabel={t('settings.privacyPolicySub')}
-            color={Colors.green}
-            type="navigate"
-          />
-          <SettingsRowItem
-            icon="document-text"
-            label={t('settings.terms')}
-            color={Colors.cyan}
-            type="navigate"
-            isLast
-          />
-        </SettingsSection>
-
-        {/* Account actions */}
-        <SettingsSection title="COMPTE">
-          <SettingsRowItem
-            icon="swap-horizontal"
-            label="Changer de compte"
-            sublabel={`Connecté en tant que ${role === 'parent' ? 'Parent' : role === 'eleve' ? 'Élève' : role === 'enseignant' ? 'Enseignant' : '—'}`}
-            color={Colors.violet}
-            type="navigate"
-            onPress={() => signOut()}
-          />
-          <SettingsRowItem
-            icon="log-out"
-            label="Se déconnecter"
-            sublabel="Retour à l'écran de connexion"
-            color={Colors.red}
-            type="navigate"
-            onPress={() => signOut()}
             isLast
           />
         </SettingsSection>

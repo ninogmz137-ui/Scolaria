@@ -314,7 +314,7 @@ export default function AccueilScreen() {
           <GlassCard style={{ marginBottom: 14 }}>
             <View style={styles.ariaHeader}>
               <LinearGradient
-                colors={[accent, accent + 'AA']}
+                colors={['#8B5CF6', '#06B6D4']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.ariaIcon}
@@ -332,7 +332,7 @@ export default function AccueilScreen() {
               <View style={styles.absenceRow}>
                 <Papicons name="Calendar" size={18} color={accent} />
                 <Text style={[styles.absenceText, { color: cardTextSecondary }]} numberOfLines={1}>
-                  {selectedChild.name} absent(e) · {MOTIF_LABELS[todayAbsence.motif]}{' '}
+                  {selectedChild.name.split(' ')[0]} absent(e) · {MOTIF_LABELS[todayAbsence.motif]}{' '}
                   {todayAbsence.statut === 'prise_en_compte' ? '✓' : '⏳'}
                 </Text>
               </View>
