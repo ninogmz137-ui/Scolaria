@@ -1,22 +1,18 @@
 /**
- * GlassCard — Glass morphism card on light backgrounds.
+ * GlassCard — Simple white card, no glass morphism.
  *
- * All modes are now light. Cards are frosted white with a soft shadow,
- * NO border. borderRadius: 20, borderCurve: 'continuous' everywhere.
+ * Unified design: all backgrounds are #F2F2F7 (light grey).
+ * Cards are solid white (#FFFFFF) with no shadow, no border, no elevation.
  */
 
 import { type ReactNode } from 'react';
-import { View, StyleSheet, Platform, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type ViewStyle } from 'react-native';
 
 // ─── Types ─────────────────────────────────────────────
 
-type Intensity = 'subtle' | 'medium' | 'strong';
-
 interface GlassCardProps {
   children: ReactNode;
-  /** Glass intensity preset, default 'medium' */
-  intensity?: Intensity;
-  /** Override border radius, default 20 */
+  /** Override border radius, default 16 */
   borderRadius?: number;
   /** Additional styles on the outer container */
   style?: ViewStyle | ViewStyle[] | (ViewStyle | false | undefined)[];
@@ -24,34 +20,19 @@ interface GlassCardProps {
   noPadding?: boolean;
 }
 
-// ─── Opacity presets ───────────────────────────────────
-
-const BG_OPACITY: Record<Intensity, number> = {
-  subtle: 0.25,
-  medium: 0.35,
-  strong: 0.55,
-};
-
 // ─── Component ─────────────────────────────────────────
 
 export default function GlassCard({
   children,
-  intensity = 'medium',
-  borderRadius = 20,
+  borderRadius = 16,
   style,
   noPadding = false,
 }: GlassCardProps) {
-  const bgOpacity = BG_OPACITY[intensity];
-
   return (
     <View
       style={[
         styles.container,
-        styles.shadow,
-        {
-          borderRadius,
-          backgroundColor: `rgba(255,255,255,${bgOpacity})`,
-        },
+        { borderRadius },
         style,
       ]}
     >
@@ -66,13 +47,13 @@ export default function GlassCard({
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 0,
+    overflow: 'hidden',
     // @ts-ignore — borderCurve is supported on iOS 17+
     borderCurve: 'continuous',
-  },
-  shadow: {
-    // Zero shadow/elevation — no grey outline on any platform
+    // No shadow, no elevation — zero grey outlines on any platform
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,

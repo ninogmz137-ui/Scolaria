@@ -67,15 +67,15 @@ function SettingsSection({
   title: string;
   children: React.ReactNode;
 }) {
-  const { theme } = useChildTheme();
-  const accentRgb = hexToRgb(theme.accent);
+  useChildTheme(); // kept for future theme re-integration
+  const accentRgb = hexToRgb('#3B82F6');
   return (
     <Box className="mb-6">
       <HStack className="items-center mb-2.5 px-1" style={{ gap: 8 }}>
-        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: theme.accent }} />
+        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#3B82F6' }} />
         <Text
           className="text-[13px] font-bold uppercase tracking-widest"
-          style={{ color: theme.textMuted }}
+          style={{ color: '#94A3B8' }}
         >
           {title}
         </Text>
@@ -83,7 +83,7 @@ function SettingsSection({
       <Box
         className="rounded-2xl overflow-hidden"
         style={{
-          backgroundColor: theme.card,
+          backgroundColor: '#FFFFFF',
           borderWidth: 1.5,
           borderColor: `rgba(${accentRgb},0.15)`,
           ...CARD_SHADOW,
@@ -114,13 +114,13 @@ function SettingsRowItem({
   onPress?: () => void;
   isLast?: boolean;
 }) {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   return (
     <Pressable
       className="flex-row items-center p-3.5"
       style={[
         { gap: 12 },
-        !isLast ? { borderBottomWidth: 1, borderBottomColor: theme.cardBorder } : undefined,
+        !isLast ? { borderBottomWidth: 1, borderBottomColor: 'rgba(203,213,225,0.5)' } : undefined,
       ]}
       onPress={onPress}
     >
@@ -131,8 +131,8 @@ function SettingsRowItem({
         <Ionicons name={icon} size={18} color={color} />
       </Box>
       <VStack className="flex-1">
-        <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>{label}</Text>
-        {sublabel && <Text className="text-xs mt-0.5" style={{ color: theme.textMuted }}>{sublabel}</Text>}
+        <Text className="text-[15px] font-semibold" style={{ color: '#0F172A' }}>{label}</Text>
+        {sublabel && <Text className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{sublabel}</Text>}
       </VStack>
       {type === 'navigate' && (
         <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
@@ -154,7 +154,7 @@ function SettingsRowItem({
 
 export default function ReglagesScreen({ navigation }: { navigation: any }) {
   const { t, locale, setLocale, languages } = useI18n();
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { signOut, setRole, role, user } = useAuth();
   const { children: childList } = useActiveChild();
   const [notifications, setNotifications] = useState({
@@ -217,7 +217,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
       {/* Family profile header */}
       <Box className="mb-2">
         <LinearGradient
-          colors={['#0B1628', theme.accent + 'DD']}
+          colors={['#0B1628', '#3B82F6DD']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 28, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
@@ -243,7 +243,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
         </LinearGradient>
       </Box>
 
-      <DecorativeBlobs accent={theme.accent} />
+      <DecorativeBlobs accent="#3B82F6" />
 
       <Box className="px-5">
         {/* Children management */}
@@ -264,7 +264,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
                 <Text className="text-[22px]">{child.avatar}</Text>
               </Box>
               <VStack className="flex-1">
-                <Text className="text-[15px] font-bold" style={{ color: theme.textPrimary }}>{child.name}</Text>
+                <Text className="text-[15px] font-bold" style={{ color: '#0F172A' }}>{child.name}</Text>
                 <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{child.classe}</Text>
                 <Text className="text-[11px] mt-0.5 font-mono" style={{ color: Colors.cyan }}>{child.scolariaId}</Text>
               </VStack>
@@ -293,7 +293,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             >
               <Text className="text-[28px]">{perm.avatar}</Text>
               <VStack className="flex-1">
-                <Text className="text-[15px] font-semibold" style={{ color: theme.textPrimary }}>{perm.name}</Text>
+                <Text className="text-[15px] font-semibold" style={{ color: '#0F172A' }}>{perm.name}</Text>
                 <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{perm.role}</Text>
               </VStack>
               <Box className="rounded-[10px] px-2.5 py-1" style={{ backgroundColor: 'rgba(109,40,217,0.15)' }}>
@@ -320,7 +320,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             <Text className="text-[22px]">
               {languages.find((l) => l.code === locale)?.flag}
             </Text>
-            <Text className="flex-1 text-[15px] font-semibold" style={{ color: theme.textPrimary }}>
+            <Text className="flex-1 text-[15px] font-semibold" style={{ color: '#0F172A' }}>
               {languages.find((l) => l.code === locale)?.label}
             </Text>
             <Ionicons

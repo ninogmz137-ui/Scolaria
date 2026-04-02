@@ -16,7 +16,7 @@ type Props = {
 const AVATAR_COLORS = [Colors.violet, Colors.cyan, Colors.pink, Colors.green];
 
 export default function ChildSwitcher({ children, selectedId, onSelect }: Props) {
-  const { theme } = useSchoolMode();
+  useSchoolMode(); // kept for future theme re-integration
 
   return (
     <Box className="mb-5">
@@ -34,9 +34,9 @@ export default function ChildSwitcher({ children, selectedId, onSelect }: Props)
               key={child.id}
               className="flex-row items-center rounded-2xl py-2.5 px-3.5"
               style={{
-                backgroundColor: isSelected ? theme.bgLight : theme.card,
+                backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
                 borderWidth: 1.5,
-                borderColor: isSelected ? theme.accent : 'transparent',
+                borderColor: isSelected ? '#3B82F6' : 'transparent',
               }}
               onPress={() => onSelect(child.id)}
             >
@@ -54,11 +54,11 @@ export default function ChildSwitcher({ children, selectedId, onSelect }: Props)
               <Box className="ml-2.5">
                 <Text
                   className="text-sm font-semibold"
-                  style={{ color: isSelected ? theme.textPrimary : theme.textMuted }}
+                  style={{ color: isSelected ? '#0F172A' : '#94A3B8' }}
                 >
                   {child.name}
                 </Text>
-                <Text className="text-[11px] mt-px" style={{ color: theme.textMuted }}>
+                <Text className="text-[11px] mt-px" style={{ color: '#94A3B8' }}>
                   {child.classe}
                 </Text>
               </Box>
@@ -68,7 +68,7 @@ export default function ChildSwitcher({ children, selectedId, onSelect }: Props)
                   style={{
                     width: 8,
                     height: 8,
-                    backgroundColor: theme.accent,
+                    backgroundColor: '#3B82F6',
                   }}
                 />
               )}

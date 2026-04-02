@@ -68,12 +68,12 @@ const STATUT_CONFIG: Record<AcademicYearStatut, { label: string; color: string; 
 // ─── Component ──────────────────────────────────────────
 
 export default function MonParcoursScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
-  const accent = theme.accent;
+  const accent = '#3B82F6';
 
   const [years, setYears] = useState<AcademicYearCard[]>(() => getMockYears(selectedChild.id));
 

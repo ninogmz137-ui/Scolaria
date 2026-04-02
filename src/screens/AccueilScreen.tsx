@@ -97,15 +97,15 @@ export default function AccueilScreen() {
   const { theme } = useChildTheme();
   const { selectedChild, selectedChildId, fadeAnim } = useActiveChild();
 
-  // Card-specific text colors — switch on dark background themes (primaire mode)
-  const cardText          = theme.isDarkBg ? '#FFFFFF'              : '#0F172A';
-  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted     = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  // Unified design: all backgrounds are light — always dark text
+  const cardText          = '#0F172A';
+  const cardTextSecondary = '#64748B';
+  const cardTextMuted     = '#94A3B8';
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
   const todayAbsence = getTodayAbsence(selectedChildId);
-  const accent = theme.accent;
+  const accent = '#3B82F6';
   const [data, setData] = useState<DashboardData>(getMockDashboard(selectedChildId, selectedChild?.name));
 
   // Topbar spacer height
@@ -332,12 +332,8 @@ export default function AccueilScreen() {
             style={[
               styles.absenceButton,
               {
-                backgroundColor: theme.isDarkBg
-                  ? 'rgba(255,255,255,0.12)'
-                  : 'rgba(0,0,0,0.04)',
-                borderColor: theme.isDarkBg
-                  ? 'rgba(255,255,255,0.25)'
-                  : 'rgba(0,0,0,0.1)',
+                backgroundColor: 'rgba(0,0,0,0.04)',
+                borderColor: 'rgba(0,0,0,0.1)',
               },
             ]}
             onPress={() => navigation.navigate('SignalerAbsenceScreen')}
@@ -405,10 +401,10 @@ function GlassTile({
   badge?: number;
   onPress: () => void;
 }) {
-  const { theme: tileTheme } = useChildTheme();
-  const cardText          = tileTheme.isDarkBg ? '#FFFFFF'               : '#0F172A';
-  const cardTextSecondary = tileTheme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted     = tileTheme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  // Unified design: all backgrounds are light — always dark text
+  const cardText          = '#0F172A';
+  const cardTextSecondary = '#64748B';
+  const cardTextMuted     = '#94A3B8';
 
   return (
     <RNPressable onPress={onPress} style={styles.tileWrap}>

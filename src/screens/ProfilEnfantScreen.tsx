@@ -193,7 +193,7 @@ function getChildProfileData(childId: string): ChildProfileData {
 // ─── Component ────────────────────────────────────────────
 
 export default function ProfilEnfantScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild, updateChildAvatar } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -337,7 +337,7 @@ export default function ProfilEnfantScreen() {
     }
   };
 
-  const accent = theme.accent;
+  const accent = '#3B82F6';
 
   return (
     <View style={styles.root}>
@@ -358,7 +358,7 @@ export default function ProfilEnfantScreen() {
               name={data.name}
               emoji={selectedChild.avatarType === 'photo' ? undefined : (selectedChild.avatarEmoji || data.avatar)}
               photoUri={selectedChild.avatarPhotoUri}
-              accentColor={theme.accent}
+              accentColor={accent}
               size={72}
             />
             <View style={styles.avatarEditBadge}>
@@ -399,7 +399,7 @@ export default function ProfilEnfantScreen() {
             tags={data.tags}
             trimesterWeeksLeft={data.trimesterWeeksLeft}
             accentColor={accent}
-            accentLight={theme.accentLight ?? theme.accent}
+            accentLight={accent}
           />
         </View>
 
@@ -479,7 +479,7 @@ export default function ProfilEnfantScreen() {
         onClose={() => setAvatarPickerVisible(false)}
         onSelect={handleAvatarSelect}
         childName={data.name}
-        accentColor={theme.accent}
+        accentColor={accent}
         currentEmoji={selectedChild.avatarEmoji || data.avatar}
         currentPhotoUri={selectedChild.avatarPhotoUri}
       />

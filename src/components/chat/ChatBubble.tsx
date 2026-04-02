@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function ChatBubble({ message, isTyping }: Props) {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const isAria = message.sender === 'aria';
 
   return (
@@ -33,17 +33,17 @@ export default function ChatBubble({ message, isTyping }: Props) {
           maxWidth: '75%',
           ...(isAria
             ? {
-                backgroundColor: theme.card,
+                backgroundColor: '#FFFFFF',
                 borderBottomLeftRadius: 6,
               }
             : {
-                backgroundColor: theme.accent,
+                backgroundColor: '#3B82F6',
                 borderBottomRightRadius: 6,
               }),
         }}
       >
         {isAria && (
-          <Text className="text-xs font-bold mb-1" style={{ color: theme.accent }}>
+          <Text className="text-xs font-bold mb-1" style={{ color: '#3B82F6' }}>
             Aria ✦
           </Text>
         )}
@@ -59,7 +59,7 @@ export default function ChatBubble({ message, isTyping }: Props) {
             baseStyle={{
               fontSize: 15,
               lineHeight: 22,
-              color: theme.textPrimary,
+              color: '#0F172A',
             }}
           >
             {message.text}
@@ -78,7 +78,7 @@ export default function ChatBubble({ message, isTyping }: Props) {
         <Text
           className="text-[11px] mt-1.5"
           style={{
-            color: isAria ? theme.textMuted : 'rgba(255,255,255,0.6)',
+            color: isAria ? '#94A3B8' : 'rgba(255,255,255,0.6)',
             textAlign: isAria ? 'left' : 'right',
           }}
         >

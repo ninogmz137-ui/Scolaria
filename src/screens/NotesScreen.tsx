@@ -173,7 +173,7 @@ function GradeBar({ value, max, color }: { value: number; max: number; color: st
 // ─── Main screen ─────────────────────────────────────────
 
 export default function NotesScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const navigation = useNavigation<any>();
@@ -186,9 +186,9 @@ export default function NotesScreen() {
   const [sortMode, setSortMode] = useState<SortMode>('alpha');
   const isMaternelle = mode === 'maternelle';
 
-  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const cardText = '#0F172A';
+  const cardTextSecondary = '#64748B';
+  const cardTextMuted = '#94A3B8';
 
   const COLOR_PALETTE = [Colors.cyan, Colors.violet, Colors.orange, Colors.green, Colors.pink, Colors.warmOrange];
 
@@ -276,8 +276,8 @@ export default function NotesScreen() {
         >
           {/* Summary */}
           <Text style={[s.maternelleTitle, {
-            color: theme.textOnBg,
-            textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+            color: '#0F172A',
+            textShadowColor: 'transparent',
           }]}>Suivi des apprentissages</Text>
           <View style={s.summaryRow}>
             <GlassCard style={s.summaryCard}>
@@ -356,10 +356,10 @@ export default function NotesScreen() {
 
           {/* Teacher observation */}
           <View style={s.sectionHeader}>
-            <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
+            <View style={[s.sectionBar, { backgroundColor: '#3B82F6' }]} />
             <Text style={[s.sectionTitle, {
-              color: theme.textOnBg,
-              textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+              color: '#0F172A',
+              textShadowColor: 'transparent',
             }]}>Observation de la maîtresse</Text>
           </View>
           <GlassCard>
@@ -400,10 +400,10 @@ export default function NotesScreen() {
 
         {/* ── New grades carousel ── */}
         <View style={s.sectionHeader}>
-          <View style={[s.sectionBar, { backgroundColor: theme.accent }]} />
+          <View style={[s.sectionBar, { backgroundColor: '#3B82F6' }]} />
           <Text style={[s.sectionTitle, {
-            color: theme.textOnBg,
-            textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+            color: '#0F172A',
+            textShadowColor: 'transparent',
           }]}>Nouvelles notes</Text>
         </View>
 
@@ -431,10 +431,10 @@ export default function NotesScreen() {
           {(['alpha', 'average', 'trimestre'] as SortMode[]).map((mode) => (
             <Pressable
               key={mode}
-              style={[s.sortPill, sortMode === mode && { backgroundColor: theme.accent }]}
+              style={[s.sortPill, sortMode === mode && { backgroundColor: '#3B82F6' }]}
               onPress={() => setSortMode(mode)}
             >
-              <Text style={[s.sortText, { color: theme.textOnBgSecondary }, sortMode === mode && { color: '#FFFFFF' }]}>
+              <Text style={[s.sortText, { color: '#64748B' }, sortMode === mode && { color: '#FFFFFF' }]}>
                 {mode === 'alpha' ? 'A-Z' : mode === 'average' ? 'Moyenne' : 'Trimestre'}
               </Text>
             </Pressable>
@@ -443,7 +443,7 @@ export default function NotesScreen() {
             style={s.scanButton}
             onPress={() => navigation.navigate('ScannerBulletin')}
           >
-            <Papicons name="QrCode" size={18} color={theme.accent} />
+            <Papicons name="QrCode" size={18} color="#3B82F6" />
           </Pressable>
         </View>
 

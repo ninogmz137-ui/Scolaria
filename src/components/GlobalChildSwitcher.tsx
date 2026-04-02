@@ -32,7 +32,7 @@ export function HeaderChildAvatar() {
   const { theme } = useSchoolMode();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const modeColor = MODE_COLORS[theme.mode] || theme.accent;
+  const modeColor = MODE_COLORS[theme.mode] || '#3B82F6';
 
   return (
     <>
@@ -96,7 +96,7 @@ function ChildSwitcherModal({
         <Pressable
           className="rounded-t-3xl px-5"
           style={{
-            backgroundColor: theme.bg,
+            backgroundColor: '#F2F2F7',
             maxHeight: SCREEN_HEIGHT * 0.6,
             ...Platform.select({
               ios: {
@@ -122,17 +122,17 @@ function ChildSwitcherModal({
           <Box className="items-center pt-3 pb-2">
             <Box
               className="rounded-sm"
-              style={{ width: 40, height: 4, backgroundColor: theme.textMuted, opacity: 0.4 }}
+              style={{ width: 40, height: 4, backgroundColor: '#94A3B8', opacity: 0.4 }}
             />
           </Box>
 
           {/* Title */}
           <HStack className="justify-between items-center mb-4">
-            <Text className="text-xl font-extrabold" style={{ color: theme.textPrimary }}>
+            <Text className="text-xl font-extrabold" style={{ color: '#0F172A' }}>
               Changer d'enfant
             </Text>
             <Pressable onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close-circle" size={28} color={theme.textMuted} />
+              <Ionicons name="close-circle" size={28} color="#94A3B8" />
             </Pressable>
           </HStack>
 
@@ -144,7 +144,7 @@ function ChildSwitcherModal({
                 ? getSchoolModeFromBirthDate(child.birthDate)
                 : 'primaire';
               const childTheme = THEMES[childMode];
-              const modeColor = MODE_COLORS[childMode] || theme.accent;
+              const modeColor = MODE_COLORS[childMode] || '#3B82F6';
 
               return (
                 <Pressable
@@ -152,8 +152,8 @@ function ChildSwitcherModal({
                   className="flex-row items-center py-3.5 px-3.5 rounded-2xl"
                   style={{
                     borderWidth: 1.5,
-                    backgroundColor: isSelected ? theme.bgLight : theme.card,
-                    borderColor: isSelected ? modeColor : theme.cardBorder,
+                    backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
+                    borderColor: isSelected ? modeColor : 'rgba(203,213,225,0.5)',
                   }}
                   onPress={() => handleSelect(child.id)}
                 >
@@ -174,10 +174,10 @@ function ChildSwitcherModal({
 
                   {/* Info */}
                   <Box className="flex-1 ml-3.5">
-                    <Text className="text-[17px] font-bold" style={{ color: theme.textPrimary }}>
+                    <Text className="text-[17px] font-bold" style={{ color: '#0F172A' }}>
                       {child.name}
                     </Text>
-                    <Text className="text-[13px] mt-0.5" style={{ color: theme.textSecondary }}>
+                    <Text className="text-[13px] mt-0.5" style={{ color: '#64748B' }}>
                       {child.classe}
                     </Text>
                   </Box>

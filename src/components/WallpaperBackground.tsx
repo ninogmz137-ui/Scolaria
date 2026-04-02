@@ -1,7 +1,7 @@
 /**
  * WallpaperBackground — Full-screen fixed background for all screens.
  *
- * Phase 1 update: uses mode-aware background color by default.
+ * Unified design: always renders #F2F2F7 (light grey).
  * Custom photo wallpapers still override when set.
  *
  * Usage:
@@ -13,11 +13,9 @@
 
 import { View, StyleSheet, Image } from 'react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 
 export default function WallpaperBackground() {
   const { customPhotoUri, isCustomPhoto } = useWallpaper();
-  const { theme } = useChildTheme();
 
   // Custom photo still takes priority
   if (isCustomPhoto && customPhotoUri) {
@@ -30,9 +28,9 @@ export default function WallpaperBackground() {
     );
   }
 
-  // Mode-aware solid background color
+  // Unified solid background — #F2F2F7 for all modes
   return (
-    <View style={[styles.background, { backgroundColor: theme.backgroundColor }]} />
+    <View style={styles.background} />
   );
 }
 
@@ -43,5 +41,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: '#F2F2F7',
   },
 });

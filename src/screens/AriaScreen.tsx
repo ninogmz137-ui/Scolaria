@@ -77,7 +77,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const insets = useSafeAreaInsets();
@@ -195,10 +195,10 @@ export default function AriaScreen() {
     timestamp: '',
   };
 
-  const rgb = hexToRgb(theme.accent);
+  const rgb = hexToRgb('#3B82F6');
   const accentBorder = rgb
     ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`
-    : theme.cardBorder;
+    : 'rgba(59,130,246,0.35)';
 
   return (
     <View style={styles.root}>
@@ -236,9 +236,7 @@ export default function AriaScreen() {
                     styles.suggestionPill,
                     {
                       borderColor: accentBorder,
-                      backgroundColor: theme.isDarkBg
-                        ? 'rgba(255,255,255,0.15)'
-                        : 'rgba(255,255,255,0.50)',
+                      backgroundColor: 'rgba(255,255,255,0.50)',
                     },
                     isTyping && styles.suggestionPillDisabled,
                   ]}
@@ -248,7 +246,7 @@ export default function AriaScreen() {
                   <Text
                     style={[
                       styles.suggestionText,
-                      { color: theme.isDarkBg ? 'rgba(255,255,255,0.7)' : theme.textSecondary },
+                      { color: '#64748B' },
                       isTyping && styles.textDisabled,
                     ]}
                   >
@@ -272,16 +270,14 @@ export default function AriaScreen() {
               styles.inputRow,
               {
                 borderColor: accentBorder,
-                backgroundColor: theme.isDarkBg
-                  ? 'rgba(255,255,255,0.12)'
-                  : 'rgba(255,255,255,0.55)',
+                backgroundColor: 'rgba(255,255,255,0.55)',
               },
             ]}
           >
             <TextInput
-              style={[styles.textInput, { color: theme.textPrimary }]}
+              style={[styles.textInput, { color: '#0F172A' }]}
               placeholder="Demandez à Aria..."
-              placeholderTextColor={theme.textMuted}
+              placeholderTextColor="#94A3B8"
               value={input}
               onChangeText={setInput}
               multiline

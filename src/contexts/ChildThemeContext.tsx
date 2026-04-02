@@ -19,8 +19,6 @@ import {
 import { useSchoolMode, type SchoolModeTheme } from './SchoolModeContext';
 import { useActiveChild } from './ActiveChildContext';
 import {
-  getChildTheme,
-  deriveThemePalette,
   DEFAULT_THEME_ID,
   type ThemeId,
 } from '../constants/themes';
@@ -60,37 +58,14 @@ export function ChildThemeProvider({ children }: { children: ReactNode }) {
 
   const currentThemeId = themeMap[selectedChildId] || DEFAULT_THEME_ID;
 
-  // Merge school mode theme with child's custom colors
+  // Unified design: child theme preferences are stored but do NOT affect
+  // the rendered colors. All consumers receive the school mode theme as-is
+  // with the unified blue accent (#3B82F6) for every child.
   const mergedTheme = useMemo<SchoolModeTheme>(() => {
-    const childTheme = getChildTheme(currentThemeId);
-    const palette = deriveThemePalette(childTheme);
-
-    return {
-      ...schoolTheme,
-      // Override all color properties with child theme
-      bg: palette.bg,
-      bgLight: palette.bgLight,
-      card: palette.card,
-      cardBorder: palette.cardBorder,
-      textPrimary: palette.textPrimary,
-      textSecondary: palette.textSecondary,
-      textMuted: palette.textMuted,
-      accent: palette.accent,
-      accentLight: palette.accentLight,
-      accentDark: palette.accentDark,
-      tabBg: palette.tabBg,
-      tabBorder: palette.tabBorder,
-      tabActive: palette.tabActive,
-      tabInactive: palette.tabInactive,
-      headerGradient: palette.headerGradient,
-      ariaColor: palette.ariaColor,
-      // Keep school mode structural properties
-      mode: schoolTheme.mode,
-      label: schoolTheme.label,
-      ariaEmoji: schoolTheme.ariaEmoji,
-      ariaLabel: schoolTheme.ariaLabel,
-    };
-  }, [currentThemeId, schoolTheme]);
+    // schoolTheme already carries the unified values from THEMES.
+    // We return it unchanged so every child sees the same blue palette.
+    return schoolTheme;
+  }, [schoolTheme]);
 
   const setChildTheme = useCallback(
     (childId: string, themeId: ThemeId) => {

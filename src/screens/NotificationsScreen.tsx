@@ -94,9 +94,9 @@ function isToday(isoString: string): boolean {
 // ─── Component ──────────────────────────────────────────
 
 export default function NotificationsScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
-  const accent = theme.accent;
+  const accent = '#3B82F6';
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
@@ -331,10 +331,9 @@ function NotifCard({ notif, accent, onPress }: {
   accent: string;
   onPress: (notif: Notification) => void;
 }) {
-  const { theme: cardTheme } = useChildTheme();
-  const cText = cardTheme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cTextSec = cardTheme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cTextMuted = cardTheme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const cText = '#0F172A';
+  const cTextSec = '#64748B';
+  const cTextMuted = '#94A3B8';
   const cfg = NOTIF_PAPICONS[notif.type] ?? NOTIF_PAPICONS.aria;
 
   return (

@@ -248,7 +248,6 @@ export default function JournalAccesScreen() {
                     styles.filterPill,
                     filter === f.key && { borderColor: Colors.cyan + '80', backgroundColor: undefined },
                   ]}
-                  intensity={filter === f.key ? 'strong' : 'subtle'}
                 >
                   <Text style={[styles.filterText, filter === f.key && { color: Colors.cyan }]}>
                     {f.label}

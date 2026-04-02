@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { Papicons } from '@getpapillon/papicons';
 import ChildAvatar from './ChildAvatar';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Props ───────────────────────────────────────────────
@@ -84,15 +83,11 @@ export default function AppTopbar({
   onAriaPress,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const { theme } = useChildTheme();
-  const isDark = theme.isDarkBg;
 
-  const textColor = isDark ? '#FFFFFF' : '#0F172A';
-  const textShadow = isDark
-    ? { textShadowColor: 'rgba(0,0,0,0.4)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 }
-    : { textShadowColor: 'transparent', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 0 };
-  const backBg = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)';
-  const backIconColor = isDark ? '#FFFFFF' : '#0F172A';
+  // Unified design: all backgrounds are light — always dark text
+  const textColor = '#0F172A';
+  const backBg = 'rgba(0,0,0,0.08)';
+  const backIconColor = '#0F172A';
 
   return (
     <View
@@ -131,11 +126,11 @@ export default function AppTopbar({
       {/* Center section */}
       <View style={styles.center}>
         {mode === 'home' && parentName ? (
-          <Text style={[styles.greeting, { color: textColor, ...textShadow }]} numberOfLines={1}>
+          <Text style={[styles.greeting, { color: textColor }]} numberOfLines={1}>
             Bonjour, {parentName} 👋
           </Text>
         ) : mode === 'stacked' && title ? (
-          <Text style={[styles.title, { color: textColor, ...textShadow }]} numberOfLines={1}>
+          <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
             {title}
           </Text>
         ) : null}

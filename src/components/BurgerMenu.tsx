@@ -136,7 +136,7 @@ export default function BurgerMenu({
   onChangeRole,
   onLogout,
 }: Props) {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild, children: childList, selectChild } = useActiveChild();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
@@ -229,7 +229,7 @@ export default function BurgerMenu({
                   <ChildAvatar
                     name={child.name}
                     emoji={child.avatar}
-                    accentColor={theme.accent}
+                    accentColor="#3B82F6"
                     size={34}
                   />
                   <View style={styles.childInfo}>
@@ -237,7 +237,7 @@ export default function BurgerMenu({
                     <Text style={styles.childClasse} numberOfLines={1}>{child.classe}</Text>
                   </View>
                   {isActive && (
-                    <View style={[styles.activeDot, { backgroundColor: theme.accent }]} />
+                    <View style={[styles.activeDot, { backgroundColor: '#3B82F6' }]} />
                   )}
                 </Pressable>
               );

@@ -68,13 +68,13 @@ const TOMORROW = addDays(TODAY, 1);
 // ─── Component ───────────────────────────────────────────
 
 export default function SignalerAbsenceScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
   const { selectedChild, selectedChildId } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
 
-  const accent = theme.accent;
+  const accent = '#3B82F6';
   const { r: ar, g: ag, b: ab } = hexToRgb(accent);
 
   // ── Step state ──
@@ -162,6 +162,7 @@ export default function SignalerAbsenceScreen() {
 
       setSuccess(true);
     } catch (e) {
+      console.error('[SignalerAbsence] createAbsence error:', e);
       Alert.alert('Erreur', "Impossible de signaler l'absence. Réessayez.");
     }
     setSubmitting(false);

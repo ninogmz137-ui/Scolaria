@@ -40,10 +40,10 @@ export default function CahierLiaisonParent({
   parentName = 'Parent Moreau',
   accentColor,
 }: Props) {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for future theme re-integration
 
   // Derive accent from theme if not overridden
-  const accent = accentColor ?? theme.accent;
+  const accent = accentColor ?? '#3B82F6';
 
   // All modes are light — always use dark text
   const cardText = '#0F172A';

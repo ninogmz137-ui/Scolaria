@@ -13,7 +13,6 @@ import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { Papicons } from '@getpapillon/papicons';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
@@ -35,8 +34,6 @@ export const FLOATING_TAB_BAR_HEIGHT = 100;
 
 export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { theme } = useChildTheme();
-  const isDark = theme.isDarkBg;
 
   // Spring animation for active indicator
   const animatedIndex = useRef(new Animated.Value(state.index)).current;
@@ -51,11 +48,12 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
     }).start();
   }, [state.index, animatedIndex]);
 
-  // Mode-aware colors
-  const barBg = isDark ? 'rgba(15, 20, 35, 0.55)' : 'rgba(255, 255, 255, 0.55)';
-  const barBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
-  const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8';
-  const blurTint = isDark ? 'dark' : 'light';
+  // Unified colors — always light
+  const ACCENT = '#3B82F6';
+  const barBg = 'rgba(255, 255, 255, 0.55)';
+  const barBorder = 'rgba(0,0,0,0.05)';
+  const inactiveColor = '#94A3B8';
+  const blurTint = 'light';
 
   return (
     <View
@@ -71,7 +69,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
             borderColor: barBorder,
             backgroundColor: Platform.OS === 'android' ? barBg : undefined,
           },
-          !isDark && styles.barShadow,
+          styles.barShadow,
         ]}
       >
         {/* Blur background (iOS only) */}
@@ -93,7 +91,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
             const label = options.tabBarLabel as string ?? options.title ?? route.name;
             const isFocused = state.index === index;
             const iconName = TAB_PAPICONS[route.name] || 'Home';
-            const iconColor = isFocused ? theme.accent : inactiveColor;
+            const iconColor = isFocused ? ACCENT : inactiveColor;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -127,7 +125,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                   styles.tab,
                   isFocused && [
                     styles.tabActive,
-                    { backgroundColor: theme.accent + '26' }, // 15% opacity
+                    { backgroundColor: ACCENT + '26' }, // 15% opacity
                   ],
                 ]}
               >
@@ -137,7 +135,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                   color={iconColor}
                 />
                 {isFocused && (
-                  <Text style={[styles.tabLabel, { color: theme.accent }]}>
+                  <Text style={[styles.tabLabel, { color: ACCENT }]}>
                     {label}
                   </Text>
                 )}

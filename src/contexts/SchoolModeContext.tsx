@@ -64,82 +64,58 @@ export interface SchoolModeTheme {
 // ─── Theme definitions ─────────────────────────────────
 
 /**
- * All school modes now share a light background.
- * Text is always dark on light. Only accents and structural labels differ.
+ * All school modes now share the SAME visual properties.
+ * Unified blue design: #F2F2F7 background, blue gradient header.
+ * Mode/label differ so MonRessenti can still distinguish cycles.
  */
-const LIGHT_BASE = {
-  bg: '#F7F8FC',
+const UNIFIED_BASE = {
+  bg: '#F2F2F7',
   bgLight: '#FFFFFF',
   card: '#FFFFFF',
-  cardBorder: '#EEF0F5',
+  cardBorder: 'transparent',
   textPrimary: '#0F172A',
   textSecondary: '#64748B',
   textMuted: '#94A3B8',
   tabBg: '#FFFFFF',
-  tabBorder: '#EEF0F5',
+  tabBorder: 'transparent',
   tabInactive: '#94A3B8',
+  // Unified blue accent
+  accent: '#3B82F6',
+  accentLight: '#93C5FD',
+  accentDark: '#1D4ED8',
+  tabActive: '#3B82F6',
+  headerGradient: ['#3B82F610', '#F2F2F7'] as [string, string],
+  ariaColor: '#3B82F6',
+  // Unified background + header
+  backgroundColor: '#F2F2F7',
+  headerGradientFull: ['#1E3A5F', '#3B7DD8', '#89B4E8'],
+  headerGradientLocations: [0, 0.5, 1],
+  isDarkBg: false,
+  textOnBg: '#0F172A',
+  textOnBgSecondary: '#64748B',
 };
 
 export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
   maternelle: {
-    ...LIGHT_BASE,
+    ...UNIFIED_BASE,
     mode: 'maternelle',
     label: 'Maternelle',
-    accent: '#FF8C42',
-    accentLight: '#FFB07A',
-    accentDark: '#E67A35',
-    tabActive: '#FF8C42',
-    headerGradient: ['#FF8C4210', '#F7F8FC'],
-    ariaColor: '#FF8C42',
     ariaEmoji: '🧸',
     ariaLabel: 'Aria',
-    // Phase 1
-    backgroundColor: '#FFF8F0',
-    headerGradientFull: ['#FF9F43', '#FFECD2', '#FFF8F0'],
-    headerGradientLocations: [0, 0.5, 1],
-    isDarkBg: false,
-    textOnBg: '#0F172A',
-    textOnBgSecondary: '#64748B',
   },
   primaire: {
-    ...LIGHT_BASE,
+    ...UNIFIED_BASE,
     mode: 'primaire',
     label: 'Primaire',
-    accent: '#22D3EE',
-    accentLight: '#67E8F9',
-    accentDark: '#0891B2',
-    tabActive: '#22D3EE',
-    headerGradient: ['#22D3EE10', '#F7F8FC'],
-    ariaColor: '#22D3EE',
     ariaEmoji: '✦',
     ariaLabel: 'Aria ✦',
-    // Phase 1
-    backgroundColor: '#F0F7FF',
-    headerGradientFull: ['#0B1628', '#164E63', '#F0F7FF'],
-    headerGradientLocations: [0, 0.5, 1],
-    isDarkBg: false,
-    textOnBg: '#0F172A',
-    textOnBgSecondary: '#64748B',
   },
   lycee: {
-    ...LIGHT_BASE,
+    ...UNIFIED_BASE,
     mode: 'lycee',
     label: 'Collège-Lycée',
-    accent: '#6D28D9',
-    accentLight: '#7C3AED',
-    accentDark: '#5B21B6',
-    tabActive: '#6D28D9',
-    headerGradient: ['#6D28D910', '#F7F8FC'],
-    ariaColor: '#6D28D9',
     ariaEmoji: '🎯',
     ariaLabel: 'Aria Coach',
-    // Phase 1
-    backgroundColor: '#F8F7FF',
-    headerGradientFull: ['#4C1D95', '#7C3AED', '#F8F7FF'],
-    headerGradientLocations: [0, 0.4, 1],
-    isDarkBg: false,
-    textOnBg: '#0F172A',
-    textOnBgSecondary: '#64748B',
   },
 };
 

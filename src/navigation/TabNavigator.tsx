@@ -81,7 +81,7 @@ function CahierLiaisonPlaceholder() {
       <View
         style={{
           position: 'absolute',
-          bottom: FLOATING_TAB_BAR_HEIGHT + 20,
+          bottom: FLOATING_TAB_BAR_HEIGHT + 30,
           left: 20,
           right: 20,
           shadowColor: '#6366F1',
@@ -135,10 +135,11 @@ const activeTabRef: { current: { setActiveTab: (v: string) => void } | null } = 
 // Title ref for stacked screens
 const stackTitleRef: { current: { setTitle: (v: string) => void } | null } = { current: null };
 
-// Screen title mapping for stacked screens
+// Screen title mapping for stacked screens.
+// Screens omitted here handle their own title rendering:
+//   CahierLiaisonScreen  — CahierLiaisonParent renders "Cahier de Liaison" inline
+//   SignalerAbsenceScreen — renders its own miniHeader with back button + title
 const SCREEN_TITLES: Record<string, string> = {
-  CahierLiaisonScreen: 'Cahier de liaison',
-  SignalerAbsenceScreen: 'Signaler une absence',
   BienEtreScreen: 'Bien-être',
   ProfilEnfant: 'Profil',
   AjouterEnfant: 'Ajouter un enfant',
@@ -274,7 +275,7 @@ export default function TabNavigator() {
   const parentName = selectedChild?.name || 'Parent';
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
+    <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
       {/* Fixed Topbar — always transparent, zIndex 10 */}
       <AppTopbar
         mode={topbarMode}
@@ -284,7 +285,7 @@ export default function TabNavigator() {
         parentName={parentName}
         childName={selectedChild.name}
         childEmoji={selectedChild.avatar}
-        accentColor={theme.accent}
+        accentColor={'#3B82F6'}
         onAriaPress={() => ariaNavRef.current?.()}
       />
 

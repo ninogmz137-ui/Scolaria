@@ -164,9 +164,9 @@ export default function AgendaScreen() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
-  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextSecondary = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
-  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
+  const cardText = '#0F172A';
+  const cardTextSecondary = '#64748B';
+  const cardTextMuted = '#94A3B8';
 
   const todayDate = new Date().getDate();
 
@@ -326,18 +326,18 @@ export default function AgendaScreen() {
               onPress={() => setWeekOffset((o) => o - 1)}
               style={({ pressed }) => [
                 st.weekNavBtn,
-                { borderColor: theme.isDarkBg ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' },
+                { borderColor: 'rgba(0,0,0,0.08)' },
                 pressed && { opacity: 0.6 },
               ]}
               hitSlop={8}
             >
-              <Papicons name="ChevronLeft" size={16} color={theme.textOnBg} />
+              <Papicons name="ChevronLeft" size={16} color="#0F172A" />
             </Pressable>
 
             <Text
               style={[
                 st.weekTitle,
-                { color: theme.textOnBg, textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent', marginBottom: 0 },
+                { color: '#0F172A', textShadowColor: 'transparent', marginBottom: 0 },
               ]}
             >
               {formatWeekHeader(weekDays)}
@@ -347,12 +347,12 @@ export default function AgendaScreen() {
               onPress={() => setWeekOffset((o) => o + 1)}
               style={({ pressed }) => [
                 st.weekNavBtn,
-                { borderColor: theme.isDarkBg ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)' },
+                { borderColor: 'rgba(0,0,0,0.08)' },
                 pressed && { opacity: 0.6 },
               ]}
               hitSlop={8}
             >
-              <Papicons name="ChevronRight" size={16} color={theme.textOnBg} />
+              <Papicons name="ChevronRight" size={16} color="#0F172A" />
             </Pressable>
           </View>
           <View style={st.badgeRow}>
@@ -381,8 +381,8 @@ export default function AgendaScreen() {
               <Pressable
                 style={[
                   st.dayPill,
-                  isSelected && { backgroundColor: theme.accent },
-                  !isSelected && item.isToday && { borderColor: theme.accent, borderWidth: 2 },
+                  isSelected && { backgroundColor: '#3B82F6' },
+                  !isSelected && item.isToday && { borderColor: '#3B82F6', borderWidth: 2 },
                 ]}
                 onPress={() => { setSelectedDay(item.date); setExpandedEvent(null); }}
               >
@@ -396,13 +396,13 @@ export default function AgendaScreen() {
 
         {/* Day title */}
         <View style={st.dayTitle}>
-          <View style={[st.sectionBar, { backgroundColor: theme.accent }]} />
+          <View style={[st.sectionBar, { backgroundColor: '#3B82F6' }]} />
           <Text
             style={[
               st.sectionText,
               {
-                color: theme.textOnBg,
-                textShadowColor: theme.isDarkBg ? 'rgba(0,0,0,0.4)' : 'transparent',
+                color: '#0F172A',
+                textShadowColor: 'transparent',
               },
             ]}
           >
@@ -504,7 +504,7 @@ export default function AgendaScreen() {
           {/* Add event button */}
           <Pressable onPress={openAddModal} style={{ borderRadius: 16, overflow: 'hidden', marginTop: 4 }}>
             <LinearGradient
-              colors={[theme.accent, '#6366F1']}
+              colors={['#3B82F6', '#6366F1']}
               style={st.addBtn}
             >
               <Papicons name="Plus" size={22} color="#FFFFFF" />
@@ -524,9 +524,9 @@ export default function AgendaScreen() {
                 <Text style={st.modalTitle}>Nouvel événement</Text>
 
                 {/* Date indicator */}
-                <View style={[st.modalDateRow, { backgroundColor: theme.accent + '12', borderColor: theme.accent + '30' }]}>
-                  <Papicons name="Calendar" size={15} color={theme.accent} />
-                  <Text style={[st.modalDateText, { color: theme.accent }]}>
+                <View style={[st.modalDateRow, { backgroundColor: '#3B82F612', borderColor: '#3B82F630' }]}>
+                  <Papicons name="Calendar" size={15} color="#3B82F6" />
+                  <Text style={[st.modalDateText, { color: '#3B82F6' }]}>
                     {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
                   </Text>
                 </View>
@@ -553,11 +553,11 @@ export default function AgendaScreen() {
                         onPress={() => setNewEventType(type)}
                         style={[
                           st.modalTypePill,
-                          { borderColor: isActive ? theme.accent : '#EEF0F5' },
-                          isActive && { backgroundColor: theme.accent + '15' },
+                          { borderColor: isActive ? '#3B82F6' : '#EEF0F5' },
+                          isActive && { backgroundColor: '#3B82F615' },
                         ]}
                       >
-                        <Text style={[st.modalTypeText, isActive && { color: theme.accent }]}>
+                        <Text style={[st.modalTypeText, isActive && { color: '#3B82F6' }]}>
                           {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
                         </Text>
                       </Pressable>
@@ -571,7 +571,7 @@ export default function AgendaScreen() {
                     <Text style={st.cancelText}>Annuler</Text>
                   </Pressable>
                   <Pressable onPress={handleCreateEvent} disabled={isSaving} style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}>
-                    <LinearGradient colors={[theme.accent, '#6366F1']} style={[st.createBtn, isSaving && { opacity: 0.6 }]}>
+                    <LinearGradient colors={['#3B82F6', '#6366F1']} style={[st.createBtn, isSaving && { opacity: 0.6 }]}>
                       <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
                     </LinearGradient>
                   </Pressable>
