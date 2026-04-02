@@ -20,7 +20,6 @@ import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import ScreenHeader from '../components/ScreenHeader';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
@@ -203,8 +202,6 @@ export default function AriaScreen() {
   return (
     <View style={styles.root}>
       <WallpaperBackground />
-      <ScreenHeader heightRatio={0.20} />
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

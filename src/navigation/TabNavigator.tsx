@@ -1,21 +1,17 @@
 /**
  * TabNavigator — Parent navigation with 4 bottom tabs + burger menu.
  *
- * Redesigned topbar: avatar-based, no logo, no notification bell.
- * Burger menu: dark panel with child selector + sections.
+ * Tabs: Accueil | Notes | Agenda | Messagerie
+ * Topbar: avatar-based, greeting on all tabs, back arrow on stacked screens.
+ * Burger menu: light panel with 6 items.
  */
 
-import { useState, useCallback } from 'react';
-import { View, Platform, Pressable, Text, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { FontFamily } from '../hooks/useSolariaFonts';
+import { useState } from 'react';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 
 // Components
@@ -26,23 +22,22 @@ import FloatingTabBar from '../components/FloatingTabBar';
 // Main tab screens
 import AccueilScreen from '../screens/AccueilScreen';
 import NotesScreen from '../screens/NotesScreen';
-import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
+import MessagerieScreen from '../screens/MessagerieScreen';
 
-// Absence screen
+// Stacked screens
 import SignalerAbsenceScreen from '../screens/SignalerAbsenceScreen';
-
-// Burger menu screens
-import SettingsScreen from '../screens/SettingsScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
-import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
+import AriaScreen from '../screens/AriaScreen';
+import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 
-// About screen
+// About
 import AProposScreen from '../screens/AProposScreen';
 
 // RGPD screens
@@ -52,108 +47,29 @@ import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
-// Placeholder for Cahier Liaison parent view
-import CahierLiaisonParent from '../components/profile/CahierLiaisonParent';
-import { ScrollView } from 'react-native';
-import WallpaperBackground from '../components/WallpaperBackground';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
-
-function CahierLiaisonPlaceholder() {
-  const { selectedChild, selectedChildId } = useActiveChild();
-  const insets = useSafeAreaInsets();
-  return (
-    <View style={{ flex: 1 }}>
-      <WallpaperBackground />
-      <ScrollView
-        contentContainerStyle={{
-          padding: 20,
-          paddingTop: insets.top + 64,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 72 + 20,
-        }}
-      >
-        <CahierLiaisonParent
-          childId={selectedChildId}
-          childName={selectedChild.name}
-        />
-      </ScrollView>
-
-      {/* Floating action button — fixed above tab bar */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: FLOATING_TAB_BAR_HEIGHT + 30,
-          left: 20,
-          right: 20,
-          shadowColor: '#6366F1',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.30,
-          shadowRadius: 12,
-          elevation: 8,
-          borderRadius: 16,
-        }}
-      >
-        <Pressable
-          onPress={() =>
-            Alert.alert('Bientôt disponible', 'Cette fonctionnalité sera disponible prochainement.')
-          }
-          style={({ pressed }) => ({ opacity: pressed ? 0.88 : 1 })}
-        >
-          <LinearGradient
-            colors={['#6366F1', '#22D3EE']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              height: 52,
-              borderRadius: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            <Ionicons name="send-outline" size={18} color="#FFFFFF" />
-            <Text
-              style={{
-                color: '#FFFFFF',
-                fontSize: 15,
-                fontFamily: FontFamily.sansBold,
-              }}
-            >
-              Envoyer un message à l&apos;enseignant
-            </Text>
-          </LinearGradient>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 // ─── Back arrow + active tab refs ───────────────────────
 
 const backArrowRef: { current: { setShowBack: (v: boolean) => void } | null } = { current: null };
 const activeTabRef: { current: { setActiveTab: (v: string) => void } | null } = { current: null };
-// Title ref for stacked screens
 const stackTitleRef: { current: { setTitle: (v: string) => void } | null } = { current: null };
 
-// Screen title mapping for stacked screens.
-// Screens omitted here handle their own title rendering:
-//   CahierLiaisonScreen  — CahierLiaisonParent renders "Cahier de Liaison" inline
-//   SignalerAbsenceScreen — renders its own miniHeader with back button + title
+// Screen title mapping for stacked screens
 const SCREEN_TITLES: Record<string, string> = {
+  SignalerAbsenceScreen: 'Signaler une absence',
   BienEtreScreen: 'Bien-être',
   ProfilEnfant: 'Profil',
   AjouterEnfant: 'Ajouter un enfant',
   AjouterAnne: 'Ajouter une année',
   MonParcours: 'Mon parcours',
   ReglagesScreen: 'Réglages',
-  NotificationsScreen: 'Notifications',
   PermissionsRGPD: 'Permissions',
-  JournalAcces: 'Journal d\'accès',
+  JournalAcces: "Journal d'accès",
   TransfertCode: 'Code de transfert',
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
-  AriaScreen: 'Aria ✦',
+  AriaScreen: 'Aria',
+  WallpaperPicker: "Fond d'écran",
 };
 
 // ─── Stack navigators ────────────────────────────────────
@@ -169,7 +85,6 @@ function AccueilStackScreen() {
           const routes = data?.state?.routes;
           const index = data?.state?.index ?? 0;
           backArrowRef.current?.setShowBack(index > 0);
-          // Update title for stacked screen
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
             stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
@@ -182,23 +97,86 @@ function AccueilStackScreen() {
         },
       }}
     >
-      <AccueilStack.Screen name="AccueilHome" component={AccueilScreen} />
-      <AccueilStack.Screen name="CahierLiaisonScreen" component={CahierLiaisonPlaceholder} />
-      <AccueilStack.Screen name="SignalerAbsenceScreen" component={SignalerAbsenceScreen} />
-      <AccueilStack.Screen name="BienEtreScreen" component={MonRessentiScreen} />
-      <AccueilStack.Screen name="ProfilEnfant" component={ProfilEnfantScreen} />
-      <AccueilStack.Screen name="AjouterEnfant" component={AjouterEnfantScreen} />
-      <AccueilStack.Screen name="AjouterAnne" component={AjouterAnneScreen} />
-      <AccueilStack.Screen name="MonParcours" component={MonParcoursScreen} />
-      <AccueilStack.Screen name="ReglagesScreen" component={SettingsScreen} />
-      <AccueilStack.Screen name="NotificationsScreen" component={NotificationsScreen} />
-      <AccueilStack.Screen name="PermissionsRGPD" component={PermissionsScreen} />
-      <AccueilStack.Screen name="JournalAcces" component={JournalAccesScreen} />
-      <AccueilStack.Screen name="TransfertCode" component={TransfertCodeScreen} />
-      <AccueilStack.Screen name="Effacement" component={EffacementScreen} />
-      <AccueilStack.Screen name="ExportDonnees" component={ExportDonneesScreen} />
-      <AccueilStack.Screen name="APropos" component={AProposScreen} />
-      <AccueilStack.Screen name="AriaScreen" component={AriaScreen} />
+      <AccueilStack.Screen
+        name="AccueilHome"
+        component={AccueilScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
+        name="SignalerAbsenceScreen"
+        component={SignalerAbsenceScreen}
+        options={{ title: 'Signaler une absence' }}
+      />
+      <AccueilStack.Screen
+        name="BienEtreScreen"
+        component={MonRessentiScreen}
+        options={{ title: 'Bien-être' }}
+      />
+      <AccueilStack.Screen
+        name="ProfilEnfant"
+        component={ProfilEnfantScreen}
+        options={{ title: 'Profil' }}
+      />
+      <AccueilStack.Screen
+        name="AjouterEnfant"
+        component={AjouterEnfantScreen}
+        options={{ title: 'Ajouter un enfant' }}
+      />
+      <AccueilStack.Screen
+        name="AjouterAnne"
+        component={AjouterAnneScreen}
+        options={{ title: 'Ajouter une année' }}
+      />
+      <AccueilStack.Screen
+        name="MonParcours"
+        component={MonParcoursScreen}
+        options={{ title: 'Mon parcours' }}
+      />
+      <AccueilStack.Screen
+        name="ReglagesScreen"
+        component={SettingsScreen}
+        options={{ title: 'Réglages' }}
+      />
+      <AccueilStack.Screen
+        name="PermissionsRGPD"
+        component={PermissionsScreen}
+        options={{ title: 'Permissions' }}
+      />
+      <AccueilStack.Screen
+        name="JournalAcces"
+        component={JournalAccesScreen}
+        options={{ title: "Journal d'accès" }}
+      />
+      <AccueilStack.Screen
+        name="TransfertCode"
+        component={TransfertCodeScreen}
+        options={{ title: 'Code de transfert' }}
+      />
+      <AccueilStack.Screen
+        name="Effacement"
+        component={EffacementScreen}
+        options={{ title: 'Effacement' }}
+      />
+      <AccueilStack.Screen
+        name="ExportDonnees"
+        component={ExportDonneesScreen}
+        options={{ title: 'Export de données' }}
+      />
+      <AccueilStack.Screen
+        name="APropos"
+        component={AProposScreen}
+        options={{ title: 'À propos' }}
+      />
+      <AccueilStack.Screen
+        name="AriaScreen"
+        component={AriaScreen}
+        options={{ title: 'Aria' }}
+      />
+      <AccueilStack.Screen
+        name="WallpaperPicker"
+        component={WallpaperPickerScreen}
+        options={{ title: "Fond d'écran" }}
+      />
     </AccueilStack.Navigator>
   );
 }
@@ -207,13 +185,48 @@ const NotesStack = createNativeStackNavigator();
 function NotesStackScreen() {
   return (
     <NotesStack.Navigator screenOptions={{ headerShown: false }}>
-      <NotesStack.Screen name="NotesHome" component={NotesScreen} />
+      <NotesStack.Screen
+        name="NotesHome"
+        component={NotesScreen}
+        options={{ headerShown: false }}
+      />
       <NotesStack.Screen
         name="ScannerBulletin"
         component={ScannerBulletinScreen}
         options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
       />
     </NotesStack.Navigator>
+  );
+}
+
+const AgendaStack = createNativeStackNavigator();
+function AgendaStackScreen() {
+  return (
+    <AgendaStack.Navigator screenOptions={{ headerShown: false }}>
+      <AgendaStack.Screen
+        name="AgendaHome"
+        component={AgendaScreen}
+        options={{ headerShown: false }}
+      />
+    </AgendaStack.Navigator>
+  );
+}
+
+const MessagerieStack = createNativeStackNavigator();
+function MessagerieStackScreen() {
+  return (
+    <MessagerieStack.Navigator screenOptions={{ headerShown: false }}>
+      <MessagerieStack.Screen
+        name="MessagerieHome"
+        component={MessagerieScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="SignalerAbsence"
+        component={SignalerAbsenceScreen}
+        options={{ title: 'Signaler une absence' }}
+      />
+    </MessagerieStack.Navigator>
   );
 }
 
@@ -236,25 +249,39 @@ function TabContent() {
         headerShown: false,
       }}
     >
-      <Tab.Screen name="Accueil" component={AccueilStackScreen} />
-      <Tab.Screen name="Notes" component={NotesStackScreen} />
-      <Tab.Screen name="Agenda" component={AgendaScreen} />
-      <Tab.Screen name="Notifications" component={NotificationsScreen} />
+      <Tab.Screen
+        name="Accueil"
+        component={AccueilStackScreen}
+        options={{ tabBarLabel: 'Accueil' }}
+      />
+      <Tab.Screen
+        name="Notes"
+        component={NotesStackScreen}
+        options={{ tabBarLabel: 'Notes' }}
+      />
+      <Tab.Screen
+        name="Agenda"
+        component={AgendaStackScreen}
+        options={{ tabBarLabel: 'Agenda' }}
+      />
+      <Tab.Screen
+        name="MessagerieTab"
+        component={MessagerieStackScreen}
+        options={{ tabBarLabel: 'Messagerie' }}
+      />
     </Tab.Navigator>
   );
 }
 
+// ─── Nav refs ────────────────────────────────────────────
+
+const goBackRef: { current: (() => void) | null } = { current: null };
+const ariaNavRef: { current: (() => void) | null } = { current: null };
+const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
+
 // ─── Main navigator with topbar + burger ─────────────────
 
-// Nav refs
-const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
-const goBackRef: { current: (() => void) | null } = { current: null };
-const settingsNavRef: { current: (() => void) | null } = { current: null };
-const ariaNavRef: { current: (() => void) | null } = { current: null };
-
 export default function TabNavigator() {
-  const { theme } = useChildTheme();
-  const { signOut, user } = useAuth();
   const { selectedChild } = useActiveChild();
   const [burgerVisible, setBurgerVisible] = useState(false);
   const [showBack, setShowBack] = useState(false);
@@ -271,21 +298,20 @@ export default function TabNavigator() {
   const isHome = activeTab === 'Accueil' && !isStackedScreen;
   const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : isHome ? 'home' : 'main';
 
-  // Greeting shows child's first name
-  const parentName = selectedChild?.name || 'Parent';
-
   return (
     <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
-      {/* Fixed Topbar — always transparent, zIndex 10 */}
+      {/* Fixed Topbar — always on top, zIndex 10 */}
       <AppTopbar
         mode={topbarMode}
         onBurgerPress={() => setBurgerVisible(true)}
-        onBackPress={() => { goBackRef.current?.(); setShowBack(false); }}
+        onBackPress={() => {
+          goBackRef.current?.();
+          setShowBack(false);
+        }}
         title={stackTitle}
-        parentName={parentName}
         childName={selectedChild.name}
-        childEmoji={selectedChild.avatar}
-        accentColor={'#3B82F6'}
+        childPhotoUrl={selectedChild.avatarPhotoUri ?? null}
+        isHomeTab={isHome}
         onAriaPress={() => ariaNavRef.current?.()}
       />
 
@@ -312,36 +338,24 @@ function TabContentWithBurger({
     navigation.dispatch(CommonActions.goBack());
   };
 
-  settingsNavRef.current = () => {
-    navigation.navigate('Accueil', { screen: 'ReglagesScreen' });
-  };
-
   ariaNavRef.current = () => {
     navigation.navigate('Accueil', { screen: 'AriaScreen' });
   };
 
   burgerNavRef.current = (screen: string) => {
-    const routeMap: Record<string, string> = {
-      NotesResults: 'Notes',
-      CahierLiaison: 'CahierLiaisonScreen',
-      Absences: 'SignalerAbsenceScreen',
-      BienEtre: 'BienEtreScreen',
-      ProfilBadges: 'ProfilEnfant',
-      MonParcours: 'MonParcours',
-      Permissions: 'PermissionsRGPD',
-      Reglages: 'ReglagesScreen',
-      Notifications: 'NotificationsScreen',
-      RGPD: 'PermissionsRGPD',
-      APropos: 'APropos',
+    const routeMap: Record<string, { tab?: string; screen?: string }> = {
+      ProfilEnfant: { tab: 'Accueil', screen: 'ProfilEnfant' },
+      MonParcours: { tab: 'Accueil', screen: 'MonParcours' },
+      BienEtre: { tab: 'Accueil', screen: 'BienEtreScreen' },
+      WallpaperPicker: { tab: 'Accueil', screen: 'WallpaperPicker' },
+      ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
     };
 
     const target = routeMap[screen];
     if (!target) return;
 
-    if (target === 'Notes') {
-      navigation.navigate('Notes');
-    } else {
-      navigation.navigate('Accueil', { screen: target });
+    if (target.screen) {
+      navigation.navigate(target.tab ?? 'Accueil', { screen: target.screen });
     }
   };
 
@@ -355,8 +369,10 @@ function TabContentWithBurger({
           onCloseBurger();
           setTimeout(() => burgerNavRef.current?.(screen), 200);
         }}
-        onChangeRole={() => { onCloseBurger(); signOut(); }}
-        onLogout={() => { onCloseBurger(); signOut(); }}
+        onLogout={() => {
+          onCloseBurger();
+          signOut();
+        }}
       />
     </View>
   );

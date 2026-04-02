@@ -39,9 +39,9 @@ export type Child = {
 // ─── Fallback data (demo mode / empty Supabase result) ───
 
 export const MOCK_CHILDREN: Child[] = [
-  { id: '1', name: 'Léa', avatar: '👧', classe: 'Grande section — Maternelle Pasteur', birthDate: '2021-05-14' },
-  { id: '2', name: 'Lucas', avatar: '👦', classe: 'CM2 — École Voltaire', birthDate: '2016-03-22' },
-  { id: '3', name: 'Emma', avatar: '👩', classe: '3ème — Collège Hugo', birthDate: '2012-09-10' },
+  { id: '1', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2021-05-14' },
+  { id: '2', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2016-03-22' },
+  { id: '3', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-09-10' },
 ];
 
 // Backwards-compatible alias — any file importing CHILDREN keeps working
@@ -113,7 +113,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
           }) => ({
             id: row.id,
             name: row.first_name,
-            avatar: row.avatar_emoji || '👦',
+            avatar: row.avatar_emoji || '',
             classe: [row.classe, row.school].filter(Boolean).join(' — '),
             birthDate: row.birth_date,
           }));

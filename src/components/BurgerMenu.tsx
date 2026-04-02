@@ -1,16 +1,16 @@
 /**
- * BurgerMenu — Dark panel drawer from left.
+ * BurgerMenu — Light panel drawer from left (iOS settings style).
  *
  * Structure:
- * 1. Small Scolaria logo at top
- * 2. Child selector (all children, colored dot on active)
- * 3. Sections: Mon enfant, Famille, Notifications, Infos
- * 4. Bottom: Change account, Logout
+ * 1. Header: large child avatar + name + classe + parent info
+ * 2. Divider
+ * 3. 6 menu items (no tab bar duplicates)
  *
- * Dark #1A2340 background, right border-radius 28px.
+ * Background: #F2F2F7 (light, not dark)
+ * Width: 80% of screen, max 340px
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import {
   Modal,
   Animated,
@@ -20,18 +20,26 @@ import {
   StyleSheet,
   View,
   Text,
+  Image,
 } from 'react-native';
 import { Pressable } from './ui';
-import { Papicons } from '@getpapillon/papicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  User,
+  RefreshCw,
+  BookOpen,
+  Heart,
+  ImageIcon,
+  Settings,
+  ChevronRight,
+} from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
-import ChildAvatar from './ChildAvatar';
-import LogoScolaria from './LogoScolaria';
+import { useAuth } from '../contexts/AuthContext';
+import { FontFamily } from '../hooks/useSolariaFonts';
+import { ChildSwitcherModal } from './GlobalChildSwitcher';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.78, 340);
-const DARK_BG = '#1A2340';
-const DARK_BORDER = 'rgba(255,255,255,0.08)';
+const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.80, 340);
 
 // ─── Props ───────────────────────────────────────────────
 
@@ -39,93 +47,38 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onNavigate: (screen: string) => void;
-  onChangeRole?: () => void;
   onLogout?: () => void;
 }
 
-// ─── Menu item ──────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────
 
-interface MenuItem {
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
+// ─── Menu items definition ───────────────────────────────
+
+type MenuItemDef = {
   key: string;
-  icon: string;
+  icon: React.ElementType;
   label: string;
-  badge?: number;
-}
+  screen?: string;
+  action?: string;
+};
 
-function MenuSection({
-  title,
-  items,
-  onNav,
-}: {
-  title: string;
-  items: MenuItem[];
-  onNav: (key: string) => void;
-}) {
-  return (
-    <View style={sectionStyles.container}>
-      <Text style={sectionStyles.title}>{title}</Text>
-      {items.map((item) => (
-        <Pressable
-          key={item.key}
-          style={sectionStyles.item}
-          onPress={() => onNav(item.key)}
-        >
-          <View style={sectionStyles.iconWrap}>
-            <Papicons name={item.icon} size={18} color="rgba(255,255,255,0.6)" />
-          </View>
-          <Text style={sectionStyles.label}>{item.label}</Text>
-          {item.badge != null && item.badge > 0 && (
-            <View style={sectionStyles.badge}>
-              <Text style={sectionStyles.badgeText}>{item.badge}</Text>
-            </View>
-          )}
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
-const sectionStyles = StyleSheet.create({
-  container: { paddingHorizontal: 16, paddingVertical: 8 },
-  title: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.35)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 12,
-  },
-  iconWrap: { width: 24, alignItems: 'center' },
-  label: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#EF4444',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-});
+const MENU_ITEMS: MenuItemDef[] = [
+  { key: 'profil', icon: User, label: 'Profil enfant', screen: 'ProfilEnfant' },
+  { key: 'switch', icon: RefreshCw, label: "Changer d'enfant", action: 'switchChild' },
+  { key: 'parcours', icon: BookOpen, label: 'Mon Parcours', screen: 'MonParcours' },
+  { key: 'ressenti', icon: Heart, label: 'Mon Ressenti', screen: 'BienEtre' },
+  { key: 'wallpaper', icon: ImageIcon, label: "Fond d'écran", screen: 'WallpaperPicker' },
+  { key: 'reglages', icon: Settings, label: 'Réglages', screen: 'ReglagesScreen' },
+];
 
 // ─── Main component ─────────────────────────────────────
 
@@ -133,147 +86,157 @@ export default function BurgerMenu({
   visible,
   onClose,
   onNavigate,
-  onChangeRole,
   onLogout,
 }: Props) {
-  useChildTheme(); // kept for future theme re-integration
-  const { selectedChild, children: childList, selectChild } = useActiveChild();
+  const { selectedChild, children: childList } = useActiveChild();
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
+  const [switcherVisible, setSwitcherVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.spring(slideAnim, { toValue: 0, tension: 65, friction: 11, useNativeDriver: true }),
-        Animated.timing(overlayAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          tension: 65,
+          friction: 11,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
       ]).start();
     } else {
       Animated.parallel([
-        Animated.timing(slideAnim, { toValue: -DRAWER_WIDTH, duration: 200, useNativeDriver: true }),
-        Animated.timing(overlayAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(slideAnim, {
+          toValue: -DRAWER_WIDTH,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim, overlayAnim]);
 
-  const handleNav = (screen: string) => {
-    onClose();
-    setTimeout(() => onNavigate(screen), 150);
+  const handleItemPress = (item: MenuItemDef) => {
+    if (item.action === 'switchChild') {
+      // If only one child, nothing to switch
+      if (childList.length <= 1) return;
+      setSwitcherVisible(true);
+      return;
+    }
+    if (item.screen) {
+      onClose();
+      setTimeout(() => onNavigate(item.screen!), 150);
+    }
   };
 
-  const handleChildSelect = (childId: string) => {
-    selectChild(childId);
-    // Don't close — let user see the switch
-  };
+  if (!visible && !switcherVisible) return null;
 
-  // ─── Menu items ──────────────────────────────────────
-
-  const monEnfantItems: MenuItem[] = [
-    { key: 'NotesResults', icon: 'Grades', label: 'Notes & Résultats' },
-    { key: 'CahierLiaison', icon: 'Paper', label: 'Cahier de liaison', badge: 1 },
-    { key: 'Absences', icon: 'Calendar', label: 'Absences' },
-    { key: 'BienEtre', icon: 'Heart', label: 'Bien-être' },
-    { key: 'ProfilBadges', icon: 'Star', label: 'Profil & Badges' },
-    { key: 'MonParcours', icon: 'GraduationHat', label: 'Mon parcours' },
-  ];
-
-  const familleItems: MenuItem[] = [
-    { key: 'Permissions', icon: 'Lock', label: 'Permissions d\'accès' },
-    { key: 'Reglages', icon: 'Gears', label: 'Réglages' },
-  ];
-
-  const notifItems: MenuItem[] = [
-    { key: 'Notifications', icon: 'Bell', label: 'Voir toutes les notifications' },
-  ];
-
-  const infosItems: MenuItem[] = [
-    { key: 'RGPD', icon: 'Pillar', label: 'RGPD & Confidentialité' },
-    { key: 'APropos', icon: 'Info', label: 'À propos · Charte Éthique' },
-  ];
-
-  if (!visible) return null;
+  const childPhoto = selectedChild.avatarPhotoUri ?? null;
+  const childInitials = getInitials(selectedChild.name);
+  const parentEmail = user?.email ?? '';
+  const parentName = parentEmail.split('@')[0] ?? 'Parent';
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
-      {/* Dark overlay */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.6)', opacity: overlayAnim }]}>
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-      </Animated.View>
-
-      {/* Drawer panel */}
-      <Animated.View
-        style={[
-          styles.drawer,
-          { transform: [{ translateX: slideAnim }] },
-        ]}
+    <>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="none"
+        onRequestClose={onClose}
+        statusBarTranslucent
       >
-        <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-          {/* Logo */}
-          <View style={styles.logoWrap}>
-            <LogoScolaria size={18} variant="dark" />
-          </View>
+        {/* Overlay */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: 'rgba(0,0,0,0.5)', opacity: overlayAnim },
+          ]}
+        >
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        </Animated.View>
 
-          {/* Child selector */}
-          <View style={styles.childSection}>
-            <Text style={styles.childSectionTitle}>ENFANTS</Text>
-            {childList.map((child) => {
-              const isActive = child.id === selectedChild.id;
-              return (
-                <Pressable
-                  key={child.id}
-                  style={[
-                    styles.childRow,
-                    isActive && { backgroundColor: 'rgba(255,255,255,0.06)' },
-                  ]}
-                  onPress={() => handleChildSelect(child.id)}
-                >
-                  <ChildAvatar
-                    name={child.name}
-                    emoji={child.avatar}
-                    accentColor="#3B82F6"
-                    size={34}
+        {/* Drawer panel */}
+        <Animated.View
+          style={[
+            styles.drawer,
+            { transform: [{ translateX: slideAnim }] },
+          ]}
+        >
+          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+            {/* Header section */}
+            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+              {/* Large avatar */}
+              <View style={styles.largeAvatarCircle}>
+                {childPhoto ? (
+                  <Image
+                    source={{ uri: childPhoto }}
+                    style={styles.largeAvatarImage}
                   />
-                  <View style={styles.childInfo}>
-                    <Text style={styles.childName}>{child.name}</Text>
-                    <Text style={styles.childClasse} numberOfLines={1}>{child.classe}</Text>
-                  </View>
-                  {isActive && (
-                    <View style={[styles.activeDot, { backgroundColor: '#3B82F6' }]} />
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Sections */}
-          <MenuSection title="MON ENFANT" items={monEnfantItems} onNav={handleNav} />
-          <MenuSection title="FAMILLE" items={familleItems} onNav={handleNav} />
-          <MenuSection title="NOTIFICATIONS" items={notifItems} onNav={handleNav} />
-          <MenuSection title="INFOS" items={infosItems} onNav={handleNav} />
-
-          {/* Bottom actions */}
-          <View style={[styles.divider, { marginTop: 8 }]} />
-          <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
-            <Pressable style={sectionStyles.item} onPress={onChangeRole}>
-              <View style={sectionStyles.iconWrap}>
-                <Papicons name="Login" size={18} color="rgba(255,255,255,0.6)" />
+                ) : (
+                  <Text style={styles.largeAvatarInitials}>{childInitials}</Text>
+                )}
               </View>
-              <Text style={sectionStyles.label}>Changer de compte</Text>
-            </Pressable>
-            <Pressable style={sectionStyles.item} onPress={onLogout}>
-              <View style={sectionStyles.iconWrap}>
-                <Papicons name="Logout" size={18} color="#F87171" />
-              </View>
-              <Text style={[sectionStyles.label, { color: '#F87171' }]}>Se déconnecter</Text>
-            </Pressable>
-          </View>
 
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      </Animated.View>
-    </Modal>
+              {/* Child name */}
+              <Text style={styles.childName}>{selectedChild.name}</Text>
+
+              {/* Classe info */}
+              {selectedChild.classe ? (
+                <Text style={styles.childClasse} numberOfLines={1}>
+                  {selectedChild.classe}
+                </Text>
+              ) : null}
+
+              {/* Parent info */}
+              {parentEmail ? (
+                <Text style={styles.parentInfo} numberOfLines={1}>
+                  {parentName} · {parentEmail}
+                </Text>
+              ) : null}
+            </View>
+
+            {/* Separator */}
+            <View style={styles.divider} />
+
+            {/* Menu items */}
+            <View style={styles.menuList}>
+              {MENU_ITEMS.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Pressable
+                    key={item.key}
+                    style={styles.menuItem}
+                    onPress={() => handleItemPress(item)}
+                  >
+                    <IconComponent size={20} color="#64748B" strokeWidth={2} />
+                    <Text style={styles.menuLabel}>{item.label}</Text>
+                    <ChevronRight size={18} color="#C7C7CC" strokeWidth={2} />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={{ height: Math.max(insets.bottom, 16) + 16 }} />
+          </ScrollView>
+        </Animated.View>
+      </Modal>
+
+      {/* Child switcher modal — separate from drawer */}
+      <ChildSwitcherModal
+        visible={switcherVisible}
+        onClose={() => setSwitcherVisible(false)}
+      />
+    </>
   );
 }
 
@@ -284,63 +247,82 @@ const styles = StyleSheet.create({
     left: 0,
     bottom: 0,
     width: DRAWER_WIDTH,
-    backgroundColor: DARK_BG,
-    borderTopRightRadius: 28,
-    borderBottomRightRadius: 28,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    backgroundColor: '#F2F2F7',
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 8, height: 0 }, shadowOpacity: 0.4, shadowRadius: 24 },
-      android: { elevation: 20 },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 8, height: 0 },
+        shadowOpacity: 0.18,
+        shadowRadius: 24,
+      },
+      android: {
+        elevation: 20,
+      },
     }),
   },
-  logoWrap: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  childSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  childSectionTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.35)',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  childRow: {
-    flexDirection: 'row',
+  largeAvatarCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#3B82F6',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 14,
-    gap: 12,
-    marginBottom: 2,
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  childInfo: {
-    flex: 1,
+  largeAvatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  largeAvatarInitials: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontFamily: FontFamily.sansBold,
   },
   childName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontFamily: FontFamily.sansBold,
+    fontSize: 20,
+    color: '#1A1A1A',
+    marginTop: 12,
   },
   childClasse: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.5)',
-    marginTop: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: '#64748B',
+    marginTop: 2,
   },
-  activeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  parentInfo: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: DARK_BORDER,
+    backgroundColor: '#E5E5EA',
     marginHorizontal: 20,
-    marginVertical: 4,
+    marginBottom: 8,
+  },
+  menuList: {
+    paddingTop: 4,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 14,
+  },
+  menuLabel: {
+    flex: 1,
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    color: '#1A1A1A',
   },
 });

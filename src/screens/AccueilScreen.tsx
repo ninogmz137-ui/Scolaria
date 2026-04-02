@@ -13,16 +13,16 @@ import {
   Pressable as RNPressable,
   StyleSheet,
   Text,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
-import WallpaperBackground from '../components/WallpaperBackground';
-import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useWallpaper } from '../contexts/WallpaperContext';
 import { getTodayAbsence, MOTIF_LABELS } from '../services/absenceService';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getCheckins, getGrades, getAgendaEvents } from '../services/database';
@@ -94,8 +94,9 @@ const MOCK_COURS = [
 // ─── Component ──────────────────────────────────────────
 
 export default function AccueilScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme(); // kept for context subscription
   const { selectedChild, selectedChildId, fadeAnim } = useActiveChild();
+  const { wallpaper } = useWallpaper();
 
   // Unified design: all backgrounds are light — always dark text
   const cardText          = '#0F172A';
@@ -107,9 +108,6 @@ export default function AccueilScreen() {
   const todayAbsence = getTodayAbsence(selectedChildId);
   const accent = '#3B82F6';
   const [data, setData] = useState<DashboardData>(getMockDashboard(selectedChildId, selectedChild?.name));
-
-  // Topbar spacer height
-  const TOPBAR_H = insets.top + 56;
 
   const loadDashboard = useCallback(async (childId: string, childName: string) => {
     const now = new Date();
@@ -215,24 +213,28 @@ export default function AccueilScreen() {
   }, [selectedChildId, loadDashboard]);
 
   return (
-    <View style={styles.root}>
-      <WallpaperBackground />
+    <View style={[styles.root, { backgroundColor: '#F2F2F7' }]}>
+      {/* Wallpaper gradient — top 40% of screen */}
+      <LinearGradient
+        colors={wallpaper.colors as [string, string, ...string[]]}
+        style={styles.wallpaperGradient}
+      />
 
       <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
-        {/* ScreenHeader behind content — content scrolls over it */}
-        <ScreenHeader />
-
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scroll,
-            { paddingTop: HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
-          ]}
+          contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+          style={styles.flex}
         >
+          {/* Spacer that pushes content below the topbar */}
+          <View style={{ height: insets.top + 56 + 40 }} />
+
+          {/* Grey overlay with rounded top covering wallpaper */}
+          <View style={[styles.contentSheet, { minHeight: Dimensions.get('window').height }]}>
           {/* ── Quick tiles 2×2 grid ── */}
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-            <Text style={[styles.sectionLabel, { color: theme.textOnBg }]}>Aujourd'hui</Text>
+            <Text style={[styles.sectionLabel, { color: '#0F172A' }]}>Aujourd'hui</Text>
           </View>
 
           <Animated.View style={[styles.tileGrid, { opacity: enterAnim }]}>
@@ -280,7 +282,7 @@ export default function AccueilScreen() {
           {/* ── Cours du jour ── */}
           <View style={styles.sectionHeader}>
             <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-            <Text style={[styles.sectionLabel, { color: theme.textOnBg }]}>Cours du jour</Text>
+            <Text style={[styles.sectionLabel, { color: '#0F172A' }]}>Cours du jour</Text>
           </View>
 
           <GlassCard style={{ marginBottom: 14 }} noPadding>
@@ -373,6 +375,7 @@ export default function AccueilScreen() {
               </View>
             </GlassCard>
           </RNPressable>
+          </View>{/* end contentSheet */}
         </ScrollView>
 
       </Animated.View>
@@ -435,9 +438,25 @@ function GlassTile({
 // ─── Styles ─────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#F2F2F7' },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 18, gap: 12 },
+
+  wallpaperGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+  },
+
+  contentSheet: {
+    backgroundColor: '#F2F2F7',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
 
   sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionBar: { width: 4, height: 16, borderRadius: 2 },

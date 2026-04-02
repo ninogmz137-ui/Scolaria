@@ -1,38 +1,30 @@
 /**
- * ScreenHeader — Large gradient header for main screens (30-35% of screen).
+ * ScreenHeader — Transparent spacer that reserves space for the topbar area.
  *
- * Sits BEHIND the content (zIndex 0). Content scrolls OVER it.
- * paddingTop on the ScrollView equals HEADER_HEIGHT so the header
- * is visible when at the top, then disappears under the cards as
- * the user scrolls down — same pattern as Papillon.
+ * No gradient, no background — just a correctly-sized absolute View so that
+ * content ScrollViews can use paddingTop: HEADER_HEIGHT to scroll under the topbar.
  *
  * Usage:
  *   <View style={{flex:1}}>
- *     <WallpaperBackground />
- *     <ScreenHeader />        ← behind (zIndex 0)
- *     <ScrollView>...</ScrollView>  ← in front (default zIndex)
+ *     <ScreenHeader />
+ *     <ScrollView contentContainerStyle={{paddingTop: HEADER_HEIGHT}}>...</ScrollView>
  *   </View>
  */
 
-import { View, StyleSheet, Dimensions, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useChildTheme } from '../contexts/ChildThemeContext';
+import { View, StyleSheet, Dimensions } from 'react-native';
 import type { ReactNode } from 'react';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HEADER_PX = 110; // fixed pixel height — minimal header
 
 interface ScreenHeaderProps {
-  /** Optional content rendered inside the header (below topbar area) */
+  /** Optional content rendered inside the spacer */
   children?: ReactNode;
   /** Override header height as a ratio (0-1). If omitted, defaults to HEADER_PX. */
   heightRatio?: number;
 }
 
 export default function ScreenHeader({ children, heightRatio }: ScreenHeaderProps) {
-  const { theme } = useChildTheme();
-  const insets = useSafeAreaInsets();
   const headerHeight = heightRatio ? SCREEN_HEIGHT * heightRatio : HEADER_PX;
 
   return (
@@ -40,22 +32,7 @@ export default function ScreenHeader({ children, heightRatio }: ScreenHeaderProp
       style={[styles.container, { height: headerHeight }]}
       pointerEvents="box-none"
     >
-      <LinearGradient
-        colors={theme.headerGradientFull as [string, string, ...string[]]}
-        locations={theme.headerGradientLocations as [number, number, ...number[]]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[styles.gradient, { borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }]}
-      />
-      {/* Header content (rendered below the safe area + topbar) */}
-      {children && (
-        <View
-          style={[styles.content, { paddingTop: insets.top + 60 }]}
-          pointerEvents="box-none"
-        >
-          {children}
-        </View>
-      )}
+      {children}
     </View>
   );
 }
@@ -69,13 +46,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    overflow: 'hidden',
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 18,
+    backgroundColor: 'transparent',
   },
 });

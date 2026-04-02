@@ -15,7 +15,6 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
-import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
@@ -276,11 +275,10 @@ export default function NotificationsScreen() {
   return (
     <View style={{ flex: 1 }}>
       <WallpaperBackground />
-      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: HEADER_HEIGHT + 12,
+          paddingTop: insets.top + 56 + 20,
           paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
           paddingHorizontal: 18,
           gap: 12,

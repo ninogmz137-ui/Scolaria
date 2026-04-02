@@ -1,8 +1,8 @@
 /**
- * WallpaperBackground — Full-screen fixed background for all screens.
+ * WallpaperBackground — Solid #F2F2F7 background for all screens except Accueil.
  *
- * Unified design: always renders #F2F2F7 (light grey).
- * Custom photo wallpapers still override when set.
+ * Wallpaper gradient is ONLY shown on AccueilScreen.
+ * All other screens use this plain background.
  *
  * Usage:
  * <View style={{flex: 1}}>
@@ -11,27 +11,10 @@
  * </View>
  */
 
-import { View, StyleSheet, Image } from 'react-native';
-import { useWallpaper } from '../contexts/WallpaperContext';
+import { View, StyleSheet } from 'react-native';
 
 export default function WallpaperBackground() {
-  const { customPhotoUri, isCustomPhoto } = useWallpaper();
-
-  // Custom photo still takes priority
-  if (isCustomPhoto && customPhotoUri) {
-    return (
-      <Image
-        source={{ uri: customPhotoUri }}
-        style={styles.background}
-        resizeMode="cover"
-      />
-    );
-  }
-
-  // Unified solid background — #F2F2F7 for all modes
-  return (
-    <View style={styles.background} />
-  );
+  return <View style={styles.background} />;
 }
 
 const styles = StyleSheet.create({

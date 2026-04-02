@@ -62,7 +62,7 @@ export function HeaderChildAvatar() {
 
 // ─── Bottom Sheet Modal ────────────────────────────────────
 
-function ChildSwitcherModal({
+export function ChildSwitcherModal({
   visible,
   onClose,
 }: {

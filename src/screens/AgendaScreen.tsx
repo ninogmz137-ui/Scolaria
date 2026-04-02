@@ -28,7 +28,6 @@ import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
-import ScreenHeader, { HEADER_HEIGHT as AGENDA_HEADER_HEIGHT } from '../components/ScreenHeader';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -314,10 +313,9 @@ export default function AgendaScreen() {
   return (
     <View style={st.root}>
       <WallpaperBackground />
-      <ScreenHeader />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: AGENDA_HEADER_HEIGHT + 8, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+        contentContainerStyle={{ paddingTop: insets.top + 56 + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
       >
         {/* Week header + badges */}
         <View style={st.weekHeader}>

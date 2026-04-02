@@ -1,10 +1,9 @@
 /**
  * FloatingTabBar — Premium floating glass pill tab bar (zIndex 10).
  *
- * 4 tabs: Accueil | Notes | Agenda | Notifications
- * Aria removed from tab bar (accessed via topbar ✦ button).
- * Mode-aware: dark bg gets dark glass, light bg gets frosted white.
+ * 4 tabs: Accueil | Notes | Agenda | Messagerie
  * Active tab: accent pill at 15% opacity + accent label.
+ * Badge support on Messagerie tab for unread message count.
  */
 
 import { useEffect, useRef } from 'react';
@@ -12,23 +11,28 @@ import { View, Text, StyleSheet, Platform, Animated } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { Papicons } from '@getpapillon/papicons';
+import { Home, TrendingUp, Calendar, MessageCircle } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-
-// ─── Icon mapping ───────────────────────────────────────
-
-const TAB_PAPICONS: Record<string, string> = {
-  Accueil: 'Home',
-  Notes: 'Grades',
-  Agenda: 'Calendar',
-  Notifications: 'Bell',
-};
 
 // ─── Tab bar height for padding calculations ────────────
 
 /** Total height the floating tab bar occupies (bar 64 + bottom margin ~20 + safe area) */
 export const FLOATING_TAB_BAR_HEIGHT = 100;
+
+// ─── Tab icon map ───────────────────────────────────────
+
+type LucideIcon = typeof Home;
+
+const TAB_ICONS: Record<string, LucideIcon> = {
+  Accueil: Home,
+  Notes: TrendingUp,
+  Agenda: Calendar,
+  MessagerieTab: MessageCircle,
+};
+
+// Hardcoded unread count — will be dynamic later
+const MESSAGERIE_UNREAD = 3;
 
 // ─── Component ──────────────────────────────────────────
 
@@ -88,10 +92,15 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
         <View style={styles.tabRow}>
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
-            const label = options.tabBarLabel as string ?? options.title ?? route.name;
+            const label =
+              (options.tabBarLabel as string) ?? options.title ?? route.name;
             const isFocused = state.index === index;
-            const iconName = TAB_PAPICONS[route.name] || 'Home';
+            const IconComponent = TAB_ICONS[route.name] ?? Home;
             const iconColor = isFocused ? ACCENT : inactiveColor;
+
+            // Badge: show on Messagerie tab (index 3) when there are unread messages
+            const isMessagerieTab = route.name === 'MessagerieTab';
+            const unreadCount = isMessagerieTab ? MESSAGERIE_UNREAD : 0;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -111,8 +120,6 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
               });
             };
 
-            // TODO: Add badge for Notifications tab when unread count > 0
-
             return (
               <Pressable
                 key={route.key}
@@ -129,11 +136,22 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                   ],
                 ]}
               >
-                <Papicons
-                  name={iconName}
-                  size={24}
-                  color={iconColor}
-                />
+                {/* Icon + badge wrapper */}
+                <View style={{ position: 'relative' }}>
+                  <IconComponent
+                    size={24}
+                    color={iconColor}
+                    strokeWidth={2}
+                  />
+                  {unreadCount > 0 && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
                 {isFocused && (
                   <Text style={[styles.tabLabel, { color: ACCENT }]}>
                     {label}
@@ -198,5 +216,22 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 11,
     fontFamily: FontFamily.sansSemiBold,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
