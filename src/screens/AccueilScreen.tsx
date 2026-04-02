@@ -14,6 +14,7 @@ import {
   StyleSheet,
   Text,
   Dimensions,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,10 +42,11 @@ interface DashboardData {
 }
 
 function getMockDashboard(childId: string, childName: string = 'Votre enfant'): DashboardData {
+  const firstName = childName.split(' ')[0] || 'votre enfant';
   switch (childId) {
     case '1':
       return {
-        ariaSummary: `${childName} a une journée tranquille. Atelier peinture prévu ce matin. Aucun mot en attente dans le cahier de liaison.`,
+        ariaSummary: `${firstName} a une journée tranquille. Atelier peinture prévu ce matin. Aucun mot en attente dans le cahier de liaison.`,
         liaison: { total: 3, unsigned: 0 },
         devoirs: { count: 0, nextDate: '—' },
         notes: { average: 0, trend: 0 },
@@ -53,7 +55,7 @@ function getMockDashboard(childId: string, childName: string = 'Votre enfant'): 
       };
     case '2':
       return {
-        ariaSummary: `${childName} a un contrôle de Maths vendredi. 2 devoirs à rendre cette semaine. 1 mot non signé dans le cahier de liaison.`,
+        ariaSummary: `${firstName} a un contrôle de Maths vendredi. 2 devoirs à rendre cette semaine. 1 mot non signé dans le cahier de liaison.`,
         liaison: { total: 4, unsigned: 1 },
         devoirs: { count: 2, nextDate: 'Jeudi' },
         notes: { average: 14.2, trend: 0.8 },
@@ -63,7 +65,7 @@ function getMockDashboard(childId: string, childName: string = 'Votre enfant'): 
     case '3':
     default:
       return {
-        ariaSummary: `Bonne journée pour ${childName}. Aucun devoir urgent. 1 autorisation à signer pour la sortie du 15 avril.`,
+        ariaSummary: `Bonne journée pour ${firstName}. Aucun devoir urgent. 1 autorisation à signer pour la sortie du 15 avril.`,
         liaison: { total: 4, unsigned: 1 },
         devoirs: { count: 1, nextDate: 'Lundi' },
         notes: { average: 15.6, trend: -0.3 },
@@ -96,7 +98,7 @@ const MOCK_COURS = [
 export default function AccueilScreen() {
   useChildTheme(); // kept for context subscription
   const { selectedChild, selectedChildId, fadeAnim } = useActiveChild();
-  const { wallpaper } = useWallpaper();
+  const { wallpaperSource } = useWallpaper();
 
   // Unified design: all backgrounds are light — always dark text
   const cardText          = '#0F172A';
@@ -214,11 +216,19 @@ export default function AccueilScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: '#F2F2F7' }]}>
-      {/* Wallpaper gradient — top 40% of screen */}
-      <LinearGradient
-        colors={wallpaper.colors as [string, string, ...string[]]}
-        style={styles.wallpaperGradient}
-      />
+      {/* Wallpaper — top 40% of screen */}
+      {wallpaperSource.type === 'image' ? (
+        <Image
+          source={{ uri: wallpaperSource.uri }}
+          style={styles.wallpaperGradient}
+          resizeMode="cover"
+        />
+      ) : (
+        <LinearGradient
+          colors={wallpaperSource.colors as [string, string, ...string[]]}
+          style={styles.wallpaperGradient}
+        />
+      )}
 
       <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
         <ScrollView

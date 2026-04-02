@@ -9,11 +9,12 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, FlatList, Pressable, StyleSheet, Text } from 'react-native';
+import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, TextInput, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
+import { Search, ChevronDown, Check } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
@@ -47,7 +48,38 @@ interface Grade {
   comment?: string;
 }
 
-type SortMode = 'alpha' | 'average' | 'trimestre';
+type SortMode = 'date' | 'alpha' | 'average';
+
+// ─── Period picker config ─────────────────────────────────
+
+interface Period {
+  label: string;
+  value: string;
+  dates: string;
+  number?: number;
+}
+
+const PERIODS: Period[] = [
+  { label: 'Trimestre 1', value: 'T1', dates: 'sept. 2025 - nov. 2025', number: 1 },
+  { label: 'Trimestre 2', value: 'T2', dates: 'nov. 2025 - mars 2026', number: 2 },
+  { label: 'Trimestre 3', value: 'T3', dates: 'mars 2026 - juil. 2026', number: 3 },
+  { label: 'Bac blanc',   value: 'bac',    dates: 'sept. 2025 - juil. 2026' },
+  { label: 'Brevet blanc',value: 'brevet', dates: 'sept. 2025 - juil. 2026' },
+  { label: 'Hors période',value: 'other',  dates: 'sept. 2025 - juil. 2026' },
+];
+
+function getCurrentPeriod(): string {
+  const month = new Date().getMonth(); // 0-11
+  if (month >= 8 && month <= 10) return 'T1';  // sept-nov
+  if (month >= 11 || month <= 1) return 'T2';  // dec-feb (nov-mars)
+  return 'T3'; // mars-juil
+}
+
+const SORT_OPTIONS: { label: string; value: SortMode }[] = [
+  { label: 'Date',          value: 'date' },
+  { label: 'Alphabétique',  value: 'alpha' },
+  { label: 'Moyennes',      value: 'average' },
+];
 
 // ─── Maternelle competencies ─────────────────────────────
 
@@ -182,7 +214,11 @@ export default function NotesScreen() {
   const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
   const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
-  const [sortMode, setSortMode] = useState<SortMode>('alpha');
+  const [sortMode, setSortMode] = useState<SortMode>('date');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(getCurrentPeriod());
+  const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [search, setSearch] = useState('');
   const isMaternelle = mode === 'maternelle';
 
   const cardText = '#0F172A';
@@ -239,11 +275,18 @@ export default function NotesScreen() {
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
 
-  // Sorted subjects
-  const sortedSubjects = [...subjects].sort((a, b) => {
-    if (sortMode === 'alpha') return a.name.localeCompare(b.name);
+  // Sorted + filtered subjects
+  const activePeriodLabel = PERIODS.find((p) => p.value === selectedPeriod)?.label ?? 'Trimestre';
+  const activeSortLabel   = SORT_OPTIONS.find((o) => o.value === sortMode)?.label ?? 'Trier';
+
+  const filteredSubjects = subjects.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const sortedSubjects = [...filteredSubjects].sort((a, b) => {
+    if (sortMode === 'alpha')   return a.name.localeCompare(b.name);
     if (sortMode === 'average') return b.average - a.average;
-    return 0;
+    return 0; // 'date' — keep insertion order
   });
 
   const overallAvg = subjects.reduce((s, sub) => s + sub.average, 0) / (subjects.length || 1);
@@ -423,19 +466,29 @@ export default function NotesScreen() {
           )}
         />
 
-        {/* ── Sort options ── */}
-        <View style={s.sortRow}>
-          {(['alpha', 'average', 'trimestre'] as SortMode[]).map((mode) => (
-            <Pressable
-              key={mode}
-              style={[s.sortPill, sortMode === mode && { backgroundColor: '#3B82F6' }]}
-              onPress={() => setSortMode(mode)}
-            >
-              <Text style={[s.sortText, { color: '#64748B' }, sortMode === mode && { color: '#FFFFFF' }]}>
-                {mode === 'alpha' ? 'A-Z' : mode === 'average' ? 'Moyenne' : 'Trimestre'}
-              </Text>
-            </Pressable>
-          ))}
+        {/* ── Period + Sort pickers ── */}
+        <View style={s.filtersRow}>
+          {/* Period picker trigger */}
+          <Pressable
+            style={s.pickerTrigger}
+            onPress={() => { setShowSortDropdown(false); setShowPeriodDropdown(true); }}
+          >
+            <Text style={s.pickerTriggerText}>{activePeriodLabel}</Text>
+            <ChevronDown size={14} color="#64748B" strokeWidth={2} />
+          </Pressable>
+
+          <View style={s.filterSpacer} />
+
+          {/* Sort trigger */}
+          <Pressable
+            style={s.pickerTrigger}
+            onPress={() => { setShowPeriodDropdown(false); setShowSortDropdown(true); }}
+          >
+            <Text style={s.pickerTriggerText}>{activeSortLabel}</Text>
+            <ChevronDown size={14} color="#64748B" strokeWidth={2} />
+          </Pressable>
+
+          {/* Scan button */}
           <Pressable
             style={s.scanButton}
             onPress={() => navigation.navigate('ScannerBulletin')}
@@ -443,6 +496,84 @@ export default function NotesScreen() {
             <Papicons name="QrCode" size={18} color="#3B82F6" />
           </Pressable>
         </View>
+
+        {/* ── Search bar ── */}
+        <View style={s.searchBar}>
+          <Search size={18} color="#94A3B8" strokeWidth={2} />
+          <TextInput
+            placeholder="Rechercher une matière"
+            placeholderTextColor="#94A3B8"
+            value={search}
+            onChangeText={setSearch}
+            style={s.searchInput}
+          />
+        </View>
+
+        {/* ── Period picker dropdown ── */}
+        <Modal
+          visible={showPeriodDropdown}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPeriodDropdown(false)}
+        >
+          <Pressable style={s.dropdownOverlay} onPress={() => setShowPeriodDropdown(false)}>
+            <View style={s.dropdownSheet}>
+              <Text style={s.dropdownTitle}>Période</Text>
+              {PERIODS.map((period) => {
+                const isSelected = selectedPeriod === period.value;
+                return (
+                  <Pressable
+                    key={period.value}
+                    style={[s.dropdownItem, isSelected && s.dropdownItemActive]}
+                    onPress={() => { setSelectedPeriod(period.value); setShowPeriodDropdown(false); }}
+                  >
+                    {period.number !== undefined && (
+                      <View style={[s.periodBadge, { backgroundColor: isSelected ? '#3B82F6' : '#E2E8F0' }]}>
+                        <Text style={[s.periodBadgeText, { color: isSelected ? '#FFFFFF' : '#64748B' }]}>
+                          {period.number}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={s.dropdownItemBody}>
+                      <Text style={[s.dropdownItemLabel, isSelected && { color: '#3B82F6' }]}>{period.label}</Text>
+                      <Text style={s.dropdownItemDates}>{period.dates}</Text>
+                    </View>
+                    {isSelected && <Check size={16} color="#3B82F6" strokeWidth={2.5} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Modal>
+
+        {/* ── Sort dropdown ── */}
+        <Modal
+          visible={showSortDropdown}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSortDropdown(false)}
+        >
+          <Pressable style={s.dropdownOverlay} onPress={() => setShowSortDropdown(false)}>
+            <View style={s.dropdownSheet}>
+              <Text style={s.dropdownTitle}>Trier par</Text>
+              {SORT_OPTIONS.map((opt) => {
+                const isSelected = sortMode === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    style={[s.dropdownItem, isSelected && s.dropdownItemActive]}
+                    onPress={() => { setSortMode(opt.value); setShowSortDropdown(false); }}
+                  >
+                    <View style={s.dropdownItemBody}>
+                      <Text style={[s.dropdownItemLabel, isSelected && { color: '#3B82F6' }]}>{opt.label}</Text>
+                    </View>
+                    {isSelected && <Check size={16} color="#3B82F6" strokeWidth={2.5} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Modal>
 
         {/* ── Subject accordion ── */}
         {sortedSubjects.map((subject) => {
@@ -545,10 +676,57 @@ const s = StyleSheet.create({
   carouselSubject: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#64748B', marginTop: 6 },
   carouselDate: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: '#94A3B8' },
 
-  sortRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  sortPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)' },
-  sortText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#64748B' },
-  scanButton: { marginLeft: 'auto', width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' },
+  // Filters row (period + sort)
+  filtersRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  filterSpacer: { flex: 1 },
+  pickerTrigger: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 12, paddingVertical: 8,
+    borderRadius: 20, backgroundColor: '#FFFFFF',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+  },
+  pickerTriggerText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#0F172A' },
+  scanButton: { width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center' },
+
+  // Search bar
+  searchBar: {
+    backgroundColor: '#FFFFFF', borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    marginBottom: 12, flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+  },
+  searchInput: {
+    flex: 1, marginLeft: 10,
+    fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#0F172A',
+  },
+
+  // Dropdown modal
+  dropdownOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24,
+  },
+  dropdownSheet: {
+    width: '100%', backgroundColor: '#FFFFFF',
+    borderRadius: 16, paddingVertical: 8, overflow: 'hidden',
+  },
+  dropdownTitle: {
+    fontFamily: FontFamily.displayBold, fontSize: 13,
+    textTransform: 'uppercase', letterSpacing: 1.5, color: '#94A3B8',
+    paddingHorizontal: 16, paddingVertical: 10,
+  },
+  dropdownItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 16, paddingVertical: 14,
+  },
+  dropdownItemActive: { backgroundColor: '#F0F7FF' },
+  dropdownItemBody: { flex: 1 },
+  dropdownItemLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#0F172A' },
+  dropdownItemDates: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  periodBadge: {
+    width: 24, height: 24, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  periodBadgeText: { fontFamily: FontFamily.displayBold, fontSize: 12 },
 
   subjectHeader: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 },
   subjectDot: { width: 4, height: 28, borderRadius: 2 },

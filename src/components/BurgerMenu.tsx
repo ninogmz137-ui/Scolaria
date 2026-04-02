@@ -2,9 +2,12 @@
  * BurgerMenu — Light panel drawer from left (iOS settings style).
  *
  * Structure:
- * 1. Header: large child avatar + name + classe + parent info
- * 2. Divider
- * 3. 6 menu items (no tab bar duplicates)
+ * 1. Avatar section: large avatar (tappable → ChildSwitcherModal) + name + classe
+ * 2. Separator
+ * 3. Section principale: 4 items
+ * 4. Separator
+ * 5. Section basse: 2 items (RGPD, Déconnexion)
+ * 6. Footer: version + copyright
  *
  * Background: #F2F2F7 (light, not dark)
  * Width: 80% of screen, max 340px
@@ -26,12 +29,13 @@ import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   User,
-  RefreshCw,
   BookOpen,
   Heart,
-  ImageIcon,
   Settings,
+  Shield,
+  LogOut,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -69,16 +73,41 @@ type MenuItemDef = {
   label: string;
   screen?: string;
   action?: string;
+  danger?: boolean;
 };
 
-const MENU_ITEMS: MenuItemDef[] = [
-  { key: 'profil', icon: User, label: 'Profil enfant', screen: 'ProfilEnfant' },
-  { key: 'switch', icon: RefreshCw, label: "Changer d'enfant", action: 'switchChild' },
-  { key: 'parcours', icon: BookOpen, label: 'Mon Parcours', screen: 'MonParcours' },
-  { key: 'ressenti', icon: Heart, label: 'Mon Ressenti', screen: 'BienEtre' },
-  { key: 'wallpaper', icon: ImageIcon, label: "Fond d'écran", screen: 'WallpaperPicker' },
-  { key: 'reglages', icon: Settings, label: 'Réglages', screen: 'ReglagesScreen' },
+const MAIN_ITEMS: MenuItemDef[] = [
+  { key: 'profil',    icon: User,     label: 'Profil enfant',  screen: 'ProfilEnfant' },
+  { key: 'parcours',  icon: BookOpen, label: 'Mon Parcours',   screen: 'MonParcours' },
+  { key: 'ressenti',  icon: Heart,    label: 'Mon Ressenti',   screen: 'BienEtre' },
+  { key: 'reglages',  icon: Settings, label: 'Réglages',       screen: 'ReglagesScreen' },
 ];
+
+const BOTTOM_ITEMS: MenuItemDef[] = [
+  { key: 'rgpd',   icon: Shield,  label: 'RGPD & Confidentialité', screen: 'ReglagesScreen' },
+  { key: 'logout', icon: LogOut,  label: 'Se déconnecter',          action: 'logout', danger: true },
+];
+
+// ─── Single menu row ─────────────────────────────────────
+
+function MenuItem({
+  item,
+  onPress,
+}: {
+  item: MenuItemDef;
+  onPress: (item: MenuItemDef) => void;
+}) {
+  const IconComponent = item.icon;
+  return (
+    <Pressable style={styles.menuItem} onPress={() => onPress(item)}>
+      <IconComponent size={20} color="#64748B" strokeWidth={2} />
+      <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
+        {item.label}
+      </Text>
+      <ChevronRight size={18} color="#C7C7CC" strokeWidth={2} />
+    </Pressable>
+  );
+}
 
 // ─── Main component ─────────────────────────────────────
 
@@ -88,7 +117,7 @@ export default function BurgerMenu({
   onNavigate,
   onLogout,
 }: Props) {
-  const { selectedChild, children: childList } = useActiveChild();
+  const { selectedChild } = useActiveChild();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
@@ -127,10 +156,9 @@ export default function BurgerMenu({
   }, [visible, slideAnim, overlayAnim]);
 
   const handleItemPress = (item: MenuItemDef) => {
-    if (item.action === 'switchChild') {
-      // If only one child, nothing to switch
-      if (childList.length <= 1) return;
-      setSwitcherVisible(true);
+    if (item.action === 'logout') {
+      onClose();
+      setTimeout(() => onLogout?.(), 150);
       return;
     }
     if (item.screen) {
@@ -139,12 +167,14 @@ export default function BurgerMenu({
     }
   };
 
+  const handleAvatarPress = () => {
+    setSwitcherVisible(true);
+  };
+
   if (!visible && !switcherVisible) return null;
 
   const childPhoto = selectedChild.avatarPhotoUri ?? null;
   const childInitials = getInitials(selectedChild.name);
-  const parentEmail = user?.email ?? '';
-  const parentName = parentEmail.split('@')[0] ?? 'Parent';
 
   return (
     <>
@@ -172,61 +202,69 @@ export default function BurgerMenu({
             { transform: [{ translateX: slideAnim }] },
           ]}
         >
-          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            {/* Header section */}
-            <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-              {/* Large avatar */}
-              <View style={styles.largeAvatarCircle}>
-                {childPhoto ? (
-                  <Image
-                    source={{ uri: childPhoto }}
-                    style={styles.largeAvatarImage}
-                  />
-                ) : (
-                  <Text style={styles.largeAvatarInitials}>{childInitials}</Text>
-                )}
-              </View>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* ── Avatar section ── */}
+            <View style={[styles.avatarSection, { paddingTop: insets.top + 20 }]}>
+              {/* Tappable avatar with swap badge */}
+              <Pressable onPress={handleAvatarPress} style={styles.avatarWrapper}>
+                <View style={styles.largeAvatarCircle}>
+                  {childPhoto ? (
+                    <Image
+                      source={{ uri: childPhoto }}
+                      style={styles.largeAvatarImage}
+                    />
+                  ) : (
+                    <Text style={styles.largeAvatarInitials}>{childInitials}</Text>
+                  )}
+                </View>
+                {/* Swap badge at bottom-right */}
+                <View style={styles.swapBadge}>
+                  <RefreshCw size={10} color="#64748B" strokeWidth={2} />
+                </View>
+              </Pressable>
 
               {/* Child name */}
               <Text style={styles.childName}>{selectedChild.name}</Text>
 
-              {/* Classe info */}
+              {/* Classe + école */}
               {selectedChild.classe ? (
                 <Text style={styles.childClasse} numberOfLines={1}>
                   {selectedChild.classe}
                 </Text>
               ) : null}
-
-              {/* Parent info */}
-              {parentEmail ? (
-                <Text style={styles.parentInfo} numberOfLines={1}>
-                  {parentName} · {parentEmail}
-                </Text>
-              ) : null}
             </View>
 
-            {/* Separator */}
+            {/* ── Separator ── */}
             <View style={styles.divider} />
 
-            {/* Menu items */}
+            {/* ── Section principale ── */}
             <View style={styles.menuList}>
-              {MENU_ITEMS.map((item) => {
-                const IconComponent = item.icon;
-                return (
-                  <Pressable
-                    key={item.key}
-                    style={styles.menuItem}
-                    onPress={() => handleItemPress(item)}
-                  >
-                    <IconComponent size={20} color="#64748B" strokeWidth={2} />
-                    <Text style={styles.menuLabel}>{item.label}</Text>
-                    <ChevronRight size={18} color="#C7C7CC" strokeWidth={2} />
-                  </Pressable>
-                );
-              })}
+              {MAIN_ITEMS.map((item) => (
+                <MenuItem key={item.key} item={item} onPress={handleItemPress} />
+              ))}
             </View>
 
-            <View style={{ height: Math.max(insets.bottom, 16) + 16 }} />
+            {/* ── Separator ── */}
+            <View style={styles.divider} />
+
+            {/* ── Section basse ── */}
+            <View style={styles.menuList}>
+              {BOTTOM_ITEMS.map((item) => (
+                <MenuItem key={item.key} item={item} onPress={handleItemPress} />
+              ))}
+            </View>
+
+            {/* ── Footer ── */}
+            <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+              <Text style={styles.footerVersion}>Scolaria · Version 1.0.0</Text>
+              <Text style={styles.footerCopyright}>
+                © 2026 Scolaria · Passeport scolaire numérique
+              </Text>
+            </View>
           </ScrollView>
         </Animated.View>
       </Modal>
@@ -248,8 +286,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: DRAWER_WIDTH,
     backgroundColor: '#F2F2F7',
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -262,9 +298,20 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  header: {
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+  },
+
+  // ── Avatar section ──
+  avatarSection: {
     paddingHorizontal: 20,
     paddingBottom: 20,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
   largeAvatarCircle: {
     width: 60,
@@ -285,11 +332,25 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: FontFamily.sansBold,
   },
+  swapBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 0,
+  },
   childName: {
     fontFamily: FontFamily.sansBold,
     fontSize: 20,
     color: '#1A1A1A',
-    marginTop: 12,
   },
   childClasse: {
     fontFamily: FontFamily.sansRegular,
@@ -297,20 +358,18 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 2,
   },
-  parentInfo: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#94A3B8',
-    marginTop: 8,
-  },
+
+  // ── Divider ──
   divider: {
     height: 1,
     backgroundColor: '#E5E5EA',
     marginHorizontal: 20,
-    marginBottom: 8,
+    marginVertical: 8,
   },
+
+  // ── Menu items ──
   menuList: {
-    paddingTop: 4,
+    paddingVertical: 4,
   },
   menuItem: {
     flexDirection: 'row',
@@ -324,5 +383,28 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansMedium,
     fontSize: 15,
     color: '#1A1A1A',
+  },
+  menuLabelDanger: {
+    color: '#EF4444',
+  },
+
+  // ── Footer ──
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    marginTop: 'auto',
+  },
+  footerVersion: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'center',
+  },
+  footerCopyright: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#C7C7CC',
+    textAlign: 'center',
+    marginTop: 2,
   },
 });

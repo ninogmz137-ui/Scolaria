@@ -130,10 +130,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                 onLongPress={onLongPress}
                 style={[
                   styles.tab,
-                  isFocused && [
-                    styles.tabActive,
-                    { backgroundColor: ACCENT + '26' }, // 15% opacity
-                  ],
+                  isFocused && styles.tabActive,
                 ]}
               >
                 {/* Icon + badge wrapper */}

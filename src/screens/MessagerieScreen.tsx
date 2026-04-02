@@ -84,7 +84,7 @@ function getPastIso(daysBack: number): string {
 function getMockItems(): { today: MessagerieItem[]; earlier: MessagerieItem[] } {
   const todayIso = new Date().toISOString().split('T')[0];
 
-  const today: MessagerieItem[] = [
+  const allToday: MessagerieItem[] = [
     {
       id: 'mock-1',
       type: 'liaison',
@@ -114,7 +114,7 @@ function getMockItems(): { today: MessagerieItem[]; earlier: MessagerieItem[] } 
     },
   ];
 
-  const earlier: MessagerieItem[] = [
+  const allEarlier: MessagerieItem[] = [
     {
       id: 'mock-4',
       type: 'note',
@@ -144,7 +144,10 @@ function getMockItems(): { today: MessagerieItem[]; earlier: MessagerieItem[] } 
     },
   ];
 
-  return { today, earlier };
+  const filterValid = (arr: MessagerieItem[]) =>
+    arr.filter((item) => item.title && item.title.trim() !== '' && item.message && item.message.trim() !== '');
+
+  return { today: filterValid(allToday), earlier: filterValid(allEarlier) };
 }
 
 // ─── Date formatting helpers ──────────────────────────────
@@ -495,7 +498,7 @@ export default function MessagerieScreen() {
         onPress={openFab}
         style={({ pressed }) => [
           styles.fab,
-          { bottom: TAB_BAR_H + 16, opacity: pressed ? 0.85 : 1 },
+          { bottom: TAB_BAR_H, opacity: pressed ? 0.85 : 1 },
         ]}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
@@ -622,7 +625,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 18,
-    paddingBottom: TAB_BAR_H + 10,
+    paddingBottom: 120,
   },
 
   // ── Page header

@@ -7,12 +7,13 @@
  * - Add event modal preserved
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   ScrollView,
   FlatList,
   Pressable,
+  TouchableOpacity,
   StyleSheet,
   Text,
   Platform,
@@ -22,8 +23,11 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronDown } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
@@ -109,6 +113,15 @@ function formatWeekHeader(days: DayInfo[]): string {
   return `${first.date} — ${last.date} ${last.month}`;
 }
 
+function formatDateFR(date: Date): string {
+  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const months = [
+    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+  ];
+  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+}
+
 const DEFAULT_EMOJI: Record<AgendaEvent['type'], string> = {
   cours: '📚', devoir: '📝', examen: '📐', activite: '🎯', reunion: '👨‍👩‍👦', sortie: '🏛️',
 };
@@ -155,6 +168,8 @@ const MOCK_EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
   [MOCK_WEEK_DAYS[6]?.date ?? 0]: [],
 };
 
+const SWIPE_THRESHOLD = Dimensions.get('window').width * 0.25;
+
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
@@ -169,6 +184,43 @@ export default function AgendaScreen() {
 
   const todayDate = new Date().getDate();
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_evt, gestureState) =>
+        Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 40,
+      onPanResponderRelease: (_evt, gestureState) => {
+        if (gestureState.dx < -SWIPE_THRESHOLD) {
+          // Swipe left → next day
+          setSelectedDay((prev) => {
+            setExpandedEvent(null);
+            const currentIdx = weekDaysRef.current.findIndex((d) => d.date === prev);
+            if (currentIdx < weekDaysRef.current.length - 1) {
+              return weekDaysRef.current[currentIdx + 1].date;
+            }
+            // Advance to next week, Monday
+            setWeekOffset((o) => o + 1);
+            return prev; // will be corrected by loadEvents
+          });
+        } else if (gestureState.dx > SWIPE_THRESHOLD) {
+          // Swipe right → previous day
+          setSelectedDay((prev) => {
+            setExpandedEvent(null);
+            const currentIdx = weekDaysRef.current.findIndex((d) => d.date === prev);
+            if (currentIdx > 0) {
+              return weekDaysRef.current[currentIdx - 1].date;
+            }
+            // Go back to previous week, Sunday
+            setWeekOffset((o) => o - 1);
+            return prev; // will be corrected by loadEvents
+          });
+        }
+      },
+    }),
+  ).current;
+
+  // Keep a ref to weekDays so panResponder closure always sees current value
+  const weekDaysRef = useRef(buildWeekDays(new Date()));
+
   const [weekOffset, setWeekOffset] = useState(0);
   const referenceDate = useMemo(() => {
     const d = new Date();
@@ -177,9 +229,26 @@ export default function AgendaScreen() {
   }, [weekOffset]);
 
   const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
+  // Keep ref in sync for panResponder closure
+  useEffect(() => { weekDaysRef.current = weekDays; }, [weekDays]);
+
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
   const [selectedDay, setSelectedDay] = useState(todayDate);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [calendarModalVisible, setCalendarModalVisible] = useState(false);
+
+  // Is the selected day today? (weekOffset 0 + isToday flag)
+  const isSelectedToday = useMemo(
+    () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
+    [weekDays, selectedDay],
+  );
+
+  const goToToday = useCallback(() => {
+    setWeekOffset(0);
+    // selectedDay is updated by loadEvents via isCurrentWeek branch
+    // but we also set it immediately for instant feedback
+    setSelectedDay(new Date().getDate());
+  }, []);
 
   // Add event modal
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -304,7 +373,6 @@ export default function AgendaScreen() {
     }
   }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents]);
 
-  const events = eventsByDay[selectedDay] ?? [];
   const examCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'examen').length;
   const devoirCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'devoir').length;
 
@@ -382,7 +450,10 @@ export default function AgendaScreen() {
                   isSelected && { backgroundColor: '#3B82F6' },
                   !isSelected && item.isToday && { borderColor: '#3B82F6', borderWidth: 2 },
                 ]}
-                onPress={() => { setSelectedDay(item.date); setExpandedEvent(null); }}
+                onPress={() => {
+                  setSelectedDay(item.date);
+                  setExpandedEvent(null);
+                }}
               >
                 <Text style={[st.dayLabel, !isSelected && { color: '#94A3B8' }, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
                 <Text style={[st.dayNumber, !isSelected && { color: '#0F172A' }, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
@@ -392,32 +463,38 @@ export default function AgendaScreen() {
           }}
         />
 
-        {/* Day title */}
-        <View style={st.dayTitle}>
+        {/* Tappable date header */}
+        <TouchableOpacity
+          onPress={() => setCalendarModalVisible(true)}
+          activeOpacity={0.7}
+          style={st.dateHeader}
+        >
           <View style={[st.sectionBar, { backgroundColor: '#3B82F6' }]} />
-          <Text
-            style={[
-              st.sectionText,
-              {
-                color: '#0F172A',
-                textShadowColor: 'transparent',
-              },
-            ]}
-          >
-            {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
+          <Text style={[st.dateHeaderText, { color: '#0F172A' }]}>
+            {weekDays.find((d) => d.date === selectedDay)?.fullDate
+              ? formatDateFR(weekDays.find((d) => d.date === selectedDay)!.fullDate)
+              : `${selectedDayLabel?.day} ${selectedDay} ${selectedDayLabel?.month}`}
           </Text>
-        </View>
+          <ChevronDown size={16} color="#94A3B8" strokeWidth={2} />
+        </TouchableOpacity>
 
-        {/* Events */}
-        <View style={{ paddingHorizontal: 18 }}>
-          {events.length === 0 ? (
+        {/* Aujourd'hui button (only when not on today) */}
+        {!isSelectedToday && (
+          <TouchableOpacity onPress={goToToday} style={st.todayBtn}>
+            <Text style={st.todayBtnText}>Aujourd'hui</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Swipeable events area — PanResponder detects horizontal swipe */}
+        <View {...panResponder.panHandlers} style={{ paddingHorizontal: 18 }}>
+          {(eventsByDay[selectedDay] ?? []).length === 0 ? (
             <GlassCard style={{ alignItems: 'center', paddingVertical: 40 }}>
               <Text style={{ fontSize: 48, marginBottom: 10 }}>🌿</Text>
               <Text style={[st.emptyTitle, { color: cardText }]}>Journée libre</Text>
               <Text style={[st.emptySubtitle, { color: cardTextMuted }]}>Aucun événement prévu ce jour</Text>
             </GlassCard>
           ) : (
-            events.map((event) => {
+            (eventsByDay[selectedDay] ?? []).map((event) => {
               const isExpanded = expandedEvent === event.id;
               const isExam = event.type === 'examen';
               const isDevoir = event.type === 'devoir';
@@ -501,16 +578,42 @@ export default function AgendaScreen() {
 
           {/* Add event button */}
           <Pressable onPress={openAddModal} style={{ borderRadius: 16, overflow: 'hidden', marginTop: 4 }}>
-            <LinearGradient
-              colors={['#3B82F6', '#6366F1']}
-              style={st.addBtn}
-            >
+            <LinearGradient colors={['#3B82F6', '#6366F1']} style={st.addBtn}>
               <Papicons name="Plus" size={22} color="#FFFFFF" />
               <Text style={st.addBtnText}>Ajouter un événement</Text>
             </LinearGradient>
           </Pressable>
         </View>
       </ScrollView>
+
+      {/* ─── Calendar Placeholder Modal ──────────────────── */}
+      <Modal
+        visible={calendarModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCalendarModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setCalendarModalVisible(false)}>
+          <View style={st.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={[st.modalContent, { alignItems: 'center', paddingVertical: 40 }]}>
+                <View style={st.modalHandle} />
+                <Text style={{ fontSize: 48, marginBottom: 12 }}>📅</Text>
+                <Text style={[st.modalTitle, { textAlign: 'center' }]}>Calendrier</Text>
+                <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 24 }}>
+                  La vue calendrier mensuelle sera disponible prochainement.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setCalendarModalVisible(false)}
+                  style={{ backgroundColor: '#3B82F6', paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14 }}
+                >
+                  <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' }}>Fermer</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>
@@ -620,6 +723,26 @@ const st = StyleSheet.create({
   dayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.cyan },
 
   dayTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginVertical: 10 },
+
+  // Tappable date header
+  dateHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 20, marginVertical: 10,
+  },
+  dateHeaderText: {
+    fontFamily: FontFamily.displayBold, fontSize: 18,
+    color: '#0F172A', flex: 1,
+    textTransform: 'capitalize',
+  },
+
+  // Today button
+  todayBtn: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 20, alignSelf: 'center', marginBottom: 8,
+  },
+  todayBtnText: { color: '#FFFFFF', fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
+
   sectionBar: { width: 4, height: 18, borderRadius: 2 },
   sectionText: {
     fontFamily: FontFamily.displayBold, fontSize: 13,

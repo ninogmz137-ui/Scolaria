@@ -1,7 +1,7 @@
 /**
- * LoginScreen — Dark cinematic login with luminous orbs.
+ * LoginScreen — Dark cinematic login with premium gradient background.
  *
- * Background: #1A2340 with floating LuminousOrbs.
+ * Background: deep navy #0B1628 → blue-violet #1E3A7A gradient.
  * Glass-style input fields, gradient CTA, child PIN access section.
  */
 
@@ -21,17 +21,15 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
-import LuminousOrbs from '../components/LuminousOrbs';
 import LogoScolaria from '../components/LogoScolaria';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Constants ──────────────────────────────────────────
 
-const DARK_BG = '#1A2340';
-const INPUT_BG = 'rgba(255,255,255,0.08)';
-const INPUT_BORDER = 'rgba(255,255,255,0.15)';
-const PLACEHOLDER = 'rgba(255,255,255,0.35)';
+const INPUT_BG = 'rgba(255,255,255,0.12)';
+const INPUT_BORDER = 'rgba(255,255,255,0.25)';
+const PLACEHOLDER = 'rgba(255,255,255,0.5)';
 const VIOLET = '#6366F1';
 const CYAN = '#22D3EE';
 const { height: SH } = Dimensions.get('window');
@@ -83,8 +81,8 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
   return (
     <View style={s.root}>
-      {/* Luminous orbs background */}
-      <LuminousOrbs />
+      {/* Premium gradient background */}
+      <LinearGradient colors={['#0B1628', '#1E3A7A']} style={StyleSheet.absoluteFill} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
@@ -245,36 +243,47 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 // ─── Styles ─────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DARK_BG, overflow: 'hidden' },
+  root: { flex: 1, overflow: 'hidden' },
   logoSection: { alignItems: 'center', paddingTop: SH * 0.08, marginBottom: 32 },
-  tagline: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 10, letterSpacing: 0.3 },
+  tagline: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 10, letterSpacing: 0.3 },
   form: { paddingHorizontal: 28, gap: 14 },
   formTitle: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#FFFFFF', marginBottom: 2 },
   fieldGroup: { gap: 6 },
   fieldLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.5)' },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 14,
+    flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 16,
     backgroundColor: INPUT_BG, borderWidth: 1, borderColor: INPUT_BORDER, gap: 10,
   },
-  input: { flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#FFFFFF', paddingVertical: 14 },
-  forgotText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.35)' },
-  errorRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 12, backgroundColor: 'rgba(239,68,68,0.12)', gap: 8 },
-  errorText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#FCA5A5', flex: 1 },
+  input: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 15,
+    color: '#FFFFFF',
+    paddingVertical: 14,
+  },
+  forgotText: {
+    color: '#FFFFFF',
+    textDecorationLine: 'underline',
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+  },
+  errorRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 12, backgroundColor: 'rgba(239,68,68,0.15)', gap: 8 },
+  errorText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#EF4444', flex: 1 },
   submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 14 },
   submitText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
   toggleRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 2 },
-  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.35)' },
+  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
   toggleAction: { fontFamily: FontFamily.sansBold, fontSize: 13, color: CYAN },
   separatorRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
   separatorLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
-  separatorText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.30)', marginHorizontal: 16 },
+  separatorText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.40)', marginHorizontal: 16 },
   pinRow: {
     flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingVertical: 16, paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', gap: 10,
   },
-  pinIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center' },
+  pinIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
   pinTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
-  pinSub: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.45)' },
+  pinSub: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.7)' },
   demoBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
-  demoText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.25)' },
+  demoText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.5)' },
 });

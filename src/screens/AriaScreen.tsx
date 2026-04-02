@@ -84,19 +84,20 @@ export default function AriaScreen() {
   const TOPBAR_BOTTOM = insets.top + 64;
 
   const childName = selectedChild?.name ?? 'votre enfant';
+  const firstName = childName.split(' ')[0];
   const childId = selectedChild?.id ?? '1';
 
-  const [messages, setMessages] = useState<Message[]>([makeWelcomeMessage(childName)]);
+  const [messages, setMessages] = useState<Message[]>([makeWelcomeMessage(firstName)]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   // Reset conversation when switching child
-  const suggestions = makeSuggestions(childName, mode);
+  const suggestions = makeSuggestions(firstName, mode);
   useEffect(() => {
-    setMessages([makeWelcomeMessage(childName)]);
+    setMessages([makeWelcomeMessage(firstName)]);
     conversationHistoryRef.current = [];
-  }, [childId, childName]);
+  }, [childId, firstName]);
 
   // Conversation history for Claude API (excludes welcome message)
   const conversationHistoryRef = useRef<ClaudeMessage[]>([]);
@@ -216,7 +217,7 @@ export default function AriaScreen() {
           style={styles.messageList}
           contentContainerStyle={{
             paddingTop: TOPBAR_BOTTOM,
-            paddingBottom: 8,
+            paddingBottom: 120,
           }}
           onContentSizeChange={scrollToEnd}
           ListHeaderComponent={

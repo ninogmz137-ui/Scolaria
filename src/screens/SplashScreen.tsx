@@ -1,18 +1,16 @@
 /**
- * SplashScreen — Cinematic entrance with luminous orbs and progressive logo.
+ * SplashScreen — Cinematic entrance with premium gradient and progressive logo.
  *
- * Background: dark navy #1A2340 with floating LuminousOrbs.
+ * Background: deep navy #0B1628 → blue-violet #1E3A7A gradient.
  * Sequence: logo spring → orbit ring → tagline slide → loading dots → fade out.
  */
 
 import { useEffect, useRef } from 'react';
-import { View, Text, Animated, Easing, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import LuminousOrbs from '../components/LuminousOrbs';
 import LogoScolariaSvg from '../components/LogoScolariaSvg';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
-const DARK_BG = '#1A2340';
 const VIOLET = '#6366F1';
 const CYAN = '#22D3EE';
 
@@ -69,8 +67,8 @@ export default function SplashScreen({ onFinish }: Props) {
   return (
     <Animated.View style={[s.root, { opacity: fadeOut }]}>
       <View style={s.bg}>
-        {/* Luminous orbs background */}
-        <LuminousOrbs />
+        {/* Premium gradient background */}
+        <LinearGradient colors={['#0B1628', '#1E3A7A']} style={StyleSheet.absoluteFill} />
 
         {/* Logo container */}
         <Animated.View style={[s.logoWrap, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
@@ -79,7 +77,7 @@ export default function SplashScreen({ onFinish }: Props) {
             <View style={s.orbitRing} />
             <LinearGradient colors={[CYAN, VIOLET]} style={s.orbitDot} />
           </Animated.View>
-          <LogoScolariaSvg width={80} variant="dark" iconOnly />
+          <LogoScolariaSvg width={104} variant="dark" iconOnly />
         </Animated.View>
 
         {/* Tagline */}
@@ -90,8 +88,6 @@ export default function SplashScreen({ onFinish }: Props) {
             <Text style={s.brandStar}>✦</Text>
           </View>
           <Text style={s.tagline}>Le copilote éducatif des familles</Text>
-          <View style={s.separator} />
-          <Text style={s.subtitle}>pour les familles fran&#231;aises</Text>
         </Animated.View>
 
         {/* Loading dots */}
@@ -107,19 +103,17 @@ export default function SplashScreen({ onFinish }: Props) {
 
 const s = StyleSheet.create({
   root: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 },
-  bg: { flex: 1, backgroundColor: DARK_BG, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  bg: { flex: 1, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   logoWrap: { alignItems: 'center', justifyContent: 'center', marginBottom: 32 },
-  orbitWrap: { position: 'absolute', width: 200, height: 200, justifyContent: 'center', alignItems: 'center' },
-  orbitRing: { width: 160, height: 160, borderRadius: 80, borderWidth: 1.5, borderColor: 'rgba(109,40,217,0.25)', borderStyle: 'dashed' },
+  orbitWrap: { position: 'absolute', width: 260, height: 260, justifyContent: 'center', alignItems: 'center' },
+  orbitRing: { width: 210, height: 210, borderRadius: 105, borderWidth: 1.5, borderColor: 'rgba(109,40,217,0.25)', borderStyle: 'dashed' },
   orbitDot: { position: 'absolute', top: 10, width: 12, height: 12, borderRadius: 6, overflow: 'hidden' },
   taglineWrap: { alignItems: 'center', marginBottom: 60 },
   brandRow: { flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 },
-  brandScolar: { fontFamily: FontFamily.loraBold, fontSize: 38, color: '#FFFFFF', letterSpacing: -0.3 },
-  brandIa: { fontFamily: FontFamily.sansMedium, fontSize: 38, color: CYAN, letterSpacing: 0.3 },
-  brandStar: { fontSize: 12, color: CYAN, marginLeft: 3, marginBottom: 14 },
+  brandScolar: { fontFamily: FontFamily.loraBold, fontSize: 50, color: '#FFFFFF', letterSpacing: -0.3 },
+  brandIa: { fontFamily: FontFamily.sansMedium, fontSize: 50, color: CYAN, letterSpacing: 0.3 },
+  brandStar: { fontSize: 14, color: CYAN, marginLeft: 4, marginBottom: 18 },
   tagline: { fontFamily: FontFamily.sansSemiBold, fontSize: 16, color: 'rgba(255,255,255,0.8)', letterSpacing: 0.5 },
-  separator: { width: 40, height: 2, backgroundColor: VIOLET, marginVertical: 12, borderRadius: 1 },
-  subtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.5)' },
-  dotsRow: { flexDirection: 'row', gap: 8 },
+  dotsRow: { position: 'absolute', bottom: 60, flexDirection: 'row', gap: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },
 });

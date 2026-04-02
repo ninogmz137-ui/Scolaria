@@ -3,9 +3,15 @@ import {
   ScrollView,
   Switch,
   Platform,
+  View,
+  TouchableOpacity,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ImagePlus, Check } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import DecorativeBlobs from '../components/DecorativeBlobs';
 import { Colors } from '../constants/colors';
@@ -14,6 +20,9 @@ import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { supabase } from '../services/supabase';
+import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -157,6 +166,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
   useChildTheme(); // kept for future theme re-integration
   const { signOut, setRole, role, user } = useAuth();
   const { children: childList } = useActiveChild();
+  const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
   const [notifications, setNotifications] = useState({
     grades: true,
     agenda: true,
@@ -164,6 +174,21 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
     checkin: true,
   });
   const [showLangPicker, setShowLangPicker] = useState(false);
+
+  // Currently selected wallpaper id — custom takes priority visually
+  const selectedWallpaperId = customUri ? '__custom__' : wallpaper.id;
+
+  const pickFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [9, 16],
+    });
+    if (!result.canceled && result.assets[0]) {
+      setCustomWallpaper(result.assets[0].uri);
+    }
+  };
 
   // ─── Derive family info from auth user ────────────────────
   const familyName = 'Famille ' + (user?.user_metadata?.family_name || 'Demo');
@@ -246,6 +271,119 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
       <DecorativeBlobs accent="#3B82F6" />
 
       <Box className="px-5">
+        {/* Wallpaper section */}
+        <SettingsSection title="FOND D'ÉCRAN">
+          <View style={{ padding: 12 }}>
+            {/* Gallery button */}
+            <TouchableOpacity
+              onPress={pickFromGallery}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#F1F5F9',
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 12,
+                gap: 10,
+              }}
+            >
+              <ImagePlus size={20} color="#3B82F6" strokeWidth={2} />
+              <Text style={{ fontFamily: 'DMSans_500Medium', fontSize: 14, color: '#3B82F6' }}>
+                Choisir depuis ma galerie
+              </Text>
+            </TouchableOpacity>
+
+            {/* Wallpaper grid — 3 columns */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {WALLPAPERS.map((wp) => {
+                const isSelected = selectedWallpaperId === wp.id;
+                // Column width: screen - horizontal padding (px-5 = 20*2) - section padding (12*2) - gaps (8*2)
+                const colWidth = (SCREEN_WIDTH - 40 - 24 - 16) / 3;
+                return (
+                  <TouchableOpacity
+                    key={wp.id}
+                    onPress={() => setWallpaperId(wp.id)}
+                    style={{
+                      width: colWidth,
+                      aspectRatio: 0.7,
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      borderWidth: isSelected ? 2 : 0,
+                      borderColor: '#3B82F6',
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityLabel={wp.label}
+                  >
+                    {wp.imageUrl ? (
+                      <Image
+                        source={{ uri: wp.imageUrl }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={wp.colors as [string, string, ...string[]]}
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    )}
+                    {isSelected && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: '#3B82F6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          elevation: 0,
+                        }}
+                      >
+                        <Check size={12} color="#FFFFFF" strokeWidth={2.5} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Custom wallpaper preview if set */}
+            {customUri && (
+              <View style={{ marginTop: 8 }}>
+                <Text
+                  style={{
+                    fontFamily: 'DMSans_500Medium',
+                    fontSize: 12,
+                    color: '#64748B',
+                    marginBottom: 6,
+                  }}
+                >
+                  Photo personnalisée active
+                </Text>
+                <View
+                  style={{
+                    width: '100%',
+                    height: 80,
+                    borderRadius: 12,
+                    overflow: 'hidden',
+                    borderWidth: 2,
+                    borderColor: '#3B82F6',
+                  }}
+                >
+                  <Image
+                    source={{ uri: customUri }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                </View>
+              </View>
+            )}
+          </View>
+        </SettingsSection>
+
         {/* Children management */}
         <SettingsSection title={t('settings.children')}>
           {childProfiles.map((child, i) => (
