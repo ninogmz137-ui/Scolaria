@@ -52,7 +52,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   }, [state.index, animatedIndex]);
 
   // Mode-aware colors
-  const barBg = isDark ? 'rgba(15, 20, 35, 0.70)' : 'rgba(255, 255, 255, 0.70)';
+  const barBg = isDark ? 'rgba(15, 20, 35, 0.55)' : 'rgba(255, 255, 255, 0.55)';
   const barBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)';
   const inactiveColor = isDark ? 'rgba(255,255,255,0.45)' : '#94A3B8';
   const blurTint = isDark ? 'dark' : 'light';

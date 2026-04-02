@@ -21,7 +21,7 @@ import { useChildTheme } from '../contexts/ChildThemeContext';
 import type { ReactNode } from 'react';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const HEADER_RATIO = 0.33; // 33% of screen height
+const HEADER_RATIO = 0.18; // 18% of screen height — compact header
 
 interface ScreenHeaderProps {
   /** Optional content rendered inside the header (below topbar area) */

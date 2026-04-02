@@ -30,7 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
 import WallpaperBackground from '../components/WallpaperBackground';
 import ScreenHeader from '../components/ScreenHeader';
-const AGENDA_HEADER_HEIGHT = Dimensions.get('window').height * 0.22;
+const AGENDA_HEADER_HEIGHT = Dimensions.get('window').height * 0.18;
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -316,7 +316,7 @@ export default function AgendaScreen() {
   return (
     <View style={st.root}>
       <WallpaperBackground />
-      <ScreenHeader heightRatio={0.22} />
+      <ScreenHeader heightRatio={0.18} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: AGENDA_HEADER_HEIGHT + 8, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}

@@ -16,7 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
 import ScreenHeader from '../components/ScreenHeader';
-const NOTES_HEADER_HEIGHT = Dimensions.get('window').height * 0.22;
+const NOTES_HEADER_HEIGHT = Dimensions.get('window').height * 0.18;
 import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
@@ -270,7 +270,7 @@ export default function NotesScreen() {
     return (
       <View style={s.root}>
         <WallpaperBackground />
-        <ScreenHeader heightRatio={0.22} />
+        <ScreenHeader heightRatio={0.18} />
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[s.scroll, { paddingTop: NOTES_HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
@@ -378,7 +378,7 @@ export default function NotesScreen() {
   return (
     <View style={s.root}>
       <WallpaperBackground />
-      <ScreenHeader heightRatio={0.22} />
+      <ScreenHeader heightRatio={0.18} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[s.scroll, { paddingTop: NOTES_HEADER_HEIGHT + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}

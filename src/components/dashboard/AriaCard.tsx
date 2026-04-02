@@ -36,13 +36,12 @@ export default function AriaCard({ summary, accent, delay = 200 }: Props) {
       <Box
         className="rounded-[14px] p-4"
         style={{
-          backgroundColor: '#FFFFFF',
-          borderWidth: 1,
-          borderColor: '#EEF0F5',
+          backgroundColor: 'rgba(255,255,255,0.45)',
+          borderWidth: 0,
           borderLeftWidth: 3,
           borderLeftColor: accent,
           ...Platform.select({
-            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+            ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6 },
             android: { elevation: 1 },
             default: {},
           }),

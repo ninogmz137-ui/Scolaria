@@ -85,13 +85,12 @@ export default function DashboardTile({
         <Box
           className="p-3.5 rounded-[14px]"
           style={{
-            backgroundColor: '#FFFFFF',
-            borderWidth: 1,
-            borderColor: '#EEF0F5',
+            backgroundColor: 'rgba(255,255,255,0.45)',
+            borderWidth: 0,
             borderLeftWidth: 3,
             borderLeftColor: borderColor,
             ...Platform.select({
-              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4 },
+              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.03, shadowRadius: 6 },
               android: { elevation: 1 },
               default: {},
             }),
