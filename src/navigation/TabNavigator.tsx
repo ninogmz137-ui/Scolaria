@@ -37,6 +37,11 @@ import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import AriaScreen from '../screens/AriaScreen';
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 
+// Messagerie sub-screens
+import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
+import AbsencesListScreen from '../screens/messagerie/AbsencesListScreen';
+import EcoleListScreen from '../screens/messagerie/EcoleListScreen';
+
 // About
 import AProposScreen from '../screens/AProposScreen';
 
@@ -74,6 +79,9 @@ const SCREEN_TITLES: Record<string, string> = {
   APropos: 'À propos',
   AriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
+  MessagesListScreen: 'Messages',
+  AbsencesListScreen: 'Absences',
+  EcoleListScreen: 'École',
 };
 
 // ─── Stack navigators ────────────────────────────────────
@@ -185,6 +193,21 @@ function AccueilStackScreen() {
         name="WallpaperPicker"
         component={WallpaperPickerScreen}
         options={{ title: "Fond d'écran" }}
+      />
+      <AccueilStack.Screen
+        name="MessagesListScreen"
+        component={MessagesListScreen}
+        options={{ title: 'Messages' }}
+      />
+      <AccueilStack.Screen
+        name="AbsencesListScreen"
+        component={AbsencesListScreen}
+        options={{ title: 'Absences' }}
+      />
+      <AccueilStack.Screen
+        name="EcoleListScreen"
+        component={EcoleListScreen}
+        options={{ title: 'École' }}
       />
     </AccueilStack.Navigator>
   );

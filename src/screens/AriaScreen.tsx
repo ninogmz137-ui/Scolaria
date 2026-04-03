@@ -9,6 +9,7 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Papicons } from '@getpapillon/papicons';
 import { Colors } from '../constants/colors';
@@ -77,6 +78,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 
 export default function AriaScreen() {
   useChildTheme(); // kept for future theme re-integration
+  const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const insets = useSafeAreaInsets();
@@ -183,9 +185,22 @@ export default function AriaScreen() {
     [sendMessage],
   );
 
+  const handleAriaAction = useCallback(
+    (route: string) => {
+      if (route === 'Notes' || route === 'Agenda') {
+        navigation.navigate(route);
+      } else {
+        navigation.navigate('Accueil', { screen: route });
+      }
+    },
+    [navigation],
+  );
+
   const renderItem = useCallback(
-    ({ item }: { item: Message }) => <ChatBubble message={item} />,
-    [],
+    ({ item }: { item: Message }) => (
+      <ChatBubble message={item} onAction={handleAriaAction} />
+    ),
+    [handleAriaAction],
   );
 
   const typingMessage: Message = {

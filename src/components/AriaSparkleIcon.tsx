@@ -17,28 +17,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 // ─── Four-pointed sparkle built from two crossed rectangles ─
 
 function Sparkle({ size, color }: { size: number; color: string }) {
-  const thickness = Math.max(1.2, size * 0.22);
-  const radius = thickness / 2;
+  // Vertical branch: full height, narrow width
+  const vWidth = Math.max(1.5, size * 0.18);
+  const vHeight = size;
+  // Horizontal branch: full width, narrow height — shorter than vertical for asymmetric star
+  const hWidth = size * 0.65;
+  const hHeight = Math.max(1.5, size * 0.18);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Vertical bar */}
+      {/* Vertical bar — tall and thin, tapers to points */}
       <View
         style={{
           position: 'absolute',
-          width: thickness,
-          height: size,
+          width: vWidth,
+          height: vHeight,
           backgroundColor: color,
-          borderRadius: radius,
+          borderRadius: vWidth / 2,
         }}
       />
-      {/* Horizontal bar */}
+      {/* Horizontal bar — shorter and thin */}
       <View
         style={{
           position: 'absolute',
-          width: size,
-          height: thickness,
+          width: hWidth,
+          height: hHeight,
           backgroundColor: color,
-          borderRadius: radius,
+          borderRadius: hHeight / 2,
         }}
       />
     </View>
@@ -60,7 +64,7 @@ export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
 
   // Sparkle sizes scale proportionally to container
   const big    = s * 0.35;   // 14px at size=40
-  const medium = s * 0.20;   //  8px at size=40
+  const medium = s * 0.225;  //  9px at size=40
   const small  = s * 0.13;   //  5px at size=40
 
   // Positions (from center of circle, in px offsets)

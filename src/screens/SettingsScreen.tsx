@@ -208,7 +208,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
                     onPress={() => setWallpaperId(wp.id)}
                     style={{
                       width: colWidth,
-                      aspectRatio: 0.7,
+                      height: 100,
                       borderRadius: 12,
                       overflow: 'hidden',
                       borderWidth: isSelected ? 2 : 0,

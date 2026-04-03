@@ -1,9 +1,34 @@
+import { Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, HStack } from '../ui';
 import { Colors } from '../../constants/colors';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
 import AriaAvatar from './AriaAvatar';
 import TypingIndicator from './TypingIndicator';
 import SimpleMarkdown from './SimpleMarkdown';
+
+// ─── Action button config ─────────────────────────────────
+
+const ACTION_BUTTONS: Record<string, { label: string; icon: string; route: string }> = {
+  ABSENCE: { label: 'Signaler une absence', icon: '📋', route: 'SignalerAbsenceScreen' },
+  MESSAGE: { label: 'Envoyer un message', icon: '💬', route: 'MessagerieHome' },
+  NOTES:   { label: 'Voir les notes', icon: '📊', route: 'Notes' },
+  AGENDA:  { label: "Voir l'agenda", icon: '📅', route: 'Agenda' },
+};
+
+const ACTION_TAG_PATTERN = /\[ACTION:(ABSENCE|MESSAGE|NOTES|AGENDA)\]/;
+
+function parseActionTag(text: string): { cleanText: string; actionKey: string | null } {
+  const match = ACTION_TAG_PATTERN.exec(text);
+  if (!match) {
+    return { cleanText: text, actionKey: null };
+  }
+  const cleanText = text.replace(match[0], '').trimEnd();
+  return { cleanText, actionKey: match[1] };
+}
+
+// ─── Types ────────────────────────────────────────────────
 
 export interface Message {
   id: string;
@@ -15,11 +40,20 @@ export interface Message {
 interface Props {
   message: Message;
   isTyping?: boolean;
+  onAction?: (route: string) => void;
 }
 
-export default function ChatBubble({ message, isTyping }: Props) {
+// ─── Component ────────────────────────────────────────────
+
+export default function ChatBubble({ message, isTyping, onAction }: Props) {
   useChildTheme(); // kept for future theme re-integration
   const isAria = message.sender === 'aria';
+
+  const { cleanText, actionKey } = isAria && !isTyping
+    ? parseActionTag(message.text)
+    : { cleanText: message.text, actionKey: null };
+
+  const actionConfig = actionKey ? ACTION_BUTTONS[actionKey] : null;
 
   return (
     <HStack
@@ -55,15 +89,48 @@ export default function ChatBubble({ message, isTyping }: Props) {
             <TypingIndicator />
           </HStack>
         ) : isAria ? (
-          <SimpleMarkdown
-            baseStyle={{
-              fontSize: 15,
-              lineHeight: 22,
-              color: '#0F172A',
-            }}
-          >
-            {message.text}
-          </SimpleMarkdown>
+          <>
+            <SimpleMarkdown
+              baseStyle={{
+                fontSize: 15,
+                lineHeight: 22,
+                color: '#0F172A',
+              }}
+            >
+              {cleanText}
+            </SimpleMarkdown>
+            {actionConfig && (
+              <Pressable
+                onPress={() => onAction?.(actionConfig.route)}
+                style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1, marginTop: 8 })}
+              >
+                <LinearGradient
+                  colors={['#3B82F6', '#1D4ED8']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    borderRadius: 12,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Text style={{ fontSize: 15 }}>{actionConfig.icon}</Text>
+                  <Text
+                    style={{
+                      fontFamily: FontFamily.sansSemiBold,
+                      fontSize: 13,
+                      color: '#FFFFFF',
+                    }}
+                  >
+                    {actionConfig.label}
+                  </Text>
+                </LinearGradient>
+              </Pressable>
+            )}
+          </>
         ) : (
           <Text
             className="text-[15px]"

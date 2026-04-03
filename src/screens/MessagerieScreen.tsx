@@ -1,8 +1,9 @@
 /**
  * MessagerieScreen — Unified message feed merging Notifications + Cahier de Liaison.
  *
- * All notification types (liaison, note, agenda, absence, aria) appear in a single
- * chronological list, grouped into "Aujourd'hui" and "Plus tôt" sections.
+ * Structure:
+ *   1. 2x2 category cards grid (Messages | École | Absences | Aria)
+ *   2. Chronological feed grouped into "Aujourd'hui" and "Plus tôt" sections
  *
  * The FAB opens a bottom sheet with 3 actions:
  *   1. Envoyer un message à l'enseignant (coming soon)
@@ -196,26 +197,42 @@ export default function MessagerieScreen() {
 
   // Bottom sheet slide animation
   const sheetAnim = useRef(new Animated.Value(320)).current;
+  // FAB rotation animation
+  const fabRotation = useRef(new Animated.Value(0)).current;
 
   // ─── FAB sheet helpers ───────────────────────────────────
 
   const openFab = useCallback(() => {
     setFabOpen(true);
-    Animated.spring(sheetAnim, {
-      toValue: 0,
-      tension: 80,
-      friction: 12,
-      useNativeDriver: true,
-    }).start();
-  }, [sheetAnim]);
+    Animated.parallel([
+      Animated.spring(sheetAnim, {
+        toValue: 0,
+        tension: 80,
+        friction: 12,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fabRotation, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [sheetAnim, fabRotation]);
 
   const closeFab = useCallback(() => {
-    Animated.timing(sheetAnim, {
-      toValue: 320,
-      duration: 220,
-      useNativeDriver: true,
-    }).start(() => setFabOpen(false));
-  }, [sheetAnim]);
+    Animated.parallel([
+      Animated.timing(sheetAnim, {
+        toValue: 320,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fabRotation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setFabOpen(false));
+  }, [sheetAnim, fabRotation]);
 
   // ─── Data loading ────────────────────────────────────────
 
@@ -385,11 +402,18 @@ export default function MessagerieScreen() {
 
   // ─── Derived values ──────────────────────────────────────
 
+  const allItems = [...todayItems, ...earlierItems];
+
   const unreadCount =
     todayItems.filter((n) => !n.read).length +
     earlierItems.filter((n) => !n.read).length;
 
   const hasUnread = unreadCount > 0;
+
+  // Category counts
+  const messagesCount = allItems.filter((n) => n.type === 'liaison').length;
+  const absencesCount = allItems.filter((n) => n.type === 'absence').length;
+  const ariaUnreadCount = allItems.filter((n) => n.type === 'aria' && !n.read).length;
 
   // Double-filter: strip any items with empty/null/sentinel title or message at render time
   const safeFilter = (arr: MessagerieItem[]) =>
@@ -406,6 +430,12 @@ export default function MessagerieScreen() {
   const visibleToday   = safeFilter(showUnreadOnly ? todayItems.filter((n) => !n.read) : todayItems);
   const visibleEarlier = safeFilter(showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems);
   const isEmpty        = visibleToday.length === 0 && visibleEarlier.length === 0;
+
+  // FAB icon rotation interpolation
+  const fabIconRotate = fabRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '45deg'],
+  });
 
   // ─── FAB actions ─────────────────────────────────────────
 
@@ -476,6 +506,60 @@ export default function MessagerieScreen() {
             : 'Tout est à jour'}
         </Text>
 
+        {/* ── Category cards grid 2x2 ── */}
+        <View style={styles.categoryGrid}>
+          {/* Row 1 */}
+          <View style={styles.categoryRow}>
+            {/* Messages */}
+            <CategoryCard
+              onPress={() => navigation.navigate('Accueil', { screen: 'MessagesListScreen' })}
+              iconContent={<Text style={styles.categoryEmoji}>💬</Text>}
+              iconBg="#EFF6FF"
+              label="Messages"
+              sublabel={messagesCount > 0 ? `${messagesCount} conversation${messagesCount > 1 ? 's' : ''}` : 'Conversations'}
+              badgeCount={allItems.filter((n) => n.type === 'liaison' && !n.read).length}
+              badgeColor="#EF4444"
+            />
+            {/* École */}
+            <CategoryCard
+              onPress={() => navigation.navigate('Accueil', { screen: 'EcoleListScreen' })}
+              iconContent={<Text style={styles.categoryEmoji}>🏫</Text>}
+              iconBg="#F0FDF4"
+              label="École"
+              sublabel="Infos & annonces"
+              badgeCount={0}
+              badgeColor={ACCENT}
+            />
+          </View>
+
+          {/* Row 2 */}
+          <View style={styles.categoryRow}>
+            {/* Absences */}
+            <CategoryCard
+              onPress={() => navigation.navigate('Accueil', { screen: 'AbsencesListScreen' })}
+              iconContent={<Text style={styles.categoryEmoji}>📋</Text>}
+              iconBg="#FFF7ED"
+              label="Absences"
+              sublabel={absencesCount > 0 ? `${absencesCount} signalée${absencesCount > 1 ? 's' : ''}` : 'Historique'}
+              badgeCount={absencesCount}
+              badgeColor="#EF4444"
+            />
+            {/* Aria */}
+            <CategoryCard
+              onPress={() => navigation.navigate('Aria')}
+              iconContent={<AriaSparkleIcon size={28} />}
+              iconBg="#EEF2FF"
+              label="Aria"
+              sublabel="Synthèses & conseils"
+              badgeCount={ariaUnreadCount}
+              badgeColor="#6366F1"
+            />
+          </View>
+        </View>
+
+        {/* ── Divider before feed ── */}
+        <View style={styles.feedDivider} />
+
         {/* ── Empty state ── */}
         {isEmpty && (
           <View style={styles.emptyState}>
@@ -518,15 +602,18 @@ export default function MessagerieScreen() {
 
       {/* ── FAB ── */}
       <Pressable
-        onPress={openFab}
+        onPress={fabOpen ? closeFab : openFab}
         style={({ pressed }) => [
           styles.fab,
+          fabOpen && styles.fabOpen,
           { bottom: TAB_BAR_H, opacity: pressed ? 0.85 : 1 },
         ]}
         accessibilityRole="button"
-        accessibilityLabel="Nouveau message"
+        accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
       >
-        <Papicons name="Plus" size={24} color="#FFFFFF" />
+        <Animated.View style={{ transform: [{ rotate: fabIconRotate }] }}>
+          <Papicons name="Plus" size={24} color="#FFFFFF" />
+        </Animated.View>
       </Pressable>
 
       {/* ── FAB bottom sheet ── */}
@@ -584,6 +671,60 @@ export default function MessagerieScreen() {
   );
 }
 
+// ─── CategoryCard ────────────────────────────────────────
+
+interface CategoryCardProps {
+  onPress: () => void;
+  iconContent: React.ReactNode;
+  iconBg: string;
+  label: string;
+  sublabel: string;
+  badgeCount: number;
+  badgeColor: string;
+}
+
+function CategoryCard({
+  onPress,
+  iconContent,
+  iconBg,
+  label,
+  sublabel,
+  badgeCount,
+  badgeColor,
+}: CategoryCardProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.categoryCard, { opacity: pressed ? 0.8 : 1 }]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <GlassCard borderRadius={16} style={styles.categoryCardInner}>
+        <View style={styles.categoryCardContent}>
+          {/* Icon container */}
+          <View style={{ position: 'relative', alignSelf: 'flex-start' }}>
+            <View style={[styles.categoryIconBox, { backgroundColor: iconBg }]}>
+              {iconContent}
+            </View>
+            {/* Badge */}
+            {badgeCount > 0 && (
+              <View style={[styles.categoryBadge, { backgroundColor: badgeColor }]}>
+                <Text style={styles.categoryBadgeText}>
+                  {badgeCount > 9 ? '9+' : String(badgeCount)}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Labels */}
+          <Text style={styles.categoryLabel} numberOfLines={1}>{label}</Text>
+          <Text style={styles.categorySublabel} numberOfLines={1}>{sublabel}</Text>
+        </View>
+      </GlassCard>
+    </Pressable>
+  );
+}
+
 // ─── MessageCard ─────────────────────────────────────────
 
 interface MessageCardProps {
@@ -592,6 +733,9 @@ interface MessageCardProps {
 }
 
 function MessageCard({ item, onPress }: MessageCardProps) {
+  // Safety check — skip cards with missing data
+  if (!item.title || !item.message) return null;
+
   const cfg = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.aria;
 
   return (
@@ -685,6 +829,70 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
     color: '#64748B',
+    marginBottom: 16,
+  },
+
+  // ── Category grid
+  categoryGrid: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  categoryCard: {
+    flex: 1,
+    minWidth: '45%',
+  },
+  categoryCardInner: {
+    // GlassCard handles the white bg, borderRadius prop is passed directly
+  },
+  categoryCardContent: {
+    padding: 14,
+    gap: 6,
+  },
+  categoryIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryEmoji: {
+    fontSize: 20,
+  },
+  categoryLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: '#0F172A',
+  },
+  categorySublabel: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  categoryBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryBadgeText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 10,
+    color: '#FFFFFF',
+    lineHeight: 12,
+  },
+
+  // ── Feed divider
+  feedDivider: {
+    height: 1,
+    backgroundColor: 'rgba(203,213,225,0.5)',
     marginBottom: 16,
   },
 
@@ -795,6 +1003,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  fabOpen: {
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
   },
 
   // ── FAB sheet / modal

@@ -60,6 +60,15 @@ function buildSystemPrompt(childId: string): string {
 - Sois concise : réponds en 2-4 paragraphes maximum sauf si on te demande plus de détail
 - Quand tu cites des notes, utilise les vraies données du profil
 
+═══ ACTIONS DISPONIBLES ═══
+Quand un parent te demande de faire une action concrète, inclus un tag d'action dans ta réponse :
+- Si le parent veut signaler une absence → termine ta réponse par [ACTION:ABSENCE]
+- Si le parent veut envoyer un message à un enseignant → termine ta réponse par [ACTION:MESSAGE]
+- Si le parent veut voir les notes → termine ta réponse par [ACTION:NOTES]
+- Si le parent veut voir l'agenda → termine ta réponse par [ACTION:AGENDA]
+Ces tags seront transformés en boutons cliquables dans l'interface.
+N'utilise qu'UN seul tag par réponse, et seulement quand c'est pertinent.
+
 ═══ DONNÉES DE L'ENFANT SUIVI ═══
 
 ${contextStr}
