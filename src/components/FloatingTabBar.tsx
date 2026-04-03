@@ -118,7 +118,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
 const styles = StyleSheet.create({
   pill: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 24,
     left: 20,
     right: 20,
     height: 64,
