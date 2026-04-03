@@ -189,7 +189,15 @@ export default function MonParcoursScreen() {
             <Pressable
               key={year.id}
               onPress={() => {
-                // TODO: navigate to year detail
+                if (year.statut !== 'active') {
+                  navigation.navigate('ArchivedYearDetail', {
+                    year: year.annee_scolaire,
+                    niveau: year.niveau,
+                    etablissement: year.etablissement,
+                    statut: year.statut,
+                    childId: selectedChild.id,
+                  });
+                }
               }}
               style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
             >

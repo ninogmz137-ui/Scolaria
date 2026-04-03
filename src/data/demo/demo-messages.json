@@ -1,5 +1,41 @@
 [
   {
+    "id": "msg-lea-1",
+    "childId": "demo-lea",
+    "sender": "Mme Laurent",
+    "senderRole": "Maîtresse",
+    "senderClass": "GS",
+    "date": "2026-04-03T10:00:00",
+    "preview": "Léa a passé une très bonne journée...",
+    "content": "Léa a passé une très bonne journée. Elle a beaucoup participé à l'atelier peinture et a réussi son exercice de graphisme. Bonne continuation !",
+    "isRead": false,
+    "type": "conversation"
+  },
+  {
+    "id": "msg-lea-2",
+    "childId": "demo-lea",
+    "sender": "Mme Laurent",
+    "senderRole": "Maîtresse",
+    "senderClass": "GS",
+    "date": "2026-03-20T15:30:00",
+    "preview": "Rappel : photos de classe lundi",
+    "content": "Les photos de classe auront lieu lundi 24 mars. Merci de prévoir une tenue soignée pour les enfants.",
+    "isRead": true,
+    "type": "conversation"
+  },
+  {
+    "id": "msg-lea-3",
+    "childId": "demo-lea",
+    "sender": "M. Renaud",
+    "senderRole": "Directeur",
+    "senderClass": "Maternelle Pasteur",
+    "date": "2026-03-10T09:00:00",
+    "preview": "Fermeture exceptionnelle vendredi 14 mars",
+    "content": "L'école sera fermée vendredi 14 mars en raison d'une journée pédagogique. Merci de prévoir un mode de garde alternatif.",
+    "isRead": true,
+    "type": "ecole"
+  },
+  {
     "id": "msg-1",
     "childId": "demo-lucas",
     "sender": "Mme Dupont",

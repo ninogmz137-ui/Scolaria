@@ -246,7 +246,9 @@ export default function NotesScreen() {
     // ── Demo mode: load from DemoContext ──
     if (isDemoMode) {
       const demoSubs = getDemoSubjects(selectedChild.id);
-      const demoGradesList = getDemoGrades(selectedChild.id);
+      // Filter by trimester if a T1/T2/T3 period is selected
+      const trimesterNum = selectedPeriod === 'T1' ? 1 : selectedPeriod === 'T2' ? 2 : selectedPeriod === 'T3' ? 3 : undefined;
+      const demoGradesList = getDemoGrades(selectedChild.id, trimesterNum);
       if (demoSubs.length > 0) {
         const gradesBySub: Record<string, typeof demoGradesList> = {};
         for (const g of demoGradesList) {
@@ -307,7 +309,7 @@ export default function NotesScreen() {
       return { id: sub.id, name: sub.name, emoji: sub.emoji ?? '📚', color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length], grades, average: Math.round(avg * 10) / 10, classAvg: Math.round(classAvg * 10) / 10, trend };
     });
     setSubjects(mapped);
-  }, [selectedChild?.id, isDemoMode, getDemoSubjects, getDemoGrades]);
+  }, [selectedChild?.id, isDemoMode, getDemoSubjects, getDemoGrades, selectedPeriod]);
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
 
@@ -388,13 +390,12 @@ export default function NotesScreen() {
             {MATERNELLE_DOMAINS.map((domain) => {
               const domainAcquired = domain.competencies.filter((c) => c.level === 'acquis').length;
               const pct = Math.round((domainAcquired / domain.competencies.length) * 100);
-              const cardW = Math.floor((Dimensions.get('window').width - 18 * 2 - 12) / 2);
 
               return (
                 <Pressable
                   key={domain.id}
                   onPress={() => setExpandedDomain(expandedDomain === domain.id ? null : domain.id)}
-                  style={{ width: cardW, maxWidth: cardW, flexGrow: 0, flexShrink: 0 }}
+                  style={{ width: (Dimensions.get('window').width - 18 * 2 - 12) / 2 }}
                 >
                   <GlassCard style={{ height: 150, padding: 14 }} noPadding={false}>
                     {/* Emoji */}
@@ -518,16 +519,37 @@ export default function NotesScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ gap: 10, paddingRight: 18 }}
           style={{ marginBottom: 16 }}
-          renderItem={({ item }) => (
-            <GlassCard style={{ width: 110, alignItems: 'center' }}>
-              <Text style={{ fontSize: 24, marginBottom: 6 }}>{item.emoji}</Text>
-              <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(item.value) }]}>
-                <Text style={s.gradeBadgeText}>{item.value}/{item.maxValue}</Text>
-              </View>
-              <Text style={[s.carouselSubject, { color: cardTextSecondary }]} numberOfLines={1}>{item.subject}</Text>
-              <Text style={[s.carouselDate, { color: cardTextMuted }]}>{item.date}</Text>
-            </GlassCard>
-          )}
+          renderItem={({ item }) => {
+            const parentSubject = subjects.find((sub) => sub.name === item.subject);
+            return (
+              <Pressable
+                onPress={() => {
+                  if (parentSubject) {
+                    navigation.navigate('SubjectDetail', {
+                      subjectId: parentSubject.id,
+                      subjectName: parentSubject.name,
+                      subjectEmoji: parentSubject.emoji,
+                      subjectColor: parentSubject.color,
+                      average: parentSubject.average,
+                      classAvg: parentSubject.classAvg,
+                      trend: parentSubject.trend,
+                      grades: JSON.stringify(parentSubject.grades),
+                    });
+                  }
+                }}
+                style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+              >
+                <GlassCard style={{ width: 110, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 24, marginBottom: 6 }}>{item.emoji}</Text>
+                  <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(item.value) }]}>
+                    <Text style={s.gradeBadgeText}>{item.value}/{item.maxValue}</Text>
+                  </View>
+                  <Text style={[s.carouselSubject, { color: cardTextSecondary }]} numberOfLines={1}>{item.subject}</Text>
+                  <Text style={[s.carouselDate, { color: cardTextMuted }]}>{item.date}</Text>
+                </GlassCard>
+              </Pressable>
+            );
+          }}
         />
 
         {/* ── Period + Sort pickers ── */}
@@ -649,7 +671,18 @@ export default function NotesScreen() {
             return (
               <Pressable
                 key={subject.id}
-                onPress={() => setExpandedSubject(expandedSubject === subject.id ? null : subject.id)}
+                onPress={() => {
+                  navigation.navigate('SubjectDetail', {
+                    subjectId: subject.id,
+                    subjectName: subject.name,
+                    subjectEmoji: subject.emoji,
+                    subjectColor: subject.color,
+                    average: subject.average,
+                    classAvg: subject.classAvg,
+                    trend: subject.trend,
+                    grades: JSON.stringify(subject.grades),
+                  });
+                }}
                 style={{ width: (Dimensions.get('window').width - 18 * 2 - 12) / 2 }}
               >
                 <GlassCard style={{ height: 140, padding: 14 }} noPadding={false}>

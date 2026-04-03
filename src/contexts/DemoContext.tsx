@@ -20,6 +20,8 @@ import demoMessages from '../data/demo/demo-messages.json';
 import demoMots from '../data/demo/demo-mots.json';
 import demoParcours from '../data/demo/demo-parcours.json';
 import demoDashboard from '../data/demo/demo-dashboard.json';
+import demoTeachers from '../data/demo/demo-teachers.json';
+import demoArchivedGrades from '../data/demo/demo-archived-grades.json';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -105,6 +107,23 @@ export interface DemoParcours {
   scoreDeJoie: any;
 }
 
+export interface DemoTeacher {
+  id: string;
+  name: string;
+  role: string;
+  class: string;
+}
+
+export interface DemoArchivedBulletin {
+  childId: string;
+  year: string;
+  class: string;
+  trimester: number;
+  average: number;
+  subjects: { name: string; average: number; classAverage: number }[];
+  appreciation: string;
+}
+
 export interface DemoDashboard {
   childId: string;
   motsRecus: number;
@@ -133,6 +152,8 @@ interface DemoContextValue {
   getMots: (childId: string) => DemoMot[];
   getParcours: (childId: string) => DemoParcours | null;
   getDashboard: (childId: string) => DemoDashboard | null;
+  getTeachers: (childId: string) => DemoTeacher[];
+  getArchivedGrades: (childId: string, year: string) => DemoArchivedBulletin[];
   toggleAgendaDone: (eventId: string) => void;
   signMot: (motId: string) => void;
 }
@@ -147,6 +168,8 @@ const DemoContext = createContext<DemoContextValue>({
   getMots: () => [],
   getParcours: () => null,
   getDashboard: () => null,
+  getTeachers: () => [],
+  getArchivedGrades: () => [],
   toggleAgendaDone: () => {},
   signMot: () => {},
 });
@@ -205,6 +228,15 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     return (demoDashboard as DemoDashboard[]).find((d) => d.childId === childId) || null;
   }, []);
 
+  const getTeachers = useCallback((childId: string): DemoTeacher[] => {
+    const entry = (demoTeachers as any[]).find((t) => t.childId === childId);
+    return entry?.teachers ?? [];
+  }, []);
+
+  const getArchivedGrades = useCallback((childId: string, year: string): DemoArchivedBulletin[] => {
+    return (demoArchivedGrades as DemoArchivedBulletin[]).filter((b) => b.childId === childId && b.year === year);
+  }, []);
+
   const toggleAgendaDone = useCallback((eventId: string) => {
     setAgendaState((prev) => ({
       ...prev,
@@ -228,6 +260,8 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
         getMots,
         getParcours,
         getDashboard,
+        getTeachers,
+        getArchivedGrades,
         toggleAgendaDone,
         signMot,
       }}

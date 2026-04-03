@@ -25,7 +25,13 @@
     "competencesAcquis": 10,
     "competencesEnCours": 5,
     "competencesTotal": 17,
-    "courseDuJour": [],
+    "courseDuJour": [
+      { "time": "8h30", "subject": "Langage oral", "room": "Salle des grands", "color": "#7C3AED" },
+      { "time": "9h30", "subject": "Motricité", "room": "Gymnase", "color": "#06B6D4" },
+      { "time": "10h30", "subject": "Explorer le monde", "room": "Salle des grands", "color": "#10B981" },
+      { "time": "14h00", "subject": "Arts visuels", "room": "Atelier", "color": "#EC4899" },
+      { "time": "15h00", "subject": "Structurer sa pensée", "room": "Salle des grands", "color": "#F59E0B" }
+    ],
     "eventsSemaine": 3,
     "prochainEvent": "Sortie au musée · samedi"
   },

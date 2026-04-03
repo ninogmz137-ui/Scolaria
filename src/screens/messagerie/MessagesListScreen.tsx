@@ -17,6 +17,8 @@ import { Papicons } from '@getpapillon/papicons';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import GlassCard from '../../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { useDemoData } from '../../contexts/DemoContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -100,11 +102,58 @@ const MOCK_TEACHERS: Teacher[] = [
   { id: 't-5', name: 'Mme Bernard', subject: 'Anglais — 4e C' },
 ];
 
+// ─── Helpers ─────────────────────────────────────────────
+
+function formatMessageDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return isoDate;
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) {
+      const dayNames = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
+      return dayNames[d.getDay()];
+    }
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  } catch {
+    return isoDate;
+  }
+}
+
 // ─── Component ────────────────────────────────────────────
 
 export default function MessagesListScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
+  const { selectedChild } = useActiveChild();
+  const { isDemoMode, getTeachers: getDemoTeachers, getMots: getDemoMots, getMessages: getDemoMessages } = useDemoData();
   const [teacherModalVisible, setTeacherModalVisible] = useState(false);
+
+  // In demo mode, use filtered teachers for the selected child
+  const teachers = isDemoMode
+    ? getDemoTeachers(selectedChild.id).map((t) => ({ id: t.id, name: t.name, subject: `${t.role} — ${t.class}` }))
+    : MOCK_TEACHERS;
+
+  // In demo mode, use filtered mots for the selected child
+  const mots = isDemoMode
+    ? getDemoMots(selectedChild.id).map((m) => ({ id: m.id, title: m.title, deadline: m.deadline, signed: m.isSigned }))
+    : MOCK_MOTS;
+
+  // In demo mode, use filtered conversations for the selected child
+  const conversations: Conversation[] = isDemoMode
+    ? getDemoMessages(selectedChild.id)
+        .filter((m) => m.type === 'conversation')
+        .map((m) => ({
+          id: m.id,
+          name: m.sender,
+          role: `${m.senderClass}${m.senderClass && m.senderRole ? ' — ' : ''}${m.senderRole}`,
+          lastMessage: m.preview,
+          date: formatMessageDate(m.date),
+          unread: !m.isRead,
+        }))
+    : MOCK_CONVERSATIONS;
 
   return (
     <View style={[styles.root]}>
@@ -121,7 +170,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
           <Text style={styles.sectionLabel}>Conversations</Text>
         </View>
 
-        {MOCK_CONVERSATIONS.map((conv) => (
+        {conversations.map((conv) => (
           <Pressable
             key={conv.id}
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
@@ -175,7 +224,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
           <Text style={styles.sectionLabel}>Mots à signer</Text>
         </View>
 
-        {MOCK_MOTS.map((mot) => (
+        {mots.map((mot) => (
           <Pressable
             key={mot.id}
             style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
@@ -268,7 +317,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                 <Text style={styles.modalTitle}>Nouveau message</Text>
                 <Text style={styles.modalSubtitle}>Choisir un destinataire</Text>
 
-                {MOCK_TEACHERS.map((teacher) => (
+                {teachers.map((teacher) => (
                   <Pressable
                     key={teacher.id}
                     onPress={() => {

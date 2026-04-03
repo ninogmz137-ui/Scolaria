@@ -1,0 +1,158 @@
+[
+  {
+    "childId": "demo-lucas",
+    "year": "2024-2025",
+    "class": "CM1",
+    "trimester": 1,
+    "average": 13.5,
+    "subjects": [
+      { "name": "Mathématiques", "average": 13.0, "classAverage": 12.5 },
+      { "name": "Français", "average": 12.5, "classAverage": 12.0 },
+      { "name": "Histoire-Géo", "average": 15.0, "classAverage": 11.5 },
+      { "name": "Anglais", "average": 14.0, "classAverage": 12.8 },
+      { "name": "Sciences", "average": 12.5, "classAverage": 11.8 },
+      { "name": "EPS", "average": 14.0, "classAverage": 13.5 }
+    ],
+    "appreciation": "Bon premier trimestre. Lucas s'adapte bien au CM1. Il est sérieux et participatif."
+  },
+  {
+    "childId": "demo-lucas",
+    "year": "2024-2025",
+    "class": "CM1",
+    "trimester": 2,
+    "average": 13.8,
+    "subjects": [
+      { "name": "Mathématiques", "average": 13.5, "classAverage": 12.8 },
+      { "name": "Français", "average": 13.0, "classAverage": 12.2 },
+      { "name": "Histoire-Géo", "average": 15.5, "classAverage": 11.8 },
+      { "name": "Anglais", "average": 14.5, "classAverage": 13.0 },
+      { "name": "Sciences", "average": 12.5, "classAverage": 12.0 },
+      { "name": "EPS", "average": 14.0, "classAverage": 13.8 }
+    ],
+    "appreciation": "En progrès. Lucas gagne en confiance et participe davantage à l'oral."
+  },
+  {
+    "childId": "demo-lucas",
+    "year": "2024-2025",
+    "class": "CM1",
+    "trimester": 3,
+    "average": 14.1,
+    "subjects": [
+      { "name": "Mathématiques", "average": 14.0, "classAverage": 13.0 },
+      { "name": "Français", "average": 13.5, "classAverage": 12.5 },
+      { "name": "Histoire-Géo", "average": 16.0, "classAverage": 12.0 },
+      { "name": "Anglais", "average": 15.0, "classAverage": 13.2 },
+      { "name": "Sciences", "average": 12.5, "classAverage": 12.2 },
+      { "name": "EPS", "average": 14.5, "classAverage": 14.0 }
+    ],
+    "appreciation": "Très bon trimestre. Lucas termine l'année en progression constante. Prêt pour le CM2."
+  },
+  {
+    "childId": "demo-lucas",
+    "year": "2023-2024",
+    "class": "CE2",
+    "trimester": 1,
+    "average": 12.8,
+    "subjects": [
+      { "name": "Mathématiques", "average": 12.5, "classAverage": 12.0 },
+      { "name": "Français", "average": 12.0, "classAverage": 11.5 },
+      { "name": "Histoire-Géo", "average": 14.0, "classAverage": 11.0 },
+      { "name": "Anglais", "average": 13.0, "classAverage": 12.0 },
+      { "name": "Sciences", "average": 12.0, "classAverage": 11.5 },
+      { "name": "EPS", "average": 13.5, "classAverage": 13.0 }
+    ],
+    "appreciation": "Bonne rentrée en CE2. Lucas est un élève agréable et travailleur."
+  },
+  {
+    "childId": "demo-lucas",
+    "year": "2023-2024",
+    "class": "CE2",
+    "trimester": 2,
+    "average": 13.2,
+    "subjects": [
+      { "name": "Mathématiques", "average": 13.0, "classAverage": 12.2 },
+      { "name": "Français", "average": 12.5, "classAverage": 11.8 },
+      { "name": "Histoire-Géo", "average": 14.5, "classAverage": 11.2 },
+      { "name": "Anglais", "average": 13.5, "classAverage": 12.3 },
+      { "name": "Sciences", "average": 12.0, "classAverage": 11.8 },
+      { "name": "EPS", "average": 13.5, "classAverage": 13.2 }
+    ],
+    "appreciation": "En progrès, surtout en lecture. Lucas doit gagner en confiance à l'oral."
+  },
+  {
+    "childId": "demo-lucas",
+    "year": "2023-2024",
+    "class": "CE2",
+    "trimester": 3,
+    "average": 13.5,
+    "subjects": [
+      { "name": "Mathématiques", "average": 13.5, "classAverage": 12.5 },
+      { "name": "Français", "average": 13.0, "classAverage": 12.0 },
+      { "name": "Histoire-Géo", "average": 15.0, "classAverage": 11.5 },
+      { "name": "Anglais", "average": 14.0, "classAverage": 12.5 },
+      { "name": "Sciences", "average": 12.0, "classAverage": 12.0 },
+      { "name": "EPS", "average": 13.5, "classAverage": 13.5 }
+    ],
+    "appreciation": "Bonne année. Lucas a acquis les fondamentaux du CE2 et est prêt pour le CM1."
+  },
+  {
+    "childId": "demo-emma",
+    "year": "2024-2025",
+    "class": "4ème",
+    "trimester": 1,
+    "average": 13.2,
+    "subjects": [
+      { "name": "Mathématiques", "average": 12.5, "classAverage": 11.5 },
+      { "name": "Français", "average": 14.5, "classAverage": 13.0 },
+      { "name": "Histoire-Géo", "average": 14.0, "classAverage": 11.5 },
+      { "name": "Anglais", "average": 15.0, "classAverage": 13.5 },
+      { "name": "SVT", "average": 11.5, "classAverage": 11.0 },
+      { "name": "Physique-Chimie", "average": 11.0, "classAverage": 10.5 },
+      { "name": "EPS", "average": 15.5, "classAverage": 14.0 },
+      { "name": "Technologie", "average": 13.0, "classAverage": 12.0 },
+      { "name": "Musique", "average": 14.5, "classAverage": 13.5 },
+      { "name": "Arts plastiques", "average": 13.5, "classAverage": 13.0 }
+    ],
+    "appreciation": "Bon début de 4ème. Emma est sérieuse et impliquée, surtout en lettres et langues."
+  },
+  {
+    "childId": "demo-emma",
+    "year": "2024-2025",
+    "class": "4ème",
+    "trimester": 2,
+    "average": 13.5,
+    "subjects": [
+      { "name": "Mathématiques", "average": 12.8, "classAverage": 11.8 },
+      { "name": "Français", "average": 15.0, "classAverage": 13.2 },
+      { "name": "Histoire-Géo", "average": 14.0, "classAverage": 11.8 },
+      { "name": "Anglais", "average": 15.5, "classAverage": 13.8 },
+      { "name": "SVT", "average": 11.5, "classAverage": 11.2 },
+      { "name": "Physique-Chimie", "average": 11.0, "classAverage": 10.8 },
+      { "name": "EPS", "average": 16.0, "classAverage": 14.2 },
+      { "name": "Technologie", "average": 13.5, "classAverage": 12.2 },
+      { "name": "Musique", "average": 14.5, "classAverage": 13.8 },
+      { "name": "Arts plastiques", "average": 13.5, "classAverage": 13.2 }
+    ],
+    "appreciation": "Trimestre en progression. Emma se distingue en Français et en Langues vivantes."
+  },
+  {
+    "childId": "demo-emma",
+    "year": "2024-2025",
+    "class": "4ème",
+    "trimester": 3,
+    "average": 13.9,
+    "subjects": [
+      { "name": "Mathématiques", "average": 13.0, "classAverage": 12.0 },
+      { "name": "Français", "average": 15.5, "classAverage": 13.5 },
+      { "name": "Histoire-Géo", "average": 14.5, "classAverage": 12.0 },
+      { "name": "Anglais", "average": 16.0, "classAverage": 14.0 },
+      { "name": "SVT", "average": 12.0, "classAverage": 11.5 },
+      { "name": "Physique-Chimie", "average": 11.5, "classAverage": 11.0 },
+      { "name": "EPS", "average": 16.0, "classAverage": 14.5 },
+      { "name": "Technologie", "average": 14.0, "classAverage": 12.5 },
+      { "name": "Musique", "average": 15.0, "classAverage": 14.0 },
+      { "name": "Arts plastiques", "average": 14.0, "classAverage": 13.5 }
+    ],
+    "appreciation": "Excellent trimestre. Emma est prête pour la 3ème et l'année du brevet."
+  }
+]

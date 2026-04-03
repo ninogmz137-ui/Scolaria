@@ -34,6 +34,13 @@ import AriaSparkleIcon from '../components/AriaSparkleIcon';
 
 // ─── Mock data ──────────────────────────────────────────
 
+interface CoursItem {
+  time: string;
+  subject: string;
+  room: string;
+  color: string;
+}
+
 interface DashboardData {
   ariaSummary: string;
   liaison: { total: number; unsigned: number };
@@ -41,6 +48,7 @@ interface DashboardData {
   notes: { average: number; trend: number };
   agenda: { weekEvents: number; nextEvent: string };
   joyScore: { value: number; trend: 'stable' | 'up' | 'down' };
+  coursDuJour: CoursItem[];
 }
 
 function getMockDashboard(childId: string, childName: string = 'Votre enfant'): DashboardData {
@@ -55,6 +63,13 @@ function getMockDashboard(childId: string, childName: string = 'Votre enfant'): 
         notes: { average: 0, trend: 0 },
         agenda: { weekEvents: 3, nextEvent: 'Sortie au musée · samedi' },
         joyScore: { value: 4.2, trend: 'up' },
+        coursDuJour: [
+          { time: '8h30', subject: 'Langage oral', room: 'Salle des grands', color: '#7C3AED' },
+          { time: '9h30', subject: 'Motricité', room: 'Gymnase', color: '#06B6D4' },
+          { time: '10h30', subject: 'Explorer le monde', room: 'Salle des grands', color: '#10B981' },
+          { time: '14h00', subject: 'Arts visuels', room: 'Atelier', color: '#EC4899' },
+          { time: '15h00', subject: 'Structurer sa pensée', room: 'Salle des grands', color: '#F59E0B' },
+        ],
       };
     case 'demo-lucas':
     case '2':
@@ -65,6 +80,13 @@ function getMockDashboard(childId: string, childName: string = 'Votre enfant'): 
         notes: { average: 15.1, trend: 0.8 },
         agenda: { weekEvents: 4, nextEvent: 'Contrôle Maths · vendredi' },
         joyScore: { value: 3.8, trend: 'stable' },
+        coursDuJour: [
+          { time: '8h30', subject: 'Français', room: 'Salle 12', color: '#7C3AED' },
+          { time: '9h30', subject: 'Mathématiques', room: 'Salle 8', color: '#4F46E5' },
+          { time: '10h30', subject: 'Histoire', room: 'Salle 3', color: '#F59E0B' },
+          { time: '13h30', subject: 'Sciences', room: 'Labo B', color: '#10B981' },
+          { time: '14h30', subject: 'Anglais', room: 'Salle 5', color: '#06B6D4' },
+        ],
       };
     case 'demo-emma':
     case '3':
@@ -76,6 +98,14 @@ function getMockDashboard(childId: string, childName: string = 'Votre enfant'): 
         notes: { average: 14.2, trend: 0.4 },
         agenda: { weekEvents: 5, nextEvent: 'Contrôle SVT · vendredi' },
         joyScore: { value: 4.3, trend: 'up' },
+        coursDuJour: [
+          { time: '8h00', subject: 'Mathématiques', room: 'Salle 201', color: '#4F46E5' },
+          { time: '9h00', subject: 'Français', room: 'Salle 105', color: '#7C3AED' },
+          { time: '10h00', subject: 'Anglais', room: 'Salle 302', color: '#10B981' },
+          { time: '13h00', subject: 'SVT', room: 'Labo A', color: '#EC4899' },
+          { time: '14h00', subject: 'Physique-Chimie', room: 'Labo C', color: '#06B6D4' },
+          { time: '15h00', subject: 'Musique', room: 'Salle musique', color: '#A855F7' },
+        ],
       };
   }
 }
@@ -122,8 +152,10 @@ export default function AccueilScreen() {
     if (isDemoMode) {
       const demoDash = getDemoDashboard(childId);
       if (demoDash) {
-        const firstName = childName.split(' ')[0] || 'votre enfant';
         const mock = getMockDashboard(childId, childName);
+        const cours: CoursItem[] = (demoDash.courseDuJour ?? []).map((c: any) => ({
+          time: c.time, subject: c.subject, room: c.room, color: c.color,
+        }));
         setData({
           ariaSummary: mock.ariaSummary,
           liaison: { total: demoDash.motsRecus, unsigned: demoDash.motsToutSigne ? 0 : Math.max(1, Math.floor(demoDash.motsRecus * 0.3)) },
@@ -131,6 +163,7 @@ export default function AccueilScreen() {
           notes: { average: demoDash.moyenne ?? 0, trend: mock.notes.trend },
           agenda: { weekEvents: demoDash.eventsSemaine, nextEvent: demoDash.prochainEvent || mock.agenda.nextEvent },
           joyScore: mock.joyScore,
+          coursDuJour: cours.length > 0 ? cours : mock.coursDuJour,
         });
       } else {
         setData(getMockDashboard(childId, childName));
@@ -225,6 +258,7 @@ export default function AccueilScreen() {
       notes: { average: Math.round(gradeAverage * 10) / 10, trend: gradeTrend },
       agenda: { weekEvents: events.length, nextEvent: nextEventLabel },
       joyScore: { value: joyValue || mock.joyScore.value, trend: joyTrend },
+      coursDuJour: mock.coursDuJour,
     });
   }, [isDemoMode, getDemoDashboard]);
 
@@ -323,7 +357,7 @@ export default function AccueilScreen() {
 
           <GlassCard style={{ marginBottom: 14 }} noPadding>
             <View style={{ padding: 4 }}>
-              {MOCK_COURS.map((cours, i) => (
+              {data.coursDuJour.map((cours, i) => (
                 <View key={i} style={styles.coursRow}>
                   <View style={[styles.coursBar, { backgroundColor: cours.color }]} />
                   <Text style={[styles.coursTime, { color: cardTextSecondary }]}>{cours.time}</Text>

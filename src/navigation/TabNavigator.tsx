@@ -42,6 +42,10 @@ import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
 import AbsencesListScreen from '../screens/messagerie/AbsencesListScreen';
 import EcoleListScreen from '../screens/messagerie/EcoleListScreen';
 
+// Detail screens
+import ArchivedYearDetailScreen from '../screens/ArchivedYearDetailScreen';
+import SubjectDetailScreen from '../screens/SubjectDetailScreen';
+
 // About
 import AProposScreen from '../screens/AProposScreen';
 
@@ -84,6 +88,8 @@ const SCREEN_TITLES: Record<string, string> = {
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
+  ArchivedYearDetail: 'Année archivée',
+  SubjectDetail: 'Détail matière',
 };
 
 // ─── Stack navigators ────────────────────────────────────
@@ -101,7 +107,13 @@ function AccueilStackScreen() {
           backArrowRef.current?.setShowBack(index > 0);
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
-            stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+            const params = routes[index].params as any;
+            // Dynamic title for ArchivedYearDetail
+            if (screenName === 'ArchivedYearDetail' && params?.year && params?.niveau) {
+              stackTitleRef.current?.setTitle(`${params.year} · ${params.niveau}`);
+            } else {
+              stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+            }
           }
         },
         focus: (e) => {
@@ -196,6 +208,11 @@ function AccueilStackScreen() {
         component={WallpaperPickerScreen}
         options={{ title: "Fond d'écran" }}
       />
+      <AccueilStack.Screen
+        name="ArchivedYearDetail"
+        component={ArchivedYearDetailScreen}
+        options={{ headerShown: false }}
+      />
     </AccueilStack.Navigator>
   );
 }
@@ -213,7 +230,13 @@ function NotesStackScreen() {
           backArrowRef.current?.setShowBack(index > 0);
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
-            stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+            const params = routes[index].params as any;
+            // Dynamic title for SubjectDetail
+            if (screenName === 'SubjectDetail' && params?.subjectName) {
+              stackTitleRef.current?.setTitle(params.subjectName);
+            } else {
+              stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+            }
           }
         },
         focus: (e) => {
@@ -232,6 +255,11 @@ function NotesStackScreen() {
         name="ScannerBulletin"
         component={ScannerBulletinScreen}
         options={{ animation: 'slide_from_bottom' }}
+      />
+      <NotesStack.Screen
+        name="SubjectDetail"
+        component={SubjectDetailScreen}
+        options={{ headerShown: false }}
       />
     </NotesStack.Navigator>
   );
