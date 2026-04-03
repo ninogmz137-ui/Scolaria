@@ -1,0 +1,8 @@
+[
+  { "id": "mot-1", "childId": "demo-lucas", "title": "Sortie scolaire du 15 avril", "deadline": "2026-04-12", "isSigned": false },
+  { "id": "mot-2", "childId": "demo-emma", "title": "Règlement intérieur 2025-2026", "deadline": null, "isSigned": true },
+  { "id": "mot-3", "childId": "demo-lucas", "title": "Autorisation piscine — Printemps", "deadline": "2026-04-08", "isSigned": false },
+  { "id": "mot-4", "childId": "demo-lea", "title": "Autorisation sortie ferme pédagogique", "deadline": null, "isSigned": true },
+  { "id": "mot-5", "childId": "demo-emma", "title": "Convention stage observation", "deadline": null, "isSigned": true },
+  { "id": "mot-6", "childId": "demo-lea", "title": "Autorisation photos classe", "deadline": null, "isSigned": true }
+]

@@ -203,7 +203,26 @@ function AccueilStackScreen() {
 const NotesStack = createNativeStackNavigator();
 function NotesStackScreen() {
   return (
-    <NotesStack.Navigator screenOptions={{ headerShown: false }}>
+    <NotesStack.Navigator
+      screenOptions={{ headerShown: false }}
+      screenListeners={{
+        state: (e) => {
+          const data = e.data as any;
+          const routes = data?.state?.routes;
+          const index = data?.state?.index ?? 0;
+          backArrowRef.current?.setShowBack(index > 0);
+          if (index > 0 && routes?.[index]) {
+            const screenName = routes[index].name as string;
+            stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+          }
+        },
+        focus: (e) => {
+          if (e.target?.includes('NotesHome')) {
+            backArrowRef.current?.setShowBack(false);
+          }
+        },
+      }}
+    >
       <NotesStack.Screen
         name="NotesHome"
         component={NotesScreen}
@@ -212,7 +231,7 @@ function NotesStackScreen() {
       <NotesStack.Screen
         name="ScannerBulletin"
         component={ScannerBulletinScreen}
-        options={{ animation: 'slide_from_bottom', presentation: 'modal' }}
+        options={{ animation: 'slide_from_bottom' }}
       />
     </NotesStack.Navigator>
   );

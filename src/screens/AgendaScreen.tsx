@@ -36,6 +36,7 @@ import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -176,6 +177,7 @@ export default function AgendaScreen() {
   const { theme } = useChildTheme();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
+  const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
   const cardText = '#0F172A';
@@ -258,14 +260,17 @@ export default function AgendaScreen() {
           e.id === eventId ? { ...e, done: !e.done } : e,
         );
       }
-      // Fire-and-forget Supabase update for real events (non-local IDs)
-      if (!eventId.startsWith('local-')) {
+      // Demo mode: toggle in DemoContext local state
+      if (isDemoMode) {
+        demoToggleDone(eventId);
+      } else if (!eventId.startsWith('local-')) {
+        // Fire-and-forget Supabase update for real events (non-local IDs)
         const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
         toggleEventDone(eventId, newDone).catch(() => {/* ignore — optimistic update already applied */});
       }
       return updated;
     });
-  }, []);
+  }, [isDemoMode, demoToggleDone]);
 
   // Add event modal
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -290,6 +295,40 @@ export default function AgendaScreen() {
       const stillValid = computed.find((d) => d.date === prev);
       return stillValid ? prev : computed[0].date;
     });
+
+    // ── Demo mode: load from DemoContext ──
+    if (isDemoMode) {
+      const monday = computed[0].fullDate;
+      const sunday = computed[6].fullDate;
+      const grouped: Record<number, AgendaEvent[]> = {};
+      for (let i = 0; i < 7; i++) {
+        const dayDate = computed[i].fullDate;
+        const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+        const demoEvents = getDemoAgenda(selectedChildId, dateStr);
+        if (demoEvents.length > 0) {
+          grouped[computed[i].date] = demoEvents.map((e) => ({
+            id: e.id,
+            title: e.title,
+            time: e.startTime,
+            endTime: e.endTime || undefined,
+            type: (e.type || 'cours') as AgendaEvent['type'],
+            subject: e.subject || undefined,
+            emoji: e.emoji || '📅',
+            location: e.room || undefined,
+            description: e.description || undefined,
+            color: e.color || Colors.violet,
+            done: e.is_completed ?? false,
+          }));
+        }
+      }
+      // If no demo events for this week, fall back to mock
+      if (Object.keys(grouped).length === 0) {
+        setEventsByDay(MOCK_EVENTS_BY_DAY);
+      } else {
+        setEventsByDay(grouped);
+      }
+      return;
+    }
 
     const monday = computed[0].fullDate;
     const sunday = computed[6].fullDate;
@@ -327,7 +366,7 @@ export default function AgendaScreen() {
       grouped[dayNum].push(mapped);
     }
     setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate]);
+  }, [selectedChildId, referenceDate, isDemoMode, getDemoAgenda]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 

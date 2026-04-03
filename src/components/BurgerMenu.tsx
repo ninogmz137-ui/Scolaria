@@ -90,6 +90,10 @@ const BOTTOM_ITEMS: MenuItemDef[] = [
   { key: 'logout', icon: LogOut,  label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 
+const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [
+  { key: 'logout', icon: LogOut,  label: 'Quitter la démo',         action: 'logout', danger: true },
+];
+
 // ─── Single menu row ─────────────────────────────────────
 
 function MenuItem({
@@ -121,7 +125,7 @@ export default function BurgerMenu({
 }: Props) {
   const { selectedChild, selectedChildId, children, selectChild, updateChildAvatar } = useActiveChild();
   const [avatarModalVisible, setAvatarModalVisible] = useState(false);
-  const { user } = useAuth();
+  const { user, isDemo } = useAuth();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
@@ -332,7 +336,7 @@ export default function BurgerMenu({
 
             {/* ── Section basse ── */}
             <View style={styles.menuList}>
-              {BOTTOM_ITEMS.map((item) => (
+              {(isDemo ? BOTTOM_ITEMS_DEMO : BOTTOM_ITEMS).map((item) => (
                 <MenuItem key={item.key} item={item} onPress={handleItemPress} />
               ))}
             </View>

@@ -1,0 +1,23 @@
+[
+  { "id": "lea-lang", "childId": "demo-lea", "name": "Mobiliser le langage", "emoji": "🗣️", "color": "#4F46E5", "acquis": 3, "total": 4 },
+  { "id": "lea-art", "childId": "demo-lea", "name": "Activités artistiques", "emoji": "🎨", "color": "#EC4899", "acquis": 2, "total": 3 },
+  { "id": "lea-phys", "childId": "demo-lea", "name": "Activités physiques", "emoji": "🤸", "color": "#06B6D4", "acquis": 2, "total": 3 },
+  { "id": "lea-math", "childId": "demo-lea", "name": "Structurer sa pensée", "emoji": "🔢", "color": "#F59E0B", "acquis": 2, "total": 4 },
+  { "id": "lea-monde", "childId": "demo-lea", "name": "Explorer le monde", "emoji": "🌍", "color": "#10B981", "acquis": 1, "total": 3 },
+  { "id": "lucas-math", "childId": "demo-lucas", "name": "Mathématiques", "emoji": "📐", "color": "#4F46E5", "average": 15.5, "classAverage": 13.8, "trend": "up" },
+  { "id": "lucas-fr", "childId": "demo-lucas", "name": "Français", "emoji": "📖", "color": "#7C3AED", "average": 14.0, "classAverage": 13.1, "trend": "stable" },
+  { "id": "lucas-hist", "childId": "demo-lucas", "name": "Histoire-Géo", "emoji": "🏛️", "color": "#F59E0B", "average": 16.0, "classAverage": 11.8, "trend": "up" },
+  { "id": "lucas-ang", "childId": "demo-lucas", "name": "Anglais", "emoji": "📚", "color": "#10B981", "average": 17.0, "classAverage": 13.7, "trend": "up" },
+  { "id": "lucas-sci", "childId": "demo-lucas", "name": "Sciences", "emoji": "🔬", "color": "#EC4899", "average": 13.0, "classAverage": 12.5, "trend": "down" },
+  { "id": "lucas-eps", "childId": "demo-lucas", "name": "EPS", "emoji": "⚽", "color": "#F97316", "average": 15.0, "classAverage": 14.2, "trend": "stable" },
+  { "id": "emma-math", "childId": "demo-emma", "name": "Mathématiques", "emoji": "📐", "color": "#4F46E5", "average": 13.5, "classAverage": 12.1, "trend": "up" },
+  { "id": "emma-fr", "childId": "demo-emma", "name": "Français", "emoji": "📖", "color": "#7C3AED", "average": 15.0, "classAverage": 13.4, "trend": "up" },
+  { "id": "emma-hist", "childId": "demo-emma", "name": "Histoire-Géo", "emoji": "🏛️", "color": "#F59E0B", "average": 14.5, "classAverage": 12.0, "trend": "stable" },
+  { "id": "emma-ang", "childId": "demo-emma", "name": "Anglais", "emoji": "📚", "color": "#10B981", "average": 16.0, "classAverage": 14.2, "trend": "up" },
+  { "id": "emma-svt", "childId": "demo-emma", "name": "SVT", "emoji": "🧬", "color": "#EC4899", "average": 12.0, "classAverage": 11.5, "trend": "down" },
+  { "id": "emma-phys", "childId": "demo-emma", "name": "Physique-Chimie", "emoji": "⚗️", "color": "#06B6D4", "average": 11.5, "classAverage": 11.0, "trend": "stable" },
+  { "id": "emma-eps", "childId": "demo-emma", "name": "EPS", "emoji": "⚽", "color": "#F97316", "average": 16.0, "classAverage": 14.8, "trend": "stable" },
+  { "id": "emma-tech", "childId": "demo-emma", "name": "Technologie", "emoji": "💻", "color": "#6366F1", "average": 14.0, "classAverage": 12.3, "trend": "up" },
+  { "id": "emma-musique", "childId": "demo-emma", "name": "Musique", "emoji": "🎵", "color": "#A855F7", "average": 15.5, "classAverage": 13.9, "trend": "up" },
+  { "id": "emma-arts", "childId": "demo-emma", "name": "Arts plastiques", "emoji": "🎨", "color": "#F43F5E", "average": 14.0, "classAverage": 13.5, "trend": "stable" }
+]

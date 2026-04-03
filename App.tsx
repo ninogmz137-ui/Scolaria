@@ -21,6 +21,7 @@ import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
 import { ChildThemeProvider } from './src/contexts/ChildThemeContext';
 import { WallpaperProvider } from './src/contexts/WallpaperContext';
+import { DemoProvider } from './src/contexts/DemoContext';
 import { Colors } from './src/constants/colors';
 import { scheduleConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
@@ -111,16 +112,16 @@ function AppContent() {
   };
 
   return (
-    <>
-      <DemoBanner />
+    <View style={{ flex: 1 }}>
       {renderNavigator()}
+      <DemoBanner />
       {role === 'parent' && (
         <ConseilDuMatin
           visible={showConseil}
           onDismiss={() => setShowConseil(false)}
         />
       )}
-    </>
+    </View>
   );
 }
 
@@ -141,10 +142,12 @@ export default function App() {
             <ActiveChildProvider>
               <ChildThemeProvider>
                 <WallpaperProvider>
+                <DemoProvider>
                   <NavigationContainer>
                     <StatusBar style="light" />
                     <AppContent />
                   </NavigationContainer>
+                </DemoProvider>
                 </WallpaperProvider>
               </ChildThemeProvider>
             </ActiveChildProvider>

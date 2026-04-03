@@ -32,6 +32,7 @@ import GlassCard from '../components/GlassCard';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { getStudentAbsences } from '../services/absenceService';
+import { useDemoData } from '../contexts/DemoContext';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -181,6 +182,7 @@ function isToday(isoString: string): boolean {
 
 export default function MessagerieScreen() {
   const { selectedChild } = useActiveChild();
+  const { isDemoMode, getMessages: getDemoMessages, getMots: getDemoMots } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
 
@@ -236,6 +238,49 @@ export default function MessagerieScreen() {
   // ─── Data loading ────────────────────────────────────────
 
   const loadData = useCallback(async (childId: string) => {
+    // ── Demo mode: load from DemoContext ──
+    if (isDemoMode) {
+      const messages = getDemoMessages(childId);
+      const mots = getDemoMots(childId);
+      const items: MessagerieItem[] = [];
+
+      for (const msg of messages) {
+        items.push({
+          id: `msg-${msg.id}`,
+          type: msg.type === 'liaison' ? 'liaison' : msg.type === 'absence' ? 'absence' : msg.type === 'note' ? 'note' : 'aria',
+          title: msg.sender,
+          message: msg.preview,
+          time: formatTime(msg.date),
+          read: msg.isRead,
+          _isoDate: msg.date,
+        });
+      }
+      for (const mot of mots) {
+        if (!mot.isSigned) {
+          items.push({
+            id: `mot-${mot.id}`,
+            type: 'liaison',
+            title: 'Mot à signer',
+            message: mot.title,
+            time: mot.deadline ? formatTime(mot.deadline) : 'Aujourd\'hui',
+            read: false,
+            _isoDate: mot.deadline || new Date().toISOString(),
+          });
+        }
+      }
+
+      items.sort((a, b) => b._isoDate.localeCompare(a._isoDate));
+      if (items.length > 0) {
+        setTodayItems(items.filter((n) => isToday(n._isoDate)));
+        setEarlierItems(items.filter((n) => !isToday(n._isoDate)));
+      } else {
+        const mock = getMockItems();
+        setTodayItems(mock.today);
+        setEarlierItems(mock.earlier);
+      }
+      return;
+    }
+
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0];
@@ -362,7 +407,7 @@ export default function MessagerieScreen() {
 
     setTodayItems(valid.filter((n) => isToday(n._isoDate)));
     setEarlierItems(valid.filter((n) => !isToday(n._isoDate)));
-  }, []);
+  }, [isDemoMode, getDemoMessages, getDemoMots]);
 
   useEffect(() => {
     loadData(selectedChild.id);

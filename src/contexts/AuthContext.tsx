@@ -65,12 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const isSupabaseConfigured =
     !!ENV.SUPABASE_URL &&
     !ENV.SUPABASE_URL.includes('your-');
 
-  const isDemo = !isSupabaseConfigured;
+  // isDemo is true if Supabase not configured OR user explicitly entered demo mode
+  const isDemo = !isSupabaseConfigured || isDemoMode;
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -158,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(DEMO_USER);
     setRole('parent');
     setSession(null);
+    setIsDemoMode(true);
   };
 
   const enterChildMode = () => {
@@ -193,15 +196,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSignOut = async () => {
-    if (!isSupabaseConfigured) {
+    if (!isSupabaseConfigured || isDemoMode) {
       setUser(null);
       setRole(null);
+      setIsDemoMode(false);
       return;
     }
 
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setRole(null);
+    setIsDemoMode(false);
   };
 
   return (

@@ -19,6 +19,7 @@ import GlassCard from '../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import type { AcademicYearStatut } from '../services/database';
 import { getAcademicYears } from '../services/database';
+import { useDemoData } from '../contexts/DemoContext';
 
 // ─── Mock academic year data ─────────────────────────────
 
@@ -33,26 +34,32 @@ interface AcademicYearCard {
 
 function getMockYears(childId: string): AcademicYearCard[] {
   switch (childId) {
+    case 'demo-lea':
     case '1': // Léa — maternelle
       return [
-        { id: 'y1-1', annee_scolaire: '2025-2026', niveau: 'GS', etablissement: 'Maternelle Pasteur', statut: 'active', bulletins: 1 },
-        { id: 'y1-2', annee_scolaire: '2024-2025', niveau: 'MS', etablissement: 'Maternelle Pasteur', statut: 'archivée', bulletins: 3 },
+        { id: 'y1-1', annee_scolaire: '2025-2026', niveau: 'Grande section', etablissement: 'Maternelle Pasteur', statut: 'active', bulletins: 2 },
+        { id: 'y1-2', annee_scolaire: '2024-2025', niveau: 'Moyenne section', etablissement: 'Maternelle Pasteur', statut: 'archivée', bulletins: 2 },
+        { id: 'y1-3', annee_scolaire: '2023-2024', niveau: 'Petite section', etablissement: 'Maternelle Pasteur', statut: 'importée', bulletins: 1 },
       ];
+    case 'demo-lucas':
     case '2': // Lucas — primaire
       return [
         { id: 'y2-1', annee_scolaire: '2025-2026', niveau: 'CM2', etablissement: 'École Voltaire', statut: 'active', bulletins: 2 },
         { id: 'y2-2', annee_scolaire: '2024-2025', niveau: 'CM1', etablissement: 'École Voltaire', statut: 'archivée', bulletins: 3 },
         { id: 'y2-3', annee_scolaire: '2023-2024', niveau: 'CE2', etablissement: 'École Voltaire', statut: 'archivée', bulletins: 3 },
         { id: 'y2-4', annee_scolaire: '2022-2023', niveau: 'CE1', etablissement: 'École Voltaire', statut: 'importée', bulletins: 2 },
+        { id: 'y2-5', annee_scolaire: '2021-2022', niveau: 'CP', etablissement: 'École Voltaire', statut: 'importée', bulletins: 2 },
+        { id: 'y2-6', annee_scolaire: '2020-2021', niveau: 'Grande section', etablissement: 'Maternelle Pasteur', statut: 'importée', bulletins: 1 },
       ];
+    case 'demo-emma':
     case '3': // Emma — collège
     default:
       return [
         { id: 'y3-1', annee_scolaire: '2025-2026', niveau: '3ème', etablissement: 'Collège Hugo', statut: 'active', bulletins: 2 },
         { id: 'y3-2', annee_scolaire: '2024-2025', niveau: '4ème', etablissement: 'Collège Hugo', statut: 'archivée', bulletins: 3 },
         { id: 'y3-3', annee_scolaire: '2023-2024', niveau: '5ème', etablissement: 'Collège Hugo', statut: 'archivée', bulletins: 3 },
-        { id: 'y3-4', annee_scolaire: '2022-2023', niveau: '6ème', etablissement: 'Collège Hugo', statut: 'archivée', bulletins: 3 },
-        { id: 'y3-5', annee_scolaire: '2021-2022', niveau: 'CM2', etablissement: 'École Voltaire', statut: 'importée', bulletins: 1 },
+        { id: 'y3-4', annee_scolaire: '2022-2023', niveau: '6ème', etablissement: 'Collège Hugo', statut: 'importée', bulletins: 3 },
+        { id: 'y3-5', annee_scolaire: '2021-2022', niveau: 'CM2', etablissement: 'École Voltaire', statut: 'importée', bulletins: 2 },
       ];
   }
 }
@@ -70,6 +77,7 @@ const STATUT_CONFIG: Record<AcademicYearStatut, { label: string; color: string; 
 export default function MonParcoursScreen() {
   useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
+  const { isDemoMode, getParcours: getDemoParcours } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
@@ -78,6 +86,41 @@ export default function MonParcoursScreen() {
   const [years, setYears] = useState<AcademicYearCard[]>(() => getMockYears(selectedChild.id));
 
   const loadYears = useCallback(async () => {
+    // ── Demo mode: load from DemoContext ──
+    if (isDemoMode) {
+      const parcours = getDemoParcours(selectedChild.id);
+      if (parcours) {
+        const allYears: AcademicYearCard[] = [];
+        const cur = parcours.currentYear as any;
+        if (cur) {
+          allYears.push({
+            id: `cur-${parcours.childId}`,
+            annee_scolaire: cur.year ?? cur.annee_scolaire ?? '',
+            niveau: cur.class ?? cur.niveau ?? '',
+            etablissement: cur.school ?? cur.etablissement ?? '',
+            statut: 'active',
+            bulletins: cur.bulletins ?? 0,
+          });
+        }
+        if (parcours.archives) {
+          for (const arch of parcours.archives as any[]) {
+            const statusMap: Record<string, AcademicYearStatut> = { imported: 'importée', archived: 'archivée' };
+            allYears.push({
+              id: `arch-${arch.year ?? arch.annee_scolaire}`,
+              annee_scolaire: arch.year ?? arch.annee_scolaire ?? '',
+              niveau: arch.class ?? arch.niveau ?? '',
+              etablissement: arch.school ?? arch.etablissement ?? '',
+              statut: statusMap[arch.status] ?? (arch.statut === 'importée' ? 'importée' : 'archivée'),
+              bulletins: arch.bulletins ?? 0,
+            });
+          }
+        }
+        if (allYears.length > 0) { setYears(allYears); return; }
+      }
+      // Fall back to mock if no demo parcours
+      return;
+    }
+
     const { data, error } = await getAcademicYears(selectedChild.id);
     if (data && data.length > 0) {
       setYears(
@@ -92,7 +135,7 @@ export default function MonParcoursScreen() {
       );
     }
     // If empty or error, keep the mock data already in state
-  }, [selectedChild.id]);
+  }, [selectedChild.id, isDemoMode, getDemoParcours]);
 
   useEffect(() => {
     loadYears();

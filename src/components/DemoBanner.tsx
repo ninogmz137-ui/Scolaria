@@ -1,60 +1,70 @@
 /**
- * DemoBanner — Shows a discreet banner when the app is in demo mode.
+ * DemoBanner — Discreet banner above the tab bar in demo mode.
  *
- * Displayed at the top of the screen to signal that data is fictive.
- * Can be dismissed by the user for the current session.
+ * Shows "Mode démo · Données fictives" with a "Quitter" button.
+ * Positioned just above the FloatingTabBar.
  */
 
-import { useState } from 'react';
-import { Animated } from 'react-native';
-import { HStack, Text, Pressable } from './ui';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/colors';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { FontFamily } from '../hooks/useSolariaFonts';
+import { FLOATING_TAB_BAR_HEIGHT } from './FloatingTabBar';
 
 export default function DemoBanner() {
-  const { isDemo } = useAuth();
-  const [dismissed, setDismissed] = useState(false);
-  const opacity = useState(new Animated.Value(1))[0];
+  const { isDemo, signOut } = useAuth();
 
-  if (!isDemo || dismissed) return null;
-
-  const handleDismiss = () => {
-    Animated.timing(opacity, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => setDismissed(true));
-  };
+  if (!isDemo) return null;
 
   return (
-    <Animated.View
-      style={{
-        opacity,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        paddingVertical: 6,
-        paddingHorizontal: 16,
-        backgroundColor: 'rgba(251,191,36,0.1)',
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(251,191,36,0.15)',
-      }}
-    >
-      <Ionicons name="flask" size={16} color={Colors.orange} />
-      <Text
-        className="flex-1 text-xs font-semibold text-center"
-        style={{ color: Colors.orange }}
-      >
-        Mode démo — Données fictives
-      </Text>
-      <Pressable
-        onPress={handleDismiss}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Ionicons name="close" size={16} color={Colors.gray} />
-      </Pressable>
-    </Animated.View>
+    <View style={s.banner}>
+      <View style={s.pill}>
+        <Text style={s.dot}>●</Text>
+        <Text style={s.text}>Mode démo · Données fictives</Text>
+        <Pressable onPress={signOut} hitSlop={8} style={s.quitBtn}>
+          <Text style={s.quitText}>Quitter</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
+
+const s = StyleSheet.create({
+  banner: {
+    position: 'absolute',
+    bottom: FLOATING_TAB_BAR_HEIGHT + 4,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 50,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15,23,42,0.82)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    gap: 6,
+  },
+  dot: {
+    fontSize: 8,
+    color: '#F59E0B',
+  },
+  text: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  quitBtn: {
+    marginLeft: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  quitText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#FFFFFF',
+  },
+});

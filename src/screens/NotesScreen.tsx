@@ -23,6 +23,7 @@ import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { getSubjects, getGrades } from '../services/database';
+import { useDemoData } from '../contexts/DemoContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 
@@ -170,7 +171,7 @@ const MOCK_SUBJECTS: Subject[] = [
       { id: 'g8', value: 18, maxValue: 20, date: '12 mars', type: 'Exposé' },
       { id: 'g9', value: 15, maxValue: 20, date: '5 mars', type: 'Contrôle' },
     ] },
-  { id: '4', name: 'Anglais', emoji: '🔤', color: Colors.green, average: 17.0, classAvg: 13.7, trend: 'up',
+  { id: '4', name: 'Anglais', emoji: '📚', color: Colors.green, average: 17.0, classAvg: 13.7, trend: 'up',
     grades: [
       { id: 'g11', value: 18, maxValue: 20, date: '13 mars', type: 'Oral' },
       { id: 'g12', value: 16, maxValue: 20, date: '6 mars', type: 'Contrôle' },
@@ -207,6 +208,7 @@ export default function NotesScreen() {
   useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
+  const { isDemoMode, getSubjects: getDemoSubjects, getGrades: getDemoGrades } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
@@ -240,6 +242,40 @@ export default function NotesScreen() {
 
   const loadNotes = useCallback(async () => {
     if (!selectedChild?.id) return;
+
+    // ── Demo mode: load from DemoContext ──
+    if (isDemoMode) {
+      const demoSubs = getDemoSubjects(selectedChild.id);
+      const demoGradesList = getDemoGrades(selectedChild.id);
+      if (demoSubs.length > 0) {
+        const gradesBySub: Record<string, typeof demoGradesList> = {};
+        for (const g of demoGradesList) {
+          if (!gradesBySub[g.subjectId]) gradesBySub[g.subjectId] = [];
+          gradesBySub[g.subjectId].push(g);
+        }
+        const mapped: Subject[] = demoSubs.map((sub, idx) => {
+          const subGrades = gradesBySub[sub.id] ?? [];
+          const grades: Grade[] = subGrades.map((g) => ({
+            id: g.id, value: g.value, maxValue: g.outOf,
+            date: toFrenchDate(g.date), type: g.title, comment: g.comment || undefined,
+          }));
+          const avg = sub.average ?? (grades.length > 0 ? grades.reduce((s, g) => s + (g.value / g.maxValue) * 20, 0) / grades.length : 0);
+          const classAvg = sub.classAverage ?? 0;
+          let trend: Subject['trend'] = (sub.trend as Subject['trend']) || 'stable';
+          return {
+            id: sub.id, name: sub.name, emoji: sub.emoji || '📚',
+            color: sub.color || COLOR_PALETTE[idx % COLOR_PALETTE.length],
+            grades, average: Math.round(avg * 10) / 10,
+            classAvg: Math.round(classAvg * 10) / 10, trend,
+          };
+        });
+        setSubjects(mapped);
+        return;
+      }
+      setSubjects(MOCK_SUBJECTS);
+      return;
+    }
+
     const [subjectsResult, gradesResult] = await Promise.all([
       getSubjects(selectedChild.id),
       getGrades(selectedChild.id),
@@ -271,7 +307,7 @@ export default function NotesScreen() {
       return { id: sub.id, name: sub.name, emoji: sub.emoji ?? '📚', color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length], grades, average: Math.round(avg * 10) / 10, classAvg: Math.round(classAvg * 10) / 10, trend };
     });
     setSubjects(mapped);
-  }, [selectedChild?.id]);
+  }, [selectedChild?.id, isDemoMode, getDemoSubjects, getDemoGrades]);
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
 
@@ -347,53 +383,81 @@ export default function NotesScreen() {
             </View>
           </GlassCard>
 
-          {/* Competency domains */}
-          {MATERNELLE_DOMAINS.map((domain) => {
-            const isExpanded = expandedDomain === domain.id;
-            const domainAcquired = domain.competencies.filter((c) => c.level === 'acquis').length;
-            return (
-              <GlassCard key={domain.id} style={{ marginBottom: 10 }} noPadding>
+          {/* Competency domains — 2×2 grid */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            {MATERNELLE_DOMAINS.map((domain) => {
+              const domainAcquired = domain.competencies.filter((c) => c.level === 'acquis').length;
+              const pct = Math.round((domainAcquired / domain.competencies.length) * 100);
+              const cardW = Math.floor((Dimensions.get('window').width - 18 * 2 - 12) / 2);
+
+              return (
                 <Pressable
-                  style={s.subjectHeader}
-                  onPress={() => setExpandedDomain(isExpanded ? null : domain.id)}
+                  key={domain.id}
+                  onPress={() => setExpandedDomain(expandedDomain === domain.id ? null : domain.id)}
+                  style={{ width: cardW, maxWidth: cardW, flexGrow: 0, flexShrink: 0 }}
                 >
-                  <Text style={{ fontSize: 28 }}>{domain.emoji}</Text>
-                  <View style={s.flex}>
-                    <Text style={[s.subjectName, { color: cardText }]} numberOfLines={2}>{domain.name}</Text>
-                    <Text style={[s.subjectClass, { color: cardTextMuted }]}>{domainAcquired}/{domain.competencies.length} acquis</Text>
-                  </View>
-                  <Text style={[s.subjectAvg, { color: domain.color }]}>
-                    {domainAcquired}/{domain.competencies.length}
-                  </Text>
-                  <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} color="#94A3B8" />
+                  <GlassCard style={{ height: 150, padding: 14 }} noPadding={false}>
+                    {/* Emoji */}
+                    <Text style={{ fontSize: 28, marginBottom: 6 }}>{domain.emoji}</Text>
+                    {/* Name */}
+                    <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 12, color: cardText }} numberOfLines={2}>
+                      {domain.name}
+                    </Text>
+                    {/* Score */}
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
+                      <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 26, color: domain.color }}>
+                        {domainAcquired}/{domain.competencies.length}
+                      </Text>
+                      <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>acquis</Text>
+                    </View>
+                    {/* Progress bar */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                      <View style={{ flex: 1 }}>
+                        <GradeBar value={domainAcquired} max={domain.competencies.length} color={domain.color} />
+                      </View>
+                      <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>{pct}%</Text>
+                    </View>
+                  </GlassCard>
                 </Pressable>
+              );
+            })}
+          </View>
 
-                <View style={s.barRow}>
-                  <GradeBar value={domainAcquired} max={domain.competencies.length} color={domain.color} />
-                  <Text style={[s.barLabel, { color: cardTextMuted }]}>{Math.round((domainAcquired / domain.competencies.length) * 100)}%</Text>
-                </View>
-
-                {isExpanded && (
-                  <View style={s.gradeList}>
-                    {domain.competencies.map((comp, i) => {
-                      const levelInfo = COMPETENCY_LEVELS[comp.level];
-                      return (
-                        <View key={comp.id} style={[s.gradeRow, i < domain.competencies.length - 1 && s.gradeBorder]}>
-                          <View style={s.flex}>
-                            <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{comp.name}</Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
-                            <Text style={[s.competencyLabel, { color: levelInfo.color }]}>{levelInfo.label}</Text>
-                          </View>
-                        </View>
-                      );
-                    })}
+          {/* Expanded domain detail */}
+          {expandedDomain && (() => {
+            const domain = MATERNELLE_DOMAINS.find((d) => d.id === expandedDomain);
+            if (!domain) return null;
+            return (
+              <GlassCard style={{ marginTop: 4, marginBottom: 10 }} noPadding>
+                <Pressable
+                  style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 }}
+                  onPress={() => setExpandedDomain(null)}
+                >
+                  <Text style={{ fontSize: 22 }}>{domain.emoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontFamily: FontFamily.displayBold, fontSize: 15, color: cardText }}>{domain.name}</Text>
                   </View>
-                )}
+                  <Papicons name="ChevronUp" size={16} color="#94A3B8" />
+                </Pressable>
+                <View style={s.gradeList}>
+                  {domain.competencies.map((comp, i) => {
+                    const levelInfo = COMPETENCY_LEVELS[comp.level];
+                    return (
+                      <View key={comp.id} style={[s.gradeRow, i < domain.competencies.length - 1 && s.gradeBorder]}>
+                        <View style={s.flex}>
+                          <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{comp.name}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
+                          <Text style={[s.competencyLabel, { color: levelInfo.color }]}>{levelInfo.label}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
               </GlassCard>
             );
-          })}
+          })()}
 
           {/* Teacher observation */}
           <View style={s.sectionHeader}>

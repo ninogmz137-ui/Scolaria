@@ -848,7 +848,6 @@ export default function ScannerBulletinScreen() {
             end={{ x: 0.5, y: 1 }}
             style={{ alignItems: 'center', paddingTop: insets.top + 70, paddingBottom: 40 }}
           >
-            {/* Back arrow handled by AppTopbar in stacked mode */}
             <Box
               className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
               style={{ backgroundColor: '#EEF0F5' }}
@@ -999,6 +998,7 @@ export default function ScannerBulletinScreen() {
   if (state === 'scanning') {
     return (
       <Box className="flex-1" style={{ backgroundColor: theme.bg }}>
+        <Box style={{ height: insets.top + 56 }} />
         <Box className="px-5">
           <ScanningState progress={scanProgress} step={scanStep} />
         </Box>
@@ -1010,7 +1010,7 @@ export default function ScannerBulletinScreen() {
 
   if (state === 'error') {
     return (
-      <Box className="flex-1 justify-center items-center px-[30px]" style={{ backgroundColor: theme.bg }}>
+      <Box className="flex-1 items-center px-[30px]" style={{ backgroundColor: theme.bg, paddingTop: insets.top + 70 }}>
         <Box className="mb-5">
           <Ionicons name="alert-circle" size={64} color={Colors.red} />
         </Box>

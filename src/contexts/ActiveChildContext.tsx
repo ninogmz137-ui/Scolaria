@@ -39,9 +39,9 @@ export type Child = {
 // ─── Fallback data (demo mode / empty Supabase result) ───
 
 export const MOCK_CHILDREN: Child[] = [
-  { id: '1', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2021-05-14' },
-  { id: '2', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2016-03-22' },
-  { id: '3', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-09-10' },
+  { id: 'demo-lea', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2020-03-15', avatarType: 'emoji', avatarEmoji: '🦁' },
+  { id: 'demo-lucas', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2015-07-22', avatarType: 'emoji', avatarEmoji: '🐻' },
+  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊' },
 ];
 
 // Backwards-compatible alias — any file importing CHILDREN keeps working

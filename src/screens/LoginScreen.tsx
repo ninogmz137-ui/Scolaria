@@ -221,7 +221,8 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
               {/* Demo mode */}
               <Pressable onPress={enterDemoMode} style={s.demoBtn}>
-                <Text style={s.demoText}>Explorer en mode démo</Text>
+                <Text style={s.demoBtnText}>Essayer la démo</Text>
+                <Text style={s.demoSubText}>Explorez l'app avec des données fictives</Text>
               </Pressable>
             </View>
           </Animated.View>
@@ -373,6 +374,25 @@ const s = StyleSheet.create({
   toggleAction: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: CYAN },
 
   // Demo
-  demoBtn: { alignSelf: 'center', marginTop: 40, paddingVertical: 8, paddingHorizontal: 16 },
-  demoText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.2)' },
+  demoBtn: {
+    alignSelf: 'center',
+    marginTop: 32,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+  },
+  demoBtnText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.5)',
+  },
+  demoSubText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.2)',
+    marginTop: 4,
+  },
 });
