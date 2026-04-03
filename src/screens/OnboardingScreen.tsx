@@ -42,7 +42,7 @@ const SLIDES: Slide[] = [
       { icon: 'people', label: 'Multi-enfants' },
       { icon: 'phone-portrait', label: 'Tout sur mobile' },
     ],
-    gradient: [Colors.violet, Colors.blueNight],
+    gradient: ['#0B1628', '#162240'],
     accentColor: Colors.cyan,
   },
   {
@@ -57,7 +57,7 @@ const SLIDES: Slide[] = [
       { icon: 'trending-up', label: 'Analyse des tendances' },
       { icon: 'chatbubbles', label: 'Chat intelligent' },
     ],
-    gradient: [Colors.cyanDark, Colors.blueNight],
+    gradient: ['#0B1628', '#162240'],
     accentColor: Colors.violet,
   },
   {
@@ -73,7 +73,7 @@ const SLIDES: Slide[] = [
       { icon: 'heart', label: 'Score de bien-etre' },
       { icon: 'scan', label: 'Scanner OCR de bulletins' },
     ],
-    gradient: [Colors.violetDark, Colors.blueNight],
+    gradient: ['#0B1628', '#162240'],
     accentColor: Colors.green,
   },
 ];
@@ -239,7 +239,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
   // ─── Main render ──────────────────────────────────────
 
   return (
-    <Box className="flex-1" style={{ backgroundColor: Colors.blueNight }}>
+    <Box className="flex-1" style={{ backgroundColor: '#0B1628' }}>
       {/* Skip button */}
       {!isLastSlide && (
         <Pressable
@@ -270,7 +270,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
       {/* Bottom section */}
       <Box
         className="absolute bottom-0 left-0 right-0 items-center pb-[50px] pt-5"
-        style={{ backgroundColor: Colors.blueNight }}
+        style={{ backgroundColor: '#0B1628' }}
       >
         {renderDots()}
 

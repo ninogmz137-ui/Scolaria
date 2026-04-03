@@ -30,6 +30,11 @@ const VIOLET = '#6366F1';
 const CYAN = '#22D3EE';
 const ICON_COLOR = 'rgba(255,255,255,0.3)';
 
+// Web: remove browser default white bg + blue outline on inputs
+const WEB_INPUT_FIX = Platform.OS === 'web'
+  ? ({ backgroundColor: 'transparent', outlineStyle: 'none' } as any)
+  : undefined;
+
 // ─── Component ──────────────────────────────────────────
 
 interface Props {
@@ -118,7 +123,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                 <View style={inputStyle('family')}>
                   <User size={20} color={ICON_COLOR} strokeWidth={1.5} />
                   <TextInput
-                    style={s.input}
+                    style={[s.input, WEB_INPUT_FIX]}
                     placeholder="Nom de famille"
                     placeholderTextColor="rgba(255,255,255,0.25)"
                     value={familyName}
@@ -134,7 +139,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
               <View style={inputStyle('email')}>
                 <Mail size={20} color={ICON_COLOR} strokeWidth={1.5} />
                 <TextInput
-                  style={s.input}
+                  style={[s.input, WEB_INPUT_FIX]}
                   placeholder="Adresse email"
                   placeholderTextColor="rgba(255,255,255,0.25)"
                   value={email}
@@ -151,7 +156,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
               <View style={inputStyle('password')}>
                 <Lock size={20} color={ICON_COLOR} strokeWidth={1.5} />
                 <TextInput
-                  style={s.input}
+                  style={[s.input, WEB_INPUT_FIX]}
                   placeholder="Mot de passe"
                   placeholderTextColor="rgba(255,255,255,0.25)"
                   value={password}
