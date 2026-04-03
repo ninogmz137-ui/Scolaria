@@ -74,6 +74,10 @@ function ChildAvatarButton({
   childPhotoUrl: string | null;
   onPress?: () => void;
 }) {
+  const isEmoji = childPhotoUrl?.startsWith('emoji:') ?? false;
+  const emojiChar = isEmoji ? childPhotoUrl!.replace('emoji:', '') : null;
+  const photoUri = !isEmoji ? childPhotoUrl : null;
+
   return (
     <Pressable
       onPress={onPress}
@@ -81,11 +85,13 @@ function ChildAvatarButton({
       style={{ position: 'relative' }}
     >
       <View style={styles.avatarCircle}>
-        {childPhotoUrl ? (
+        {photoUri ? (
           <Image
-            source={{ uri: childPhotoUrl }}
+            source={{ uri: photoUri }}
             style={styles.avatarImage}
           />
+        ) : emojiChar ? (
+          <Text style={{ fontSize: 22 }}>{emojiChar}</Text>
         ) : (
           <Text style={styles.avatarInitials}>
             {getInitials(childName)}

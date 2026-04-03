@@ -77,6 +77,7 @@ const SCREEN_TITLES: Record<string, string> = {
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
+  ScannerBulletin: 'Scanner un bulletin',
   AriaScreen: 'Aria',
   MessagerieAriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
@@ -367,7 +368,11 @@ export default function TabNavigator() {
         }}
         title={stackTitle}
         childName={selectedChild.name}
-        childPhotoUrl={selectedChild.avatarPhotoUri ?? null}
+        childPhotoUrl={
+          selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
+            ? `emoji:${selectedChild.avatarEmoji}`
+            : selectedChild.avatarPhotoUri ?? null
+        }
         isHomeTab={isHome}
         onAriaPress={() => ariaNavRef.current?.()}
       />

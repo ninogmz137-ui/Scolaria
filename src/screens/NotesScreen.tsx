@@ -170,7 +170,7 @@ const MOCK_SUBJECTS: Subject[] = [
       { id: 'g8', value: 18, maxValue: 20, date: '12 mars', type: 'Exposé' },
       { id: 'g9', value: 15, maxValue: 20, date: '5 mars', type: 'Contrôle' },
     ] },
-  { id: '4', name: 'Anglais', emoji: '🇬🇧', color: Colors.green, average: 17.0, classAvg: 13.7, trend: 'up',
+  { id: '4', name: 'Anglais', emoji: '🔤', color: Colors.green, average: 17.0, classAvg: 13.7, trend: 'up',
     grades: [
       { id: 'g11', value: 18, maxValue: 20, date: '13 mars', type: 'Oral' },
       { id: 'g12', value: 16, maxValue: 20, date: '6 mars', type: 'Contrôle' },

@@ -846,15 +846,9 @@ export default function ScannerBulletinScreen() {
             colors={[Colors.violet, Colors.blueNight]}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={{ alignItems: 'center', paddingTop: 30, paddingBottom: 40 }}
+            style={{ alignItems: 'center', paddingTop: insets.top + 70, paddingBottom: 40 }}
           >
-            <Pressable
-              onPress={() => navigation.goBack()}
-              style={{ position: 'absolute', top: insets.top + 12, left: 16, zIndex: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}
-              hitSlop={8}
-            >
-              <ArrowLeft size={22} color="#FFFFFF" strokeWidth={2} />
-            </Pressable>
+            {/* Back arrow handled by AppTopbar in stacked mode */}
             <Box
               className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
               style={{ backgroundColor: '#EEF0F5' }}

@@ -364,16 +364,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             borderColor={borderCol}
           />
           <SettingsRowItem
-            icon="Shield"
-            label="RGPD & Confidentialité"
-            color="#EF4444"
-            type="navigate"
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-            borderColor={borderCol}
-          />
-          <SettingsRowItem
             icon="Paper"
             label="Conditions d'utilisation"
             color="#64748B"

@@ -407,7 +407,7 @@ export default function AgendaScreen() {
       <WallpaperBackground />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 56 + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+        contentContainerStyle={{ paddingTop: insets.top + 56 + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 60 }}
       >
         {/* Week header + badges */}
         <View style={st.weekHeader}>
