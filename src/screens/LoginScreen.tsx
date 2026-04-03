@@ -1,9 +1,9 @@
 /**
  * LoginScreen — Premium cinematic login.
  *
- * Background: deep navy gradient + decorative luminous halos.
- * Inline logo "Scolar" white + "ia" cyan. Glass fields without labels.
- * Gradient CTA, maxWidth 380 for web.
+ * Dark navy gradient + violet/cyan halos.
+ * Inline logo "Scolar" white + "ia" cyan + sparkle.
+ * Glass fields, gradient CTA, maxWidth 400.
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -17,41 +17,18 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
   StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Papicons } from '@getpapillon/papicons';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, User } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Constants ──────────────────────────────────────────
 
-const INPUT_BG = 'rgba(255,255,255,0.10)';
-const INPUT_BORDER = 'rgba(255,255,255,0.18)';
-const PLACEHOLDER = 'rgba(255,255,255,0.45)';
 const VIOLET = '#6366F1';
 const CYAN = '#22D3EE';
-const { height: SH } = Dimensions.get('window');
-
-// ─── Decorative halo ────────────────────────────────────
-
-function Halo({ color, size, top, left }: { color: string; size: number; top: number; left: number }) {
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        top,
-        left,
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: color,
-        opacity: 0.18,
-      }}
-    />
-  );
-}
+const ICON_COLOR = 'rgba(255,255,255,0.3)';
 
 // ─── Component ──────────────────────────────────────────
 
@@ -69,6 +46,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -98,91 +76,102 @@ export default function LoginScreen({ onNavigatePin }: Props) {
     } finally { setLoading(false); }
   };
 
+  const inputStyle = (field: string) => [
+    s.inputRow,
+    focusedField === field && s.inputRowFocused,
+  ];
+
   return (
     <View style={s.root}>
-      {/* Premium gradient background */}
-      <LinearGradient colors={['#0B1628', '#1E3A7A']} style={StyleSheet.absoluteFill} />
+      {/* Background gradient */}
+      <LinearGradient colors={['#0B1628', '#162240']} style={StyleSheet.absoluteFill} />
 
       {/* Decorative halos */}
-      <Halo color={VIOLET} size={260} top={-60} left={-80} />
-      <Halo color={CYAN} size={200} top={SH * 0.35} left={Dimensions.get('window').width - 60} />
-      <Halo color="#A78BFA" size={180} top={SH * 0.65} left={-50} />
+      <View style={s.haloViolet} />
+      <View style={s.haloCyan} />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40, alignItems: 'center' }}
+          contentContainerStyle={s.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <Animated.View
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-              width: '100%',
-              maxWidth: 380,
-              paddingHorizontal: 28,
-            }}
+            style={[
+              s.container,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+            ]}
           >
-            {/* Logo inline: "Scolar" white + "ia" cyan */}
+            {/* Logo */}
             <View style={s.logoSection}>
               <Text style={s.logoText}>
                 Scolar<Text style={s.logoCyan}>ia</Text>
+                <Text style={s.sparkle}>✦</Text>
               </Text>
               <Text style={s.tagline}>Le copilote éducatif des familles</Text>
             </View>
 
-            {/* Form — no title, no labels */}
+            {/* Form */}
             <View style={s.form}>
               {/* Family name (signup only) */}
               {mode === 'signup' && (
-                <View style={s.inputRow}>
-                  <Papicons name="User" size={18} color="rgba(255,255,255,0.3)" />
+                <View style={inputStyle('family')}>
+                  <User size={20} color={ICON_COLOR} strokeWidth={1.5} />
                   <TextInput
                     style={s.input}
                     placeholder="Nom de famille"
-                    placeholderTextColor={PLACEHOLDER}
+                    placeholderTextColor="rgba(255,255,255,0.25)"
                     value={familyName}
                     onChangeText={setFamilyName}
                     autoCapitalize="words"
+                    onFocus={() => setFocusedField('family')}
+                    onBlur={() => setFocusedField(null)}
                   />
                 </View>
               )}
 
               {/* Email */}
-              <View style={s.inputRow}>
-                <Papicons name="Send" size={18} color="rgba(255,255,255,0.3)" />
+              <View style={inputStyle('email')}>
+                <Mail size={20} color={ICON_COLOR} strokeWidth={1.5} />
                 <TextInput
                   style={s.input}
-                  placeholder="Email"
-                  placeholderTextColor={PLACEHOLDER}
+                  placeholder="Adresse email"
+                  placeholderTextColor="rgba(255,255,255,0.25)"
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoComplete="email"
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                 />
               </View>
 
               {/* Password */}
-              <View style={s.inputRow}>
-                <Papicons name="Lock" size={18} color="rgba(255,255,255,0.3)" />
+              <View style={inputStyle('password')}>
+                <Lock size={20} color={ICON_COLOR} strokeWidth={1.5} />
                 <TextInput
                   style={s.input}
                   placeholder="Mot de passe"
-                  placeholderTextColor={PLACEHOLDER}
+                  placeholderTextColor="rgba(255,255,255,0.25)"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoComplete="password"
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
                 />
                 <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
-                  <Papicons name={showPassword ? 'EyeClosed' : 'Eye'} size={20} color="rgba(255,255,255,0.35)" />
+                  {showPassword
+                    ? <EyeOff size={20} color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
+                    : <Eye size={20} color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
+                  }
                 </Pressable>
               </View>
 
               {/* Forgot password */}
               {mode === 'login' && (
-                <Pressable style={{ alignSelf: 'flex-end', marginTop: -4 }}>
+                <Pressable style={s.forgotBtn}>
                   <Text style={s.forgotText}>Mot de passe oublié ?</Text>
                 </Pressable>
               )}
@@ -190,13 +179,13 @@ export default function LoginScreen({ onNavigatePin }: Props) {
               {/* Error */}
               {error ? (
                 <View style={s.errorRow}>
-                  <Papicons name="Warning" size={16} color="#EF4444" />
+                  <AlertCircle size={16} color="#EF4444" strokeWidth={2} />
                   <Text style={s.errorText}>{error}</Text>
                 </View>
               ) : null}
 
-              {/* Submit — gradient button, text only */}
-              <Pressable onPress={handleSubmit} disabled={loading} style={{ marginTop: 8 }}>
+              {/* Submit */}
+              <Pressable onPress={handleSubmit} disabled={loading}>
                 <LinearGradient
                   colors={[VIOLET, CYAN]}
                   start={{ x: 0, y: 0 }}
@@ -216,7 +205,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
               {/* Toggle login/signup */}
               <View style={s.toggleRow}>
                 <Text style={s.toggleLabel}>
-                  {mode === 'login' ? 'Première fois ?' : 'Déjà un compte ?'}
+                  {mode === 'login' ? 'Première fois ? ' : 'Déjà un compte ? '}
                 </Text>
                 <Pressable onPress={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); }}>
                   <Text style={s.toggleAction}>
@@ -242,50 +231,100 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 const s = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
 
+  // Halos
+  haloViolet: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(139,92,246,0.12)',
+    top: -60,
+    right: -80,
+    opacity: 0.8,
+  },
+  haloCyan: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(6,182,212,0.08)',
+    bottom: 120,
+    left: -60,
+    opacity: 0.7,
+  },
+
+  // Scroll / container
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: 40,
+  },
+  container: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 400,
+    paddingHorizontal: 32,
+  },
+
   // Logo
-  logoSection: { alignItems: 'center', paddingTop: SH * 0.10, marginBottom: 40 },
+  logoSection: { alignItems: 'center', marginBottom: 48 },
   logoText: {
-    fontFamily: FontFamily.loraBold,
-    fontSize: 42,
+    fontFamily: FontFamily.sansBold,
+    fontSize: 46,
     color: '#FFFFFF',
   },
   logoCyan: {
     color: CYAN,
   },
+  sparkle: {
+    fontSize: 18,
+    color: CYAN,
+  },
   tagline: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
-    marginTop: 8,
-    letterSpacing: 0.3,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 10,
+    textAlign: 'center',
   },
 
   // Form
-  form: { gap: 14 },
+  form: {},
 
-  // Input row — glass style, no labels
+  // Input row
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    backgroundColor: INPUT_BG,
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: INPUT_BORDER,
-    gap: 10,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    marginBottom: 16,
+    gap: 14,
+  },
+  inputRowFocused: {
+    borderColor: 'rgba(139,92,246,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.10)',
   },
   input: {
     flex: 1,
+    color: '#FFFFFF',
     fontFamily: FontFamily.sansRegular,
     fontSize: 15,
-    color: '#FFFFFF',
-    paddingVertical: 15,
+    paddingVertical: 16,
+  },
+
+  // Forgot password
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginTop: -6,
+    marginBottom: 28,
   },
   forgotText: {
-    color: 'rgba(255,255,255,0.6)',
-    textDecorationLine: 'underline',
-    fontFamily: FontFamily.sansRegular,
     fontSize: 13,
+    fontFamily: FontFamily.sansMedium,
+    color: 'rgba(255,255,255,0.35)',
   },
 
   // Error
@@ -296,6 +335,7 @@ const s = StyleSheet.create({
     padding: 12,
     backgroundColor: 'rgba(239,68,68,0.15)',
     gap: 8,
+    marginBottom: 16,
   },
   errorText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#EF4444', flex: 1 },
 
@@ -303,17 +343,31 @@ const s = StyleSheet.create({
   submitBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 14,
+    paddingVertical: 18,
+    borderRadius: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: VIOLET,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      },
+      default: {
+        shadowColor: VIOLET,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      },
+    }),
   },
-  submitText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
+  submitText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#FFFFFF' },
 
   // Toggle
-  toggleRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
-  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.6)' },
-  toggleAction: { fontFamily: FontFamily.sansBold, fontSize: 13, color: CYAN },
+  toggleRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },
+  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.35)' },
+  toggleAction: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: CYAN },
 
   // Demo
-  demoBtn: { alignSelf: 'center', marginTop: 4, paddingVertical: 8, paddingHorizontal: 16 },
-  demoText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.4)' },
+  demoBtn: { alignSelf: 'center', marginTop: 40, paddingVertical: 8, paddingHorizontal: 16 },
+  demoText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.2)' },
 });
