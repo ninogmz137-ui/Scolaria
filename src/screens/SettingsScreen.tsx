@@ -5,18 +5,22 @@
  */
 
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, Switch, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ImagePlus, Check } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import { useAuth } from '../contexts/AuthContext';
 import { useI18n } from '../contexts/I18nContext';
-import ThemeSelector from '../components/profile/ThemeSelector';
+import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -120,18 +124,16 @@ function SettingsRowItem({
 export default function SettingsScreen({ navigation }: { navigation: any }) {
   const { t } = useI18n();
   const { theme } = useChildTheme();
-  const { signOut, role } = useAuth();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
+  const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
 
   // Mode-aware text colors
   const textPrimary = theme.textOnBg;
   const textSecondary = theme.textOnBgSecondary;
   const textMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
   const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextSec = theme.isDarkBg ? 'rgba(255,255,255,0.7)' : '#64748B';
   const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
-  const chevronColor = theme.isDarkBg ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.25)';
   const borderCol = theme.isDarkBg ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)';
   const switchTrack = theme.isDarkBg ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
 
@@ -141,6 +143,20 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
     aria: false,
     checkin: true,
   });
+
+  const selectedWallpaperId = customUri ? '__custom__' : wallpaper.id;
+
+  const pickFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.8,
+      allowsEditing: true,
+      aspect: [9, 16],
+    });
+    if (!result.canceled && result.assets[0]) {
+      setCustomWallpaper(result.assets[0].uri);
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -156,13 +172,98 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <View style={styles.titleSection}>
           <Text style={styles.titleEmoji}>⚙️</Text>
           <Text style={[styles.titleText, { color: textPrimary }]}>Réglages</Text>
-          <Text style={[styles.titleSub, { color: textSecondary }]}>Apparence, notifications et confidentialité</Text>
+          <Text style={[styles.titleSub, { color: textSecondary }]}>Fond d'écran et notifications</Text>
         </View>
 
-        {/* Apparence */}
-        <SettingsSection title="APPARENCE" titleColor={textSecondary}>
-          <View style={styles.themeRow}>
-            <ThemeSelector accentColor={theme.accent} />
+        {/* Wallpaper picker */}
+        <SettingsSection title="FOND D'ÉCRAN" titleColor={textSecondary}>
+          <View style={{ padding: 12 }}>
+            {/* Gallery button */}
+            <TouchableOpacity
+              onPress={pickFromGallery}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: theme.isDarkBg ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
+                borderRadius: 12,
+                padding: 12,
+                marginBottom: 12,
+                gap: 10,
+              }}
+            >
+              <ImagePlus size={20} color="#3B82F6" strokeWidth={2} />
+              <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 14, color: '#3B82F6' }}>
+                Choisir depuis ma galerie
+              </Text>
+            </TouchableOpacity>
+
+            {/* Wallpaper grid — 3 columns */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {WALLPAPERS.map((wp) => {
+                const isSelected = selectedWallpaperId === wp.id;
+                const colWidth = (SCREEN_WIDTH - 36 - 24 - 16) / 3;
+                return (
+                  <TouchableOpacity
+                    key={wp.id}
+                    onPress={() => setWallpaperId(wp.id)}
+                    style={{
+                      width: colWidth,
+                      aspectRatio: 0.7,
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      borderWidth: isSelected ? 2 : 0,
+                      borderColor: '#3B82F6',
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityLabel={wp.label}
+                  >
+                    {wp.imageUrl ? (
+                      <Image
+                        source={{ uri: wp.imageUrl }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <LinearGradient
+                        colors={wp.colors as [string, string, ...string[]]}
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    )}
+                    {isSelected && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: '#3B82F6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          elevation: 0,
+                        }}
+                      >
+                        <Check size={12} color="#FFFFFF" strokeWidth={2.5} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Custom wallpaper preview */}
+            {customUri && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 12, color: cardTextMuted, marginBottom: 6 }}>
+                  Photo personnalisée active
+                </Text>
+                <View style={{ width: '100%', height: 80, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: '#3B82F6' }}>
+                  <Image source={{ uri: customUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                </View>
+              </View>
+            )}
           </View>
         </SettingsSection>
 
@@ -208,79 +309,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             onToggle={(v) => setNotifications((p) => ({ ...p, checkin: v }))}
             isLast
             labelColor={cardText} sublabelColor={cardTextMuted} switchTrackOff={switchTrack}
-          />
-        </SettingsSection>
-
-        {/* RGPD & Privacy */}
-        <SettingsSection title="RGPD & CONFIDENTIALITÉ" titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="User"
-            label="Permissions d'accès"
-            sublabel="4 niveaux : tuteur, famille, accompagnant, minimal"
-            color={Colors.green}
-            type="navigate"
-            onPress={() => navigation.navigate('PermissionsRGPD')}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Paper"
-            label="Journal d'accès"
-            sublabel="Qui a consulté quoi et quand"
-            color={Colors.cyan}
-            type="navigate"
-            onPress={() => navigation.navigate('JournalAcces')}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="ArrowRight"
-            label="Code de transfert"
-            sublabel="SCA-TRANSFER entre établissements (90 jours)"
-            color={Colors.violet}
-            type="navigate"
-            onPress={() => navigation.navigate('TransfertCode')}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="ArrowDown"
-            label="Export intégral"
-            sublabel="Télécharger toutes vos données en JSON + PDF"
-            color={Colors.orange}
-            type="navigate"
-            onPress={() => navigation.navigate('ExportDonnees')}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Trash"
-            label="Droit à l'effacement"
-            sublabel="Suppression définitive du profil (Art. 17)"
-            color={Colors.red}
-            type="navigate"
-            isLast
-            onPress={() => navigation.navigate('Effacement')}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor}
-          />
-        </SettingsSection>
-
-        {/* Account actions */}
-        <SettingsSection title="COMPTE" titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="ArrowRight"
-            label="Changer de compte"
-            sublabel={`Connecté en tant que ${role === 'parent' ? 'Parent' : role === 'eleve' ? 'Élève' : role === 'enseignant' ? 'Enseignant' : '—'}`}
-            color={Colors.violet}
-            type="navigate"
-            onPress={() => signOut()}
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor} borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Logout"
-            label="Se déconnecter"
-            sublabel="Retour à l'écran de connexion"
-            color={Colors.red}
-            type="navigate"
-            onPress={() => signOut()}
-            isLast
-            labelColor={cardText} sublabelColor={cardTextMuted} chevronColor={chevronColor}
           />
         </SettingsSection>
 
@@ -378,11 +406,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
     color: Colors.cyan,
-  },
-
-  // Theme row padding
-  themeRow: {
-    padding: 14,
   },
 
   // Footer

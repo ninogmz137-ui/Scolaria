@@ -603,7 +603,7 @@ function MessageCard({ item, onPress }: MessageCardProps) {
       <GlassCard
         noPadding
         borderRadius={14}
-        style={!item.read ? { borderLeftWidth: 3, borderLeftColor: cfg.color } : undefined}
+        style={{ borderLeftWidth: 3, borderLeftColor: item.read ? cfg.color + '4D' : cfg.color }}
       >
         <View style={styles.cardInner}>
           {/* Type icon — Aria gets gradient circle, others get flat tinted circle */}
