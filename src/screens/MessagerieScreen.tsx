@@ -265,13 +265,20 @@ export default function MessagerieScreen() {
       for (const grade of grades) {
         const gradeDate: string = grade.date ?? '';
         if (gradeDate >= threeDaysAgoStr) {
-          const subjectName = (grade.subjects as any)?.name ?? 'Matière';
+          const gradeValue = grade.value ?? grade.note;
+          const subjectName = (grade.subjects as any)?.name;
+          // Skip rows where both subject and value are missing — nothing useful to show
+          if (!subjectName && (gradeValue === null || gradeValue === undefined)) continue;
+          const displaySubject = subjectName || 'Matière';
+          const displayValue   = gradeValue  !== null && gradeValue !== undefined ? String(gradeValue) : '?';
+          const displayMax     = grade.max_value ?? 20;
+          const message        = `${displaySubject} — ${displayValue}/${displayMax}`;
           const isoDate = gradeDate.includes('T') ? gradeDate : `${gradeDate}T10:00:00`;
           items.push({
             id: `note-${grade.id}`,
             type: 'note',
             title: 'Nouvelle note',
-            message: `${subjectName} — ${grade.value}/${grade.max_value ?? 20}`,
+            message,
             time: formatTime(isoDate),
             read: true,
             _isoDate: isoDate,
@@ -286,6 +293,8 @@ export default function MessagerieScreen() {
       for (const event of events) {
         const startTime: string = event.start_time ?? '';
         if (startTime.split('T')[0] === todayStr) {
+          // Skip events with a missing or blank title — would produce "Rappel — undefined"
+          if (!event.title || (typeof event.title === 'string' && event.title.trim() === '')) continue;
           items.push({
             id: `agenda-${event.id}`,
             type: 'agenda',
@@ -303,6 +312,8 @@ export default function MessagerieScreen() {
     if (absencesResult.status === 'fulfilled') {
       const absences = absencesResult.value as any[];
       for (const absence of absences) {
+        // Skip rows with no start date — we can't place or label them
+        if (!absence.date_debut) continue;
         const isoDate: string = absence.created_at ?? `${absence.date_debut}T08:00:00`;
         const dateStr = isoDate.split('T')[0];
         if (dateStr >= threeDaysAgoStr) {
@@ -381,9 +392,18 @@ export default function MessagerieScreen() {
 
   const hasUnread = unreadCount > 0;
 
-  // Double-filter: strip any items with empty/null title or message at render time
+  // Double-filter: strip any items with empty/null/sentinel title or message at render time
   const safeFilter = (arr: MessagerieItem[]) =>
-    arr.filter((n) => n.title && n.title.trim() !== '' && n.message && n.message.trim() !== '');
+    arr.filter((n) => {
+      const t = typeof n.title   === 'string' ? n.title.trim()   : '';
+      const m = typeof n.message === 'string' ? n.message.trim() : '';
+      if (!t || !m) return false;
+      if (t === 'undefined' || t === 'null') return false;
+      if (m === 'undefined' || m === 'null') return false;
+      // Reject messages that are only separators — result of failed data interpolation
+      if (/^[\s\u2014\-\/]+$/.test(m)) return false;
+      return true;
+    });
   const visibleToday   = safeFilter(showUnreadOnly ? todayItems.filter((n) => !n.read) : todayItems);
   const visibleEarlier = safeFilter(showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems);
   const isEmpty        = visibleToday.length === 0 && visibleEarlier.length === 0;

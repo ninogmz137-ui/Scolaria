@@ -18,7 +18,6 @@ import { Colors } from '../constants/colors';
 import { useI18n } from '../contexts/I18nContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { useActiveChild } from '../contexts/ActiveChildContext';
 import { supabase } from '../services/supabase';
 import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
 
@@ -50,22 +49,6 @@ interface SettingsRow {
   value?: string;
   toggleKey?: string;
 }
-
-interface ChildProfile {
-  id: string;
-  name: string;
-  avatar: string;
-  classe: string;
-  scolariaId: string;
-}
-
-// ─── Mock data ────────────────────────────────────────────
-
-const PERMISSIONS = [
-  { id: 'p1', name: 'M. Dupont', role: 'Enseignant principal', avatar: '👨‍🏫', access: 'Notes & Agenda' },
-  { id: 'p2', name: 'Dr. Martin', role: 'Médecin scolaire', avatar: '👩‍⚕️', access: 'Ressenti (anonymisé)' },
-  { id: 'p3', name: 'Mme Moreau', role: 'Grand-mère', avatar: '👵', access: 'Lecture seule' },
-];
 
 // ─── Section component ───────────────────────────────────
 
@@ -162,10 +145,9 @@ function SettingsRowItem({
 // ─── Main screen ─────────────────────────────────────────
 
 export default function ReglagesScreen({ navigation }: { navigation: any }) {
-  const { t, locale, setLocale, languages } = useI18n();
+  const { t } = useI18n();
   useChildTheme(); // kept for future theme re-integration
   const { user } = useAuth();
-  const { children: childList } = useActiveChild();
   const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
   const [notifications, setNotifications] = useState({
     grades: true,
@@ -173,7 +155,6 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
     aria: false,
     checkin: true,
   });
-  const [showLangPicker, setShowLangPicker] = useState(false);
 
   // Currently selected wallpaper id — custom takes priority visually
   const selectedWallpaperId = customUri ? '__custom__' : wallpaper.id;
@@ -196,15 +177,6 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
     : 'Septembre 2025';
-
-  // ─── Map context children to ChildProfile shape ───────────
-  const childProfiles: ChildProfile[] = childList.map((child) => ({
-    id: child.id,
-    name: child.name,
-    avatar: child.avatar,
-    classe: child.classe,
-    scolariaId: 'SCA-' + child.id.slice(0, 8).toUpperCase(),
-  }));
 
   // ─── Load notification preferences from Supabase ─────────
   const loadPreferences = useCallback(async () => {
@@ -384,106 +356,6 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
           </View>
         </SettingsSection>
 
-        {/* Children management */}
-        <SettingsSection title={t('settings.children')}>
-          {childProfiles.map((child, i) => (
-            <Pressable
-              key={child.id}
-              className="flex-row items-center p-3.5"
-              style={[
-                { gap: 12 },
-                i < childProfiles.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF0F5' } : undefined,
-              ]}
-            >
-              <Box
-                className="w-11 h-11 rounded-full justify-center items-center"
-                style={{ backgroundColor: 'rgba(109,40,217,0.2)' }}
-              >
-                <Text className="text-[22px]">{child.avatar}</Text>
-              </Box>
-              <VStack className="flex-1">
-                <Text className="text-[15px] font-bold" style={{ color: '#0F172A' }}>{child.name}</Text>
-                <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{child.classe}</Text>
-                <Text className="text-[11px] mt-0.5 font-mono" style={{ color: Colors.cyan }}>{child.scolariaId}</Text>
-              </VStack>
-              <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
-            </Pressable>
-          ))}
-          <Pressable
-            className="flex-row items-center p-3.5"
-            style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
-          >
-            <Ionicons name="add-circle" size={22} color={Colors.cyan} />
-            <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.addChild')}</Text>
-          </Pressable>
-        </SettingsSection>
-
-        {/* Permissions */}
-        <SettingsSection title={t('settings.permissions')}>
-          {PERMISSIONS.map((perm, i) => (
-            <Pressable
-              key={perm.id}
-              className="flex-row items-center p-3.5"
-              style={[
-                { gap: 10 },
-                i < PERMISSIONS.length - 1 ? { borderBottomWidth: 1, borderBottomColor: '#EEF0F5' } : undefined,
-              ]}
-            >
-              <Text className="text-[28px]">{perm.avatar}</Text>
-              <VStack className="flex-1">
-                <Text className="text-[15px] font-semibold" style={{ color: '#0F172A' }}>{perm.name}</Text>
-                <Text className="text-xs mt-px" style={{ color: '#94A3B8' }}>{perm.role}</Text>
-              </VStack>
-              <Box className="rounded-[10px] px-2.5 py-1" style={{ backgroundColor: 'rgba(109,40,217,0.15)' }}>
-                <Text className="text-[11px] font-semibold" style={{ color: Colors.violetLight }}>{perm.access}</Text>
-              </Box>
-            </Pressable>
-          ))}
-          <Pressable
-            className="flex-row items-center p-3.5"
-            style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
-          >
-            <Ionicons name="person-add" size={20} color={Colors.cyan} />
-            <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{t('settings.managePermissions')}</Text>
-          </Pressable>
-        </SettingsSection>
-
-        {/* Language */}
-        <SettingsSection title={t('settings.language')}>
-          <Pressable
-            className="flex-row items-center p-3.5"
-            style={{ gap: 10 }}
-            onPress={() => setShowLangPicker(!showLangPicker)}
-          >
-            <Text className="text-[22px]">
-              {languages.find((l) => l.code === locale)?.flag}
-            </Text>
-            <Text className="flex-1 text-[15px] font-semibold" style={{ color: '#0F172A' }}>
-              {languages.find((l) => l.code === locale)?.label}
-            </Text>
-            <Ionicons
-              name={showLangPicker ? 'chevron-up' : 'chevron-down'}
-              size={18}
-              color={Colors.gray}
-            />
-          </Pressable>
-          {showLangPicker &&
-            languages.filter((l) => l.code !== locale).map((lang) => (
-              <Pressable
-                key={lang.code}
-                className="flex-row items-center p-3.5"
-                style={{ gap: 10, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}
-                onPress={() => {
-                  setLocale(lang.code);
-                  setShowLangPicker(false);
-                }}
-              >
-                <Text className="text-[22px]">{lang.flag}</Text>
-                <Text className="text-[15px]" style={{ color: '#64748B' }}>{lang.label}</Text>
-              </Pressable>
-            ))}
-        </SettingsSection>
-
         {/* Notifications */}
         <SettingsSection title={t('settings.notifications')}>
           <SettingsRowItem
@@ -521,27 +393,6 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
             type="toggle"
             toggleValue={notifications.checkin}
             onToggle={(v) => updateNotification('checkin', v)}
-            isLast
-          />
-        </SettingsSection>
-
-        {/* About & Info */}
-        <SettingsSection title="INFORMATIONS">
-          <SettingsRowItem
-            icon="information-circle"
-            label="À propos de Scolaria"
-            sublabel="Mission, Charte Éthique, Technologies"
-            color={Colors.violet}
-            type="navigate"
-            onPress={() => navigation.navigate('APropos')}
-          />
-          <SettingsRowItem
-            icon="document-text"
-            label="Charte Éthique"
-            sublabel="8 engagements fondateurs"
-            color={Colors.green}
-            type="navigate"
-            onPress={() => navigation.navigate('APropos')}
             isLast
           />
         </SettingsSection>
