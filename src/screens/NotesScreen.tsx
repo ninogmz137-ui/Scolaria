@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, TextInput, Modal } from 'react-native';
+import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, TextInput, Modal, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -575,76 +575,46 @@ export default function NotesScreen() {
           </Pressable>
         </Modal>
 
-        {/* ── Subject accordion ── */}
-        {sortedSubjects.map((subject) => {
-          const isExpanded = expandedSubject === subject.id;
-          return (
-            <GlassCard key={subject.id} style={{ marginBottom: 10 }} noPadding>
+        {/* ── Subject grid 2×2 ── */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+          {sortedSubjects.map((subject) => {
+            const badgeColor = getBadgeColor(subject.average);
+            const trendIcon = subject.trend === 'up' ? '↑' : subject.trend === 'down' ? '↓' : '=';
+            const trendColor = subject.trend === 'up' ? '#10B981' : subject.trend === 'down' ? '#EF4444' : '#94A3B8';
+
+            return (
               <Pressable
-                style={s.subjectHeader}
-                onPress={() => setExpandedSubject(isExpanded ? null : subject.id)}
+                key={subject.id}
+                onPress={() => setExpandedSubject(expandedSubject === subject.id ? null : subject.id)}
+                style={{ width: (Dimensions.get('window').width - 18 * 2 - 12) / 2 }}
               >
-                <View style={[s.subjectDot, { backgroundColor: subject.color }]} />
-                <Text style={{ fontSize: 24 }}>{subject.emoji}</Text>
-                <View style={s.flex}>
-                  <Text style={[s.subjectName, { color: cardText }]}>{subject.name}</Text>
-                  <Text style={[s.subjectClass, { color: cardTextMuted }]}>Classe : {subject.classAvg}</Text>
-                </View>
-                <View style={s.subjectRight}>
-                  <Text style={[s.subjectAvg, { color: getBadgeColor(subject.average) }]}>
-                    {subject.average.toFixed(1)}
+                <GlassCard style={{ height: 140, padding: 14 }} noPadding={false}>
+                  {/* Emoji */}
+                  <Text style={{ fontSize: 28, marginBottom: 6 }}>{subject.emoji}</Text>
+                  {/* Name */}
+                  <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 13, color: cardText }} numberOfLines={1}>
+                    {subject.name}
                   </Text>
-                  <Papicons
-                    name={subject.trend === 'up' ? 'ArrowUp' : subject.trend === 'down' ? 'ArrowDown' : 'Minus'}
-                    size={14}
-                    color={subject.trend === 'up' ? '#10B981' : subject.trend === 'down' ? '#EF4444' : '#94A3B8'}
-                  />
-                </View>
-                <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} color="#94A3B8" />
+                  {/* Average + trend */}
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
+                    <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 28, color: badgeColor }}>
+                      {subject.average.toFixed(1)}
+                    </Text>
+                    <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>/20</Text>
+                    <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 14, color: trendColor, marginLeft: 4 }}>
+                      {trendIcon}
+                    </Text>
+                  </View>
+                  {/* Progress bar */}
+                  <View style={{ marginTop: 6 }}>
+                    <GradeBar value={subject.average} max={20} color={subject.color} />
+                  </View>
+                </GlassCard>
               </Pressable>
+            );
+          })}
+        </View>
 
-              {/* Progress bar */}
-              <View style={s.barRow}>
-                <GradeBar value={subject.average} max={20} color={subject.color} />
-                <Text style={[s.barLabel, { color: cardTextMuted }]}>/20</Text>
-              </View>
-
-              {/* Expanded grades */}
-              {isExpanded && (
-                <View style={s.gradeList}>
-                  {subject.grades.map((grade, i) => (
-                    <View key={grade.id} style={[s.gradeRow, i < subject.grades.length - 1 && s.gradeBorder]}>
-                      <View style={s.flex}>
-                        <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{grade.date}</Text>
-                        <Text style={[s.gradeType, { color: cardTextMuted }]}>{grade.type}</Text>
-                      </View>
-                      <View style={[s.gradeBadge, { backgroundColor: getBadgeColor(grade.value) }]}>
-                        <Text style={s.gradeBadgeText}>{grade.value}/{grade.maxValue}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </GlassCard>
-          );
-        })}
-
-        {/* ── Import bulletin ── */}
-        <Pressable onPress={() => navigation.navigate('ScannerBulletin')}>
-          <LinearGradient
-            colors={[Colors.violet, Colors.violetDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.importCta}
-          >
-            <Papicons name="QrCode" size={22} color="#FFFFFF" />
-            <View style={s.flex}>
-              <Text style={s.importTitle}>Importer un bulletin</Text>
-              <Text style={s.importSub}>Scanner ou importer un PDF</Text>
-            </View>
-            <Papicons name="ChevronRight" size={20} color="rgba(255,255,255,0.6)" />
-          </LinearGradient>
-        </Pressable>
       </ScrollView>
     </View>
   );

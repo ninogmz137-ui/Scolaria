@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Switch, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Switch, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,8 +19,6 @@ import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -172,7 +170,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <View style={styles.titleSection}>
           <Text style={styles.titleEmoji}>⚙️</Text>
           <Text style={[styles.titleText, { color: textPrimary }]}>Réglages</Text>
-          <Text style={[styles.titleSub, { color: textSecondary }]}>Fond d'écran et notifications</Text>
+          <Text style={[styles.titleSub, { color: textSecondary }]}>Personnalisez votre expérience</Text>
         </View>
 
         {/* Wallpaper picker */}
@@ -197,18 +195,21 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
               </Text>
             </TouchableOpacity>
 
-            {/* Wallpaper grid — 3 columns */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {/* Wallpaper carousel — horizontal scroll */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
               {WALLPAPERS.map((wp) => {
                 const isSelected = selectedWallpaperId === wp.id;
-                const colWidth = (SCREEN_WIDTH - 36 - 24 - 16) / 3;
                 return (
                   <TouchableOpacity
                     key={wp.id}
                     onPress={() => setWallpaperId(wp.id)}
                     style={{
-                      width: colWidth,
-                      height: 100,
+                      width: 80,
+                      height: 80,
                       borderRadius: 12,
                       overflow: 'hidden',
                       borderWidth: isSelected ? 2 : 0,
@@ -219,39 +220,19 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
                     accessibilityLabel={wp.label}
                   >
                     {wp.imageUrl ? (
-                      <Image
-                        source={{ uri: wp.imageUrl }}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
+                      <Image source={{ uri: wp.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                     ) : (
-                      <LinearGradient
-                        colors={wp.colors as [string, string, ...string[]]}
-                        style={{ width: '100%', height: '100%' }}
-                      />
+                      <LinearGradient colors={wp.colors as [string, string, ...string[]]} style={{ width: '100%', height: '100%' }} />
                     )}
                     {isSelected && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          width: 20,
-                          height: 20,
-                          borderRadius: 10,
-                          backgroundColor: '#3B82F6',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          elevation: 0,
-                        }}
-                      >
+                      <View style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center', elevation: 0 }}>
                         <Check size={12} color="#FFFFFF" strokeWidth={2.5} />
                       </View>
                     )}
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
 
             {/* Custom wallpaper preview */}
             {customUri && (
@@ -309,6 +290,98 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             onToggle={(v) => setNotifications((p) => ({ ...p, checkin: v }))}
             isLast
             labelColor={cardText} sublabelColor={cardTextMuted} switchTrackOff={switchTrack}
+          />
+        </SettingsSection>
+
+        {/* Compte */}
+        <SettingsSection title="COMPTE" titleColor={textSecondary}>
+          <SettingsRowItem
+            icon="User"
+            label="Mon profil"
+            color="#3B82F6"
+            type="navigate"
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+            borderColor={borderCol}
+          />
+          <SettingsRowItem
+            icon="Building"
+            label="Enfants & établissements"
+            color="#10B981"
+            type="navigate"
+            isLast
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+          />
+        </SettingsSection>
+
+        {/* Aide */}
+        <SettingsSection title="AIDE" titleColor={textSecondary}>
+          <SettingsRowItem
+            icon="Info"
+            label="Centre d'aide"
+            color="#6366F1"
+            type="navigate"
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+            borderColor={borderCol}
+          />
+          <SettingsRowItem
+            icon="Mail"
+            label="Nous contacter"
+            color="#22D3EE"
+            type="navigate"
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+            borderColor={borderCol}
+          />
+          <SettingsRowItem
+            icon="Sparkles"
+            label="Noter l'application"
+            color="#F59E0B"
+            type="navigate"
+            isLast
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+          />
+        </SettingsSection>
+
+        {/* À propos */}
+        <SettingsSection title="À PROPOS" titleColor={textSecondary}>
+          <SettingsRowItem
+            icon="Info"
+            label="Version"
+            color="#94A3B8"
+            type="value"
+            value="1.0.0"
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            borderColor={borderCol}
+          />
+          <SettingsRowItem
+            icon="Shield"
+            label="RGPD & Confidentialité"
+            color="#EF4444"
+            type="navigate"
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
+            borderColor={borderCol}
+          />
+          <SettingsRowItem
+            icon="Paper"
+            label="Conditions d'utilisation"
+            color="#64748B"
+            type="navigate"
+            isLast
+            labelColor={cardText}
+            sublabelColor={cardTextMuted}
+            chevronColor={cardTextMuted}
           />
         </SettingsSection>
 

@@ -701,7 +701,7 @@ function CategoryCard({
       <GlassCard borderRadius={16} style={styles.categoryCardInner}>
         <View style={styles.categoryCardContent}>
           {/* Icon container */}
-          <View style={{ position: 'relative', alignSelf: 'flex-start' }}>
+          <View style={{ position: 'relative' }}>
             <View style={[styles.categoryIconBox, { backgroundColor: iconBg }]}>
               {iconContent}
             </View>
@@ -833,23 +833,28 @@ const styles = StyleSheet.create({
 
   // ── Category grid
   categoryGrid: {
-    gap: 10,
+    gap: 12,
     marginBottom: 20,
+    paddingHorizontal: 0,
   },
   categoryRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
   categoryCard: {
     flex: 1,
-    minWidth: '45%',
+    height: 130,
   },
   categoryCardInner: {
+    flex: 1,
     // GlassCard handles the white bg, borderRadius prop is passed directly
   },
   categoryCardContent: {
+    flex: 1,
     padding: 14,
     gap: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryIconBox: {
     width: 40,
@@ -865,11 +870,13 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 15,
     color: '#0F172A',
+    textAlign: 'center',
   },
   categorySublabel: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
     color: '#94A3B8',
+    textAlign: 'center',
   },
   categoryBadge: {
     position: 'absolute',

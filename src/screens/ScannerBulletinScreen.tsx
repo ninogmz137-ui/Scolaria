@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
+  View,
   ScrollView,
   Animated,
   TextInput,
@@ -9,7 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ArrowLeft } from 'lucide-react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -482,6 +486,8 @@ function GradeCard({
 // ─── Main screen ─────────────────────────────────────────
 
 export default function ScannerBulletinScreen() {
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { theme } = useChildTheme();
   const { selectedChild } = useActiveChild();
   const [state, setState] = useState<ScreenState>('select');
@@ -842,6 +848,13 @@ export default function ScannerBulletinScreen() {
             end={{ x: 0.5, y: 1 }}
             style={{ alignItems: 'center', paddingTop: 30, paddingBottom: 40 }}
           >
+            <Pressable
+              onPress={() => navigation.goBack()}
+              style={{ position: 'absolute', top: insets.top + 12, left: 16, zIndex: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' }}
+              hitSlop={8}
+            >
+              <ArrowLeft size={22} color="#FFFFFF" strokeWidth={2} />
+            </Pressable>
             <Box
               className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
               style={{ backgroundColor: '#EEF0F5' }}

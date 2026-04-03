@@ -13,7 +13,7 @@
  * Width: 80% of screen, max 340px
  */
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import {
   Modal,
   Animated,
@@ -35,12 +35,11 @@ import {
   Shield,
   LogOut,
   ChevronRight,
-  RefreshCw,
 } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { ChildSwitcherModal } from './GlobalChildSwitcher';
+import { getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.80, 340);
@@ -117,12 +116,11 @@ export default function BurgerMenu({
   onNavigate,
   onLogout,
 }: Props) {
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, selectedChildId, children, selectChild } = useActiveChild();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayAnim = useRef(new Animated.Value(0)).current;
-  const [switcherVisible, setSwitcherVisible] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -167,24 +165,19 @@ export default function BurgerMenu({
     }
   };
 
-  const handleAvatarPress = () => {
-    setSwitcherVisible(true);
-  };
-
-  if (!visible && !switcherVisible) return null;
+  if (!visible) return null;
 
   const childPhoto = selectedChild.avatarPhotoUri ?? null;
   const childInitials = getInitials(selectedChild.name);
 
   return (
-    <>
-      <Modal
-        visible={visible}
-        transparent
-        animationType="none"
-        onRequestClose={onClose}
-        statusBarTranslucent
-      >
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
         {/* Overlay */}
         <Animated.View
           style={[
@@ -210,7 +203,7 @@ export default function BurgerMenu({
             {/* ── Avatar section ── */}
             <View style={[styles.avatarSection, { paddingTop: insets.top + 20 }]}>
               {/* Tappable avatar with swap badge */}
-              <Pressable onPress={handleAvatarPress} style={styles.avatarWrapper}>
+              <View style={styles.avatarWrapper}>
                 <View style={styles.largeAvatarCircle}>
                   {childPhoto ? (
                     <Image
@@ -221,11 +214,7 @@ export default function BurgerMenu({
                     <Text style={styles.largeAvatarInitials}>{childInitials}</Text>
                   )}
                 </View>
-                {/* Swap badge at bottom-right */}
-                <View style={styles.swapBadge}>
-                  <RefreshCw size={10} color="#64748B" strokeWidth={2} />
-                </View>
-              </Pressable>
+              </View>
 
               {/* Child name */}
               <Text style={styles.childName}>{selectedChild.name}</Text>
@@ -236,6 +225,60 @@ export default function BurgerMenu({
                   {selectedChild.classe}
                 </Text>
               ) : null}
+
+              {/* ── Inline child switcher row ── */}
+              {children.length > 1 && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 12, paddingTop: 14 }}
+                >
+                  {children.map((child) => {
+                    const isActive = child.id === selectedChildId;
+                    const modeColor = child.birthDate
+                      ? (getSchoolModeFromBirthDate(child.birthDate) === 'maternelle' ? '#FF8C42'
+                        : getSchoolModeFromBirthDate(child.birthDate) === 'primaire' ? '#22D3EE'
+                        : '#6D28D9')
+                      : '#3B82F6';
+                    const initials = child.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+                    return (
+                      <Pressable
+                        key={child.id}
+                        onPress={() => selectChild(child.id)}
+                        style={{ alignItems: 'center', gap: 4 }}
+                      >
+                        <View style={{
+                          width: isActive ? 48 : 44,
+                          height: isActive ? 48 : 44,
+                          borderRadius: isActive ? 24 : 22,
+                          backgroundColor: modeColor + '20',
+                          borderWidth: isActive ? 2.5 : 1.5,
+                          borderColor: modeColor,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transform: [{ scale: isActive ? 1.05 : 1 }],
+                        }}>
+                          <Text style={{
+                            fontFamily: FontFamily.sansBold,
+                            fontSize: isActive ? 16 : 14,
+                            color: modeColor,
+                          }}>
+                            {initials}
+                          </Text>
+                        </View>
+                        <Text style={{
+                          fontFamily: isActive ? FontFamily.sansSemiBold : FontFamily.sansRegular,
+                          fontSize: 11,
+                          color: isActive ? '#1A1A1A' : '#94A3B8',
+                        }}>
+                          {child.name.split(' ')[0]}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
 
             {/* ── Separator ── */}
@@ -267,14 +310,7 @@ export default function BurgerMenu({
             </View>
           </ScrollView>
         </Animated.View>
-      </Modal>
-
-      {/* Child switcher modal — separate from drawer */}
-      <ChildSwitcherModal
-        visible={switcherVisible}
-        onClose={() => setSwitcherVisible(false)}
-      />
-    </>
+    </Modal>
   );
 }
 
@@ -331,21 +367,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 22,
     fontFamily: FontFamily.sansBold,
-  },
-  swapBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 0,
   },
   childName: {
     fontFamily: FontFamily.sansBold,

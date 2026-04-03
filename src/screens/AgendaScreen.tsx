@@ -27,7 +27,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronDown } from 'lucide-react-native';
+import { ChevronDown, Check } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
@@ -36,7 +36,7 @@ import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
-import { getAgendaEvents, createAgendaEvent } from '../services/database';
+import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
@@ -248,6 +248,23 @@ export default function AgendaScreen() {
     // selectedDay is updated by loadEvents via isCurrentWeek branch
     // but we also set it immediately for instant feedback
     setSelectedDay(new Date().getDate());
+  }, []);
+
+  const toggleDone = useCallback((eventId: string) => {
+    setEventsByDay((prev) => {
+      const updated: Record<number, AgendaEvent[]> = {};
+      for (const [day, events] of Object.entries(prev)) {
+        updated[Number(day)] = events.map((e) =>
+          e.id === eventId ? { ...e, done: !e.done } : e,
+        );
+      }
+      // Fire-and-forget Supabase update for real events (non-local IDs)
+      if (!eventId.startsWith('local-')) {
+        const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
+        toggleEventDone(eventId, newDone).catch(() => {/* ignore — optimistic update already applied */});
+      }
+      return updated;
+    });
   }, []);
 
   // Add event modal
@@ -541,14 +558,19 @@ export default function AgendaScreen() {
                           </View>
 
                           {isDevoir && (
-                            <View
-                              style={[
-                                st.checkbox,
-                                event.done && { backgroundColor: Colors.green, borderColor: Colors.green },
-                              ]}
+                            <Pressable
+                              onPress={(e) => { e.stopPropagation(); toggleDone(event.id); }}
+                              hitSlop={8}
                             >
-                              {event.done && <Papicons name="Check" size={14} color="#FFFFFF" />}
-                            </View>
+                              <View
+                                style={[
+                                  st.checkbox,
+                                  event.done && { backgroundColor: Colors.green, borderColor: Colors.green },
+                                ]}
+                              >
+                                {event.done && <Check size={14} color="#FFFFFF" strokeWidth={2.5} />}
+                              </View>
+                            </Pressable>
                           )}
                           {isExam && (
                             <View style={st.examBadge}>
