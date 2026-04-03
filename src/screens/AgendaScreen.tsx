@@ -591,7 +591,7 @@ export default function AgendaScreen() {
         onPress={openAddModal}
         style={({ pressed }) => ({
           position: 'absolute',
-          bottom: 90,
+          bottom: 100,
           right: 20,
           width: 56,
           height: 56,

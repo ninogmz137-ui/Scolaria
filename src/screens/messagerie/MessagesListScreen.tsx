@@ -225,7 +225,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         onPress={() => setTeacherModalVisible(true)}
         style={({ pressed }) => ({
           position: 'absolute',
-          bottom: 90,
+          bottom: 100,
           right: 20,
           width: 56,
           height: 56,

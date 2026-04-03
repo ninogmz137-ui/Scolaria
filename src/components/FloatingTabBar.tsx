@@ -53,7 +53,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   }, [state.index, animatedIndex]);
 
   // Unified colors — always light
-  const ACCENT = '#374151';
+  const ACCENT = '#3B82F6';
   const barBg = 'rgba(255, 255, 255, 0.55)';
   const barBorder = 'rgba(0,0,0,0.05)';
   const inactiveColor = '#94A3B8';
@@ -133,6 +133,11 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                   isFocused && styles.tabActive,
                 ]}
               >
+                {/* Active dot indicator */}
+                {isFocused && (
+                  <View style={styles.activeDot} />
+                )}
+
                 {/* Icon + badge wrapper */}
                 <View style={{ position: 'relative' }}>
                   <IconComponent
@@ -199,19 +204,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   tab: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 4,
     paddingHorizontal: 14,
     borderRadius: 20,
-    gap: 6,
+    gap: 2,
   },
   tabActive: {
     paddingHorizontal: 18,
   },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#3B82F6',
+    marginBottom: 2,
+  },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: FontFamily.sansSemiBold,
   },
   badge: {
