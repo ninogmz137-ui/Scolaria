@@ -3,11 +3,19 @@
  *
  * Tabs: Accueil | Notes | Agenda | Messagerie
  * Topbar: avatar-based, greeting on all tabs, back arrow on stacked screens.
- * Burger menu: light panel with 6 items.
+ * Burger menu: slide & scale effect — main content scales to 0.85 and translates
+ * right while the dark menu panel is revealed behind it.
  */
 
-import { useState } from 'react';
-import { View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Pressable, Dimensions } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
@@ -16,7 +24,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Components
 import AppTopbar, { type TopbarMode } from '../components/AppTopbar';
-import BurgerMenu from '../components/BurgerMenu';
+import { BurgerMenuContent } from '../components/BurgerMenu';
 import FloatingTabBar from '../components/FloatingTabBar';
 
 // Main tab screens
@@ -58,6 +66,10 @@ import JournalAccesScreen from '../screens/rgpd/JournalAccesScreen';
 import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
+
+// ─── Screen dimensions ───────────────────────────────────
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Back arrow + active tab refs ───────────────────────
 
@@ -384,61 +396,14 @@ const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
 
-// ─── Main navigator with topbar + burger ─────────────────
+// ─── TabContentWithNav (keeps navigation hooks inside NavigationContainer) ───
 
-export default function TabNavigator() {
-  const { selectedChild } = useActiveChild();
-  const [burgerVisible, setBurgerVisible] = useState(false);
-  const [showBack, setShowBack] = useState(false);
-  const [activeTab, setActiveTab] = useState('Accueil');
-  const [stackTitle, setStackTitle] = useState('');
-
-  // Register refs
-  backArrowRef.current = { setShowBack };
-  activeTabRef.current = { setActiveTab };
-  stackTitleRef.current = { setTitle: setStackTitle };
-
-  // Determine topbar mode
-  const isStackedScreen = showBack;
-  const isHome = activeTab === 'Accueil' && !isStackedScreen;
-  const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : isHome ? 'home' : 'main';
-
-  return (
-    <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
-      {/* Fixed Topbar — always on top, zIndex 10 */}
-      <AppTopbar
-        mode={topbarMode}
-        onBurgerPress={() => setBurgerVisible(true)}
-        onBackPress={() => {
-          goBackRef.current?.();
-          setShowBack(false);
-        }}
-        title={stackTitle}
-        childName={selectedChild.name}
-        childPhotoUrl={
-          selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
-            ? `emoji:${selectedChild.avatarEmoji}`
-            : selectedChild.avatarPhotoUri ?? null
-        }
-        isHomeTab={isHome}
-        onAriaPress={() => ariaNavRef.current?.()}
-      />
-
-      {/* Tab content */}
-      <TabContentWithBurger
-        burgerVisible={burgerVisible}
-        onCloseBurger={() => setBurgerVisible(false)}
-      />
-    </View>
-  );
-}
-
-function TabContentWithBurger({
-  burgerVisible,
-  onCloseBurger,
+function TabContentWithNav({
+  onNavigate,
+  onLogout,
 }: {
-  burgerVisible: boolean;
-  onCloseBurger: () => void;
+  onNavigate: (screen: string) => void;
+  onLogout: () => void;
 }) {
   const navigation = useNavigation<any>();
   const { signOut } = useAuth();
@@ -469,21 +434,110 @@ function TabContentWithBurger({
     }
   };
 
+  return <TabContent />;
+}
+
+// ─── Main navigator with topbar + burger ─────────────────
+
+export default function TabNavigator() {
+  const { selectedChild } = useActiveChild();
+  const { signOut } = useAuth();
+  const [burgerVisible, setBurgerVisible] = useState(false);
+  const [showBack, setShowBack] = useState(false);
+  const [activeTab, setActiveTab] = useState('Accueil');
+  const [stackTitle, setStackTitle] = useState('');
+
+  // Register refs
+  backArrowRef.current = { setShowBack };
+  activeTabRef.current = { setActiveTab };
+  stackTitleRef.current = { setTitle: setStackTitle };
+
+  // Determine topbar mode
+  const isStackedScreen = showBack;
+  const isHome = activeTab === 'Accueil' && !isStackedScreen;
+  const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : isHome ? 'home' : 'main';
+
+  // ── Reanimated slide & scale ──────────────────────────
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withTiming(burgerVisible ? 1 : 0, {
+      duration: 350,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+    });
+  }, [burgerVisible]);
+
+  const mainContentStyle = useAnimatedStyle(() => {
+    const scale = interpolate(progress.value, [0, 1], [1, 0.85]);
+    const translateX = interpolate(progress.value, [0, 1], [0, SCREEN_WIDTH * 0.72]);
+    const borderRadius = interpolate(progress.value, [0, 1], [0, 24]);
+    return {
+      transform: [{ scale }, { translateX }],
+      borderRadius,
+      overflow: 'hidden',
+    };
+  });
+
   return (
-    <View style={{ flex: 1 }}>
-      <TabContent />
-      <BurgerMenu
-        visible={burgerVisible}
-        onClose={onCloseBurger}
-        onNavigate={(screen) => {
-          onCloseBurger();
-          setTimeout(() => burgerNavRef.current?.(screen), 200);
-        }}
-        onLogout={() => {
-          onCloseBurger();
-          signOut();
-        }}
-      />
+    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+      {/* ── Menu content — rendered behind, always mounted ── */}
+      <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: SCREEN_WIDTH * 0.72 }}>
+        <BurgerMenuContent
+          onClose={() => setBurgerVisible(false)}
+          onNavigate={(screen) => {
+            setBurgerVisible(false);
+            setTimeout(() => burgerNavRef.current?.(screen), 200);
+          }}
+          onLogout={() => {
+            setBurgerVisible(false);
+            signOut();
+          }}
+        />
+      </View>
+
+      {/* ── Main content — animated scale/translate ── */}
+      <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
+        <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+          {/* Fixed Topbar */}
+          <AppTopbar
+            mode={topbarMode}
+            onBurgerPress={() => setBurgerVisible(true)}
+            onBackPress={() => {
+              goBackRef.current?.();
+              setShowBack(false);
+            }}
+            title={stackTitle}
+            childName={selectedChild.name}
+            childPhotoUrl={
+              selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
+                ? `emoji:${selectedChild.avatarEmoji}`
+                : selectedChild.avatarPhotoUri ?? null
+            }
+            isHomeTab={isHome}
+            onAriaPress={() => ariaNavRef.current?.()}
+          />
+
+          {/* Tab content */}
+          <TabContentWithNav
+            onNavigate={(screen) => {
+              setBurgerVisible(false);
+              setTimeout(() => burgerNavRef.current?.(screen), 200);
+            }}
+            onLogout={() => {
+              setBurgerVisible(false);
+              signOut();
+            }}
+          />
+        </View>
+
+        {/* Tap-to-close overlay when menu is open */}
+        {burgerVisible && (
+          <Pressable
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            onPress={() => setBurgerVisible(false)}
+          />
+        )}
+      </Animated.View>
     </View>
   );
 }

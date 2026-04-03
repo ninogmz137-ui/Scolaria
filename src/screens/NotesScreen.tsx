@@ -1,18 +1,27 @@
 /**
  * NotesScreen — Grades dashboard with wallpaper + glass design.
  *
- * Structure:
+ * Structure (primaire/college):
  * - Summary glass cards (average, best subject, total)
  * - New grades horizontal carousel
- * - Expandable accordion subject list with glass cards
- * - Badge colors: green ≥14, orange 10-13, red <10
+ * - Period picker + Sort picker + Search bar
+ * - Horizontal subject tabs
+ * - Subject detail: average card + grades list
+ *
+ * Structure (maternelle):
+ * - Summary cards
+ * - Legend card
+ * - Horizontal domain tabs
+ * - Domain detail: score card + competencies list
+ * - Teacher observation
+ *
+ * Badge colors: green ≥14, orange 10-13, red <10
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, TextInput, Modal, Dimensions } from 'react-native';
+import { View, ScrollView, FlatList, Pressable, StyleSheet, Text, TextInput, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import { Search, ChevronDown, Check } from 'lucide-react-native';
 import GlassCard from '../components/GlassCard';
@@ -214,8 +223,8 @@ export default function NotesScreen() {
   const TOPBAR_H = insets.top + 56;
 
   const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
-  const [expandedSubject, setExpandedSubject] = useState<string | null>(null);
-  const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+  const [selectedSubjectIdx, setSelectedSubjectIdx] = useState(0);
+  const [selectedDomainIdx, setSelectedDomainIdx] = useState(0);
   const [sortMode, setSortMode] = useState<SortMode>('date');
   const [selectedPeriod, setSelectedPeriod] = useState<string>(getCurrentPeriod());
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
@@ -313,6 +322,9 @@ export default function NotesScreen() {
 
   useEffect(() => { loadNotes(); }, [loadNotes]);
 
+  // Reset selected subject tab when subjects list changes
+  useEffect(() => { setSelectedSubjectIdx(0); }, [subjects]);
+
   // Sorted + filtered subjects
   const activePeriodLabel = PERIODS.find((p) => p.value === selectedPeriod)?.label ?? 'Trimestre';
   const activeSortLabel   = SORT_OPTIONS.find((o) => o.value === sortMode)?.label ?? 'Trier';
@@ -345,6 +357,10 @@ export default function NotesScreen() {
     const inProgress = MATERNELLE_DOMAINS.reduce(
       (s, d) => s + d.competencies.filter((c) => c.level === 'en_cours').length, 0,
     );
+
+    const activeDomain = MATERNELLE_DOMAINS[selectedDomainIdx] ?? MATERNELLE_DOMAINS[0];
+    const domainAcquired = activeDomain.competencies.filter((c) => c.level === 'acquis').length;
+    const domainPct = Math.round((domainAcquired / activeDomain.competencies.length) * 100);
 
     return (
       <View style={s.root}>
@@ -385,80 +401,84 @@ export default function NotesScreen() {
             </View>
           </GlassCard>
 
-          {/* Competency domains — 2×2 grid */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {MATERNELLE_DOMAINS.map((domain) => {
-              const domainAcquired = domain.competencies.filter((c) => c.level === 'acquis').length;
-              const pct = Math.round((domainAcquired / domain.competencies.length) * 100);
-
+          {/* Domain tabs */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 0, gap: 8, paddingBottom: 4 }}
+            style={{ marginBottom: 12 }}
+          >
+            {MATERNELLE_DOMAINS.map((domain, idx) => {
+              const isActive = selectedDomainIdx === idx;
               return (
-                <Pressable
-                  key={domain.id}
-                  onPress={() => setExpandedDomain(expandedDomain === domain.id ? null : domain.id)}
-                  style={{ width: (Dimensions.get('window').width - 18 * 2 - 12) / 2 }}
-                >
-                  <GlassCard style={{ height: 150, padding: 14 }} noPadding={false}>
-                    {/* Emoji */}
-                    <Text style={{ fontSize: 28, marginBottom: 6 }}>{domain.emoji}</Text>
-                    {/* Name */}
-                    <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 12, color: cardText }} numberOfLines={2}>
-                      {domain.name}
-                    </Text>
-                    {/* Score */}
-                    <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
-                      <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 26, color: domain.color }}>
-                        {domainAcquired}/{domain.competencies.length}
-                      </Text>
-                      <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>acquis</Text>
-                    </View>
-                    {/* Progress bar */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
-                      <View style={{ flex: 1 }}>
-                        <GradeBar value={domainAcquired} max={domain.competencies.length} color={domain.color} />
-                      </View>
-                      <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>{pct}%</Text>
-                    </View>
-                  </GlassCard>
+                <Pressable key={domain.id} onPress={() => setSelectedDomainIdx(idx)}>
+                  <View style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 6,
+                    paddingHorizontal: 14, paddingVertical: 8,
+                    borderRadius: 20,
+                    backgroundColor: isActive ? domain.color + '18' : 'rgba(255,255,255,0.55)',
+                    borderWidth: isActive ? 1.5 : 1,
+                    borderColor: isActive ? domain.color : 'rgba(0,0,0,0.06)',
+                  }}>
+                    <Text style={{ fontSize: 16 }}>{domain.emoji}</Text>
+                    <Text style={{
+                      fontFamily: isActive ? FontFamily.sansBold : FontFamily.sansMedium,
+                      fontSize: 13,
+                      color: isActive ? domain.color : '#94A3B8',
+                    }}>{domain.name}</Text>
+                  </View>
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
-          {/* Expanded domain detail */}
-          {expandedDomain && (() => {
-            const domain = MATERNELLE_DOMAINS.find((d) => d.id === expandedDomain);
-            if (!domain) return null;
-            return (
-              <GlassCard style={{ marginTop: 4, marginBottom: 10 }} noPadding>
-                <Pressable
-                  style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 10 }}
-                  onPress={() => setExpandedDomain(null)}
-                >
-                  <Text style={{ fontSize: 22 }}>{domain.emoji}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: FontFamily.displayBold, fontSize: 15, color: cardText }}>{domain.name}</Text>
-                  </View>
-                  <Papicons name="ChevronUp" size={16} color="#94A3B8" />
-                </Pressable>
-                <View style={s.gradeList}>
-                  {domain.competencies.map((comp, i) => {
-                    const levelInfo = COMPETENCY_LEVELS[comp.level];
-                    return (
-                      <View key={comp.id} style={[s.gradeRow, i < domain.competencies.length - 1 && s.gradeBorder]}>
-                        <View style={s.flex}>
-                          <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{comp.name}</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
-                          <Text style={[s.competencyLabel, { color: levelInfo.color }]}>{levelInfo.label}</Text>
-                        </View>
-                      </View>
-                    );
-                  })}
+          {/* Domain detail */}
+          <GlassCard style={{ marginBottom: 12 }}>
+            {/* Score summary */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 }}>
+              <Text style={{ fontSize: 32 }}>{activeDomain.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: FontFamily.displayBold, fontSize: 16, color: cardText, marginBottom: 2 }}>
+                  {activeDomain.name}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
+                  <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 28, color: activeDomain.color }}>
+                    {domainAcquired}/{activeDomain.competencies.length}
+                  </Text>
+                  <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: cardTextMuted }}>acquis</Text>
+                  <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 13, color: activeDomain.color, marginLeft: 6 }}>
+                    {domainPct}%
+                  </Text>
                 </View>
-              </GlassCard>
-            );
-          })()}
+              </View>
+            </View>
+            <GradeBar value={domainAcquired} max={activeDomain.competencies.length} color={activeDomain.color} />
+          </GlassCard>
+
+          {/* Competencies list */}
+          <GlassCard noPadding style={{ marginBottom: 12 }}>
+            {activeDomain.competencies.map((comp, i) => {
+              const levelInfo = COMPETENCY_LEVELS[comp.level];
+              const isLast = i === activeDomain.competencies.length - 1;
+              return (
+                <View
+                  key={comp.id}
+                  style={[
+                    s.gradeRow,
+                    !isLast && s.gradeBorder,
+                  ]}
+                >
+                  <View style={s.flex}>
+                    <Text style={[s.gradeDate, { color: cardTextSecondary }]}>{comp.name}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={{ fontSize: 18 }}>{levelInfo.emoji}</Text>
+                    <Text style={[s.competencyLabel, { color: levelInfo.color }]}>{levelInfo.label}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </GlassCard>
 
           {/* Teacher observation */}
           <View style={s.sectionHeader}>
@@ -479,6 +499,10 @@ export default function NotesScreen() {
       </View>
     );
   }
+
+  // ─── Active subject for detail panel ─────────────────
+  const clampedIdx = Math.min(selectedSubjectIdx, sortedSubjects.length - 1);
+  const activeSubject = sortedSubjects[clampedIdx] ?? null;
 
   return (
     <View style={s.root}>
@@ -661,56 +685,164 @@ export default function NotesScreen() {
           </Pressable>
         </Modal>
 
-        {/* ── Subject grid 2×2 ── */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-          {sortedSubjects.map((subject) => {
-            const badgeColor = getBadgeColor(subject.average);
-            const trendIcon = subject.trend === 'up' ? '↑' : subject.trend === 'down' ? '↓' : '=';
-            const trendColor = subject.trend === 'up' ? '#10B981' : subject.trend === 'down' ? '#EF4444' : '#94A3B8';
+        {/* ── Subject tabs ── */}
+        {sortedSubjects.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 0, gap: 8, paddingBottom: 4 }}
+            style={{ marginBottom: 14 }}
+          >
+            {sortedSubjects.map((subject, idx) => {
+              const isActive = clampedIdx === idx;
+              return (
+                <Pressable key={subject.id} onPress={() => setSelectedSubjectIdx(idx)}>
+                  <View style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 6,
+                    paddingHorizontal: 14, paddingVertical: 8,
+                    borderRadius: 20,
+                    backgroundColor: isActive ? subject.color + '18' : 'rgba(255,255,255,0.55)',
+                    borderWidth: isActive ? 1.5 : 1,
+                    borderColor: isActive ? subject.color : 'rgba(0,0,0,0.06)',
+                  }}>
+                    <Text style={{ fontSize: 16 }}>{subject.emoji}</Text>
+                    <Text style={{
+                      fontFamily: isActive ? FontFamily.sansBold : FontFamily.sansMedium,
+                      fontSize: 13,
+                      color: isActive ? subject.color : '#94A3B8',
+                    }}>{subject.name}</Text>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
 
-            return (
-              <Pressable
-                key={subject.id}
-                onPress={() => {
-                  navigation.navigate('SubjectDetail', {
-                    subjectId: subject.id,
-                    subjectName: subject.name,
-                    subjectEmoji: subject.emoji,
-                    subjectColor: subject.color,
-                    average: subject.average,
-                    classAvg: subject.classAvg,
-                    trend: subject.trend,
-                    grades: JSON.stringify(subject.grades),
-                  });
-                }}
-                style={{ width: (Dimensions.get('window').width - 18 * 2 - 12) / 2 }}
-              >
-                <GlassCard style={{ height: 140, padding: 14 }} noPadding={false}>
-                  {/* Emoji */}
-                  <Text style={{ fontSize: 28, marginBottom: 6 }}>{subject.emoji}</Text>
-                  {/* Name */}
-                  <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 13, color: cardText }} numberOfLines={1}>
-                    {subject.name}
-                  </Text>
-                  {/* Average + trend */}
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 6 }}>
-                    <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 28, color: badgeColor }}>
-                      {subject.average.toFixed(1)}
+        {/* ── Subject detail ── */}
+        {activeSubject ? (
+          <>
+            {/* Average card */}
+            <GlassCard style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {/* Left: student average */}
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
+                    <Text style={{
+                      fontFamily: FontFamily.displayExtraBold,
+                      fontSize: 52,
+                      color: getBadgeColor(activeSubject.average),
+                      lineHeight: 56,
+                    }}>
+                      {activeSubject.average.toFixed(1)}
                     </Text>
-                    <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8' }}>/20</Text>
-                    <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 14, color: trendColor, marginLeft: 4 }}>
-                      {trendIcon}
+                    <Text style={{
+                      fontFamily: FontFamily.sansSemiBold, fontSize: 16, color: cardTextMuted,
+                    }}>/20</Text>
+                  </View>
+                  <GradeBar value={activeSubject.average} max={20} color={activeSubject.color} />
+                </View>
+
+                {/* Right: class average + trend */}
+                <View style={{ alignItems: 'flex-end', gap: 8, marginLeft: 18 }}>
+                  <View>
+                    <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 11, color: cardTextMuted, textAlign: 'right' }}>
+                      Classe
+                    </Text>
+                    <Text style={{
+                      fontFamily: FontFamily.displayBold, fontSize: 22,
+                      color: cardTextSecondary, textAlign: 'right',
+                    }}>
+                      {activeSubject.classAvg.toFixed(1)}
                     </Text>
                   </View>
-                  {/* Progress bar */}
-                  <View style={{ marginTop: 6 }}>
-                    <GradeBar value={subject.average} max={20} color={subject.color} />
+                  {/* Trend badge */}
+                  <View style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 4,
+                    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12,
+                    backgroundColor: activeSubject.trend === 'up'
+                      ? '#10B98118'
+                      : activeSubject.trend === 'down'
+                        ? '#EF444418'
+                        : '#94A3B818',
+                  }}>
+                    <Text style={{
+                      fontFamily: FontFamily.sansBold, fontSize: 12,
+                      color: activeSubject.trend === 'up'
+                        ? '#10B981'
+                        : activeSubject.trend === 'down'
+                          ? '#EF4444'
+                          : '#94A3B8',
+                    }}>
+                      {activeSubject.trend === 'up' ? '↑ En hausse' : activeSubject.trend === 'down' ? '↓ En baisse' : '= Stable'}
+                    </Text>
                   </View>
-                </GlassCard>
-              </Pressable>
-            );
-          })}
-        </View>
+                </View>
+              </View>
+            </GlassCard>
+
+            {/* Grades list */}
+            {activeSubject.grades.length === 0 ? (
+              <GlassCard style={{ alignItems: 'center', paddingVertical: 28 }}>
+                <Text style={{ fontSize: 28, marginBottom: 8 }}>📭</Text>
+                <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: cardTextMuted }}>
+                  Aucune note pour cette matière
+                </Text>
+              </GlassCard>
+            ) : (
+              // Sort grades by date descending — newest first
+              // Dates are French-formatted strings, so we keep insertion order (already newest-first from data)
+              [...activeSubject.grades].map((grade, i) => {
+                const normalized = (grade.value / grade.maxValue) * 20;
+                const gradeColor = getBadgeColor(normalized);
+                const isLast = i === activeSubject.grades.length - 1;
+                return (
+                  <GlassCard key={grade.id} noPadding style={{ marginBottom: isLast ? 0 : 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+                      {/* Colored left bar */}
+                      <View style={{
+                        width: 4, borderTopLeftRadius: 20, borderBottomLeftRadius: 20,
+                        backgroundColor: gradeColor,
+                      }} />
+                      {/* Content */}
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 14, gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: cardText, marginBottom: 2 }}>
+                            {grade.type}
+                          </Text>
+                          <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 12, color: cardTextMuted }}>
+                            {grade.date}
+                          </Text>
+                          {grade.comment ? (
+                            <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 12, color: cardTextSecondary, marginTop: 4 }} numberOfLines={2}>
+                              {grade.comment}
+                            </Text>
+                          ) : null}
+                        </View>
+                        {/* Grade badge */}
+                        <View style={{
+                          paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14,
+                          backgroundColor: gradeColor,
+                          minWidth: 54, alignItems: 'center',
+                        }}>
+                          <Text style={{ fontFamily: FontFamily.displayExtraBold, fontSize: 16, color: '#FFFFFF' }}>
+                            {grade.value}/{grade.maxValue}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </GlassCard>
+                );
+              })
+            )}
+          </>
+        ) : (
+          <GlassCard style={{ alignItems: 'center', paddingVertical: 28 }}>
+            <Text style={{ fontSize: 28, marginBottom: 8 }}>📚</Text>
+            <Text style={{ fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: cardTextMuted }}>
+              Aucune matière disponible
+            </Text>
+          </GlassCard>
+        )}
 
       </ScrollView>
     </View>

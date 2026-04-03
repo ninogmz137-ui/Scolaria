@@ -1,7 +1,8 @@
 /**
- * AgendaScreen — Wallpaper + glass design with day selector and expandable events.
+ * AgendaScreen — Wallpaper + glass design with day selector and swipeable day cards.
  *
  * - Day selector: horizontal scroll with accent-colored active pill
+ * - Day cards: horizontal FlatList with pagingEnabled — one full-width page per day
  * - Events: GlassCard with left color bar, tap to expand details
  * - Papicons everywhere, no Ionicons
  * - Add event modal preserved
@@ -23,11 +24,10 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
-  PanResponder,
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronDown, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GlassCard from '../components/GlassCard';
@@ -40,6 +40,8 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -169,8 +171,6 @@ const MOCK_EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
   [MOCK_WEEK_DAYS[6]?.date ?? 0]: [],
 };
 
-const SWIPE_THRESHOLD = Dimensions.get('window').width * 0.25;
-
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
@@ -179,49 +179,15 @@ export default function AgendaScreen() {
   const { user } = useAuth();
   const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
   const cardText = '#0F172A';
-  const cardTextSecondary = '#64748B';
   const cardTextMuted = '#94A3B8';
 
   const todayDate = new Date().getDate();
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_evt, gestureState) =>
-        Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dy) < 40,
-      onPanResponderRelease: (_evt, gestureState) => {
-        if (gestureState.dx < -SWIPE_THRESHOLD) {
-          // Swipe left → next day
-          setSelectedDay((prev) => {
-            setExpandedEvent(null);
-            const currentIdx = weekDaysRef.current.findIndex((d) => d.date === prev);
-            if (currentIdx < weekDaysRef.current.length - 1) {
-              return weekDaysRef.current[currentIdx + 1].date;
-            }
-            // Advance to next week, Monday
-            setWeekOffset((o) => o + 1);
-            return prev; // will be corrected by loadEvents
-          });
-        } else if (gestureState.dx > SWIPE_THRESHOLD) {
-          // Swipe right → previous day
-          setSelectedDay((prev) => {
-            setExpandedEvent(null);
-            const currentIdx = weekDaysRef.current.findIndex((d) => d.date === prev);
-            if (currentIdx > 0) {
-              return weekDaysRef.current[currentIdx - 1].date;
-            }
-            // Go back to previous week, Sunday
-            setWeekOffset((o) => o - 1);
-            return prev; // will be corrected by loadEvents
-          });
-        }
-      },
-    }),
-  ).current;
-
-  // Keep a ref to weekDays so panResponder closure always sees current value
-  const weekDaysRef = useRef(buildWeekDays(new Date()));
+  const flatListRef = useRef<FlatList>(null);
+  // Track whether the scroll was triggered programmatically (from day pill tap / goToToday)
+  // so we don't double-fire setSelectedDay in onMomentumScrollEnd
+  const isProgrammaticScroll = useRef(false);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const referenceDate = useMemo(() => {
@@ -231,9 +197,6 @@ export default function AgendaScreen() {
   }, [weekOffset]);
 
   const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
-  // Keep ref in sync for panResponder closure
-  useEffect(() => { weekDaysRef.current = weekDays; }, [weekDays]);
-
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
   const [selectedDay, setSelectedDay] = useState(todayDate);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
@@ -245,11 +208,19 @@ export default function AgendaScreen() {
     [weekDays, selectedDay],
   );
 
+  // Scroll the day-card FlatList to match selectedDay whenever it changes
+  useEffect(() => {
+    const idx = weekDays.findIndex((d) => d.date === selectedDay);
+    if (idx >= 0) {
+      isProgrammaticScroll.current = true;
+      flatListRef.current?.scrollToIndex({ index: idx, animated: true });
+    }
+  }, [selectedDay, weekDays]);
+
   const goToToday = useCallback(() => {
     setWeekOffset(0);
-    // selectedDay is updated by loadEvents via isCurrentWeek branch
-    // but we also set it immediately for instant feedback
     setSelectedDay(new Date().getDate());
+    setExpandedEvent(null);
   }, []);
 
   const toggleDone = useCallback((eventId: string) => {
@@ -260,11 +231,9 @@ export default function AgendaScreen() {
           e.id === eventId ? { ...e, done: !e.done } : e,
         );
       }
-      // Demo mode: toggle in DemoContext local state
       if (isDemoMode) {
         demoToggleDone(eventId);
       } else if (!eventId.startsWith('local-')) {
-        // Fire-and-forget Supabase update for real events (non-local IDs)
         const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
         toggleEventDone(eventId, newDone).catch(() => {/* ignore — optimistic update already applied */});
       }
@@ -283,23 +252,17 @@ export default function AgendaScreen() {
     const computed = buildWeekDays(referenceDate);
     setWeekDays(computed);
 
-    // When navigating to a different week, auto-select Monday of that week
-    // unless we're on the current week (keep today selected)
     setSelectedDay((prev) => {
       const isCurrentWeek = computed.some((d) => d.isToday);
       if (isCurrentWeek) {
         const todayInWeek = computed.find((d) => d.isToday);
         return todayInWeek ? todayInWeek.date : computed[0].date;
       }
-      // Check if prev selection still exists in the new week
       const stillValid = computed.find((d) => d.date === prev);
       return stillValid ? prev : computed[0].date;
     });
 
-    // ── Demo mode: load from DemoContext ──
     if (isDemoMode) {
-      const monday = computed[0].fullDate;
-      const sunday = computed[6].fullDate;
       const grouped: Record<number, AgendaEvent[]> = {};
       for (let i = 0; i < 7; i++) {
         const dayDate = computed[i].fullDate;
@@ -321,7 +284,6 @@ export default function AgendaScreen() {
           }));
         }
       }
-      // If no demo events for this week, fall back to mock
       if (Object.keys(grouped).length === 0) {
         setEventsByDay(MOCK_EVENTS_BY_DAY);
       } else {
@@ -399,7 +361,6 @@ export default function AgendaScreen() {
     setIsSaving(true);
     try {
       if (isReal && currentChildId && user?.id) {
-        // Real user → persist to Supabase
         const result = await createAgendaEvent({
           child_id: currentChildId,
           parent_id: user.id,
@@ -415,7 +376,6 @@ export default function AgendaScreen() {
         }
         await loadEvents();
       } else {
-        // Demo mode → add locally
         const hh = dayDate.getHours().toString().padStart(2, '0');
         const localEvent: AgendaEvent = {
           id: `local-${Date.now()}`,
@@ -436,19 +396,161 @@ export default function AgendaScreen() {
     }
   }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents]);
 
+  // Weekly totals for the top badge row
   const examCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'examen').length;
   const devoirCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'devoir').length;
 
   const selectedDayLabel = weekDays.find((d) => d.date === selectedDay);
 
+  // ─── Render a single event card ───────────────────────────
+  const renderEventCard = (event: AgendaEvent) => {
+    const isExpanded = expandedEvent === event.id;
+    const isExam = event.type === 'examen';
+    const isDevoir = event.type === 'devoir';
+
+    return (
+      <Pressable key={event.id} onPress={() => setExpandedEvent(isExpanded ? null : event.id)}>
+        <GlassCard
+          style={{ marginBottom: 10, overflow: 'hidden', opacity: isDevoir && event.done ? 0.6 : 1 }}
+          noPadding
+        >
+          <View style={{ flexDirection: 'row' }}>
+            {/* Left color bar */}
+            <View style={[st.colorBar, { backgroundColor: event.color }]} />
+
+            <View style={{ flex: 1, padding: 14, gap: 6 }}>
+              {/* Time + title row */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Text style={{ fontSize: 22 }}>{event.emoji}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      st.eventTitle,
+                      { color: cardText },
+                      isDevoir && event.done && { textDecorationLine: 'line-through', color: cardTextMuted },
+                    ]}
+                  >
+                    {event.title}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 }}>
+                    <View style={[st.typePill, { backgroundColor: event.color + '18' }]}>
+                      <Text style={[st.typeLabel, { color: event.color }]}>{TYPE_LABELS[event.type]}</Text>
+                    </View>
+                    <Text style={[st.timeText, { color: cardTextMuted }]}>
+                      {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
+                    </Text>
+                  </View>
+                </View>
+
+                {isDevoir && (
+                  <Pressable
+                    onPress={(e) => { e.stopPropagation(); toggleDone(event.id); }}
+                    hitSlop={8}
+                  >
+                    <View
+                      style={[
+                        st.checkbox,
+                        event.done && { backgroundColor: Colors.green, borderColor: Colors.green },
+                      ]}
+                    >
+                      {event.done && <Check size={14} color="#FFFFFF" strokeWidth={2.5} />}
+                    </View>
+                  </Pressable>
+                )}
+                {isExam && (
+                  <View style={st.examBadge}>
+                    <Papicons name="Warning" size={16} color={Colors.red} />
+                  </View>
+                )}
+                <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={14} color="#94A3B8" />
+              </View>
+
+              {/* Expanded details */}
+              {isExpanded && (event.location || event.description) && (
+                <View style={st.detailSection}>
+                  {event.location && (
+                    <View style={st.detailRow}>
+                      <Papicons name="Pin" size={13} color="#94A3B8" />
+                      <Text style={[st.detailText, { color: cardTextMuted }]}>{event.location}</Text>
+                    </View>
+                  )}
+                  {event.description && (
+                    <View style={st.detailRow}>
+                      <Papicons name="Info" size={13} color="#94A3B8" />
+                      <Text style={[st.detailText, { color: cardTextMuted }]}>{event.description}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        </GlassCard>
+      </Pressable>
+    );
+  };
+
+  // ─── Render a single day page for the swipeable FlatList ──
+  const renderDayPage = ({ item }: { item: (typeof weekDays)[0] }) => {
+    const dayEvents = eventsByDay[item.date] ?? [];
+    const dayExamCount = dayEvents.filter((e) => e.type === 'examen').length;
+    const dayDevoirCount = dayEvents.filter((e) => e.type === 'devoir').length;
+
+    return (
+      <View style={{ width: SCREEN_WIDTH }}>
+        {/* Date heading */}
+        <View style={st.dayPageHeader}>
+          <Text style={st.dayPageDate}>
+            {formatDateFR(item.fullDate)}
+          </Text>
+          {/* Per-day badge counts */}
+          {(dayExamCount > 0 || dayDevoirCount > 0) && (
+            <View style={st.dayBadgeRow}>
+              {dayExamCount > 0 && (
+                <View style={[st.badge, { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(248,113,113,0.25)' }]}>
+                  <Papicons name="Warning" size={13} color="#FCA5A5" />
+                  <Text style={[st.badgeText, { color: '#FCA5A5' }]}>{dayExamCount} examen{dayExamCount > 1 ? 's' : ''}</Text>
+                </View>
+              )}
+              {dayDevoirCount > 0 && (
+                <View style={[st.badge, { backgroundColor: 'rgba(251,191,36,0.18)', borderColor: 'rgba(251,191,36,0.25)' }]}>
+                  <Papicons name="Paper" size={13} color="#FCD34D" />
+                  <Text style={[st.badgeText, { color: '#FCD34D' }]}>{dayDevoirCount} devoir{dayDevoirCount > 1 ? 's' : ''}</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Scrollable event list */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 18,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 80,
+          }}
+          nestedScrollEnabled
+        >
+          {dayEvents.length === 0 ? (
+            <GlassCard style={{ alignItems: 'center', paddingVertical: 40 }}>
+              <Text style={{ fontSize: 48, marginBottom: 10 }}>🎉</Text>
+              <Text style={[st.emptyTitle, { color: cardText }]}>Pas de cours aujourd'hui</Text>
+              <Text style={[st.emptySubtitle, { color: cardTextMuted }]}>Aucun événement prévu ce jour</Text>
+            </GlassCard>
+          ) : (
+            dayEvents.map((event) => renderEventCard(event))
+          )}
+        </ScrollView>
+      </View>
+    );
+  };
+
   return (
     <View style={st.root}>
       <WallpaperBackground />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 56 + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 60 }}
-      >
-        {/* Week header + badges */}
+
+      {/* Fixed top section — week header, badges, day selector */}
+      <View style={{ paddingTop: insets.top + 56 + 12 }}>
+        {/* Week header + weekly badges */}
         <View style={st.weekHeader}>
           <View style={st.weekTitleRow}>
             <Pressable
@@ -526,126 +628,54 @@ export default function AgendaScreen() {
           }}
         />
 
-        {/* Tappable date header */}
-        <TouchableOpacity
-          onPress={() => setCalendarModalVisible(true)}
-          activeOpacity={0.7}
-          style={st.dateHeader}
-        >
-          <View style={[st.sectionBar, { backgroundColor: '#3B82F6' }]} />
-          <Text style={[st.dateHeaderText, { color: '#0F172A' }]}>
-            {weekDays.find((d) => d.date === selectedDay)?.fullDate
-              ? formatDateFR(weekDays.find((d) => d.date === selectedDay)!.fullDate)
-              : `${selectedDayLabel?.day} ${selectedDay} ${selectedDayLabel?.month}`}
-          </Text>
-          <ChevronDown size={16} color="#94A3B8" strokeWidth={2} />
-        </TouchableOpacity>
-
         {/* Aujourd'hui button (only when not on today) */}
         {!isSelectedToday && (
           <TouchableOpacity onPress={goToToday} style={st.todayBtn}>
             <Text style={st.todayBtnText}>Aujourd'hui</Text>
           </TouchableOpacity>
         )}
+      </View>
 
-        {/* Swipeable events area — PanResponder detects horizontal swipe */}
-        <View {...panResponder.panHandlers} style={{ paddingHorizontal: 18 }}>
-          {(eventsByDay[selectedDay] ?? []).length === 0 ? (
-            <GlassCard style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ fontSize: 48, marginBottom: 10 }}>🌿</Text>
-              <Text style={[st.emptyTitle, { color: cardText }]}>Journée libre</Text>
-              <Text style={[st.emptySubtitle, { color: cardTextMuted }]}>Aucun événement prévu ce jour</Text>
-            </GlassCard>
-          ) : (
-            (eventsByDay[selectedDay] ?? []).map((event) => {
-              const isExpanded = expandedEvent === event.id;
-              const isExam = event.type === 'examen';
-              const isDevoir = event.type === 'devoir';
+      {/* Swipeable day cards */}
+      <FlatList
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        data={weekDays}
+        keyExtractor={(d) => d.date.toString()}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        onMomentumScrollEnd={(e) => {
+          if (isProgrammaticScroll.current) {
+            isProgrammaticScroll.current = false;
+            return;
+          }
+          const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+          const day = weekDays[idx];
+          if (!day) return;
 
-              return (
-                <Pressable key={event.id} onPress={() => setExpandedEvent(isExpanded ? null : event.id)}>
-                  <GlassCard
-                    style={{ marginBottom: 10, overflow: 'hidden', opacity: isDevoir && event.done ? 0.6 : 1 }}
-                    noPadding
-                  >
-                    <View style={{ flexDirection: 'row' }}>
-                      {/* Left color bar */}
-                      <View style={[st.colorBar, { backgroundColor: event.color }]} />
+          setExpandedEvent(null);
 
-                      <View style={{ flex: 1, padding: 14, gap: 6 }}>
-                        {/* Time + title row */}
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                          <Text style={{ fontSize: 22 }}>{event.emoji}</Text>
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={[
-                                st.eventTitle,
-                                { color: cardText },
-                                isDevoir && event.done && { textDecorationLine: 'line-through', color: cardTextMuted },
-                              ]}
-                            >
-                              {event.title}
-                            </Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                              <View style={[st.typePill, { backgroundColor: event.color + '18' }]}>
-                                <Text style={[st.typeLabel, { color: event.color }]}>{TYPE_LABELS[event.type]}</Text>
-                              </View>
-                              <Text style={[st.timeText, { color: cardTextMuted }]}>
-                                {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
-                              </Text>
-                            </View>
-                          </View>
+          // Week boundary: swiped past Sunday → next week
+          if (idx === weekDays.length - 1 && day.date === weekDays[weekDays.length - 1].date) {
+            const nextIdx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+            if (nextIdx >= weekDays.length - 1 && !weekDays.some((d) => d.isToday && weekOffset === 0)) {
+              // Already on last page — no boundary cross needed unless user swipes further
+            }
+          }
 
-                          {isDevoir && (
-                            <Pressable
-                              onPress={(e) => { e.stopPropagation(); toggleDone(event.id); }}
-                              hitSlop={8}
-                            >
-                              <View
-                                style={[
-                                  st.checkbox,
-                                  event.done && { backgroundColor: Colors.green, borderColor: Colors.green },
-                                ]}
-                              >
-                                {event.done && <Check size={14} color="#FFFFFF" strokeWidth={2.5} />}
-                              </View>
-                            </Pressable>
-                          )}
-                          {isExam && (
-                            <View style={st.examBadge}>
-                              <Papicons name="Warning" size={16} color={Colors.red} />
-                            </View>
-                          )}
-                          <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={14} color="#94A3B8" />
-                        </View>
-
-                        {/* Expanded details */}
-                        {isExpanded && (event.location || event.description) && (
-                          <View style={st.detailSection}>
-                            {event.location && (
-                              <View style={st.detailRow}>
-                                <Papicons name="Pin" size={13} color="#94A3B8" />
-                                <Text style={[st.detailText, { color: cardTextMuted }]}>{event.location}</Text>
-                              </View>
-                            )}
-                            {event.description && (
-                              <View style={st.detailRow}>
-                                <Papicons name="Info" size={13} color="#94A3B8" />
-                                <Text style={[st.detailText, { color: cardTextMuted }]}>{event.description}</Text>
-                              </View>
-                            )}
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  </GlassCard>
-                </Pressable>
-              );
-            })
-          )}
-
-        </View>
-      </ScrollView>
+          setSelectedDay(day.date);
+        }}
+        onScrollBeginDrag={() => {
+          isProgrammaticScroll.current = false;
+        }}
+        renderItem={renderDayPage}
+        style={{ flex: 1 }}
+      />
 
       {/* Floating add button */}
       <Pressable
@@ -710,7 +740,6 @@ export default function AgendaScreen() {
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>
         <View style={st.modalOverlay}>
-          {/* Dismiss overlay — only fires on direct taps on the backdrop */}
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => { Keyboard.dismiss(); setAddModalVisible(false); }}
@@ -817,19 +846,6 @@ const st = StyleSheet.create({
   dayNumber: { fontFamily: FontFamily.displayBold, fontSize: 20, color: '#0F172A' },
   dayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.cyan },
 
-  dayTitle: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 20, marginVertical: 10 },
-
-  // Tappable date header
-  dateHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 20, marginVertical: 10,
-  },
-  dateHeaderText: {
-    fontFamily: FontFamily.displayBold, fontSize: 18,
-    color: '#0F172A', flex: 1,
-    textTransform: 'capitalize',
-  },
-
   // Today button
   todayBtn: {
     backgroundColor: '#3B82F6',
@@ -837,6 +853,21 @@ const st = StyleSheet.create({
     borderRadius: 20, alignSelf: 'center', marginBottom: 8,
   },
   todayBtnText: { color: '#FFFFFF', fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
+
+  // Day page header (inside each swipeable page)
+  dayPageHeader: {
+    paddingHorizontal: 20,
+    paddingTop: 6,
+    paddingBottom: 10,
+  },
+  dayPageDate: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 22,
+    color: '#0F172A',
+    textTransform: 'capitalize',
+    marginBottom: 8,
+  },
+  dayBadgeRow: { flexDirection: 'row', gap: 8 },
 
   sectionBar: { width: 4, height: 18, borderRadius: 2 },
   sectionText: {
@@ -867,9 +898,6 @@ const st = StyleSheet.create({
   detailSection: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', paddingTop: 8, gap: 6 },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   detailText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', flex: 1 },
-
-  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16 },
-  addBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', justifyContent: 'flex-end' },
