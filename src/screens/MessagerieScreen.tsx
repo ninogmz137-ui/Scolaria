@@ -25,9 +25,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Papicons } from '@getpapillon/papicons';
-import { LinearGradient } from 'expo-linear-gradient';
-
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import GlassCard from '../components/GlassCard';
 import { getGrades, getAgendaEvents } from '../services/database';
@@ -609,14 +608,7 @@ function MessageCard({ item, onPress }: MessageCardProps) {
         <View style={styles.cardInner}>
           {/* Type icon — Aria gets gradient circle, others get flat tinted circle */}
           {item.type === 'aria' ? (
-            <LinearGradient
-              colors={['#8B5CF6', '#06B6D4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.iconCircle}
-            >
-              <Text style={{ fontSize: 12, color: '#FFFFFF' }}>✦</Text>
-            </LinearGradient>
+            <AriaSparkleIcon size={36} />
           ) : (
             <View style={[styles.iconCircle, { backgroundColor: cfg.color + '20' }]}>
               <Papicons name={cfg.icon} size={18} color={cfg.color} />

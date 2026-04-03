@@ -15,10 +15,10 @@
 import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import { Menu } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import AriaSparkleIcon from './AriaSparkleIcon';
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -58,15 +58,7 @@ interface Props {
 function AriaButton({ onPress }: { onPress?: () => void }) {
   return (
     <Pressable onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-      <View style={styles.ariaButton}>
-        <LinearGradient
-          colors={['#8B5CF6', '#06B6D4']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <Text style={styles.ariaSparkle}>✦</Text>
-      </View>
+      <AriaSparkleIcon size={40} />
     </Pressable>
   );
 }
@@ -252,30 +244,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 0,
-  },
-  ariaButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#8B5CF6',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.35,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  ariaSparkle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontFamily: FontFamily.sansBold,
-    lineHeight: 20,
   },
 });

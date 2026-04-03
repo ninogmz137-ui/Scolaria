@@ -29,6 +29,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { getCheckins, getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import AriaSparkleIcon from '../components/AriaSparkleIcon';
 
 // ─── Mock data ──────────────────────────────────────────
 
@@ -313,14 +314,7 @@ export default function AccueilScreen() {
           {/* ── Aria synthesis ── */}
           <GlassCard style={{ marginBottom: 14 }}>
             <View style={styles.ariaHeader}>
-              <LinearGradient
-                colors={['#8B5CF6', '#06B6D4']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.ariaIcon}
-              >
-                <Text style={{ fontSize: 12, color: '#FFFFFF', fontFamily: FontFamily.sansBold }}>✦</Text>
-              </LinearGradient>
+              <AriaSparkleIcon size={22} />
               <Text style={[styles.ariaLabel, { color: cardTextSecondary }]}>Aria · Synthèse du jour</Text>
             </View>
             <Text style={[styles.ariaSummary, { color: cardText }]}>{data.ariaSummary}</Text>
@@ -500,7 +494,7 @@ const styles = StyleSheet.create({
 
   // Aria
   ariaHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  ariaIcon: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
+
   ariaLabel: { fontFamily: FontFamily.displayBold, fontSize: 11, color: '#64748B', textTransform: 'uppercase', letterSpacing: 1.2 },
   ariaSummary: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#0F172A', lineHeight: 21 },
 
