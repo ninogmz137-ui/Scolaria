@@ -1,6 +1,7 @@
 import { Box, Text, HStack, VStack } from './ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 type AgendaEvent = {
   id: string;
@@ -49,7 +50,7 @@ export default function WeekAgenda({ events, dayLabel }: Props) {
                 className="text-xs font-medium"
                 style={{
                   color: event.isNow ? Colors.violet : Colors.textSecondary,
-                  fontWeight: event.isNow ? '700' : '500',
+                  fontFamily: event.isNow ? FontFamily.sansBold : FontFamily.sansMedium,
                 }}
               >
                 {event.time}

@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
   TextInput,
@@ -371,7 +372,7 @@ export default function AppreciationsScreen() {
                       }}
                     >
                       <Text className="text-lg">{comp.emoji}</Text>
-                      <Text className="flex-1 text-sm" style={{ color: isSelected ? '#0F172A' : '#94A3B8', fontWeight: isSelected ? '600' : '500' }}>
+                      <Text className="flex-1 text-sm" style={{ color: isSelected ? '#0F172A' : '#94A3B8', fontFamily: isSelected ? FontFamily.sansSemiBold : FontFamily.sansMedium }}>
                         {comp.label}
                       </Text>
                       {isSelected && (

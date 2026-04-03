@@ -453,7 +453,6 @@ const styles = StyleSheet.create({
   newCodeValue: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 16,
-    fontWeight: '900',
     color: '#fff',
     letterSpacing: 2,
     marginTop: 12,
@@ -471,7 +470,7 @@ const styles = StyleSheet.create({
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
   codeDisplay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.2)', marginBottom: 10 },
-  codeText: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  codeText: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13, letterSpacing: 1 },
   codeMeta: { gap: 4, marginBottom: 10 },
   metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
   codeActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, paddingTop: 12, marginTop: 2 },

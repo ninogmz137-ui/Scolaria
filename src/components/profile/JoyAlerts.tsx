@@ -3,6 +3,7 @@ import { Animated, Linking } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 // ─── Alert level types ───────────────────────────────────
 
@@ -226,7 +227,7 @@ export default function JoyAlerts({
           <Box className="px-3 py-2 rounded-xl mb-3" style={{ backgroundColor: '#F1F5F9' }}>
             <Text className="text-[13px]" style={{ color: '#64748B' }}>
               Score moyen sur 5 jours :{' '}
-              <Text style={{ color: config.color, fontWeight: '800' }}>
+              <Text style={{ color: config.color, fontFamily: FontFamily.displayExtraBold }}>
                 {recentAvg.toFixed(1)}/10
               </Text>
             </Text>

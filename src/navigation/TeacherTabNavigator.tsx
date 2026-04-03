@@ -33,7 +33,7 @@ const TEACHER_CARD = '#FFFFFF';
 const STACK_OPTS = {
   headerStyle: { backgroundColor: TEACHER_BG },
   headerTintColor: '#0F172A',
-  headerTitleStyle: { fontWeight: 'bold' as const },
+  headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
   animation: 'slide_from_right' as const,
   animationDuration: 250,
 };
@@ -141,7 +141,7 @@ export default function TeacherTabNavigator() {
           paddingTop: 5,
           height: 62 + insets.bottom,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { fontSize: 11, fontFamily: 'DMSans_600SemiBold' },
         headerShown: false,
       })}
     >

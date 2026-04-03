@@ -550,7 +550,6 @@ const styles = StyleSheet.create({
   idText: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 13,
-    fontWeight: '700',
     color: '#0F172A',
     letterSpacing: 0.5,
   },

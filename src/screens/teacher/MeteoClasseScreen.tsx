@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
   Animated,
@@ -276,7 +277,7 @@ export default function MeteoClasseScreen() {
                   style={selectedDay === i ? { backgroundColor: 'rgba(34,211,238,0.1)' } : undefined}
                 >
                   <Text className="text-[28px] mb-1">{getWeatherEmoji(day.avgScore)}</Text>
-                  <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyanDark : Colors.textSecondary, fontWeight: selectedDay === i ? '800' : '600' }}>
+                  <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyanDark : Colors.textSecondary, fontFamily: selectedDay === i ? FontFamily.displayExtraBold : FontFamily.sansSemiBold }}>
                     {day.day}
                   </Text>
                   <Text className="text-xs font-bold" style={{ color: selectedDay === i ? Colors.textPrimary : Colors.textSecondary }}>

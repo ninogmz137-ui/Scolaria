@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import { Box, Text, Pressable, HStack } from '../ui';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Papicons } from '@getpapillon/papicons';
 import {
   CHILD_THEMES,
@@ -80,7 +81,7 @@ export default function ThemeSelector({ accentColor }: Props) {
               />
 
               {/* Theme name */}
-              <Text style={{ fontSize: 10, fontWeight: '500', color: cardText }}>
+              <Text style={{ fontSize: 10, fontFamily: FontFamily.sansMedium, color: cardText }}>
                 {t.name}
               </Text>
 

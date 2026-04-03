@@ -32,7 +32,7 @@ function ProfilStackScreen() {
   const stackOpts = {
     headerStyle: { backgroundColor: theme.bg },
     headerTintColor: theme.textPrimary,
-    headerTitleStyle: { fontWeight: 'bold' as const },
+    headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
     animation: 'slide_from_right' as const,
     animationDuration: 250,
   };
@@ -54,7 +54,7 @@ function NotesEleveStackScreen() {
   const stackOpts = {
     headerStyle: { backgroundColor: theme.bg },
     headerTintColor: theme.textPrimary,
-    headerTitleStyle: { fontWeight: 'bold' as const },
+    headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
     animation: 'slide_from_right' as const,
     animationDuration: 250,
   };
@@ -76,7 +76,7 @@ function RessentiStackScreen() {
   const stackOpts = {
     headerStyle: { backgroundColor: theme.bg },
     headerTintColor: theme.textPrimary,
-    headerTitleStyle: { fontWeight: 'bold' as const },
+    headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
     animation: 'slide_from_right' as const,
     animationDuration: 250,
   };
@@ -98,7 +98,7 @@ function ReglagesEleveStackScreen() {
   const stackOpts = {
     headerStyle: { backgroundColor: theme.bg },
     headerTintColor: theme.textPrimary,
-    headerTitleStyle: { fontWeight: 'bold' as const },
+    headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
     animation: 'slide_from_right' as const,
     animationDuration: 250,
   };
@@ -185,7 +185,7 @@ export default function EleveTabNavigator() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontFamily: 'DMSans_600SemiBold',
         },
         headerShown: false,
       })}
@@ -200,7 +200,7 @@ export default function EleveTabNavigator() {
           headerShown: true,
           headerStyle: { backgroundColor: theme.bg },
           headerTintColor: theme.textPrimary,
-          headerTitleStyle: { fontWeight: 'bold' },
+          headerTitleStyle: { fontFamily: 'DMSans_700Bold' },
           headerTitle: theme.ariaLabel,
         }}
       />

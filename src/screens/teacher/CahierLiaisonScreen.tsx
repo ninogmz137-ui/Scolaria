@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
   TextInput,
@@ -379,7 +380,7 @@ export default function CahierLiaisonScreen() {
             <HStack className="items-center gap-2 mt-4 p-3 rounded-xl" style={{ backgroundColor: '#F7F8FC', borderWidth: 1, borderColor: '#EEF0F5' }}>
               <Ionicons name="people" size={16} color="#64748B" />
               <Text className="flex-1 text-xs" style={{ color: '#64748B' }}>
-                Sera envoyé à tous les parents de <Text style={{ color: '#0F172A', fontWeight: '700' }}>CM2 B</Text> (25 élèves)
+                Sera envoyé à tous les parents de <Text style={{ color: '#0F172A', fontFamily: FontFamily.sansBold }}>CM2 B</Text> (25 élèves)
               </Text>
             </HStack>
 

@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
   TextInput,
@@ -462,7 +463,7 @@ export default function VieDeClasseScreen() {
             <TextInput
               style={{
                 backgroundColor: '#F1F5F9', borderRadius: 10, padding: 12,
-                color: Colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 8,
+                color: Colors.textPrimary, fontSize: 15, fontFamily: FontFamily.sansSemiBold, marginBottom: 8,
                 borderWidth: 1, borderColor: Colors.cardBorder,
               }}
               placeholder="Titre..."

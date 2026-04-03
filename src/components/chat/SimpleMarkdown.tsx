@@ -7,6 +7,7 @@
 
 import { Fragment } from 'react';
 import { Text, type TextStyle } from 'react-native';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 interface Props {
   children: string;
@@ -36,7 +37,7 @@ function renderInline(text: string, baseStyle: TextStyle): React.ReactNode[] {
     if (match[2]) {
       // **bold**
       parts.push(
-        <Text key={`b-${match.index}`} style={[baseStyle, { fontWeight: '700' }]}>
+        <Text key={`b-${match.index}`} style={[baseStyle, { fontFamily: FontFamily.sansBold }]}>
           {match[2]}
         </Text>,
       );
@@ -74,8 +75,8 @@ export default function SimpleMarkdown({ children, baseStyle = {} }: Props) {
     // ## Heading 2
     if (line.startsWith('## ')) {
       elements.push(
-        <Text key={i} style={[baseStyle, { fontWeight: '700', fontSize: 16, marginTop: 8, marginBottom: 4 }]}>
-          {renderInline(line.slice(3), { ...baseStyle, fontWeight: '700', fontSize: 16 })}
+        <Text key={i} style={[baseStyle, { fontFamily: FontFamily.displayBold, fontSize: 16, marginTop: 8, marginBottom: 4 }]}>
+          {renderInline(line.slice(3), { ...baseStyle, fontFamily: FontFamily.displayBold, fontSize: 16 })}
         </Text>,
       );
       continue;
@@ -84,8 +85,8 @@ export default function SimpleMarkdown({ children, baseStyle = {} }: Props) {
     // ### Heading 3
     if (line.startsWith('### ')) {
       elements.push(
-        <Text key={i} style={[baseStyle, { fontWeight: '700', fontSize: 15, marginTop: 6, marginBottom: 2 }]}>
-          {renderInline(line.slice(4), { ...baseStyle, fontWeight: '700', fontSize: 15 })}
+        <Text key={i} style={[baseStyle, { fontFamily: FontFamily.displayBold, fontSize: 15, marginTop: 6, marginBottom: 2 }]}>
+          {renderInline(line.slice(4), { ...baseStyle, fontFamily: FontFamily.displayBold, fontSize: 15 })}
         </Text>,
       );
       continue;

@@ -10,6 +10,7 @@
  */
 
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 interface ChildAvatarProps {
   /** Child's display name (used for initials fallback) */
@@ -106,7 +107,7 @@ export default function ChildAvatar({
             },
           ]}
         >
-          <Text style={{ color: '#FFFFFF', fontSize: size * 0.2, fontWeight: '700' }}>☰</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: size * 0.2, fontFamily: FontFamily.sansBold }}>☰</Text>
         </View>
       )}
     </View>
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   },
   initials: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontFamily: FontFamily.sansBold,
   },
   burgerBadge: {
     position: 'absolute',

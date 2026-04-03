@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
   TextInput,
@@ -298,7 +299,7 @@ export default function MessagerieParentsScreen() {
           <Text className="text-[11px]" style={{ color: conv.unread > 0 ? TEACHER_ORANGE : '#94A3B8' }}>{conv.lastTime}</Text>
         </HStack>
         <Text className="text-[11px] mt-[1px]" style={{ color: '#64748B' }}>{conv.parentName}</Text>
-        <Text className="text-[13px] mt-1" style={{ color: conv.unread > 0 ? '#0F172A' : '#94A3B8', fontWeight: conv.unread > 0 ? '600' : '400' }} numberOfLines={1}>
+        <Text className="text-[13px] mt-1" style={{ color: conv.unread > 0 ? '#0F172A' : '#94A3B8', fontFamily: conv.unread > 0 ? FontFamily.sansSemiBold : FontFamily.sansRegular }} numberOfLines={1}>
           {conv.lastMessage}
         </Text>
       </VStack>

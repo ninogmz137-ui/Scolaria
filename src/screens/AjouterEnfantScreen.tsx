@@ -6,6 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   Text,
   View,
@@ -380,7 +381,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
               <Ionicons name="school" size={18} color={Colors.gray} />
               <Text
                 className="flex-1 text-[15px] py-3.5"
-                style={{ color: selectedClasse ? Colors.white : Colors.gray, fontWeight: selectedClasse ? '600' : '400' }}
+                style={{ color: selectedClasse ? Colors.white : Colors.gray, fontFamily: selectedClasse ? FontFamily.sansSemiBold : FontFamily.sansRegular }}
               >
                 {selectedClasse || 'Sélectionner la classe'}
               </Text>
