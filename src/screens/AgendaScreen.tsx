@@ -648,70 +648,73 @@ export default function AgendaScreen() {
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={st.modalOverlay}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-              <View style={st.modalContent}>
-                <View style={st.modalHandle} />
-                <Text style={st.modalTitle}>Nouvel événement</Text>
+        <View style={st.modalOverlay}>
+          {/* Dismiss overlay — only fires on direct taps on the backdrop */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => { Keyboard.dismiss(); setAddModalVisible(false); }}
+          />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={st.modalContent}>
+              <View style={st.modalHandle} />
+              <Text style={st.modalTitle}>Nouvel événement</Text>
 
-                {/* Date indicator */}
-                <View style={[st.modalDateRow, { backgroundColor: '#3B82F612', borderColor: '#3B82F630' }]}>
-                  <Papicons name="Calendar" size={15} color="#3B82F6" />
-                  <Text style={[st.modalDateText, { color: '#3B82F6' }]}>
-                    {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
-                  </Text>
-                </View>
-
-                {/* Title input */}
-                <Text style={st.modalLabel}>Titre</Text>
-                <TextInput
-                  value={newEventTitle}
-                  onChangeText={setNewEventTitle}
-                  placeholder="Ex: Contrôle de maths, Sortie scolaire…"
-                  placeholderTextColor="#94A3B8"
-                  autoFocus
-                  style={st.modalInput}
-                />
-
-                {/* Type selector */}
-                <Text style={st.modalLabel}>Type</Text>
-                <View style={st.modalTypeRow}>
-                  {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
-                    const isActive = newEventType === type;
-                    return (
-                      <Pressable
-                        key={type}
-                        onPress={() => setNewEventType(type)}
-                        style={[
-                          st.modalTypePill,
-                          { borderColor: isActive ? '#3B82F6' : '#EEF0F5' },
-                          isActive && { backgroundColor: '#3B82F615' },
-                        ]}
-                      >
-                        <Text style={[st.modalTypeText, isActive && { color: '#3B82F6' }]}>
-                          {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                {/* Actions */}
-                <View style={st.modalActions}>
-                  <Pressable onPress={() => setAddModalVisible(false)} style={st.cancelBtn}>
-                    <Text style={st.cancelText}>Annuler</Text>
-                  </Pressable>
-                  <Pressable onPress={handleCreateEvent} disabled={isSaving} style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}>
-                    <LinearGradient colors={['#3B82F6', '#6366F1']} style={[st.createBtn, isSaving && { opacity: 0.6 }]}>
-                      <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
-                    </LinearGradient>
-                  </Pressable>
-                </View>
+              {/* Date indicator */}
+              <View style={[st.modalDateRow, { backgroundColor: '#3B82F612', borderColor: '#3B82F630' }]}>
+                <Papicons name="Calendar" size={15} color="#3B82F6" />
+                <Text style={[st.modalDateText, { color: '#3B82F6' }]}>
+                  {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
+                </Text>
               </View>
-            </KeyboardAvoidingView>
-          </View>
-        </TouchableWithoutFeedback>
+
+              {/* Title input */}
+              <Text style={st.modalLabel}>Titre</Text>
+              <TextInput
+                value={newEventTitle}
+                onChangeText={setNewEventTitle}
+                placeholder="Ex: Contrôle de maths, Sortie scolaire…"
+                placeholderTextColor="#94A3B8"
+                autoFocus
+                style={st.modalInput}
+              />
+
+              {/* Type selector */}
+              <Text style={st.modalLabel}>Type</Text>
+              <View style={st.modalTypeRow}>
+                {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
+                  const isActive = newEventType === type;
+                  return (
+                    <Pressable
+                      key={type}
+                      onPress={() => setNewEventType(type)}
+                      style={[
+                        st.modalTypePill,
+                        { borderColor: isActive ? '#3B82F6' : '#EEF0F5' },
+                        isActive && { backgroundColor: '#3B82F615' },
+                      ]}
+                    >
+                      <Text style={[st.modalTypeText, isActive && { color: '#3B82F6' }]}>
+                        {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {/* Actions */}
+              <View style={st.modalActions}>
+                <Pressable onPress={() => setAddModalVisible(false)} style={st.cancelBtn}>
+                  <Text style={st.cancelText}>Annuler</Text>
+                </Pressable>
+                <Pressable onPress={handleCreateEvent} disabled={isSaving} style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}>
+                  <LinearGradient colors={['#3B82F6', '#6366F1']} style={[st.createBtn, isSaving && { opacity: 0.6 }]}>
+                    <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
+                  </LinearGradient>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
     </View>
   );
