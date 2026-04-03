@@ -1,8 +1,8 @@
 /**
- * AriaSparkleIcon — Gradient circle with 3 four-pointed sparkle shapes.
+ * AriaSparkleIcon — Gradient circle with 3 "✦" text sparkles.
  *
- * Replaces the old ✦ text character with proper View-based sparkles
- * for a premium, dynamic look.
+ * Simple approach: 3 Text "✦" characters in white, different sizes,
+ * positioned as a compact asymmetric group inside a LinearGradient circle.
  *
  * Usage:
  *   <AriaSparkleIcon size={40} />            — standard (topbar, messagerie)
@@ -11,43 +11,8 @@
  *   <AriaSparkleIcon size={40} noGradient /> — sparkles only (no circle)
  */
 
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// ─── Four-pointed sparkle built from two crossed rectangles ─
-
-function Sparkle({ size, color }: { size: number; color: string }) {
-  // Vertical branch: full height, narrow width
-  const vWidth = Math.max(1.5, size * 0.18);
-  const vHeight = size;
-  // Horizontal branch: full width, narrow height — shorter than vertical for asymmetric star
-  const hWidth = size * 0.65;
-  const hHeight = Math.max(1.5, size * 0.18);
-  return (
-    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Vertical bar — tall and thin, tapers to points */}
-      <View
-        style={{
-          position: 'absolute',
-          width: vWidth,
-          height: vHeight,
-          backgroundColor: color,
-          borderRadius: vWidth / 2,
-        }}
-      />
-      {/* Horizontal bar — shorter and thin */}
-      <View
-        style={{
-          position: 'absolute',
-          width: hWidth,
-          height: hHeight,
-          backgroundColor: color,
-          borderRadius: hHeight / 2,
-        }}
-      />
-    </View>
-  );
-}
 
 // ─── Main component ─────────────────────────────────────
 
@@ -59,30 +24,55 @@ interface Props {
 }
 
 export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
-  const s = size; // alias for brevity
+  const s = size;
   const half = s / 2;
 
-  // Sparkle sizes scale proportionally to container
-  const big    = s * 0.35;   // 14px at size=40
-  const medium = s * 0.225;  //  9px at size=40
-  const small  = s * 0.13;   //  5px at size=40
+  // Sparkle font sizes scale proportionally
+  const bigSize    = Math.round(s * 0.40);   // 16px at size=40
+  const medSize    = Math.round(s * 0.25);   // 10px at size=40
+  const smallSize  = Math.round(s * 0.175);  //  7px at size=40
 
-  // Positions (from center of circle, in px offsets)
-  // Asymmetric triangle: big center-left, medium top-right, small bottom-right
   const sparkles = (
     <>
       {/* Big sparkle — center-left */}
-      <View style={[styles.sparklePos, { top: half - big / 2 - s * 0.02, left: half - big / 2 - s * 0.15 }]}>
-        <Sparkle size={big} color="#FFFFFF" />
-      </View>
+      <Text
+        style={[
+          styles.sparkle,
+          {
+            fontSize: bigSize,
+            top: half - bigSize * 0.55,
+            left: half - bigSize * 0.7,
+          },
+        ]}
+      >
+        ✦
+      </Text>
       {/* Medium sparkle — top-right */}
-      <View style={[styles.sparklePos, { top: half - medium / 2 - s * 0.22, left: half - medium / 2 + s * 0.18 }]}>
-        <Sparkle size={medium} color="#FFFFFF" />
-      </View>
+      <Text
+        style={[
+          styles.sparkle,
+          {
+            fontSize: medSize,
+            top: half - medSize * 0.5 - s * 0.28,
+            left: half + s * 0.08,
+          },
+        ]}
+      >
+        ✦
+      </Text>
       {/* Small sparkle — bottom-right */}
-      <View style={[styles.sparklePos, { top: half - small / 2 + s * 0.22, left: half - small / 2 + s * 0.20 }]}>
-        <Sparkle size={small} color="#FFFFFF" />
-      </View>
+      <Text
+        style={[
+          styles.sparkle,
+          {
+            fontSize: smallSize,
+            top: half + s * 0.12,
+            left: half + s * 0.10,
+          },
+        ]}
+      >
+        ✦
+      </Text>
     </>
   );
 
@@ -108,7 +98,9 @@ export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
 }
 
 const styles = StyleSheet.create({
-  sparklePos: {
+  sparkle: {
     position: 'absolute',
+    color: '#FFFFFF',
+    lineHeight: undefined,
   },
 });

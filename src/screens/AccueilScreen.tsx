@@ -257,7 +257,7 @@ export default function AccueilScreen() {
               detail={data.liaison.unsigned > 0 ? `${data.liaison.unsigned} à signer` : 'Tout signé'}
               detailColor={data.liaison.unsigned > 0 ? '#EF4444' : undefined}
               badge={data.liaison.unsigned > 0 ? data.liaison.unsigned : undefined}
-              onPress={() => navigation.navigate('CahierLiaisonScreen')}
+              onPress={() => navigation.navigate('MessagerieTab', { screen: 'MessagesListScreen' })}
             />
             <GlassTile
               icon="Pen"

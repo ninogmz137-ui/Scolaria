@@ -1,8 +1,9 @@
 /**
- * LoginScreen — Dark cinematic login with premium gradient background.
+ * LoginScreen — Premium cinematic login.
  *
- * Background: deep navy #0B1628 → blue-violet #1E3A7A gradient.
- * Glass-style input fields, gradient CTA, child PIN access section.
+ * Background: deep navy gradient + decorative luminous halos.
+ * Inline logo "Scolar" white + "ia" cyan. Glass fields without labels.
+ * Gradient CTA, maxWidth 380 for web.
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -21,18 +22,36 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
-import LogoScolaria from '../components/LogoScolaria';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Constants ──────────────────────────────────────────
 
-const INPUT_BG = 'rgba(255,255,255,0.12)';
-const INPUT_BORDER = 'rgba(255,255,255,0.25)';
-const PLACEHOLDER = 'rgba(255,255,255,0.5)';
+const INPUT_BG = 'rgba(255,255,255,0.10)';
+const INPUT_BORDER = 'rgba(255,255,255,0.18)';
+const PLACEHOLDER = 'rgba(255,255,255,0.45)';
 const VIOLET = '#6366F1';
 const CYAN = '#22D3EE';
 const { height: SH } = Dimensions.get('window');
+
+// ─── Decorative halo ────────────────────────────────────
+
+function Halo({ color, size, top, left }: { color: string; size: number; top: number; left: number }) {
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        top,
+        left,
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: color,
+        opacity: 0.18,
+      }}
+    />
+  );
+}
 
 // ─── Component ──────────────────────────────────────────
 
@@ -56,8 +75,8 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -84,79 +103,81 @@ export default function LoginScreen({ onNavigatePin }: Props) {
       {/* Premium gradient background */}
       <LinearGradient colors={['#0B1628', '#1E3A7A']} style={StyleSheet.absoluteFill} />
 
+      {/* Decorative halos */}
+      <Halo color={VIOLET} size={260} top={-60} left={-80} />
+      <Halo color={CYAN} size={200} top={SH * 0.35} left={Dimensions.get('window').width - 60} />
+      <Halo color="#A78BFA" size={180} top={SH * 0.65} left={-50} />
+
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 40, alignItems: 'center' }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }], flex: 1 }}>
-            {/* Logo + tagline */}
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+              width: '100%',
+              maxWidth: 380,
+              paddingHorizontal: 28,
+            }}
+          >
+            {/* Logo inline: "Scolar" white + "ia" cyan */}
             <View style={s.logoSection}>
-              <LogoScolaria size={56} variant="dark" />
+              <Text style={s.logoText}>
+                Scolar<Text style={s.logoCyan}>ia</Text>
+              </Text>
               <Text style={s.tagline}>Le copilote éducatif des familles</Text>
             </View>
 
-            {/* Form */}
+            {/* Form — no title, no labels */}
             <View style={s.form}>
-              <Text style={s.formTitle}>
-                {mode === 'login' ? 'Connexion' : 'Créer un compte'}
-              </Text>
-
-              {/* Family name (signup) */}
+              {/* Family name (signup only) */}
               {mode === 'signup' && (
-                <View style={s.fieldGroup}>
-                  <Text style={s.fieldLabel}>Nom de famille</Text>
-                  <View style={s.inputRow}>
-                    <Papicons name="User" size={18} color="rgba(255,255,255,0.3)" />
-                    <TextInput
-                      style={s.input}
-                      placeholder="Moreau"
-                      placeholderTextColor={PLACEHOLDER}
-                      value={familyName}
-                      onChangeText={setFamilyName}
-                      autoCapitalize="words"
-                    />
-                  </View>
+                <View style={s.inputRow}>
+                  <Papicons name="User" size={18} color="rgba(255,255,255,0.3)" />
+                  <TextInput
+                    style={s.input}
+                    placeholder="Nom de famille"
+                    placeholderTextColor={PLACEHOLDER}
+                    value={familyName}
+                    onChangeText={setFamilyName}
+                    autoCapitalize="words"
+                  />
                 </View>
               )}
 
               {/* Email */}
-              <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Email</Text>
-                <View style={s.inputRow}>
-                  <Papicons name="Send" size={18} color="rgba(255,255,255,0.3)" />
-                  <TextInput
-                    style={s.input}
-                    placeholder="parent@email.fr"
-                    placeholderTextColor={PLACEHOLDER}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                  />
-                </View>
+              <View style={s.inputRow}>
+                <Papicons name="Send" size={18} color="rgba(255,255,255,0.3)" />
+                <TextInput
+                  style={s.input}
+                  placeholder="Email"
+                  placeholderTextColor={PLACEHOLDER}
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                />
               </View>
 
               {/* Password */}
-              <View style={s.fieldGroup}>
-                <Text style={s.fieldLabel}>Mot de passe</Text>
-                <View style={s.inputRow}>
-                  <Papicons name="Lock" size={18} color="rgba(255,255,255,0.3)" />
-                  <TextInput
-                    style={s.input}
-                    placeholder="••••••••"
-                    placeholderTextColor={PLACEHOLDER}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    autoComplete="password"
-                  />
-                  <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
-                    <Papicons name={showPassword ? 'EyeClosed' : 'Eye'} size={20} color="rgba(255,255,255,0.35)" />
-                  </Pressable>
-                </View>
+              <View style={s.inputRow}>
+                <Papicons name="Lock" size={18} color="rgba(255,255,255,0.3)" />
+                <TextInput
+                  style={s.input}
+                  placeholder="Mot de passe"
+                  placeholderTextColor={PLACEHOLDER}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoComplete="password"
+                />
+                <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                  <Papicons name={showPassword ? 'EyeClosed' : 'Eye'} size={20} color="rgba(255,255,255,0.35)" />
+                </Pressable>
               </View>
 
               {/* Forgot password */}
@@ -174,8 +195,8 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                 </View>
               ) : null}
 
-              {/* Submit */}
-              <Pressable onPress={handleSubmit} disabled={loading} style={{ marginTop: 4 }}>
+              {/* Submit — gradient button, text only */}
+              <Pressable onPress={handleSubmit} disabled={loading} style={{ marginTop: 8 }}>
                 <LinearGradient
                   colors={[VIOLET, CYAN]}
                   start={{ x: 0, y: 0 }}
@@ -185,12 +206,9 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                   {loading ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <>
-                      <Papicons name={mode === 'login' ? 'Login' : 'Plus'} size={20} color="#FFFFFF" />
-                      <Text style={s.submitText}>
-                        {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
-                      </Text>
-                    </>
+                    <Text style={s.submitText}>
+                      {mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+                    </Text>
                   )}
                 </LinearGradient>
               </Pressable>
@@ -206,27 +224,6 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                   </Text>
                 </Pressable>
               </View>
-
-              {/* Separator */}
-              <View style={s.separatorRow}>
-                <View style={s.separatorLine} />
-                <Text style={s.separatorText}>ou</Text>
-                <View style={s.separatorLine} />
-              </View>
-
-              {/* Child PIN access */}
-              <Pressable onPress={onNavigatePin}>
-                <View style={s.pinRow}>
-                  <View style={s.pinIcon}>
-                    <Text style={{ fontSize: 18 }}>🎒</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={s.pinTitle}>Accès enfant</Text>
-                    <Text style={s.pinSub}>Connexion avec code PIN</Text>
-                  </View>
-                  <Papicons name="ChevronRight" size={18} color="rgba(255,255,255,0.3)" />
-                </View>
-              </Pressable>
 
               {/* Demo mode */}
               <Pressable onPress={enterDemoMode} style={s.demoBtn}>
@@ -244,46 +241,79 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
 const s = StyleSheet.create({
   root: { flex: 1, overflow: 'hidden' },
-  logoSection: { alignItems: 'center', paddingTop: SH * 0.08, marginBottom: 32 },
-  tagline: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 10, letterSpacing: 0.3 },
-  form: { paddingHorizontal: 28, gap: 14 },
-  formTitle: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#FFFFFF', marginBottom: 2 },
-  fieldGroup: { gap: 6 },
-  fieldLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.5)' },
+
+  // Logo
+  logoSection: { alignItems: 'center', paddingTop: SH * 0.10, marginBottom: 40 },
+  logoText: {
+    fontFamily: FontFamily.loraBold,
+    fontSize: 42,
+    color: '#FFFFFF',
+  },
+  logoCyan: {
+    color: CYAN,
+  },
+  tagline: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 8,
+    letterSpacing: 0.3,
+  },
+
+  // Form
+  form: { gap: 14 },
+
+  // Input row — glass style, no labels
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingHorizontal: 16,
-    backgroundColor: INPUT_BG, borderWidth: 1, borderColor: INPUT_BORDER, gap: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    backgroundColor: INPUT_BG,
+    borderWidth: 1,
+    borderColor: INPUT_BORDER,
+    gap: 10,
   },
   input: {
     flex: 1,
     fontFamily: FontFamily.sansRegular,
     fontSize: 15,
     color: '#FFFFFF',
-    paddingVertical: 14,
+    paddingVertical: 15,
   },
   forgotText: {
-    color: '#FFFFFF',
+    color: 'rgba(255,255,255,0.6)',
     textDecorationLine: 'underline',
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
   },
-  errorRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 12, backgroundColor: 'rgba(239,68,68,0.15)', gap: 8 },
-  errorText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#EF4444', flex: 1 },
-  submitBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16, borderRadius: 14 },
-  submitText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
-  toggleRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 2 },
-  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
-  toggleAction: { fontFamily: FontFamily.sansBold, fontSize: 13, color: CYAN },
-  separatorRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  separatorLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
-  separatorText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.40)', marginHorizontal: 16 },
-  pinRow: {
-    flexDirection: 'row', alignItems: 'center', borderRadius: 14, paddingVertical: 16, paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', gap: 10,
+
+  // Error
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    padding: 12,
+    backgroundColor: 'rgba(239,68,68,0.15)',
+    gap: 8,
   },
-  pinIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center' },
-  pinTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
-  pinSub: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.7)' },
-  demoBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
-  demoText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.5)' },
+  errorText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#EF4444', flex: 1 },
+
+  // Submit
+  submitBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  submitText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
+
+  // Toggle
+  toggleRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 4 },
+  toggleLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.6)' },
+  toggleAction: { fontFamily: FontFamily.sansBold, fontSize: 13, color: CYAN },
+
+  // Demo
+  demoBtn: { alignSelf: 'center', marginTop: 4, paddingVertical: 8, paddingHorizontal: 16 },
+  demoText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: 'rgba(255,255,255,0.4)' },
 });

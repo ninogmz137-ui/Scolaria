@@ -319,12 +319,6 @@ export default function AgendaScreen() {
       Alert.alert('Chargement', 'Les données sont en cours de chargement, veuillez patienter.');
       return;
     }
-    const currentId = selectedChild?.id ?? selectedChildId;
-    const isReal = currentId.includes('-') && currentId.length > 10;
-    if (!isReal) {
-      Alert.alert('Info', 'Aucun enfant connecté. Veuillez vous connecter pour ajouter des événements.');
-      return;
-    }
     setNewEventTitle('');
     setNewEventType('devoir');
     setAddModalVisible(true);
@@ -337,11 +331,6 @@ export default function AgendaScreen() {
     }
     const currentChildId = selectedChild?.id ?? selectedChildId;
     const isReal = currentChildId.includes('-') && currentChildId.length > 10;
-    if (!currentChildId || !user?.id) return;
-    if (!isReal) {
-      Alert.alert('Erreur', 'Aucun enfant connecté. Veuillez vous connecter.');
-      return;
-    }
 
     const selectedDayInfo = weekDays.find((d) => d.date === selectedDay);
     const dayDate = selectedDayInfo?.fullDate ?? new Date();
@@ -353,21 +342,39 @@ export default function AgendaScreen() {
 
     setIsSaving(true);
     try {
-      const result = await createAgendaEvent({
-        child_id: selectedChild?.id ?? selectedChildId,
-        parent_id: user.id,
-        title: newEventTitle.trim(),
-        event_type: typeMap[newEventType],
-        emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
-        start_time: dayDate.toISOString(),
-      });
-      if (result?.error) {
-        console.error('[Agenda] createAgendaEvent error:', JSON.stringify(result.error));
-        Alert.alert('Erreur', `Impossible de créer l'événement : ${result.error.message || 'Veuillez réessayer.'}`);
-      } else {
-        setAddModalVisible(false);
+      if (isReal && currentChildId && user?.id) {
+        // Real user → persist to Supabase
+        const result = await createAgendaEvent({
+          child_id: currentChildId,
+          parent_id: user.id,
+          title: newEventTitle.trim(),
+          event_type: typeMap[newEventType],
+          emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
+          start_time: dayDate.toISOString(),
+        });
+        if (result?.error) {
+          console.error('[Agenda] createAgendaEvent error:', JSON.stringify(result.error));
+          Alert.alert('Erreur', `Impossible de créer l'événement : ${result.error.message || 'Veuillez réessayer.'}`);
+          return;
+        }
         await loadEvents();
+      } else {
+        // Demo mode → add locally
+        const hh = dayDate.getHours().toString().padStart(2, '0');
+        const localEvent: AgendaEvent = {
+          id: `local-${Date.now()}`,
+          title: newEventTitle.trim(),
+          time: `${hh}h00`,
+          type: typeMap[newEventType],
+          emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
+          color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#3B82F6',
+        };
+        setEventsByDay((prev) => ({
+          ...prev,
+          [selectedDay]: [...(prev[selectedDay] ?? []), localEvent],
+        }));
       }
+      setAddModalVisible(false);
     } finally {
       setIsSaving(false);
     }
@@ -576,15 +583,39 @@ export default function AgendaScreen() {
             })
           )}
 
-          {/* Add event button */}
-          <Pressable onPress={openAddModal} style={{ borderRadius: 16, overflow: 'hidden', marginTop: 4 }}>
-            <LinearGradient colors={['#3B82F6', '#6366F1']} style={st.addBtn}>
-              <Papicons name="Plus" size={22} color="#FFFFFF" />
-              <Text style={st.addBtnText}>Ajouter un événement</Text>
-            </LinearGradient>
-          </Pressable>
         </View>
       </ScrollView>
+
+      {/* Floating add button */}
+      <Pressable
+        onPress={openAddModal}
+        style={({ pressed }) => ({
+          position: 'absolute',
+          bottom: 90,
+          right: 20,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          overflow: 'hidden',
+          opacity: pressed ? 0.85 : 1,
+          elevation: 0,
+        })}
+      >
+        <LinearGradient
+          colors={['#6366F1', '#22D3EE']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Papicons name="Plus" size={26} color="#FFFFFF" />
+        </LinearGradient>
+      </Pressable>
 
       {/* ─── Calendar Placeholder Modal ──────────────────── */}
       <Modal

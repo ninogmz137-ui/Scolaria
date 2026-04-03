@@ -20,7 +20,6 @@ import {
   StyleSheet,
   Modal,
   Animated,
-  Alert,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -381,7 +380,7 @@ export default function MessagerieScreen() {
       markRead(item.id);
       switch (item.type) {
         case 'liaison':
-          navigation.navigate('Accueil', { screen: 'CahierLiaisonScreen' });
+          navigation.navigate('MessagesListScreen');
           break;
         case 'note':
           navigation.navigate('Notes');
@@ -390,10 +389,10 @@ export default function MessagerieScreen() {
           navigation.navigate('Agenda');
           break;
         case 'absence':
-          navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' });
+          navigation.navigate('SignalerAbsence');
           break;
         case 'aria':
-          navigation.navigate('Aria');
+          navigation.navigate('MessagerieAriaScreen');
           break;
       }
     },
@@ -447,7 +446,7 @@ export default function MessagerieScreen() {
       onPress: () => {
         closeFab();
         setTimeout(
-          () => Alert.alert('Bientôt disponible', 'La messagerie bidirectionnelle arrivera prochainement.'),
+          () => navigation.navigate('MessagesListScreen'),
           300,
         );
       },
@@ -459,7 +458,7 @@ export default function MessagerieScreen() {
       onPress: () => {
         closeFab();
         setTimeout(
-          () => Alert.alert('Bientôt disponible', "La messagerie vers l'établissement arrivera prochainement."),
+          () => navigation.navigate('EcoleListScreen'),
           300,
         );
       },
@@ -470,7 +469,7 @@ export default function MessagerieScreen() {
       label: 'Signaler une absence',
       onPress: () => {
         closeFab();
-        setTimeout(() => navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' }), 300);
+        setTimeout(() => navigation.navigate('SignalerAbsence'), 300);
       },
     },
   ];
@@ -512,7 +511,7 @@ export default function MessagerieScreen() {
           <View style={styles.categoryRow}>
             {/* Messages */}
             <CategoryCard
-              onPress={() => navigation.navigate('Accueil', { screen: 'MessagesListScreen' })}
+              onPress={() => navigation.navigate('MessagesListScreen')}
               iconContent={<Text style={styles.categoryEmoji}>💬</Text>}
               iconBg="#EFF6FF"
               label="Messages"
@@ -522,7 +521,7 @@ export default function MessagerieScreen() {
             />
             {/* École */}
             <CategoryCard
-              onPress={() => navigation.navigate('Accueil', { screen: 'EcoleListScreen' })}
+              onPress={() => navigation.navigate('EcoleListScreen')}
               iconContent={<Text style={styles.categoryEmoji}>🏫</Text>}
               iconBg="#F0FDF4"
               label="École"
@@ -536,7 +535,7 @@ export default function MessagerieScreen() {
           <View style={styles.categoryRow}>
             {/* Absences */}
             <CategoryCard
-              onPress={() => navigation.navigate('Accueil', { screen: 'AbsencesListScreen' })}
+              onPress={() => navigation.navigate('AbsencesListScreen')}
               iconContent={<Text style={styles.categoryEmoji}>📋</Text>}
               iconBg="#FFF7ED"
               label="Absences"
@@ -546,7 +545,7 @@ export default function MessagerieScreen() {
             />
             {/* Aria */}
             <CategoryCard
-              onPress={() => navigation.navigate('Aria')}
+              onPress={() => navigation.navigate('MessagerieAriaScreen')}
               iconContent={<AriaSparkleIcon size={28} />}
               iconBg="#EEF2FF"
               label="Aria"

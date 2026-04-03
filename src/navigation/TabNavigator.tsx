@@ -78,6 +78,7 @@ const SCREEN_TITLES: Record<string, string> = {
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
   AriaScreen: 'Aria',
+  MessagerieAriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
@@ -187,27 +188,12 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="AriaScreen"
         component={AriaScreen}
-        options={{ title: 'Aria' }}
+        options={{ headerShown: false }}
       />
       <AccueilStack.Screen
         name="WallpaperPicker"
         component={WallpaperPickerScreen}
         options={{ title: "Fond d'écran" }}
-      />
-      <AccueilStack.Screen
-        name="MessagesListScreen"
-        component={MessagesListScreen}
-        options={{ title: 'Messages' }}
-      />
-      <AccueilStack.Screen
-        name="AbsencesListScreen"
-        component={AbsencesListScreen}
-        options={{ title: 'Absences' }}
-      />
-      <AccueilStack.Screen
-        name="EcoleListScreen"
-        component={EcoleListScreen}
-        options={{ title: 'École' }}
       />
     </AccueilStack.Navigator>
   );
@@ -247,7 +233,26 @@ function AgendaStackScreen() {
 const MessagerieStack = createNativeStackNavigator();
 function MessagerieStackScreen() {
   return (
-    <MessagerieStack.Navigator screenOptions={{ headerShown: false }}>
+    <MessagerieStack.Navigator
+      screenOptions={{ headerShown: false }}
+      screenListeners={{
+        state: (e) => {
+          const data = e.data as any;
+          const routes = data?.state?.routes;
+          const index = data?.state?.index ?? 0;
+          backArrowRef.current?.setShowBack(index > 0);
+          if (index > 0 && routes?.[index]) {
+            const screenName = routes[index].name as string;
+            stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
+          }
+        },
+        focus: (e) => {
+          if (e.target?.includes('MessagerieHome')) {
+            backArrowRef.current?.setShowBack(false);
+          }
+        },
+      }}
+    >
       <MessagerieStack.Screen
         name="MessagerieHome"
         component={MessagerieScreen}
@@ -257,6 +262,26 @@ function MessagerieStackScreen() {
         name="SignalerAbsence"
         component={SignalerAbsenceScreen}
         options={{ title: 'Signaler une absence' }}
+      />
+      <MessagerieStack.Screen
+        name="MessagesListScreen"
+        component={MessagesListScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="AbsencesListScreen"
+        component={AbsencesListScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="EcoleListScreen"
+        component={EcoleListScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="MessagerieAriaScreen"
+        component={AriaScreen}
+        options={{ headerShown: false }}
       />
     </MessagerieStack.Navigator>
   );

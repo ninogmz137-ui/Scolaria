@@ -6,7 +6,7 @@
 
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+// ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import GlassCard from '../../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
@@ -86,25 +86,11 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
 
   return (
     <View style={styles.root}>
-      {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Retour"
-        >
-          <ChevronLeft size={24} color="#0F172A" strokeWidth={2} />
-        </Pressable>
-        <Text style={styles.headerTitle}>École</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: insets.top + 60, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
         ]}
       >
         {/* ── Section header ── */}
@@ -158,37 +144,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
 
-  // ── Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    backgroundColor: '#F2F2F7',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  headerTitle: {
-    flex: 1,
-    fontFamily: FontFamily.displayBold,
-    fontSize: 22,
-    color: '#0F172A',
-    textAlign: 'center',
-    letterSpacing: 0.2,
-  },
-  headerRight: {
-    width: 40,
-  },
-
   scrollContent: {
     paddingHorizontal: 18,
-    paddingTop: 8,
   },
 
   // ── Section header
