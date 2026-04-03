@@ -29,9 +29,6 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   MessagerieTab: MessageCircle,
 };
 
-// Icons that support fill (TrendingUp is a line chart — no fill variant)
-const SUPPORTS_FILL = new Set(['Accueil', 'Agenda', 'MessagerieTab']);
-
 // Hardcoded unread count — will be dynamic later
 const MESSAGERIE_UNREAD = 3;
 
@@ -51,13 +48,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           const isFocused = state.index === index;
           const IconComponent = TAB_ICONS[route.name] ?? Home;
 
-          // Filled vs outlined
-          const canFill = SUPPORTS_FILL.has(route.name);
+          // Active = thicker stroke, inactive = thinner
           const iconColor = isFocused ? ACTIVE_COLOR : INACTIVE_COLOR;
-          const iconFill = isFocused && canFill ? ACTIVE_COLOR : 'none';
-          const iconStrokeWidth = route.name === 'Notes'
-            ? (isFocused ? 2.5 : 1.5)
-            : 2;
+          const iconStrokeWidth = isFocused ? 2.5 : 1.5;
 
           // Badge on Messagerie
           const isMessagerieTab = route.name === 'MessagerieTab';
@@ -96,7 +89,6 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                 <IconComponent
                   size={24}
                   color={iconColor}
-                  fill={iconFill}
                   strokeWidth={iconStrokeWidth}
                 />
                 {unreadCount > 0 && (
