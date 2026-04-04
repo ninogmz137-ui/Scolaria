@@ -71,13 +71,13 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
                 borderBottomLeftRadius: 6,
               }
             : {
-                backgroundColor: '#3B82F6',
+                backgroundColor: '#7C3AED',
                 borderBottomRightRadius: 6,
               }),
         }}
       >
         {isAria && (
-          <Text className="text-xs font-bold mb-1" style={{ color: '#3B82F6' }}>
+          <Text className="text-xs font-bold mb-1" style={{ color: '#7C3AED' }}>
             Aria ✦
           </Text>
         )}
@@ -105,7 +105,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
                 style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1, marginTop: 8 })}
               >
                 <LinearGradient
-                  colors={['#3B82F6', '#1D4ED8']}
+                  colors={['#7C3AED', '#06B6D4']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{

@@ -6,7 +6,7 @@
  * Avatar (left):
  *   - Glass circle, shows child emoji / photo / initials
  *   - Neutral border #E2E8F0 — no school-level color
- *   - TAP → always opens child switcher bottom sheet
+ *   - TAP → compact popover appears above the avatar
  *
  * Central pill (flex 1):
  *   - Glass morphism, 4 tabs (Accueil, Notes, Agenda, Messagerie)
@@ -26,11 +26,15 @@ import {
   Text,
   StyleSheet,
   Platform,
-  Modal,
   TouchableOpacity,
   Image,
-  ScrollView,
 } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 import { Pressable } from './ui';
 import { Home, TrendingUp, Calendar, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -93,84 +97,113 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   MessagerieTab: MessageCircle,
 };
 
-// ─── Child Switcher Sheet ────────────────────────────────
+// ─── Child Popover ───────────────────────────────────────
 
-interface ChildSwitcherProps {
+interface ChildPopoverProps {
   visible: boolean;
   onClose: () => void;
+  bottomOffset: number;
 }
 
-function ChildSwitcherSheet({ visible, onClose }: ChildSwitcherProps) {
+function ChildPopover({ visible, onClose, bottomOffset }: ChildPopoverProps) {
   const { children, selectedChildId, selectChild } = useActiveChild();
-  const insets = useSafeAreaInsets();
+
+  // Animation values
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(8);
+  const scale = useSharedValue(0.96);
+
+  // Drive animation based on visible prop
+  if (visible) {
+    opacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+    translateY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.ease) });
+    scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+  } else {
+    opacity.value = withTiming(0, { duration: 150, easing: Easing.in(Easing.ease) });
+    translateY.value = withTiming(8, { duration: 150, easing: Easing.in(Easing.ease) });
+    scale.value = withTiming(0.96, { duration: 150, easing: Easing.in(Easing.ease) });
+  }
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
+
+  if (!visible) return null;
+
+  // Popover sits above the tab bar: tab bar bottom + tab bar height (50px circle) + 8px gap
+  const popoverBottom = bottomOffset + 50 + 8;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity
-        style={styles.sheetOverlay}
-        activeOpacity={1}
+    <>
+      {/* Full-screen transparent overlay to catch outside taps */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
         onPress={onClose}
+        accessibilityLabel="Fermer"
       />
-      <View style={[styles.sheetCard, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={styles.sheetHandle} />
-        <Text style={styles.sheetTitle}>Changer d'enfant</Text>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {children.map((child) => {
-            const isSelected = child.id === selectedChildId;
-            const isEmoji = child.avatarType === 'emoji';
-            const hasPhoto = child.avatarType === 'photo' && child.avatarPhotoUri;
 
-            return (
-              <TouchableOpacity
-                key={child.id}
-                style={[
-                  styles.sheetChildRow,
-                  isSelected && styles.sheetChildRowActive,
-                ]}
-                onPress={() => {
-                  selectChild(child.id);
-                  onClose();
-                }}
-              >
-                {/* Avatar */}
-                <View style={[styles.sheetAvatar, isSelected && styles.sheetAvatarActive]}>
-                  {hasPhoto ? (
-                    <Image
-                      source={{ uri: child.avatarPhotoUri! }}
-                      style={styles.sheetAvatarImage}
-                    />
-                  ) : isEmoji && child.avatarEmoji ? (
-                    <Text style={{ fontSize: 22 }}>{child.avatarEmoji}</Text>
-                  ) : (
-                    <Text style={styles.sheetAvatarInitials}>
-                      {getInitials(child.name)}
-                    </Text>
-                  )}
-                </View>
+      {/* Popover card */}
+      <Animated.View
+        style={[
+          styles.popover,
+          { bottom: popoverBottom },
+          animatedStyle,
+        ]}
+      >
+        {children.map((child) => {
+          const isActive = child.id === selectedChildId;
+          const isEmoji = child.avatarType === 'emoji';
+          const hasPhoto = child.avatarType === 'photo' && child.avatarPhotoUri;
 
-                {/* Name + classe */}
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.sheetChildName}>{child.name.split(' ')[0]}</Text>
-                  <Text style={styles.sheetChildClasse} numberOfLines={1}>
-                    {child.classe}
+          return (
+            <TouchableOpacity
+              key={child.id}
+              style={[styles.popoverItem, isActive && styles.popoverItemActive]}
+              onPress={() => {
+                selectChild(child.id);
+                onClose();
+              }}
+              activeOpacity={0.7}
+            >
+              {/* Emoji / photo / initials circle */}
+              <View style={styles.popoverAvatar}>
+                {hasPhoto ? (
+                  <Image
+                    source={{ uri: child.avatarPhotoUri! }}
+                    style={styles.popoverAvatarImage}
+                  />
+                ) : isEmoji && child.avatarEmoji ? (
+                  <Text style={{ fontSize: 16 }}>{child.avatarEmoji}</Text>
+                ) : (
+                  <Text style={styles.popoverAvatarInitials}>
+                    {getInitials(child.name)}
                   </Text>
-                </View>
-
-                {/* Selected indicator */}
-                {isSelected && (
-                  <View style={styles.sheetSelectedDot} />
                 )}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-    </Modal>
+              </View>
+
+              {/* Name + classe */}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.popoverChildName} numberOfLines={1}>
+                  {child.name.split(' ')[0]}
+                </Text>
+                <Text style={styles.popoverChildClasse} numberOfLines={1}>
+                  {child.classe}
+                </Text>
+              </View>
+
+              {/* Active checkmark */}
+              {isActive && (
+                <Text style={styles.popoverCheckmark}>✓</Text>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </Animated.View>
+    </>
   );
 }
 
@@ -179,15 +212,15 @@ function ChildSwitcherSheet({ visible, onClose }: ChildSwitcherProps) {
 export default function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
-  const [childSwitcherVisible, setChildSwitcherVisible] = useState(false);
+  const [popoverVisible, setPopoverVisible] = useState(false);
 
   // Avatar content
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
 
-  // Avatar tap → always open child switcher
+  // Avatar tap → toggle popover
   const handleAvatarPress = () => {
-    setChildSwitcherVisible(true);
+    setPopoverVisible((prev) => !prev);
   };
 
   // Aria tap → navigate to AriaScreen
@@ -200,6 +233,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
 
   return (
     <>
+      {/* Child popover — rendered outside the tab bar container so it overlays above */}
+      <ChildPopover
+        visible={popoverVisible}
+        onClose={() => setPopoverVisible(false)}
+        bottomOffset={bottomOffset}
+      />
+
       <View style={[styles.container, { bottom: bottomOffset }]}>
 
         {/* ── Avatar circle (left) ── */}
@@ -282,12 +322,6 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           <AriaSparkleIcon size={28} noGradient gradientSparkles />
         </Pressable>
       </View>
-
-      {/* Child switcher bottom sheet */}
-      <ChildSwitcherSheet
-        visible={childSwitcherVisible}
-        onClose={() => setChildSwitcherVisible(false)}
-      />
     </>
   );
 }
@@ -377,86 +411,74 @@ const styles = StyleSheet.create({
     borderColor: GLASS_BG,
   },
 
-  // ── Child switcher sheet ──────────────────────────────
-  sheetOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  sheetCard: {
+  // ── Child popover ─────────────────────────────────────
+  popover: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: 12,
+    minWidth: 210,
+    borderRadius: 16,
+    padding: 6,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    paddingHorizontal: 20,
-    maxHeight: '65%',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 32,
+      },
+      android: { elevation: 0 },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 32,
+      },
+    }),
   },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E2E8F0',
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  sheetTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
-    color: '#0F172A',
-    marginBottom: 16,
-  },
-  sheetChildRow: {
+  popoverItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 10,
+    gap: 10,
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 14,
-    marginBottom: 6,
-  },
-  sheetChildRowActive: {
-    backgroundColor: '#F0F4FF',
-  },
-  sheetAvatar: {
-    width: 44,
-    height: 44,
     borderRadius: 12,
-    backgroundColor: '#E2E8F0',
+  },
+  popoverItemActive: {
+    backgroundColor: 'rgba(99,102,241,0.10)',
+  },
+  popoverAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(99,102,241,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  sheetAvatarActive: {
-    backgroundColor: '#DBEAFE',
+  popoverAvatarImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
   },
-  sheetAvatarImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-  },
-  sheetAvatarInitials: {
-    color: '#64748B',
-    fontSize: 14,
+  popoverAvatarInitials: {
+    color: '#6366F1',
+    fontSize: 11,
     fontFamily: FontFamily.sansBold,
   },
-  sheetChildName: {
+  popoverChildName: {
+    fontSize: 13,
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
     color: '#0F172A',
   },
-  sheetChildClasse: {
+  popoverChildClasse: {
+    fontSize: 10,
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#64748B',
+    color: '#94A3B8',
     marginTop: 1,
   },
-  sheetSelectedDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#6366F1',
+  popoverCheckmark: {
+    fontSize: 13,
+    color: '#6366F1',
+    fontFamily: FontFamily.sansSemiBold,
   },
 });

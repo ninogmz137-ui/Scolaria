@@ -1,386 +1,276 @@
 /**
- * SettingsScreen — Main settings accessed from burger menu.
- * Sections: Apparence (ThemeSelector), Notifications, RGPD, Compte
- * Design: glass/wallpaper — WallpaperBackground + GlassCard
+ * SettingsScreen — Clean white/black design.
+ * No WallpaperBackground, no GlassCard, no Papicons.
+ * Sections: Mes Enfants, Apparence, Confidentialité, À propos
  */
 
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Switch, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Papicons } from '@getpapillon/papicons';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Switch,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ImagePlus, Check } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
-import WallpaperBackground from '../components/WallpaperBackground';
-import GlassCard from '../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { useNavigation } from '@react-navigation/native';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Colors } from '../constants/colors';
-import { useChildTheme } from '../contexts/ChildThemeContext';
-import { useI18n } from '../contexts/I18nContext';
-import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
 
-// ─── Types ────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────
 
-interface SettingsRow {
-  icon: string;
-  label: string;
-  sublabel?: string;
-  color: string;
-  type: 'navigate' | 'toggle' | 'value';
-  value?: string;
-  toggleKey?: string;
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0] ?? '')
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 }
 
-// ─── Section component ───────────────────────────────────
+// ─── Section title ────────────────────────────────────────
 
-function SettingsSection({
-  title,
-  children,
-  titleColor,
-}: {
-  title: string;
-  children: React.ReactNode;
-  titleColor?: string;
-}) {
+function SectionTitle({ label }: { label: string }) {
   return (
-    <View style={styles.sectionWrapper}>
-      <View style={styles.sectionTitleRow}>
-        <Text style={[styles.sectionTitle, titleColor ? { color: titleColor } : undefined]}>{title}</Text>
-      </View>
-      <GlassCard noPadding>
-        {children}
-      </GlassCard>
-    </View>
+    <Text style={styles.sectionTitle}>{label}</Text>
   );
 }
 
-// ─── Row component ───────────────────────────────────────
+// ─── Separator ────────────────────────────────────────────
 
-function SettingsRowItem({
-  icon,
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
+// ─── Row item ─────────────────────────────────────────────
+
+interface RowProps {
+  emoji?: string;
+  label: string;
+  sublabel?: string;
+  labelColor?: string;
+  type: 'navigate' | 'toggle' | 'value';
+  value?: string;
+  toggleValue?: boolean;
+  onToggle?: (v: boolean) => void;
+  onPress?: () => void;
+  showSeparator?: boolean;
+}
+
+function Row({
+  emoji,
   label,
   sublabel,
-  color,
+  labelColor,
   type,
   value,
   toggleValue,
   onToggle,
   onPress,
-  isLast,
-  labelColor,
-  sublabelColor,
-  chevronColor: chevColor,
-  borderColor: rowBorderColor,
-  switchTrackOff,
-}: SettingsRow & {
-  toggleValue?: boolean;
-  onToggle?: (v: boolean) => void;
-  onPress?: () => void;
-  isLast?: boolean;
-  labelColor?: string;
-  sublabelColor?: string;
-  chevronColor?: string;
-  borderColor?: string;
-  switchTrackOff?: string;
-}) {
+  showSeparator = true,
+}: RowProps) {
   return (
-    <Pressable
-      style={[
-        styles.row,
-        !isLast && [styles.rowBorder, rowBorderColor ? { borderBottomColor: rowBorderColor } : undefined],
-      ]}
-      onPress={onPress}
-    >
-      <View style={[styles.iconBox, { backgroundColor: color + '28' }]}>
-        <Papicons name={icon} size={18} color={color} />
-      </View>
-      <View style={styles.rowTextStack}>
-        <Text style={[styles.rowLabel, labelColor ? { color: labelColor } : undefined]}>{label}</Text>
-        {sublabel ? <Text style={[styles.rowSublabel, sublabelColor ? { color: sublabelColor } : undefined]}>{sublabel}</Text> : null}
-      </View>
-      {type === 'navigate' && (
-        <Papicons name="ChevronRight" size={18} color={chevColor || 'rgba(255,255,255,0.45)'} />
-      )}
-      {type === 'value' && (
-        <Text style={styles.rowValue}>{value}</Text>
-      )}
-      {type === 'toggle' && (
-        <Switch
-          value={toggleValue}
-          onValueChange={onToggle}
-          trackColor={{ false: switchTrackOff || 'rgba(255,255,255,0.2)', true: Colors.violet }}
-          thumbColor={toggleValue ? Colors.cyan : 'rgba(255,255,255,0.6)'}
-        />
-      )}
-    </Pressable>
+    <>
+      <Pressable
+        style={({ pressed }) => [
+          styles.row,
+          pressed && type !== 'toggle' && { opacity: 0.6 },
+        ]}
+        onPress={type !== 'toggle' ? onPress : undefined}
+      >
+        {emoji ? (
+          <Text style={styles.rowEmoji}>{emoji}</Text>
+        ) : null}
+        <View style={styles.rowTextStack}>
+          <Text style={[styles.rowLabel, labelColor ? { color: labelColor } : null]}>
+            {label}
+          </Text>
+          {sublabel ? (
+            <Text style={styles.rowSublabel}>{sublabel}</Text>
+          ) : null}
+        </View>
+        {type === 'navigate' && (
+          <Text style={styles.chevron}>›</Text>
+        )}
+        {type === 'value' && (
+          <Text style={styles.rowValueText}>{value}</Text>
+        )}
+        {type === 'toggle' && (
+          <Switch
+            value={toggleValue}
+            onValueChange={onToggle}
+            trackColor={{ false: '#E2E8F0', true: '#1A2340' }}
+            thumbColor="#FFFFFF"
+          />
+        )}
+      </Pressable>
+      {showSeparator && <Separator />}
+    </>
   );
 }
 
-// ─── Main screen ─────────────────────────────────────────
+// ─── Main screen ──────────────────────────────────────────
 
 export default function SettingsScreen({ navigation }: { navigation: any }) {
-  const { t } = useI18n();
-  const { theme } = useChildTheme();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
-  const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
+  const nav = useNavigation<any>();
+  const { children } = useActiveChild();
+  const { user } = useAuth();
+  const { wallpaper } = useWallpaper();
 
-  // Mode-aware text colors
-  const textPrimary = theme.textOnBg;
-  const textSecondary = theme.textOnBgSecondary;
-  const textMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
-  const cardText = theme.isDarkBg ? '#FFFFFF' : '#0F172A';
-  const cardTextMuted = theme.isDarkBg ? 'rgba(255,255,255,0.5)' : '#94A3B8';
-  const borderCol = theme.isDarkBg ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)';
-  const switchTrack = theme.isDarkBg ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
+  const [darkMode, setDarkMode] = useState(false);
 
-  const [notifications, setNotifications] = useState({
-    grades: true,
-    agenda: true,
-    aria: false,
-    checkin: true,
-  });
-
-  const selectedWallpaperId = customUri ? '__custom__' : wallpaper.id;
-
-  const pickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [9, 16],
-    });
-    if (!result.canceled && result.assets[0]) {
-      setCustomWallpaper(result.assets[0].uri);
-    }
-  };
+  // Parent name and email from auth context
+  const parentName =
+    user?.user_metadata?.family_name
+      ? `Famille ${user.user_metadata.family_name}`
+      : 'Parent Scolaria';
+  const parentEmail = user?.email ?? 'parent@scolaria.fr';
+  const parentInitials = getInitials(parentName);
 
   return (
     <View style={styles.root}>
-      <WallpaperBackground />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: insets.top + 16, paddingBottom: 120 },
         ]}
       >
-        {/* Title section */}
-        <View style={styles.titleSection}>
-          <Text style={styles.titleEmoji}>⚙️</Text>
-          <Text style={[styles.titleText, { color: textPrimary }]}>Réglages</Text>
-          <Text style={[styles.titleSub, { color: textSecondary }]}>Personnalisez votre expérience</Text>
-        </View>
+        {/* ── Header ── */}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.backText}>‹ Retour</Text>
+        </TouchableOpacity>
 
-        {/* Wallpaper picker */}
-        <SettingsSection title="FOND D'ÉCRAN" titleColor={textSecondary}>
-          <View style={{ padding: 12 }}>
-            {/* Gallery button */}
-            <TouchableOpacity
-              onPress={pickFromGallery}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: theme.isDarkBg ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
-                borderRadius: 12,
-                padding: 12,
-                marginBottom: 12,
-                gap: 10,
-              }}
-            >
-              <ImagePlus size={20} color="#3B82F6" strokeWidth={2} />
-              <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 14, color: '#3B82F6' }}>
-                Choisir depuis ma galerie
-              </Text>
-            </TouchableOpacity>
+        <Text style={styles.pageTitle}>Réglages</Text>
 
-            {/* Wallpaper carousel — horizontal scroll */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
-            >
-              {WALLPAPERS.map((wp) => {
-                const isSelected = selectedWallpaperId === wp.id;
-                return (
-                  <TouchableOpacity
-                    key={wp.id}
-                    onPress={() => setWallpaperId(wp.id)}
-                    style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                      borderWidth: isSelected ? 2 : 0,
-                      borderColor: '#3B82F6',
-                    }}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isSelected }}
-                    accessibilityLabel={wp.label}
-                  >
-                    {wp.imageUrl ? (
-                      <Image source={{ uri: wp.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                    ) : (
-                      <LinearGradient colors={wp.colors as [string, string, ...string[]]} style={{ width: '100%', height: '100%' }} />
-                    )}
-                    {isSelected && (
-                      <View style={{ position: 'absolute', top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center', elevation: 0 }}>
-                        <Check size={12} color="#FFFFFF" strokeWidth={2.5} />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            {/* Custom wallpaper preview */}
-            {customUri && (
-              <View style={{ marginTop: 8 }}>
-                <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 12, color: cardTextMuted, marginBottom: 6 }}>
-                  Photo personnalisée active
-                </Text>
-                <View style={{ width: '100%', height: 80, borderRadius: 12, overflow: 'hidden', borderWidth: 2, borderColor: '#3B82F6' }}>
-                  <Image source={{ uri: customUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                </View>
-              </View>
-            )}
+        {/* ── Parent profile mini-card ── */}
+        <View style={styles.profileCard}>
+          <LinearGradient
+            colors={['#7C3AED', '#06B6D4']}
+            style={styles.profileAvatar}
+          >
+            <Text style={styles.profileInitials}>{parentInitials}</Text>
+          </LinearGradient>
+          <View style={styles.profileTextCol}>
+            <Text style={styles.profileName}>{parentName}</Text>
+            <Text style={styles.profileEmail}>{parentEmail}</Text>
           </View>
-        </SettingsSection>
-
-        {/* Notifications */}
-        <SettingsSection title={t('settings.notifications')} titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="Grades"
-            label={t('settings.notifGrades')}
-            sublabel={t('settings.notifGradesSub')}
-            color={Colors.cyan}
-            type="toggle"
-            toggleValue={notifications.grades}
-            onToggle={(v) => setNotifications((p) => ({ ...p, grades: v }))}
-            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
-          />
-          <SettingsRowItem
-            icon="Calendar"
-            label={t('settings.notifAgenda')}
-            sublabel={t('settings.notifAgendaSub')}
-            color={Colors.violet}
-            type="toggle"
-            toggleValue={notifications.agenda}
-            onToggle={(v) => setNotifications((p) => ({ ...p, agenda: v }))}
-            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
-          />
-          <SettingsRowItem
-            icon="Sparkles"
-            label={t('settings.notifAria')}
-            sublabel={t('settings.notifAriaSub')}
-            color={Colors.pink}
-            type="toggle"
-            toggleValue={notifications.aria}
-            onToggle={(v) => setNotifications((p) => ({ ...p, aria: v }))}
-            labelColor={cardText} sublabelColor={cardTextMuted} borderColor={borderCol} switchTrackOff={switchTrack}
-          />
-          <SettingsRowItem
-            icon="Heart"
-            label={t('settings.notifCheckin')}
-            sublabel={t('settings.notifCheckinSub')}
-            color={Colors.orange}
-            type="toggle"
-            toggleValue={notifications.checkin}
-            onToggle={(v) => setNotifications((p) => ({ ...p, checkin: v }))}
-            isLast
-            labelColor={cardText} sublabelColor={cardTextMuted} switchTrackOff={switchTrack}
-          />
-        </SettingsSection>
-
-        {/* Compte */}
-        <SettingsSection title="COMPTE" titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="User"
-            label="Mon profil"
-            color="#3B82F6"
-            type="navigate"
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-            borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Building"
-            label="Enfants & établissements"
-            color="#10B981"
-            type="navigate"
-            isLast
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-          />
-        </SettingsSection>
-
-        {/* Aide */}
-        <SettingsSection title="AIDE" titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="Info"
-            label="Centre d'aide"
-            color="#6366F1"
-            type="navigate"
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-            borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Mail"
-            label="Nous contacter"
-            color="#22D3EE"
-            type="navigate"
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-            borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Sparkles"
-            label="Noter l'application"
-            color="#F59E0B"
-            type="navigate"
-            isLast
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-          />
-        </SettingsSection>
-
-        {/* À propos */}
-        <SettingsSection title="À PROPOS" titleColor={textSecondary}>
-          <SettingsRowItem
-            icon="Info"
-            label="Version"
-            color="#94A3B8"
-            type="value"
-            value="1.0.0"
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            borderColor={borderCol}
-          />
-          <SettingsRowItem
-            icon="Paper"
-            label="Conditions d'utilisation"
-            color="#64748B"
-            type="navigate"
-            isLast
-            labelColor={cardText}
-            sublabelColor={cardTextMuted}
-            chevronColor={cardTextMuted}
-          />
-        </SettingsSection>
-
-        {/* App info */}
-        <View style={styles.footer}>
-          <Text style={[styles.footerBrand, { color: textPrimary }]}>Scolaria</Text>
-          <Text style={[styles.footerVersion, { color: textMuted }]}>{t('common.version')} 1.0.0</Text>
-          <Text style={[styles.footerCopy, { color: textMuted }]}>© 2026 Scolaria · Passeport scolaire numérique</Text>
+          <Text style={styles.profileChevron}>›</Text>
         </View>
+        <View style={styles.profileSeparator} />
+
+        {/* ══ SECTION 1: MES ENFANTS ══ */}
+        <SectionTitle label="MES ENFANTS" />
+
+        {children.map((child, index) => (
+          <Row
+            key={child.id}
+            emoji={child.avatarEmoji ?? child.avatar ?? '👤'}
+            label={child.name}
+            sublabel={child.classe}
+            type="navigate"
+            onPress={() => nav.navigate('ProfilEnfant', { childId: child.id })}
+            showSeparator={index < children.length - 1 || true}
+          />
+        ))}
+        <Row
+          label="Ajouter un enfant"
+          labelColor="#7C3AED"
+          type="navigate"
+          onPress={() => nav.navigate('AjouterEnfant')}
+          showSeparator={false}
+        />
+
+        {/* ══ SECTION 2: APPARENCE ══ */}
+        <SectionTitle label="APPARENCE" />
+
+        <Row
+          emoji="🖼️"
+          label="Fond d'écran"
+          sublabel={wallpaper.label}
+          type="navigate"
+          onPress={() => nav.navigate('WallpaperPicker')}
+        />
+        <Row
+          emoji="🌙"
+          label="Mode sombre"
+          type="toggle"
+          toggleValue={darkMode}
+          onToggle={setDarkMode}
+        />
+        <Row
+          emoji="🔤"
+          label="Taille du texte"
+          sublabel="Normal"
+          type="navigate"
+          onPress={undefined}
+          showSeparator={false}
+        />
+
+        {/* ══ SECTION 3: CONFIDENTIALITÉ ══ */}
+        <SectionTitle label="CONFIDENTIALITÉ" />
+
+        <Row
+          emoji="🔑"
+          label="Permissions données"
+          type="navigate"
+          onPress={() => nav.navigate('PermissionsRGPD')}
+        />
+        <Row
+          emoji="📋"
+          label="Journal d'accès"
+          sublabel="Dernière connexion il y a 2h"
+          type="navigate"
+          onPress={() => nav.navigate('JournalAcces')}
+        />
+        <Row
+          emoji="📦"
+          label="Exporter mes données"
+          type="navigate"
+          onPress={() => nav.navigate('ExportDonnees')}
+        />
+        <Row
+          emoji="🗑️"
+          label="Supprimer mon compte"
+          labelColor="#EF4444"
+          type="navigate"
+          onPress={() => nav.navigate('Effacement')}
+          showSeparator={false}
+        />
+
+        {/* ══ SECTION 4: À PROPOS ══ */}
+        <SectionTitle label="À PROPOS" />
+
+        <Row
+          emoji="ℹ️"
+          label="Version"
+          sublabel="Scolaria 1.0.0"
+          type="value"
+          value="1.0.0"
+        />
+        <Row
+          emoji="📄"
+          label="Mentions légales"
+          type="navigate"
+          onPress={() => nav.navigate('APropos')}
+        />
+        <Row
+          emoji="✉️"
+          label="Nous contacter"
+          type="navigate"
+          onPress={undefined}
+          showSeparator={false}
+        />
       </ScrollView>
     </View>
   );
@@ -391,103 +281,125 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
   },
 
-  // Title section
-  titleSection: {
-    alignItems: 'center',
-    marginBottom: 24,
-    gap: 4,
-  },
-  titleEmoji: {
-    fontSize: 36,
+  // Header
+  backButton: {
+    alignSelf: 'flex-start',
     marginBottom: 4,
   },
-  titleText: {
-    fontFamily: FontFamily.loraBold,
-    fontSize: 26,
-  },
-  titleSub: {
+  backText: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
+    fontSize: 14,
+    color: '#94A3B8',
   },
-
-  // Section
-  sectionWrapper: {
+  pageTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 28,
+    color: '#1A2340',
+    marginTop: 8,
     marginBottom: 20,
   },
-  sectionTitleRow: {
+
+  // Profile card
+  profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 2,
+    paddingVertical: 14,
   },
+  profileAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  profileInitials: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
+  profileTextCol: {
+    flex: 1,
+  },
+  profileName: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: '#1A2340',
+  },
+  profileEmail: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 1,
+  },
+  profileChevron: {
+    fontSize: 18,
+    color: '#D1D5DB',
+  },
+  profileSeparator: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    marginBottom: 4,
+  },
+
+  // Section title
   sectionTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    letterSpacing: 2,
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
+    marginTop: 28,
+    marginBottom: 12,
   },
 
   // Row
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
     paddingVertical: 13,
-    gap: 12,
+    paddingHorizontal: 0,
   },
-  rowBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    // borderBottomColor applied inline via borderColor prop
-  },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  rowEmoji: {
+    width: 24,
+    textAlign: 'center',
+    fontSize: 15,
+    marginRight: 12,
   },
   rowTextStack: {
     flex: 1,
-    gap: 2,
   },
   rowLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
-    // color applied inline via labelColor
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: '#1A2340',
   },
   rowSublabel: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    // color applied inline via sublabelColor
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 1,
   },
-  rowValue: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: Colors.cyan,
+  chevron: {
+    fontSize: 18,
+    color: '#D1D5DB',
+  },
+  rowValueText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
   },
 
-  // Footer
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    gap: 4,
-  },
-  footerBrand: {
-    fontFamily: FontFamily.loraBold,
-    fontSize: 16,
-  },
-  footerVersion: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-  },
-  footerCopy: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    marginTop: 2,
+  // Separator
+  separator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F8FAFC',
   },
 });

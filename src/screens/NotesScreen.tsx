@@ -1048,7 +1048,6 @@ const s = StyleSheet.create({
     fontSize: 42,
     color: '#0F172A',
     letterSpacing: -2.5,
-    lineHeight: 48,
   },
   avgDenom: {
     fontFamily: FontFamily.sansSemiBold,
