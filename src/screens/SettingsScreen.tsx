@@ -13,6 +13,7 @@ import {
   Switch,
   StyleSheet,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -155,12 +156,24 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 
         {/* ── Parent profile mini-card ── */}
         <View style={styles.profileCard}>
-          <LinearGradient
-            colors={['#7C3AED', '#06B6D4']}
-            style={styles.profileAvatar}
-          >
-            <Text style={styles.profileInitials}>{parentInitials}</Text>
-          </LinearGradient>
+          {Platform.OS === 'web' ? (
+            <View
+              style={[
+                styles.profileAvatar,
+                // @ts-ignore — web-only CSS property
+                { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' },
+              ]}
+            >
+              <Text style={styles.profileInitials}>{parentInitials}</Text>
+            </View>
+          ) : (
+            <LinearGradient
+              colors={['#7C3AED', '#06B6D4']}
+              style={styles.profileAvatar}
+            >
+              <Text style={styles.profileInitials}>{parentInitials}</Text>
+            </LinearGradient>
+          )}
           <View style={styles.profileTextCol}>
             <Text style={styles.profileName}>{parentName}</Text>
             <Text style={styles.profileEmail}>{parentEmail}</Text>

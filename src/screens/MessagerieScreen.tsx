@@ -25,7 +25,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Papicons } from '@getpapillon/papicons';
-import { MessageSquarePlus } from 'lucide-react-native';
+import { MessageSquarePlus, ChevronRight, MessageCircle, Home, Calendar } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -37,7 +38,7 @@ import { useDemoData } from '../contexts/DemoContext';
 
 // ─── Constants ────────────────────────────────────────────
 
-const ACCENT = '#3B82F6';
+const ACCENT = '#7C3AED';
 /** Matches FLOATING_TAB_BAR_HEIGHT in FloatingTabBar.tsx */
 const TAB_BAR_H = 100;
 
@@ -529,55 +530,49 @@ export default function MessagerieScreen() {
             : 'Tout est à jour'}
         </Text>
 
-        {/* ── Category cards grid 2x2 ── */}
-        <View style={styles.categoryGrid}>
-          {/* Row 1 */}
-          <View style={styles.categoryRow}>
-            {/* Messages */}
-            <CategoryCard
-              onPress={() => navigation.navigate('MessagesListScreen')}
-              iconContent={<Text style={styles.categoryEmoji}>💬</Text>}
-              iconBg="#EFF6FF"
-              label="Messages"
-              sublabel={messagesCount > 0 ? `${messagesCount} conversation${messagesCount > 1 ? 's' : ''}` : 'Conversations'}
-              badgeCount={allItems.filter((n) => n.type === 'liaison' && !n.read).length}
-              badgeColor="#EF4444"
-            />
-            {/* École */}
-            <CategoryCard
-              onPress={() => navigation.navigate('EcoleListScreen')}
-              iconContent={<Text style={styles.categoryEmoji}>🏫</Text>}
-              iconBg="#F0FDF4"
-              label="École"
-              sublabel="Infos & annonces"
-              badgeCount={0}
-              badgeColor={ACCENT}
-            />
-          </View>
-
-          {/* Row 2 */}
-          <View style={styles.categoryRow}>
-            {/* Absences */}
-            <CategoryCard
-              onPress={() => navigation.navigate('AbsencesListScreen')}
-              iconContent={<Text style={styles.categoryEmoji}>📋</Text>}
-              iconBg="#FFF7ED"
-              label="Absences"
-              sublabel={absencesCount > 0 ? `${absencesCount} signalée${absencesCount > 1 ? 's' : ''}` : 'Historique'}
-              badgeCount={absencesCount}
-              badgeColor="#EF4444"
-            />
-            {/* Aria */}
-            <CategoryCard
-              onPress={() => navigation.navigate('MessagerieAriaScreen')}
-              iconContent={<AriaSparkleIcon size={28} />}
-              iconBg="#EEF2FF"
-              label="Aria"
-              sublabel="Synthèses & conseils"
-              badgeCount={ariaUnreadCount}
-              badgeColor="#6366F1"
-            />
-          </View>
+        {/* ── Category cards (stacked) ── */}
+        <View style={styles.categoryStack}>
+          {/* Messages */}
+          <CategoryCardRow
+            onPress={() => navigation.navigate('MessagesListScreen')}
+            gradientColors={['#1A2340', '#334155']}
+            iconContent={<MessageCircle size={20} color="#FFFFFF" strokeWidth={2} />}
+            label="Messages"
+            sublabel={messagesCount > 0 ? `${messagesCount} conversation${messagesCount > 1 ? 's' : ''}` : 'Aucune conversation'}
+            time="14h30"
+            badgeCount={allItems.filter((n) => n.type === 'liaison' && !n.read).length}
+          />
+          {/* École */}
+          <CategoryCardRow
+            onPress={() => navigation.navigate('EcoleListScreen')}
+            gradientColors={['#F59E0B', '#F97316']}
+            iconContent={<Home size={20} color="#FFFFFF" strokeWidth={2} />}
+            label="École"
+            sublabel="Infos & annonces"
+            time=""
+            badgeCount={0}
+          />
+          {/* Absences */}
+          <CategoryCardRow
+            onPress={() => navigation.navigate('AbsencesListScreen')}
+            gradientColors={['#64748B', '#94A3B8']}
+            iconContent={<Calendar size={20} color="#FFFFFF" strokeWidth={2} />}
+            label="Absences"
+            sublabel={absencesCount > 0 ? `${absencesCount} signalée${absencesCount > 1 ? 's' : ''}` : 'Historique'}
+            time=""
+            badgeCount={absencesCount}
+          />
+          {/* Aria */}
+          <CategoryCardRow
+            onPress={() => navigation.navigate('MessagerieAriaScreen')}
+            gradientColors={['#7C3AED', '#06B6D4']}
+            iconContent={<Text style={{ color: '#FFFFFF', fontSize: 16 }}>✦</Text>}
+            isCircle
+            label="Aria"
+            sublabel="Synthèses & conseils"
+            time=""
+            badgeCount={ariaUnreadCount}
+          />
         </View>
 
         {/* ── Divider before feed ── */}
@@ -691,56 +686,79 @@ export default function MessagerieScreen() {
   );
 }
 
-// ─── CategoryCard ────────────────────────────────────────
+// ─── CategoryCardRow ─────────────────────────────────────
 
-interface CategoryCardProps {
+interface CategoryCardRowProps {
   onPress: () => void;
+  gradientColors: [string, string];
   iconContent: React.ReactNode;
-  iconBg: string;
+  isCircle?: boolean;
   label: string;
   sublabel: string;
+  time: string;
   badgeCount: number;
-  badgeColor: string;
 }
 
-function CategoryCard({
+function CategoryCardRow({
   onPress,
+  gradientColors,
   iconContent,
-  iconBg,
+  isCircle,
   label,
   sublabel,
+  time,
   badgeCount,
-  badgeColor,
-}: CategoryCardProps) {
+}: CategoryCardRowProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.categoryCard, { opacity: pressed ? 0.8 : 1 }]}
+      style={({ pressed }) => [styles.catRow, { opacity: pressed ? 0.85 : 1 }]}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <GlassCard borderRadius={16} style={styles.categoryCardInner}>
-        <View style={styles.categoryCardContent}>
-          {/* Icon container */}
-          <View style={{ position: 'relative' }}>
-            <View style={[styles.categoryIconBox, { backgroundColor: iconBg }]}>
-              {iconContent}
-            </View>
-            {/* Badge */}
-            {badgeCount > 0 && (
-              <View style={[styles.categoryBadge, { backgroundColor: badgeColor }]}>
-                <Text style={styles.categoryBadgeText}>
-                  {badgeCount > 9 ? '9+' : String(badgeCount)}
-                </Text>
-              </View>
-            )}
+      {/* Icon with gradient (web fallback via CSS backgroundImage) */}
+      <View style={{ position: 'relative' }}>
+        {Platform.OS === 'web' ? (
+          <View
+            style={[
+              styles.catIconBox,
+              isCircle && styles.catIconCircle,
+              // @ts-ignore — web-only CSS property
+              { backgroundImage: `linear-gradient(135deg, ${gradientColors[0]}, ${gradientColors[1]})` },
+            ]}
+          >
+            {iconContent}
           </View>
+        ) : (
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.catIconBox, isCircle && styles.catIconCircle]}
+          >
+            {iconContent}
+          </LinearGradient>
+        )}
+        {badgeCount > 0 && (
+          <View style={styles.catBadge}>
+            <Text style={styles.catBadgeText}>
+              {badgeCount > 9 ? '9+' : String(badgeCount)}
+            </Text>
+          </View>
+        )}
+      </View>
 
-          {/* Labels */}
-          <Text style={styles.categoryLabel} numberOfLines={1}>{label}</Text>
-          <Text style={styles.categorySublabel} numberOfLines={1}>{sublabel}</Text>
-        </View>
-      </GlassCard>
+      {/* Text column */}
+      <View style={styles.catTextCol}>
+        <Text style={styles.catLabel} numberOfLines={1}>{label}</Text>
+        <Text style={styles.catSublabel} numberOfLines={1}>{sublabel}</Text>
+      </View>
+
+      {/* Right: time + chevron */}
+      <View style={styles.catRight}>
+        {time ? <Text style={styles.catTime}>{time}</Text> : null}
+        <ChevronRight size={16} color="#D1D5DB" strokeWidth={2} />
+      </View>
     </Pressable>
   );
 }
@@ -853,67 +871,83 @@ const styles = StyleSheet.create({
   },
 
   // ── Category grid
-  categoryGrid: {
-    gap: 12,
+  categoryStack: {
+    gap: 8,
     marginBottom: 20,
-    paddingHorizontal: 0,
   },
-  categoryRow: {
+  catRow: {
     flexDirection: 'row',
-    gap: 12,
-  },
-  categoryCard: {
-    flex: 1,
-    height: 130,
-  },
-  categoryCardInner: {
-    flex: 1,
-    // GlassCard handles the white bg, borderRadius prop is passed directly
-  },
-  categoryCardContent: {
-    flex: 1,
-    padding: 14,
-    gap: 6,
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    paddingRight: 12,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    gap: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
+      },
+      android: { elevation: 0 },
+    }),
   },
-  categoryIconBox: {
+  catIconBox: {
     width: 40,
     height: 40,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  categoryEmoji: {
-    fontSize: 20,
+  catIconCircle: {
+    borderRadius: 20,
   },
-  categoryLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  categorySublabel: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-  categoryBadge: {
+  catBadge: {
     position: 'absolute',
     top: -4,
     right: -4,
     width: 18,
     height: 18,
     borderRadius: 9,
+    backgroundColor: '#EF4444',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  categoryBadgeText: {
+  catBadgeText: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 10,
+    fontSize: 9,
     color: '#FFFFFF',
-    lineHeight: 12,
+    lineHeight: 11,
+  },
+  catTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  catLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  catSublabel: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  catRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  catTime: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#CBD5E1',
   },
 
   // ── Feed divider

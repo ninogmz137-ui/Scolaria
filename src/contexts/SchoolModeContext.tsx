@@ -85,7 +85,7 @@ const UNIFIED_BASE = {
   accentDark: '#1D4ED8',
   tabActive: '#3B82F6',
   headerGradient: ['#3B82F610', '#F2F2F7'] as [string, string],
-  ariaColor: '#3B82F6',
+  ariaColor: '#7C3AED',
   // Unified background + header
   backgroundColor: '#F2F2F7',
   headerGradientFull: ['#1E3A5F', '#3B7DD8', '#89B4E8'],

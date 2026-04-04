@@ -1,18 +1,58 @@
 /**
  * AriaSparkleIcon — Gradient circle with 3 "✦" text sparkles.
  *
- * Simple approach: 3 Text "✦" characters in white, different sizes,
- * positioned as a compact asymmetric group inside a LinearGradient circle.
- *
- * Usage:
- *   <AriaSparkleIcon size={40} />            — standard (topbar, messagerie)
- *   <AriaSparkleIcon size={32} />            — chat avatar
- *   <AriaSparkleIcon size={22} />            — inline label
- *   <AriaSparkleIcon size={40} noGradient /> — sparkles only (no circle)
+ * Uses CSS backgroundImage on web (LinearGradient doesn't render on web),
+ * and expo-linear-gradient on native.
  */
 
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+// ─── Shared gradient wrapper (web fallback) ─────────────
+
+function GradientCircle({
+  size,
+  borderRadius,
+  children,
+}: {
+  size: number;
+  borderRadius: number;
+  children: React.ReactNode;
+}) {
+  const base = {
+    width: size,
+    height: size,
+    borderRadius,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    overflow: 'hidden' as const,
+  };
+
+  if (Platform.OS === 'web') {
+    return (
+      <View
+        style={{
+          ...base,
+          // @ts-ignore — web-only CSS property
+          backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+        }}
+      >
+        {children}
+      </View>
+    );
+  }
+
+  return (
+    <LinearGradient
+      colors={['#7C3AED', '#06B6D4']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={base}
+    >
+      {children}
+    </LinearGradient>
+  );
+}
 
 // ─── Main component ─────────────────────────────────────
 
@@ -30,50 +70,26 @@ export default function AriaSparkleIcon({ size = 40, noGradient, gradientSparkle
   const half = s / 2;
 
   // Sparkle font sizes scale proportionally
-  const bigSize    = Math.round(s * 0.40);   // 16px at size=40
-  const medSize    = Math.round(s * 0.25);   // 10px at size=40
-  const smallSize  = Math.round(s * 0.175);  //  7px at size=40
+  const bigSize    = Math.round(s * 0.40);
+  const medSize    = Math.round(s * 0.25);
+  const smallSize  = Math.round(s * 0.175);
 
   const sparkleStyle = gradientSparkles ? styles.sparkleGradient : styles.sparkle;
 
   const sparkles = (
     <>
-      {/* Big sparkle — center-left */}
       <Text
-        style={[
-          sparkleStyle,
-          {
-            fontSize: bigSize,
-            top: half - bigSize * 0.55,
-            left: half - bigSize * 0.7,
-          },
-        ]}
+        style={[sparkleStyle, { fontSize: bigSize, top: half - bigSize * 0.55, left: half - bigSize * 0.7 }]}
       >
         ✦
       </Text>
-      {/* Medium sparkle — top-right */}
       <Text
-        style={[
-          sparkleStyle,
-          {
-            fontSize: medSize,
-            top: half - medSize * 0.5 - s * 0.28,
-            left: half + s * 0.08,
-          },
-        ]}
+        style={[sparkleStyle, { fontSize: medSize, top: half - medSize * 0.5 - s * 0.28, left: half + s * 0.08 }]}
       >
         ✦
       </Text>
-      {/* Small sparkle — bottom-right */}
       <Text
-        style={[
-          sparkleStyle,
-          {
-            fontSize: smallSize,
-            top: half + s * 0.12,
-            left: half + s * 0.10,
-          },
-        ]}
+        style={[sparkleStyle, { fontSize: smallSize, top: half + s * 0.12, left: half + s * 0.10 }]}
       >
         ✦
       </Text>
@@ -89,15 +105,9 @@ export default function AriaSparkleIcon({ size = 40, noGradient, gradientSparkle
   }
 
   return (
-    <View style={{ width: s, height: s, borderRadius: half, overflow: 'hidden' }}>
-      <LinearGradient
-        colors={['#8B5CF6', '#06B6D4']}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+    <GradientCircle size={s} borderRadius={half}>
       {sparkles}
-    </View>
+    </GradientCircle>
   );
 }
 
