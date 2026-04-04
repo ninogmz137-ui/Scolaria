@@ -31,6 +31,7 @@ import { getParentMots } from '../services/liaisonService';
 import { useDemoData } from '../contexts/DemoContext';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
+import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 
 // ─── Mock data ──────────────────────────────────────────
 
@@ -135,6 +136,7 @@ export default function AccueilScreen() {
   const { selectedChild, selectedChildId, fadeAnim } = useActiveChild();
   const { wallpaperSource } = useWallpaper();
   const { isDemoMode, getDashboard: getDemoDashboard } = useDemoData();
+  const { onScroll: reportScroll } = useTopbarScroll();
 
   // Unified design: all backgrounds are light — always dark text
   const cardText          = '#0F172A';
@@ -295,6 +297,8 @@ export default function AccueilScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
           style={styles.flex}
+          scrollEventThrottle={16}
+          onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
         >
           {/* Spacer that pushes content below the topbar */}
           <View style={{ height: insets.top + 56 + 40 }} />

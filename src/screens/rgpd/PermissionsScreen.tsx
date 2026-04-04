@@ -158,7 +158,7 @@ const MODULE_CONFIG = [
   { key: 'notes' as const, label: 'Notes & bulletins', Icon: Check, color: Colors.cyan },
   { key: 'agenda' as const, label: 'Agenda', Icon: Calendar, color: Colors.violet },
   { key: 'ressenti' as const, label: 'Ressenti', Icon: Heart, color: Colors.pink },
-  { key: 'profil' as const, label: 'Profil enfant', Icon: User, color: Colors.green },
+  { key: 'profil' as const, label: 'Profil élève', Icon: User, color: Colors.green },
   { key: 'photos' as const, label: 'Photos', Icon: Camera, color: Colors.orange },
   { key: 'aria' as const, label: 'Aria IA', Icon: Sparkles, color: Colors.violetLight },
 ];

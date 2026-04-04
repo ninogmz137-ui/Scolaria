@@ -12,7 +12,7 @@
  * translates right while the dark menu panel is revealed behind it.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Pressable, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -31,6 +31,9 @@ import { useAuth } from '../contexts/AuthContext';
 import AppTopbar, { type TopbarMode } from '../components/AppTopbar';
 import { BurgerMenuContent } from '../components/BurgerMenu';
 import FloatingTabBar from '../components/FloatingTabBar';
+
+// Topbar scroll context
+import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
 
 // Main tab screens
 import AccueilScreen from '../screens/AccueilScreen';
@@ -459,9 +462,19 @@ export default function TabNavigator() {
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
 
+  // ── Topbar scroll-to-hide ─────────────────────────────
+  const topbarTranslateY = useSharedValue(0);
+  const lastScrollY = useRef(0);
+
   // Register refs
   backArrowRef.current = { setShowBack };
-  activeTabRef.current = { setActiveTab };
+  activeTabRef.current = { setActiveTab: (tab: string) => {
+    setActiveTab(tab);
+    // Reset topbar when returning to Accueil tab
+    if (tab === 'Accueil') {
+      topbarTranslateY.value = withTiming(0, { duration: 200 });
+    }
+  }};
   stackTitleRef.current = { setTitle: setStackTitle };
 
   // Topbar visibility logic:
@@ -473,7 +486,7 @@ export default function TabNavigator() {
   const showTopbar = isAccueilRoot || isStackedScreen;
   const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : 'home';
 
-  // ── Reanimated slide & scale ──────────────────────────
+  // ── Burger slide & scale ──────────────────────────────
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -494,51 +507,34 @@ export default function TabNavigator() {
     };
   });
 
+  const topbarAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: topbarTranslateY.value }],
+  }));
+
+  // Called by AccueilScreen on scroll
+  const handleAccueilScroll = useCallback((y: number) => {
+    // Only animate when on Accueil home tab (not stacked screens)
+    if (showBack) return;
+    const delta = y - lastScrollY.current;
+    lastScrollY.current = y;
+    if (delta > 4 && y > 60) {
+      // Scrolling down — hide topbar
+      topbarTranslateY.value = withTiming(-100, { duration: 200 });
+    } else if (delta < -4) {
+      // Scrolling up — show topbar
+      topbarTranslateY.value = withTiming(0, { duration: 200 });
+    }
+  }, [showBack, topbarTranslateY]);
+
+  const topbarScrollContextValue = { onScroll: handleAccueilScroll };
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      {/* ── Burger menu — rendered behind, always mounted ── */}
-      <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: SCREEN_WIDTH * 0.72 }}>
-        <BurgerMenuContent
-          onClose={() => setBurgerVisible(false)}
-          onNavigate={(screen) => {
-            setBurgerVisible(false);
-            setTimeout(() => burgerNavRef.current?.(screen), 200);
-          }}
-          onLogout={() => {
-            setBurgerVisible(false);
-            signOut();
-          }}
-        />
-      </View>
-
-      {/* ── Main content — animated scale/translate ── */}
-      <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
-        <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
-          {/* Topbar: only on Accueil root and stacked screens */}
-          {showTopbar && (
-            <AppTopbar
-              mode={topbarMode}
-              onBurgerPress={() => setBurgerVisible(true)}
-              onBackPress={() => {
-                goBackRef.current?.();
-                setShowBack(false);
-              }}
-              title={stackTitle}
-              childName={selectedChild.name}
-              childPhotoUrl={
-                selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
-                  ? `emoji:${selectedChild.avatarEmoji}`
-                  : selectedChild.avatarPhotoUri ?? null
-              }
-              isHomeTab={isAccueilRoot}
-              onSettingsPress={() => {
-                burgerNavRef.current?.('ReglagesScreen');
-              }}
-            />
-          )}
-
-          {/* Tab content */}
-          <TabContentWithNav
+    <TopbarScrollContext.Provider value={topbarScrollContextValue}>
+      <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+        {/* ── Burger menu — rendered behind, always mounted ── */}
+        <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: SCREEN_WIDTH * 0.72 }}>
+          <BurgerMenuContent
+            onClose={() => setBurgerVisible(false)}
             onNavigate={(screen) => {
               setBurgerVisible(false);
               setTimeout(() => burgerNavRef.current?.(screen), 200);
@@ -550,14 +546,60 @@ export default function TabNavigator() {
           />
         </View>
 
-        {/* Tap-to-close overlay when burger menu is open */}
-        {burgerVisible && (
-          <Pressable
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            onPress={() => setBurgerVisible(false)}
-          />
-        )}
-      </Animated.View>
-    </View>
+        {/* ── Main content — animated scale/translate ── */}
+        <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
+          <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+            {/* Topbar: only on Accueil root and stacked screens */}
+            {showTopbar && (
+              <Animated.View style={[
+                { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
+                // Only apply scroll-to-hide on Accueil home (not stacked screens)
+                isAccueilRoot ? topbarAnimatedStyle : undefined,
+              ]}>
+                <AppTopbar
+                  mode={topbarMode}
+                  onBurgerPress={() => setBurgerVisible(true)}
+                  onBackPress={() => {
+                    goBackRef.current?.();
+                    setShowBack(false);
+                  }}
+                  title={stackTitle}
+                  childName={selectedChild.name}
+                  childPhotoUrl={
+                    selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
+                      ? `emoji:${selectedChild.avatarEmoji}`
+                      : selectedChild.avatarPhotoUri ?? null
+                  }
+                  isHomeTab={isAccueilRoot}
+                  onSettingsPress={() => {
+                    burgerNavRef.current?.('ReglagesScreen');
+                  }}
+                />
+              </Animated.View>
+            )}
+
+            {/* Tab content */}
+            <TabContentWithNav
+              onNavigate={(screen) => {
+                setBurgerVisible(false);
+                setTimeout(() => burgerNavRef.current?.(screen), 200);
+              }}
+              onLogout={() => {
+                setBurgerVisible(false);
+                signOut();
+              }}
+            />
+          </View>
+
+          {/* Tap-to-close overlay when burger menu is open */}
+          {burgerVisible && (
+            <Pressable
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              onPress={() => setBurgerVisible(false)}
+            />
+          )}
+        </Animated.View>
+      </View>
+    </TopbarScrollContext.Provider>
   );
 }

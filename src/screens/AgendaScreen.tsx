@@ -1175,20 +1175,20 @@ const st = StyleSheet.create({
 
   // FAB
   fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 22,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
     width: 50,
     height: 50,
-    borderRadius: 16,
-    backgroundColor: '#1A1A1A',
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 0,
   },
 
   // Modal

@@ -55,7 +55,7 @@ const ACCESS_LOG: AccessEntry[] = [
   },
   {
     id: '2', person: 'Sophie Moreau', avatar: '👩', role: 'Tuteur légal',
-    action: 'Consultation', module: 'Profil enfant', moduleIcon: 'person',
+    action: 'Consultation', module: 'Profil élève', moduleIcon: 'person',
     child: 'Lucas', date: "Aujourd'hui", time: '14:28', device: 'iPhone 15', ip: '192.168.1.42',
     color: Colors.green,
   },

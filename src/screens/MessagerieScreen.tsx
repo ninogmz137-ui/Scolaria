@@ -25,6 +25,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Papicons } from '@getpapillon/papicons';
+import { MessageSquarePlus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -198,42 +199,26 @@ export default function MessagerieScreen() {
 
   // Bottom sheet slide animation
   const sheetAnim = useRef(new Animated.Value(320)).current;
-  // FAB rotation animation
-  const fabRotation = useRef(new Animated.Value(0)).current;
 
   // ─── FAB sheet helpers ───────────────────────────────────
 
   const openFab = useCallback(() => {
     setFabOpen(true);
-    Animated.parallel([
-      Animated.spring(sheetAnim, {
-        toValue: 0,
-        tension: 80,
-        friction: 12,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fabRotation, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [sheetAnim, fabRotation]);
+    Animated.spring(sheetAnim, {
+      toValue: 0,
+      tension: 80,
+      friction: 12,
+      useNativeDriver: true,
+    }).start();
+  }, [sheetAnim]);
 
   const closeFab = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(sheetAnim, {
-        toValue: 320,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fabRotation, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setFabOpen(false));
-  }, [sheetAnim, fabRotation]);
+    Animated.timing(sheetAnim, {
+      toValue: 320,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setFabOpen(false));
+  }, [sheetAnim]);
 
   // ─── Data loading ────────────────────────────────────────
 
@@ -475,12 +460,6 @@ export default function MessagerieScreen() {
   const visibleEarlier = safeFilter(showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems);
   const isEmpty        = visibleToday.length === 0 && visibleEarlier.length === 0;
 
-  // FAB icon rotation interpolation
-  const fabIconRotate = fabRotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
-  });
-
   // ─── FAB actions ─────────────────────────────────────────
 
   const fabActions: FabAction[] = [
@@ -649,15 +628,12 @@ export default function MessagerieScreen() {
         onPress={fabOpen ? closeFab : openFab}
         style={({ pressed }) => [
           styles.fab,
-          fabOpen && styles.fabOpen,
-          { bottom: TAB_BAR_H, opacity: pressed ? 0.85 : 1 },
+          { opacity: pressed ? 0.85 : 1 },
         ]}
         accessibilityRole="button"
         accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
       >
-        <Animated.View style={{ transform: [{ rotate: fabIconRotate }] }}>
-          <Papicons name="Plus" size={24} color="#FFFFFF" />
-        </Animated.View>
+        <MessageSquarePlus size={22} color="#FFFFFF" strokeWidth={2} />
       </Pressable>
 
       {/* ── FAB bottom sheet ── */}
@@ -1040,23 +1016,20 @@ const styles = StyleSheet.create({
 
   // ── FAB
   fab: {
-    position: 'absolute',
-    right: 22,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
     width: 50,
     height: 50,
-    borderRadius: 16,
-    backgroundColor: '#1a1a1a',
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
-  },
-  fabOpen: {
-    backgroundColor: '#EF4444',
-    shadowColor: '#EF4444',
+    elevation: 0,
   },
 
   // ── FAB sheet / modal

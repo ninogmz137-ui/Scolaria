@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
-import { LinearGradient } from 'expo-linear-gradient';
+import { Plus } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import GlassCard from '../../components/GlassCard';
@@ -273,33 +273,26 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
       <Pressable
         onPress={() => setTeacherModalVisible(true)}
         style={({ pressed }) => ({
+          backgroundColor: '#1a1a1a',
+          borderRadius: 16,
+          width: 50,
+          height: 50,
           position: 'absolute',
-          bottom: 100,
+          bottom: 80,
           right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          overflow: 'hidden',
-          opacity: pressed ? 0.85 : 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 16,
           elevation: 0,
+          opacity: pressed ? 0.85 : 1,
         })}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
       >
-        <LinearGradient
-          colors={['#3B82F6', '#6366F1']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Papicons name="Plus" size={26} color="#FFFFFF" />
-        </LinearGradient>
+        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
       </Pressable>
 
       {/* ── Teacher selection modal ── */}

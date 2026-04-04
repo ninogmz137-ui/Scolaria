@@ -1,20 +1,22 @@
 /**
  * FloatingTabBar — 3-element floating navigation bar.
  *
- * Layout: [Avatar 48px] [Central Pill — Notes | Agenda | Messagerie] [Aria 48px]
+ * Layout: [Avatar 50px] [Central Pill — 4 icons] [Aria 50px]
  *
  * Avatar (left):
  *   - Glass circle, shows child emoji / photo / initials
- *   - School-level border color (maternelle / primaire / college)
- *   - TAP: if on Accueil tab → open child switcher; else → navigate to Accueil
+ *   - Neutral border #E2E8F0 — no school-level color
+ *   - TAP → always opens child switcher bottom sheet
  *
  * Central pill (flex 1):
- *   - Glass morphism, 3 tabs (routes index 1-3, Accueil skipped)
- *   - Active: dark icon + semibold label; Inactive: muted + regular
- *   - Badge on Messagerie for unread count
+ *   - Glass morphism, 4 tabs (Accueil, Notes, Agenda, Messagerie)
+ *   - Active: light grey circular bg (#F0F0F2) + dark icon
+ *   - Inactive: no bg + muted icon
+ *   - Red dot badge on MessageCircle if unread messages
  *
  * Aria (right):
- *   - Glass circle with 32px LinearGradient inner circle + sparkle icon
+ *   - Glass circle, same style as avatar and pill
+ *   - AriaSparkleIcon noGradient gradientSparkles
  *   - TAP → AriaScreen
  */
 
@@ -30,13 +32,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { Pressable } from './ui';
-import { TrendingUp, Calendar, MessageCircle } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Home, TrendingUp, Calendar, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
 import AriaSparkleIcon from './AriaSparkleIcon';
 
 // ─── Tab bar height export ───────────────────────────────
@@ -47,19 +47,29 @@ export const FLOATING_TAB_BAR_HEIGHT = 100;
 // ─── Constants ──────────────────────────────────────────
 
 const MESSAGERIE_UNREAD = 3;
-const ACTIVE_COLOR = '#1A1A1A';
-const INACTIVE_COLOR = '#94A3B8';
-
-// School-level border colors for the avatar circle
-const SCHOOL_LEVEL_BORDER: Record<string, string> = {
-  maternelle: '#FF8C42',
-  primaire: '#22D3EE',
-  lycee: '#7C3AED',
-};
+const ACTIVE_ICON_COLOR = '#0F172A';
+const INACTIVE_ICON_COLOR = '#94A3B8';
+const NEUTRAL_BORDER = '#E2E8F0';
 
 // Glass style shared by avatar, pill, and Aria circles
-const GLASS_BG = 'rgba(255,255,255,0.75)';
-const GLASS_BORDER = 'rgba(255,255,255,0.5)';
+const GLASS_BG = 'rgba(255,255,255,0.80)';
+const GLASS_BORDER = 'rgba(255,255,255,0.70)';
+
+const GLASS_SHADOW = Platform.select({
+  ios: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+  },
+  android: { elevation: 0 },
+  default: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+  },
+});
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -72,20 +82,15 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-// ─── Tab icon map (only for the 3 visible tabs) ─────────
+// ─── Tab icon map (all 4 tabs) ───────────────────────────
 
-type LucideIcon = typeof TrendingUp;
+type LucideIcon = typeof Home;
 
 const TAB_ICONS: Record<string, LucideIcon> = {
+  Accueil: Home,
   Notes: TrendingUp,
   Agenda: Calendar,
   MessagerieTab: MessageCircle,
-};
-
-const TAB_LABELS: Record<string, string> = {
-  Notes: 'Notes',
-  Agenda: 'Agenda',
-  MessagerieTab: 'Messages',
 };
 
 // ─── Child Switcher Sheet ────────────────────────────────
@@ -176,28 +181,16 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   const { selectedChild } = useActiveChild();
   const [childSwitcherVisible, setChildSwitcherVisible] = useState(false);
 
-  // Determine school-level border color for avatar
-  const schoolMode = selectedChild.birthDate
-    ? getSchoolModeFromBirthDate(selectedChild.birthDate)
-    : 'primaire';
-  const levelBorderColor = SCHOOL_LEVEL_BORDER[schoolMode] ?? GLASS_BORDER;
-
   // Avatar content
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
-  const firstName = selectedChild.name.split(' ')[0] || selectedChild.name;
 
-  // Avatar tap: if already on Accueil (index 0) → open child switcher; else → navigate to Accueil
+  // Avatar tap → always open child switcher
   const handleAvatarPress = () => {
-    if (state.index === 0) {
-      setChildSwitcherVisible(true);
-    } else {
-      navigation.navigate('Accueil');
-    }
+    setChildSwitcherVisible(true);
   };
 
-  // Aria tap → navigate to AriaScreen (via ariaNavRef in TabNavigator)
-  // We emit a tab-level navigate to Accueil/AriaScreen
+  // Aria tap → navigate to AriaScreen
   const handleAriaPress = () => {
     navigation.navigate('Accueil', { screen: 'AriaScreen' } as any);
   };
@@ -207,14 +200,15 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
 
   return (
     <>
-      <View
-        style={[
-          styles.container,
-          { bottom: bottomOffset },
-        ]}
-      >
+      <View style={[styles.container, { bottom: bottomOffset }]}>
+
         {/* ── Avatar circle (left) ── */}
-        <Pressable onPress={handleAvatarPress} style={[styles.circle, { borderColor: levelBorderColor }]}>
+        <Pressable
+          onPress={handleAvatarPress}
+          style={styles.circle}
+          accessibilityRole="button"
+          accessibilityLabel="Changer d'enfant"
+        >
           {hasPhoto ? (
             <Image
               source={{ uri: selectedChild.avatarPhotoUri! }}
@@ -229,21 +223,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           )}
         </Pressable>
 
-        {/* ── Central pill (3 tabs: Notes, Agenda, Messagerie) ── */}
+        {/* ── Central pill (4 tabs) ── */}
         <View style={styles.pill}>
           {state.routes.map((route, index) => {
-            // Skip Accueil (index 0) — navigated via avatar
-            if (index === 0) return null;
-
             const isFocused = state.index === index;
-            const IconComponent = TAB_ICONS[route.name] ?? TrendingUp;
-            const label = TAB_LABELS[route.name] ?? route.name;
-
-            const iconColor = isFocused ? ACTIVE_COLOR : INACTIVE_COLOR;
-            const iconStrokeWidth = isFocused ? 2.5 : 1.5;
-
+            const IconComponent = TAB_ICONS[route.name] ?? Home;
             const isMessagerieTab = route.name === 'MessagerieTab';
-            const unreadCount = isMessagerieTab ? MESSAGERIE_UNREAD : 0;
+            const hasUnread = isMessagerieTab && MESSAGERIE_UNREAD > 0;
 
             const onPress = () => {
               const event = navigation.emit({
@@ -273,35 +259,26 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
                 onLongPress={onLongPress}
                 style={styles.pillTab}
               >
-                {/* Icon + badge */}
-                <View style={{ position: 'relative' }}>
+                <View style={[styles.iconWrapper, isFocused && styles.iconWrapperActive]}>
                   <IconComponent
-                    size={22}
-                    color={iconColor}
-                    strokeWidth={iconStrokeWidth}
+                    size={20}
+                    color={isFocused ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
+                    strokeWidth={isFocused ? 2.5 : 1.8}
                   />
-                  {unreadCount > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </Text>
-                    </View>
-                  )}
+                  {hasUnread && <View style={styles.badgeDot} />}
                 </View>
-
-                <Text
-                  style={isFocused ? styles.labelActive : styles.labelInactive}
-                  numberOfLines={1}
-                >
-                  {label}
-                </Text>
               </Pressable>
             );
           })}
         </View>
 
         {/* ── Aria circle (right) ── */}
-        <Pressable onPress={handleAriaPress} style={styles.circle}>
+        <Pressable
+          onPress={handleAriaPress}
+          style={styles.circle}
+          accessibilityRole="button"
+          accessibilityLabel="Aria"
+        >
           <AriaSparkleIcon size={28} noGradient gradientSparkles />
         </Pressable>
       </View>
@@ -325,7 +302,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    // No elevation on Android (design spec)
     ...Platform.select({
       android: { elevation: 0 },
     }),
@@ -333,35 +309,21 @@ const styles = StyleSheet.create({
 
   // Shared glass circle (avatar + Aria)
   circle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: GLASS_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: NEUTRAL_BORDER,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: { elevation: 0 },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-    }),
+    ...GLASS_SHADOW,
   },
   circleImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   circleInitials: {
     color: '#0F172A',
@@ -372,69 +334,47 @@ const styles = StyleSheet.create({
   // Central pill
   pill: {
     flex: 1,
-    height: 48,
-    borderRadius: 24,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: GLASS_BG,
     borderWidth: 1,
-    borderColor: GLASS_BORDER,
+    borderColor: NEUTRAL_BORDER,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     paddingHorizontal: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: { elevation: 0 },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-    }),
+    ...GLASS_SHADOW,
   },
   pillTab: {
     flex: 1,
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    gap: 2,
+    height: 50,
   },
 
-  // Labels
-  labelActive: {
-    fontSize: 9,
-    fontFamily: FontFamily.sansSemiBold,
-    color: ACTIVE_COLOR,
+  // Icon wrapper — active gets light grey circular bg
+  iconWrapper: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  labelInactive: {
-    fontSize: 9,
-    fontFamily: FontFamily.sansRegular,
-    color: INACTIVE_COLOR,
+  iconWrapperActive: {
+    backgroundColor: '#F0F0F2',
   },
 
-  // Unread badge
-  badge: {
+  // Unread dot badge (8px red dot, top-right of icon)
+  badgeDot: {
     position: 'absolute',
-    top: -4,
-    right: -8,
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#EF4444',
-    borderRadius: 10,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  badgeText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontFamily: FontFamily.sansBold,
+    borderWidth: 1.5,
+    borderColor: GLASS_BG,
   },
 
   // ── Child switcher sheet ──────────────────────────────
