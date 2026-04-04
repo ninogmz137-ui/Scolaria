@@ -21,9 +21,11 @@ interface Props {
   size?: number;
   /** Skip the gradient background — render sparkles only. */
   noGradient?: boolean;
+  /** Render sparkles in gradient violet→cyan color instead of white (for glass backgrounds). */
+  gradientSparkles?: boolean;
 }
 
-export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
+export default function AriaSparkleIcon({ size = 40, noGradient, gradientSparkles }: Props) {
   const s = size;
   const half = s / 2;
 
@@ -32,12 +34,14 @@ export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
   const medSize    = Math.round(s * 0.25);   // 10px at size=40
   const smallSize  = Math.round(s * 0.175);  //  7px at size=40
 
+  const sparkleStyle = gradientSparkles ? styles.sparkleGradient : styles.sparkle;
+
   const sparkles = (
     <>
       {/* Big sparkle — center-left */}
       <Text
         style={[
-          styles.sparkle,
+          sparkleStyle,
           {
             fontSize: bigSize,
             top: half - bigSize * 0.55,
@@ -50,7 +54,7 @@ export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
       {/* Medium sparkle — top-right */}
       <Text
         style={[
-          styles.sparkle,
+          sparkleStyle,
           {
             fontSize: medSize,
             top: half - medSize * 0.5 - s * 0.28,
@@ -63,7 +67,7 @@ export default function AriaSparkleIcon({ size = 40, noGradient }: Props) {
       {/* Small sparkle — bottom-right */}
       <Text
         style={[
-          styles.sparkle,
+          sparkleStyle,
           {
             fontSize: smallSize,
             top: half + s * 0.12,
@@ -101,6 +105,11 @@ const styles = StyleSheet.create({
   sparkle: {
     position: 'absolute',
     color: '#FFFFFF',
+    lineHeight: undefined,
+  },
+  sparkleGradient: {
+    position: 'absolute',
+    color: '#7C3AED',
     lineHeight: undefined,
   },
 });

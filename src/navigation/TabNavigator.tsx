@@ -2,9 +2,14 @@
  * TabNavigator — Parent navigation with 4 bottom tabs + burger menu.
  *
  * Tabs: Accueil | Notes | Agenda | Messagerie
- * Topbar: avatar-based, greeting on all tabs, back arrow on stacked screens.
- * Burger menu: slide & scale effect — main content scales to 0.85 and translates
- * right while the dark menu panel is revealed behind it.
+ *
+ * Topbar visibility:
+ *   - Accueil root (home mode): shown — burger left, greeting center, settings right
+ *   - Stacked screens (any tab): shown — back arrow left, title center, empty right
+ *   - Notes / Agenda / Messagerie roots: HIDDEN
+ *
+ * Burger menu: slide & scale effect — main content scales to 0.85 and
+ * translates right while the dark menu panel is revealed behind it.
  */
 
 import { useState, useEffect } from 'react';
@@ -71,7 +76,7 @@ import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// ─── Back arrow + active tab refs ───────────────────────
+// ─── Shared refs for topbar state ────────────────────────
 
 const backArrowRef: { current: { setShowBack: (v: boolean) => void } | null } = { current: null };
 const activeTabRef: { current: { setActiveTab: (v: string) => void } | null } = { current: null };
@@ -120,7 +125,6 @@ function AccueilStackScreen() {
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
             const params = routes[index].params as any;
-            // Dynamic title for ArchivedYearDetail
             if (screenName === 'ArchivedYearDetail' && params?.year && params?.niveau) {
               stackTitleRef.current?.setTitle(`${params.year} · ${params.niveau}`);
             } else {
@@ -243,7 +247,6 @@ function NotesStackScreen() {
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
             const params = routes[index].params as any;
-            // Dynamic title for SubjectDetail
             if (screenName === 'SubjectDetail' && params?.subjectName) {
               stackTitleRef.current?.setTitle(params.subjectName);
             } else {
@@ -361,6 +364,15 @@ function TabContent() {
           const tabName = e.target?.split('-')[0] ?? '';
           activeTabRef.current?.setActiveTab(tabName);
         },
+        state: (e) => {
+          // Also track tab changes from programmatic navigation (e.g. avatar → Accueil)
+          const data = e.data as any;
+          const routes = data?.state?.routes;
+          const index = data?.state?.index ?? 0;
+          if (routes?.[index]) {
+            activeTabRef.current?.setActiveTab(routes[index].name);
+          }
+        },
       }}
       screenOptions={{
         headerShown: false,
@@ -396,7 +408,7 @@ const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
 
-// ─── TabContentWithNav (keeps navigation hooks inside NavigationContainer) ───
+// ─── TabContentWithNav ───────────────────────────────────
 
 function TabContentWithNav({
   onNavigate,
@@ -423,7 +435,7 @@ function TabContentWithNav({
       BienEtre: { tab: 'Accueil', screen: 'BienEtreScreen' },
       WallpaperPicker: { tab: 'Accueil', screen: 'WallpaperPicker' },
       ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
-      RGPDScreen:     { tab: 'Accueil', screen: 'RGPDScreen' },
+      RGPDScreen: { tab: 'Accueil', screen: 'RGPDScreen' },
     };
 
     const target = routeMap[screen];
@@ -452,10 +464,14 @@ export default function TabNavigator() {
   activeTabRef.current = { setActiveTab };
   stackTitleRef.current = { setTitle: setStackTitle };
 
-  // Determine topbar mode
+  // Topbar visibility logic:
+  //   - Accueil tab root → 'home' mode
+  //   - Any stacked screen → 'stacked' mode
+  //   - Notes / Agenda / Messagerie roots → hidden
   const isStackedScreen = showBack;
-  const isHome = activeTab === 'Accueil' && !isStackedScreen;
-  const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : isHome ? 'home' : 'main';
+  const isAccueilRoot = activeTab === 'Accueil' && !isStackedScreen;
+  const showTopbar = isAccueilRoot || isStackedScreen;
+  const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : 'home';
 
   // ── Reanimated slide & scale ──────────────────────────
   const progress = useSharedValue(0);
@@ -480,7 +496,7 @@ export default function TabNavigator() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      {/* ── Menu content — rendered behind, always mounted ── */}
+      {/* ── Burger menu — rendered behind, always mounted ── */}
       <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: SCREEN_WIDTH * 0.72 }}>
         <BurgerMenuContent
           onClose={() => setBurgerVisible(false)}
@@ -498,24 +514,28 @@ export default function TabNavigator() {
       {/* ── Main content — animated scale/translate ── */}
       <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
         <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
-          {/* Fixed Topbar */}
-          <AppTopbar
-            mode={topbarMode}
-            onBurgerPress={() => setBurgerVisible(true)}
-            onBackPress={() => {
-              goBackRef.current?.();
-              setShowBack(false);
-            }}
-            title={stackTitle}
-            childName={selectedChild.name}
-            childPhotoUrl={
-              selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
-                ? `emoji:${selectedChild.avatarEmoji}`
-                : selectedChild.avatarPhotoUri ?? null
-            }
-            isHomeTab={isHome}
-            onAriaPress={() => ariaNavRef.current?.()}
-          />
+          {/* Topbar: only on Accueil root and stacked screens */}
+          {showTopbar && (
+            <AppTopbar
+              mode={topbarMode}
+              onBurgerPress={() => setBurgerVisible(true)}
+              onBackPress={() => {
+                goBackRef.current?.();
+                setShowBack(false);
+              }}
+              title={stackTitle}
+              childName={selectedChild.name}
+              childPhotoUrl={
+                selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
+                  ? `emoji:${selectedChild.avatarEmoji}`
+                  : selectedChild.avatarPhotoUri ?? null
+              }
+              isHomeTab={isAccueilRoot}
+              onSettingsPress={() => {
+                burgerNavRef.current?.('ReglagesScreen');
+              }}
+            />
+          )}
 
           {/* Tab content */}
           <TabContentWithNav
@@ -530,7 +550,7 @@ export default function TabNavigator() {
           />
         </View>
 
-        {/* Tap-to-close overlay when menu is open */}
+        {/* Tap-to-close overlay when burger menu is open */}
         {burgerVisible && (
           <Pressable
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}

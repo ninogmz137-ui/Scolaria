@@ -525,7 +525,7 @@ export default function MessagerieScreen() {
     <View style={[styles.root, { backgroundColor: '#F2F2F7' }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: TOPBAR_H + 12 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
       >
         {/* ── Page header ── */}
         <View style={styles.pageHeader}>
@@ -1041,19 +1041,18 @@ const styles = StyleSheet.create({
   // ── FAB
   fab: {
     position: 'absolute',
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: ACCENT,
+    right: 22,
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#1a1a1a',
     alignItems: 'center',
     justifyContent: 'center',
-    // elevation: 0 — avoids grey outlines on Android
     elevation: 0,
-    shadowColor: ACCENT,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
   },
   fabOpen: {
     backgroundColor: '#EF4444',

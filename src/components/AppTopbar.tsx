@@ -1,24 +1,23 @@
 /**
- * AppTopbar — Universal floating topbar (zIndex 10).
+ * AppTopbar — Floating topbar, shown only on Accueil and stacked screens.
  *
- * All tab screens:
- *   [Avatar ☰]   Bonjour, Prénom 👋       [✦ Aria]
+ * Accueil (home mode):
+ *   [Burger ☰]   Bonjour, Prénom 👋   [Settings ⚙]
  *
  * Stacked screens:
- *   [← Back]    Title of screen            [✦ Aria]
+ *   [← Back]     Title of screen      (empty right)
  *
- * - On Accueil (isHomeTab): white text (over wallpaper)
- * - On other tabs: dark text (#1A1A1A, over grey bg)
- * - Aria button: always visible, blue circle with 3-sparkle icon
+ * Notes / Agenda / Messagerie tabs: NO topbar (hidden by TabNavigator).
+ *
+ * - White text on Accueil (over gradient wallpaper)
+ * - Dark text on stacked screens (over light bg)
  */
 
 import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Papicons } from '@getpapillon/papicons';
-import { Menu } from 'lucide-react-native';
+import { Menu, SlidersHorizontal, ChevronLeft } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import AriaSparkleIcon from './AriaSparkleIcon';
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -33,76 +32,92 @@ function getInitials(name: string): string {
 
 // ─── Props ───────────────────────────────────────────────
 
-export type TopbarMode = 'home' | 'main' | 'stacked';
+/** 'home' = Accueil tab root; 'stacked' = any screen pushed onto a stack */
+export type TopbarMode = 'home' | 'stacked';
 
 interface Props {
   mode: TopbarMode;
-  /** Burger press (modes: home, main) */
+  /** Burger button press (home mode) */
   onBurgerPress?: () => void;
-  /** Back press (mode: stacked) */
+  /** Back arrow press (stacked mode) */
   onBackPress?: () => void;
-  /** Page title (mode: stacked) */
+  /** Screen title shown in stacked mode */
   title?: string;
-  /** Child's display name — shown in greeting and used for initials */
+  /** Child's display name — used in greeting + initials fallback */
   childName: string;
-  /** Child's photo URL — if set, shows photo instead of initials */
+  /** Child's photo URL — 'emoji:🦁' or a real photo URI */
   childPhotoUrl: string | null;
   /** Whether this is the home tab — controls text color (white vs dark) */
   isHomeTab: boolean;
-  /** Aria button press */
-  onAriaPress?: () => void;
+  /** Settings button press (home mode) */
+  onSettingsPress?: () => void;
 }
 
-// ─── Aria gradient button ───────────────────────────────
+// ─── Burger button ───────────────────────────────────────
 
-function AriaButton({ onPress }: { onPress?: () => void }) {
-  return (
-    <Pressable onPress={onPress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-      <AriaSparkleIcon size={40} />
-    </Pressable>
-  );
-}
-
-// ─── Child avatar with burger badge ─────────────────────
-
-function ChildAvatarButton({
-  childName,
-  childPhotoUrl,
+function BurgerButton({
   onPress,
+  isHomeTab,
 }: {
-  childName: string;
-  childPhotoUrl: string | null;
   onPress?: () => void;
+  isHomeTab: boolean;
 }) {
-  const isEmoji = childPhotoUrl?.startsWith('emoji:') ?? false;
-  const emojiChar = isEmoji ? childPhotoUrl!.replace('emoji:', '') : null;
-  const photoUri = !isEmoji ? childPhotoUrl : null;
+  const bg = isHomeTab ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.07)';
+  const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
 
   return (
     <Pressable
       onPress={onPress}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      style={{ position: 'relative' }}
+      style={[styles.iconButton, { backgroundColor: bg }]}
     >
-      <View style={styles.avatarCircle}>
-        {photoUri ? (
-          <Image
-            source={{ uri: photoUri }}
-            style={styles.avatarImage}
-          />
-        ) : emojiChar ? (
-          <Text style={{ fontSize: 22 }}>{emojiChar}</Text>
-        ) : (
-          <Text style={styles.avatarInitials}>
-            {getInitials(childName)}
-          </Text>
-        )}
-      </View>
+      <Menu size={20} color={iconColor} strokeWidth={2} />
+    </Pressable>
+  );
+}
 
-      {/* Burger badge — bottom-right */}
-      <View style={styles.burgerBadge}>
-        <Menu size={10} color="#64748B" strokeWidth={2} />
-      </View>
+// ─── Settings button ─────────────────────────────────────
+
+function SettingsButton({
+  onPress,
+  isHomeTab,
+}: {
+  onPress?: () => void;
+  isHomeTab: boolean;
+}) {
+  const bg = isHomeTab ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.07)';
+  const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={[styles.iconButton, { backgroundColor: bg }]}
+    >
+      <SlidersHorizontal size={20} color={iconColor} strokeWidth={2} />
+    </Pressable>
+  );
+}
+
+// ─── Back button ─────────────────────────────────────────
+
+function BackButton({
+  onPress,
+  isHomeTab,
+}: {
+  onPress?: () => void;
+  isHomeTab: boolean;
+}) {
+  const bg = isHomeTab ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.07)';
+  const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={[styles.iconButton, { backgroundColor: bg }]}
+    >
+      <ChevronLeft size={22} color={iconColor} strokeWidth={2} />
     </Pressable>
   );
 }
@@ -117,17 +132,17 @@ export default function AppTopbar({
   childName,
   childPhotoUrl,
   isHomeTab,
-  onAriaPress,
+  onSettingsPress,
 }: Props) {
   const insets = useSafeAreaInsets();
 
-  // Text color: white on home (over wallpaper), dark on other tabs
-  const textColor = isHomeTab ? '#FFFFFF' : '#1A1A1A';
-  const backBg = isHomeTab ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)';
-  const backIconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
-
-  // Extract first name for greeting
+  const textColor = isHomeTab ? '#FFFFFF' : '#0F172A';
   const firstName = childName.split(' ')[0] || childName;
+
+  // Resolve avatar display type
+  const isEmoji = childPhotoUrl?.startsWith('emoji:') ?? false;
+  const emojiChar = isEmoji ? childPhotoUrl!.replace('emoji:', '') : null;
+  const photoUri = !isEmoji ? childPhotoUrl : null;
 
   return (
     <View
@@ -136,41 +151,33 @@ export default function AppTopbar({
         { paddingTop: insets.top + 6, paddingBottom: 8 },
       ]}
     >
-      {/* Left: back button (stacked) or avatar (tab screens) */}
-      <View style={styles.left}>
+      {/* Left: burger (home) or back arrow (stacked) */}
+      <View style={styles.side}>
         {mode === 'stacked' ? (
-          <Pressable
-            onPress={onBackPress}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={[styles.backButton, { backgroundColor: backBg }]}
-          >
-            <Papicons name="ChevronLeft" size={22} color={backIconColor} />
-          </Pressable>
+          <BackButton onPress={onBackPress} isHomeTab={isHomeTab} />
         ) : (
-          <ChildAvatarButton
-            childName={childName}
-            childPhotoUrl={childPhotoUrl}
-            onPress={onBurgerPress}
-          />
+          <BurgerButton onPress={onBurgerPress} isHomeTab={isHomeTab} />
         )}
       </View>
 
-      {/* Center: greeting (all tab screens) or stacked title */}
+      {/* Center: greeting (home) or screen title (stacked) */}
       <View style={styles.center}>
         {mode === 'stacked' && title ? (
           <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
             {title}
           </Text>
-        ) : mode !== 'stacked' ? (
+        ) : mode === 'home' ? (
           <Text style={[styles.greeting, { color: textColor }]} numberOfLines={1}>
             Bonjour, {firstName} {'\u{1F44B}'}
           </Text>
         ) : null}
       </View>
 
-      {/* Right: always Aria button */}
-      <View style={styles.right}>
-        <AriaButton onPress={onAriaPress} />
+      {/* Right: settings (home) or empty (stacked) */}
+      <View style={styles.side}>
+        {mode === 'home' && (
+          <SettingsButton onPress={onSettingsPress} isHomeTab={isHomeTab} />
+        )}
       </View>
     </View>
   );
@@ -189,18 +196,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
   },
-  left: {
-    width: 50,
+  side: {
+    width: 44,
     alignItems: 'flex-start',
   },
   center: {
     flex: 1,
     alignItems: 'flex-start',
     paddingLeft: 4,
-  },
-  right: {
-    width: 50,
-    alignItems: 'flex-end',
   },
   greeting: {
     fontFamily: FontFamily.sansBold,
@@ -210,45 +213,14 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansBold,
     fontSize: 17,
   },
-  backButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#3B82F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImage: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-  },
-  avatarInitials: {
-    color: '#FFF',
-    fontSize: 14,
-    fontFamily: FontFamily.sansBold,
-  },
-  burgerBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 0,
+    ...Platform.select({
+      android: { elevation: 0 },
+    }),
   },
 });

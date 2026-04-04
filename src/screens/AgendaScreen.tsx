@@ -1,11 +1,13 @@
 /**
- * AgendaScreen — Wallpaper + glass design with day selector and swipeable day cards.
+ * AgendaScreen — Complete redesign v2.
  *
- * - Day selector: horizontal scroll with accent-colored active pill
- * - Day cards: horizontal FlatList with pagingEnabled — one full-width page per day
- * - Events: GlassCard with left color bar, tap to expand details
- * - Papicons everywhere, no Ionicons
- * - Add event modal preserved
+ * - Month title (tappable) → collapsible calendar panel
+ * - Calendar panel: horizontal month scroll + full monthly grid
+ * - Week day strip (always visible, 7 days, first-letter labels)
+ * - Day title + event count
+ * - Swipeable day pages (horizontal FlatList, pagingEnabled)
+ * - New event card style with left accent bar + emoji circle
+ * - FAB: black square-rounded button
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -22,16 +24,14 @@ import {
   TextInput,
   Alert,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
   Keyboard,
   Dimensions,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check } from 'lucide-react-native';
-import { Papicons } from '@getpapillon/papicons';
+import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import GlassCard from '../components/GlassCard';
-import WallpaperBackground from '../components/WallpaperBackground';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -41,7 +41,26 @@ import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+// ─── Constants ────────────────────────────────────────────
+
+const FRENCH_MONTH_NAMES_FULL = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+];
+const SHORT_MONTHS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+const FRENCH_MONTH_NAMES = [
+  'janv', 'févr', 'mars', 'avr', 'mai', 'juin',
+  'juil', 'août', 'sept', 'oct', 'nov', 'déc',
+];
+const FRENCH_DAY_NAMES = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+const WEEK_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -75,13 +94,7 @@ const NEW_EVENT_TYPE_EMOJI: Record<NewEventType, string> = {
   devoir: '📝', controle: '📐', sortie: '🏛️', autre: '📅',
 };
 
-// ─── Week helpers ─────────────────────────────────────────
-
-const FRENCH_DAY_NAMES = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-const FRENCH_MONTH_NAMES = [
-  'janv', 'févr', 'mars', 'avr', 'mai', 'juin',
-  'juil', 'août', 'sept', 'oct', 'nov', 'déc',
-];
+// ─── Helpers ──────────────────────────────────────────────
 
 function getMondayOfWeek(d: Date): Date {
   const day = d.getDay();
@@ -109,20 +122,42 @@ function buildWeekDays(referenceDate: Date): (DayInfo & { fullDate: Date })[] {
   });
 }
 
-function formatWeekHeader(days: DayInfo[]): string {
-  if (!days.length) return '';
-  const first = days[0];
-  const last = days[days.length - 1];
-  return `${first.date} — ${last.date} ${last.month}`;
-}
-
 function formatDateFR(date: Date): string {
   const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   const months = [
-    'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+    'jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
   ];
   return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+}
+
+function buildCalendarGrid(
+  year: number,
+  month: number,
+): { day: number; isCurrentMonth: boolean; fullDate: Date }[][] {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDayOfWeek = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = lastDay.getDate();
+
+  const grid: { day: number; isCurrentMonth: boolean; fullDate: Date }[][] = [];
+  let currentDay = 1 - startDayOfWeek;
+
+  for (let week = 0; week < 6; week++) {
+    const row: { day: number; isCurrentMonth: boolean; fullDate: Date }[] = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(year, month, currentDay);
+      row.push({
+        day: date.getDate(),
+        isCurrentMonth: currentDay >= 1 && currentDay <= daysInMonth,
+        fullDate: date,
+      });
+      currentDay++;
+    }
+    grid.push(row);
+    if (currentDay > daysInMonth) break;
+  }
+  return grid;
 }
 
 const DEFAULT_EMOJI: Record<AgendaEvent['type'], string> = {
@@ -174,19 +209,25 @@ const MOCK_EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
-  const { theme } = useChildTheme();
+  useChildTheme();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
   const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
   const insets = useSafeAreaInsets();
-  const cardText = '#0F172A';
-  const cardTextMuted = '#94A3B8';
 
-  const todayDate = new Date().getDate();
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
+  // ─── Calendar panel state ──────────────────────────────
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+
+  // ─── Week / day state ──────────────────────────────────
   const flatListRef = useRef<FlatList>(null);
-  // Track whether the scroll was triggered programmatically (from day pill tap / goToToday)
-  // so we don't double-fire setSelectedDay in onMomentumScrollEnd
   const isProgrammaticScroll = useRef(false);
 
   const [weekOffset, setWeekOffset] = useState(0);
@@ -198,17 +239,39 @@ export default function AgendaScreen() {
 
   const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
-  const [selectedDay, setSelectedDay] = useState(todayDate);
+  const [selectedDay, setSelectedDay] = useState(today.getDate());
+  const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
-  const [calendarModalVisible, setCalendarModalVisible] = useState(false);
 
-  // Is the selected day today? (weekOffset 0 + isToday flag)
   const isSelectedToday = useMemo(
     () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
     [weekDays, selectedDay],
   );
 
-  // Scroll the day-card FlatList to match selectedDay whenever it changes
+  // Calendar grid derived from currentMonth/currentYear
+  const calendarGrid = useMemo(
+    () => buildCalendarGrid(currentYear, currentMonth),
+    [currentYear, currentMonth],
+  );
+
+  // All event dates for the current month (to show dots)
+  const eventDatesSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const [, events] of Object.entries(eventsByDay)) {
+      if (events.length > 0) {
+        // We derive which dates have events from weekDays
+        weekDays.forEach((wd) => {
+          if ((eventsByDay[wd.date]?.length ?? 0) > 0) {
+            const key = `${wd.fullDate.getFullYear()}-${wd.fullDate.getMonth()}-${wd.date}`;
+            set.add(key);
+          }
+        });
+      }
+    }
+    return set;
+  }, [eventsByDay, weekDays]);
+
+  // Sync FlatList when selectedDay changes
   useEffect(() => {
     const idx = weekDays.findIndex((d) => d.date === selectedDay);
     if (idx >= 0) {
@@ -217,11 +280,22 @@ export default function AgendaScreen() {
     }
   }, [selectedDay, weekDays]);
 
+  const selectDay = useCallback((dayInfo: (typeof weekDays)[0]) => {
+    setSelectedDay(dayInfo.date);
+    setSelectedFullDate(dayInfo.fullDate);
+    setExpandedEvent(null);
+    setCurrentMonth(dayInfo.fullDate.getMonth());
+    setCurrentYear(dayInfo.fullDate.getFullYear());
+  }, []);
+
   const goToToday = useCallback(() => {
     setWeekOffset(0);
-    setSelectedDay(new Date().getDate());
+    setSelectedDay(today.getDate());
+    setSelectedFullDate(today);
+    setCurrentMonth(today.getMonth());
+    setCurrentYear(today.getFullYear());
     setExpandedEvent(null);
-  }, []);
+  }, [today]);
 
   const toggleDone = useCallback((eventId: string) => {
     setEventsByDay((prev) => {
@@ -235,18 +309,21 @@ export default function AgendaScreen() {
         demoToggleDone(eventId);
       } else if (!eventId.startsWith('local-')) {
         const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
-        toggleEventDone(eventId, newDone).catch(() => {/* ignore — optimistic update already applied */});
+        toggleEventDone(eventId, newDone).catch(() => {/* optimistic update already applied */});
       }
       return updated;
     });
   }, [isDemoMode, demoToggleDone]);
 
-  // Add event modal
+  // ─── Add event modal ───────────────────────────────────
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventType, setNewEventType] = useState<NewEventType>('devoir');
   const [isSaving, setIsSaving] = useState(false);
 
+  const selectedDayLabel = weekDays.find((d) => d.date === selectedDay);
+
+  // ─── Data loading ──────────────────────────────────────
   const loadEvents = useCallback(async () => {
     if (!selectedChildId) return;
     const computed = buildWeekDays(referenceDate);
@@ -260,6 +337,15 @@ export default function AgendaScreen() {
       }
       const stillValid = computed.find((d) => d.date === prev);
       return stillValid ? prev : computed[0].date;
+    });
+
+    // Sync selectedFullDate too
+    setSelectedFullDate((prev) => {
+      const isCurrentWeek = computed.some((d) => d.isToday);
+      if (isCurrentWeek) {
+        return computed.find((d) => d.isToday)?.fullDate ?? prev;
+      }
+      return computed.find((d) => d.fullDate.getTime() === prev.getTime())?.fullDate ?? computed[0].fullDate;
     });
 
     if (isDemoMode) {
@@ -396,146 +482,136 @@ export default function AgendaScreen() {
     }
   }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents]);
 
-  // Weekly totals for the top badge row
-  const examCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'examen').length;
-  const devoirCount = Object.values(eventsByDay).flat().filter((e) => e.type === 'devoir').length;
+  // ─── Calendar panel: toggle with LayoutAnimation ───────
+  const toggleCalendar = useCallback(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCalendarOpen((v) => !v);
+  }, []);
 
-  const selectedDayLabel = weekDays.find((d) => d.date === selectedDay);
+  // ─── Calendar grid: tap a day ──────────────────────────
+  const selectCalendarDay = useCallback((fullDate: Date) => {
+    const dayOfWeek = fullDate.getDay(); // 0=Sun
+    const weekContainingDay = buildWeekDays(fullDate);
+    setWeekDays(weekContainingDay);
 
-  // ─── Render a single event card ───────────────────────────
+    const dayNum = fullDate.getDate();
+    setSelectedDay(dayNum);
+    setSelectedFullDate(fullDate);
+    setCurrentMonth(fullDate.getMonth());
+    setCurrentYear(fullDate.getFullYear());
+    setExpandedEvent(null);
+
+    // Scroll FlatList to correct index
+    const idx = weekContainingDay.findIndex((d) => d.date === dayNum);
+    if (idx >= 0) {
+      isProgrammaticScroll.current = true;
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index: idx, animated: false });
+      }, 50);
+    }
+
+    // Close calendar
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCalendarOpen(false);
+  }, []);
+
+  // ─── Render event card ─────────────────────────────────
   const renderEventCard = (event: AgendaEvent) => {
-    const isExpanded = expandedEvent === event.id;
     const isExam = event.type === 'examen';
     const isDevoir = event.type === 'devoir';
 
     return (
-      <Pressable key={event.id} onPress={() => setExpandedEvent(isExpanded ? null : event.id)}>
-        <GlassCard
-          style={{ marginBottom: 10, overflow: 'hidden', opacity: isDevoir && event.done ? 0.6 : 1 }}
-          noPadding
-        >
-          <View style={{ flexDirection: 'row' }}>
-            {/* Left color bar */}
-            <View style={[st.colorBar, { backgroundColor: event.color }]} />
+      <View
+        key={event.id}
+        style={[
+          st.eventCard,
+          { backgroundColor: event.color + '12' },
+          isDevoir && event.done && { opacity: 0.55 },
+        ]}
+      >
+        {/* Left accent bar */}
+        <View style={[st.eventAccentBar, { backgroundColor: event.color }]} />
 
-            <View style={{ flex: 1, padding: 14, gap: 6 }}>
-              {/* Time + title row */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Text style={{ fontSize: 22 }}>{event.emoji}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={[
-                      st.eventTitle,
-                      { color: cardText },
-                      isDevoir && event.done && { textDecorationLine: 'line-through', color: cardTextMuted },
-                    ]}
-                  >
-                    {event.title}
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 }}>
-                    <View style={[st.typePill, { backgroundColor: event.color + '18' }]}>
-                      <Text style={[st.typeLabel, { color: event.color }]}>{TYPE_LABELS[event.type]}</Text>
-                    </View>
-                    <Text style={[st.timeText, { color: cardTextMuted }]}>
-                      {event.time}{event.endTime ? ` — ${event.endTime}` : ''}
-                    </Text>
-                  </View>
-                </View>
-
-                {isDevoir && (
-                  <Pressable
-                    onPress={(e) => { e.stopPropagation(); toggleDone(event.id); }}
-                    hitSlop={8}
-                  >
-                    <View
-                      style={[
-                        st.checkbox,
-                        event.done && { backgroundColor: Colors.green, borderColor: Colors.green },
-                      ]}
-                    >
-                      {event.done && <Check size={14} color="#FFFFFF" strokeWidth={2.5} />}
-                    </View>
-                  </Pressable>
-                )}
-                {isExam && (
-                  <View style={st.examBadge}>
-                    <Papicons name="Warning" size={16} color={Colors.red} />
-                  </View>
-                )}
-                <Papicons name={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={14} color="#94A3B8" />
-              </View>
-
-              {/* Expanded details */}
-              {isExpanded && (event.location || event.description) && (
-                <View style={st.detailSection}>
-                  {event.location && (
-                    <View style={st.detailRow}>
-                      <Papicons name="Pin" size={13} color="#94A3B8" />
-                      <Text style={[st.detailText, { color: cardTextMuted }]}>{event.location}</Text>
-                    </View>
-                  )}
-                  {event.description && (
-                    <View style={st.detailRow}>
-                      <Papicons name="Info" size={13} color="#94A3B8" />
-                      <Text style={[st.detailText, { color: cardTextMuted }]}>{event.description}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
+        <View style={st.eventInner}>
+          {/* Emoji circle */}
+          <View style={st.emojiCircle}>
+            <Text style={{ fontSize: 22 }}>{event.emoji}</Text>
           </View>
-        </GlassCard>
-      </Pressable>
+
+          {/* Title + time */}
+          <View style={{ flex: 1 }}>
+            <Text
+              style={[
+                st.eventTitle,
+                isDevoir && event.done && { textDecorationLine: 'line-through', color: '#94A3B8' },
+              ]}
+            >
+              {event.title}
+            </Text>
+            <Text style={st.eventMeta}>
+              {event.time}{event.endTime ? ` — ${event.endTime}` : ''}{event.location ? ` · ${event.location}` : ''}
+            </Text>
+          </View>
+
+          {/* Right: exam badge or devoir checkbox */}
+          {isExam && (
+            <View style={st.examBadge}>
+              <Text style={st.examBadgeText}>Examen</Text>
+            </View>
+          )}
+          {isDevoir && (
+            <Pressable
+              onPress={() => toggleDone(event.id)}
+              hitSlop={8}
+            >
+              <View
+                style={[
+                  st.checkbox,
+                  event.done && { backgroundColor: '#10B981', borderColor: '#10B981' },
+                ]}
+              >
+                {event.done && <Check size={14} color="#FFFFFF" strokeWidth={2.5} />}
+              </View>
+            </Pressable>
+          )}
+        </View>
+      </View>
     );
   };
 
-  // ─── Render a single day page for the swipeable FlatList ──
+  // ─── Render day page ───────────────────────────────────
   const renderDayPage = ({ item }: { item: (typeof weekDays)[0] }) => {
     const dayEvents = eventsByDay[item.date] ?? [];
-    const dayExamCount = dayEvents.filter((e) => e.type === 'examen').length;
-    const dayDevoirCount = dayEvents.filter((e) => e.type === 'devoir').length;
+    const dayEventCount = dayEvents.length;
 
     return (
       <View style={{ width: SCREEN_WIDTH }}>
-        {/* Date heading */}
-        <View style={st.dayPageHeader}>
-          <Text style={st.dayPageDate}>
-            {formatDateFR(item.fullDate)}
+        {/* Day title row */}
+        <View style={st.dayTitleRow}>
+          <Text style={st.dayTitleText}>
+            {formatDateFR(item.fullDate).replace(/^./, (c) => c.toUpperCase())}
           </Text>
-          {/* Per-day badge counts */}
-          {(dayExamCount > 0 || dayDevoirCount > 0) && (
-            <View style={st.dayBadgeRow}>
-              {dayExamCount > 0 && (
-                <View style={[st.badge, { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(248,113,113,0.25)' }]}>
-                  <Papicons name="Warning" size={13} color="#FCA5A5" />
-                  <Text style={[st.badgeText, { color: '#FCA5A5' }]}>{dayExamCount} examen{dayExamCount > 1 ? 's' : ''}</Text>
-                </View>
-              )}
-              {dayDevoirCount > 0 && (
-                <View style={[st.badge, { backgroundColor: 'rgba(251,191,36,0.18)', borderColor: 'rgba(251,191,36,0.25)' }]}>
-                  <Papicons name="Paper" size={13} color="#FCD34D" />
-                  <Text style={[st.badgeText, { color: '#FCD34D' }]}>{dayDevoirCount} devoir{dayDevoirCount > 1 ? 's' : ''}</Text>
-                </View>
-              )}
-            </View>
-          )}
+          <Text style={st.dayEventCount}>
+            {dayEventCount > 0 ? `${dayEventCount} événement${dayEventCount > 1 ? 's' : ''}` : 'Libre'}
+          </Text>
         </View>
 
-        {/* Scrollable event list */}
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal: 18,
+            paddingHorizontal: 16,
             paddingBottom: FLOATING_TAB_BAR_HEIGHT + 80,
           }}
           nestedScrollEnabled
         >
           {dayEvents.length === 0 ? (
-            <GlassCard style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ fontSize: 48, marginBottom: 10 }}>🎉</Text>
-              <Text style={[st.emptyTitle, { color: cardText }]}>Pas de cours aujourd'hui</Text>
-              <Text style={[st.emptySubtitle, { color: cardTextMuted }]}>Aucun événement prévu ce jour</Text>
-            </GlassCard>
+            <View style={st.emptyState}>
+              <View style={st.emptyIconWrap}>
+                <Text style={{ fontSize: 36 }}>🏖️</Text>
+              </View>
+              <Text style={st.emptyTitle}>Journée libre</Text>
+              <Text style={st.emptySubtitle}>Rien de prévu ce jour</Text>
+            </View>
           ) : (
             dayEvents.map((event) => renderEventCard(event))
           )}
@@ -544,91 +620,159 @@ export default function AgendaScreen() {
     );
   };
 
+  // ─── Derived: selected day event count ────────────────
+  const dayEventCount = (eventsByDay[selectedDay] ?? []).length;
+
+  // ─── Render ────────────────────────────────────────────
   return (
     <View style={st.root}>
-      <WallpaperBackground />
+      {/* Content starts at safe area top */}
+      <View style={{ paddingTop: insets.top + 16 }}>
 
-      {/* Fixed top section — week header, badges, day selector */}
-      <View style={{ paddingTop: insets.top + 56 + 12 }}>
-        {/* Week header + weekly badges */}
-        <View style={st.weekHeader}>
-          <View style={st.weekTitleRow}>
-            <Pressable
-              onPress={() => setWeekOffset((o) => o - 1)}
-              style={({ pressed }) => [
-                st.weekNavBtn,
-                { borderColor: 'rgba(0,0,0,0.08)' },
-                pressed && { opacity: 0.6 },
-              ]}
-              hitSlop={8}
-            >
-              <Papicons name="ChevronLeft" size={16} color="#0F172A" />
-            </Pressable>
+        {/* 1. Month title (tappable) */}
+        <Pressable
+          onPress={toggleCalendar}
+          style={st.monthTitleRow}
+        >
+          <Text style={st.monthName}>{FRENCH_MONTH_NAMES_FULL[currentMonth]}</Text>
+          <Text style={st.yearText}>{currentYear}</Text>
+          <ChevronDown
+            size={18}
+            color="#94A3B8"
+            style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
+          />
+        </Pressable>
 
-            <Text
-              style={[
-                st.weekTitle,
-                { color: '#0F172A', textShadowColor: 'transparent', marginBottom: 0 },
-              ]}
+        {/* 2. Collapsible calendar panel */}
+        {calendarOpen && (
+          <View style={st.calendarPanel}>
+            {/* Horizontal month scroll */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={st.monthScrollContent}
             >
-              {formatWeekHeader(weekDays)}
-            </Text>
+              {FRENCH_MONTH_NAMES_FULL.map((name, idx) => {
+                const isActive = idx === currentMonth;
+                return (
+                  <Pressable
+                    key={idx}
+                    onPress={() => {
+                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      setCurrentMonth(idx);
+                    }}
+                    style={[
+                      st.monthPill,
+                      isActive && { backgroundColor: '#1A1A1A' },
+                    ]}
+                  >
+                    <Text style={[
+                      st.monthPillText,
+                      isActive ? st.monthPillTextActive : st.monthPillTextInactive,
+                    ]}>
+                      {SHORT_MONTHS[idx]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
 
-            <Pressable
-              onPress={() => setWeekOffset((o) => o + 1)}
-              style={({ pressed }) => [
-                st.weekNavBtn,
-                { borderColor: 'rgba(0,0,0,0.08)' },
-                pressed && { opacity: 0.6 },
-              ]}
-              hitSlop={8}
-            >
-              <Papicons name="ChevronRight" size={16} color="#0F172A" />
-            </Pressable>
-          </View>
-          <View style={st.badgeRow}>
-            <View style={[st.badge, { backgroundColor: 'rgba(248,113,113,0.18)', borderColor: 'rgba(248,113,113,0.25)' }]}>
-              <Papicons name="Warning" size={13} color="#FCA5A5" />
-              <Text style={[st.badgeText, { color: '#FCA5A5' }]}>{examCount} examen{examCount > 1 ? 's' : ''}</Text>
+            {/* Calendar grid */}
+            <View style={st.calendarGridCard}>
+              {/* Header: L M M J V S D */}
+              <View style={st.calendarHeaderRow}>
+                {WEEK_LETTERS.map((letter, i) => (
+                  <View key={i} style={st.calendarHeaderCell}>
+                    <Text style={st.calendarHeaderText}>{letter}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Day rows */}
+              {calendarGrid.map((row, rowIdx) => (
+                <View key={rowIdx} style={st.calendarRow}>
+                  {row.map((cell, colIdx) => {
+                    const isToday =
+                      cell.isCurrentMonth &&
+                      cell.fullDate.getDate() === today.getDate() &&
+                      cell.fullDate.getMonth() === today.getMonth() &&
+                      cell.fullDate.getFullYear() === today.getFullYear();
+                    const isSelected =
+                      cell.isCurrentMonth &&
+                      cell.fullDate.getDate() === selectedDay &&
+                      cell.fullDate.getMonth() === selectedFullDate.getMonth() &&
+                      cell.fullDate.getFullYear() === selectedFullDate.getFullYear();
+                    const hasEvents =
+                      cell.isCurrentMonth &&
+                      eventDatesSet.has(`${cell.fullDate.getFullYear()}-${cell.fullDate.getMonth()}-${cell.day}`);
+
+                    return (
+                      <Pressable
+                        key={colIdx}
+                        style={st.calendarCell}
+                        onPress={() => cell.isCurrentMonth && selectCalendarDay(cell.fullDate)}
+                      >
+                        <View style={[
+                          st.calendarDayCircle,
+                          isSelected && { backgroundColor: '#1A1A1A' },
+                        ]}>
+                          <Text style={[
+                            st.calendarDayText,
+                            !cell.isCurrentMonth && st.calendarDayOtherMonth,
+                            isToday && !isSelected && { color: '#7C3AED', fontFamily: FontFamily.displayBold },
+                            isSelected && { color: '#FFFFFF', fontFamily: FontFamily.displayBold },
+                          ]}>
+                            {cell.day}
+                          </Text>
+                        </View>
+                        {hasEvents && !isSelected && (
+                          <View style={st.calendarDot} />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))}
             </View>
-            <View style={[st.badge, { backgroundColor: 'rgba(251,191,36,0.18)', borderColor: 'rgba(251,191,36,0.25)' }]}>
-              <Papicons name="Paper" size={13} color="#FCD34D" />
-              <Text style={[st.badgeText, { color: '#FCD34D' }]}>{devoirCount} devoir{devoirCount > 1 ? 's' : ''}</Text>
-            </View>
           </View>
-        </View>
+        )}
 
-        {/* Day selector */}
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={weekDays}
-          keyExtractor={(d) => d.date.toString()}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 10 }}
-          renderItem={({ item }) => {
-            const isSelected = item.date === selectedDay;
-            const hasEvents = (eventsByDay[item.date]?.length ?? 0) > 0;
+        {/* 3. Week day strip */}
+        <View style={st.weekStrip}>
+          {weekDays.map((day) => {
+            const isSelected = day.date === selectedDay &&
+              day.fullDate.getMonth() === selectedFullDate.getMonth();
+            const isToday = day.isToday && !isSelected;
+            const hasEvents = (eventsByDay[day.date]?.length ?? 0) > 0;
+
             return (
               <Pressable
-                style={[
-                  st.dayPill,
-                  isSelected && { backgroundColor: '#3B82F6' },
-                  !isSelected && item.isToday && { borderColor: '#3B82F6', borderWidth: 2 },
-                ]}
-                onPress={() => {
-                  setSelectedDay(item.date);
-                  setExpandedEvent(null);
-                }}
+                key={`${day.date}-${day.fullDate.getMonth()}`}
+                onPress={() => selectDay(day)}
+                style={st.weekStripDay}
               >
-                <Text style={[st.dayLabel, !isSelected && { color: '#94A3B8' }, isSelected && { color: 'rgba(255,255,255,0.7)' }]}>{item.day}</Text>
-                <Text style={[st.dayNumber, !isSelected && { color: '#0F172A' }, isSelected && { color: '#FFFFFF' }]}>{item.date}</Text>
-                {hasEvents && <View style={[st.dayDot, isSelected && { backgroundColor: '#FFFFFF' }]} />}
+                <Text style={st.weekStripLetter}>{day.day[0]}</Text>
+                <View style={[
+                  st.weekStripCircle,
+                  isSelected && { backgroundColor: '#1A1A1A' },
+                ]}>
+                  <Text style={[
+                    st.weekStripNumber,
+                    isSelected && { color: '#FFFFFF', fontFamily: FontFamily.displayBold },
+                    isToday && { color: '#7C3AED' },
+                    !isSelected && !isToday && { color: '#1A1A1A' },
+                  ]}>
+                    {day.date}
+                  </Text>
+                </View>
+                {hasEvents && !isSelected && <View style={st.weekStripDot} />}
+                {!hasEvents && <View style={{ width: 4, height: 4 }} />}
               </Pressable>
             );
-          }}
-        />
+          })}
+        </View>
 
-        {/* Aujourd'hui button (only when not on today) */}
+        {/* Today button (when not on today) */}
         {!isSelectedToday && (
           <TouchableOpacity onPress={goToToday} style={st.todayBtn}>
             <Text style={st.todayBtnText}>Aujourd'hui</Text>
@@ -636,14 +780,14 @@ export default function AgendaScreen() {
         )}
       </View>
 
-      {/* Swipeable day cards */}
+      {/* 5. Swipeable day pages */}
       <FlatList
         ref={flatListRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         data={weekDays}
-        keyExtractor={(d) => d.date.toString()}
+        keyExtractor={(d) => `${d.date}-${d.fullDate.getMonth()}`}
         getItemLayout={(_, index) => ({
           length: SCREEN_WIDTH,
           offset: SCREEN_WIDTH * index,
@@ -657,18 +801,11 @@ export default function AgendaScreen() {
           const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
           const day = weekDays[idx];
           if (!day) return;
-
           setExpandedEvent(null);
-
-          // Week boundary: swiped past Sunday → next week
-          if (idx === weekDays.length - 1 && day.date === weekDays[weekDays.length - 1].date) {
-            const nextIdx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-            if (nextIdx >= weekDays.length - 1 && !weekDays.some((d) => d.isToday && weekOffset === 0)) {
-              // Already on last page — no boundary cross needed unless user swipes further
-            }
-          }
-
           setSelectedDay(day.date);
+          setSelectedFullDate(day.fullDate);
+          setCurrentMonth(day.fullDate.getMonth());
+          setCurrentYear(day.fullDate.getFullYear());
         }}
         onScrollBeginDrag={() => {
           isProgrammaticScroll.current = false;
@@ -677,68 +814,21 @@ export default function AgendaScreen() {
         style={{ flex: 1 }}
       />
 
-      {/* Floating add button */}
+      {/* 7. FAB */}
       <Pressable
         onPress={openAddModal}
-        style={({ pressed }) => ({
-          position: 'absolute',
-          bottom: 100,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          overflow: 'hidden',
-          opacity: pressed ? 0.85 : 1,
-          elevation: 0,
-        })}
+        style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
       >
-        <LinearGradient
-          colors={['#6366F1', '#22D3EE']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Papicons name="Plus" size={26} color="#FFFFFF" />
-        </LinearGradient>
+        <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
       </Pressable>
 
-      {/* ─── Calendar Placeholder Modal ──────────────────── */}
+      {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal
-        visible={calendarModalVisible}
+        visible={addModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setCalendarModalVisible(false)}
+        onRequestClose={() => setAddModalVisible(false)}
       >
-        <TouchableWithoutFeedback onPress={() => setCalendarModalVisible(false)}>
-          <View style={st.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <View style={[st.modalContent, { alignItems: 'center', paddingVertical: 40 }]}>
-                <View style={st.modalHandle} />
-                <Text style={{ fontSize: 48, marginBottom: 12 }}>📅</Text>
-                <Text style={[st.modalTitle, { textAlign: 'center' }]}>Calendrier</Text>
-                <Text style={{ fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 24 }}>
-                  La vue calendrier mensuelle sera disponible prochainement.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setCalendarModalVisible(false)}
-                  style={{ backgroundColor: '#3B82F6', paddingHorizontal: 28, paddingVertical: 12, borderRadius: 14 }}
-                >
-                  <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' }}>Fermer</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-
-      {/* ─── Add Event Modal ─────────────────────────────── */}
-      <Modal visible={addModalVisible} transparent animationType="fade" onRequestClose={() => setAddModalVisible(false)}>
         <View style={st.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
@@ -751,7 +841,7 @@ export default function AgendaScreen() {
 
               {/* Date indicator */}
               <View style={[st.modalDateRow, { backgroundColor: '#3B82F612', borderColor: '#3B82F630' }]}>
-                <Papicons name="Calendar" size={15} color="#3B82F6" />
+                <Text style={{ fontSize: 15 }}>📅</Text>
                 <Text style={[st.modalDateText, { color: '#3B82F6' }]}>
                   {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
                 </Text>
@@ -796,8 +886,15 @@ export default function AgendaScreen() {
                 <Pressable onPress={() => setAddModalVisible(false)} style={st.cancelBtn}>
                   <Text style={st.cancelText}>Annuler</Text>
                 </Pressable>
-                <Pressable onPress={handleCreateEvent} disabled={isSaving} style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}>
-                  <LinearGradient colors={['#3B82F6', '#6366F1']} style={[st.createBtn, isSaving && { opacity: 0.6 }]}>
+                <Pressable
+                  onPress={handleCreateEvent}
+                  disabled={isSaving}
+                  style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}
+                >
+                  <LinearGradient
+                    colors={['#3B82F6', '#6366F1']}
+                    style={[st.createBtn, isSaving && { opacity: 0.6 }]}
+                  >
                     <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
                   </LinearGradient>
                 </Pressable>
@@ -813,118 +910,395 @@ export default function AgendaScreen() {
 // ─── Styles ─────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#F8F7FF' },
 
-  weekHeader: { paddingHorizontal: 20, marginBottom: 4 },
-  weekTitleRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginBottom: 8,
+  // Month title
+  monthTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
   },
-  weekNavBtn: {
-    width: 30, height: 30, borderRadius: 15,
-    borderWidth: 1, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+  monthName: {
+    fontFamily: FontFamily.displayExtraBold,
+    fontSize: 32,
+    color: '#1A1A1A',
   },
-  weekTitle: {
-    fontFamily: FontFamily.displayBold, fontSize: 13,
-    textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8,
-    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+  yearText: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 20,
+    color: '#94A3B8',
   },
-  badgeRow: { flexDirection: 'row', gap: 8 },
-  badge: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
-    borderWidth: 1,
-  },
-  badgeText: { fontFamily: FontFamily.displayBold, fontSize: 11 },
 
-  dayPill: {
-    width: 54, alignItems: 'center', paddingVertical: 10, borderRadius: 16, gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)',
+  // Calendar panel
+  calendarPanel: {
+    paddingBottom: 8,
   },
-  dayLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase' },
-  dayNumber: { fontFamily: FontFamily.displayBold, fontSize: 20, color: '#0F172A' },
-  dayDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.cyan },
+  monthScrollContent: {
+    paddingHorizontal: 16,
+    gap: 6,
+    paddingBottom: 12,
+  },
+  monthPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+  },
+  monthPillText: {
+    fontSize: 13,
+  },
+  monthPillTextActive: {
+    fontFamily: FontFamily.sansBold,
+    color: '#FFFFFF',
+  },
+  monthPillTextInactive: {
+    fontFamily: FontFamily.sansMedium,
+    color: '#94A3B8',
+  },
+  calendarGridCard: {
+    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+      android: { elevation: 0 },
+      default: {},
+    }),
+  },
+  calendarHeaderRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  calendarHeaderCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  calendarHeaderText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+  calendarRow: {
+    flexDirection: 'row',
+  },
+  calendarCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  calendarDayCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarDayText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: '#1A1A1A',
+  },
+  calendarDayOtherMonth: {
+    color: '#D1D5DB',
+  },
+  calendarDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#7C3AED',
+    marginTop: 1,
+  },
+
+  // Week strip
+  weekStrip: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  weekStripDay: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  weekStripLetter: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+  },
+  weekStripCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weekStripNumber: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 16,
+    color: '#1A1A1A',
+  },
+  weekStripDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#7C3AED',
+  },
 
   // Today button
   todayBtn: {
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, alignSelf: 'center', marginBottom: 8,
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginBottom: 4,
   },
-  todayBtnText: { color: '#FFFFFF', fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
+  todayBtnText: {
+    color: '#FFFFFF',
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+  },
 
-  // Day page header (inside each swipeable page)
-  dayPageHeader: {
+  // Day title row (inside each page)
+  dayTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 6,
-    paddingBottom: 10,
+    marginVertical: 8,
   },
-  dayPageDate: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 22,
-    color: '#0F172A',
-    textTransform: 'capitalize',
-    marginBottom: 8,
+  dayTitleText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#64748B',
   },
-  dayBadgeRow: { flexDirection: 'row', gap: 8 },
-
-  sectionBar: { width: 4, height: 18, borderRadius: 2 },
-  sectionText: {
-    fontFamily: FontFamily.displayBold, fontSize: 13,
-    textTransform: 'uppercase', letterSpacing: 2,
-    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4,
+  dayEventCount: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: '#94A3B8',
   },
 
-  emptyTitle: { fontFamily: FontFamily.displayBold, fontSize: 18, color: '#0F172A', marginBottom: 4 },
-  emptySubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#94A3B8' },
-
-  colorBar: { width: 5, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
-
-  eventTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#0F172A' },
-  typePill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
-  typeLabel: { fontFamily: FontFamily.displayBold, fontSize: 11 },
-  timeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
-
-  checkbox: {
-    width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#CBD5E1',
-    alignItems: 'center', justifyContent: 'center',
+  // Event card
+  eventCard: {
+    flexDirection: 'row',
+    borderRadius: 20,
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+  eventAccentBar: {
+    width: 4,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  eventInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    gap: 12,
+  },
+  emojiCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+      android: { elevation: 0 },
+      default: {},
+    }),
+  },
+  eventTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#1A1A1A',
+  },
+  eventMeta: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
   },
   examBadge: {
-    width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(248,113,113,0.15)',
-    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#EF444418',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  examBadgeText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#EF4444',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  detailSection: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', paddingTop: 8, gap: 6 },
-  detailRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  detailText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', flex: 1 },
+  // Empty state
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: '#F0FDF4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 18,
+    color: '#1A1A1A',
+  },
+  emptySubtitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 4,
+  },
+
+  // FAB
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    right: 22,
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#1A1A1A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+      android: { elevation: 0 },
+      default: {},
+    }),
+  },
 
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', justifyContent: 'flex-end' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.55)',
+    justifyContent: 'flex-end',
+  },
   modalContent: {
-    backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 36,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
     ...Platform.select({
       ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 24 },
       android: { elevation: 20 },
       default: {},
     }),
   },
-  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginBottom: 20 },
-  modalTitle: { fontFamily: FontFamily.displayBold, fontSize: 18, color: '#0F172A', marginBottom: 20 },
-  modalDateRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, marginBottom: 16 },
-  modalDateText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
-  modalLabel: { fontFamily: FontFamily.displayBold, fontSize: 13, color: '#64748B', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 },
-  modalInput: {
-    backgroundColor: '#F7F8FC', borderWidth: 1.5, borderColor: '#EEF0F5', borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F172A', marginBottom: 20,
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#CBD5E1',
+    alignSelf: 'center',
+    marginBottom: 20,
   },
-  modalTypeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
-  modalTypePill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, backgroundColor: '#FFFFFF' },
-  modalTypeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: '#64748B' },
-  modalActions: { flexDirection: 'row', gap: 12 },
-  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: '#EEF0F5', alignItems: 'center' },
-  cancelText: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: '#64748B' },
-  createBtn: { paddingVertical: 14, alignItems: 'center' },
-  createText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
+  modalTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 18,
+    color: '#0F172A',
+    marginBottom: 20,
+  },
+  modalDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  modalDateText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+  },
+  modalLabel: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 13,
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#F7F8FC',
+    borderWidth: 1.5,
+    borderColor: '#EEF0F5',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#0F172A',
+    marginBottom: 20,
+    fontFamily: FontFamily.sansRegular,
+  },
+  modalTypeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 24,
+  },
+  modalTypePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFFFF',
+  },
+  modalTypeText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: '#64748B',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#EEF0F5',
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: '#64748B',
+  },
+  createBtn: {
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  createText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
 });

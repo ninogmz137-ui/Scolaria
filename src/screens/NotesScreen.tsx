@@ -367,7 +367,7 @@ export default function NotesScreen() {
         <WallpaperBackground />
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
+          contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
         >
           {/* Summary */}
           <Text style={[s.maternelleTitle, {
@@ -509,8 +509,13 @@ export default function NotesScreen() {
       <WallpaperBackground />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[s.scroll, { paddingTop: TOPBAR_H + 20, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
+        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}
       >
+        {/* ── Screen title ── */}
+        <Text style={[s.maternelleTitle, { color: '#0F172A', textShadowColor: 'transparent' }]}>
+          Notes & Résultats
+        </Text>
+
         {/* ── Summary cards ── */}
         <View style={s.summaryRow}>
           <GlassCard style={s.summaryCard}>
