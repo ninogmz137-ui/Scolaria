@@ -9,14 +9,19 @@
  */
 
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Modal,
+  TouchableWithoutFeedback,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
-import { Plus } from 'lucide-react-native';
-import { Papicons } from '@getpapillon/papicons';
+import { Plus, ChevronRight } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import GlassCard from '../../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
 
@@ -123,22 +128,52 @@ function formatMessageDate(isoDate: string): string {
   }
 }
 
+function getAvatarColor(name: string): string {
+  const colors = ['#7C3AED', '#06B6D4', '#F59E0B', '#10B981', '#EF4444', '#EC4899'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 // ─── Component ────────────────────────────────────────────
 
 export default function MessagesListScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
-  const { isDemoMode, getTeachers: getDemoTeachers, getMots: getDemoMots, getMessages: getDemoMessages } = useDemoData();
+  const {
+    isDemoMode,
+    getTeachers: getDemoTeachers,
+    getMots: getDemoMots,
+    getMessages: getDemoMessages,
+  } = useDemoData();
   const [teacherModalVisible, setTeacherModalVisible] = useState(false);
 
   // In demo mode, use filtered teachers for the selected child
   const teachers = isDemoMode
-    ? getDemoTeachers(selectedChild.id).map((t) => ({ id: t.id, name: t.name, subject: `${t.role} — ${t.class}` }))
+    ? getDemoTeachers(selectedChild.id).map((t) => ({
+        id: t.id,
+        name: t.name,
+        subject: `${t.role} — ${t.class}`,
+      }))
     : MOCK_TEACHERS;
 
   // In demo mode, use filtered mots for the selected child
   const mots = isDemoMode
-    ? getDemoMots(selectedChild.id).map((m) => ({ id: m.id, title: m.title, deadline: m.deadline, signed: m.isSigned }))
+    ? getDemoMots(selectedChild.id).map((m) => ({
+        id: m.id,
+        title: m.title,
+        deadline: m.deadline,
+        signed: m.isSigned,
+      }))
     : MOCK_MOTS;
 
   // In demo mode, use filtered conversations for the selected child
@@ -156,12 +191,12 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
     : MOCK_CONVERSATIONS;
 
   return (
-    <View style={[styles.root]}>
+    <View style={styles.root}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: insets.top + 60, paddingBottom: 120 },
         ]}
       >
         {/* ── Section: Conversations ── */}
@@ -173,53 +208,58 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         {conversations.map((conv) => (
           <Pressable
             key={conv.id}
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
+            style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >
-            <GlassCard borderRadius={14}>
-              <View style={styles.convRow}>
-                {/* Avatar initial */}
-                <View style={styles.convAvatar}>
-                  <Text style={styles.convAvatarText}>
-                    {conv.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
-                  </Text>
-                </View>
+            {/* Avatar with color hash */}
+            <View
+              style={[styles.convAvatar, { backgroundColor: getAvatarColor(conv.name) }]}
+            >
+              <Text style={styles.convAvatarText}>{getInitials(conv.name)}</Text>
+              {conv.unread && <View style={styles.unreadDot} />}
+            </View>
 
-                {/* Text */}
-                <View style={styles.convBody}>
-                  <View style={styles.convTitleRow}>
-                    <Text
-                      style={[
-                        styles.convName,
-                        { fontFamily: conv.unread ? FontFamily.sansBold : FontFamily.sansSemiBold },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {conv.name}
-                    </Text>
-                    <Text style={styles.convDate}>{conv.date}</Text>
-                  </View>
-                  <Text style={styles.convRole} numberOfLines={1}>{conv.role}</Text>
-                  <Text
-                    style={[
-                      styles.convMessage,
-                      { fontFamily: conv.unread ? FontFamily.sansMedium : FontFamily.sansRegular },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {conv.lastMessage}
-                  </Text>
-                </View>
-
-                {/* Unread dot */}
-                {conv.unread && <View style={styles.unreadDot} />}
+            {/* Text column */}
+            <View style={styles.convBody}>
+              <View style={styles.convTitleRow}>
+                <Text
+                  style={[
+                    styles.convName,
+                    {
+                      fontFamily: conv.unread
+                        ? FontFamily.sansBold
+                        : FontFamily.sansSemiBold,
+                    },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {conv.name}
+                </Text>
+                <Text style={styles.convDate}>{conv.date}</Text>
               </View>
-            </GlassCard>
+              <Text style={styles.convRole} numberOfLines={1}>
+                {conv.role}
+              </Text>
+              <Text
+                style={[
+                  styles.convMessage,
+                  {
+                    fontFamily: conv.unread
+                      ? FontFamily.sansMedium
+                      : FontFamily.sansRegular,
+                    color: conv.unread ? '#1A2340' : '#64748B',
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {conv.lastMessage}
+              </Text>
+            </View>
           </Pressable>
         ))}
 
         {/* ── Section: Mots à signer ── */}
-        <View style={[styles.sectionHeaderRow, { marginTop: 16 }]}>
+        <View style={[styles.sectionHeaderRow, { marginTop: 20 }]}>
           <View style={[styles.sectionAccentBar, { backgroundColor: '#FF8C42' }]} />
           <Text style={styles.sectionLabel}>Mots à signer</Text>
         </View>
@@ -227,44 +267,40 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         {mots.map((mot) => (
           <Pressable
             key={mot.id}
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
+            style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >
-            <GlassCard borderRadius={14}>
-              <View style={styles.motRow}>
-                {/* School icon */}
-                <View style={styles.motIconContainer}>
-                  <Text style={styles.motIcon}>🏫</Text>
-                </View>
+            {/* Icon circle using neutral bg */}
+            <View style={styles.motIconContainer}>
+              <Text style={styles.motIconText}>✉</Text>
+            </View>
 
-                {/* Text */}
-                <View style={styles.motBody}>
-                  <Text style={styles.motTitle} numberOfLines={1}>{mot.title}</Text>
-                  {mot.deadline && !mot.signed && (
-                    <Text style={styles.motDeadline}>
-                      À signer avant le {mot.deadline}
-                    </Text>
-                  )}
-                </View>
+            {/* Text */}
+            <View style={styles.motBody}>
+              <Text style={styles.motTitle} numberOfLines={1}>
+                {mot.title}
+              </Text>
+              {mot.deadline && !mot.signed && (
+                <Text style={styles.motDeadline}>À signer avant le {mot.deadline}</Text>
+              )}
+            </View>
 
-                {/* Status badge */}
-                <View
-                  style={[
-                    styles.motBadge,
-                    { backgroundColor: mot.signed ? '#D1FAE5' : '#FEF3C7' },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.motBadgeText,
-                      { color: mot.signed ? '#065F46' : '#92400E' },
-                    ]}
-                  >
-                    {mot.signed ? 'Signé ✓' : 'À signer'}
-                  </Text>
-                </View>
-              </View>
-            </GlassCard>
+            {/* Status badge */}
+            <View
+              style={[
+                styles.motBadge,
+                { backgroundColor: mot.signed ? '#D1FAE5' : '#FEF3C7' },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.motBadgeText,
+                  { color: mot.signed ? '#065F46' : '#92400E' },
+                ]}
+              >
+                {mot.signed ? 'Signé' : 'À signer'}
+              </Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -322,16 +358,21 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                       { opacity: pressed ? 0.7 : 1 },
                     ]}
                   >
-                    <View style={styles.teacherAvatar}>
+                    <View
+                      style={[
+                        styles.teacherAvatar,
+                        { backgroundColor: getAvatarColor(teacher.name) },
+                      ]}
+                    >
                       <Text style={styles.teacherAvatarText}>
-                        {teacher.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
+                        {getInitials(teacher.name)}
                       </Text>
                     </View>
                     <View style={{ flex: 1, gap: 2 }}>
                       <Text style={styles.teacherName}>{teacher.name}</Text>
                       <Text style={styles.teacherSubject}>{teacher.subject}</Text>
                     </View>
-                    <Papicons name="ChevronRight" size={16} color="#94A3B8" />
+                    <ChevronRight size={16} color="#94A3B8" strokeWidth={2} />
                   </Pressable>
                 ))}
               </View>
@@ -348,7 +389,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
@@ -369,33 +410,53 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    color: '#0F172A',
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#94A3B8',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.2,
   },
 
-  // ── Conversation card
-  convRow: {
+  // ── Generic card (plain white, not glass)
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 8,
   },
+
+  // ── Conversation avatar
   convAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#EFF6FF',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   convAvatarText: {
-    fontFamily: FontFamily.sansSemiBold,
+    fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    color: '#3B82F6',
+    color: '#FFFFFF',
   },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3B82F6',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+
+  // ── Conversation text
   convBody: {
     flex: 1,
     gap: 2,
@@ -409,12 +470,12 @@ const styles = StyleSheet.create({
   convName: {
     flex: 1,
     fontSize: 15,
-    color: '#0F172A',
+    color: '#1A2340',
   },
   convDate: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#CBD5E1',
     flexShrink: 0,
   },
   convRole: {
@@ -424,22 +485,9 @@ const styles = StyleSheet.create({
   },
   convMessage: {
     fontSize: 13,
-    color: '#64748B',
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#3B82F6',
-    flexShrink: 0,
   },
 
-  // ── Mot card
-  motRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+  // ── Mot icon
   motIconContainer: {
     width: 40,
     height: 40,
@@ -449,8 +497,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  motIcon: {
-    fontSize: 20,
+  motIconText: {
+    fontSize: 18,
+    color: '#F59E0B',
   },
   motBody: {
     flex: 1,
@@ -459,7 +508,7 @@ const styles = StyleSheet.create({
   motTitle: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#0F172A',
+    color: '#1A2340',
   },
   motDeadline: {
     fontFamily: FontFamily.sansRegular,
@@ -523,14 +572,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   teacherAvatarText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#3B82F6',
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: '#FFFFFF',
   },
   teacherName: {
     fontFamily: FontFamily.sansSemiBold,

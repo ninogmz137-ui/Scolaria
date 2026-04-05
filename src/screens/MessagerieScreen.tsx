@@ -64,7 +64,7 @@ const TYPE_CONFIG: Record<MessagerieItemType, { icon: string; color: string }> =
   note:    { icon: 'Grades',   color: '#A78BFA' },
   agenda:  { icon: 'Calendar', color: '#10B981' },
   absence: { icon: 'Warning',  color: '#EF4444' },
-  aria:    { icon: 'Sparkles', color: '#6366F1' },
+  aria:    { icon: 'Sparkles', color: '#7C3AED' },
 };
 
 // ─── FAB action config ────────────────────────────────────

@@ -4,7 +4,7 @@
  * Sections: Mes Enfants, Apparence, Confidentialité, À propos
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,9 @@ import {
   ScrollView,
   Switch,
   StyleSheet,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -126,6 +126,17 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 
   const [darkMode, setDarkMode] = useState(false);
 
+  useEffect(() => {
+    AsyncStorage.getItem('darkModeEnabled').then((v) => {
+      if (v === 'true') setDarkMode(true);
+    });
+  }, []);
+
+  const handleDarkModeToggle = (v: boolean) => {
+    setDarkMode(v);
+    AsyncStorage.setItem('darkModeEnabled', v ? 'true' : 'false');
+  };
+
   // Parent name and email from auth context
   const parentName =
     user?.user_metadata?.family_name
@@ -143,17 +154,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           { paddingTop: insets.top + 16, paddingBottom: 120 },
         ]}
       >
-        {/* ── Header ── */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.6}
-        >
-          <Text style={styles.backText}>‹ Retour</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.pageTitle}>Réglages</Text>
-
         {/* ── Parent profile mini-card ── */}
         <View style={styles.profileCard}>
           {Platform.OS === 'web' ? (
@@ -219,14 +219,14 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           label="Mode sombre"
           type="toggle"
           toggleValue={darkMode}
-          onToggle={setDarkMode}
+          onToggle={handleDarkModeToggle}
         />
         <Row
           emoji="🔤"
           label="Taille du texte"
           sublabel="Normal"
           type="navigate"
-          onPress={undefined}
+          onPress={() => nav.navigate('TextSize')}
           showSeparator={false}
         />
 
@@ -281,7 +281,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           emoji="✉️"
           label="Nous contacter"
           type="navigate"
-          onPress={undefined}
+          onPress={() => nav.navigate('APropos')}
           showSeparator={false}
         />
       </ScrollView>

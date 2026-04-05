@@ -1,3 +1,9 @@
+/**
+ * ProfilEnfantScreen — Clean white/black design.
+ * No WallpaperBackground, no GlassCard, no Papicons.
+ * Matches SettingsScreen / NotesScreen visual language.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -10,20 +16,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Papicons } from '@getpapillon/papicons';
+import { FileText, GraduationCap, Pencil, Fingerprint } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../constants/colors';
-import { useSchoolMode } from '../contexts/SchoolModeContext';
-import { useActiveChild, type AvatarType } from '../contexts/ActiveChildContext';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 import ChildAvatar from '../components/ChildAvatar';
 import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import WallpaperBackground from '../components/WallpaperBackground';
-import GlassCard from '../components/GlassCard';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import SuperPowerBadge, { type ProfileTag } from '../components/profile/SuperPowerBadge';
-import CompetenceRadar from '../components/profile/CompetenceRadar';
 import JoyHistory from '../components/profile/JoyHistory';
 import Portfolio from '../components/profile/Portfolio';
 import JoyAlerts, {
@@ -37,8 +38,9 @@ import {
   type TransitionMemoData,
 } from '../services/pdfExport';
 import { getChild, getCheckins } from '../services/database';
+import { Colors } from '../constants/colors';
 
-// ─── Per-child profile data ──────────────────────────────
+// ─── Types ────────────────────────────────────────────────
 
 interface ChildProfileData {
   name: string;
@@ -68,10 +70,10 @@ interface ChildProfileData {
   trimesterWeeksLeft: number;
 }
 
+// ─── Mock data ────────────────────────────────────────────
 
 function getChildProfileData(childId: string): ChildProfileData {
   switch (childId) {
-    // ── Léa — Maternelle ──
     case '1':
       return {
         name: 'Léa Moreau',
@@ -107,7 +109,6 @@ function getChildProfileData(childId: string): ChildProfileData {
         trimesterWeeksLeft: 6,
       };
 
-    // ── Lucas — Primaire ──
     case '2':
       return {
         name: 'Lucas Moreau',
@@ -149,7 +150,6 @@ function getChildProfileData(childId: string): ChildProfileData {
         trimesterWeeksLeft: 6,
       };
 
-    // ── Emma — Collège ──
     case '3':
     default:
       return {
@@ -190,10 +190,41 @@ function getChildProfileData(childId: string): ChildProfileData {
   }
 }
 
-// ─── Component ────────────────────────────────────────────
+// ─── Inline sub-components ────────────────────────────────
+
+function SectionTitle({ label }: { label: string }) {
+  return <Text style={styles.sectionTitle}>{label}</Text>;
+}
+
+function Card({ children, style }: { children: React.ReactNode; style?: object }) {
+  return <View style={[styles.card, style]}>{children}</View>;
+}
+
+interface CompetenceRowProps {
+  emoji: string;
+  label: string;
+  value: number; // 0–10
+  accentColor: string;
+}
+
+function CompetenceRow({ emoji, label, value, accentColor }: CompetenceRowProps) {
+  const pct = Math.min(100, Math.max(0, value * 10));
+  return (
+    <View style={styles.competenceRow}>
+      <Text style={styles.competenceEmoji}>{emoji}</Text>
+      <Text style={styles.competenceLabel}>{label}</Text>
+      <View style={styles.competenceBarTrack}>
+        <View style={[styles.competenceBarFill, { width: `${pct}%` as any, backgroundColor: accentColor }]} />
+      </View>
+      <Text style={[styles.competenceValue, { color: accentColor }]}>{value}</Text>
+    </View>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────
 
 export default function ProfilEnfantScreen() {
-  useChildTheme(); // kept for future theme re-integration
+  useChildTheme();
   const { selectedChild, updateChildAvatar } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -202,6 +233,8 @@ export default function ProfilEnfantScreen() {
 
   const [data, setData] = useState<ChildProfileData>(() => getChildProfileData(childId));
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportingMemo, setExportingMemo] = useState(false);
 
   const handleAvatarSelect = useCallback((selection: AvatarSelection) => {
     updateChildAvatar(childId, selection.type, selection.emoji, selection.photoUri);
@@ -223,7 +256,6 @@ export default function ProfilEnfantScreen() {
       return;
     }
 
-    // Compute age from birth_date if available, else fall back to stored age
     let age = child.age ?? mock.age;
     if (child.birth_date) {
       const born = new Date(child.birth_date);
@@ -235,24 +267,19 @@ export default function ProfilEnfantScreen() {
       if (!hasBirthdayPassed) age -= 1;
     }
 
-    // Build joy30Days from real checkins
     let joy30Days = mock.joy30Days;
     let lastCheckinMessage = mock.lastCheckinMessage;
 
     if (checkins.length > 0) {
-      // Sort ascending by date so the most recent ends up last
       const sorted = [...checkins].sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
-
-      // Group joy_score by day-of-month and average
       const byDay: Record<number, number[]> = {};
       for (const c of sorted) {
         const day = new Date(c.date).getDate();
         if (!byDay[day]) byDay[day] = [];
         if (c.joy_score != null) byDay[day].push(c.joy_score);
       }
-
       joy30Days = Array.from({ length: 30 }, (_, i) => {
         const day = i + 1;
         const scores = byDay[day];
@@ -260,8 +287,6 @@ export default function ProfilEnfantScreen() {
         const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
         return { day, score: Math.round(avg) };
       });
-
-      // Most recent checkin message
       const latest = sorted[sorted.length - 1];
       lastCheckinMessage = latest?.message ?? '';
     }
@@ -284,15 +309,10 @@ export default function ProfilEnfantScreen() {
   }, [childId]);
 
   useEffect(() => {
-    // Immediately show mock while real data loads
     setData(getChildProfileData(childId));
     loadProfile();
   }, [childId, loadProfile]);
 
-  const [exporting, setExporting] = useState(false);
-  const [exportingMemo, setExportingMemo] = useState(false);
-
-  // Detect alert level
   const joyAlert = detectJoyAlert(data.joy30Days);
   const hasCriticalMessage = detectCriticalKeywords(data.lastCheckinMessage);
 
@@ -318,8 +338,7 @@ export default function ProfilEnfantScreen() {
 
   const handleExportMemo = async () => {
     setExportingMemo(true);
-    const joyAvg =
-      data.joy30Days.reduce((s, d) => s + d.score, 0) / data.joy30Days.length;
+    const joyAvg = data.joy30Days.reduce((s, d) => s + d.score, 0) / data.joy30Days.length;
     const memoData: TransitionMemoData = {
       child: data,
       competences: data.competences,
@@ -337,46 +356,42 @@ export default function ProfilEnfantScreen() {
     }
   };
 
-  const accent = '#3B82F6';
+  const accent = '#6366F1';
 
   return (
     <View style={styles.root}>
-      <WallpaperBackground />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: TOPBAR_H + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: TOPBAR_H + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 24 },
         ]}
       >
-        {/* Profile header card */}
-        <GlassCard style={styles.headerCard} borderRadius={20}>
-          {/* Avatar — tap to customize */}
-          <Pressable onPress={() => setAvatarPickerVisible(true)} style={styles.avatarRing}>
+        {/* ── Header ── */}
+        <Card style={styles.headerCard}>
+          <Pressable onPress={() => setAvatarPickerVisible(true)} style={styles.avatarWrap}>
             <ChildAvatar
               name={data.name}
               emoji={selectedChild.avatarType === 'photo' ? undefined : (selectedChild.avatarEmoji || data.avatar)}
               photoUri={selectedChild.avatarPhotoUri}
               accentColor={accent}
-              size={72}
+              size={64}
             />
             <View style={styles.avatarEditBadge}>
-              <Papicons name="Pen" size={12} color="#FFFFFF" />
+              <Pencil size={10} color="#FFFFFF" strokeWidth={2.5} />
             </View>
           </Pressable>
 
           <Text style={styles.nameText}>{data.name}</Text>
           <Text style={styles.classeText}>{data.classe}</Text>
 
-          {/* Scolaria ID — pill */}
           <View style={styles.idPill}>
-            <Papicons name="Fingerprint" size={14} color="#64748B" />
+            <Fingerprint size={13} color="#94A3B8" strokeWidth={2} />
             <Text style={styles.idText}>{data.scolariaId}</Text>
           </View>
-        </GlassCard>
+        </Card>
 
-        {/* Joy Alerts */}
+        {/* ── Joy alerts ── */}
         {(joyAlert.level || hasCriticalMessage) && (
           <View style={styles.section}>
             <JoyAlerts
@@ -389,8 +404,9 @@ export default function ProfilEnfantScreen() {
           </View>
         )}
 
-        {/* Super Power Badge */}
-        <View style={styles.section}>
+        {/* ── Super-Pouvoir ── */}
+        <SectionTitle label="SUPER-POUVOIR" />
+        <Card style={styles.section}>
           <SuperPowerBadge
             power={data.superPower}
             emoji={data.superPowerEmoji}
@@ -401,79 +417,71 @@ export default function ProfilEnfantScreen() {
             accentColor={accent}
             accentLight={accent}
           />
-        </View>
+        </Card>
 
-        {/* Competences */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionBar, { backgroundColor: accent }]} />
-            <Text style={styles.sectionTitle}>Compétences</Text>
-          </View>
-          <GlassCard borderRadius={20} noPadding>
-            <View style={styles.radarPadding}>
-              <CompetenceRadar data={data.competences} />
-            </View>
-          </GlassCard>
-        </View>
+        {/* ── Compétences clés ── */}
+        <SectionTitle label="COMPÉTENCES CLÉS" />
+        <Card style={styles.section}>
+          {data.competences.map((c) => (
+            <CompetenceRow
+              key={c.label}
+              emoji={c.emoji}
+              label={c.label}
+              value={c.value}
+              accentColor={accent}
+            />
+          ))}
+        </Card>
 
-        {/* Portfolio */}
-        <View style={styles.section}>
-          <Portfolio activities={data.portfolio} />
-        </View>
-
-        {/* Joy History 30 days */}
+        {/* ── Score de joie ── */}
+        <SectionTitle label="SCORE DE JOIE" />
         <View style={styles.section}>
           <JoyHistory data={data.joy30Days} month="Mars 2026" />
         </View>
 
-        {/* Export PDF button */}
-        <Pressable
-          style={[styles.exportBtn, { backgroundColor: Colors.violet }]}
-          onPress={handleExportPDF}
-          disabled={exporting}
-        >
-          {exporting ? (
-            <>
-              <ActivityIndicator color="#FFFFFF" size="small" />
-              <Text style={styles.exportBtnText}>Génération...</Text>
-            </>
-          ) : (
-            <>
-              <Papicons name="Document" size={22} color="#FFFFFF" />
-              <Text style={styles.exportBtnText}>Exporter en PDF</Text>
-            </>
-          )}
-        </Pressable>
+        {/* ── Portfolio ── */}
+        <SectionTitle label="PORTFOLIO EXTRA-SCOLAIRE" />
+        <View style={styles.section}>
+          <Portfolio activities={data.portfolio} />
+        </View>
 
-        <Text style={styles.exportHint}>
-          Génère un passeport scolaire complet au format PDF
-        </Text>
+        {/* ── Actions ── */}
+        <SectionTitle label="ACTIONS" />
+        <View style={styles.actionsContainer}>
+          <Pressable
+            style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+            onPress={handleExportPDF}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <ActivityIndicator color="#1A2340" size="small" />
+            ) : (
+              <FileText size={18} color="#1A2340" strokeWidth={2} />
+            )}
+            <Text style={styles.actionBtnText}>
+              {exporting ? 'Génération…' : 'Exporter en PDF'}
+            </Text>
+          </Pressable>
+          <Text style={styles.actionHint}>Génère un passeport scolaire complet au format PDF</Text>
 
-        {/* Transition Memo button */}
-        <Pressable
-          style={[styles.exportBtn, styles.exportBtnMemo]}
-          onPress={handleExportMemo}
-          disabled={exportingMemo}
-        >
-          {exportingMemo ? (
-            <>
-              <ActivityIndicator color="#FFFFFF" size="small" />
-              <Text style={styles.exportBtnText}>Génération...</Text>
-            </>
-          ) : (
-            <>
-              <Papicons name="GraduationCap" size={22} color="#FFFFFF" />
-              <Text style={styles.exportBtnText}>Mémo de bienvenue</Text>
-            </>
-          )}
-        </Pressable>
-
-        <Text style={styles.exportHint}>
-          Document de transition partageable avec le nouvel établissement
-        </Text>
+          <Pressable
+            style={({ pressed }) => [styles.actionBtn, styles.actionBtnSecond, pressed && styles.actionBtnPressed]}
+            onPress={handleExportMemo}
+            disabled={exportingMemo}
+          >
+            {exportingMemo ? (
+              <ActivityIndicator color="#1A2340" size="small" />
+            ) : (
+              <GraduationCap size={18} color="#1A2340" strokeWidth={2} />
+            )}
+            <Text style={styles.actionBtnText}>
+              {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
+            </Text>
+          </Pressable>
+          <Text style={styles.actionHint}>Document de transition partageable avec le nouvel établissement</Text>
+        </View>
       </ScrollView>
 
-      {/* Avatar Picker Modal */}
       <AvatarPicker
         visible={avatarPickerVisible}
         onClose={() => setAvatarPickerVisible(false)}
@@ -487,118 +495,173 @@ export default function ProfilEnfantScreen() {
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 18,
-  },
-  headerCard: {
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingVertical: 24,
     paddingHorizontal: 20,
   },
-  avatarRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.6)',
+
+  // Section title
+  sectionTitle: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#94A3B8',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+
+  // Card
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    elevation: 0,
+  },
+
+  section: {
+    marginBottom: 20,
+  },
+
+  // Header card
+  headerCard: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    marginBottom: 24,
+  },
+
+  avatarWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   avatarEditBadge: {
     position: 'absolute',
-    bottom: 10,
-    right: -2,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(99,102,241,0.9)',
+    bottom: 2,
+    right: 0,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#6366F1',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
+
   nameText: {
-    fontFamily: FontFamily.loraBold,
-    fontSize: 22,
-    color: '#0F172A',
+    fontFamily: FontFamily.displayBold,
+    fontSize: 24,
+    color: '#1A2340',
     marginBottom: 4,
+    textAlign: 'center',
   },
   classeText: {
-    fontFamily: FontFamily.sansMedium,
+    fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: '#64748B',
+    color: '#94A3B8',
     marginBottom: 14,
+    textAlign: 'center',
   },
   idPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(15,23,42,0.06)',
+    gap: 6,
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.10)',
+    borderColor: '#E2E8F0',
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   idText: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    fontSize: 13,
-    color: '#0F172A',
+    fontSize: 12,
+    color: '#64748B',
     letterSpacing: 0.5,
   },
-  section: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
+
+  // Competence rows
+  competenceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  sectionBar: {
-    width: 4,
-    height: 20,
-    borderRadius: 2,
+  competenceEmoji: {
+    fontSize: 16,
+    width: 22,
+    textAlign: 'center',
   },
-  sectionTitle: {
+  competenceLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: '#1A2340',
+    width: 100,
+  },
+  competenceBarTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  competenceBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  competenceValue: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 17,
-    color: '#0F172A',
+    fontSize: 12,
+    width: 20,
+    textAlign: 'right',
   },
-  radarPadding: {
-    padding: 16,
-    alignItems: 'center',
+
+  // Actions
+  actionsContainer: {
+    marginBottom: 8,
   },
-  exportBtn: {
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 10,
-    paddingVertical: 18,
-    borderRadius: 30,
-    marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    backgroundColor: '#FFFFFF',
+    elevation: 0,
   },
-  exportBtnMemo: {
-    backgroundColor: Colors.cyan ?? '#22D3EE',
-    marginTop: 16,
+  actionBtnSecond: {
+    marginTop: 10,
   },
-  exportBtnText: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 17,
-    color: '#FFFFFF',
+  actionBtnPressed: {
+    backgroundColor: '#F8FAFC',
   },
-  exportHint: {
+  actionBtnText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#1A2340',
+  },
+  actionHint: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
+    fontSize: 11,
     color: '#94A3B8',
-    textAlign: 'center',
-    marginTop: 8,
+    marginTop: 6,
+    marginBottom: 4,
+    paddingHorizontal: 4,
   },
 });

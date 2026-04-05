@@ -238,8 +238,8 @@ function leftBarColor(normalizedOutOf20: number): string {
 function ProgressionGraph({ data, width, height }: { data: number[]; width: number; height: number }) {
   const padTop = 8;
   const padBottom = 20;
-  const padLeft = 4;
-  const padRight = 4;
+  const padLeft = 8;
+  const padRight = 16;
 
   const innerW = width - padLeft - padRight;
   const innerH = height - padTop - padBottom;
@@ -613,7 +613,7 @@ export default function NotesScreen() {
                   onPress={() => setSelectedDomainIdx(idx)}
                   style={({ pressed }) => [
                     s.pill,
-                    isActive ? { backgroundColor: '#0F172A' } : s.pillInactive,
+                    isActive ? s.pillActive : s.pillInactive,
                     pressed && { opacity: 0.8 },
                   ]}
                 >
@@ -819,7 +819,7 @@ export default function NotesScreen() {
                   onPress={() => setSelectedSubjectIdx(idx)}
                   style={({ pressed }) => [
                     s.pill,
-                    isActive ? { backgroundColor: '#0F172A' } : s.pillInactive,
+                    isActive ? s.pillActive : s.pillInactive,
                     pressed && { opacity: 0.8 },
                   ]}
                 >
@@ -1127,6 +1127,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 50,
+  },
+  pillActive: {
+    backgroundColor: '#1A2340',
   },
   pillInactive: {
     backgroundColor: '#FFFFFF',

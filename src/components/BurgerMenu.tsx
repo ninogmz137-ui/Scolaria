@@ -23,6 +23,7 @@ import {
   BookOpen,
   Heart,
   Shield,
+  Settings,
   LogOut,
   ChevronRight,
 } from 'lucide-react-native';
@@ -69,13 +70,23 @@ const MAIN_ITEMS: MenuItemDef[] = [
 ];
 
 const BOTTOM_ITEMS: MenuItemDef[] = [
-  { key: 'rgpd',   icon: Shield,  label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
-  { key: 'logout', icon: LogOut,  label: 'Se déconnecter',          action: 'logout', danger: true },
+  { key: 'reglages', icon: Settings, label: 'Réglages',              screen: 'ReglagesScreen' },
+  { key: 'rgpd',     icon: Shield,   label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
+  { key: 'logout',   icon: LogOut,   label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 
 const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [
-  { key: 'logout', icon: LogOut,  label: 'Quitter la démo',         action: 'logout', danger: true },
+  { key: 'reglages', icon: Settings, label: 'Réglages',      screen: 'ReglagesScreen' },
+  { key: 'logout',   icon: LogOut,   label: 'Quitter la démo', action: 'logout', danger: true },
 ];
+
+// ─── Section label ───────────────────────────────────────
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <Text style={styles.sectionLabel}>{label}</Text>
+  );
+}
 
 // ─── Single menu row ─────────────────────────────────────
 
@@ -157,21 +168,23 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
           ) : null}
         </View>
 
-        {/* ── Separator ── */}
+        {/* ── Separator after avatar ── */}
         <View style={styles.divider} />
 
         {/* ── Section principale ── */}
         <View style={styles.menuList}>
+          <SectionLabel label="MON ENFANT" />
           {MAIN_ITEMS.map((item) => (
             <MenuItem key={item.key} item={item} onPress={handleItemPress} />
           ))}
         </View>
 
-        {/* ── Separator ── */}
+        {/* ── Separator between groups ── */}
         <View style={styles.divider} />
 
         {/* ── Section basse ── */}
         <View style={styles.menuList}>
+          <SectionLabel label="PARAMÈTRES" />
           {(isDemo ? BOTTOM_ITEMS_DEMO : BOTTOM_ITEMS).map((item) => (
             <MenuItem key={item.key} item={item} onPress={handleItemPress} />
           ))}
@@ -234,9 +247,10 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansBold,
   },
   childName: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 20,
+    fontFamily: FontFamily.displayBold,
+    fontSize: 24,
     color: '#FFFFFF',
+    letterSpacing: 0.3,
   },
   childClasse: {
     fontFamily: FontFamily.sansRegular,
@@ -248,7 +262,7 @@ const styles = StyleSheet.create({
   // ── Divider ──
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     marginHorizontal: 20,
     marginVertical: 8,
   },
@@ -256,6 +270,16 @@ const styles = StyleSheet.create({
   // ── Menu items ──
   menuList: {
     paddingVertical: 4,
+  },
+  sectionLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: 'rgba(255,255,255,0.35)',
+    textTransform: 'uppercase',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 4,
   },
   menuItem: {
     flexDirection: 'row',
@@ -271,7 +295,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   menuLabelDanger: {
-    color: '#EF4444',
+    color: 'rgba(239,68,68,0.7)',
   },
 
   // ── Footer ──
@@ -282,14 +306,14 @@ const styles = StyleSheet.create({
   },
   footerVersion: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.3)',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.25)',
     textAlign: 'center',
   },
   footerCopyright: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.3)',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.25)',
     textAlign: 'center',
     marginTop: 2,
   },

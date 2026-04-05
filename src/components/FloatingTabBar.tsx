@@ -388,11 +388,12 @@ const styles = StyleSheet.create({
 
   // Icon wrapper — active gets light grey circular bg
   iconWrapper: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   iconWrapperActive: {
     backgroundColor: '#F0F0F2',

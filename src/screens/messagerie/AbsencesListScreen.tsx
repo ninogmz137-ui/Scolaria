@@ -9,8 +9,6 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import GlassCard from '../../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -99,6 +97,15 @@ const DEMI_JOURNEE_LABELS: Record<DemiJournee, string> = {
   journee: 'Journée entière',
 };
 
+// ─── Motif icon background ────────────────────────────────
+
+const MOTIF_ICON_BG: Record<string, string> = {
+  '🤒': '#FEF3C7',
+  '🏥': '#FEE2E2',
+  '👨‍👩‍👧': '#EFF6FF',
+  '📝': '#F8FAFC',
+};
+
 // ─── Component ────────────────────────────────────────────
 
 export default function AbsencesListScreen({ navigation }: { navigation: any }) {
@@ -110,7 +117,7 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: insets.top + 60, paddingBottom: 120 },
         ]}
       >
         {/* ── Section header ── */}
@@ -121,43 +128,40 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
 
         {MOCK_ABSENCES.map((absence) => {
           const statut = STATUT_CONFIG[absence.statut];
+          const iconBg = MOTIF_ICON_BG[absence.motif_emoji] ?? '#F8FAFC';
           return (
             <Pressable
               key={absence.id}
-              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
+              style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
               accessibilityRole="button"
             >
-              <GlassCard borderRadius={14}>
-                <View style={styles.absenceRow}>
-                  {/* Motif icon */}
-                  <View style={styles.absenceIconContainer}>
-                    <Text style={styles.absenceIcon}>{absence.motif_emoji}</Text>
-                  </View>
+              {/* Motif icon circle — content emoji, not a person avatar */}
+              <View style={[styles.absenceIconContainer, { backgroundColor: iconBg }]}>
+                <Text style={styles.absenceIcon}>{absence.motif_emoji}</Text>
+              </View>
 
-                  {/* Text */}
-                  <View style={styles.absenceBody}>
-                    <View style={styles.absenceTitleRow}>
-                      <Text style={styles.absenceDate} numberOfLines={1}>
-                        {absence.date_fin
-                          ? `${absence.date_debut} — ${absence.date_fin}`
-                          : absence.date_debut}
-                      </Text>
-                      <View style={[styles.statutBadge, { backgroundColor: statut.bg }]}>
-                        <Text style={[styles.statutText, { color: statut.text }]}>
-                          {statut.label}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text style={styles.absenceMotif}>{absence.motif}</Text>
-
-                    <Text style={styles.absencePeriode}>
-                      {DEMI_JOURNEE_LABELS[absence.demi_journee]}
-                      {absence.commentaire ? ` · ${absence.commentaire}` : ''}
+              {/* Text */}
+              <View style={styles.absenceBody}>
+                <View style={styles.absenceTitleRow}>
+                  <Text style={styles.absenceDate} numberOfLines={1}>
+                    {absence.date_fin
+                      ? `${absence.date_debut} — ${absence.date_fin}`
+                      : absence.date_debut}
+                  </Text>
+                  <View style={[styles.statutBadge, { backgroundColor: statut.bg }]}>
+                    <Text style={[styles.statutText, { color: statut.text }]}>
+                      {statut.label}
                     </Text>
                   </View>
                 </View>
-              </GlassCard>
+
+                <Text style={styles.absenceMotif}>{absence.motif}</Text>
+
+                <Text style={styles.absencePeriode}>
+                  {DEMI_JOURNEE_LABELS[absence.demi_journee]}
+                  {absence.commentaire ? ` · ${absence.commentaire}` : ''}
+                </Text>
+              </View>
             </Pressable>
           );
         })}
@@ -179,7 +183,7 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
@@ -199,24 +203,30 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    color: '#0F172A',
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#94A3B8',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.2,
   },
 
-  // ── Absence card
-  absenceRow: {
+  // ── Absence card (plain white, no glass)
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+    marginBottom: 8,
   },
+
   absenceIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#FEE2E2',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -237,13 +247,13 @@ const styles = StyleSheet.create({
   absenceDate: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
-    color: '#0F172A',
+    color: '#1A2340',
     flex: 1,
   },
   absenceMotif: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,
-    color: '#0F172A',
+    color: '#1A2340',
   },
   absencePeriode: {
     fontFamily: FontFamily.sansRegular,

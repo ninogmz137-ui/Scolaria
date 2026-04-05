@@ -113,6 +113,7 @@ export type WallpaperSource =
 
 interface WallpaperContextValue {
   wallpaper: WallpaperDef;
+  wallpapers: typeof WALLPAPERS;
   setWallpaperId: (id: string) => void;
   setCustomWallpaper: (uri: string) => void;
   customUri: string | null;
@@ -122,6 +123,7 @@ interface WallpaperContextValue {
 
 const WallpaperContext = createContext<WallpaperContextValue>({
   wallpaper: WALLPAPERS[0],
+  wallpapers: WALLPAPERS,
   setWallpaperId: () => {},
   setCustomWallpaper: () => {},
   customUri: null,
@@ -176,7 +178,7 @@ export function WallpaperProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <WallpaperContext.Provider
-      value={{ wallpaper, setWallpaperId, setCustomWallpaper, customUri, wallpaperSource }}
+      value={{ wallpaper, wallpapers: WALLPAPERS, setWallpaperId, setCustomWallpaper, customUri, wallpaperSource }}
     >
       {children}
     </WallpaperContext.Provider>

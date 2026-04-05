@@ -8,8 +8,6 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import GlassCard from '../../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -72,7 +70,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
     icon: '⚽',
     iconBg: '#F0FDF4',
     title: 'Tournoi sportif inter-classes',
-    subtitle: 'Inscriptions ouvertes jusqu\'au 10 avril. Formulaire disponible.',
+    subtitle: "Inscriptions ouvertes jusqu'au 10 avril. Formulaire disponible.",
     date: '28 mars 2026',
     category: 'Sport',
     categoryColor: '#10B981',
@@ -90,7 +88,7 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 },
+          { paddingTop: insets.top + 60, paddingBottom: 120 },
         ]}
       >
         {/* ── Section header ── */}
@@ -102,33 +100,36 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
         {MOCK_ANNOUNCEMENTS.map((ann) => (
           <Pressable
             key={ann.id}
-            style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, marginBottom: 8 })}
+            style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >
-            <GlassCard borderRadius={14}>
-              <View style={styles.annRow}>
-                {/* Icon */}
-                <View style={[styles.annIconContainer, { backgroundColor: ann.iconBg }]}>
-                  <Text style={styles.annIcon}>{ann.icon}</Text>
-                </View>
+            {/* Category icon — emoji in tinted circle (content icon, not avatar) */}
+            <View style={[styles.annIconContainer, { backgroundColor: ann.iconBg }]}>
+              <Text style={styles.annIcon}>{ann.icon}</Text>
+            </View>
 
-                {/* Text */}
-                <View style={styles.annBody}>
-                  <View style={styles.annTitleRow}>
-                    <Text style={styles.annTitle} numberOfLines={1}>{ann.title}</Text>
-                    <View
-                      style={[styles.categoryBadge, { backgroundColor: ann.categoryColor + '18' }]}
-                    >
-                      <Text style={[styles.categoryText, { color: ann.categoryColor }]}>
-                        {ann.category}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.annSubtitle} numberOfLines={2}>{ann.subtitle}</Text>
-                  <Text style={styles.annDate}>{ann.date}</Text>
+            {/* Text column */}
+            <View style={styles.annBody}>
+              <View style={styles.annTitleRow}>
+                <Text style={styles.annTitle} numberOfLines={1}>
+                  {ann.title}
+                </Text>
+                <View
+                  style={[
+                    styles.categoryBadge,
+                    { backgroundColor: ann.categoryColor + '18' },
+                  ]}
+                >
+                  <Text style={[styles.categoryText, { color: ann.categoryColor }]}>
+                    {ann.category}
+                  </Text>
                 </View>
               </View>
-            </GlassCard>
+              <Text style={styles.annSubtitle} numberOfLines={2}>
+                {ann.subtitle}
+              </Text>
+              <Text style={styles.annDate}>{ann.date}</Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -141,7 +142,7 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
@@ -161,19 +162,26 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    color: '#0F172A',
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: '#94A3B8',
     textTransform: 'uppercase',
-    letterSpacing: 2,
+    letterSpacing: 1.2,
   },
 
-  // ── Announcement card
-  annRow: {
+  // ── Announcement card (plain white, no glass)
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+    marginBottom: 8,
   },
+
   annIconContainer: {
     width: 44,
     height: 44,
@@ -198,7 +206,7 @@ const styles = StyleSheet.create({
   annTitle: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#0F172A',
+    color: '#1A2340',
     flex: 1,
   },
   categoryBadge: {

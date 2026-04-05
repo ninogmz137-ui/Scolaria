@@ -52,6 +52,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import AriaScreen from '../screens/AriaScreen';
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
+import TextSizeScreen from '../screens/TextSizeScreen';
 
 // Messagerie sub-screens
 import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
@@ -105,6 +106,7 @@ const SCREEN_TITLES: Record<string, string> = {
   AriaScreen: 'Aria',
   MessagerieAriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
+  TextSize: 'Taille du texte',
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
@@ -226,6 +228,11 @@ function AccueilStackScreen() {
         name="WallpaperPicker"
         component={WallpaperPickerScreen}
         options={{ title: "Fond d'écran" }}
+      />
+      <AccueilStack.Screen
+        name="TextSize"
+        component={TextSizeScreen}
+        options={{ title: 'Taille du texte' }}
       />
       <AccueilStack.Screen
         name="ArchivedYearDetail"
