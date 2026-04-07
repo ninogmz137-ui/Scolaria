@@ -619,15 +619,7 @@ export default function MessagerieScreen() {
         accessibilityRole="button"
         accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
       >
-        {Platform.OS === 'web' ? (
-          <View style={[styles.fabGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
-            <MessageSquarePlus size={20} color="#FFFFFF" strokeWidth={2} />
-          </View>
-        ) : (
-          <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
-            <MessageSquarePlus size={20} color="#FFFFFF" strokeWidth={2} />
-          </LinearGradient>
-        )}
+        <MessageSquarePlus size={22} color="#1A2340" strokeWidth={2} />
       </Pressable>
 
       {/* ── FAB bottom sheet ── */}
@@ -1036,18 +1028,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: 16,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  fabGradient: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   // ── FAB sheet / modal

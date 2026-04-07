@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    aspectRatio: 0.7,
+    height: 200,
     borderRadius: 13,
   },
   checkBadge: {

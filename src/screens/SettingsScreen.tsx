@@ -173,7 +173,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         ]}
       >
         {/* ── Parent profile mini-card ── */}
-        <View style={styles.profileCard}>
+        <Pressable style={styles.profileCard} onPress={() => nav.navigate('EditProfile')}>
           {Platform.OS === 'web' ? (
             <View
               style={[
@@ -197,7 +197,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
             <Text style={styles.profileEmail}>{parentEmail}</Text>
           </View>
           <Text style={styles.profileChevron}>›</Text>
-        </View>
+        </Pressable>
         <View style={styles.profileSeparator} />
 
         {/* ══ SECTION 1: MES ENFANTS ══ */}

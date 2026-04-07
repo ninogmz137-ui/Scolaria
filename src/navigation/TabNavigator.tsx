@@ -65,6 +65,9 @@ import MotDetailScreen from '../screens/messagerie/MotDetailScreen';
 import ArchivedYearDetailScreen from '../screens/ArchivedYearDetailScreen';
 import SubjectDetailScreen from '../screens/SubjectDetailScreen';
 
+// Profile
+import EditProfileScreen from '../screens/EditProfileScreen';
+
 // About
 import AProposScreen from '../screens/AProposScreen';
 
@@ -222,6 +225,11 @@ function AccueilStackScreen() {
         name="APropos"
         component={AProposScreen}
         options={{ title: 'À propos' }}
+      />
+      <AccueilStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: 'Mon profil' }}
       />
       <AccueilStack.Screen
         name="AriaScreen"

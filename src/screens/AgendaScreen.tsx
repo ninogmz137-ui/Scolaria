@@ -821,15 +821,7 @@ export default function AgendaScreen() {
         onPress={openAddModal}
         style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
       >
-        {Platform.OS === 'web' ? (
-          <View style={[st.fabGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
-            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
-          </View>
-        ) : (
-          <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={st.fabGradient}>
-            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
-          </LinearGradient>
-        )}
+        <Plus size={22} color="#1A2340" strokeWidth={2} />
       </Pressable>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
@@ -850,15 +842,14 @@ export default function AgendaScreen() {
               <Text style={st.modalTitle}>Nouvel événement</Text>
 
               {/* Date indicator */}
-              <View style={[st.modalDateRow, { backgroundColor: '#7C3AED12', borderColor: '#7C3AED30' }]}>
+              <View style={st.modalDateRow}>
                 <Text style={{ fontSize: 15 }}>📅</Text>
-                <Text style={[st.modalDateText, { color: '#7C3AED' }]}>
+                <Text style={st.modalDateText}>
                   {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
                 </Text>
               </View>
 
               {/* Title input */}
-              <Text style={st.modalLabel}>Titre</Text>
               <TextInput
                 value={newEventTitle}
                 onChangeText={setNewEventTitle}
@@ -869,7 +860,6 @@ export default function AgendaScreen() {
               />
 
               {/* Type selector */}
-              <Text style={st.modalLabel}>Type</Text>
               <View style={st.modalTypeRow}>
                 {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
                   const isActive = newEventType === type;
@@ -879,11 +869,10 @@ export default function AgendaScreen() {
                       onPress={() => setNewEventType(type)}
                       style={[
                         st.modalTypePill,
-                        { borderColor: isActive ? '#7C3AED' : '#EEF0F5' },
-                        isActive && { backgroundColor: '#7C3AED15' },
+                        isActive && st.modalTypePillActive,
                       ]}
                     >
-                      <Text style={[st.modalTypeText, isActive && { color: '#7C3AED' }]}>
+                      <Text style={[st.modalTypeText, isActive && st.modalTypeTextActive]}>
                         {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
                       </Text>
                     </Pressable>
@@ -899,14 +888,9 @@ export default function AgendaScreen() {
                 <Pressable
                   onPress={handleCreateEvent}
                   disabled={isSaving}
-                  style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}
+                  style={[st.createBtn, isSaving && { opacity: 0.6 }]}
                 >
-                  <LinearGradient
-                    colors={['#7C3AED', '#06B6D4']}
-                    style={[st.createBtn, isSaving && { opacity: 0.6 }]}
-                  >
-                    <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
-                  </LinearGradient>
+                  <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
                 </Pressable>
               </View>
             </View>
@@ -1188,18 +1172,17 @@ const st = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: 16,
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  fabGradient: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: 52,
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   // Modal
@@ -1212,8 +1195,9 @@ const st = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 36,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 32,
     ...Platform.select({
       ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 24 },
       android: { elevation: 20 },
@@ -1230,41 +1214,33 @@ const st = StyleSheet.create({
   },
   modalTitle: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 18,
-    color: '#0F172A',
+    fontSize: 20,
+    color: '#1A2340',
     marginBottom: 20,
   },
   modalDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     marginBottom: 16,
   },
   modalDateText: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-  },
-  modalLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    color: '#64748B',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: 8,
+    fontSize: 14,
+    color: '#1A2340',
   },
   modalInput: {
-    backgroundColor: '#F7F8FC',
-    borderWidth: 1.5,
-    borderColor: '#EEF0F5',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#0F172A',
+    backgroundColor: '#F2F2F7',
+    borderWidth: 0,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#1A2340',
     marginBottom: 20,
     fontFamily: FontFamily.sansRegular,
   },
@@ -1275,16 +1251,22 @@ const st = StyleSheet.create({
     marginBottom: 24,
   },
   modalTypePill: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    borderWidth: 1.5,
-    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    backgroundColor: '#F2F2F7',
+  },
+  modalTypePillActive: {
+    backgroundColor: '#1A2340',
   },
   modalTypeText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
-    color: '#64748B',
+    color: '#6B7280',
+  },
+  modalTypeTextActive: {
+    color: '#FFFFFF',
   },
   modalActions: {
     flexDirection: 'row',
@@ -1292,24 +1274,24 @@ const st = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#EEF0F5',
+    paddingVertical: 16,
     alignItems: 'center',
   },
   cancelText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 15,
-    color: '#64748B',
+    color: '#6B7280',
   },
   createBtn: {
-    paddingVertical: 14,
+    flex: 2,
+    backgroundColor: '#7C3AED',
+    borderRadius: 14,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   createText: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 15,
+    fontSize: 16,
     color: '#FFFFFF',
   },
 });
