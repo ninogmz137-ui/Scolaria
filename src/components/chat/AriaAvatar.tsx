@@ -1,14 +1,15 @@
-import { View, Text, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Sparkles } from '@getpapillon/papicons';
 
 interface Props {
   size?: number;
 }
 
-/** Aria gradient avatar — violet→cyan circle with ✦ sparkle. Web fallback via CSS. */
-export default function AriaAvatar({ size = 36 }: Props) {
+/** Aria gradient avatar — violet→cyan circle with Papicons Sparkles icon. */
+export default function AriaAvatar({ size = 32 }: Props) {
   const half = size / 2;
-  const sparkle = <Text style={{ color: '#FFFFFF', fontSize: Math.round(size * 0.4) }}>✦</Text>;
+  const iconSize = Math.round(size * 0.5);
 
   if (Platform.OS === 'web') {
     return (
@@ -23,7 +24,7 @@ export default function AriaAvatar({ size = 36 }: Props) {
           backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
         }}
       >
-        {sparkle}
+        <Sparkles size={iconSize} color="#FFFFFF" />
       </View>
     );
   }
@@ -41,7 +42,7 @@ export default function AriaAvatar({ size = 36 }: Props) {
         justifyContent: 'center',
       }}
     >
-      {sparkle}
+      <Sparkles size={iconSize} color="#FFFFFF" />
     </LinearGradient>
   );
 }

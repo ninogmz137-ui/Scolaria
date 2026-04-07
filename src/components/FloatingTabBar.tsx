@@ -36,7 +36,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Pressable } from './ui';
-import { Home, TrendingUp, Calendar, MessageCircle } from 'lucide-react-native';
+import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -95,13 +95,13 @@ function getChildColor(id: string): string {
 
 // ─── Tab icon map (all 4 tabs) ───────────────────────────
 
-type LucideIcon = typeof Home;
+type PapIcon = typeof Home;
 
-const TAB_ICONS: Record<string, LucideIcon> = {
+const TAB_ICONS: Record<string, PapIcon> = {
   Accueil: Home,
-  Notes: TrendingUp,
+  Notes: Grades,
   Agenda: Calendar,
-  MessagerieTab: MessageCircle,
+  MessagerieTab: TextBubble,
 };
 
 // ─── Child Popover ───────────────────────────────────────
@@ -308,9 +308,8 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
               >
                 <View style={[styles.iconWrapper, isFocused && styles.iconWrapperActive]}>
                   <IconComponent
-                    size={20}
+                    size={24}
                     color={isFocused ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
-                    strokeWidth={isFocused ? 2.5 : 1.8}
                   />
                   {hasUnread && <View style={styles.badgeDot} />}
                 </View>

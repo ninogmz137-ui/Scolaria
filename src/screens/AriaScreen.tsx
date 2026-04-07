@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Papicons } from '@getpapillon/papicons';
-import { Colors } from '../constants/colors';
+import { Sparkles as SparklesIcon } from '@getpapillon/papicons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
@@ -302,22 +302,32 @@ export default function AriaScreen() {
               <Pressable
                 style={[
                   styles.sendButton,
-                  { backgroundColor: Colors.violet },
                   isTyping && styles.buttonDisabled,
                 ]}
                 onPress={() => sendMessage()}
                 disabled={isTyping}
               >
-                <Papicons name="Send" size={20} color={Colors.white} />
+                {Platform.OS === 'web' ? (
+                  <View style={[styles.sendGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
+                    <SparklesIcon size={20} color="#FFFFFF" />
+                  </View>
+                ) : (
+                  <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sendGradient}>
+                    <SparklesIcon size={20} color="#FFFFFF" />
+                  </LinearGradient>
+                )}
               </Pressable>
             ) : (
-              <Pressable
-                style={[
-                  styles.sendButton,
-                  { backgroundColor: Colors.violet },
-                ]}
-              >
-                <Papicons name="Microphone" size={22} color={Colors.white} />
+              <Pressable style={styles.sendButton}>
+                {Platform.OS === 'web' ? (
+                  <View style={[styles.sendGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
+                    <SparklesIcon size={20} color="#FFFFFF" />
+                  </View>
+                ) : (
+                  <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sendGradient}>
+                    <SparklesIcon size={20} color="#FFFFFF" />
+                  </LinearGradient>
+                )}
               </Pressable>
             )}
           </View>
@@ -395,12 +405,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    marginBottom: 2,
+  },
+  sendGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2,
   },
   buttonDisabled: {
     opacity: 0.4,

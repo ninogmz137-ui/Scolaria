@@ -16,7 +16,8 @@
 import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Menu, SlidersHorizontal, ChevronLeft } from 'lucide-react-native';
+import { Menu } from '@getpapillon/papicons';
+import { SlidersHorizontal, ChevronLeft } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Helpers ────────────────────────────────────────────
@@ -71,7 +72,7 @@ function BurgerButton({
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       style={[styles.iconButton, { backgroundColor: bg }]}
     >
-      <Menu size={20} color={iconColor} strokeWidth={2} />
+      <Menu size={24} color="#FFFFFF" />
     </Pressable>
   );
 }

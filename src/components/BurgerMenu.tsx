@@ -18,14 +18,8 @@ import {
 } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  User,
-  BookOpen,
-  Heart,
-  Shield,
-  LogOut,
-  ChevronRight,
-} from 'lucide-react-native';
+import { User, GraduationHat, Gears, Logout } from '@getpapillon/papicons';
+import { Heart, Shield, ChevronRight } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -63,18 +57,18 @@ type MenuItemDef = {
 };
 
 const MAIN_ITEMS: MenuItemDef[] = [
-  { key: 'profil',    icon: User,     label: 'Profil élève',  screen: 'ProfilEnfant' },
-  { key: 'parcours',  icon: BookOpen, label: 'Mon Parcours',  screen: 'MonParcours' },
-  { key: 'ressenti',  icon: Heart,    label: 'Mon Ressenti',  screen: 'BienEtreScreen' },
+  { key: 'profil',    icon: User,          label: 'Profil élève',  screen: 'ProfilEnfant' },
+  { key: 'parcours',  icon: GraduationHat, label: 'Mon Parcours',  screen: 'MonParcours' },
+  { key: 'ressenti',  icon: Heart,         label: 'Mon Ressenti',  screen: 'BienEtreScreen' },
 ];
 
 const BOTTOM_ITEMS: MenuItemDef[] = [
   { key: 'rgpd',     icon: Shield,   label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
-  { key: 'logout',   icon: LogOut,   label: 'Se déconnecter',          action: 'logout', danger: true },
+  { key: 'logout',   icon: Logout,   label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 
 const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [
-  { key: 'logout',   icon: LogOut,   label: 'Quitter la démo', action: 'logout', danger: true },
+  { key: 'logout',   icon: Logout,   label: 'Quitter la démo', action: 'logout', danger: true },
 ];
 
 // ─── Section label ───────────────────────────────────────
@@ -97,7 +91,7 @@ function MenuItem({
   const IconComponent = item.icon;
   return (
     <Pressable style={styles.menuItem} onPress={() => onPress(item)}>
-      <IconComponent size={28} color="rgba(255,255,255,0.6)" strokeWidth={1.5} />
+      <IconComponent size={22} color="rgba(255,255,255,0.6)" strokeWidth={1.5} />
       <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
         {item.label}
       </Text>

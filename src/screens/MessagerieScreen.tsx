@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { MessageSquarePlus, ChevronRight, MessageCircle, Home, Calendar, FileText, GraduationCap, AlertTriangle, Mail, X, Sparkles } from 'lucide-react-native';
+import { MessageCirclePlus, ChevronRight, MessageCircle, Home, Calendar, FileText, GraduationCap, AlertTriangle, Mail, X, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
@@ -619,7 +619,7 @@ export default function MessagerieScreen() {
         accessibilityRole="button"
         accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
       >
-        <MessageSquarePlus size={22} color="#FFFFFF" strokeWidth={2} />
+        <MessageCirclePlus size={22} color="#FFFFFF" strokeWidth={2} />
       </Pressable>
 
       {/* ── FAB bottom sheet ── */}
