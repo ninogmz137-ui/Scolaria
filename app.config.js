@@ -72,6 +72,7 @@ module.exports = {
       ],
       'expo-localization',
       'expo-sharing',
+      './plugins/withGoogleMavenFix',
     ],
     web: {
       favicon: './assets/favicon.png',
