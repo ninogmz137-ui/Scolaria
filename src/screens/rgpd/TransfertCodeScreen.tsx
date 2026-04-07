@@ -3,16 +3,14 @@ import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, Platfor
 import {
   ArrowRight,
   Check,
-  Cross,
+  X,
   ExternalLink,
   Lock,
-  Password,
+  Key,
   Info,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import WallpaperBackground from '../../components/WallpaperBackground';
-import GlassCard from '../../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -219,15 +217,14 @@ export default function TransfertCodeScreen() {
     switch (status) {
       case 'active': return { label: 'Actif', color: Colors.green, Icon: Check };
       case 'used': return { label: 'Utilisé', color: Colors.cyan, Icon: Check };
-      case 'expired': return { label: 'Expiré', color: Colors.red, Icon: Cross };
+      case 'expired': return { label: 'Expiré', color: Colors.red, Icon: X };
       default: return { label: status, color: Colors.gray, Icon: Info };
     }
   };
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1 }}>
-        <WallpaperBackground />
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -237,7 +234,7 @@ export default function TransfertCodeScreen() {
           }}
         >
           {/* Info header */}
-          <GlassCard style={[styles.card, { borderColor: Colors.violet + '60', marginBottom: 14 }]}>
+          <View style={[styles.card, { borderColor: Colors.violet + '60', marginBottom: 14 }]}>
             <View style={styles.infoRow}>
               <View style={[styles.infoIcon, { backgroundColor: Colors.violet + '20' }]}>
                 <ArrowRight size={24} color={Colors.violet} />
@@ -249,10 +246,10 @@ export default function TransfertCodeScreen() {
                 </Text>
               </View>
             </View>
-          </GlassCard>
+          </View>
 
           {/* How it works */}
-          <GlassCard style={[styles.card, { marginBottom: 18 }]}>
+          <View style={[styles.card, { marginBottom: 18 }]}>
             <Text style={styles.sectionTitle}>Comment ça marche ?</Text>
             {[
               { step: '1', text: 'Générez un code unique pour votre enfant', icon: '🔑' },
@@ -261,21 +258,18 @@ export default function TransfertCodeScreen() {
               { step: '4', text: 'Vous êtes notifié de l\'utilisation du code', icon: '🔔' },
             ].map((s, i) => (
               <View key={i} style={styles.howRow}>
-                <View style={[styles.howIcon, { backgroundColor: Colors.violet + '20' }]}>
+                <View style={[styles.howIcon, { backgroundColor: Colors.violet + '15' }]}>
                   <Text style={{ fontSize: 18 }}>{s.icon}</Text>
                 </View>
                 <Text style={styles.howText}>{s.text}</Text>
               </View>
             ))}
-          </GlassCard>
-
-          {/* Generate section label */}
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.violet }]} />
-            <Text style={styles.sectionLabel}>GÉNÉRER UN NOUVEAU CODE</Text>
           </View>
 
-          <GlassCard style={[styles.card, { marginBottom: 16 }]} noPadding>
+          {/* Generate section label */}
+          <Text style={styles.sectionLabel}>GÉNÉRER UN NOUVEAU CODE</Text>
+
+          <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
             {CHILDREN.map((child, i) => (
               <Pressable
                 key={child.id}
@@ -293,19 +287,19 @@ export default function TransfertCodeScreen() {
                 {generatingFor === child.id ? (
                   <Text style={[styles.genText, { color: Colors.violet }]}>Génération...</Text>
                 ) : (
-                  <View style={[styles.genBtn, { backgroundColor: Colors.violet + '25' }]}>
-                    <Password size={16} color={Colors.violet} />
+                  <View style={[styles.genBtn, { backgroundColor: Colors.violet + '15' }]}>
+                    <Key size={16} color={Colors.violet} />
                     <Text style={[styles.genText, { color: Colors.violet }]}>Générer</Text>
                   </View>
                 )}
               </Pressable>
             ))}
-          </GlassCard>
+          </View>
 
           {/* New code display */}
           {newCode && (
             <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: 20 }}>
-              <GlassCard style={[styles.newCodeCard, { borderColor: Colors.violet + '60' }]}>
+              <View style={[styles.card, { borderColor: Colors.violet + '60', alignItems: 'center' }]}>
                 <View style={{ alignItems: 'center' }}>
                   <Check size={32} color={Colors.green} />
                   <Text style={styles.newCodeSuccess}>Code généré avec succès !</Text>
@@ -313,32 +307,29 @@ export default function TransfertCodeScreen() {
                   <Text style={styles.newCodeExpiry}>Expire dans 90 jours</Text>
                   <View style={styles.newCodeActions}>
                     <Pressable
-                      style={[styles.newCodeBtn, { backgroundColor: Colors.violet + '30' }]}
+                      style={[styles.newCodeBtn, { backgroundColor: Colors.violet + '15' }]}
                       onPress={() => handleCopy(newCode)}
                     >
-                      <ArrowRight size={18} color="#fff" />
-                      <Text style={styles.newCodeBtnText}>Copier</Text>
+                      <ArrowRight size={18} color={Colors.violet} />
+                      <Text style={[styles.newCodeBtnText, { color: Colors.violet }]}>Copier</Text>
                     </Pressable>
-                    <Pressable style={[styles.newCodeBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}>
-                      <ExternalLink size={18} color="#fff" />
-                      <Text style={styles.newCodeBtnText}>Partager</Text>
+                    <Pressable style={[styles.newCodeBtn, { backgroundColor: '#F1F5F9' }]}>
+                      <ExternalLink size={18} color="#94A3B8" />
+                      <Text style={[styles.newCodeBtnText, { color: '#94A3B8' }]}>Partager</Text>
                     </Pressable>
                   </View>
                 </View>
-              </GlassCard>
+              </View>
             </Animated.View>
           )}
 
           {/* Existing codes label */}
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
-            <Text style={styles.sectionLabel}>CODES EXISTANTS</Text>
-          </View>
+          <Text style={styles.sectionLabel}>CODES EXISTANTS</Text>
 
           {codes.map((tc) => {
             const statusCfg = getStatusConfig(tc.status);
             return (
-              <GlassCard key={tc.id} style={styles.codeCard}>
+              <View key={tc.id} style={[styles.card, { marginBottom: 12 }]}>
                 {/* Header */}
                 <View style={styles.codeHeader}>
                   <Text style={{ fontSize: 28 }}>{tc.childAvatar}</Text>
@@ -346,7 +337,7 @@ export default function TransfertCodeScreen() {
                     <Text style={styles.personName}>{tc.child}</Text>
                     <Text style={styles.personRole}>{tc.fromSchool} → {tc.toSchool}</Text>
                   </View>
-                  <View style={[styles.statusBadge, { backgroundColor: statusCfg.color + '20' }]}>
+                  <View style={[styles.statusBadge, { backgroundColor: statusCfg.color + '15' }]}>
                     <statusCfg.Icon size={14} color={statusCfg.color} />
                     <Text style={[styles.statusText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
                   </View>
@@ -360,12 +351,12 @@ export default function TransfertCodeScreen() {
                   <Text
                     style={[
                       styles.codeText,
-                      { color: tc.status === 'active' ? Colors.cyan : 'rgba(255,255,255,0.4)' },
+                      { color: tc.status === 'active' ? Colors.violet : '#CBD5E1' },
                     ]}
                   >
                     {tc.code}
                   </Text>
-                  <ArrowRight size={16} color="rgba(255,255,255,0.4)" />
+                  <ArrowRight size={16} color="#CBD5E1" />
                 </Pressable>
 
                 {/* Meta */}
@@ -386,16 +377,16 @@ export default function TransfertCodeScreen() {
 
                 {/* Actions */}
                 {tc.status === 'active' && (
-                  <View style={[styles.codeActions, { borderTopColor: 'rgba(255,255,255,0.12)' }]}>
+                  <View style={[styles.codeActions, { borderTopColor: '#F1F5F9' }]}>
                     <Pressable
-                      style={[styles.codeActionBtn, { backgroundColor: Colors.red + '18' }]}
+                      style={[styles.codeActionBtn, { backgroundColor: Colors.red + '10' }]}
                       onPress={() => handleRevoke(tc.id)}
                     >
-                      <Cross size={16} color={Colors.red} />
+                      <X size={16} color={Colors.red} />
                       <Text style={[styles.codeActionText, { color: Colors.red }]}>Révoquer</Text>
                     </Pressable>
                     <Pressable
-                      style={[styles.codeActionBtn, { backgroundColor: Colors.cyan + '18' }]}
+                      style={[styles.codeActionBtn, { backgroundColor: Colors.cyan + '10' }]}
                       onPress={() => handleCopy(tc.code)}
                     >
                       <ExternalLink size={16} color={Colors.cyan} />
@@ -403,79 +394,76 @@ export default function TransfertCodeScreen() {
                     </Pressable>
                   </View>
                 )}
-              </GlassCard>
+              </View>
             );
           })}
 
           {/* Security notice */}
-          <GlassCard style={styles.card}>
+          <View style={styles.card}>
             <View style={styles.noticeRow}>
               <Lock size={16} color={Colors.green} />
               <Text style={styles.noticeText}>
                 Les codes de transfert sont chiffrés de bout en bout. Seul l'établissement destinataire peut lire les données transmises. Le transfert est journalisé et visible dans le journal d'accès.
               </Text>
             </View>
-          </GlassCard>
+          </View>
         </ScrollView>
       </View>
     </Animated.View>
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
-  card: { marginBottom: 8 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
-  sectionTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', marginBottom: 14, ...TEXT_SHADOW },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
+  sectionTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340', marginBottom: 14 },
   howRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
   howIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  howText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.75)', flex: 1, lineHeight: 18 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  sectionBar: { width: 4, height: 16, borderRadius: 2 },
-  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, ...TEXT_SHADOW },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  howText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', flex: 1, lineHeight: 18 },
+  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8, marginTop: 2 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(109,40,217,0.2)' },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violet + '10' },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 1 },
   genBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
   genText: { fontFamily: FontFamily.sansBold, fontSize: 13 },
-  newCodeCard: { alignItems: 'center' },
-  newCodeSuccess: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', marginTop: 8, ...TEXT_SHADOW },
+  newCodeSuccess: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340', marginTop: 8 },
   newCodeValue: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 16,
-    color: '#fff',
+    color: Colors.violet,
     letterSpacing: 2,
     marginTop: 12,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: Colors.violet + '08',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
   },
-  newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 8 },
+  newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginTop: 8 },
   newCodeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
   newCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  newCodeBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#fff' },
-  codeCard: { marginBottom: 12 },
+  newCodeBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14 },
   codeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
-  codeDisplay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.2)', marginBottom: 10 },
+  codeDisplay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, backgroundColor: '#F8FAFC', marginBottom: 10, borderWidth: 1, borderColor: '#F1F5F9' },
   codeText: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13, letterSpacing: 1 },
   codeMeta: { gap: 4, marginBottom: 10 },
-  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8' },
   codeActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, paddingTop: 12, marginTop: 2 },
   codeActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12 },
   codeActionText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8', flex: 1 },
 });

@@ -19,23 +19,21 @@ import {
   Lock,
   Sparkles,
   User,
-  TextBubble,
-  Cross,
+  MessageCircle,
+  X,
   ChevronUp,
   ChevronDown,
   Mail,
   ExternalLink,
   Check,
-  Gears,
-  Phone,
-  Pillar,
+  Settings,
+  Smartphone,
+  Database,
   Code,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
-import WallpaperBackground from '../components/WallpaperBackground';
-import GlassCard from '../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -102,7 +100,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 7,
     title: 'Bienveillance dans la communication',
-    Icon: TextBubble,
+    Icon: MessageCircle,
     color: Colors.warmOrange,
     content:
       'La messagerie entre parents et enseignants est encadrée : pas de notifications intrusives la nuit, conservation limitée à 12 mois, et ton toujours constructif. Scolaria facilite la coéducation sans créer de tensions.',
@@ -110,7 +108,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 8,
     title: 'Indépendance et absence de publicité',
-    Icon: Cross,
+    Icon: X,
     color: Colors.red,
     content:
       'Scolaria ne contient aucune publicité, aucun contenu sponsorisé, et aucun mécanisme de gamification addictif. Le modèle économique repose sur l\'abonnement transparent, jamais sur la monétisation des données.',
@@ -129,12 +127,12 @@ const STATS = [
 // ─── Tech stack data ──────────────────────────────────────
 
 const TECH_STACK = [
-  { name: 'React Native', desc: 'App mobile cross-platform', Icon: Phone as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'React Native', desc: 'App mobile cross-platform', Icon: Smartphone as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', Icon: Sparkles as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Google Vision', desc: 'OCR bulletins scolaires', Icon: Code as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Supabase', desc: 'Base de données sécurisée', Icon: Pillar as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Supabase', desc: 'Base de données sécurisée', Icon: Database as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Chiffrement E2E', desc: 'AES-256 bout en bout', Icon: Lock as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Hébergement EU', desc: 'Serveurs France/UE', Icon: Gears as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Hébergement EU', desc: 'Serveurs France/UE', Icon: Settings as React.ComponentType<{ size?: number; color?: string }> },
 ];
 
 // ─── Component ───────────────────────────────────────────
@@ -150,8 +148,7 @@ export default function AProposScreen() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <WallpaperBackground />
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -161,7 +158,7 @@ export default function AProposScreen() {
         }}
       >
         {/* Logo / Hero */}
-        <GlassCard style={styles.heroCard}>
+        <View style={[styles.card, styles.heroCard]}>
           <View style={styles.heroInner}>
             <LogoScolaria size={72} variant="dark" />
             <Text style={styles.heroSubtitle}>Pour les familles françaises</Text>
@@ -169,10 +166,10 @@ export default function AProposScreen() {
               <Text style={styles.versionText}>Version 1.0.0</Text>
             </View>
           </View>
-        </GlassCard>
+        </View>
 
         {/* Mission */}
-        <GlassCard style={styles.card}>
+        <View style={styles.card}>
           <Text style={styles.cardTitle}>Notre mission</Text>
           <Text style={styles.cardBody}>
             Scolaria accompagne chaque famille dans le parcours scolaire de ses
@@ -180,16 +177,16 @@ export default function AProposScreen() {
             artificielle éthique et au respect absolu des données personnelles,
             nous créons un pont bienveillant entre l'école et la maison.
           </Text>
-        </GlassCard>
+        </View>
 
         {/* Stats */}
         <View style={styles.statsRow}>
           {STATS.map((stat, i) => (
-            <GlassCard key={i} style={styles.statCard}>
+            <View key={i} style={[styles.card, styles.statCard]}>
               <Text style={styles.statIcon}>{stat.icon}</Text>
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
-            </GlassCard>
+            </View>
           ))}
         </View>
 
@@ -209,7 +206,7 @@ export default function AProposScreen() {
               key={article.number}
               onPress={() => toggleArticle(article.number)}
             >
-              <GlassCard style={styles.articleCard}>
+              <View style={[styles.card, styles.articleCard]}>
                 <View style={styles.articleRow}>
                   <View style={[styles.articleIconBox, { backgroundColor: article.color + '20' }]}>
                     <article.Icon size={18} color={article.color} />
@@ -219,14 +216,14 @@ export default function AProposScreen() {
                     <Text style={styles.articleTitle}>{article.title}</Text>
                   </View>
                   {isExpanded
-                    ? <ChevronUp size={18} color="rgba(255,255,255,0.6)" />
-                    : <ChevronDown size={18} color="rgba(255,255,255,0.6)" />
+                    ? <ChevronUp size={18} color="#CBD5E1" />
+                    : <ChevronDown size={18} color="#CBD5E1" />
                   }
                 </View>
                 {isExpanded && (
                   <Text style={styles.articleContent}>{article.content}</Text>
                 )}
-              </GlassCard>
+              </View>
             </Pressable>
           );
         })}
@@ -238,7 +235,7 @@ export default function AProposScreen() {
         </View>
 
         {TECH_STACK.map((tech, i) => (
-          <GlassCard key={i} style={[styles.techCard, i < TECH_STACK.length - 1 && { marginBottom: 6 }]}>
+          <View key={i} style={[styles.card, styles.techCard, i < TECH_STACK.length - 1 && { marginBottom: 6 }]}>
             <View style={styles.techRow}>
               <tech.Icon size={20} color={Colors.violet} />
               <View style={{ marginLeft: 12, flex: 1 }}>
@@ -246,11 +243,11 @@ export default function AProposScreen() {
                 <Text style={styles.techDesc}>{tech.desc}</Text>
               </View>
             </View>
-          </GlassCard>
+          </View>
         ))}
 
         {/* Contact & Legal */}
-        <GlassCard style={[styles.card, { marginTop: 14, gap: 14 }]}>
+        <View style={[styles.card, { marginTop: 14, gap: 14 }]}>
           <Pressable
             style={styles.contactRow}
             onPress={() => Linking.openURL('mailto:contact@scolaria.fr')}
@@ -269,7 +266,7 @@ export default function AProposScreen() {
             <Lock size={18} color={Colors.green} />
             <Text style={styles.contactText}>Conforme RGPD · CNIL · Données hébergées en France</Text>
           </View>
-        </GlassCard>
+        </View>
 
         {/* Footer */}
         <View style={styles.footer}>
@@ -284,16 +281,18 @@ export default function AProposScreen() {
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   heroCard: {
-    marginBottom: 14,
     alignItems: 'center',
+    marginBottom: 14,
   },
   heroInner: {
     alignItems: 'center',
@@ -302,40 +301,34 @@ const styles = StyleSheet.create({
   heroSubtitle: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#94A3B8',
     marginTop: 6,
-    ...TEXT_SHADOW,
   },
   versionPill: {
     marginTop: 10,
-    backgroundColor: 'rgba(99,102,241,0.25)',
+    backgroundColor: Colors.violet + '10',
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(99,102,241,0.4)',
+    borderColor: Colors.violet + '30',
   },
   versionText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 12,
-    color: Colors.cyan,
-    ...TEXT_SHADOW,
-  },
-  card: {
-    marginBottom: 14,
+    color: Colors.violet,
   },
   cardTitle: {
     fontFamily: FontFamily.sansBold,
     fontSize: 17,
-    color: '#fff',
+    color: '#1A2340',
     marginBottom: 10,
-    ...TEXT_SHADOW,
   },
   cardBody: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     lineHeight: 21,
-    color: 'rgba(255,255,255,0.8)',
+    color: '#94A3B8',
   },
   statsRow: {
     flexDirection: 'row',
@@ -347,6 +340,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 6,
+    marginBottom: 0,
   },
   statIcon: {
     fontSize: 20,
@@ -355,16 +349,14 @@ const styles = StyleSheet.create({
   statValue: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    color: '#fff',
+    color: '#1A2340',
     marginBottom: 2,
-    ...TEXT_SHADOW,
   },
   statLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 10,
-    color: 'rgba(255,255,255,0.65)',
+    color: '#94A3B8',
     textAlign: 'center',
-    ...TEXT_SHADOW,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -382,15 +374,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: FontFamily.sansBold,
     fontSize: 18,
-    color: '#fff',
-    ...TEXT_SHADOW,
+    color: '#1A2340',
   },
   sectionSubtitle: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: '#94A3B8',
     marginTop: 2,
-    ...TEXT_SHADOW,
   },
   articleCard: {
     marginBottom: 8,
@@ -413,27 +403,25 @@ const styles = StyleSheet.create({
   articleNumber: {
     fontFamily: FontFamily.sansBold,
     fontSize: 10,
-    color: 'rgba(255,255,255,0.5)',
+    color: '#CBD5E1',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    ...TEXT_SHADOW,
   },
   articleTitle: {
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
-    color: '#fff',
+    color: '#1A2340',
     marginTop: 1,
-    ...TEXT_SHADOW,
   },
   articleContent: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     lineHeight: 20,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#94A3B8',
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
+    borderTopColor: '#F1F5F9',
   },
   techCard: {
     marginBottom: 0,
@@ -445,15 +433,13 @@ const styles = StyleSheet.create({
   techName: {
     fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    color: '#fff',
-    ...TEXT_SHADOW,
+    color: '#1A2340',
   },
   techDesc: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: '#94A3B8',
     marginTop: 1,
-    ...TEXT_SHADOW,
   },
   contactRow: {
     flexDirection: 'row',
@@ -464,8 +450,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     flex: 1,
-    color: 'rgba(255,255,255,0.8)',
-    ...TEXT_SHADOW,
+    color: '#94A3B8',
   },
   footer: {
     alignItems: 'center',
@@ -475,16 +460,15 @@ const styles = StyleSheet.create({
   footerCopy: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: '#CBD5E1',
     marginTop: 4,
-    ...TEXT_SHADOW,
   },
   footerQuote: {
-    fontFamily: FontFamily.loraItalic,
+    fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     color: Colors.violet,
     textAlign: 'center',
     paddingHorizontal: 20,
-    ...TEXT_SHADOW,
+    fontStyle: 'italic',
   },
 });

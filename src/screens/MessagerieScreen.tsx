@@ -30,7 +30,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import GlassCard from '../components/GlassCard';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { getStudentAbsences } from '../services/absenceService';
@@ -575,9 +574,6 @@ export default function MessagerieScreen() {
           />
         </View>
 
-        {/* ── Divider before feed ── */}
-        <View style={styles.feedDivider} />
-
         {/* ── Empty state ── */}
         {isEmpty && (
           <View style={styles.emptyState}>
@@ -589,10 +585,7 @@ export default function MessagerieScreen() {
         {/* ── Aujourd'hui section ── */}
         {visibleToday.length > 0 && (
           <>
-            <View style={styles.sectionHeaderRow}>
-              <View style={[styles.sectionAccentBar, { backgroundColor: ACCENT }]} />
-              <Text style={styles.sectionLabel}>Aujourd'hui</Text>
-            </View>
+            <Text style={styles.todayLabel}>AUJOURD'HUI</Text>
             {visibleToday.map((item) => (
               <MessageCard key={item.id} item={item} onPress={handleItemPress} />
             ))}
@@ -602,11 +595,10 @@ export default function MessagerieScreen() {
         {/* ── Plus tôt section ── */}
         {visibleEarlier.length > 0 && (
           <>
-            <View style={[styles.sectionHeaderRow, styles.sectionHeaderRowLater]}>
-              <View
-                style={[styles.sectionAccentBar, { backgroundColor: 'rgba(203,213,225,0.7)' }]}
-              />
-              <Text style={[styles.sectionLabel, styles.sectionLabelLater]}>Plus tôt</Text>
+            <View style={styles.laterDivider}>
+              <View style={styles.laterLine} />
+              <Text style={styles.laterLabel}>PLUS TÔT</Text>
+              <View style={styles.laterLine} />
             </View>
             {visibleEarlier.map((item) => (
               <MessageCard key={item.id} item={item} onPress={handleItemPress} />
@@ -771,58 +763,45 @@ interface MessageCardProps {
 }
 
 function MessageCard({ item, onPress }: MessageCardProps) {
-  // Safety check — skip cards with missing data
   if (!item.title || !item.message) return null;
-
   const cfg = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.aria;
 
   return (
-    <Pressable
-      onPress={() => onPress(item)}
-      style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1, marginBottom: 8 })}
-      accessibilityRole="button"
-    >
-      <GlassCard
-        noPadding
-        borderRadius={14}
-        style={{ borderLeftWidth: 3, borderLeftColor: item.read ? cfg.color + '4D' : cfg.color }}
+    <View style={[styles.msgCard, !item.read && styles.msgCardUnread]}>
+      <Pressable
+        onPress={() => onPress(item)}
+        style={({ pressed }) => [styles.msgRow, pressed && { opacity: 0.82 }]}
+        accessibilityRole="button"
       >
-        <View style={styles.cardInner}>
-          {/* Type icon — Aria gets gradient circle, others get flat tinted circle */}
-          {item.type === 'aria' ? (
-            <AriaSparkleIcon size={36} />
-          ) : (
-            <View style={[styles.iconCircle, { backgroundColor: cfg.color + '20' }]}>
-              <Papicons name={cfg.icon} size={18} color={cfg.color} />
-            </View>
-          )}
-
-          {/* Text content */}
-          <View style={styles.cardBody}>
-            <View style={styles.cardTitleRow}>
-              <Text
-                style={[
-                  styles.cardTitle,
-                  {
-                    fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {item.title}
-              </Text>
-              <Text style={styles.cardTime}>{item.time}</Text>
-            </View>
-            <Text style={styles.cardMessage} numberOfLines={2}>
-              {item.message}
-            </Text>
+        {/* Avatar / icon */}
+        {item.type === 'aria' ? (
+          <AriaSparkleIcon size={44} />
+        ) : (
+          <View style={[styles.msgAvatar, { backgroundColor: cfg.color + '15' }]}>
+            <Papicons name={cfg.icon} size={18} color={cfg.color} />
           </View>
+        )}
 
-          {/* Unread dot */}
-          {!item.read && <View style={styles.unreadDot} />}
+        {/* Text column */}
+        <View style={styles.msgTextCol}>
+          <View style={styles.msgTitleRow}>
+            <Text
+              style={[styles.msgTitle, { fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold }]}
+              numberOfLines={1}
+            >
+              {item.title}
+            </Text>
+            <Text style={styles.msgTime}>{item.time}</Text>
+          </View>
+          <Text style={styles.msgPreview} numberOfLines={1}>
+            {item.message}
+          </Text>
         </View>
-      </GlassCard>
-    </Pressable>
+
+        {/* Unread dot */}
+        {!item.read && <View style={styles.msgUnreadDot} />}
+      </Pressable>
+    </View>
   );
 }
 
@@ -950,40 +929,6 @@ const styles = StyleSheet.create({
     color: '#CBD5E1',
   },
 
-  // ── Feed divider
-  feedDivider: {
-    height: 1,
-    backgroundColor: 'rgba(203,213,225,0.5)',
-    marginBottom: 16,
-  },
-
-  // ── Section headers
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  sectionHeaderRowLater: {
-    marginTop: 12,
-  },
-  sectionAccentBar: {
-    width: 30,
-    height: 3,
-    borderRadius: 2,
-  },
-  sectionLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 13,
-    color: '#0F172A',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  sectionLabelLater: {
-    color: '#94A3B8',
-  },
-
   // ── Empty state
   emptyState: {
     alignItems: 'center',
@@ -997,54 +942,98 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // ── Message card
-  cardInner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    padding: 14,
+  // ── Section labels
+  todayLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+    marginTop: 4,
   },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+  laterDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  laterLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  laterLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+
+  // ── Message card
+  msgCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  msgCardUnread: {
+    borderColor: '#E2E8F0',
+  },
+  msgRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8FAFC',
+  },
+  msgAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  cardBody: {
+  msgTextCol: {
     flex: 1,
     gap: 2,
   },
-  cardTitleRow: {
+  msgTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
   },
-  cardTitle: {
+  msgTitle: {
     flex: 1,
     fontSize: 14,
-    color: '#0F172A',
+    color: '#1A2340',
   },
-  cardTime: {
+  msgTime: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#CBD5E1',
     flexShrink: 0,
   },
-  cardMessage: {
+  msgPreview: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     color: '#64748B',
-    lineHeight: 18,
   },
-  unreadDot: {
+  msgUnreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: ACCENT,
-    marginTop: 4,
+    backgroundColor: '#7C3AED',
     flexShrink: 0,
   },
 

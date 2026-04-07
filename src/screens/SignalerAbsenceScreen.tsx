@@ -74,7 +74,7 @@ export default function SignalerAbsenceScreen() {
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
 
-  const accent = '#3B82F6';
+  const accent = '#7C3AED';
   const { r: ar, g: ag, b: ab } = hexToRgb(accent);
 
   // ── Step state ──

@@ -45,7 +45,7 @@ type Props = {
 
 // ─── Color helpers ───────────────────────────────────────
 
-const ACCENT = '#3B82F6';
+const ACCENT = '#7C3AED';
 
 const COLOR_TEXT_PRIMARY = '#0F172A';
 const COLOR_TEXT_SECONDARY = '#64748B';
@@ -295,7 +295,7 @@ export default function ArchivedYearDetailScreen({ route }: any) {
             return (
               <View style={styles.annualAvgRow}>
                 <LinearGradient
-                  colors={['#3B82F6', '#6366F1']}
+                  colors={['#7C3AED', '#06B6D4']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.annualAvgGradient}

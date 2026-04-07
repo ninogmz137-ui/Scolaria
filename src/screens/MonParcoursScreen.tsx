@@ -81,7 +81,7 @@ export default function MonParcoursScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
-  const accent = '#3B82F6';
+  const accent = '#7C3AED';
 
   const [years, setYears] = useState<AcademicYearCard[]>(() => getMockYears(selectedChild.id));
 

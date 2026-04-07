@@ -12,7 +12,7 @@ import { useChildTheme } from '../contexts/ChildThemeContext';
 export const ScolariaTokens = {
   primary:       '#6366F1',
   primaryLight:  '#818CF8',
-  primaryDark:   '#4F46E5',
+  primaryDark:   '#6D28D9',
   background:    '#F7F8FC',
   card:          '#FFFFFF',
   text:          '#0F172A',

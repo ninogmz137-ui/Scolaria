@@ -95,7 +95,7 @@ function isToday(isoString: string): boolean {
 export default function NotificationsScreen() {
   useChildTheme(); // kept for future theme re-integration
   const { selectedChild } = useActiveChild();
-  const accent = '#3B82F6';
+  const accent = '#7C3AED';
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;

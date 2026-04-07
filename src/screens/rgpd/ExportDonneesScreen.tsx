@@ -5,7 +5,7 @@ import {
   Check,
   Info,
   Code,
-  Paper,
+  FileText,
   User,
   Calendar,
   Camera,
@@ -13,14 +13,12 @@ import {
   Sparkles,
   List,
   Lock,
-  Pie,
+  PieChart,
   Star,
   ArrowRight,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import WallpaperBackground from '../../components/WallpaperBackground';
-import GlassCard from '../../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -59,7 +57,7 @@ export default function ExportDonneesScreen() {
     { key: 'notes', name: 'Notes & bulletins', Icon: Check, color: Colors.cyan, size: '145 Ko', count: '47 notes', selected: true },
     { key: 'agenda', name: 'Agenda & événements', Icon: Calendar, color: Colors.violet, size: '89 Ko', count: '156 événements', selected: true },
     { key: 'ressenti', name: 'Ressenti & bien-être', Icon: Heart, color: Colors.pink, size: '67 Ko', count: '89 check-ins', selected: true },
-    { key: 'competences', name: 'Compétences & radar', Icon: Pie, color: Colors.green, size: '8 Ko', count: '5 compétences', selected: true },
+    { key: 'competences', name: 'Compétences & radar', Icon: PieChart, color: Colors.green, size: '8 Ko', count: '5 compétences', selected: true },
     { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: Colors.orange, size: '15 Ko', count: '5 activités', selected: true },
     { key: 'photos', name: 'Photos & médias', Icon: Camera, color: Colors.orange, size: '4.2 Mo', count: '24 photos', selected: false },
     { key: 'conversations', name: 'Conversations Aria', Icon: Sparkles, color: Colors.violetLight, size: '234 Ko', count: '34 conversations', selected: true },
@@ -156,14 +154,13 @@ export default function ExportDonneesScreen() {
 
   const FORMAT_OPTIONS = [
     { key: 'json' as const, label: 'JSON', Icon: Code as React.ComponentType<{ size?: number; color?: string }>, desc: 'Lisible par machine' },
-    { key: 'pdf' as const, label: 'PDF', Icon: Paper as React.ComponentType<{ size?: number; color?: string }>, desc: 'Lisible par humain' },
+    { key: 'pdf' as const, label: 'PDF', Icon: FileText as React.ComponentType<{ size?: number; color?: string }>, desc: 'Lisible par humain' },
     { key: 'both' as const, label: 'Les deux', Icon: ArrowDown as React.ComponentType<{ size?: number; color?: string }>, desc: 'Recommandé' },
   ];
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1 }}>
-        <WallpaperBackground />
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -173,7 +170,7 @@ export default function ExportDonneesScreen() {
           }}
         >
           {/* Info header */}
-          <GlassCard style={[styles.card, { borderColor: Colors.orange + '60', marginBottom: 14 }]}>
+          <View style={[styles.card, { borderColor: Colors.orange + '60', marginBottom: 14 }]}>
             <View style={styles.infoRow}>
               <View style={[styles.infoIcon, { backgroundColor: Colors.orange + '20' }]}>
                 <ArrowDown size={24} color={Colors.orange} />
@@ -185,42 +182,39 @@ export default function ExportDonneesScreen() {
                 </Text>
               </View>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Format selector label */}
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.orange }]} />
-            <Text style={styles.sectionLabel}>FORMAT D'EXPORT</Text>
-          </View>
+          <Text style={styles.sectionLabel}>FORMAT D'EXPORT</Text>
 
           <View style={styles.formatRow}>
             {FORMAT_OPTIONS.map((fmt) => {
               const isSelected = exportFormat === fmt.key;
               return (
                 <Pressable key={fmt.key} style={{ flex: 1 }} onPress={() => setExportFormat(fmt.key)}>
-                  <GlassCard
-                    style={[styles.formatCard, isSelected && { borderColor: Colors.orange + '80' }]}
+                  <View
+                    style={[
+                      styles.formatCard,
+                      isSelected && { borderColor: Colors.orange + '80', backgroundColor: Colors.orange + '08' },
+                    ]}
                   >
                     {isSelected && (
                       <View style={[styles.formatCheck, { backgroundColor: Colors.orange }]}>
                         <Check size={12} color="#fff" />
                       </View>
                     )}
-                    <fmt.Icon size={24} color={isSelected ? Colors.orange : 'rgba(255,255,255,0.5)'} />
+                    <fmt.Icon size={24} color={isSelected ? Colors.orange : '#CBD5E1'} />
                     <Text style={[styles.formatLabel, isSelected && { color: Colors.orange }]}>{fmt.label}</Text>
                     <Text style={styles.formatDesc}>{fmt.desc}</Text>
-                  </GlassCard>
+                  </View>
                 </Pressable>
               );
             })}
           </View>
 
           {/* Module selection label */}
-          <View style={[styles.sectionHeader, { justifyContent: 'space-between' }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
-              <Text style={styles.sectionLabel}>DONNÉES À EXPORTER</Text>
-            </View>
+          <View style={[styles.sectionHeaderRow, { justifyContent: 'space-between' }]}>
+            <Text style={styles.sectionLabel}>DONNÉES À EXPORTER</Text>
             <Pressable onPress={selectAll}>
               <Text style={[styles.sectionLabel, { color: Colors.cyan, textTransform: 'none', letterSpacing: 0 }]}>
                 {modules.every((m) => m.selected) ? 'Tout désélectionner' : 'Tout sélectionner'}
@@ -228,7 +222,7 @@ export default function ExportDonneesScreen() {
             </Pressable>
           </View>
 
-          <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+          <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
             {modules.map((mod, i) => (
               <View
                 key={mod.key}
@@ -244,15 +238,15 @@ export default function ExportDonneesScreen() {
                 <Switch
                   value={mod.selected}
                   onValueChange={() => toggleModule(mod.key)}
-                  trackColor={{ false: Colors.darkGray, true: mod.color + '60' }}
-                  thumbColor={mod.selected ? mod.color : Colors.gray}
+                  trackColor={{ false: '#E2E8F0', true: mod.color + '60' }}
+                  thumbColor={mod.selected ? mod.color : '#CBD5E1'}
                 />
               </View>
             ))}
-          </GlassCard>
+          </View>
 
           {/* Summary */}
-          <GlassCard style={[styles.card, { marginBottom: 14 }]}>
+          <View style={[styles.card, { marginBottom: 14 }]}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Modules sélectionnés</Text>
               <Text style={styles.summaryValue}>{selectedModules.length}/{modules.length}</Text>
@@ -267,22 +261,22 @@ export default function ExportDonneesScreen() {
                 {exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase()}
               </Text>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Export button */}
           {exporting ? (
-            <GlassCard style={[styles.card, { alignItems: 'center', gap: 10, marginBottom: 14 }]}>
+            <View style={[styles.card, { alignItems: 'center', gap: 10, marginBottom: 14 }]}>
               <ActivityIndicator color={Colors.orange} size="small" />
               <Text style={styles.personName}>Export en cours...</Text>
               <View style={styles.progressBg}>
                 <Animated.View style={[styles.progressFill, { width: progressWidth, backgroundColor: Colors.orange }]} />
               </View>
-            </GlassCard>
+            </View>
           ) : (
             <Pressable
               style={[
                 styles.exportBtn,
-                { backgroundColor: selectedModules.length > 0 ? Colors.orange : 'rgba(255,255,255,0.15)', opacity: selectedModules.length > 0 ? 1 : 0.5 },
+                { backgroundColor: selectedModules.length > 0 ? Colors.orange : '#E2E8F0', opacity: selectedModules.length > 0 ? 1 : 0.5 },
               ]}
               onPress={handleExport}
               disabled={selectedModules.length === 0}
@@ -295,12 +289,9 @@ export default function ExportDonneesScreen() {
           )}
 
           {/* Export history label */}
-          <View style={[styles.sectionHeader, { marginTop: 14 }]}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.green }]} />
-            <Text style={styles.sectionLabel}>HISTORIQUE DES EXPORTS</Text>
-          </View>
+          <Text style={[styles.sectionLabel, { marginTop: 14 }]}>HISTORIQUE DES EXPORTS</Text>
 
-          <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+          <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
             {history.map((exp, i) => (
               <View
                 key={exp.id}
@@ -320,15 +311,12 @@ export default function ExportDonneesScreen() {
                 </Pressable>
               </View>
             ))}
-          </GlassCard>
-
-          {/* JSON preview label */}
-          <View style={[styles.sectionHeader, { marginTop: 4 }]}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.violet }]} />
-            <Text style={styles.sectionLabel}>APERÇU JSON</Text>
           </View>
 
-          <GlassCard style={[styles.card, { marginBottom: 14 }]}>
+          {/* JSON preview label */}
+          <Text style={[styles.sectionLabel, { marginTop: 4 }]}>APERÇU JSON</Text>
+
+          <View style={[styles.card, { marginBottom: 14 }]}>
             <Text style={styles.jsonPreview}>{`{
   "scolaria_export": {
     "version": "1.0",
@@ -350,55 +338,64 @@ export default function ExportDonneesScreen() {
     }
   }
 }`}</Text>
-          </GlassCard>
+          </View>
 
           {/* RGPD notice */}
-          <GlassCard style={styles.card}>
+          <View style={styles.card}>
             <View style={styles.noticeRow}>
               <Info size={16} color={Colors.cyan} />
               <Text style={styles.noticeText}>
                 Conformément à l'article 20 du RGPD, vos données sont fournies dans un format structuré, couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
               </Text>
             </View>
-          </GlassCard>
+          </View>
         </ScrollView>
       </View>
     </Animated.View>
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
-  card: { marginBottom: 8 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  sectionBar: { width: 4, height: 16, borderRadius: 2 },
-  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, ...TEXT_SHADOW },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
+  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10, marginTop: 2 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   formatRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
-  formatCard: { alignItems: 'center', paddingVertical: 16, gap: 6, position: 'relative' },
+  formatCard: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 6,
+    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
   formatCheck: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  formatLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  formatDesc: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: 'rgba(255,255,255,0.55)', textAlign: 'center' },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  formatLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  formatDesc: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: '#94A3B8', textAlign: 'center' },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   moduleRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   moduleIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 1 },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)' },
-  summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  progressBg: { width: '100%', height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.12)', overflow: 'hidden' },
+  summaryLabel: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8' },
+  summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  progressBg: { width: '100%', height: 6, borderRadius: 3, backgroundColor: '#F1F5F9', overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
   exportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18, borderRadius: 30, marginBottom: 8 },
-  exportBtnText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#fff', ...TEXT_SHADOW },
+  exportBtnText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#fff' },
   historyRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   jsonPreview: {
     fontSize: 11,
@@ -407,5 +404,5 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8', flex: 1 },
 });

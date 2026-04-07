@@ -63,7 +63,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
     subtitle: 'La liste des fournitures pour la rentrée prochaine est disponible.',
     date: 'Mars 2026',
     category: 'Scolarité',
-    categoryColor: '#3B82F6',
+    categoryColor: '#7C3AED',
   },
   {
     id: 'ann-5',

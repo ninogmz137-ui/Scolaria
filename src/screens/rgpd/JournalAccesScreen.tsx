@@ -5,20 +5,18 @@ import {
   Info,
   ArrowDown,
   Pen,
-  Trash,
+  Trash2,
   Clock,
-  Phone,
+  Smartphone,
   ExternalLink,
   Calendar,
   Camera,
   Check,
   User,
   Lock,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import WallpaperBackground from '../../components/WallpaperBackground';
-import GlassCard from '../../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -123,7 +121,7 @@ const ActionIcon = ({ action, color }: { action: string; color: string }) => {
   if (action.includes('Modification')) return <Pen size={size} color={color} />;
   if (action.includes('Export')) return <ArrowDown size={size} color={color} />;
   if (action.includes('Génération')) return <Lock size={size} color={color} />;
-  if (action.includes('Suppression')) return <Trash size={size} color={color} />;
+  if (action.includes('Suppression')) return <Trash2 size={size} color={color} />;
   return <Check size={size} color={color} />;
 };
 
@@ -191,8 +189,7 @@ export default function JournalAccesScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1 }}>
-        <WallpaperBackground />
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -202,7 +199,7 @@ export default function JournalAccesScreen() {
           }}
         >
           {/* Info header */}
-          <GlassCard style={[styles.card, { borderColor: Colors.cyan + '60', marginBottom: 14 }]}>
+          <View style={[styles.card, { borderColor: Colors.cyan + '60', marginBottom: 14 }]}>
             <View style={styles.infoRow}>
               <View style={[styles.infoIcon, { backgroundColor: Colors.cyan + '20' }]}>
                 <List size={24} color={Colors.cyan} />
@@ -214,26 +211,26 @@ export default function JournalAccesScreen() {
                 </Text>
               </View>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Stats summary */}
           <View style={styles.statsRow}>
-            <GlassCard style={styles.statCard}>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.cyan }]}>{log.length}</Text>
               <Text style={styles.statLabel}>Total accès</Text>
-            </GlassCard>
-            <GlassCard style={styles.statCard}>
+            </View>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.green }]}>
                 {log.filter((e) => e.date === "Aujourd'hui").length}
               </Text>
               <Text style={styles.statLabel}>Aujourd'hui</Text>
-            </GlassCard>
-            <GlassCard style={styles.statCard}>
+            </View>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.violet }]}>
                 {new Set(log.map((e) => e.person)).size}
               </Text>
               <Text style={styles.statLabel}>Personnes</Text>
-            </GlassCard>
+            </View>
           </View>
 
           {/* Filters */}
@@ -243,16 +240,18 @@ export default function JournalAccesScreen() {
                 key={f.key}
                 onPress={() => setFilter(f.key)}
               >
-                <GlassCard
+                <View
                   style={[
                     styles.filterPill,
-                    filter === f.key && { borderColor: Colors.cyan + '80', backgroundColor: undefined },
+                    filter === f.key
+                      ? { backgroundColor: Colors.cyan + '15', borderColor: Colors.cyan + '60' }
+                      : { backgroundColor: '#F8FAFC', borderColor: '#F1F5F9' },
                   ]}
                 >
                   <Text style={[styles.filterText, filter === f.key && { color: Colors.cyan }]}>
                     {f.label}
                   </Text>
-                </GlassCard>
+                </View>
               </Pressable>
             ))}
           </View>
@@ -267,7 +266,7 @@ export default function JournalAccesScreen() {
                 key={entry.id}
                 onPress={() => setExpandedId(isExpanded ? null : entry.id)}
               >
-                <GlassCard style={styles.entryCard}>
+                <View style={styles.entryCard}>
                   {/* Top row */}
                   <View style={[styles.entryTopRow, { marginBottom: 10 }]}>
                     <View style={[styles.entryAvatar, { borderColor: actionColor }]}>
@@ -284,11 +283,11 @@ export default function JournalAccesScreen() {
 
                   {/* Action row */}
                   <View style={styles.badgeRow}>
-                    <View style={[styles.actionBadge, { backgroundColor: actionColor + '20' }]}>
+                    <View style={[styles.actionBadge, { backgroundColor: actionColor + '15' }]}>
                       <ActionIcon action={entry.action} color={actionColor} />
                       <Text style={[styles.badgeText, { color: actionColor }]}>{entry.action}</Text>
                     </View>
-                    <View style={[styles.actionBadge, { backgroundColor: entry.color + '20' }]}>
+                    <View style={[styles.actionBadge, { backgroundColor: entry.color + '15' }]}>
                       <ModuleIcon icon={entry.moduleIcon} color={entry.color} />
                       <Text style={[styles.badgeText, { color: entry.color }]}>{entry.module}</Text>
                     </View>
@@ -305,23 +304,23 @@ export default function JournalAccesScreen() {
                     <View style={styles.expandedSection}>
                       {entry.device && (
                         <View style={styles.expandedRow}>
-                          <Phone size={14} color="rgba(255,255,255,0.4)" />
+                          <Smartphone size={14} color="#CBD5E1" />
                           <Text style={styles.expandedText}>Appareil : {entry.device}</Text>
                         </View>
                       )}
                       {entry.ip && (
                         <View style={styles.expandedRow}>
-                          <ExternalLink size={14} color="rgba(255,255,255,0.4)" />
+                          <ExternalLink size={14} color="#CBD5E1" />
                           <Text style={styles.expandedText}>IP : {entry.ip}</Text>
                         </View>
                       )}
                       <View style={styles.expandedRow}>
-                        <Clock size={14} color="rgba(255,255,255,0.4)" />
+                        <Clock size={14} color="#CBD5E1" />
                         <Text style={styles.expandedText}>Horodatage : {entry.date} à {entry.time}</Text>
                       </View>
                     </View>
                   )}
-                </GlassCard>
+                </View>
               </Pressable>
             );
           })}
@@ -334,58 +333,66 @@ export default function JournalAccesScreen() {
           )}
 
           {/* RGPD notice */}
-          <GlassCard style={styles.card}>
+          <View style={styles.card}>
             <View style={styles.noticeRow}>
               <Info size={16} color={Colors.cyan} />
               <Text style={styles.noticeText}>
                 Conformément au RGPD (art. 15), vous avez le droit d'accéder à l'intégralité des données de consultation. Ce journal est conservé 12 mois.
               </Text>
             </View>
-          </GlassCard>
+          </View>
         </ScrollView>
       </View>
     </Animated.View>
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
-  card: { marginBottom: 8 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
-  statCard: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  statValue: { fontFamily: FontFamily.sansBold, fontSize: 22, ...TEXT_SHADOW },
-  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, ...TEXT_SHADOW },
+  statCard: { flex: 1, alignItems: 'center', paddingVertical: 12, padding: 12 },
+  statValue: { fontFamily: FontFamily.sansBold, fontSize: 22 },
+  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 10, color: '#94A3B8', marginTop: 2 },
   filterRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
-  filterPill: { paddingHorizontal: 14, paddingVertical: 8 },
-  filterText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: 'rgba(255,255,255,0.7)', ...TEXT_SHADOW },
-  entryCard: { marginBottom: 10 },
+  filterPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, borderWidth: 1 },
+  filterText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: '#94A3B8' },
+  entryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 10,
+  },
   entryTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  entryAvatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: 'rgba(255,255,255,0.1)' },
+  entryAvatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: '#F8FAFC' },
   entryAvatarText: { fontSize: 18 },
   entryNameRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  entryTime: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.5)', ...TEXT_SHADOW },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  entryTime: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#CBD5E1' },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 1 },
   badgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 8 },
   actionBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   badgeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
   metaRow: { flexDirection: 'row', gap: 16 },
-  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.5)' },
-  expandedSection: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.12)', gap: 6 },
+  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
+  expandedSection: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 6 },
   expandedRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  expandedText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)' },
+  expandedText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8' },
   emptyState: { alignItems: 'center', paddingVertical: 40, gap: 10 },
   emptyIcon: { fontSize: 40 },
-  emptyText: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.5)' },
+  emptyText: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#94A3B8' },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.55)', flex: 1 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8', flex: 1 },
 });

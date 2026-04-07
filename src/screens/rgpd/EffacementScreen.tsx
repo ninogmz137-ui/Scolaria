@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, TextInput } from 'react-native';
 import {
-  Trash,
+  Trash2,
   Check,
   ArrowRight,
   ArrowLeft,
-  InfoBox,
+  AlertTriangle,
   Info,
   Mail,
   ArrowDown,
-  Cross,
+  X,
   User,
   Calendar,
   Camera,
@@ -17,11 +17,9 @@ import {
   Sparkles,
   List,
   Lock,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import WallpaperBackground from '../../components/WallpaperBackground';
-import GlassCard from '../../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -95,7 +93,7 @@ export default function EffacementScreen() {
     { id: 1, title: 'Sélection', description: 'Choisissez le profil à supprimer', Icon: User, completed: currentStep > 0 },
     { id: 2, title: 'Aperçu', description: 'Vérifiez les données concernées', Icon: Info, completed: currentStep > 1 },
     { id: 3, title: 'Confirmation', description: 'Confirmez par email', Icon: Mail, completed: currentStep > 2 },
-    { id: 4, title: 'Suppression', description: 'Exécution sous 72h', Icon: Trash, completed: requestSent },
+    { id: 4, title: 'Suppression', description: 'Exécution sous 72h', Icon: Trash2, completed: requestSent },
   ];
 
   const shakeError = () => {
@@ -144,8 +142,7 @@ export default function EffacementScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1 }}>
-        <WallpaperBackground />
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -155,17 +152,17 @@ export default function EffacementScreen() {
           }}
         >
           {/* Warning header */}
-          <GlassCard style={[styles.card, { borderColor: Colors.red + '50', marginBottom: 14 }]}>
+          <View style={[styles.card, { borderColor: Colors.red + '50', marginBottom: 14 }]}>
             <View style={styles.warningHeader}>
-              <View style={[styles.warningIcon, { borderColor: Colors.red, backgroundColor: Colors.red + '15' }]}>
-                <InfoBox size={32} color={Colors.red} />
+              <View style={[styles.warningIcon, { borderColor: Colors.red, backgroundColor: Colors.red + '10' }]}>
+                <AlertTriangle size={32} color={Colors.red} />
               </View>
               <Text style={styles.warningTitle}>Droit à l'effacement</Text>
               <Text style={styles.warningSubtitle}>
                 Article 17 du RGPD — Suppression définitive et irréversible de toutes les données personnelles
               </Text>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Steps progress */}
           <View style={styles.stepsRow}>
@@ -180,14 +177,14 @@ export default function EffacementScreen() {
                 >
                   {step.completed
                     ? <Check size={14} color="#fff" />
-                    : <Text style={[styles.stepNum, { color: currentStep === i ? '#fff' : 'rgba(255,255,255,0.4)' }]}>{step.id}</Text>
+                    : <Text style={[styles.stepNum, { color: currentStep === i ? '#fff' : '#CBD5E1' }]}>{step.id}</Text>
                   }
                 </View>
-                <Text style={[styles.stepLabel, { color: currentStep >= i ? '#fff' : 'rgba(255,255,255,0.4)' }]}>
+                <Text style={[styles.stepLabel, { color: currentStep >= i ? '#1A2340' : '#CBD5E1' }]}>
                   {step.title}
                 </Text>
                 {i < STEPS.length - 1 && (
-                  <View style={[styles.stepConnector, { backgroundColor: step.completed ? Colors.green : 'rgba(255,255,255,0.15)' }]} />
+                  <View style={[styles.stepConnector, { backgroundColor: step.completed ? Colors.green : '#E2E8F0' }]} />
                 )}
               </View>
             ))}
@@ -197,32 +194,32 @@ export default function EffacementScreen() {
           {currentStep === 0 && (
             <View>
               <Text style={[styles.stepHeading, { marginBottom: 12 }]}>Quel profil supprimer ?</Text>
-              <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+              <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
                 {CHILDREN.map((child, i) => (
                   <Pressable
                     key={child.id}
                     style={[
                       styles.childRow,
                       i < CHILDREN.length - 1 && styles.rowBorder,
-                      selectedChild === child.id && { backgroundColor: Colors.red + '10' },
+                      selectedChild === child.id && { backgroundColor: Colors.red + '08' },
                     ]}
                     onPress={() => setSelectedChild(child.id)}
                   >
-                    <View style={[styles.childAvatar, { backgroundColor: child.id === 'all' ? Colors.red + '15' : 'rgba(109,40,217,0.15)' }]}>
+                    <View style={[styles.childAvatar, { backgroundColor: child.id === 'all' ? Colors.red + '10' : Colors.violet + '10' }]}>
                       <Text style={{ fontSize: 22 }}>{child.avatar}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.personName}>{child.name}</Text>
                       <Text style={styles.personRole}>{child.classe}</Text>
                     </View>
-                    <View style={[styles.radioOuter, { borderColor: selectedChild === child.id ? Colors.red : 'rgba(255,255,255,0.3)' }]}>
+                    <View style={[styles.radioOuter, { borderColor: selectedChild === child.id ? Colors.red : '#CBD5E1' }]}>
                       {selectedChild === child.id && (
                         <View style={[styles.radioInner, { backgroundColor: Colors.red }]} />
                       )}
                     </View>
                   </Pressable>
                 ))}
-              </GlassCard>
+              </View>
               <Pressable
                 style={[styles.primaryBtn, { backgroundColor: Colors.violet, opacity: selectedChild ? 1 : 0.4 }]}
                 onPress={() => selectedChild && setCurrentStep(1)}
@@ -240,7 +237,7 @@ export default function EffacementScreen() {
               <Text style={[styles.stepHeading, { marginBottom: 4 }]}>Données qui seront supprimées</Text>
               <Text style={styles.stepSubheading}>Toutes les données suivantes seront définitivement effacées :</Text>
 
-              <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+              <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
                 {DATA_CATEGORIES.map((cat, i) => (
                   <View
                     key={cat.name}
@@ -253,13 +250,13 @@ export default function EffacementScreen() {
                       <Text style={styles.personName}>{cat.name}</Text>
                       <Text style={styles.personRole}>{cat.count}</Text>
                     </View>
-                    <Trash size={16} color={Colors.red + '70'} />
+                    <Trash2 size={16} color={Colors.red + '80'} />
                   </View>
                 ))}
-              </GlassCard>
+              </View>
 
               {/* Export suggestion */}
-              <GlassCard style={[styles.card, { borderColor: Colors.orange + '40', marginBottom: 14 }]}>
+              <View style={[styles.card, { borderColor: Colors.orange + '40', marginBottom: 14 }]}>
                 <View style={styles.infoRow}>
                   <ArrowDown size={20} color={Colors.orange} />
                   <View style={{ flex: 1, marginLeft: 12 }}>
@@ -267,11 +264,11 @@ export default function EffacementScreen() {
                     <Text style={styles.personRole}>Téléchargez une copie JSON + PDF avant la suppression.</Text>
                   </View>
                 </View>
-              </GlassCard>
+              </View>
 
               <View style={styles.navRow}>
                 <Pressable style={styles.backBtn} onPress={() => setCurrentStep(0)}>
-                  <ArrowLeft size={18} color="#fff" />
+                  <ArrowLeft size={18} color="#1A2340" />
                   <Text style={styles.backBtnText}>Retour</Text>
                 </Pressable>
                 <Pressable
@@ -299,7 +296,7 @@ export default function EffacementScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="votre@email.fr"
-                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  placeholderTextColor="#CBD5E1"
                   value={confirmEmail}
                   onChangeText={setConfirmEmail}
                   keyboardType="email-address"
@@ -317,7 +314,7 @@ export default function EffacementScreen() {
                 <TextInput
                   style={styles.input}
                   placeholder="SUPPRIMER"
-                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  placeholderTextColor="#CBD5E1"
                   value={confirmText}
                   onChangeText={setConfirmText}
                   autoCapitalize="characters"
@@ -325,25 +322,25 @@ export default function EffacementScreen() {
               </View>
 
               {/* Legal notice */}
-              <GlassCard style={[styles.card, { marginBottom: 16 }]}>
+              <View style={[styles.card, { marginBottom: 16 }]}>
                 <View style={styles.infoRow}>
                   <Info size={18} color={Colors.cyan} />
                   <Text style={[styles.noticeText, { flex: 1, marginLeft: 10 }]}>
                     Conformément à l'article 17 du RGPD, votre demande sera traitée sous 72 heures. Un email de confirmation sera envoyé à l'adresse du compte. Vous disposez de 48h pour annuler la demande après réception de l'email.
                   </Text>
                 </View>
-              </GlassCard>
+              </View>
 
               <View style={styles.navRow}>
                 <Pressable style={styles.backBtn} onPress={() => setCurrentStep(1)}>
-                  <ArrowLeft size={18} color="#fff" />
+                  <ArrowLeft size={18} color="#1A2340" />
                   <Text style={styles.backBtnText}>Retour</Text>
                 </Pressable>
                 <Pressable
                   style={[styles.primaryBtn, { flex: 1, backgroundColor: Colors.red }]}
                   onPress={handleSubmitRequest}
                 >
-                  <Trash size={18} color="#fff" />
+                  <Trash2 size={18} color="#fff" />
                   <Text style={styles.primaryBtnText}>Demander la suppression</Text>
                 </Pressable>
               </View>
@@ -362,7 +359,7 @@ export default function EffacementScreen() {
                 <Text style={{ color: Colors.cyan, fontFamily: FontFamily.sansBold }}>moreau.famille@email.fr</Text>
               </Text>
 
-              <GlassCard style={{ width: '100%', marginBottom: 20 }}>
+              <View style={[styles.card, { width: '100%', marginBottom: 20 }]}>
                 {[
                   { color: Colors.green, label: 'Demande reçue', sub: 'Maintenant' },
                   { color: Colors.orange, label: 'Email de confirmation', sub: 'Dans quelques minutes' },
@@ -378,11 +375,11 @@ export default function EffacementScreen() {
                       </View>
                     </View>
                     {i < 3 && (
-                      <View style={[styles.timelineLine, { borderLeftColor: 'rgba(255,255,255,0.15)' }]} />
+                      <View style={[styles.timelineLine, { borderLeftColor: '#E2E8F0' }]} />
                     )}
                   </View>
                 ))}
-              </GlassCard>
+              </View>
 
               <Pressable
                 style={[styles.cancelBtn, { borderColor: Colors.green }]}
@@ -397,7 +394,7 @@ export default function EffacementScreen() {
                   setSelectedChild(null);
                 }}
               >
-                <Cross size={18} color={Colors.green} />
+                <X size={18} color={Colors.green} />
                 <Text style={[styles.cancelBtnText, { color: Colors.green }]}>Annuler la demande</Text>
               </Pressable>
             </View>
@@ -408,58 +405,59 @@ export default function EffacementScreen() {
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
-  card: { marginBottom: 8 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center' },
   warningHeader: { alignItems: 'center', paddingVertical: 8 },
   warningIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, marginBottom: 12 },
-  warningTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#fff', marginBottom: 6, ...TEXT_SHADOW },
-  warningSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', textAlign: 'center', lineHeight: 19 },
+  warningTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#1A2340', marginBottom: 6 },
+  warningSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', textAlign: 'center', lineHeight: 19 },
   stepsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 24 },
   stepItem: { alignItems: 'center', flex: 1, position: 'relative' },
-  stepCircle: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 4, backgroundColor: 'transparent' },
+  stepCircle: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', marginBottom: 4, backgroundColor: 'transparent' },
   stepNum: { fontFamily: FontFamily.sansBold, fontSize: 12 },
-  stepLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, textAlign: 'center', ...TEXT_SHADOW },
+  stepLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, textAlign: 'center' },
   stepConnector: { position: 'absolute', top: 14, left: '60%', right: '-40%', height: 2 },
-  stepHeading: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#fff', ...TEXT_SHADOW },
-  stepSubheading: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.65)', marginBottom: 14, lineHeight: 19 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  stepHeading: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#1A2340' },
+  stepSubheading: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginBottom: 14, lineHeight: 19 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 1 },
   radioOuter: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   radioInner: { width: 12, height: 12, borderRadius: 6 },
   primaryBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 14 },
-  primaryBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
+  primaryBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff' },
   navRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  backBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: '#fff' },
+  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
+  backBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: '#1A2340' },
   catRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   catIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   inputGroup: { marginBottom: 14 },
-  inputLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#fff', marginBottom: 8, ...TEXT_SHADOW },
+  inputLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#1A2340', marginBottom: 8 },
   input: {
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
     fontSize: 16,
     fontFamily: FontFamily.sansRegular,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    color: '#fff',
-    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#F8FAFC',
+    color: '#1A2340',
+    borderColor: '#E2E8F0',
   },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(255,255,255,0.6)' },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8' },
   successState: { alignItems: 'center', paddingTop: 8 },
   successIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  successTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#fff', marginBottom: 8, ...TEXT_SHADOW },
-  successSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  successTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#1A2340', marginBottom: 8 },
+  successSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#94A3B8', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
   timelineRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   timelineDot: { width: 12, height: 12, borderRadius: 6 },
   timelineLine: { marginLeft: 5, height: 24, borderLeftWidth: 2 },

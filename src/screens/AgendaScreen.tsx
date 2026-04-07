@@ -469,7 +469,7 @@ export default function AgendaScreen() {
           time: `${hh}h00`,
           type: typeMap[newEventType],
           emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
-          color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#3B82F6',
+          color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#7C3AED',
         };
         setEventsByDay((prev) => ({
           ...prev,
@@ -840,9 +840,9 @@ export default function AgendaScreen() {
               <Text style={st.modalTitle}>Nouvel événement</Text>
 
               {/* Date indicator */}
-              <View style={[st.modalDateRow, { backgroundColor: '#3B82F612', borderColor: '#3B82F630' }]}>
+              <View style={[st.modalDateRow, { backgroundColor: '#7C3AED12', borderColor: '#7C3AED30' }]}>
                 <Text style={{ fontSize: 15 }}>📅</Text>
-                <Text style={[st.modalDateText, { color: '#3B82F6' }]}>
+                <Text style={[st.modalDateText, { color: '#7C3AED' }]}>
                   {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
                 </Text>
               </View>
@@ -869,11 +869,11 @@ export default function AgendaScreen() {
                       onPress={() => setNewEventType(type)}
                       style={[
                         st.modalTypePill,
-                        { borderColor: isActive ? '#3B82F6' : '#EEF0F5' },
-                        isActive && { backgroundColor: '#3B82F615' },
+                        { borderColor: isActive ? '#7C3AED' : '#EEF0F5' },
+                        isActive && { backgroundColor: '#7C3AED15' },
                       ]}
                     >
-                      <Text style={[st.modalTypeText, isActive && { color: '#3B82F6' }]}>
+                      <Text style={[st.modalTypeText, isActive && { color: '#7C3AED' }]}>
                         {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
                       </Text>
                     </Pressable>
@@ -892,7 +892,7 @@ export default function AgendaScreen() {
                   style={{ flex: 2, borderRadius: 14, overflow: 'hidden' }}
                 >
                   <LinearGradient
-                    colors={['#3B82F6', '#6366F1']}
+                    colors={['#7C3AED', '#06B6D4']}
                     style={[st.createBtn, isSaving && { opacity: 0.6 }]}
                   >
                     <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>

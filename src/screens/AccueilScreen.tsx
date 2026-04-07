@@ -146,7 +146,7 @@ export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
 
   const todayAbsence = getTodayAbsence(selectedChildId);
-  const accent = '#3B82F6';
+  const accent = '#7C3AED';
   const [data, setData] = useState<DashboardData>(getMockDashboard(selectedChildId, selectedChild?.name));
 
   const loadDashboard = useCallback(async (childId: string, childName: string) => {

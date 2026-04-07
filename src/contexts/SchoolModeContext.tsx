@@ -79,12 +79,12 @@ const UNIFIED_BASE = {
   tabBg: '#FFFFFF',
   tabBorder: 'transparent',
   tabInactive: '#94A3B8',
-  // Unified blue accent
-  accent: '#3B82F6',
-  accentLight: '#93C5FD',
-  accentDark: '#1D4ED8',
-  tabActive: '#3B82F6',
-  headerGradient: ['#3B82F610', '#F2F2F7'] as [string, string],
+  // Unified violet accent
+  accent: '#7C3AED',
+  accentLight: '#C4B5FD',
+  accentDark: '#6D28D9',
+  tabActive: '#7C3AED',
+  headerGradient: ['#7C3AED10', '#F2F2F7'] as [string, string],
   ariaColor: '#7C3AED',
   // Unified background + header
   backgroundColor: '#F2F2F7',

@@ -201,7 +201,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
       >
         {/* ── Section: Conversations ── */}
         <View style={styles.sectionHeaderRow}>
-          <View style={[styles.sectionAccentBar, { backgroundColor: '#3B82F6' }]} />
+          <View style={[styles.sectionAccentBar, { backgroundColor: '#7C3AED' }]} />
           <Text style={styles.sectionLabel}>Conversations</Text>
         </View>
 
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#7C3AED',
     position: 'absolute',
     top: 0,
     right: 0,

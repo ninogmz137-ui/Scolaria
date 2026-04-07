@@ -8,17 +8,15 @@ import {
   ChevronRight,
   Check,
   User,
-  Cross,
+  X,
   Calendar,
   Camera,
   Heart,
   Sparkles,
   Plus,
-} from '@getpapillon/papicons';
+} from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import WallpaperBackground from '../../components/WallpaperBackground';
-import GlassCard from '../../components/GlassCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -257,8 +255,7 @@ export default function PermissionsScreen() {
 
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1 }}>
-        <WallpaperBackground />
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
@@ -268,7 +265,7 @@ export default function PermissionsScreen() {
           }}
         >
           {/* Header info */}
-          <GlassCard style={[styles.card, { borderColor: Colors.green + '60', marginBottom: 14 }]}>
+          <View style={[styles.card, { borderColor: Colors.green + '60', marginBottom: 14 }]}>
             <View style={styles.infoRow}>
               <View style={[styles.infoIcon, { backgroundColor: Colors.green + '20' }]}>
                 <Lock size={24} color={Colors.green} />
@@ -280,24 +277,24 @@ export default function PermissionsScreen() {
                 </Text>
               </View>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Access levels legend */}
           <Pressable onPress={() => setShowLevelInfo(!showLevelInfo)}>
-            <GlassCard style={[styles.card, { marginBottom: 8 }]}>
+            <View style={[styles.card, { marginBottom: 8 }]}>
               <View style={styles.infoRow}>
                 <Info size={20} color={Colors.cyan} />
                 <Text style={[styles.infoTitle, { flex: 1, marginLeft: 10 }]}>4 niveaux d'accès</Text>
                 {showLevelInfo
-                  ? <ChevronUp size={18} color="rgba(255,255,255,0.5)" />
-                  : <ChevronDown size={18} color="rgba(255,255,255,0.5)" />
+                  ? <ChevronUp size={18} color="#94A3B8" />
+                  : <ChevronDown size={18} color="#94A3B8" />
                 }
               </View>
-            </GlassCard>
+            </View>
           </Pressable>
 
           {showLevelInfo && (
-            <GlassCard style={[styles.card, { marginBottom: 14 }]} noPadding>
+            <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
               {ACCESS_LEVELS.map((level, i) => (
                 <View
                   key={level.key}
@@ -322,17 +319,14 @@ export default function PermissionsScreen() {
                   </View>
                 </View>
               ))}
-            </GlassCard>
+            </View>
           )}
 
           {/* Section label */}
-          <View style={styles.sectionHeader}>
-            <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
-            <Text style={styles.sectionLabel}>PERSONNES AUTORISÉES</Text>
-          </View>
+          <Text style={styles.sectionLabel}>PERSONNES AUTORISÉES</Text>
 
           {/* People list */}
-          <GlassCard style={[styles.card, { marginBottom: 12 }]} noPadding>
+          <View style={[styles.card, { marginBottom: 12, padding: 0 }]}>
             {people.map((person, i) => {
               const levelCfg = getLevelConfig(person.level);
               return (
@@ -351,36 +345,36 @@ export default function PermissionsScreen() {
                   <View style={[styles.levelBadge, { backgroundColor: levelCfg.color + '25' }]}>
                     <Text style={[styles.levelBadgeText, { color: levelCfg.color }]}>{levelCfg.label}</Text>
                   </View>
-                  <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
+                  <ChevronRight size={16} color="#CBD5E1" />
                 </Pressable>
               );
             })}
-          </GlassCard>
+          </View>
 
           {/* Add person */}
-          <GlassCard style={[styles.card, { borderStyle: 'dashed', borderColor: Colors.cyan + '40' }]}>
+          <View style={[styles.card, { borderStyle: 'dashed', borderColor: Colors.cyan + '60' }]}>
             <View style={styles.addRow}>
               <Plus size={20} color={Colors.cyan} />
               <Text style={[styles.levelLabel, { color: Colors.cyan, marginLeft: 10 }]}>Inviter une personne</Text>
             </View>
-          </GlassCard>
+          </View>
 
           {/* Stats */}
           <View style={styles.statsRow}>
-            <GlassCard style={styles.statCard}>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.cyan }]}>{people.length}</Text>
               <Text style={styles.statLabel}>Personnes</Text>
-            </GlassCard>
-            <GlassCard style={styles.statCard}>
+            </View>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.violet }]}>
                 {people.filter((p) => p.level === 'tuteur').length}
               </Text>
               <Text style={styles.statLabel}>Tuteurs</Text>
-            </GlassCard>
-            <GlassCard style={styles.statCard}>
+            </View>
+            <View style={[styles.statCard, styles.card]}>
               <Text style={[styles.statValue, { color: Colors.green }]}>6</Text>
               <Text style={styles.statLabel}>Modules</Text>
-            </GlassCard>
+            </View>
           </View>
         </ScrollView>
 
@@ -406,11 +400,8 @@ export default function PermissionsScreen() {
                   </View>
 
                   {/* Level selector */}
-                  <View style={styles.sectionHeader}>
-                    <View style={[styles.sectionBar, { backgroundColor: Colors.violet }]} />
-                    <Text style={styles.sectionLabel}>NIVEAU D'ACCÈS</Text>
-                  </View>
-                  <GlassCard style={{ marginBottom: 16 }} noPadding>
+                  <Text style={[styles.sectionLabel, { marginBottom: 8 }]}>NIVEAU D'ACCÈS</Text>
+                  <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
                     {ACCESS_LEVELS.map((level, i) => {
                       const isSelected = selectedPerson.level === level.key;
                       return (
@@ -419,7 +410,7 @@ export default function PermissionsScreen() {
                           style={[
                             styles.levelSelectRow,
                             i < ACCESS_LEVELS.length - 1 && styles.rowBorder,
-                            isSelected && { backgroundColor: level.color + '15' },
+                            isSelected && { backgroundColor: level.color + '10' },
                           ]}
                           onPress={() => handleChangeLevel(selectedPerson.id, level.key)}
                         >
@@ -432,14 +423,11 @@ export default function PermissionsScreen() {
                         </Pressable>
                       );
                     })}
-                  </GlassCard>
+                  </View>
 
                   {/* Module toggles */}
-                  <View style={styles.sectionHeader}>
-                    <View style={[styles.sectionBar, { backgroundColor: Colors.cyan }]} />
-                    <Text style={styles.sectionLabel}>MODULES AUTORISÉS</Text>
-                  </View>
-                  <GlassCard style={{ marginBottom: 16 }} noPadding>
+                  <Text style={[styles.sectionLabel, { marginBottom: 8 }]}>MODULES AUTORISÉS</Text>
+                  <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
                     {MODULE_CONFIG.map((mod, i) => (
                       <View
                         key={mod.key}
@@ -452,27 +440,27 @@ export default function PermissionsScreen() {
                         <Switch
                           value={selectedPerson.modules[mod.key]}
                           onValueChange={() => handleToggleModule(selectedPerson.id, mod.key)}
-                          trackColor={{ false: Colors.darkGray, true: mod.color + '60' }}
-                          thumbColor={selectedPerson.modules[mod.key] ? mod.color : Colors.gray}
+                          trackColor={{ false: '#E2E8F0', true: mod.color + '60' }}
+                          thumbColor={selectedPerson.modules[mod.key] ? mod.color : '#CBD5E1'}
                         />
                       </View>
                     ))}
-                  </GlassCard>
+                  </View>
 
                   {/* Actions */}
                   <View style={{ gap: 10, marginBottom: 24 }}>
                     <Pressable
-                      style={[styles.actionBtn, { backgroundColor: Colors.red + '20' }]}
+                      style={[styles.actionBtn, { backgroundColor: Colors.red + '15', borderWidth: 1, borderColor: Colors.red + '30' }]}
                       onPress={() => handleRevokeAccess(selectedPerson.id)}
                     >
-                      <Cross size={20} color={Colors.red} />
+                      <X size={20} color={Colors.red} />
                       <Text style={[styles.actionText, { color: Colors.red }]}>Révoquer l'accès</Text>
                     </Pressable>
                     <Pressable
-                      style={[styles.actionBtn, { backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }]}
+                      style={[styles.actionBtn, { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }]}
                       onPress={() => setShowModal(false)}
                     >
-                      <Text style={[styles.actionText, { color: '#fff' }]}>Fermer</Text>
+                      <Text style={[styles.actionText, { color: '#1A2340' }]}>Fermer</Text>
                     </Pressable>
                   </View>
                 </ScrollView>
@@ -485,56 +473,55 @@ export default function PermissionsScreen() {
   );
 }
 
-const TEXT_SHADOW = {
-  textShadowColor: 'rgba(0,0,0,0.4)',
-  textShadowOffset: { width: 0, height: 1 },
-  textShadowRadius: 4,
-};
-
 const styles = StyleSheet.create({
-  card: { marginBottom: 8 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    padding: 16,
+    marginBottom: 12,
+  },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#fff', ...TEXT_SHADOW },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 17 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, marginTop: 6 },
-  sectionBar: { width: 4, height: 16, borderRadius: 2 },
-  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 12, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1, ...TEXT_SHADOW },
+  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
+  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8, marginTop: 6 },
   levelRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
   levelSelectRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   levelIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   levelEmoji: { fontSize: 22 },
-  levelLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  levelDesc: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  levelLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  levelDesc: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
   pill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   pillText: { fontFamily: FontFamily.sansSemiBold, fontSize: 10 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.12)' },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   personRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  avatarCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: 'rgba(255,255,255,0.1)' },
+  avatarCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: '#F8FAFC' },
   avatarText: { fontSize: 22 },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#fff', ...TEXT_SHADOW },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 1 },
+  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 1 },
   levelBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   levelBadgeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
   addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  statsRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  statsRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   statCard: { flex: 1, alignItems: 'center', paddingVertical: 14 },
-  statValue: { fontFamily: FontFamily.sansBold, fontSize: 24, ...TEXT_SHADOW },
-  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 4, ...TEXT_SHADOW },
+  statValue: { fontFamily: FontFamily.sansBold, fontSize: 24 },
+  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 4 },
   moduleRow: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   moduleIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   // Modal
-  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
-  modalSheet: { backgroundColor: '#1A2340', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingHorizontal: 18, maxHeight: '90%' },
-  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.3)', alignSelf: 'center', marginBottom: 16 },
+  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' },
+  modalSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 12, paddingHorizontal: 18, maxHeight: '90%' },
+  modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#E2E8F0', alignSelf: 'center', marginBottom: 16 },
   personHeader: { alignItems: 'center', marginBottom: 20 },
-  avatarCircleLg: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: 10 },
+  avatarCircleLg: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: '#F8FAFC', marginBottom: 10 },
   avatarTextLg: { fontSize: 32 },
-  modalName: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#fff', ...TEXT_SHADOW },
-  modalRole: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  modalName: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#1A2340' },
+  modalRole: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginTop: 2 },
   modalEmail: { fontFamily: FontFamily.sansRegular, fontSize: 12, marginTop: 4 },
-  modalLastAccess: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 6 },
+  modalLastAccess: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#CBD5E1', marginTop: 6 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, borderRadius: 14 },
   actionText: { fontFamily: FontFamily.sansBold, fontSize: 15 },
 });
