@@ -898,6 +898,16 @@ export default function NotesScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* ── Scanner FAB ── */}
+      <Pressable
+        onPress={() => navigation.navigate('ScannerBulletin')}
+        style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]}
+        accessibilityRole="button"
+        accessibilityLabel="Scanner une note"
+      >
+        <ScanLine size={22} color="#FFFFFF" strokeWidth={2} />
+      </Pressable>
     </View>
   );
 }
@@ -1044,7 +1054,7 @@ const s = StyleSheet.create({
     marginBottom: 12,
   },
   avgNum: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 42,
     color: '#0F172A',
     letterSpacing: -2.5,
@@ -1079,7 +1089,7 @@ const s = StyleSheet.create({
     ...CARD_SHADOW,
   },
   lastGradeNum: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 34,
     letterSpacing: -1.5,
     lineHeight: 40,
@@ -1109,7 +1119,7 @@ const s = StyleSheet.create({
     marginTop: 6,
   },
   miniSubjectAvg: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 18,
     letterSpacing: -0.5,
     marginTop: 2,
@@ -1170,7 +1180,7 @@ const s = StyleSheet.create({
     gap: 2,
   },
   subjectAvgNum: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 28,
     color: '#0F172A',
     letterSpacing: -1,
@@ -1250,7 +1260,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
   },
   gradeBadgeNum: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 18,
     letterSpacing: -0.5,
   },
@@ -1369,7 +1379,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   maternelleStatNum: {
-    fontFamily: FontFamily.displayExtraBold,
+    fontFamily: FontFamily.displayBold,
     fontSize: 32,
     letterSpacing: -1.5,
   },
@@ -1468,5 +1478,23 @@ const s = StyleSheet.create({
     fontSize: 11,
     color: '#94A3B8',
     marginTop: 8,
+  },
+
+  // FAB
+  fab: {
+    backgroundColor: '#7C3AED',
+    borderRadius: 28,
+    width: 56,
+    height: 56,
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 4,
   },
 });

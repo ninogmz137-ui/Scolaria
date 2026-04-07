@@ -15,8 +15,8 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const CARD_GAP = 10;
-const CARD_W = (SCREEN_W - 32 - CARD_GAP) / 2;
+const CARD_GAP = 8;
+const CARD_W = (SCREEN_W - 32 - CARD_GAP * 2) / 3;
 
 // ─── Single wallpaper card ────────────────────────────────
 

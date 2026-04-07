@@ -206,6 +206,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         {conversations.map((conv) => (
           <Pressable
             key={conv.id}
+            onPress={() => navigation.navigate('ConversationDetailScreen', { name: conv.name, role: conv.role })}
             style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >
@@ -265,6 +266,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         {mots.map((mot) => (
           <Pressable
             key={mot.id}
+            onPress={() => navigation.navigate('MotDetailScreen', { title: mot.title, signed: mot.signed, deadline: mot.deadline })}
             style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >
@@ -307,20 +309,20 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
       <Pressable
         onPress={() => setTeacherModalVisible(true)}
         style={({ pressed }) => ({
-          backgroundColor: '#1a1a1a',
-          borderRadius: 16,
-          width: 50,
-          height: 50,
+          backgroundColor: '#7C3AED',
+          borderRadius: 28,
+          width: 56,
+          height: 56,
           position: 'absolute',
           bottom: 80,
           right: 20,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#000',
+          shadowColor: '#7C3AED',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.2,
+          shadowOpacity: 0.3,
           shadowRadius: 16,
-          elevation: 0,
+          elevation: 4,
           opacity: pressed ? 0.85 : 1,
         })}
         accessibilityRole="button"

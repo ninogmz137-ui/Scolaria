@@ -4,7 +4,7 @@
  * Shows a list of school-wide announcements: vacations, events, canteen info.
  */
 
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -100,6 +100,7 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
         {MOCK_ANNOUNCEMENTS.map((ann) => (
           <Pressable
             key={ann.id}
+            onPress={() => Alert.alert(ann.title, ann.subtitle)}
             style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
             accessibilityRole="button"
           >

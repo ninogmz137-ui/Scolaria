@@ -6,21 +6,23 @@
  */
 
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT } from './FloatingTabBar';
 
 export default function DemoBanner() {
   const { isDemo, signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   if (!isDemo) return null;
 
   return (
-    <View style={s.banner}>
+    <View style={[s.banner, { top: insets.top }]}>
       <View style={s.pill}>
         <Text style={s.dot}>●</Text>
         <Text style={s.text}>Mode démo · Données fictives</Text>
-        <Pressable onPress={signOut} hitSlop={8} style={s.quitBtn}>
+        <Text style={s.separator}>—</Text>
+        <Pressable onPress={signOut} hitSlop={8}>
           <Text style={s.quitText}>Quitter</Text>
         </Pressable>
       </View>
@@ -31,40 +33,37 @@ export default function DemoBanner() {
 const s = StyleSheet.create({
   banner: {
     position: 'absolute',
-    bottom: FLOATING_TAB_BAR_HEIGHT + 4,
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 50,
+    zIndex: 999,
   },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(15,23,42,0.82)',
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    gap: 6,
+    backgroundColor: 'rgba(26,35,64,0.7)',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    gap: 5,
+    height: 28,
   },
   dot: {
-    fontSize: 8,
+    fontSize: 6,
     color: '#F59E0B',
   },
   text: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
+    fontSize: 10,
     color: 'rgba(255,255,255,0.7)',
   },
-  quitBtn: {
-    marginLeft: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  separator: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.3)',
   },
   quitText: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    color: '#FFFFFF',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.5)',
   },
 });

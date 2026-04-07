@@ -75,6 +75,7 @@ interface ChildProfileData {
 function getChildProfileData(childId: string): ChildProfileData {
   switch (childId) {
     case '1':
+    case 'demo-lea':
       return {
         name: 'Léa Moreau',
         firstName: 'Léa',
@@ -110,6 +111,7 @@ function getChildProfileData(childId: string): ChildProfileData {
       };
 
     case '2':
+    case 'demo-lucas':
       return {
         name: 'Lucas Moreau',
         firstName: 'Lucas',
@@ -151,6 +153,7 @@ function getChildProfileData(childId: string): ChildProfileData {
       };
 
     case '3':
+    case 'demo-emma':
     default:
       return {
         name: 'Emma Moreau',

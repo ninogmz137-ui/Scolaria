@@ -58,6 +58,8 @@ import TextSizeScreen from '../screens/TextSizeScreen';
 import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
 import AbsencesListScreen from '../screens/messagerie/AbsencesListScreen';
 import EcoleListScreen from '../screens/messagerie/EcoleListScreen';
+import ConversationDetailScreen from '../screens/messagerie/ConversationDetailScreen';
+import MotDetailScreen from '../screens/messagerie/MotDetailScreen';
 
 // Detail screens
 import ArchivedYearDetailScreen from '../screens/ArchivedYearDetailScreen';
@@ -110,6 +112,8 @@ const SCREEN_TITLES: Record<string, string> = {
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
+  ConversationDetailScreen: 'Conversation',
+  MotDetailScreen: 'Mot à signer',
   ArchivedYearDetail: 'Année archivée',
   SubjectDetail: 'Détail matière',
 };
@@ -354,6 +358,16 @@ function MessagerieStackScreen() {
       <MessagerieStack.Screen
         name="MessagerieAriaScreen"
         component={AriaScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="ConversationDetailScreen"
+        component={ConversationDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="MotDetailScreen"
+        component={MotDetailScreen}
         options={{ headerShown: false }}
       />
     </MessagerieStack.Navigator>

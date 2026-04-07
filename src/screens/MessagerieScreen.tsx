@@ -24,8 +24,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Papicons } from '@getpapillon/papicons';
-import { MessageSquarePlus, ChevronRight, MessageCircle, Home, Calendar } from 'lucide-react-native';
+import { MessageSquarePlus, ChevronRight, MessageCircle, Home, Calendar, FileText, GraduationCap, AlertTriangle, Mail, X, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
@@ -56,20 +55,20 @@ interface MessagerieItem {
   _isoDate: string;
 }
 
-// ─── Type config — Papicons icon names and colors ─────────
+// ─── Type config — lucide icons and colors ────────────────
 
-const TYPE_CONFIG: Record<MessagerieItemType, { icon: string; color: string }> = {
-  liaison: { icon: 'Paper',    color: '#FF8C42' },
-  note:    { icon: 'Grades',   color: '#A78BFA' },
-  agenda:  { icon: 'Calendar', color: '#10B981' },
-  absence: { icon: 'Warning',  color: '#EF4444' },
-  aria:    { icon: 'Sparkles', color: '#7C3AED' },
+const TYPE_CONFIG: Record<MessagerieItemType, { Icon: React.ElementType; color: string }> = {
+  liaison: { Icon: FileText,       color: '#FF8C42' },
+  note:    { Icon: GraduationCap,  color: '#A78BFA' },
+  agenda:  { Icon: Calendar,       color: '#10B981' },
+  absence: { Icon: AlertTriangle,  color: '#EF4444' },
+  aria:    { Icon: Sparkles,       color: '#7C3AED' },
 };
 
 // ─── FAB action config ────────────────────────────────────
 
 interface FabAction {
-  icon: string;
+  Icon: React.ElementType;
   color: string;
   label: string;
   onPress: () => void;
@@ -464,7 +463,7 @@ export default function MessagerieScreen() {
 
   const fabActions: FabAction[] = [
     {
-      icon: 'TextBubble',
+      Icon: MessageCircle,
       color: ACCENT,
       label: "Envoyer un message à l'enseignant",
       onPress: () => {
@@ -476,7 +475,7 @@ export default function MessagerieScreen() {
       },
     },
     {
-      icon: 'Mail',
+      Icon: Mail,
       color: '#10B981',
       label: "Contacter l'établissement",
       onPress: () => {
@@ -488,7 +487,7 @@ export default function MessagerieScreen() {
       },
     },
     {
-      icon: 'Tasks',
+      Icon: AlertTriangle,
       color: '#EF4444',
       label: 'Signaler une absence',
       onPress: () => {
@@ -517,7 +516,7 @@ export default function MessagerieScreen() {
               showUnreadOnly ? 'Afficher tous les messages' : 'Afficher uniquement les non lus'
             }
           >
-            <Papicons name="Bell" size={22} color={hasUnread ? ACCENT : '#CCCCCC'} />
+            <Mail size={22} color={hasUnread ? ACCENT : '#CCCCCC'} strokeWidth={2} />
             {hasUnread && <View style={styles.bellDot} />}
           </Pressable>
         </View>
@@ -577,7 +576,7 @@ export default function MessagerieScreen() {
         {/* ── Empty state ── */}
         {isEmpty && (
           <View style={styles.emptyState}>
-            <Papicons name="Mail" size={48} color="#94A3B8" />
+            <Mail size={48} color="#94A3B8" strokeWidth={1.5} />
             <Text style={styles.emptyText}>Aucun message</Text>
           </View>
         )}
@@ -653,7 +652,7 @@ export default function MessagerieScreen() {
                     <View
                       style={[styles.fabRowIcon, { backgroundColor: action.color + '18' }]}
                     >
-                      <Papicons name={action.icon} size={20} color={action.color} />
+                      <action.Icon size={20} color={action.color} strokeWidth={2} />
                     </View>
                     <Text style={styles.fabRowLabel}>{action.label}</Text>
                   </Pressable>
@@ -666,7 +665,7 @@ export default function MessagerieScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Annuler"
                 >
-                  <Papicons name="Cross" size={16} color="#64748B" />
+                  <X size={16} color="#64748B" strokeWidth={2} />
                   <Text style={styles.cancelText}>Annuler</Text>
                 </Pressable>
               </Pressable>
@@ -777,7 +776,7 @@ function MessageCard({ item, onPress }: MessageCardProps) {
         <AriaSparkleIcon size={44} />
       ) : (
         <View style={[styles.msgAvatar, { backgroundColor: '#E2E8F0' }]}>
-          <Papicons name={cfg.icon} size={18} color="#64748B" />
+          <cfg.Icon size={18} color="#64748B" strokeWidth={2} />
         </View>
       )}
 
@@ -1026,16 +1025,16 @@ const styles = StyleSheet.create({
 
   // ── FAB
   fab: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    width: 50,
-    height: 50,
+    backgroundColor: '#7C3AED',
+    borderRadius: 28,
+    width: 56,
+    height: 56,
     position: 'absolute',
     bottom: 80,
     right: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: '#7C3AED',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
