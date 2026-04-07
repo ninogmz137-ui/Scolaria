@@ -619,7 +619,7 @@ export default function MessagerieScreen() {
         accessibilityRole="button"
         accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
       >
-        <MessageSquarePlus size={22} color="#1A2340" strokeWidth={2} />
+        <MessageSquarePlus size={22} color="#FFFFFF" strokeWidth={2} />
       </Pressable>
 
       {/* ── FAB bottom sheet ── */}
@@ -1028,17 +1028,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1A2340',
     borderRadius: 16,
     width: 52,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowColor: '#1A2340',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
 
   // ── FAB sheet / modal

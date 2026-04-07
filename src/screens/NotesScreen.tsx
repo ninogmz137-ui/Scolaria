@@ -898,17 +898,18 @@ export default function NotesScreen() {
             <Text style={s.emptyText}>Aucune matière disponible</Text>
           </View>
         )}
-      </ScrollView>
 
-      {/* ── Scanner FAB ── */}
-      <Pressable
-        onPress={() => navigation.navigate('ScannerBulletin')}
-        style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Scanner une note"
-      >
-        <ScanLine size={22} color="#1A2340" strokeWidth={2} />
-      </Pressable>
+        {/* ── Inline scanner button ── */}
+        <Pressable
+          onPress={() => navigation.navigate('ScannerBulletin')}
+          style={({ pressed }) => [s.scannerBtn, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Scanner une note"
+        >
+          <ScanLine size={18} color="#6B7280" strokeWidth={2} />
+          <Text style={s.scannerBtnText}>Scanner une note</Text>
+        </Pressable>
+      </ScrollView>
     </View>
   );
 }
@@ -1481,21 +1482,23 @@ const s = StyleSheet.create({
     marginTop: 8,
   },
 
-  // FAB
-  fab: {
-    position: 'absolute',
-    bottom: 80,
-    right: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    width: 52,
-    height: 52,
+  // Inline scanner button
+  scannerBtn: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  scannerBtnText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: '#6B7280',
   },
 });
