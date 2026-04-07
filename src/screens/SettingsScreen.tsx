@@ -18,6 +18,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import {
+  Image as ImageIcon,
+  Moon,
+  Type,
+  Key,
+  FileText,
+  Package,
+  Trash2,
+  Info,
+  FileCheck,
+  Mail,
+  ChevronRight,
+  UserPlus,
+} from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
@@ -52,6 +66,7 @@ function Separator() {
 
 interface RowProps {
   emoji?: string;
+  icon?: React.ElementType;
   label: string;
   sublabel?: string;
   labelColor?: string;
@@ -65,6 +80,7 @@ interface RowProps {
 
 function Row({
   emoji,
+  icon: IconComponent,
   label,
   sublabel,
   labelColor,
@@ -84,7 +100,9 @@ function Row({
         ]}
         onPress={type !== 'toggle' ? onPress : undefined}
       >
-        {emoji ? (
+        {IconComponent ? (
+          <IconComponent size={28} color="#64748B" strokeWidth={1.5} style={{ marginRight: 16 }} />
+        ) : emoji ? (
           <Text style={styles.rowEmoji}>{emoji}</Text>
         ) : null}
         <View style={styles.rowTextStack}>
@@ -96,7 +114,7 @@ function Row({
           ) : null}
         </View>
         {type === 'navigate' && (
-          <Text style={styles.chevron}>›</Text>
+          <ChevronRight size={18} color="#D1D5DB" strokeWidth={1.5} />
         )}
         {type === 'value' && (
           <Text style={styles.rowValueText}>{value}</Text>
@@ -197,6 +215,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           />
         ))}
         <Row
+          icon={UserPlus}
           label="Ajouter un enfant"
           labelColor="#7C3AED"
           type="navigate"
@@ -208,21 +227,21 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <SectionTitle label="APPARENCE" />
 
         <Row
-          emoji="🖼️"
+          icon={ImageIcon}
           label="Fond d'écran"
           sublabel={wallpaper.label}
           type="navigate"
           onPress={() => nav.navigate('WallpaperPicker')}
         />
         <Row
-          emoji="🌙"
+          icon={Moon}
           label="Mode sombre"
           type="toggle"
           toggleValue={darkMode}
           onToggle={handleDarkModeToggle}
         />
         <Row
-          emoji="🔤"
+          icon={Type}
           label="Taille du texte"
           sublabel="Normal"
           type="navigate"
@@ -234,26 +253,26 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <SectionTitle label="CONFIDENTIALITÉ" />
 
         <Row
-          emoji="🔑"
+          icon={Key}
           label="Permissions données"
           type="navigate"
           onPress={() => nav.navigate('PermissionsRGPD')}
         />
         <Row
-          emoji="📋"
+          icon={FileText}
           label="Journal d'accès"
           sublabel="Dernière connexion il y a 2h"
           type="navigate"
           onPress={() => nav.navigate('JournalAcces')}
         />
         <Row
-          emoji="📦"
+          icon={Package}
           label="Exporter mes données"
           type="navigate"
           onPress={() => nav.navigate('ExportDonnees')}
         />
         <Row
-          emoji="🗑️"
+          icon={Trash2}
           label="Supprimer mon compte"
           labelColor="#EF4444"
           type="navigate"
@@ -265,20 +284,20 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <SectionTitle label="À PROPOS" />
 
         <Row
-          emoji="ℹ️"
+          icon={Info}
           label="Version"
           sublabel="Scolaria 1.0.0"
           type="value"
           value="1.0.0"
         />
         <Row
-          emoji="📄"
+          icon={FileCheck}
           label="Mentions légales"
           type="navigate"
           onPress={() => nav.navigate('APropos')}
         />
         <Row
-          emoji="✉️"
+          icon={Mail}
           label="Nous contacter"
           type="navigate"
           onPress={() => nav.navigate('APropos')}
@@ -377,14 +396,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
+    paddingVertical: 16,
     paddingHorizontal: 0,
   },
   rowEmoji: {
-    width: 24,
+    width: 28,
     textAlign: 'center',
-    fontSize: 15,
-    marginRight: 12,
+    fontSize: 16,
+    marginRight: 16,
   },
   rowTextStack: {
     flex: 1,
@@ -400,10 +419,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 1,
   },
-  chevron: {
-    fontSize: 18,
-    color: '#D1D5DB',
-  },
+  // chevron now uses lucide ChevronRight component
   rowValueText: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,

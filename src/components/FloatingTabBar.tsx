@@ -86,6 +86,13 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+const CHILD_COLORS = ['#6366F1', '#06B6D4', '#F59E0B', '#10B981', '#EC4899', '#7C3AED'];
+function getChildColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return CHILD_COLORS[Math.abs(hash) % CHILD_COLORS.length];
+}
+
 // ─── Tab icon map (all 4 tabs) ───────────────────────────
 
 type LucideIcon = typeof Home;
@@ -162,7 +169,7 @@ function ChildPopover({ visible, onClose, bottomOffset }: ChildPopoverProps) {
           return (
             <TouchableOpacity
               key={child.id}
-              style={[styles.popoverItem, isActive && styles.popoverItemActive]}
+              style={[styles.popoverItem, isActive && { backgroundColor: (getChildColor(child.id)) + '10' }]}
               onPress={() => {
                 selectChild(child.id);
                 onClose();
@@ -170,7 +177,7 @@ function ChildPopover({ visible, onClose, bottomOffset }: ChildPopoverProps) {
               activeOpacity={0.7}
             >
               {/* Emoji / photo / initials circle */}
-              <View style={styles.popoverAvatar}>
+              <View style={[styles.popoverAvatar, { backgroundColor: (getChildColor(child.id)) + '20' }]}>
                 {hasPhoto ? (
                   <Image
                     source={{ uri: child.avatarPhotoUri! }}
@@ -197,7 +204,7 @@ function ChildPopover({ visible, onClose, bottomOffset }: ChildPopoverProps) {
 
               {/* Active checkmark */}
               {isActive && (
-                <Text style={styles.popoverCheckmark}>✓</Text>
+                <Text style={[styles.popoverCheckmark, { color: getChildColor(child.id) }]}>✓</Text>
               )}
             </TouchableOpacity>
           );
@@ -427,12 +434,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 32,
       },
-      android: { elevation: 0 },
+      android: { elevation: 12 },
       default: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.25,
-        shadowRadius: 32,
+        shadowRadius: 16,
       },
     }),
   },

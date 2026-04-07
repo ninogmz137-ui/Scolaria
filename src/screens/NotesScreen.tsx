@@ -1048,11 +1048,13 @@ const s = StyleSheet.create({
     fontSize: 42,
     color: '#0F172A',
     letterSpacing: -2.5,
+    lineHeight: 44,
   },
   avgDenom: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 18,
     color: '#94A3B8',
+    lineHeight: 22,
   },
   graphWrapper: {
     marginTop: 4,

@@ -100,11 +100,11 @@ function MenuItem({
   const IconComponent = item.icon;
   return (
     <Pressable style={styles.menuItem} onPress={() => onPress(item)}>
-      <IconComponent size={20} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+      <IconComponent size={28} color="rgba(255,255,255,0.6)" strokeWidth={1.5} />
       <Text style={[styles.menuLabel, item.danger && styles.menuLabelDanger]}>
         {item.label}
       </Text>
-      <ChevronRight size={18} color="rgba(255,255,255,0.3)" strokeWidth={2} />
+      <ChevronRight size={18} color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
     </Pressable>
   );
 }
@@ -284,9 +284,9 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
-    gap: 14,
+    gap: 16,
   },
   menuLabel: {
     flex: 1,
