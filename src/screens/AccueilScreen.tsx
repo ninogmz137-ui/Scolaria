@@ -19,6 +19,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Plus } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -411,7 +412,7 @@ export default function AccueilScreen() {
             ]}
             onPress={() => navigation.navigate('SignalerAbsenceScreen')}
           >
-            <Papicons name="Add" size={20} color={accent} />
+            <Plus size={18} color={accent} strokeWidth={2} />
             <Text style={[styles.absenceButtonText, { color: accent }]}>
               Prévenir d'une absence
             </Text>
@@ -572,14 +573,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
     gap: 8,
-    padding: 14,
-    borderRadius: 16,
-    // backgroundColor and borderColor applied inline via theme.isDarkBg
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
     borderWidth: 1.5,
     borderStyle: 'dashed',
   },
-  absenceButtonText: { fontFamily: FontFamily.sansBold, fontSize: 14 },
+  absenceButtonText: { fontFamily: FontFamily.sansBold, fontSize: 13 },
 
   // Joy score
   joyRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

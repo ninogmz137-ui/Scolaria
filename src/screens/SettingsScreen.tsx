@@ -169,7 +169,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 16, paddingBottom: 120 },
+          { paddingTop: insets.top + 60, paddingBottom: 120 },
         ]}
       >
         {/* ── Parent profile mini-card ── */}

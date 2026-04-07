@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -15,8 +16,16 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const CARD_GAP = 8;
-const CARD_W = (SCREEN_W - 32 - CARD_GAP * 2) / 3;
+const CARD_GAP = 12;
+const CARD_W = (SCREEN_W - 32 - CARD_GAP) / 2;
+
+type Category = 'all' | 'nature' | 'abstract';
+
+const CATEGORIES: { key: Category; label: string }[] = [
+  { key: 'all', label: 'Tous' },
+  { key: 'nature', label: 'Nature' },
+  { key: 'abstract', label: 'Gradients' },
+];
 
 // ─── Single wallpaper card ────────────────────────────────
 
@@ -74,31 +83,48 @@ function WallpaperCard({
 
 export default function WallpaperPickerScreen() {
   const { wallpaper, setWallpaperId, wallpapers } = useWallpaper();
+  const [activeCategory, setActiveCategory] = useState<Category>('all');
 
-  const natureWallpapers = wallpapers.filter((w) => w.category === 'nature');
-  const abstractWallpapers = wallpapers.filter((w) => w.category === 'abstract');
+  const filtered = activeCategory === 'all'
+    ? wallpapers
+    : wallpapers.filter((w) => w.category === activeCategory);
 
   return (
     <View style={styles.root}>
+      {/* ── Horizontal category pills ── */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.pillsRow}
+      >
+        {CATEGORIES.map((cat) => (
+          <Pressable
+            key={cat.key}
+            onPress={() => setActiveCategory(cat.key)}
+            style={[
+              styles.pill,
+              activeCategory === cat.key && styles.pillActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.pillText,
+                activeCategory === cat.key && styles.pillTextActive,
+              ]}
+            >
+              {cat.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {/* ── Grid ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <Text style={styles.sectionTitle}>NATURE</Text>
         <View style={styles.grid}>
-          {natureWallpapers.map((wp) => (
-            <WallpaperCard
-              key={wp.id}
-              wp={wp}
-              isActive={wallpaper.id === wp.id}
-              onPress={() => setWallpaperId(wp.id)}
-            />
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>GRADIENTS</Text>
-        <View style={styles.grid}>
-          {abstractWallpapers.map((wp) => (
+          {filtered.map((wp) => (
             <WallpaperCard
               key={wp.id}
               wp={wp}
@@ -119,31 +145,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
+
+  // ── Category pills
+  pillsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+  pill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+  },
+  pillActive: {
+    backgroundColor: '#7C3AED',
+  },
+  pillText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: '#64748B',
+  },
+  pillTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // ── Grid
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 20,
     paddingBottom: 120,
-  },
-  sectionTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginTop: 20,
-    marginBottom: 12,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: CARD_GAP,
   },
+
+  // ── Card
   card: {
     width: CARD_W,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: 'transparent',
   },
   cardActive: {
@@ -151,8 +196,8 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    aspectRatio: 9 / 16,
-    borderRadius: 10,
+    aspectRatio: 0.7,
+    borderRadius: 13,
   },
   checkBadge: {
     position: 'absolute',
@@ -167,7 +212,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 11,
+    fontSize: 12,
     color: '#64748B',
     textAlign: 'center',
     marginTop: 6,

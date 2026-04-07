@@ -213,6 +213,8 @@ export default function AgendaScreen() {
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
   const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
+  const getDemoAgendaRef = useRef(getDemoAgenda);
+  getDemoAgendaRef.current = getDemoAgenda;
   const insets = useSafeAreaInsets();
 
   const today = useMemo(() => {
@@ -353,7 +355,7 @@ export default function AgendaScreen() {
       for (let i = 0; i < 7; i++) {
         const dayDate = computed[i].fullDate;
         const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
-        const demoEvents = getDemoAgenda(selectedChildId, dateStr);
+        const demoEvents = getDemoAgendaRef.current(selectedChildId, dateStr);
         if (demoEvents.length > 0) {
           grouped[computed[i].date] = demoEvents.map((e) => ({
             id: e.id,
@@ -414,7 +416,7 @@ export default function AgendaScreen() {
       grouped[dayNum].push(mapped);
     }
     setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate, isDemoMode, getDemoAgenda]);
+  }, [selectedChildId, referenceDate, isDemoMode]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
@@ -819,7 +821,15 @@ export default function AgendaScreen() {
         onPress={openAddModal}
         style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
       >
-        <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
+        {Platform.OS === 'web' ? (
+          <View style={[st.fabGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
+            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+          </View>
+        ) : (
+          <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={st.fabGradient}>
+            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+          </LinearGradient>
+        )}
       </Pressable>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
@@ -1175,20 +1185,21 @@ const st = StyleSheet.create({
 
   // FAB
   fab: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    width: 50,
-    height: 50,
     position: 'absolute',
     bottom: 80,
-    right: 20,
+    right: 16,
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  fabGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 0,
   },
 
   // Modal

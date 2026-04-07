@@ -17,10 +17,11 @@ import {
   Modal,
   TouchableWithoutFeedback,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// ChevronLeft removed — AppTopbar handles back navigation
 import { Plus, ChevronRight } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
@@ -309,26 +310,28 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
       <Pressable
         onPress={() => setTeacherModalVisible(true)}
         style={({ pressed }) => ({
-          backgroundColor: '#7C3AED',
-          borderRadius: 28,
-          width: 56,
-          height: 56,
           position: 'absolute',
           bottom: 80,
-          right: 20,
-          alignItems: 'center',
-          justifyContent: 'center',
+          right: 16,
           shadowColor: '#7C3AED',
           shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 16,
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
           elevation: 4,
           opacity: pressed ? 0.85 : 1,
         })}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
       >
-        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+        {Platform.OS === 'web' ? (
+          <View style={[styles.fabGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
+            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+          </View>
+        ) : (
+          <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fabGradient}>
+            <Plus size={20} color="#FFFFFF" strokeWidth={2} />
+          </LinearGradient>
+        )}
       </Pressable>
 
       {/* ── Teacher selection modal ── */}
@@ -390,6 +393,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  fabGradient: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   scrollContent: {

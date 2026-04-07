@@ -861,93 +861,136 @@ export default function ScannerBulletinScreen() {
   if (state === 'select') {
     return (
       <ScrollView
-        style={{ flex: 1, backgroundColor: theme.bg }}
+        style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         showsVerticalScrollIndicator={false}
       >
-        <Box className="mb-2">
-          <LinearGradient
-            colors={[Colors.violet, Colors.blueNight]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={{ alignItems: 'center', paddingTop: insets.top + 70, paddingBottom: 40 }}
-          >
-            <Box
-              className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
-              style={{ backgroundColor: '#EEF0F5' }}
+        {/* ── White header with gradient icon ── */}
+        <Box style={{ alignItems: 'center', paddingTop: insets.top + 70, paddingBottom: 28 }}>
+          {Platform.OS === 'web' ? (
+            <View
+              style={{
+                width: 80, height: 80, borderRadius: 40,
+                alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+                // @ts-ignore
+                backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+              } as any}
             >
-              <ScanLine size={48} color={Colors.violet} strokeWidth={1.5} />
-            </Box>
-            <Text className="text-[26px] font-black mb-2" style={{ color: Colors.white }}>Scanner un bulletin</Text>
-            <Text className="text-sm text-center leading-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              Photographiez ou importez un bulletin scolaire{'\n'}
-              Google Vision + Aria extraient les données
-            </Text>
-            {selectedChild && (
-              <HStack
-                className="items-center mt-3.5 rounded-[20px] px-3.5 py-[7px]"
-                style={{ gap: 6, backgroundColor: '#EEF0F5' }}
-              >
-                <Text className="text-lg">{selectedChild.avatar}</Text>
-                <Text className="text-[13px] font-bold" style={{ color: Colors.textPrimary }}>
-                  Import pour {selectedChild.name}
-                </Text>
-              </HStack>
-            )}
-          </LinearGradient>
+              <ScanLine size={36} color="#FFFFFF" strokeWidth={1.5} />
+            </View>
+          ) : (
+            <LinearGradient
+              colors={['#7C3AED', '#06B6D4']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                width: 80, height: 80, borderRadius: 40,
+                alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+              }}
+            >
+              <ScanLine size={36} color="#FFFFFF" strokeWidth={1.5} />
+            </LinearGradient>
+          )}
+          <Text className="text-[22px] font-bold mb-1.5" style={{ color: '#1A2340' }}>Scanner un bulletin</Text>
+          <Text className="text-[13px] text-center leading-5" style={{ color: '#94A3B8' }}>
+            Photographiez ou importez un bulletin scolaire{'\n'}
+            Google Vision + Aria extraient les données
+          </Text>
+          {selectedChild && (
+            <HStack
+              className="items-center mt-3 rounded-[20px] px-3.5 py-[6px]"
+              style={{ gap: 6, backgroundColor: '#F1F5F9' }}
+            >
+              <Text className="text-base">{selectedChild.avatar}</Text>
+              <Text className="text-[12px] font-bold" style={{ color: '#64748B' }}>
+                Import pour {selectedChild.name}
+              </Text>
+            </HStack>
+          )}
         </Box>
 
         <Box className="px-5">
-          <Text className="text-lg font-bold mb-1 mt-2" style={{ color: Colors.textPrimary }}>Choisir une source</Text>
+          {/* ── Compact import button ── */}
+          <Pressable
+            onPress={() => pickImage('camera')}
+            style={({ pressed }) => ({
+              alignSelf: 'center',
+              paddingHorizontal: 28,
+              paddingVertical: 14,
+              borderRadius: 25,
+              marginBottom: 24,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            {Platform.OS === 'web' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 25, backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any}>
+                <Camera size={18} color="#FFFFFF" strokeWidth={2} />
+                <Text className="text-[14px] font-bold" style={{ color: '#FFFFFF' }}>Importer un bulletin</Text>
+              </View>
+            ) : (
+              <LinearGradient
+                colors={['#7C3AED', '#06B6D4']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 25 }}
+              >
+                <Camera size={18} color="#FFFFFF" strokeWidth={2} />
+                <Text className="text-[14px] font-bold" style={{ color: '#FFFFFF' }}>Importer un bulletin</Text>
+              </LinearGradient>
+            )}
+          </Pressable>
 
+          <Text className="text-[13px] font-semibold mb-3" style={{ color: '#94A3B8', letterSpacing: 1, textTransform: 'uppercase' }}>Choisir une source</Text>
+
+          {/* ── Source options with 44px grey circles ── */}
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#F1F5F9' }}
             onPress={() => pickImage('camera')}
           >
             <Box
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#7C3AED15' }}
+              style={{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#F1F5F9' }}
             >
-              <Camera size={28} color="#7C3AED" strokeWidth={1.5} />
+              <Camera size={20} color="#64748B" strokeWidth={1.5} />
             </Box>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Prendre en photo</Text>
-              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Photographiez le bulletin avec votre caméra</Text>
+              <Text className="text-[14px] font-semibold mb-[2px]" style={{ color: '#1A2340' }}>Prendre en photo</Text>
+              <Text className="text-[12px]" style={{ color: '#94A3B8' }}>Photographiez le bulletin avec votre caméra</Text>
             </VStack>
-            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
+            <ChevronRight size={18} color="#D1D5DB" strokeWidth={2} />
           </Pressable>
 
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#F1F5F9' }}
             onPress={() => pickImage('gallery')}
           >
             <Box
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#06B6D415' }}
+              style={{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#F1F5F9' }}
             >
-              <ImageIcon size={28} color="#06B6D4" strokeWidth={1.5} />
+              <ImageIcon size={20} color="#64748B" strokeWidth={1.5} />
             </Box>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Depuis la galerie</Text>
-              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Sélectionnez une photo ou capture ENT</Text>
+              <Text className="text-[14px] font-semibold mb-[2px]" style={{ color: '#1A2340' }}>Depuis la galerie</Text>
+              <Text className="text-[12px]" style={{ color: '#94A3B8' }}>Sélectionnez une photo ou capture ENT</Text>
             </VStack>
-            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
+            <ChevronRight size={18} color="#D1D5DB" strokeWidth={2} />
           </Pressable>
 
           <Pressable
             className="flex-row items-center rounded-2xl p-4 mb-2.5"
-            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
+            style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#F1F5F9' }}
             onPress={() => pickImage('pdf')}
           >
             <Box
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#F59E0B15' }}
+              style={{ width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#F1F5F9' }}
             >
-              <FileText size={28} color="#F59E0B" strokeWidth={1.5} />
+              <FileText size={20} color="#64748B" strokeWidth={1.5} />
             </Box>
             <VStack className="flex-1">
-              <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Importer un fichier</Text>
-              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Bulletin numérique PDF ou image</Text>
+              <Text className="text-[14px] font-semibold mb-[2px]" style={{ color: '#1A2340' }}>Importer un fichier</Text>
+              <Text className="text-[12px]" style={{ color: '#94A3B8' }}>Bulletin numérique PDF ou image</Text>
             </VStack>
-            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
+            <ChevronRight size={18} color="#D1D5DB" strokeWidth={2} />
           </Pressable>
 
           {/* How it works */}
