@@ -13,8 +13,35 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  ArrowLeft,
+  ScanLine,
+  Camera,
+  ImageIcon,
+  FileText,
+  ChevronRight,
+  Eye,
+  Sparkles,
+  CheckCircle,
+  CheckCircle2,
+  Circle,
+  KeyRound,
+  Lightbulb,
+  Check,
+  ArrowUp,
+  ArrowDown,
+  Pencil,
+  X,
+  AlertCircle,
+  RefreshCw,
+  Plus,
+  ChevronUp,
+  ChevronDown,
+  User,
+  Calendar,
+  GraduationCap,
+  AlertTriangle,
+} from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
@@ -158,15 +185,11 @@ function ScanningState({
       <VStack className="self-stretch px-10" style={{ gap: 10 }}>
         {steps.map((s, i) => (
           <HStack key={i} className="items-center" style={{ gap: 10 }}>
-            <Ionicons
-              name={
-                clampedProgress >= s.threshold
-                  ? 'checkmark-circle'
-                  : 'ellipse-outline'
-              }
-              size={18}
-              color={clampedProgress >= s.threshold ? Colors.cyan : Colors.textMuted}
-            />
+            {clampedProgress >= s.threshold ? (
+              <CheckCircle2 size={18} color={Colors.cyan} strokeWidth={2} />
+            ) : (
+              <Circle size={18} color={Colors.textMuted} strokeWidth={2} />
+            )}
             <Text
               className="text-sm"
               style={{ color: clampedProgress >= s.threshold ? Colors.textPrimary : Colors.textMuted }}
@@ -358,7 +381,7 @@ function EditGradeModal({
               style={{ gap: 8, backgroundColor: Colors.cyan }}
               onPress={handleSave}
             >
-              <Ionicons name="checkmark" size={18} color={Colors.white} />
+              <Check size={18} color={Colors.white} strokeWidth={2} />
               <Text className="text-base font-bold" style={{ color: Colors.white }}>Enregistrer</Text>
             </Pressable>
           </HStack>
@@ -427,7 +450,7 @@ function GradeCard({
               className="items-center rounded-lg px-1.5 py-0.5"
               style={{ gap: 2, backgroundColor: 'rgba(52,211,153,0.15)' }}
             >
-              <Ionicons name="arrow-up" size={12} color={Colors.green} />
+              <ArrowUp size={12} color={Colors.green} strokeWidth={2} />
               <Text className="text-xs font-bold" style={{ color: Colors.green }}>
                 +{(grade.grade - grade.classAvg).toFixed(1)}
               </Text>
@@ -438,7 +461,7 @@ function GradeCard({
               className="items-center rounded-lg px-1.5 py-0.5"
               style={{ gap: 2, backgroundColor: 'rgba(248,113,113,0.15)' }}
             >
-              <Ionicons name="arrow-down" size={12} color={Colors.red} />
+              <ArrowDown size={12} color={Colors.red} strokeWidth={2} />
               <Text className="text-xs font-bold" style={{ color: Colors.red }}>
                 {(grade.grade - grade.classAvg).toFixed(1)}
               </Text>
@@ -467,7 +490,7 @@ function GradeCard({
             style={{ gap: 4, backgroundColor: 'rgba(34,211,238,0.1)' }}
             onPress={() => onEdit(grade)}
           >
-            <Ionicons name="pencil" size={14} color={Colors.cyan} />
+            <Pencil size={14} color={Colors.cyan} strokeWidth={2} />
             <Text className="text-xs font-semibold" style={{ color: Colors.cyan }}>Corriger</Text>
           </Pressable>
           <Pressable
@@ -475,7 +498,7 @@ function GradeCard({
             style={{ backgroundColor: 'rgba(248,113,113,0.1)' }}
             onPress={() => onDelete(grade.id)}
           >
-            <Ionicons name="close" size={14} color={Colors.red} />
+            <X size={14} color={Colors.red} strokeWidth={2} />
           </Pressable>
         </HStack>
       </HStack>
@@ -852,7 +875,7 @@ export default function ScannerBulletinScreen() {
               className="w-[90px] h-[90px] rounded-[45px] justify-center items-center mb-5"
               style={{ backgroundColor: '#EEF0F5' }}
             >
-              <Ionicons name="scan" size={48} color={Colors.violet} />
+              <ScanLine size={48} color={Colors.violet} strokeWidth={1.5} />
             </Box>
             <Text className="text-[26px] font-black mb-2" style={{ color: Colors.white }}>Scanner un bulletin</Text>
             <Text className="text-sm text-center leading-5" style={{ color: 'rgba(255,255,255,0.7)' }}>
@@ -881,17 +904,16 @@ export default function ScannerBulletinScreen() {
             style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('camera')}
           >
-            <LinearGradient
-              colors={[Colors.violet, Colors.violetDark]}
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14 }}
+            <Box
+              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#7C3AED15' }}
             >
-              <Ionicons name="camera" size={28} color={Colors.white} />
-            </LinearGradient>
+              <Camera size={28} color="#7C3AED" strokeWidth={1.5} />
+            </Box>
             <VStack className="flex-1">
               <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Prendre en photo</Text>
               <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Photographiez le bulletin avec votre caméra</Text>
             </VStack>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
           </Pressable>
 
           <Pressable
@@ -899,17 +921,16 @@ export default function ScannerBulletinScreen() {
             style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('gallery')}
           >
-            <LinearGradient
-              colors={[Colors.cyan, Colors.cyanDark]}
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14 }}
+            <Box
+              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#06B6D415' }}
             >
-              <Ionicons name="images" size={28} color={Colors.white} />
-            </LinearGradient>
+              <ImageIcon size={28} color="#06B6D4" strokeWidth={1.5} />
+            </Box>
             <VStack className="flex-1">
               <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Depuis la galerie</Text>
               <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Sélectionnez une photo ou capture ENT</Text>
             </VStack>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
           </Pressable>
 
           <Pressable
@@ -917,17 +938,16 @@ export default function ScannerBulletinScreen() {
             style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
             onPress={() => pickImage('pdf')}
           >
-            <LinearGradient
-              colors={[Colors.orange, '#E5A100']}
-              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14 }}
+            <Box
+              style={{ width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginRight: 14, backgroundColor: '#F59E0B15' }}
             >
-              <Ionicons name="document-text" size={28} color={Colors.white} />
-            </LinearGradient>
+              <FileText size={28} color="#F59E0B" strokeWidth={1.5} />
+            </Box>
             <VStack className="flex-1">
               <Text className="text-base font-bold mb-[3px]" style={{ color: Colors.textPrimary }}>Importer un fichier</Text>
               <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>Bulletin numérique PDF ou image</Text>
             </VStack>
-            <Ionicons name="chevron-forward" size={20} color={Colors.gray} />
+            <ChevronRight size={20} color={Colors.gray} strokeWidth={2} />
           </Pressable>
 
           {/* How it works */}
@@ -936,12 +956,12 @@ export default function ScannerBulletinScreen() {
             style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EEF0F5' }}
           >
             <Text className="text-[15px] font-bold mb-3.5" style={{ color: Colors.textPrimary }}>Comment ça marche ?</Text>
-            {[
-              { icon: 'camera-outline' as const, text: 'Photographiez ou importez le bulletin' },
-              { icon: 'eye-outline' as const, text: 'Google Vision extrait le texte (OCR)' },
-              { icon: 'sparkles-outline' as const, text: 'Aria identifie matières, notes et appréciations' },
-              { icon: 'checkmark-circle-outline' as const, text: 'Vous vérifiez et corrigez avant import' },
-            ].map((s, i) => (
+            {([
+              { Icon: Camera, text: 'Photographiez ou importez le bulletin' },
+              { Icon: Eye, text: 'Google Vision extrait le texte (OCR)' },
+              { Icon: Sparkles, text: 'Aria identifie matières, notes et appréciations' },
+              { Icon: CheckCircle, text: 'Vous vérifiez et corrigez avant import' },
+            ] as const).map((s, i) => (
               <HStack key={i} className="items-center mb-2.5" style={{ gap: 10 }}>
                 <Box
                   className="w-[22px] h-[22px] rounded-full justify-center items-center"
@@ -949,7 +969,7 @@ export default function ScannerBulletinScreen() {
                 >
                   <Text className="text-[11px] font-extrabold" style={{ color: Colors.cyan }}>{i + 1}</Text>
                 </Box>
-                <Ionicons name={s.icon} size={18} color={Colors.cyan} />
+                <s.Icon size={18} color={Colors.cyan} strokeWidth={2} />
                 <Text className="text-[13px] flex-1" style={{ color: Colors.textSecondary }}>{s.text}</Text>
               </HStack>
             ))}
@@ -960,7 +980,7 @@ export default function ScannerBulletinScreen() {
             className="rounded-[14px] p-4 mt-4"
             style={{ gap: 12, backgroundColor: 'rgba(251,191,36,0.08)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.15)' }}
           >
-            <Ionicons name="bulb" size={20} color={Colors.orange} />
+            <Lightbulb size={20} color={Colors.orange} strokeWidth={2} />
             <VStack className="flex-1">
               <Text className="text-sm font-bold mb-1.5" style={{ color: Colors.orange }}>
                 Conseils pour un bon scan
@@ -979,7 +999,7 @@ export default function ScannerBulletinScreen() {
             className="items-center mt-4 py-2.5 px-3.5 rounded-[10px]"
             style={{ gap: 8, backgroundColor: '#F1F5F9' }}
           >
-            <Ionicons name="key-outline" size={16} color={Colors.gray} />
+            <KeyRound size={16} color={Colors.gray} strokeWidth={2} />
             <Text className="text-xs flex-1" style={{ color: Colors.gray }}>
               {ENV.GOOGLE_VISION_KEY
                 ? 'Google Vision API connectée'
@@ -1012,19 +1032,19 @@ export default function ScannerBulletinScreen() {
     return (
       <Box className="flex-1 items-center px-[30px]" style={{ backgroundColor: theme.bg, paddingTop: insets.top + 70 }}>
         <Box className="mb-5">
-          <Ionicons name="alert-circle" size={64} color={Colors.red} />
+          <AlertCircle size={64} color={Colors.red} strokeWidth={1.5} />
         </Box>
         <Text className="text-[22px] font-extrabold mb-2.5" style={{ color: Colors.textPrimary }}>Analyse échouée</Text>
         <Text className="text-sm text-center leading-5 mb-[30px]" style={{ color: Colors.textSecondary }}>{errorMessage}</Text>
 
         <VStack className="w-full" style={{ gap: 12 }}>
           <Pressable
-            className="flex-row items-center justify-center py-[18px] rounded-[30px]"
-            style={{ gap: 10, backgroundColor: Colors.violet }}
+            className="flex-row items-center justify-center"
+            style={{ gap: 8, paddingVertical: 14 }}
             onPress={handleRetry}
           >
-            <Ionicons name="refresh" size={20} color={Colors.white} />
-            <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>Réessayer</Text>
+            <RefreshCw size={20} color="#7C3AED" strokeWidth={1.5} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#7C3AED' }}>Réessayer</Text>
           </Pressable>
           <Pressable
             className="items-center py-3.5"
@@ -1061,7 +1081,7 @@ export default function ScannerBulletinScreen() {
                 className="absolute bottom-0 left-0 right-0 items-center p-2.5"
                 style={{ gap: 6, backgroundColor: 'rgba(0,0,0,0.7)' }}
               >
-                <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
+                <CheckCircle2 size={20} color={Colors.green} strokeWidth={2} />
                 <Text className="text-[13px] font-semibold" style={{ color: Colors.textSecondary }}>Document analysé</Text>
               </HStack>
             </Box>
@@ -1070,7 +1090,7 @@ export default function ScannerBulletinScreen() {
           {/* Success header */}
           <Box className="mt-4 mb-4">
             <HStack className="items-center mb-3" style={{ gap: 8 }}>
-              <Ionicons name="checkmark-circle" size={24} color={Colors.green} />
+              <CheckCircle2 size={24} color={Colors.green} strokeWidth={2} />
               <Text className="text-base font-bold" style={{ color: Colors.green }}>
                 {grades.length} matières détectées
               </Text>
@@ -1084,7 +1104,7 @@ export default function ScannerBulletinScreen() {
                     className="items-center rounded-[20px] px-2.5 py-[5px]"
                     style={{ gap: 5, backgroundColor: 'rgba(34,211,238,0.1)' }}
                   >
-                    <Ionicons name="person-outline" size={13} color={Colors.cyan} />
+                    <User size={13} color={Colors.cyan} strokeWidth={2} />
                     <Text className="text-xs font-semibold" style={{ color: Colors.cyan }}>{ocrResult.studentName}</Text>
                   </HStack>
                 )}
@@ -1093,7 +1113,7 @@ export default function ScannerBulletinScreen() {
                     className="items-center rounded-[20px] px-2.5 py-[5px]"
                     style={{ gap: 5, backgroundColor: 'rgba(34,211,238,0.1)' }}
                   >
-                    <Ionicons name="calendar-outline" size={13} color={Colors.cyan} />
+                    <Calendar size={13} color={Colors.cyan} strokeWidth={2} />
                     <Text className="text-xs font-semibold" style={{ color: Colors.cyan }}>{ocrResult.trimester}</Text>
                   </HStack>
                 )}
@@ -1102,7 +1122,7 @@ export default function ScannerBulletinScreen() {
                     className="items-center rounded-[20px] px-2.5 py-[5px]"
                     style={{ gap: 5, backgroundColor: 'rgba(34,211,238,0.1)' }}
                   >
-                    <Ionicons name="school-outline" size={13} color={Colors.cyan} />
+                    <GraduationCap size={13} color={Colors.cyan} strokeWidth={2} />
                     <Text className="text-xs font-semibold" style={{ color: Colors.cyan }}>{ocrResult.schoolYear}</Text>
                   </HStack>
                 )}
@@ -1151,7 +1171,7 @@ export default function ScannerBulletinScreen() {
               className="items-center rounded-xl p-3.5 mb-2"
               style={{ gap: 10, backgroundColor: 'rgba(251,191,36,0.1)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.2)' }}
             >
-              <Ionicons name="warning" size={18} color={Colors.orange} />
+              <AlertTriangle size={18} color={Colors.orange} strokeWidth={2} />
               <Text className="text-[13px] flex-1 leading-[18px]" style={{ color: Colors.orange }}>
                 {lowConfidenceCount} matière{lowConfidenceCount > 1 ? 's' : ''}{' '}
                 avec confiance {'<'} 85%. Vérifiez et corrigez si besoin.
@@ -1172,7 +1192,7 @@ export default function ScannerBulletinScreen() {
               style={{ gap: 4, backgroundColor: 'rgba(34,211,238,0.1)' }}
               onPress={handleAddGrade}
             >
-              <Ionicons name="add" size={18} color={Colors.cyan} />
+              <Plus size={18} color={Colors.cyan} strokeWidth={2} />
               <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>Ajouter</Text>
             </Pressable>
           </HStack>
@@ -1194,11 +1214,10 @@ export default function ScannerBulletinScreen() {
               style={{ gap: 6 }}
               onPress={() => setShowRawText(!showRawText)}
             >
-              <Ionicons
-                name={showRawText ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={Colors.gray}
-              />
+              {showRawText
+                ? <ChevronUp size={16} color={Colors.gray} strokeWidth={2} />
+                : <ChevronDown size={16} color={Colors.gray} strokeWidth={2} />
+              }
               <Text className="text-[13px]" style={{ color: Colors.gray }}>
                 {showRawText ? 'Masquer' : 'Voir'} le texte OCR brut
               </Text>
@@ -1242,19 +1261,19 @@ export default function ScannerBulletinScreen() {
                   style={{ gap: 10, backgroundColor: Colors.green }}
                   onPress={handleValidate}
                 >
-                  <Ionicons name="checkmark-sharp" size={22} color={Colors.white} />
+                  <Check size={22} color={Colors.white} strokeWidth={2.5} />
                   <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
                     Valider et importer
                   </Text>
                 </Pressable>
 
                 <Pressable
-                  className="flex-row items-center justify-center py-3.5 rounded-[20px]"
-                  style={{ gap: 8, backgroundColor: 'rgba(34,211,238,0.1)' }}
+                  className="flex-row items-center justify-center"
+                  style={{ gap: 8, paddingVertical: 14 }}
                   onPress={handleCancel}
                 >
-                  <Ionicons name="refresh" size={18} color={Colors.cyan} />
-                  <Text className="text-[15px] font-semibold" style={{ color: Colors.cyan }}>
+                  <RefreshCw size={20} color="#7C3AED" strokeWidth={1.5} />
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#7C3AED' }}>
                     Scanner un autre bulletin
                   </Text>
                 </Pressable>
@@ -1274,7 +1293,7 @@ export default function ScannerBulletinScreen() {
             className="items-center mt-4 py-3 px-3.5 rounded-xl"
             style={{ gap: 8, backgroundColor: 'rgba(109,40,217,0.1)', borderWidth: 1, borderColor: 'rgba(109,40,217,0.2)' }}
           >
-            <Ionicons name="sparkles" size={16} color={Colors.violet} />
+            <Sparkles size={16} color={Colors.violet} strokeWidth={2} />
             <Text className="text-xs flex-1 leading-[18px]" style={{ color: Colors.violet }}>
               Les données importées alimentent l'analyse d'Aria pour
               des conseils personnalisés.

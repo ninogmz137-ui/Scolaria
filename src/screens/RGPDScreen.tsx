@@ -79,7 +79,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
 
       {/* Info box */}
       <View style={styles.infoBox}>
-        <Ionicons name="shield-checkmark" size={18} color="#3B82F6" />
+        <Ionicons name="shield-checkmark" size={18} color="#7C3AED" />
         <Text style={styles.infoText}>
           Vos données sont chiffrées AES-256 et hébergées en France conformément au RGPD.
         </Text>
@@ -158,6 +158,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: '#3B82F6',
+    color: '#7C3AED',
   },
 });

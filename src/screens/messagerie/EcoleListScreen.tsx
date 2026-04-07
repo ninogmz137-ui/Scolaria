@@ -117,7 +117,7 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
                 <View
                   style={[
                     styles.categoryBadge,
-                    { backgroundColor: ann.categoryColor + '18' },
+                    { backgroundColor: ann.categoryColor + '26' },
                   ]}
                 >
                   <Text style={[styles.categoryText, { color: ann.categoryColor }]}>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.sansSemiBold,
+    fontFamily: FontFamily.sansBold,
     fontSize: 11,
     color: '#94A3B8',
     textTransform: 'uppercase',
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 10,
+    fontSize: 11,
   },
   annSubtitle: {
     fontFamily: FontFamily.sansRegular,

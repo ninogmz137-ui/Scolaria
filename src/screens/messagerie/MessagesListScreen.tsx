@@ -128,11 +128,9 @@ function formatMessageDate(isoDate: string): string {
   }
 }
 
-function getAvatarColor(name: string): string {
-  const colors = ['#7C3AED', '#06B6D4', '#F59E0B', '#10B981', '#EF4444', '#EC4899'];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return colors[Math.abs(hash) % colors.length];
+// Avatar always uses neutral bg per design system — initials in #64748B
+function getAvatarColor(_name: string): string {
+  return '#E2E8F0';
 }
 
 function getInitials(name: string): string {
@@ -289,16 +287,16 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
             <View
               style={[
                 styles.motBadge,
-                { backgroundColor: mot.signed ? '#D1FAE5' : '#FEF3C7' },
+                { backgroundColor: mot.signed ? '#10B98126' : '#F59E0B26' },
               ]}
             >
               <Text
                 style={[
                   styles.motBadgeText,
-                  { color: mot.signed ? '#065F46' : '#92400E' },
+                  { color: mot.signed ? '#10B981' : '#F59E0B' },
                 ]}
               >
-                {mot.signed ? 'Signé' : 'À signer'}
+                {mot.signed ? 'Signé ✓' : 'À signer'}
               </Text>
             </View>
           </Pressable>
@@ -410,7 +408,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.sansSemiBold,
+    fontFamily: FontFamily.sansBold,
     fontSize: 11,
     color: '#94A3B8',
     textTransform: 'uppercase',
@@ -442,7 +440,7 @@ const styles = StyleSheet.create({
   convAvatarText: {
     fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#64748B',
   },
   unreadDot: {
     width: 8,
@@ -492,7 +490,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -578,7 +576,7 @@ const styles = StyleSheet.create({
   teacherAvatarText: {
     fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#64748B',
   },
   teacherName: {
     fontFamily: FontFamily.sansSemiBold,

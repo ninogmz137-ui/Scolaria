@@ -442,7 +442,7 @@ function TabContentWithNav({
     const routeMap: Record<string, { tab?: string; screen?: string }> = {
       ProfilEnfant: { tab: 'Accueil', screen: 'ProfilEnfant' },
       MonParcours: { tab: 'Accueil', screen: 'MonParcours' },
-      BienEtre: { tab: 'Accueil', screen: 'BienEtreScreen' },
+      BienEtreScreen: { tab: 'Accueil', screen: 'BienEtreScreen' },
       WallpaperPicker: { tab: 'Accueil', screen: 'WallpaperPicker' },
       ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
       RGPDScreen: { tab: 'Accueil', screen: 'RGPDScreen' },

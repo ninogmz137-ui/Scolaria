@@ -362,14 +362,18 @@ export default function AccueilScreen() {
           <GlassCard style={{ marginBottom: 14 }} noPadding>
             <View style={{ padding: 4 }}>
               {data.coursDuJour.map((cours, i) => (
-                <View key={i} style={styles.coursRow}>
+                <RNPressable
+                  key={i}
+                  style={({ pressed }: { pressed: boolean }) => [styles.coursRow, pressed && { opacity: 0.7 }]}
+                  onPress={() => navigation.getParent()?.navigate('Agenda')}
+                >
                   <View style={[styles.coursBar, { backgroundColor: cours.color }]} />
                   <Text style={[styles.coursTime, { color: cardTextSecondary }]}>{cours.time}</Text>
                   <View style={styles.coursFlex}>
                     <Text style={[styles.coursSubject, { color: cardText }]}>{cours.subject}</Text>
                     <Text style={[styles.coursRoom, { color: cardTextMuted }]}>{cours.room}</Text>
                   </View>
-                </View>
+                </RNPressable>
               ))}
             </View>
           </GlassCard>

@@ -9,7 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Papicons } from '@getpapillon/papicons';
+import { Plus, ChevronRight, Check, Archive, Upload, FileText } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -66,10 +66,10 @@ function getMockYears(childId: string): AcademicYearCard[] {
 
 // ─── Statut config ──────────────────────────────────────
 
-const STATUT_CONFIG: Record<AcademicYearStatut, { label: string; color: string; bg: string; icon: string }> = {
-  active:    { label: 'EN COURS',  color: '#10B981', bg: '#10B98118', icon: 'Check' },
-  'archivée': { label: 'ARCHIVÉE', color: '#64748B', bg: '#64748B15', icon: 'Archive' },
-  'importée': { label: 'IMPORTÉE', color: '#F59E0B', bg: '#F59E0B18', icon: 'Upload' },
+const STATUT_CONFIG: Record<AcademicYearStatut, { label: string; color: string; bg: string; Icon: React.ElementType }> = {
+  active:    { label: 'EN COURS',  color: '#10B981', bg: '#10B98118', Icon: Check },
+  'archivée': { label: 'ARCHIVÉE', color: '#64748B', bg: '#64748B15', Icon: Archive },
+  'importée': { label: 'IMPORTÉE', color: '#F59E0B', bg: '#F59E0B18', Icon: Upload },
 };
 
 // ─── Component ──────────────────────────────────────────
@@ -225,7 +225,7 @@ export default function MonParcoursScreen() {
 
                     {/* Right: statut badge */}
                     <View style={[styles.statutBadge, { backgroundColor: statutCfg.bg }]}>
-                      <Papicons name={statutCfg.icon} size={8} color={statutCfg.color} />
+                      <statutCfg.Icon size={8} color={statutCfg.color} strokeWidth={2.5} />
                       <Text style={[styles.statutLabel, { color: statutCfg.color }]}>
                         {statutCfg.label}
                       </Text>
@@ -234,11 +234,11 @@ export default function MonParcoursScreen() {
 
                   {/* Bottom row: bulletins count */}
                   <View style={styles.bulletinRow}>
-                    <Papicons name="Paper" size={16} color="#94A3B8" />
+                    <FileText size={16} color="#94A3B8" strokeWidth={1.5} />
                     <Text style={styles.bulletinText}>
                       {year.bulletins} bulletin{year.bulletins > 1 ? 's' : ''} disponible{year.bulletins > 1 ? 's' : ''}
                     </Text>
-                    <Papicons name="ChevronRight" size={16} color="#CBD5E1" />
+                    <ChevronRight size={16} color="#CBD5E1" strokeWidth={1.5} />
                   </View>
                 </View>
               </GlassCard>
@@ -249,9 +249,9 @@ export default function MonParcoursScreen() {
         {/* Add past year button */}
         <Pressable
           onPress={() => navigation.navigate('AjouterAnne')}
-          style={({ pressed }) => [styles.addButton, { opacity: pressed ? 0.85 : 1, backgroundColor: accent }]}
+          style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.6 }]}
         >
-          <Papicons name="Plus" size={20} color="#FFFFFF" />
+          <Plus size={18} color="#7C3AED" strokeWidth={1.5} />
           <Text style={styles.addButtonText}>Ajouter une année passée</Text>
         </Pressable>
       </ScrollView>
@@ -368,14 +368,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 16,
+    gap: 8,
+    paddingVertical: 14,
     marginTop: 4,
   },
   addButtonText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 15,
-    color: '#FFFFFF',
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#7C3AED',
   },
 });

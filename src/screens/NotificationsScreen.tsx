@@ -245,7 +245,7 @@ export default function NotificationsScreen() {
     markRead(notif.id);
     switch (notif.type) {
       case 'liaison':
-        navigation.navigate('Accueil', { screen: 'CahierLiaisonScreen' });
+        navigation.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
         break;
       case 'note':
         navigation.navigate('Notes');
@@ -257,7 +257,7 @@ export default function NotificationsScreen() {
         navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' });
         break;
       case 'aria':
-        navigation.navigate('Aria');
+        navigation.navigate('Accueil', { screen: 'AriaScreen' });
         break;
     }
   }, [markRead, navigation]);

@@ -15,9 +15,8 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const CARD_GAP = 12;
-const CARD_W = (SCREEN_W - 40 - CARD_GAP * 2) / 3;
-const CARD_H = CARD_W * 1.5;
+const CARD_GAP = 10;
+const CARD_W = (SCREEN_W - 32 - CARD_GAP) / 2;
 
 // ─── Single wallpaper card ────────────────────────────────
 
@@ -97,7 +96,7 @@ export default function WallpaperPickerScreen() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>ABSTRAIT</Text>
+        <Text style={styles.sectionTitle}>GRADIENTS</Text>
         <View style={styles.grid}>
           {abstractWallpapers.map((wp) => (
             <WallpaperCard
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 120,
   },
@@ -142,7 +141,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_W,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'transparent',
@@ -152,8 +151,8 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: '100%',
-    height: CARD_H,
-    borderRadius: 12,
+    aspectRatio: 9 / 16,
+    borderRadius: 10,
   },
   checkBadge: {
     position: 'absolute',

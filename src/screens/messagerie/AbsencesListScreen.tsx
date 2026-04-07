@@ -76,18 +76,18 @@ const MOCK_ABSENCES: AbsenceItem[] = [
 const STATUT_CONFIG: Record<AbsenceStatut, { label: string; bg: string; text: string }> = {
   signalée: {
     label: 'Signalée',
-    bg: '#FEF3C7',
-    text: '#92400E',
+    bg: '#F59E0B26',
+    text: '#F59E0B',
   },
   prise_en_compte: {
     label: 'Prise en compte',
-    bg: '#D1FAE5',
-    text: '#065F46',
+    bg: '#10B98126',
+    text: '#10B981',
   },
   refusée: {
     label: 'Refusée',
-    bg: '#FEE2E2',
-    text: '#991B1B',
+    bg: '#EF444426',
+    text: '#EF4444',
   },
 };
 
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   sectionLabel: {
-    fontFamily: FontFamily.sansSemiBold,
+    fontFamily: FontFamily.sansBold,
     fontSize: 11,
     color: '#94A3B8',
     textTransform: 'uppercase',

@@ -36,7 +36,7 @@ export default function ChildSwitcher({ children, selectedId, onSelect }: Props)
               style={{
                 backgroundColor: isSelected ? '#EFF6FF' : '#FFFFFF',
                 borderWidth: 1.5,
-                borderColor: isSelected ? '#3B82F6' : 'transparent',
+                borderColor: isSelected ? '#7C3AED' : 'transparent',
               }}
               onPress={() => onSelect(child.id)}
             >
@@ -68,7 +68,7 @@ export default function ChildSwitcher({ children, selectedId, onSelect }: Props)
                   style={{
                     width: 8,
                     height: 8,
-                    backgroundColor: '#3B82F6',
+                    backgroundColor: '#7C3AED',
                   }}
                 />
               )}

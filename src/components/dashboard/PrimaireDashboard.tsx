@@ -230,7 +230,7 @@ function DailyQuests() {
 const BADGES = [
   { emoji: '🏆', name: 'Champion', earned: true, color: '#F59E0B' },
   { emoji: '📚', name: 'Lecteur', earned: true, color: '#8B5CF6' },
-  { emoji: '🧮', name: 'Matheux', earned: true, color: '#3B82F6' },
+  { emoji: '🧮', name: 'Matheux', earned: true, color: '#7C3AED' },
   { emoji: '🎨', name: 'Artiste', earned: false, color: '#EC4899' },
   { emoji: '🌍', name: 'Explorateur', earned: false, color: '#10B981' },
   { emoji: '⚡', name: 'Rapide', earned: false, color: '#F97316' },

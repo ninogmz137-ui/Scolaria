@@ -60,11 +60,11 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   useChildTheme(); // kept for future theme re-integration
-  const accentRgb = hexToRgb('#3B82F6');
+  const accentRgb = hexToRgb('#7C3AED');
   return (
     <Box className="mb-6">
       <HStack className="items-center mb-2.5 px-1" style={{ gap: 8 }}>
-        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#3B82F6' }} />
+        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#7C3AED' }} />
         <Text
           className="text-[13px] font-bold uppercase tracking-widest"
           style={{ color: '#94A3B8' }}
@@ -214,7 +214,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
       {/* Family profile header */}
       <Box className="mb-2">
         <LinearGradient
-          colors={['#0B1628', '#3B82F6DD']}
+          colors={['#0B1628', '#7C3AEDDD']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 28, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
@@ -240,7 +240,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
         </LinearGradient>
       </Box>
 
-      <DecorativeBlobs accent="#3B82F6" />
+      <DecorativeBlobs accent="#7C3AED" />
 
       <Box className="px-5">
         {/* Wallpaper section */}
@@ -259,8 +259,8 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
                 gap: 10,
               }}
             >
-              <ImagePlus size={20} color="#3B82F6" strokeWidth={2} />
-              <Text style={{ fontFamily: 'DMSans_500Medium', fontSize: 14, color: '#3B82F6' }}>
+              <ImagePlus size={20} color="#7C3AED" strokeWidth={2} />
+              <Text style={{ fontFamily: 'DMSans_500Medium', fontSize: 14, color: '#7C3AED' }}>
                 Choisir depuis ma galerie
               </Text>
             </TouchableOpacity>
@@ -281,7 +281,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
                       borderRadius: 12,
                       overflow: 'hidden',
                       borderWidth: isSelected ? 2 : 0,
-                      borderColor: '#3B82F6',
+                      borderColor: '#7C3AED',
                     }}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: isSelected }}
@@ -308,7 +308,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
                           width: 20,
                           height: 20,
                           borderRadius: 10,
-                          backgroundColor: '#3B82F6',
+                          backgroundColor: '#7C3AED',
                           alignItems: 'center',
                           justifyContent: 'center',
                           elevation: 0,
@@ -342,7 +342,7 @@ export default function ReglagesScreen({ navigation }: { navigation: any }) {
                     borderRadius: 12,
                     overflow: 'hidden',
                     borderWidth: 2,
-                    borderColor: '#3B82F6',
+                    borderColor: '#7C3AED',
                   }}
                 >
                   <Image

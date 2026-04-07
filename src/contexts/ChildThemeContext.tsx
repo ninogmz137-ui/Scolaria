@@ -60,10 +60,10 @@ export function ChildThemeProvider({ children }: { children: ReactNode }) {
 
   // Unified design: child theme preferences are stored but do NOT affect
   // the rendered colors. All consumers receive the school mode theme as-is
-  // with the unified blue accent (#3B82F6) for every child.
+  // with the unified violet accent (#7C3AED) for every child.
   const mergedTheme = useMemo<SchoolModeTheme>(() => {
     // schoolTheme already carries the unified values from THEMES.
-    // We return it unchanged so every child sees the same blue palette.
+    // We return it unchanged so every child sees the same violet palette.
     return schoolTheme;
   }, [schoolTheme]);
 

@@ -32,7 +32,7 @@ export function HeaderChildAvatar() {
   const { theme } = useSchoolMode();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const modeColor = MODE_COLORS[theme.mode] || '#3B82F6';
+  const modeColor = MODE_COLORS[theme.mode] || '#7C3AED';
 
   return (
     <>
@@ -144,7 +144,7 @@ export function ChildSwitcherModal({
                 ? getSchoolModeFromBirthDate(child.birthDate)
                 : 'primaire';
               const childTheme = THEMES[childMode];
-              const modeColor = MODE_COLORS[childMode] || '#3B82F6';
+              const modeColor = MODE_COLORS[childMode] || '#7C3AED';
 
               return (
                 <Pressable

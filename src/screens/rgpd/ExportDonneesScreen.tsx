@@ -276,12 +276,12 @@ export default function ExportDonneesScreen() {
             <Pressable
               style={[
                 styles.exportBtn,
-                { backgroundColor: selectedModules.length > 0 ? Colors.orange : '#E2E8F0', opacity: selectedModules.length > 0 ? 1 : 0.5 },
+                { opacity: selectedModules.length > 0 ? 1 : 0.5 },
               ]}
               onPress={handleExport}
               disabled={selectedModules.length === 0}
             >
-              <ArrowDown size={22} color="#fff" />
+              <ArrowDown size={20} color="#7C3AED" strokeWidth={1.5} />
               <Text style={styles.exportBtnText}>
                 Exporter mes données ({totalSizeStr})
               </Text>
@@ -394,8 +394,8 @@ const styles = StyleSheet.create({
   summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
   progressBg: { width: '100%', height: 6, borderRadius: 3, backgroundColor: '#F1F5F9', overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
-  exportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 18, borderRadius: 30, marginBottom: 8 },
-  exportBtnText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#fff' },
+  exportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, marginBottom: 8 },
+  exportBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, fontWeight: '600', color: '#7C3AED' },
   historyRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   jsonPreview: {
     fontSize: 11,

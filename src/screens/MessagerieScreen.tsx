@@ -767,41 +767,39 @@ function MessageCard({ item, onPress }: MessageCardProps) {
   const cfg = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.aria;
 
   return (
-    <View style={[styles.msgCard, !item.read && styles.msgCardUnread]}>
-      <Pressable
-        onPress={() => onPress(item)}
-        style={({ pressed }) => [styles.msgRow, pressed && { opacity: 0.82 }]}
-        accessibilityRole="button"
-      >
-        {/* Avatar / icon */}
-        {item.type === 'aria' ? (
-          <AriaSparkleIcon size={44} />
-        ) : (
-          <View style={[styles.msgAvatar, { backgroundColor: cfg.color + '15' }]}>
-            <Papicons name={cfg.icon} size={18} color={cfg.color} />
-          </View>
-        )}
-
-        {/* Text column */}
-        <View style={styles.msgTextCol}>
-          <View style={styles.msgTitleRow}>
-            <Text
-              style={[styles.msgTitle, { fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold }]}
-              numberOfLines={1}
-            >
-              {item.title}
-            </Text>
-            <Text style={styles.msgTime}>{item.time}</Text>
-          </View>
-          <Text style={styles.msgPreview} numberOfLines={1}>
-            {item.message}
-          </Text>
+    <Pressable
+      onPress={() => onPress(item)}
+      style={({ pressed }) => [styles.msgRow, pressed && { opacity: 0.82 }]}
+      accessibilityRole="button"
+    >
+      {/* Avatar / icon */}
+      {item.type === 'aria' ? (
+        <AriaSparkleIcon size={44} />
+      ) : (
+        <View style={[styles.msgAvatar, { backgroundColor: '#E2E8F0' }]}>
+          <Papicons name={cfg.icon} size={18} color="#64748B" />
         </View>
+      )}
 
-        {/* Unread dot */}
-        {!item.read && <View style={styles.msgUnreadDot} />}
-      </Pressable>
-    </View>
+      {/* Text column */}
+      <View style={styles.msgTextCol}>
+        <View style={styles.msgTitleRow}>
+          <Text
+            style={[styles.msgTitle, { fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold }]}
+            numberOfLines={1}
+          >
+            {item.title}
+          </Text>
+          <Text style={styles.msgTime}>{item.time}</Text>
+        </View>
+        <Text style={styles.msgPreview} numberOfLines={1}>
+          {item.message}
+        </Text>
+      </View>
+
+      {/* Unread dot */}
+      {!item.read && <View style={styles.msgUnreadDot} />}
+    </Pressable>
   );
 }
 
@@ -974,18 +972,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  // ── Message card
-  msgCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  msgCardUnread: {
-    borderColor: '#E2E8F0',
-  },
+  // ── Message row (plain, no card wrapper)
   msgRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -23,7 +23,6 @@ import {
   BookOpen,
   Heart,
   Shield,
-  Settings,
   LogOut,
   ChevronRight,
 } from 'lucide-react-native';
@@ -66,17 +65,15 @@ type MenuItemDef = {
 const MAIN_ITEMS: MenuItemDef[] = [
   { key: 'profil',    icon: User,     label: 'Profil élève',  screen: 'ProfilEnfant' },
   { key: 'parcours',  icon: BookOpen, label: 'Mon Parcours',  screen: 'MonParcours' },
-  { key: 'ressenti',  icon: Heart,    label: 'Mon Ressenti',  screen: 'BienEtre' },
+  { key: 'ressenti',  icon: Heart,    label: 'Mon Ressenti',  screen: 'BienEtreScreen' },
 ];
 
 const BOTTOM_ITEMS: MenuItemDef[] = [
-  { key: 'reglages', icon: Settings, label: 'Réglages',              screen: 'ReglagesScreen' },
   { key: 'rgpd',     icon: Shield,   label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
   { key: 'logout',   icon: LogOut,   label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 
 const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [
-  { key: 'reglages', icon: Settings, label: 'Réglages',      screen: 'ReglagesScreen' },
   { key: 'logout',   icon: LogOut,   label: 'Quitter la démo', action: 'logout', danger: true },
 ];
 
@@ -184,7 +181,6 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
 
         {/* ── Section basse ── */}
         <View style={styles.menuList}>
-          <SectionLabel label="PARAMÈTRES" />
           {(isDemo ? BOTTOM_ITEMS_DEMO : BOTTOM_ITEMS).map((item) => (
             <MenuItem key={item.key} item={item} onPress={handleItemPress} />
           ))}

@@ -43,7 +43,7 @@ export default function CahierLiaisonParent({
   useChildTheme(); // kept for future theme re-integration
 
   // Derive accent from theme if not overridden
-  const accent = accentColor ?? '#3B82F6';
+  const accent = accentColor ?? '#7C3AED';
 
   // All modes are light — always use dark text
   const cardText = '#0F172A';

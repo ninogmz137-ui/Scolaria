@@ -356,7 +356,7 @@ export default function ProfilEnfantScreen() {
     }
   };
 
-  const accent = '#6366F1';
+  const accent = '#7C3AED';
 
   return (
     <View style={styles.root}>
@@ -449,36 +449,34 @@ export default function ProfilEnfantScreen() {
         <SectionTitle label="ACTIONS" />
         <View style={styles.actionsContainer}>
           <Pressable
-            style={({ pressed }) => [styles.actionBtn, pressed && styles.actionBtnPressed]}
+            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.6 }]}
             onPress={handleExportPDF}
             disabled={exporting}
           >
             {exporting ? (
-              <ActivityIndicator color="#1A2340" size="small" />
+              <ActivityIndicator color="#7C3AED" size="small" />
             ) : (
-              <FileText size={18} color="#1A2340" strokeWidth={2} />
+              <FileText size={20} color="#7C3AED" strokeWidth={1.5} />
             )}
             <Text style={styles.actionBtnText}>
               {exporting ? 'Génération…' : 'Exporter en PDF'}
             </Text>
           </Pressable>
-          <Text style={styles.actionHint}>Génère un passeport scolaire complet au format PDF</Text>
 
           <Pressable
-            style={({ pressed }) => [styles.actionBtn, styles.actionBtnSecond, pressed && styles.actionBtnPressed]}
+            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.6 }]}
             onPress={handleExportMemo}
             disabled={exportingMemo}
           >
             {exportingMemo ? (
-              <ActivityIndicator color="#1A2340" size="small" />
+              <ActivityIndicator color="#7C3AED" size="small" />
             ) : (
-              <GraduationCap size={18} color="#1A2340" strokeWidth={2} />
+              <GraduationCap size={20} color="#7C3AED" strokeWidth={1.5} />
             )}
             <Text style={styles.actionBtnText}>
               {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
             </Text>
           </Pressable>
-          <Text style={styles.actionHint}>Document de transition partageable avec le nouvel établissement</Text>
         </View>
       </ScrollView>
 
@@ -554,7 +552,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#6366F1',
+    backgroundColor: '#7C3AED',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -636,32 +634,13 @@ const styles = StyleSheet.create({
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    gap: 8,
     paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: '#FFFFFF',
-    elevation: 0,
-  },
-  actionBtnSecond: {
-    marginTop: 10,
-  },
-  actionBtnPressed: {
-    backgroundColor: '#F8FAFC',
   },
   actionBtnText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#1A2340',
-  },
-  actionHint: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 6,
-    marginBottom: 4,
-    paddingHorizontal: 4,
+    color: '#7C3AED',
   },
 });

@@ -12,7 +12,7 @@ interface Props {
 export default function FusedChildHeader({ onAddChild }: Props) {
   const { children: allChildren, selectedChild, selectedChildId, selectChild } = useActiveChild();
   useChildTheme(); // kept for future theme re-integration
-  const accent = '#3B82F6';
+  const accent = '#7C3AED';
 
   const otherChildren = allChildren.filter((c) => c.id !== selectedChildId);
 
