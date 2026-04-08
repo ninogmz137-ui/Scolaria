@@ -48,7 +48,7 @@ import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
-import SettingsScreen from '../screens/SettingsScreen';
+import ReglagesScreen from '../screens/ReglagesScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 import AriaScreen from '../screens/AriaScreen';
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
@@ -188,7 +188,7 @@ function AccueilStackScreen() {
       />
       <AccueilStack.Screen
         name="ReglagesScreen"
-        component={SettingsScreen}
+        component={ReglagesScreen}
         options={{ title: 'Réglages' }}
       />
       <AccueilStack.Screen
