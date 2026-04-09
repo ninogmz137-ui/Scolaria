@@ -24,6 +24,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, User } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import LogoScolaria from '../components/LogoScolaria';
 
 // ─── Constants ──────────────────────────────────────────
 
@@ -111,10 +112,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
           >
             {/* Logo */}
             <View style={s.logoSection}>
-              <Text style={s.logoText}>
-                Scolar<Text style={s.logoCyan}>ia</Text>
-                <Text style={s.sparkle}> ✦</Text>
-              </Text>
+              <LogoScolaria size={52} variant="dark" />
             </View>
 
             {/* Form */}
@@ -272,19 +270,6 @@ const s = StyleSheet.create({
 
   // Logo
   logoSection: { alignItems: 'center', marginBottom: 56 },
-  logoText: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 58,
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-  },
-  logoCyan: {
-    color: CYAN,
-  },
-  sparkle: {
-    fontSize: 28,
-    color: CYAN,
-  },
 
   // Form
   form: {},
