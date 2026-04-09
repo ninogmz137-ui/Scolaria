@@ -18,6 +18,7 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, User } from 'lucide-react-native';
@@ -43,6 +44,7 @@ interface Props {
 
 export default function LoginScreen({ onNavigatePin }: Props) {
   const { signIn, signUp, enterDemoMode } = useAuth();
+  const { height } = useWindowDimensions();
 
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -97,7 +99,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
-          contentContainerStyle={s.scrollContent}
+          contentContainerStyle={[s.scrollContent, { paddingTop: height * 0.14 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -111,9 +113,8 @@ export default function LoginScreen({ onNavigatePin }: Props) {
             <View style={s.logoSection}>
               <Text style={s.logoText}>
                 Scolar<Text style={s.logoCyan}>ia</Text>
-                <Text style={s.sparkle}>✦</Text>
+                <Text style={s.sparkle}> ✦</Text>
               </Text>
-              <Text style={s.tagline}>Le copilote éducatif des familles</Text>
             </View>
 
             {/* Form */}
@@ -240,58 +241,49 @@ const s = StyleSheet.create({
   // Halos
   haloViolet: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(139,92,246,0.12)',
-    top: -60,
-    right: -80,
-    opacity: 0.8,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: 'rgba(139,92,246,0.07)',
+    top: -100,
+    right: -100,
   },
   haloCyan: {
     position: 'absolute',
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(6,182,212,0.08)',
-    bottom: 120,
-    left: -60,
-    opacity: 0.7,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(6,182,212,0.05)',
+    bottom: 80,
+    left: -80,
   },
 
   // Scroll / container
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   container: {
     alignSelf: 'center',
     width: '100%',
     maxWidth: 400,
-    paddingHorizontal: 32,
+    paddingHorizontal: 36,
   },
 
   // Logo
-  logoSection: { alignItems: 'center', marginBottom: 48 },
+  logoSection: { alignItems: 'center', marginBottom: 56 },
   logoText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 46,
+    fontFamily: FontFamily.displayExtraBold,
+    fontSize: 58,
     color: '#FFFFFF',
+    letterSpacing: -0.5,
   },
   logoCyan: {
     color: CYAN,
   },
   sparkle: {
-    fontSize: 18,
+    fontSize: 28,
     color: CYAN,
-  },
-  tagline: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.4)',
-    marginTop: 10,
-    textAlign: 'center',
   },
 
   // Form
@@ -301,24 +293,24 @@ const s = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    marginBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.14)',
+    borderRadius: 18,
+    paddingHorizontal: 20,
+    marginBottom: 14,
     gap: 14,
   },
   inputRowFocused: {
-    borderColor: 'rgba(139,92,246,0.4)',
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderColor: 'rgba(99,102,241,0.40)',
+    backgroundColor: 'rgba(255,255,255,0.07)',
   },
   input: {
     flex: 1,
     color: '#FFFFFF',
     fontFamily: FontFamily.sansRegular,
     fontSize: 15,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
 
   // Forgot password
@@ -349,24 +341,10 @@ const s = StyleSheet.create({
   submitBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 18,
-    borderRadius: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: VIOLET,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-      },
-      default: {
-        shadowColor: VIOLET,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-      },
-    }),
+    paddingVertical: 17,
+    borderRadius: 18,
   },
-  submitText: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#FFFFFF' },
+  submitText: { fontFamily: FontFamily.sansSemiBold, fontSize: 16, color: '#FFFFFF', letterSpacing: 0.3 },
 
   // Toggle
   toggleRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 22 },

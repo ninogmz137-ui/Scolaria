@@ -7,7 +7,7 @@
  * - Context actions: iOS-like bottom sheet with blur + quick actions
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -42,6 +42,9 @@ import {
   X,
   ChevronDown,
   Check,
+  GraduationCap,
+  Calendar,
+  UserRound,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -246,6 +249,16 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
   { id: 'ecole', label: 'École' },
   { id: 'absences', label: 'Absences' },
 ];
+
+type LucideIcon = React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+const AVATAR_ICONS: Record<MessagerieItemType, LucideIcon | null> = {
+  liaison: UserRound,
+  ecole: School,
+  note: GraduationCap,
+  agenda: Calendar,
+  absence: AlertCircle,
+  aria: null,
+};
 
 const AVATAR_GRADIENTS: Record<MessagerieItemType, [string, string]> = {
   liaison: ['#1A2340', '#334155'],
@@ -764,9 +777,7 @@ export default function MessagerieScreen() {
                               { backgroundImage: `linear-gradient(135deg, ${AVATAR_GRADIENTS[item.type][0]}, ${AVATAR_GRADIENTS[item.type][1]})` } as any,
                             ]}
                           >
-                            <Text style={styles.avatarText}>
-                              {item.type === 'absence' ? '!' : ''}
-                            </Text>
+                            {AVATAR_ICONS[item.type] && React.createElement(AVATAR_ICONS[item.type]!, { size: 18, color: '#FFFFFF', strokeWidth: 2 })}
                           </View>
                         ) : (
                           <LinearGradient
@@ -775,9 +786,7 @@ export default function MessagerieScreen() {
                             end={{ x: 1, y: 1 }}
                             style={styles.avatar}
                           >
-                            <Text style={styles.avatarText}>
-                              {item.type === 'absence' ? '!' : ''}
-                            </Text>
+                            {AVATAR_ICONS[item.type] && React.createElement(AVATAR_ICONS[item.type]!, { size: 18, color: '#FFFFFF', strokeWidth: 2 })}
                           </LinearGradient>
                         )}
                         <View style={[styles.avatarBadge, { backgroundColor: TYPE_COLORS[item.type] }]}>
@@ -1169,9 +1178,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.90)',
+    backgroundColor: 'rgba(255,255,255,0.82)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(15,23,42,0.10)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -1185,14 +1194,13 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 12,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    color: '#94A3B8',
-    marginBottom: 10,
-    marginTop: 6,
-    paddingLeft: 6,
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    letterSpacing: 0.4,
+    color: 'rgba(148,163,184,0.65)',
+    marginBottom: 6,
+    marginTop: 4,
+    paddingLeft: 4,
   },
   groupCard: {
     marginHorizontal: 0,
