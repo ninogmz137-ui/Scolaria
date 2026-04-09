@@ -20,7 +20,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, ChevronRight } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
@@ -306,16 +306,6 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         ))}
       </ScrollView>
 
-      {/* ── Compose FAB ── */}
-      <Pressable
-        onPress={() => setTeacherModalVisible(true)}
-        style={({ pressed }) => [styles.fab, { opacity: pressed ? 0.85 : 1 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Nouveau message"
-      >
-        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
-      </Pressable>
-
       {/* ── Teacher selection modal ── */}
       <Modal
         visible={teacherModalVisible}
@@ -375,22 +365,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 80,
-    right: 16,
-    backgroundColor: '#1A2340',
-    borderRadius: 16,
-    width: 52,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1A2340',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
   },
 
   scrollContent: {

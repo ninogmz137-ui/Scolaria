@@ -13,7 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Pressable, Dimensions } from 'react-native';
+import { View, Pressable, Dimensions, PanResponder } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -50,9 +50,12 @@ import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
 import ReglagesScreen from '../screens/ReglagesScreen';
 import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
-import AriaScreen from '../screens/AriaScreen';
+// Legacy AriaScreen has been superseded by AriaHome/AriaConversation.
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 import TextSizeScreen from '../screens/TextSizeScreen';
+import AriaHomeScreen from '../screens/aria/AriaHomeScreen';
+import AriaConversationScreen from '../screens/aria/AriaConversationScreen';
+import NotificationsSettingsScreen from '../screens/NotificationsSettingsScreen';
 
 // Messagerie sub-screens
 import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
@@ -90,6 +93,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const backArrowRef: { current: { setShowBack: (v: boolean) => void } | null } = { current: null };
 const activeTabRef: { current: { setActiveTab: (v: string) => void } | null } = { current: null };
 const stackTitleRef: { current: { setTitle: (v: string) => void } | null } = { current: null };
+const currentAccueilRouteRef: { current: { setRouteName: (v: string) => void } | null } = { current: null };
 
 // Screen title mapping for stacked screens
 const SCREEN_TITLES: Record<string, string> = {
@@ -109,9 +113,12 @@ const SCREEN_TITLES: Record<string, string> = {
   APropos: 'À propos',
   ScannerBulletin: 'Scanner un bulletin',
   AriaScreen: 'Aria',
+  AriaHome: 'Aria',
+  AriaConversation: 'Aria',
   MessagerieAriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
   TextSize: 'Taille du texte',
+  NotificationsSettings: 'Notifications',
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
@@ -127,13 +134,16 @@ const AccueilStack = createNativeStackNavigator();
 function AccueilStackScreen() {
   return (
     <AccueilStack.Navigator
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
           const data = e.data as any;
           const routes = data?.state?.routes;
           const index = data?.state?.index ?? 0;
           backArrowRef.current?.setShowBack(index > 0);
+          if (routes?.[index]?.name) {
+            currentAccueilRouteRef.current?.setRouteName(routes[index].name as string);
+          }
           if (index > 0 && routes?.[index]) {
             const screenName = routes[index].name as string;
             const params = routes[index].params as any;
@@ -231,9 +241,20 @@ function AccueilStackScreen() {
         component={EditProfileScreen}
         options={{ title: 'Mon profil' }}
       />
+      {/* Backward-compat route: keep name but render new Aria home */}
       <AccueilStack.Screen
         name="AriaScreen"
-        component={AriaScreen}
+        component={AriaHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
+        name="AriaHome"
+        component={AriaHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
+        name="AriaConversation"
+        component={AriaConversationScreen}
         options={{ headerShown: false }}
       />
       <AccueilStack.Screen
@@ -245,6 +266,11 @@ function AccueilStackScreen() {
         name="TextSize"
         component={TextSizeScreen}
         options={{ title: 'Taille du texte' }}
+      />
+      <AccueilStack.Screen
+        name="NotificationsSettings"
+        component={NotificationsSettingsScreen}
+        options={{ headerShown: false }}
       />
       <AccueilStack.Screen
         name="ArchivedYearDetail"
@@ -259,7 +285,7 @@ const NotesStack = createNativeStackNavigator();
 function NotesStackScreen() {
   return (
     <NotesStack.Navigator
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
           const data = e.data as any;
@@ -305,7 +331,7 @@ function NotesStackScreen() {
 const AgendaStack = createNativeStackNavigator();
 function AgendaStackScreen() {
   return (
-    <AgendaStack.Navigator screenOptions={{ headerShown: false }}>
+    <AgendaStack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
       <AgendaStack.Screen
         name="AgendaHome"
         component={AgendaScreen}
@@ -319,7 +345,7 @@ const MessagerieStack = createNativeStackNavigator();
 function MessagerieStackScreen() {
   return (
     <MessagerieStack.Navigator
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
           const data = e.data as any;
@@ -365,7 +391,12 @@ function MessagerieStackScreen() {
       />
       <MessagerieStack.Screen
         name="MessagerieAriaScreen"
-        component={AriaScreen}
+        component={AriaHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="AriaConversation"
+        component={AriaConversationScreen}
         options={{ headerShown: false }}
       />
       <MessagerieStack.Screen
@@ -457,7 +488,7 @@ function TabContentWithNav({
   };
 
   ariaNavRef.current = () => {
-    navigation.navigate('Accueil', { screen: 'AriaScreen' });
+    navigation.navigate('Accueil', { screen: 'AriaHome' });
   };
 
   burgerNavRef.current = (screen: string) => {
@@ -490,6 +521,7 @@ export default function TabNavigator() {
   const [showBack, setShowBack] = useState(false);
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
+  const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
 
   // ── Topbar scroll-to-hide ─────────────────────────────
   const topbarTranslateY = useSharedValue(0);
@@ -505,6 +537,7 @@ export default function TabNavigator() {
     }
   }};
   stackTitleRef.current = { setTitle: setStackTitle };
+  currentAccueilRouteRef.current = { setRouteName: setCurrentAccueilRoute };
 
   // Topbar visibility logic:
   //   - Accueil tab root → 'home' mode
@@ -512,7 +545,9 @@ export default function TabNavigator() {
   //   - Notes / Agenda / Messagerie roots → hidden
   const isStackedScreen = showBack;
   const isAccueilRoot = activeTab === 'Accueil' && !isStackedScreen;
-  const showTopbar = isAccueilRoot || isStackedScreen;
+  const ariaInternalRoutes = new Set(['AriaHome', 'AriaConversation', 'AriaScreen']);
+  const hideTopbarForThisScreen = activeTab === 'Accueil' && ariaInternalRoutes.has(currentAccueilRoute);
+  const showTopbar = (isAccueilRoot || isStackedScreen) && !hideTopbarForThisScreen;
   const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : 'home';
 
   // ── Burger slide & scale ──────────────────────────────
@@ -526,14 +561,26 @@ export default function TabNavigator() {
   }, [burgerVisible]);
 
   const mainContentStyle = useAnimatedStyle(() => {
-    const scale = interpolate(progress.value, [0, 1], [1, 0.85]);
     const translateX = interpolate(progress.value, [0, 1], [0, SCREEN_WIDTH * 0.72]);
+    // Claude-style: slide only (no scale)
     const borderRadius = interpolate(progress.value, [0, 1], [0, 24]);
+    const shadowOpacity = interpolate(progress.value, [0, 1], [0, 0.18]);
+    const shadowRadius = interpolate(progress.value, [0, 1], [0, 28]);
     return {
-      transform: [{ scale }, { translateX }],
+      transform: [{ translateX }],
       borderRadius,
       overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 14 },
+      shadowOpacity,
+      shadowRadius,
+      elevation: 0,
     };
+  });
+
+  const mainDimStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(progress.value, [0, 1], [0, 0.22]);
+    return { opacity };
   });
 
   const topbarAnimatedStyle = useAnimatedStyle(() => ({
@@ -557,11 +604,74 @@ export default function TabNavigator() {
 
   const topbarScrollContextValue = { onScroll: handleAccueilScroll };
 
+  // ── Swipe gestures (swipe-back + burger open) ────────
+  // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
+  const showBackRef = useRef(showBack);
+  showBackRef.current = showBack;
+  const burgerVisibleRef = useRef(burgerVisible);
+  burgerVisibleRef.current = burgerVisible;
+  const activeTabRef2 = useRef(activeTab);
+  activeTabRef2.current = activeTab;
+  const currentRouteRef = useRef(currentAccueilRoute);
+  currentRouteRef.current = currentAccueilRoute;
+
+  const ARIA_ROUTES = new Set(['AriaHome', 'AriaConversation', 'AriaScreen']);
+
+  const swipePan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: (evt) => {
+        if (evt.nativeEvent.pageX >= 40) return false;
+        // Swipe-back : écran stacké
+        if (showBackRef.current) return true;
+        // Ouvrir burger : accueil racine, burger fermé, pas sur Aria
+        if (
+          activeTabRef2.current === 'Accueil' &&
+          !burgerVisibleRef.current &&
+          !ARIA_ROUTES.has(currentRouteRef.current)
+        ) return true;
+        return false;
+      },
+      onMoveShouldSetPanResponder: (_, g) => {
+        if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
+        if (showBackRef.current) return true;
+        if (
+          activeTabRef2.current === 'Accueil' &&
+          !burgerVisibleRef.current &&
+          !ARIA_ROUTES.has(currentRouteRef.current)
+        ) return true;
+        return false;
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dx > 80 && g.vx > 0.2) {
+          if (showBackRef.current) {
+            goBackRef.current?.();
+            setShowBack(false);
+          } else if (
+            activeTabRef2.current === 'Accueil' &&
+            !burgerVisibleRef.current &&
+            !ARIA_ROUTES.has(currentRouteRef.current)
+          ) {
+            setBurgerVisible(true);
+          }
+        }
+      },
+    })
+  ).current;
+
   return (
     <TopbarScrollContext.Provider value={topbarScrollContextValue}>
       <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
         {/* ── Burger menu — rendered behind, always mounted ── */}
-        <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: SCREEN_WIDTH * 0.72 }}>
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: SCREEN_WIDTH * 0.72,
+            backgroundColor: '#0F172A',
+          }}
+        >
           <BurgerMenuContent
             onClose={() => setBurgerVisible(false)}
             onNavigate={(screen) => {
@@ -576,7 +686,7 @@ export default function TabNavigator() {
         </View>
 
         {/* ── Main content — animated scale/translate ── */}
-        <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
+        <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
           <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
             {/* Topbar: only on Accueil root and stacked screens */}
             {showTopbar && (
@@ -619,6 +729,22 @@ export default function TabNavigator() {
               }}
             />
           </View>
+
+          {/* Subtle dim overlay when burger is open (keeps page visible) */}
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#000',
+              },
+              mainDimStyle,
+            ]}
+          />
 
           {/* Tap-to-close overlay when burger menu is open */}
           {burgerVisible && (

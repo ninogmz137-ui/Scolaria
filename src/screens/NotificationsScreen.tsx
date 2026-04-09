@@ -257,7 +257,7 @@ export default function NotificationsScreen() {
         navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' });
         break;
       case 'aria':
-        navigation.navigate('Accueil', { screen: 'AriaScreen' });
+        navigation.navigate('Accueil', { screen: 'AriaHome' });
         break;
     }
   }, [markRead, navigation]);

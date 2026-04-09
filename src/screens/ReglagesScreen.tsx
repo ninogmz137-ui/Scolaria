@@ -1,413 +1,395 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, Switch, View, Platform, Pressable as RNPressable, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
-  ScrollView,
-  Switch,
-  Platform,
-  View,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { ImagePlus, Check } from 'lucide-react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
-import DecorativeBlobs from '../components/DecorativeBlobs';
-import { Colors } from '../constants/colors';
-import { useI18n } from '../contexts/I18nContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
+  X,
+  Info,
+  User,
+  SlidersHorizontal,
+  Plug,
+  Shield,
+  Bell,
+  Link2,
+  Image as ImageIcon,
+  Smartphone,
+  LogOut,
+  ChevronRight,
+} from 'lucide-react-native';
+import { Box, Text, Pressable } from '../components/ui';
+import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../services/supabase';
-import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
+import { useWallpaper } from '../contexts/WallpaperContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+type RowType = 'navigate' | 'toggle';
 
-// ─── Helpers ─────────────────────────────────────────────
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
-}
-
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 0 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
-
-// ─── Types ────────────────────────────────────────────────
-
-interface SettingsRow {
-  icon: keyof typeof Ionicons.glyphMap;
+type RowDef = {
+  key: string;
   label: string;
-  sublabel?: string;
-  color: string;
-  type: 'navigate' | 'toggle' | 'value';
-  value?: string;
-  toggleKey?: string;
-}
-
-// ─── Section component ───────────────────────────────────
-
-function SettingsSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  useChildTheme(); // kept for future theme re-integration
-  const accentRgb = hexToRgb('#7C3AED');
-  return (
-    <Box className="mb-6">
-      <HStack className="items-center mb-2.5 px-1" style={{ gap: 8 }}>
-        <Box style={{ width: 4, height: 16, borderRadius: 2, backgroundColor: '#7C3AED' }} />
-        <Text
-          className="text-[13px] font-bold uppercase tracking-widest"
-          style={{ color: '#94A3B8' }}
-        >
-          {title}
-        </Text>
-      </HStack>
-      <Box
-        className="rounded-2xl overflow-hidden"
-        style={{
-          backgroundColor: '#FFFFFF',
-          borderWidth: 1.5,
-          borderColor: `rgba(${accentRgb},0.15)`,
-          ...CARD_SHADOW,
-        }}
-      >
-        {children}
-      </Box>
-    </Box>
-  );
-}
-
-// ─── Row component ───────────────────────────────────────
-
-function SettingsRowItem({
-  icon,
-  label,
-  sublabel,
-  color,
-  type,
-  value,
-  toggleValue,
-  onToggle,
-  onPress,
-  isLast,
-}: SettingsRow & {
+  Icon: React.ElementType;
+  type: RowType;
+  valueText?: string;
+  onPress?: () => void;
   toggleValue?: boolean;
   onToggle?: (v: boolean) => void;
-  onPress?: () => void;
-  isLast?: boolean;
-}) {
-  useChildTheme(); // kept for future theme re-integration
+  danger?: boolean;
+};
+
+function SectionLabel({ label }: { label: string }) {
+  return <Text style={styles.sectionLabel}>{label}</Text>;
+}
+
+function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
   return (
     <Pressable
-      className="flex-row items-center p-3.5"
-      style={[
-        { gap: 12 },
-        !isLast ? { borderBottomWidth: 1, borderBottomColor: 'rgba(203,213,225,0.5)' } : undefined,
+      onPress={row.type === 'navigate' ? row.onPress : undefined}
+      style={({ pressed }) => [
+        styles.row,
+        pressed && row.type === 'navigate' ? { opacity: 0.7 } : null,
+        !isLast && styles.rowSeparator,
       ]}
-      onPress={onPress}
+      accessibilityRole={row.type === 'toggle' ? 'switch' : 'button'}
+      accessibilityLabel={row.label}
     >
-      <Box
-        className="w-9 h-9 rounded-[10px] justify-center items-center"
-        style={{ backgroundColor: color + '20' }}
-      >
-        <Ionicons name={icon} size={18} color={color} />
-      </Box>
-      <VStack className="flex-1">
-        <Text className="text-[15px] font-semibold" style={{ color: '#0F172A' }}>{label}</Text>
-        {sublabel && <Text className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{sublabel}</Text>}
-      </VStack>
-      {type === 'navigate' && (
-        <Ionicons name="chevron-forward" size={18} color={Colors.gray} />
-      )}
-      {type === 'value' && <Text className="text-sm font-semibold" style={{ color: Colors.cyan }}>{value}</Text>}
-      {type === 'toggle' && (
+      <row.Icon
+        size={20}
+        color={row.danger ? '#EF4444' : '#0F172A'}
+        strokeWidth={2}
+      />
+      <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
+        {row.label}
+      </Text>
+      <View style={{ flex: 1 }} />
+      {row.valueText ? (
+        <Text style={styles.rowValue}>{row.valueText}</Text>
+      ) : null}
+      {row.type === 'navigate' ? (
+        <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
+      ) : (
         <Switch
-          value={toggleValue}
-          onValueChange={onToggle}
-          trackColor={{ false: Colors.darkGray, true: Colors.violet }}
-          thumbColor={toggleValue ? Colors.cyan : Colors.gray}
+          value={!!row.toggleValue}
+          onValueChange={row.onToggle}
+          trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
+          thumbColor="#FFFFFF"
         />
       )}
     </Pressable>
   );
 }
 
-// ─── Main screen ─────────────────────────────────────────
+export default function ReglagesScreen() {
+  const nav = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const { signOut, isDemo } = useAuth();
+  const { wallpaper, wallpapers, setWallpaperId, customUri, setCustomWallpaper } = useWallpaper();
 
-export default function ReglagesScreen({ navigation }: { navigation: any }) {
-  const { t } = useI18n();
-  useChildTheme(); // kept for future theme re-integration
-  const { user } = useAuth();
-  const { wallpaper, setWallpaperId, setCustomWallpaper, customUri } = useWallpaper();
-  const [notifications, setNotifications] = useState({
-    grades: true,
-    agenda: true,
-    aria: false,
-    checkin: true,
-  });
-
-  // Currently selected wallpaper id — custom takes priority visually
-  const selectedWallpaperId = customUri ? '__custom__' : wallpaper.id;
-
-  const pickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [9, 16],
-    });
-    if (!result.canceled && result.assets[0]) {
-      setCustomWallpaper(result.assets[0].uri);
-    }
-  };
-
-  // ─── Derive family info from auth user ────────────────────
-  const familyName = 'Famille ' + (user?.user_metadata?.family_name || 'Demo');
-  const familyEmail = user?.email || 'demo@scolaria.fr';
-  const memberSince = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-    : 'Septembre 2025';
-
-  // ─── Load notification preferences from Supabase ─────────
-  const loadPreferences = useCallback(async () => {
-    if (!user?.id) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('notification_preferences')
-      .eq('id', user.id)
-      .single();
-    if (data?.notification_preferences) {
-      setNotifications((prev) => ({ ...prev, ...data.notification_preferences }));
-    }
-  }, [user?.id]);
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
 
   useEffect(() => {
-    loadPreferences();
-  }, [loadPreferences]);
+    AsyncStorage.getItem('@scolaria:haptics').then((v) => {
+      if (v === '0') setHapticsEnabled(false);
+    });
+  }, []);
 
-  // ─── Persist notification preferences on each toggle ─────
-  const updateNotification = useCallback(
-    async (key: string, value: boolean) => {
-      const next = { ...notifications, [key]: value };
-      setNotifications(next);
-      if (!user?.id) return;
-      await supabase
-        .from('profiles')
-        .update({ notification_preferences: next })
-        .eq('id', user.id);
-    },
-    [notifications, user?.id],
-  );
+  const setHaptics = async (v: boolean) => {
+    setHapticsEnabled(v);
+    await AsyncStorage.setItem('@scolaria:haptics', v ? '1' : '0');
+  };
+
+  const groups = useMemo(() => {
+    const account: RowDef[] = [
+      { key: 'profil', label: 'Profil', Icon: User, type: 'navigate', onPress: () => nav.navigate('EditProfile') },
+    ];
+
+    const preferences: RowDef[] = [
+      { key: 'capacites', label: 'Capacités', Icon: SlidersHorizontal, type: 'navigate', onPress: () => nav.navigate('TextSize') },
+      { key: 'connecteurs', label: 'Connecteurs', Icon: Plug, type: 'navigate', onPress: () => nav.navigate('ExportDonnees') },
+      { key: 'autorisations', label: 'Autorisations', Icon: Shield, type: 'navigate', onPress: () => nav.navigate('PermissionsRGPD') },
+      { key: 'notifications', label: 'Notifications', Icon: Bell, type: 'navigate', onPress: () => nav.navigate('NotificationsSettings') },
+      { key: 'lang', label: 'Langue de la saisie vocale', Icon: Smartphone, type: 'navigate', valueText: 'FR', onPress: () => {} },
+    ];
+
+    const privacy: RowDef[] = [
+      { key: 'conf', label: 'Confidentialité', Icon: Shield, type: 'navigate', onPress: () => nav.navigate('RGPDScreen') },
+      { key: 'links', label: 'Liens partagés', Icon: Link2, type: 'navigate', onPress: () => nav.navigate('TransfertCode') },
+    ];
+
+    const system: RowDef[] = [
+      { key: 'haptics', label: 'Retour haptique', Icon: Smartphone, type: 'toggle', toggleValue: hapticsEnabled, onToggle: setHaptics },
+      { key: 'logout', label: isDemo ? 'Quitter la démo' : 'Se déconnecter', Icon: LogOut, type: 'navigate', onPress: () => signOut(), danger: true },
+    ];
+
+    return { account, preferences, privacy, system };
+  }, [hapticsEnabled, isDemo, nav, signOut]);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
-      {/* Family profile header */}
-      <Box className="mb-2">
-        <LinearGradient
-          colors={['#0B1628', '#7C3AEDDD']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 28, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
+    <View style={[styles.overlay, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 10 }]}>
+      {/* Tap outside to close */}
+      <RNPressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
+
+      {/* Card sheet */}
+      <View style={styles.sheet}>
+        {/* Header like Claude */}
+        <View style={styles.header}>
+          <RNPressable
+            onPress={() => nav.goBack()}
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.75 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Fermer"
+          >
+            <X size={18} color="#0F172A" strokeWidth={2.2} />
+          </RNPressable>
+
+          <Text style={styles.headerTitle}>Paramètres</Text>
+
+          <RNPressable
+            onPress={() => nav.navigate('APropos')}
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.75 }]}
+            accessibilityRole="button"
+            accessibilityLabel="À propos"
+          >
+            <Info size={18} color="#0F172A" strokeWidth={2.2} />
+          </RNPressable>
+        </View>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 22 }}
+          style={{ flex: 1 }}
         >
-          <Box
-            className="w-16 h-16 rounded-full justify-center items-center mb-2.5"
-            style={{ borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(255,255,255,0.10)' }}
-          >
-            <Text className="text-[30px]">🏠</Text>
-          </Box>
-          <Text className="text-[22px] font-black mb-0.5" style={{ color: '#FFFFFF' }}>{familyName}</Text>
-          <Text className="text-[13px] mb-3" style={{ color: 'rgba(255,255,255,0.7)' }}>{familyEmail}</Text>
-          <HStack
-            className="items-center rounded-[20px] px-3.5 py-1.5"
-            style={{ gap: 6, backgroundColor: 'rgba(255,255,255,0.12)' }}
-          >
-            <Ionicons name="diamond" size={14} color="#FBBF24" />
-            <Text className="text-[13px] font-bold" style={{ color: '#FBBF24' }}>Premium</Text>
-            <Text className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              {t('settings.since')} {memberSince}
-            </Text>
-          </HStack>
-        </LinearGradient>
-      </Box>
+          <SectionLabel label="COMPTE" />
+          <View style={styles.group}>
+            {groups.account.map((r, idx) => (
+              <Row key={r.key} row={r} isLast={idx === groups.account.length - 1} />
+            ))}
+          </View>
 
-      <DecorativeBlobs accent="#7C3AED" />
-
-      <Box className="px-5">
-        {/* Wallpaper section */}
-        <SettingsSection title="FOND D'ÉCRAN">
-          <View style={{ padding: 12 }}>
-            {/* Gallery button */}
-            <TouchableOpacity
-              onPress={pickFromGallery}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#F1F5F9',
-                borderRadius: 12,
-                padding: 12,
-                marginBottom: 12,
-                gap: 10,
-              }}
+          <SectionLabel label="FONDS D'ÉCRAN" />
+          <View style={styles.wallpaperGroup}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.wallpaperRow}
             >
-              <ImagePlus size={20} color="#7C3AED" strokeWidth={2} />
-              <Text style={{ fontFamily: 'DMSans_500Medium', fontSize: 14, color: '#7C3AED' }}>
-                Choisir depuis ma galerie
-              </Text>
-            </TouchableOpacity>
-
-            {/* Wallpaper grid — 3 columns */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {WALLPAPERS.map((wp) => {
-                const isSelected = selectedWallpaperId === wp.id;
-                // Column width: screen - horizontal padding (px-5 = 20*2) - section padding (12*2) - gaps (8*2)
-                const colWidth = (SCREEN_WIDTH - 40 - 24 - 16) / 3;
+              {wallpapers.map((wp) => {
+                const isActive = !customUri && wallpaper.id === wp.id;
                 return (
-                  <TouchableOpacity
+                  <RNPressable
                     key={wp.id}
                     onPress={() => setWallpaperId(wp.id)}
-                    style={{
-                      width: colWidth,
-                      aspectRatio: 0.7,
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                      borderWidth: isSelected ? 2 : 0,
-                      borderColor: '#7C3AED',
-                    }}
+                    style={({ pressed }) => [
+                      styles.wallpaperTile,
+                      isActive && styles.wallpaperTileActive,
+                      pressed && { opacity: 0.86 },
+                    ]}
                     accessibilityRole="radio"
-                    accessibilityState={{ checked: isSelected }}
+                    accessibilityState={{ checked: isActive }}
                     accessibilityLabel={wp.label}
                   >
                     {wp.imageUrl ? (
-                      <Image
-                        source={{ uri: wp.imageUrl }}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                      />
+                      <Image source={{ uri: wp.imageUrl }} style={styles.wallpaperTileImage} />
                     ) : (
-                      <LinearGradient
-                        colors={wp.colors as [string, string, ...string[]]}
-                        style={{ width: '100%', height: '100%' }}
-                      />
+                      Platform.OS === 'web' ? (
+                        // @ts-ignore — web-only CSS property
+                        <View
+                          style={[
+                            styles.wallpaperTileImage,
+                            { backgroundImage: `linear-gradient(135deg, ${wp.colors[0]}, ${wp.colors[wp.colors.length - 1]})` } as any,
+                          ]}
+                        />
+                      ) : (
+                        <LinearGradient
+                          colors={wp.colors as [string, string, ...string[]]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.wallpaperTileImage}
+                        />
+                      )
                     )}
-                    {isSelected && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 4,
-                          right: 4,
-                          width: 20,
-                          height: 20,
-                          borderRadius: 10,
-                          backgroundColor: '#7C3AED',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          elevation: 0,
-                        }}
-                      >
-                        <Check size={12} color="#FFFFFF" strokeWidth={2.5} />
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                  </RNPressable>
                 );
               })}
-            </View>
 
-            {/* Custom wallpaper preview if set */}
-            {customUri && (
-              <View style={{ marginTop: 8 }}>
-                <Text
-                  style={{
-                    fontFamily: 'DMSans_500Medium',
-                    fontSize: 12,
-                    color: '#64748B',
-                    marginBottom: 6,
-                  }}
-                >
-                  Photo personnalisée active
-                </Text>
-                <View
-                  style={{
-                    width: '100%',
-                    height: 80,
-                    borderRadius: 12,
-                    overflow: 'hidden',
-                    borderWidth: 2,
-                    borderColor: '#7C3AED',
-                  }}
-                >
-                  <Image
-                    source={{ uri: customUri }}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode="cover"
-                  />
-                </View>
+              {/* Custom tile placeholder (kept minimal; actual pick can be wired later) */}
+              <View style={[styles.wallpaperTile, styles.wallpaperCustomTile]}>
+                <ImageIcon size={18} color="#64748B" strokeWidth={2} />
               </View>
-            )}
+            </ScrollView>
           </View>
-        </SettingsSection>
 
-        {/* Notifications */}
-        <SettingsSection title={t('settings.notifications')}>
-          <SettingsRowItem
-            icon="school"
-            label={t('settings.notifGrades')}
-            sublabel={t('settings.notifGradesSub')}
-            color={Colors.cyan}
-            type="toggle"
-            toggleValue={notifications.grades}
-            onToggle={(v) => updateNotification('grades', v)}
-          />
-          <SettingsRowItem
-            icon="calendar"
-            label={t('settings.notifAgenda')}
-            sublabel={t('settings.notifAgendaSub')}
-            color={Colors.violet}
-            type="toggle"
-            toggleValue={notifications.agenda}
-            onToggle={(v) => updateNotification('agenda', v)}
-          />
-          <SettingsRowItem
-            icon="sparkles"
-            label={t('settings.notifAria')}
-            sublabel={t('settings.notifAriaSub')}
-            color={Colors.pink}
-            type="toggle"
-            toggleValue={notifications.aria}
-            onToggle={(v) => updateNotification('aria', v)}
-          />
-          <SettingsRowItem
-            icon="heart"
-            label={t('settings.notifCheckin')}
-            sublabel={t('settings.notifCheckinSub')}
-            color={Colors.orange}
-            type="toggle"
-            toggleValue={notifications.checkin}
-            onToggle={(v) => updateNotification('checkin', v)}
-            isLast
-          />
-        </SettingsSection>
+          <SectionLabel label="PRÉFÉRENCES" />
+          <View style={styles.group}>
+            {groups.preferences.map((r, idx) => (
+              <Row key={r.key} row={r} isLast={idx === groups.preferences.length - 1} />
+            ))}
+          </View>
 
-        {/* App info */}
-        <VStack className="items-center py-6" style={{ gap: 4 }}>
-          <Text className="text-base font-extrabold" style={{ color: Colors.violet }}>Scolaria</Text>
-          <Text className="text-[13px]" style={{ color: '#94A3B8' }}>{t('common.version')} 1.0.0</Text>
-          <Text className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>
-            © 2026 Scolaria · Passeport scolaire numérique
-          </Text>
-        </VStack>
+          <SectionLabel label="CONFIDENTIALITÉ" />
+          <View style={styles.group}>
+            {groups.privacy.map((r, idx) => (
+              <Row key={r.key} row={r} isLast={idx === groups.privacy.length - 1} />
+            ))}
+          </View>
 
-        <Box className="h-10" />
-      </Box>
-    </ScrollView>
+          <SectionLabel label="SYSTÈME" />
+          <View style={styles.group}>
+            {groups.system.map((r, idx) => (
+              <Row key={r.key} row={r} isLast={idx === groups.system.length - 1} />
+            ))}
+          </View>
+
+          <Box className="items-center pt-4">
+            <Text style={styles.footerBrand}>Scolaria</Text>
+            <Text style={styles.footerMeta}>Version 1.0.0</Text>
+          </Box>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.22)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    marginHorizontal: 12,
+    marginBottom: 10,
+    height: '88%',
+    borderRadius: 28,
+    backgroundColor: '#EEF2F7',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
+      android: { elevation: 0 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
+    }),
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    paddingTop: 10,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 12 },
+      android: { elevation: 0 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 12 },
+    }),
+  },
+  headerTitle: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 16,
+    color: '#0F172A',
+  },
+  sectionLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: 'rgba(15,23,42,0.45)',
+    textTransform: 'uppercase',
+    paddingHorizontal: 4,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  group: {
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    overflow: 'hidden',
+    marginBottom: 14,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 16 },
+      android: { elevation: 0 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 16 },
+    }),
+  },
+  wallpaperGroup: {
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    overflow: 'hidden',
+    marginBottom: 14,
+  },
+  wallpaperRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  wallpaperTile: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.10)',
+    backgroundColor: 'rgba(148,163,184,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  wallpaperTileActive: {
+    borderWidth: 2,
+    borderColor: '#6366F1',
+  },
+  wallpaperTileImage: {
+    width: '100%',
+    height: '100%',
+  },
+  wallpaperCustomTile: {
+    borderStyle: 'dashed',
+    borderColor: 'rgba(100,116,139,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  rowSeparator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(15,23,42,0.08)',
+  },
+  rowLabel: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 15,
+    color: '#0F172A',
+  },
+  rowValue: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#94A3B8',
+    marginRight: 8,
+  },
+  footerBrand: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 16,
+    color: '#6366F1',
+  },
+  footerMeta: {
+    marginTop: 4,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#94A3B8',
+  },
+});

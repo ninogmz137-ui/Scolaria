@@ -1,48 +1,33 @@
 import { View, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles } from '@getpapillon/papicons';
 
 interface Props {
   size?: number;
 }
 
-/** Aria gradient avatar — violet→cyan circle with Papicons Sparkles icon. */
+/** Aria avatar — white glass circle with violet Papicons Sparkles icon. */
 export default function AriaAvatar({ size = 32 }: Props) {
   const half = size / 2;
-  const iconSize = Math.round(size * 0.5);
-
-  if (Platform.OS === 'web') {
-    return (
-      <View
-        style={{
-          width: size,
-          height: size,
-          borderRadius: half,
-          alignItems: 'center',
-          justifyContent: 'center',
-          // @ts-ignore — web-only CSS property
-          backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
-        }}
-      >
-        <Sparkles size={iconSize} color="#FFFFFF" />
-      </View>
-    );
-  }
+  const iconSize = Math.round(size * 0.52);
 
   return (
-    <LinearGradient
-      colors={['#7C3AED', '#06B6D4']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+    <View
       style={{
         width: size,
         height: size,
         borderRadius: half,
+        backgroundColor: 'rgba(255,255,255,0.70)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.85)',
         alignItems: 'center',
         justifyContent: 'center',
+        ...Platform.select({
+          ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 18 },
+          android: { elevation: 0 },
+        }),
       }}
     >
-      <Sparkles size={iconSize} color="#FFFFFF" />
-    </LinearGradient>
+      <Sparkles size={iconSize} color="#7C3AED" />
+    </View>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * LoginScreen — Premium cinematic login.
+ * LoginScreen — Cinematic login.
  *
  * Dark navy gradient + violet/cyan halos.
  * Inline logo "Scolar" white + "ia" cyan + sparkle.

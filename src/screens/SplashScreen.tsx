@@ -1,5 +1,5 @@
 /**
- * SplashScreen — Premium cinematic entrance.
+ * SplashScreen — Cinematic entrance.
  *
  * Same dark gradient + halos as login for seamless transition.
  * Logo "Scolar" white + "ia" cyan + sparkle, fade-in with translateY.

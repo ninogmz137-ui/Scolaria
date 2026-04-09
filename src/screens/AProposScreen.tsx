@@ -111,7 +111,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
     Icon: X,
     color: Colors.red,
     content:
-      'Scolaria ne contient aucune publicité, aucun contenu sponsorisé, et aucun mécanisme de gamification addictif. Le modèle économique repose sur l\'abonnement transparent, jamais sur la monétisation des données.',
+      'Scolaria ne contient aucune publicité, aucun contenu sponsorisé, et aucun mécanisme de gamification addictif. Le modèle économique ne repose jamais sur la monétisation des données.',
   },
 ];
 

@@ -36,12 +36,11 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Pressable } from './ui';
-import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
+import { Home, Grades, Calendar, TextBubble, Sparkles as AriaIcon } from '@getpapillon/papicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import AriaSparkleIcon from './AriaSparkleIcon';
 
 // ─── Tab bar height export ───────────────────────────────
 
@@ -230,9 +229,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
     setPopoverVisible((prev) => !prev);
   };
 
-  // Aria tap → navigate to AriaScreen
+  // Aria tap → navigate to AriaHome
   const handleAriaPress = () => {
-    navigation.navigate('Accueil', { screen: 'AriaScreen' } as any);
+    navigation.navigate('Accueil', { screen: 'AriaHome' } as any);
   };
 
   // Bottom offset: safe area + spacing
@@ -325,7 +324,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           accessibilityRole="button"
           accessibilityLabel="Aria"
         >
-          <AriaSparkleIcon size={28} noGradient gradientSparkles />
+          <AriaIcon size={26} color="#7C3AED" />
         </Pressable>
       </View>
     </>

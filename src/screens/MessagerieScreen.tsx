@@ -1,33 +1,50 @@
 /**
- * MessagerieScreen — Unified message feed merging Notifications + Cahier de Liaison.
+ * MessagerieScreen — Unified inbox, iOS-cinematic style.
  *
- * Structure:
- *   1. 2x2 category cards grid (Messages | École | Absences | Aria)
- *   2. Chronological feed grouped into "Aujourd'hui" and "Plus tôt" sections
- *
- * The FAB opens a bottom sheet with 3 actions:
- *   1. Envoyer un message à l'enseignant (coming soon)
- *   2. Contacter l'établissement (coming soon)
- *   3. Signaler une absence → navigate to SignalerAbsenceScreen
+ * Key UX:
+ * - Header + filter chips
+ * - Grouped list: one glass container per group
+ * - Context actions: iOS-like bottom sheet with blur + quick actions
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
   Modal,
   Animated,
   Platform,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { MessageCirclePlus, ChevronRight, MessageCircle, Home, Calendar, FileText, GraduationCap, AlertTriangle, Mail, X, Sparkles } from 'lucide-react-native';
+import { BlurView } from 'expo-blur';
+import {
+  MoreHorizontal,
+  Reply,
+  EyeOff,
+  Eye,
+  Share2,
+  User,
+  CheckCircle,
+  Archive,
+  Trash2,
+  MessageCirclePlus,
+  MessageCircle,
+  School,
+  AlertCircle,
+  Sparkles,
+  Search,
+  X,
+  ChevronDown,
+  Check,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
@@ -37,12 +54,12 @@ import { useDemoData } from '../contexts/DemoContext';
 // ─── Constants ────────────────────────────────────────────
 
 const ACCENT = '#7C3AED';
-/** Matches FLOATING_TAB_BAR_HEIGHT in FloatingTabBar.tsx */
-const TAB_BAR_H = 100;
+const SHEET_BG = 'rgba(30,36,60,0.97)';
+const IOS_DESTRUCTIVE = '#FF453A';
 
 // ─── Types ────────────────────────────────────────────────
 
-type MessagerieItemType = 'liaison' | 'note' | 'agenda' | 'aria' | 'absence';
+type MessagerieItemType = 'liaison' | 'ecole' | 'note' | 'agenda' | 'aria' | 'absence';
 
 interface MessagerieItem {
   id: string;
@@ -55,24 +72,9 @@ interface MessagerieItem {
   _isoDate: string;
 }
 
-// ─── Type config — lucide icons and colors ────────────────
+type FilterId = 'all' | 'unread' | 'messages' | 'ecole' | 'absences';
 
-const TYPE_CONFIG: Record<MessagerieItemType, { Icon: React.ElementType; color: string }> = {
-  liaison: { Icon: FileText,       color: '#FF8C42' },
-  note:    { Icon: GraduationCap,  color: '#A78BFA' },
-  agenda:  { Icon: Calendar,       color: '#10B981' },
-  absence: { Icon: AlertTriangle,  color: '#EF4444' },
-  aria:    { Icon: Sparkles,       color: '#7C3AED' },
-};
-
-// ─── FAB action config ────────────────────────────────────
-
-interface FabAction {
-  Icon: React.ElementType;
-  color: string;
-  label: string;
-  onPress: () => void;
-}
+type Teacher = { id: string; name: string; subject: string };
 
 // ─── Mock data fallback ───────────────────────────────────
 
@@ -116,6 +118,15 @@ function getMockItems(): { today: MessagerieItem[]; earlier: MessagerieItem[] } 
   ];
 
   const allEarlier: MessagerieItem[] = [
+    {
+      id: 'mock-ecole-1',
+      type: 'ecole',
+      title: "Annonce de l'école",
+      message: 'Réunion parents-professeurs jeudi à 18h.',
+      time: 'Mar.',
+      read: true,
+      _isoDate: getPastIso(3),
+    },
     {
       id: 'mock-4',
       type: 'note',
@@ -178,46 +189,103 @@ function isToday(isoString: string): boolean {
   return isoString.split('T')[0] === now.toISOString().split('T')[0];
 }
 
+function isThisWeek(isoString: string): boolean {
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / 86400000);
+  return diffDays > 0 && diffDays <= 7;
+}
+
+function groupItems(items: MessagerieItem[]) {
+  const groups: { label: string; items: MessagerieItem[] }[] = [
+    { label: "Aujourd'hui", items: [] },
+    { label: 'Cette semaine', items: [] },
+    { label: 'Plus tôt', items: [] },
+  ];
+  for (const it of items) {
+    if (isToday(it._isoDate)) groups[0].items.push(it);
+    else if (isThisWeek(it._isoDate)) groups[1].items.push(it);
+    else groups[2].items.push(it);
+  }
+  return groups.filter((g) => g.items.length > 0);
+}
+
+const TYPE_COLORS: Record<MessagerieItemType, string> = {
+  liaison: '#1A2340',
+  ecole: '#06B6D4',
+  note: '#7C3AED',
+  agenda: '#10B981',
+  absence: '#EF4444',
+  aria: '#7C3AED',
+};
+
+const TYPE_BADGE_LABEL: Record<MessagerieItemType, string> = {
+  liaison: 'Prof',
+  ecole: 'École',
+  note: 'Note',
+  agenda: 'Agenda',
+  absence: 'Abs.',
+  aria: 'Aria',
+};
+
+const UNREAD_DOT_COLOR = '#3B82F6';
+
+const FILTER_LABELS: Record<FilterId, string> = {
+  all: 'Tout',
+  unread: 'Non lus',
+  messages: 'Messages',
+  ecole: 'École',
+  absences: 'Absences',
+};
+
+const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
+  { id: 'all', label: 'Tout' },
+  { id: 'unread', label: 'Non lus' },
+  { id: 'messages', label: 'Messages' },
+  { id: 'ecole', label: 'École' },
+  { id: 'absences', label: 'Absences' },
+];
+
+const AVATAR_GRADIENTS: Record<MessagerieItemType, [string, string]> = {
+  liaison: ['#1A2340', '#334155'],
+  ecole: ['#06B6D4', '#0891B2'],
+  note: ['#7C3AED', '#9D5CF7'],
+  agenda: ['#10B981', '#34D399'],
+  absence: ['#F97316', '#EF4444'],
+  aria: ['#7C3AED', '#06B6D4'],
+};
+
 // ─── Component ────────────────────────────────────────────
 
 export default function MessagerieScreen() {
-  const { selectedChild } = useActiveChild();
-  const { isDemoMode, getMessages: getDemoMessages, getMots: getDemoMots } = useDemoData();
   const navigation = useNavigation<any>();
+  const { selectedChild } = useActiveChild();
+  const {
+    isDemoMode,
+    getMessages: getDemoMessages,
+    getMots: getDemoMots,
+    getTeachers: getDemoTeachers,
+  } = useDemoData();
   const insets = useSafeAreaInsets();
-
-  const TOPBAR_H = insets.top + 56;
 
   // ─── State ──────────────────────────────────────────────
 
   const initMock = getMockItems();
   const [todayItems, setTodayItems]     = useState<MessagerieItem[]>(initMock.today);
   const [earlierItems, setEarlierItems] = useState<MessagerieItem[]>(initMock.earlier);
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [fabOpen, setFabOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterId>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
-  // Bottom sheet slide animation
-  const sheetAnim = useRef(new Animated.Value(320)).current;
+  const searchAnim = useRef(new Animated.Value(0)).current;
+  const [selectedItem, setSelectedItem] = useState<MessagerieItem | null>(null);
+  const [composerVisible, setComposerVisible] = useState(false);
 
-  // ─── FAB sheet helpers ───────────────────────────────────
-
-  const openFab = useCallback(() => {
-    setFabOpen(true);
-    Animated.spring(sheetAnim, {
-      toValue: 0,
-      tension: 80,
-      friction: 12,
-      useNativeDriver: true,
-    }).start();
-  }, [sheetAnim]);
-
-  const closeFab = useCallback(() => {
-    Animated.timing(sheetAnim, {
-      toValue: 320,
-      duration: 220,
-      useNativeDriver: true,
-    }).start(() => setFabOpen(false));
-  }, [sheetAnim]);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const composerAnim = useRef(new Animated.Value(0)).current;
 
   // ─── Data loading ────────────────────────────────────────
 
@@ -231,7 +299,16 @@ export default function MessagerieScreen() {
       for (const msg of messages) {
         items.push({
           id: `msg-${msg.id}`,
-          type: msg.type === 'liaison' ? 'liaison' : msg.type === 'absence' ? 'absence' : msg.type === 'note' ? 'note' : 'aria',
+          type:
+            msg.type === 'ecole'
+              ? 'ecole'
+              : msg.type === 'liaison'
+                ? 'liaison'
+                : msg.type === 'absence'
+                  ? 'absence'
+                  : msg.type === 'note'
+                    ? 'note'
+                    : 'aria',
           title: msg.sender,
           message: msg.preview,
           time: formatTime(msg.date),
@@ -404,12 +481,20 @@ export default function MessagerieScreen() {
     setEarlierItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
+  const toggleRead = useCallback((id: string) => {
+    setTodayItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+    setEarlierItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+  }, []);
+
   const handleItemPress = useCallback(
     (item: MessagerieItem) => {
       markRead(item.id);
       switch (item.type) {
         case 'liaison':
           navigation.navigate('MessagesListScreen');
+          break;
+        case 'ecole':
+          navigation.navigate('EcoleListScreen');
           break;
         case 'note':
           navigation.navigate('Notes');
@@ -421,7 +506,7 @@ export default function MessagerieScreen() {
           navigation.navigate('SignalerAbsence');
           break;
         case 'aria':
-          navigation.navigate('MessagerieAriaScreen');
+          navigation.navigate('AriaHome');
           break;
       }
     },
@@ -430,375 +515,551 @@ export default function MessagerieScreen() {
 
   // ─── Derived values ──────────────────────────────────────
 
-  const allItems = [...todayItems, ...earlierItems];
+  const allItems = useMemo(() => {
+    const merged = [...todayItems, ...earlierItems];
+    merged.sort((a, b) => (b._isoDate || '').localeCompare(a._isoDate || ''));
+    return merged;
+  }, [todayItems, earlierItems]);
 
-  const unreadCount =
-    todayItems.filter((n) => !n.read).length +
-    earlierItems.filter((n) => !n.read).length;
+  const unreadCount = useMemo(
+    () => allItems.filter((n) => !n.read).length,
+    [allItems],
+  );
 
-  const hasUnread = unreadCount > 0;
+  const filterItems = useCallback((items: MessagerieItem[]) => {
+    switch (activeFilter) {
+      case 'unread':
+        return items.filter((i) => !i.read);
+      case 'messages':
+        return items.filter((i) => i.type === 'liaison');
+      case 'ecole':
+        return items.filter((i) => i.type === 'ecole');
+      case 'absences':
+        return items.filter((i) => i.type === 'absence');
+      case 'all':
+      default:
+        return items;
+    }
+  }, [activeFilter]);
 
-  // Category counts
-  const messagesCount = allItems.filter((n) => n.type === 'liaison').length;
-  const absencesCount = allItems.filter((n) => n.type === 'absence').length;
-  const ariaUnreadCount = allItems.filter((n) => n.type === 'aria' && !n.read).length;
+  const visibleItems = useMemo(() => {
+    const filtered = filterItems(allItems);
+    if (!searchQuery.trim()) return filtered;
+    const q = searchQuery.trim().toLowerCase();
+    return filtered.filter(
+      (i) => i.title.toLowerCase().includes(q) || i.message.toLowerCase().includes(q),
+    );
+  }, [allItems, filterItems, searchQuery]);
+  const groups = useMemo(() => groupItems(visibleItems), [visibleItems]);
 
-  // Double-filter: strip any items with empty/null/sentinel title or message at render time
-  const safeFilter = (arr: MessagerieItem[]) =>
-    arr.filter((n) => {
-      const t = typeof n.title   === 'string' ? n.title.trim()   : '';
-      const m = typeof n.message === 'string' ? n.message.trim() : '';
-      if (!t || !m) return false;
-      if (t === 'undefined' || t === 'null') return false;
-      if (m === 'undefined' || m === 'null') return false;
-      // Reject messages that are only separators — result of failed data interpolation
-      if (/^[\s\u2014\-\/]+$/.test(m)) return false;
-      return true;
+  const FILTERS = useMemo(() => ([
+    { id: 'all' as const, label: 'Tout', icon: null, count: allItems.length },
+    { id: 'unread' as const, label: 'Non lus', icon: Eye, count: unreadCount },
+    { id: 'messages' as const, label: 'Messages', icon: MessageCircle, count: allItems.filter((i) => i.type === 'liaison').length },
+    { id: 'ecole' as const, label: 'École', icon: School, count: allItems.filter((i) => i.type === 'ecole').length },
+    { id: 'absences' as const, label: 'Absences', icon: AlertCircle, count: allItems.filter((i) => i.type === 'absence').length },
+  ]), [allItems, unreadCount]);
+
+  const openSheet = useCallback((item: MessagerieItem) => {
+    setSelectedItem(item);
+    setSheetVisible(true);
+    Animated.spring(slideAnim, {
+      toValue: 1,
+      tension: 65,
+      friction: 11,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
+
+  const closeSheet = useCallback(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => {
+      setSheetVisible(false);
+      setSelectedItem(null);
     });
-  const visibleToday   = safeFilter(showUnreadOnly ? todayItems.filter((n) => !n.read) : todayItems);
-  const visibleEarlier = safeFilter(showUnreadOnly ? earlierItems.filter((n) => !n.read) : earlierItems);
-  const isEmpty        = visibleToday.length === 0 && visibleEarlier.length === 0;
+  }, [slideAnim]);
 
-  // ─── FAB actions ─────────────────────────────────────────
+  const handleShare = useCallback(async () => {
+    if (!selectedItem) return;
+    try {
+      await Share.share({
+        message: `${selectedItem.title}\n\n${selectedItem.message}`,
+      });
+    } catch {}
+    closeSheet();
+  }, [closeSheet, selectedItem]);
 
-  const fabActions: FabAction[] = [
-    {
-      Icon: MessageCircle,
-      color: ACCENT,
-      label: "Envoyer un message à l'enseignant",
-      onPress: () => {
-        closeFab();
-        setTimeout(
-          () => navigation.navigate('MessagesListScreen'),
-          300,
-        );
-      },
-    },
-    {
-      Icon: Mail,
-      color: '#10B981',
-      label: "Contacter l'établissement",
-      onPress: () => {
-        closeFab();
-        setTimeout(
-          () => navigation.navigate('EcoleListScreen'),
-          300,
-        );
-      },
-    },
-    {
-      Icon: AlertTriangle,
-      color: '#EF4444',
-      label: 'Signaler une absence',
-      onPress: () => {
-        closeFab();
-        setTimeout(() => navigation.navigate('SignalerAbsence'), 300);
-      },
-    },
-  ];
+  const handleDelete = useCallback(() => {
+    if (!selectedItem) return;
+    const id = selectedItem.id;
+    setTodayItems((prev) => prev.filter((n) => n.id !== id));
+    setEarlierItems((prev) => prev.filter((n) => n.id !== id));
+    closeSheet();
+  }, [closeSheet, selectedItem]);
+
+  const teachers: Teacher[] = useMemo(() => {
+    if (isDemoMode) {
+      return getDemoTeachers(selectedChild.id).map((t) => ({
+        id: t.id,
+        name: t.name,
+        subject: `${t.role} — ${t.class}`,
+      }));
+    }
+    // Fallback list when not in demo (until real data wiring)
+    return [
+      { id: 't-1', name: 'Mme Dupont', subject: 'Professeur principal — CM2 B' },
+      { id: 't-2', name: 'M. Martin', subject: 'SVT — 4e C' },
+      { id: 't-3', name: 'Mme Lambert', subject: 'Français — 4e C' },
+    ];
+  }, [getDemoTeachers, isDemoMode, selectedChild.id]);
+
+  const toggleSearch = useCallback(() => {
+    const next = !searchVisible;
+    setSearchVisible(next);
+    if (!next) setSearchQuery('');
+    Animated.timing(searchAnim, {
+      toValue: next ? 1 : 0,
+      duration: 220,
+      useNativeDriver: false,
+    }).start();
+  }, [searchAnim, searchVisible]);
+
+  const openComposer = useCallback(() => {
+    setComposerVisible(true);
+    Animated.spring(composerAnim, {
+      toValue: 1,
+      tension: 70,
+      friction: 11,
+      useNativeDriver: true,
+    }).start();
+  }, [composerAnim]);
+
+  const closeComposer = useCallback(() => {
+    Animated.timing(composerAnim, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setComposerVisible(false));
+  }, [composerAnim]);
 
   // ─── Render ───────────────────────────────────────────────
 
   return (
-    <View style={[styles.root, { backgroundColor: '#F2F2F7' }]}>
+    <View style={styles.root}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
       >
-        {/* ── Page header ── */}
-        <View style={styles.pageHeader}>
-          <Text style={styles.pageTitle}>Messagerie</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>Messagerie</Text>
+            <Text style={styles.headerSub}>
+              {unreadCount > 0 ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}` : 'Tout est à jour'}
+            </Text>
+          </View>
+
+          {/* Search icon */}
           <Pressable
-            onPress={() => setShowUnreadOnly((v) => !v)}
-            style={({ pressed }) => [styles.bellButton, { opacity: pressed ? 0.7 : 1 }]}
+            onPress={toggleSearch}
+            style={({ pressed }) => [styles.headerIconBtn, searchVisible && styles.headerIconBtnActive, pressed && { opacity: 0.75 }]}
+            hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={
-              showUnreadOnly ? 'Afficher tous les messages' : 'Afficher uniquement les non lus'
-            }
+            accessibilityLabel="Rechercher"
           >
-            <Mail size={22} color={hasUnread ? ACCENT : '#CCCCCC'} strokeWidth={2} />
-            {hasUnread && <View style={styles.bellDot} />}
+            {searchVisible
+              ? <X size={18} color="#1A2340" strokeWidth={2.2} />
+              : <Search size={18} color="#1A2340" strokeWidth={2.2} />
+            }
+          </Pressable>
+
+          {/* Filter dropdown button */}
+          <Pressable
+            onPress={() => setDropdownVisible((v) => !v)}
+            style={({ pressed }) => [styles.filterDropdownBtn, dropdownVisible && styles.filterDropdownBtnActive, pressed && { opacity: 0.82 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Filtrer"
+          >
+            <Text style={[styles.filterDropdownLabel, dropdownVisible && { color: '#FFFFFF' }]}>
+              {FILTER_LABELS[activeFilter]}
+            </Text>
+            <ChevronDown
+              size={13}
+              color={dropdownVisible ? '#FFFFFF' : '#1A2340'}
+              strokeWidth={2.5}
+              style={{ transform: [{ rotate: dropdownVisible ? '180deg' : '0deg' }] }}
+            />
           </Pressable>
         </View>
 
-        {/* Subtitle */}
-        <Text style={styles.subtitle}>
-          {unreadCount > 0
-            ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
-            : 'Tout est à jour'}
-        </Text>
-
-        {/* ── Category cards (stacked) ── */}
-        <View style={styles.categoryStack}>
-          {/* Messages */}
-          <CategoryCardRow
-            onPress={() => navigation.navigate('MessagesListScreen')}
-            gradientColors={['#1A2340', '#334155']}
-            iconContent={<MessageCircle size={20} color="#FFFFFF" strokeWidth={2} />}
-            label="Messages"
-            sublabel={messagesCount > 0 ? `${messagesCount} conversation${messagesCount > 1 ? 's' : ''}` : 'Aucune conversation'}
-            time="14h30"
-            badgeCount={allItems.filter((n) => n.type === 'liaison' && !n.read).length}
-          />
-          {/* École */}
-          <CategoryCardRow
-            onPress={() => navigation.navigate('EcoleListScreen')}
-            gradientColors={['#F59E0B', '#F97316']}
-            iconContent={<Home size={20} color="#FFFFFF" strokeWidth={2} />}
-            label="École"
-            sublabel="Infos & annonces"
-            time=""
-            badgeCount={0}
-          />
-          {/* Absences */}
-          <CategoryCardRow
-            onPress={() => navigation.navigate('AbsencesListScreen')}
-            gradientColors={['#64748B', '#94A3B8']}
-            iconContent={<Calendar size={20} color="#FFFFFF" strokeWidth={2} />}
-            label="Absences"
-            sublabel={absencesCount > 0 ? `${absencesCount} signalée${absencesCount > 1 ? 's' : ''}` : 'Historique'}
-            time=""
-            badgeCount={absencesCount}
-          />
-          {/* Aria */}
-          <CategoryCardRow
-            onPress={() => navigation.navigate('MessagerieAriaScreen')}
-            gradientColors={['#7C3AED', '#06B6D4']}
-            iconContent={<Text style={{ color: '#FFFFFF', fontSize: 16 }}>✦</Text>}
-            isCircle
-            label="Aria"
-            sublabel="Synthèses & conseils"
-            time=""
-            badgeCount={ariaUnreadCount}
-          />
-        </View>
-
-        {/* ── Empty state ── */}
-        {isEmpty && (
-          <View style={styles.emptyState}>
-            <Mail size={48} color="#94A3B8" strokeWidth={1.5} />
-            <Text style={styles.emptyText}>Aucun message</Text>
+        {/* Animated search bar */}
+        <Animated.View
+          style={[
+            styles.searchBarAnimated,
+            {
+              maxHeight: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 56] }),
+              opacity: searchAnim,
+              marginBottom: searchAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 10] }),
+            },
+          ]}
+          pointerEvents={searchVisible ? 'auto' : 'none'}
+        >
+          <View style={styles.searchBarInner}>
+            <Search size={15} color="#94A3B8" strokeWidth={2} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Rechercher dans Messagerie…"
+              placeholderTextColor="#94A3B8"
+              style={styles.searchInput}
+              returnKeyType="search"
+              autoFocus={searchVisible}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                <X size={14} color="#94A3B8" strokeWidth={2.5} />
+              </Pressable>
+            )}
           </View>
-        )}
+        </Animated.View>
 
-        {/* ── Aujourd'hui section ── */}
-        {visibleToday.length > 0 && (
-          <>
-            <Text style={styles.todayLabel}>AUJOURD'HUI</Text>
-            {visibleToday.map((item) => (
-              <MessageCard key={item.id} item={item} onPress={handleItemPress} />
-            ))}
-          </>
-        )}
+        {/* Groups */}
+        {groups.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>Aucun message</Text>
+            <Text style={styles.emptyText}>
+              Rien à afficher pour ce filtre.
+            </Text>
+          </View>
+        ) : (
+          groups.map((g) => (
+            <View key={g.label} style={{ marginTop: 14 }}>
+              <Text style={styles.sectionLabel}>{g.label}</Text>
+              <View style={styles.groupCard}>
+                {g.items.map((item, idx) => (
+                  <View key={item.id}>
+                    {idx > 0 && <View style={styles.rowSeparator} />}
+                    <Pressable
+                      onPress={() => handleItemPress(item)}
+                      style={({ pressed }) => [styles.row, pressed && { opacity: 0.86 }]}
+                    >
+                      {/* Unread accent */}
+                      {!item.read && (
+                        <View style={[styles.unreadAccent, { backgroundColor: TYPE_COLORS[item.type] }]} />
+                      )}
 
-        {/* ── Plus tôt section ── */}
-        {visibleEarlier.length > 0 && (
-          <>
-            <View style={styles.laterDivider}>
-              <View style={styles.laterLine} />
-              <Text style={styles.laterLabel}>PLUS TÔT</Text>
-              <View style={styles.laterLine} />
+                      {/* Avatar */}
+                      <View style={styles.avatarWrapper}>
+                        {item.type === 'aria' ? (
+                          <View style={[styles.avatar, styles.avatarAria]}>
+                            <Text style={styles.avatarTextAria}>✦</Text>
+                          </View>
+                        ) : Platform.OS === 'web' ? (
+                          <View
+                            style={[
+                              styles.avatar,
+                              { backgroundImage: `linear-gradient(135deg, ${AVATAR_GRADIENTS[item.type][0]}, ${AVATAR_GRADIENTS[item.type][1]})` } as any,
+                            ]}
+                          >
+                            <Text style={styles.avatarText}>
+                              {item.type === 'absence' ? '!' : ''}
+                            </Text>
+                          </View>
+                        ) : (
+                          <LinearGradient
+                            colors={AVATAR_GRADIENTS[item.type]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.avatar}
+                          >
+                            <Text style={styles.avatarText}>
+                              {item.type === 'absence' ? '!' : ''}
+                            </Text>
+                          </LinearGradient>
+                        )}
+                        <View style={[styles.avatarBadge, { backgroundColor: TYPE_COLORS[item.type] }]}>
+                          <Text style={styles.avatarBadgeText}>{TYPE_BADGE_LABEL[item.type]}</Text>
+                        </View>
+                      </View>
+
+                      {/* Body */}
+                      <View style={styles.rowBody}>
+                        <View style={styles.rowTop}>
+                          <Text
+                            style={[
+                              styles.rowTitle,
+                              { fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {item.title}
+                          </Text>
+                          <Text style={styles.rowTime}>{item.time}</Text>
+                        </View>
+                        <Text style={styles.rowPreview} numberOfLines={1}>
+                          <Text style={[styles.rowTag, { color: TYPE_COLORS[item.type] }]}>
+                            {item.type === 'liaison'
+                              ? 'Prof'
+                              : item.type === 'ecole'
+                                ? 'École'
+                                : item.type === 'absence'
+                                  ? 'Absence'
+                                  : item.type === 'aria'
+                                    ? 'Aria'
+                                    : item.type === 'agenda'
+                                      ? 'Agenda'
+                                      : 'Note'}
+                            {'  '}
+                          </Text>
+                          {item.message}
+                        </Text>
+                      </View>
+
+                      {/* Right */}
+                      <View style={styles.rowRight}>
+                        {!item.read && <View style={styles.unreadPip} />}
+                        <Pressable
+                          onPress={() => openSheet(item)}
+                          style={({ pressed }) => [styles.ellipsisBtn, { opacity: pressed ? 0.7 : 1 }]}
+                          hitSlop={10}
+                          accessibilityRole="button"
+                          accessibilityLabel="Actions"
+                        >
+                          <MoreHorizontal size={16} color="rgba(148,163,184,1)" strokeWidth={2} />
+                        </Pressable>
+                      </View>
+                    </Pressable>
+                  </View>
+                ))}
+              </View>
             </View>
-            {visibleEarlier.map((item) => (
-              <MessageCard key={item.id} item={item} onPress={handleItemPress} />
-            ))}
-          </>
+          ))
         )}
 
-        {/* Extra bottom clearance above FAB */}
-        <View style={{ height: 80 }} />
+        <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/* ── FAB ── */}
+      {/* Filter dropdown overlay */}
+      {dropdownVisible && (
+        <>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setDropdownVisible(false)}
+          />
+          <View style={[styles.filterDropdown, { top: insets.top + 62 }]}>
+            {FILTER_OPTIONS.map((opt) => {
+              const isActive = activeFilter === opt.id;
+              return (
+                <Pressable
+                  key={opt.id}
+                  onPress={() => { setActiveFilter(opt.id); setDropdownVisible(false); }}
+                  style={({ pressed }) => [styles.filterDropdownItem, pressed && { opacity: 0.82 }]}
+                >
+                  <Text style={[styles.filterDropdownItemLabel, isActive && styles.filterDropdownItemLabelActive]}>
+                    {opt.label}
+                  </Text>
+                  {isActive && <Check size={15} color="#1A2340" strokeWidth={2.5} />}
+                </Pressable>
+              );
+            })}
+            <View style={[styles.filterDropdownItem, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(15,23,42,0.06)', marginTop: 2 }]}>
+              <Pressable
+                onPress={() => {
+                  setTodayItems((prev) => prev.map((n) => ({ ...n, read: true })));
+                  setEarlierItems((prev) => prev.map((n) => ({ ...n, read: true })));
+                  setDropdownVisible(false);
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              >
+                <Text style={styles.filterDropdownItemLabel}>Tout marquer comme lu</Text>
+              </Pressable>
+            </View>
+          </View>
+        </>
+      )}
+
+      {/* Nouveau message (FAB) */}
       <Pressable
-        onPress={fabOpen ? closeFab : openFab}
-        style={({ pressed }) => [
-          styles.fab,
-          { opacity: pressed ? 0.85 : 1 },
-        ]}
+        onPress={openComposer}
+        style={({ pressed }) => [styles.fab, { opacity: pressed ? 0.88 : 1 }]}
         accessibilityRole="button"
-        accessibilityLabel={fabOpen ? 'Fermer' : 'Nouveau message'}
+        accessibilityLabel="Nouveau message"
       >
-        <MessageCirclePlus size={22} color="#FFFFFF" strokeWidth={2} />
+        <MessageCirclePlus size={22} color="#FFFFFF" strokeWidth={2.2} />
       </Pressable>
 
-      {/* ── FAB bottom sheet ── */}
-      {fabOpen && (
-        <Modal
-          visible={fabOpen}
-          transparent
-          animationType="none"
-          onRequestClose={closeFab}
-        >
-          {/* Tapping the overlay closes the sheet */}
-          <Pressable style={styles.overlay} onPress={closeFab}>
-            {/* Inner Pressable prevents overlay close when tapping sheet content */}
-            <Animated.View
-              style={[styles.sheet, { transform: [{ translateY: sheetAnim }] }]}
-            >
-              <Pressable>
-                {/* Drag handle */}
-                <View style={styles.sheetHandle} />
-
-                {/* Action rows */}
-                {fabActions.map((action) => (
-                  <Pressable
-                    key={action.label}
-                    onPress={action.onPress}
-                    style={({ pressed }) => [styles.fabRow, { opacity: pressed ? 0.75 : 1 }]}
-                    accessibilityRole="button"
-                    accessibilityLabel={action.label}
-                  >
-                    <View
-                      style={[styles.fabRowIcon, { backgroundColor: action.color + '18' }]}
-                    >
-                      <action.Icon size={20} color={action.color} strokeWidth={2} />
-                    </View>
-                    <Text style={styles.fabRowLabel}>{action.label}</Text>
-                  </Pressable>
-                ))}
-
-                {/* Cancel */}
-                <Pressable
-                  onPress={closeFab}
-                  style={({ pressed }) => [styles.cancelButton, { opacity: pressed ? 0.7 : 1 }]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Annuler"
-                >
-                  <X size={16} color="#64748B" strokeWidth={2} />
-                  <Text style={styles.cancelText}>Annuler</Text>
-                </Pressable>
-              </Pressable>
-            </Animated.View>
+      {/* Composer — choose recipient */}
+      {composerVisible && (
+        <Modal visible={composerVisible} transparent animationType="none" onRequestClose={closeComposer}>
+          <Pressable style={styles.sheetOverlay} onPress={closeComposer}>
+            <BlurView intensity={20} style={StyleSheet.absoluteFill} />
           </Pressable>
+
+          <Animated.View
+            style={[
+              styles.composerSheet,
+              {
+                paddingBottom: (Platform.OS === 'ios' ? insets.bottom : 0) + 18,
+                transform: [
+                  {
+                    translateY: composerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [680, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.sheetHandle} />
+
+            <View style={styles.composerHeader}>
+              <Text style={styles.composerTitle}>Nouveau message</Text>
+              <Text style={styles.composerSubtitle}>Choisir un destinataire</Text>
+            </View>
+
+            <View style={styles.composerList}>
+              {teachers.map((t, idx) => (
+                <Pressable
+                  key={t.id}
+                  onPress={() => {
+                    closeComposer();
+                    setTimeout(() => {
+                      navigation.navigate('ConversationDetailScreen', {
+                        name: t.name,
+                        role: t.subject,
+                      });
+                    }, 200);
+                  }}
+                  style={({ pressed }) => [styles.composerRow, pressed && { opacity: 0.82 }]}
+                >
+                  {idx > 0 && <View style={styles.composerSeparator} />}
+                  <View style={styles.composerAvatar}>
+                    <Text style={styles.composerAvatarText}>
+                      {t.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.composerName} numberOfLines={1}>{t.name}</Text>
+                    <Text style={styles.composerMeta} numberOfLines={1}>{t.subject}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </Animated.View>
+        </Modal>
+      )}
+
+      {/* Context sheet */}
+      {sheetVisible && (
+        <Modal visible={sheetVisible} transparent animationType="none" onRequestClose={closeSheet}>
+          <Pressable style={styles.sheetOverlay} onPress={closeSheet}>
+            <BlurView intensity={20} style={StyleSheet.absoluteFill} />
+          </Pressable>
+
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [620, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.sheetHandle} />
+
+            {/* Header */}
+            <View style={styles.sheetHeader}>
+              {selectedItem?.type === 'aria' ? (
+                <View style={[styles.sheetAvatar, styles.avatarAria]}>
+                  <Text style={styles.avatarTextAria}>✦</Text>
+                </View>
+              ) : Platform.OS === 'web' ? (
+                <View
+                  style={[
+                    styles.sheetAvatar,
+                    { backgroundImage: `linear-gradient(135deg, ${AVATAR_GRADIENTS[selectedItem?.type || 'liaison'][0]}, ${AVATAR_GRADIENTS[selectedItem?.type || 'liaison'][1]})` } as any,
+                  ]}
+                >
+                  <Text style={styles.sheetAvatarText}>
+                    {selectedItem?.type === 'absence' ? '!' : ''}
+                  </Text>
+                </View>
+              ) : (
+                <LinearGradient
+                  colors={AVATAR_GRADIENTS[selectedItem?.type || 'liaison']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.sheetAvatar}
+                >
+                  <Text style={styles.sheetAvatarText}>
+                    {selectedItem?.type === 'absence' ? '!' : ''}
+                  </Text>
+                </LinearGradient>
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sheetSender} numberOfLines={1}>
+                  {selectedItem?.title || 'Message'}
+                </Text>
+                <Text style={styles.sheetPreview} numberOfLines={1}>
+                  {selectedItem?.message || ''}
+                </Text>
+              </View>
+            </View>
+
+            {/* Quick actions */}
+            <View style={styles.sheetQuick}>
+              {[
+                { Icon: Reply, label: 'Répondre', onPress: () => { closeSheet(); selectedItem && handleItemPress(selectedItem); } },
+                {
+                  Icon: selectedItem?.read ? Eye : EyeOff,
+                  label: selectedItem?.read ? 'Non lu' : 'Lu',
+                  onPress: () => { if (selectedItem) toggleRead(selectedItem.id); closeSheet(); },
+                },
+                { Icon: Share2, label: 'Partager', onPress: handleShare, tint: '#06B6D4', bg: 'rgba(6,182,212,0.15)' },
+              ].map(({ Icon, label, onPress, tint, bg }) => (
+                <Pressable key={label} onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && { opacity: 0.82 }]}>
+                  <View style={[styles.quickIcon, bg ? { backgroundColor: bg } : null]}>
+                    <Icon size={22} color={tint ?? '#FFFFFF'} strokeWidth={2} />
+                  </View>
+                  <Text style={styles.quickLabel}>{label}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Secondary actions */}
+            <View style={styles.sheetList}>
+              {[
+                { Icon: User, label: 'Voir le profil', danger: false, onPress: () => { closeSheet(); navigation.navigate('ProfilEnfant'); } },
+                { Icon: CheckCircle, label: 'Marquer comme lu', danger: false, onPress: () => { if (selectedItem) markRead(selectedItem.id); closeSheet(); } },
+                { Icon: Archive, label: 'Archiver', danger: false, onPress: closeSheet },
+                { Icon: Trash2, label: 'Supprimer', danger: true, onPress: handleDelete },
+              ].map(({ Icon, label, danger, onPress }) => (
+                <Pressable
+                  key={label}
+                  onPress={onPress}
+                  style={({ pressed }) => [styles.sheetItem, pressed && { opacity: 0.82 }]}
+                >
+                  <Icon size={18} color={danger ? IOS_DESTRUCTIVE : 'rgba(255,255,255,0.75)'} strokeWidth={2} />
+                  <Text style={[styles.sheetItemLabel, danger && { color: IOS_DESTRUCTIVE }]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </Animated.View>
         </Modal>
       )}
     </View>
-  );
-}
-
-// ─── CategoryCardRow ─────────────────────────────────────
-
-interface CategoryCardRowProps {
-  onPress: () => void;
-  gradientColors: [string, string];
-  iconContent: React.ReactNode;
-  isCircle?: boolean;
-  label: string;
-  sublabel: string;
-  time: string;
-  badgeCount: number;
-}
-
-function CategoryCardRow({
-  onPress,
-  gradientColors,
-  iconContent,
-  isCircle,
-  label,
-  sublabel,
-  time,
-  badgeCount,
-}: CategoryCardRowProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.catRow, { opacity: pressed ? 0.85 : 1 }]}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-    >
-      {/* Icon with gradient (web fallback via CSS backgroundImage) */}
-      <View style={{ position: 'relative' }}>
-        {Platform.OS === 'web' ? (
-          <View
-            style={[
-              styles.catIconBox,
-              isCircle && styles.catIconCircle,
-              // @ts-ignore — web-only CSS property
-              { backgroundImage: `linear-gradient(135deg, ${gradientColors[0]}, ${gradientColors[1]})` },
-            ]}
-          >
-            {iconContent}
-          </View>
-        ) : (
-          <LinearGradient
-            colors={gradientColors}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.catIconBox, isCircle && styles.catIconCircle]}
-          >
-            {iconContent}
-          </LinearGradient>
-        )}
-        {badgeCount > 0 && (
-          <View style={styles.catBadge}>
-            <Text style={styles.catBadgeText}>
-              {badgeCount > 9 ? '9+' : String(badgeCount)}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Text column */}
-      <View style={styles.catTextCol}>
-        <Text style={styles.catLabel} numberOfLines={1}>{label}</Text>
-        <Text style={styles.catSublabel} numberOfLines={1}>{sublabel}</Text>
-      </View>
-
-      {/* Right: time + chevron */}
-      <View style={styles.catRight}>
-        {time ? <Text style={styles.catTime}>{time}</Text> : null}
-        <ChevronRight size={16} color="#D1D5DB" strokeWidth={2} />
-      </View>
-    </Pressable>
-  );
-}
-
-// ─── MessageCard ─────────────────────────────────────────
-
-interface MessageCardProps {
-  item: MessagerieItem;
-  onPress: (item: MessagerieItem) => void;
-}
-
-function MessageCard({ item, onPress }: MessageCardProps) {
-  if (!item.title || !item.message) return null;
-  const cfg = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.aria;
-
-  return (
-    <Pressable
-      onPress={() => onPress(item)}
-      style={({ pressed }) => [styles.msgRow, pressed && { opacity: 0.82 }]}
-      accessibilityRole="button"
-    >
-      {/* Avatar / icon */}
-      {item.type === 'aria' ? (
-        <AriaSparkleIcon size={44} />
-      ) : (
-        <View style={[styles.msgAvatar, { backgroundColor: '#E2E8F0' }]}>
-          <cfg.Icon size={18} color="#64748B" strokeWidth={2} />
-        </View>
-      )}
-
-      {/* Text column */}
-      <View style={styles.msgTextCol}>
-        <View style={styles.msgTitleRow}>
-          <Text
-            style={[styles.msgTitle, { fontFamily: item.read ? FontFamily.sansSemiBold : FontFamily.sansBold }]}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Text>
-          <Text style={styles.msgTime}>{item.time}</Text>
-        </View>
-        <Text style={styles.msgPreview} numberOfLines={1}>
-          {item.message}
-        </Text>
-      </View>
-
-      {/* Unread dot */}
-      {!item.read && <View style={styles.msgUnreadDot} />}
-    </Pressable>
   );
 }
 
@@ -807,71 +1068,414 @@ function MessageCard({ item, onPress }: MessageCardProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#F2F2F7',
   },
   scrollContent: {
     paddingHorizontal: 18,
     paddingBottom: 120,
   },
 
-  // ── Page header
-  pageHeader: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    paddingHorizontal: 6,
+    marginBottom: 10,
   },
-  pageTitle: {
+  headerTitle: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 28,
-    color: '#0F172A',
-    letterSpacing: 0.2,
+    fontSize: 30,
+    color: '#1A2340',
+    letterSpacing: -0.6,
   },
-  bellButton: {
-    position: 'relative',
-    padding: 6,
-  },
-  bellDot: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: ACCENT,
-  },
-  subtitle: {
+  headerSub: {
+    marginTop: 4,
     fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 16,
+    fontSize: 13,
+    color: '#94A3B8',
   },
 
-  // ── Category grid
-  categoryStack: {
-    gap: 8,
-    marginBottom: 20,
+  headerIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.90)',
+    marginLeft: 8,
   },
-  catRow: {
+  headerIconBtnActive: {
+    backgroundColor: 'rgba(15,23,42,0.08)',
+    borderColor: 'rgba(15,23,42,0.10)',
+  },
+  filterDropdownBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.90)',
+    marginLeft: 8,
+  },
+  filterDropdownBtnActive: {
+    backgroundColor: '#1A2340',
+    borderColor: '#1A2340',
+  },
+  filterDropdownLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: '#1A2340',
+  },
+  filterDropdown: {
+    position: 'absolute',
+    right: 18,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
-    paddingRight: 12,
+    paddingVertical: 6,
+    minWidth: 190,
+    zIndex: 100,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 24 },
+      android: { elevation: 8 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.14, shadowRadius: 24 },
+    }),
+  },
+  filterDropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterDropdownItemLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: '#1A2340',
+    flex: 1,
+  },
+  filterDropdownItemLabelActive: {
+    fontFamily: FontFamily.sansBold,
+  },
+  searchBarAnimated: {
+    overflow: 'hidden',
+    marginHorizontal: 6,
+  },
+  searchBarInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    gap: 12,
+    borderColor: 'rgba(255,255,255,0.90)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: '#1A2340',
+    paddingVertical: 0,
+  },
+
+  sectionLabel: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 12,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: '#94A3B8',
+    marginBottom: 10,
+    marginTop: 6,
+    paddingLeft: 6,
+  },
+  groupCard: {
+    marginHorizontal: 0,
+    marginBottom: 8,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.90)',
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
       },
       android: { elevation: 0 },
     }),
   },
-  catIconBox: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  rowSeparator: {
+    position: 'absolute',
+    top: 0,
+    left: 68,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(15,23,42,0.06)',
+  },
+  unreadAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 14,
+    bottom: 14,
+    width: 3,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    flexShrink: 0,
+    width: 46,
+    height: 46,
+    marginRight: 2,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.92)',
+    minWidth: 16,
+    alignItems: 'center',
+  },
+  avatarBadgeText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 8,
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  avatarText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#FFFFFF',
+  },
+  avatarAria: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderWidth: 1,
+    borderColor: 'rgba(124,58,237,0.15)',
+    borderRadius: 21,
+    ...Platform.select({
+      ios: { shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 8 },
+      android: { elevation: 3 },
+      default: { shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.18, shadowRadius: 8 },
+    }),
+  },
+  avatarTextAria: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: '#7C3AED',
+  },
+  rowBody: { flex: 1, minWidth: 0 },
+  rowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: 10,
+  },
+  rowTitle: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1A2340',
+  },
+  rowTime: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#B0B7C3',
+    flexShrink: 0,
+  },
+  rowPreview: {
+    marginTop: 2,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#64748B',
+  },
+  rowTag: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+  },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
+  unreadPip: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: UNREAD_DOT_COLOR,
+  },
+  ellipsisBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15,23,42,0.04)',
+  },
+
+  empty: {
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  emptyTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 16,
+    color: '#0F172A',
+  },
+  emptyText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+  },
+
+  // Compose FAB
+  fab: {
+    position: 'absolute',
+    right: 18,
+    bottom: 90,
+    width: 46,
+    height: 46,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A2340',
+    shadowColor: '#1A2340',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    ...Platform.select({
+      android: { elevation: 0 },
+    }),
+  },
+
+  sheetOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,20,40,0.45)',
+  },
+  composerSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(30,36,60,0.97)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 10,
+  },
+  composerHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  composerTitle: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  composerSubtitle: {
+    marginTop: 4,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+  },
+  composerList: {
+    paddingTop: 4,
+  },
+  composerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  composerSeparator: {
+    position: 'absolute',
+    top: 0,
+    left: 72,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  composerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  composerAvatarText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.82)',
+  },
+  composerName: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  composerMeta: {
+    marginTop: 2,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+  },
+  sheet: {
+    backgroundColor: '#FFFFFF',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: SHEET_BG,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
+    paddingTop: 10,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignSelf: 'center',
+    marginBottom: 14,
+  },
+
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.10)',
+  },
+  sheetAvatar: {
     width: 40,
     height: 40,
     borderRadius: 12,
@@ -879,224 +1483,60 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  catIconCircle: {
-    borderRadius: 20,
-  },
-  catBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#EF4444',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  catBadgeText: {
+  sheetAvatarText: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 9,
+    fontSize: 13,
     color: '#FFFFFF',
-    lineHeight: 11,
   },
-  catTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  catLabel: {
+  sheetSender: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
-    color: '#0F172A',
+    fontSize: 15,
+    color: '#FFFFFF',
   },
-  catSublabel: {
+  sheetPreview: {
+    marginTop: 2,
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: '#94A3B8',
-  },
-  catRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  catTime: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: '#CBD5E1',
+    color: 'rgba(255,255,255,0.45)',
   },
 
-  // ── Empty state
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    gap: 12,
-  },
-  emptyText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
-    color: '#94A3B8',
-  },
-
-  // ── Section labels
-  todayLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  laterDivider: {
+  sheetQuick: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 12,
+    justifyContent: 'space-around',
+    paddingHorizontal: 8,
+    paddingTop: 14,
+    paddingBottom: 8,
   },
-  laterLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
-  laterLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-
-  // ── Message row (plain, no card wrapper)
-  msgRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
-  },
-  msgAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  msgTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  msgTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  msgTitle: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1A2340',
-  },
-  msgTime: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: '#CBD5E1',
-    flexShrink: 0,
-  },
-  msgPreview: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#64748B',
-  },
-  msgUnreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#7C3AED',
-    flexShrink: 0,
-  },
-
-  // ── FAB
-  fab: {
-    position: 'absolute',
-    bottom: 80,
-    right: 16,
-    backgroundColor: '#1A2340',
-    borderRadius: 16,
+  quickAction: { alignItems: 'center', gap: 8, width: 96 },
+  quickIcon: {
     width: 52,
     height: 52,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.10)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1A2340',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+  },
+  quickLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.70)',
+    textAlign: 'center',
   },
 
-  // ── FAB sheet / modal
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
-    paddingTop: 12,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E2E8F0',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  fabRow: {
+  sheetList: { paddingTop: 10 },
+  sheetItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    paddingHorizontal: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.06)',
   },
-  fabRowIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabRowLabel: {
-    fontFamily: FontFamily.sansMedium,
+  sheetItemLabel: {
+    fontFamily: FontFamily.sansRegular,
     fontSize: 15,
-    color: '#0F172A',
-    flex: 1,
-  },
-  cancelButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFC',
-  },
-  cancelText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
-    color: '#64748B',
+    color: '#FFFFFF',
   },
 });

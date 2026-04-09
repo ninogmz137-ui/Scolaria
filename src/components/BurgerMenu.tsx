@@ -18,10 +18,9 @@ import {
 } from 'react-native';
 import { Pressable } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, GraduationHat, Gears, Logout } from '@getpapillon/papicons';
+import { User, GraduationHat } from '@getpapillon/papicons';
 import { Heart, Shield, ChevronRight } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,7 +30,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 interface Props {
   onClose: () => void;
   onNavigate: (screen: string) => void;
-  onLogout?: () => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -64,12 +62,9 @@ const MAIN_ITEMS: MenuItemDef[] = [
 
 const BOTTOM_ITEMS: MenuItemDef[] = [
   { key: 'rgpd',     icon: Shield,   label: 'RGPD & Confidentialité', screen: 'RGPDScreen' },
-  { key: 'logout',   icon: Logout,   label: 'Se déconnecter',          action: 'logout', danger: true },
 ];
 
-const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [
-  { key: 'logout',   icon: Logout,   label: 'Quitter la démo', action: 'logout', danger: true },
-];
+const BOTTOM_ITEMS_DEMO: MenuItemDef[] = [];
 
 // ─── Section label ───────────────────────────────────────
 
@@ -104,15 +99,9 @@ function MenuItem({
 
 export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
   const { selectedChild } = useActiveChild();
-  const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
 
   const handleItemPress = (item: MenuItemDef) => {
-    if (item.action === 'logout') {
-      onClose();
-      setTimeout(() => onLogout?.(), 150);
-      return;
-    }
     if (item.screen) {
       onClose();
       setTimeout(() => onNavigate(item.screen!), 150);
@@ -175,7 +164,7 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
 
         {/* ── Section basse ── */}
         <View style={styles.menuList}>
-          {(isDemo ? BOTTOM_ITEMS_DEMO : BOTTOM_ITEMS).map((item) => (
+          {BOTTOM_ITEMS.map((item) => (
             <MenuItem key={item.key} item={item} onPress={handleItemPress} />
           ))}
         </View>

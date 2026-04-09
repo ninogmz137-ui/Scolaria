@@ -26,6 +26,7 @@ import { Colors } from './src/constants/colors';
 import { scheduleConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 const ONBOARDING_KEY = '@scolaria_onboarding_done';
 
@@ -145,7 +146,9 @@ export default function App() {
                 <DemoProvider>
                   <NavigationContainer>
                     <StatusBar style="light" />
-                    <AppContent />
+                    <ErrorBoundary>
+                      <AppContent />
+                    </ErrorBoundary>
                   </NavigationContainer>
                 </DemoProvider>
                 </WallpaperProvider>
