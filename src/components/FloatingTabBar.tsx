@@ -220,6 +220,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   const { selectedChild } = useActiveChild();
   const [popoverVisible, setPopoverVisible] = useState(false);
 
+  // Detect if we're currently on an Aria screen (nested inside AccueilStack)
+  const accueilRoute = state.routes[state.index];
+  const nestedRouteName = (accueilRoute?.state?.routes as any[])?.[
+    (accueilRoute?.state?.index as number) ?? 0
+  ]?.name ?? '';
+  const isOnAria = accueilRoute?.name === 'Accueil' && nestedRouteName.startsWith('Aria');
+
   // Avatar content
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -272,7 +279,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
         {/* ── Central pill (4 tabs) ── */}
         <View style={styles.pill}>
           {state.routes.map((route, index) => {
-            const isFocused = state.index === index;
+            const isTabFocused = state.index === index;
+            // If on Aria, deactivate the Accueil tab visually
+            const isFocused = isTabFocused && !(route.name === 'Accueil' && isOnAria);
             const IconComponent = TAB_ICONS[route.name] ?? Home;
             const isMessagerieTab = route.name === 'MessagerieTab';
             const hasUnread = isMessagerieTab && MESSAGERIE_UNREAD > 0;
@@ -324,7 +333,9 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           accessibilityRole="button"
           accessibilityLabel="Aria"
         >
-          <AriaIcon size={26} color="#7C3AED" />
+          <View style={[styles.iconWrapper, isOnAria && styles.iconWrapperActive]}>
+            <AriaIcon size={24} color={isOnAria ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR} />
+          </View>
         </Pressable>
       </View>
     </>
