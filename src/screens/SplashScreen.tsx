@@ -1,8 +1,8 @@
 /**
- * SplashScreen — Épure lumineuse v2.
+ * SplashScreen — Épure lumineuse v3.
  *
  * Fond clair #FAFAF8, cohérent avec LoginScreen.
- * Logo variant="light" (SCOL navy + aria gradient).
+ * Wordmark inline SVG : "Scolar" navy + "ia" dégradé violet→cyan + ✦.
  * Halos violet/cyan très subtils adaptés au fond clair.
  * Dot pulsant violet discret en bas.
  * Transition seamless vers LoginScreen.
@@ -10,7 +10,42 @@
 
 import { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import LogoScolaria from '../components/LogoScolaria';
+import Svg, { Defs, LinearGradient as SvgGrad, Stop, Text as SvgText, TSpan } from 'react-native-svg';
+
+const NAVY   = '#1A2340';
+const VIOLET = '#7C3AED';
+const CYAN   = '#06B6D4';
+
+function Wordmark() {
+  const vbW = 280; const vbH = 64;
+  const h = 52;
+  const w = (vbW / vbH) * h;
+  return (
+    <Svg width={w} height={h} viewBox={`0 0 ${vbW} ${vbH}`}>
+      <Defs>
+        <SvgGrad id="splIaG" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor={VIOLET} />
+          <Stop offset="1" stopColor={CYAN} />
+        </SvgGrad>
+        <SvgGrad id="splSpkG" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor={VIOLET} />
+          <Stop offset="1" stopColor={CYAN} />
+        </SvgGrad>
+      </Defs>
+      <SvgText
+        x="140" y="50"
+        textAnchor="middle"
+        fontFamily="DMSerifDisplay_400Regular"
+        fontSize="52"
+        letterSpacing="-0.5"
+        fill={NAVY}
+      >
+        {'Scolar'}<TSpan fill="url(#splIaG)">{'ia'}</TSpan>
+      </SvgText>
+      <SvgText x="191" y="22" fontSize="15" fill="url(#splSpkG)">{'✦'}</SvgText>
+    </Svg>
+  );
+}
 
 interface Props {
   onFinish: () => void;
@@ -57,11 +92,11 @@ export default function SplashScreen({ onFinish }: Props) {
       <View style={s.haloViolet} />
       <View style={s.haloCyan} />
 
-      {/* Logo light : SCOL navy + aria gradient */}
+      {/* Wordmark inline : Scolar navy + ia gradient + ✦ */}
       <Animated.View
         style={[s.logoWrap, { opacity: logoOpacity, transform: [{ translateY: logoTranslateY }] }]}
       >
-        <LogoScolaria size={52} variant="light" />
+        <Wordmark />
       </Animated.View>
 
       {/* Dot pulsant violet */}
