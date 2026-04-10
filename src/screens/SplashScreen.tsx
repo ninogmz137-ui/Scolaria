@@ -1,13 +1,15 @@
 /**
- * SplashScreen — Épure totale.
+ * SplashScreen — Épure lumineuse v2.
  *
- * Logo seul, centré. Halos très doux. Un point pulsant en bas.
+ * Fond clair #FAFAF8, cohérent avec LoginScreen.
+ * Logo variant="light" (SCOL navy + aria gradient).
+ * Halos violet/cyan très subtils adaptés au fond clair.
+ * Dot pulsant violet discret en bas.
  * Transition seamless vers LoginScreen.
  */
 
 import { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import LogoScolaria from '../components/LogoScolaria';
 
 interface Props {
@@ -22,13 +24,11 @@ export default function SplashScreen({ onFinish }: Props) {
   const screenFadeOut  = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Logo fade-in
     Animated.parallel([
       Animated.timing(logoOpacity,    { toValue: 1, duration: 700, useNativeDriver: true }),
       Animated.timing(logoTranslateY, { toValue: 0, duration: 700, useNativeDriver: true }),
     ]).start();
 
-    // Dot appears 400ms after, then pulses
     setTimeout(() => {
       Animated.timing(dotOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
       Animated.loop(
@@ -39,7 +39,6 @@ export default function SplashScreen({ onFinish }: Props) {
       ).start();
     }, 400);
 
-    // Hold → fade out
     const timer = setTimeout(() => {
       Animated.timing(screenFadeOut, { toValue: 0, duration: 380, useNativeDriver: true })
         .start(() => onFinish());
@@ -51,20 +50,21 @@ export default function SplashScreen({ onFinish }: Props) {
 
   return (
     <Animated.View style={[s.root, { opacity: screenFadeOut }]}>
-      <LinearGradient colors={['#0B1628', '#162240']} style={StyleSheet.absoluteFill} />
+      {/* Fond clair — même teinte que LoginScreen */}
+      <View style={[StyleSheet.absoluteFill, s.bg]} />
 
-      {/* Halos — très discrets */}
+      {/* Halos très discrets adaptés fond clair */}
       <View style={s.haloViolet} />
       <View style={s.haloCyan} />
 
-      {/* Logo */}
+      {/* Logo light : SCOL navy + aria gradient */}
       <Animated.View
         style={[s.logoWrap, { opacity: logoOpacity, transform: [{ translateY: logoTranslateY }] }]}
       >
-        <LogoScolaria size={52} variant="dark" />
+        <LogoScolaria size={52} variant="light" />
       </Animated.View>
 
-      {/* Dot pulsant */}
+      {/* Dot pulsant violet */}
       <Animated.View
         style={[s.dotWrap, { opacity: dotOpacity, transform: [{ scale: dotScale }] }]}
       >
@@ -83,12 +83,16 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  bg: {
+    backgroundColor: '#FAFAF8',
+  },
+
   haloViolet: {
     position: 'absolute',
     width: 380,
     height: 380,
     borderRadius: 190,
-    backgroundColor: 'rgba(139,92,246,0.07)',
+    backgroundColor: 'rgba(124,58,237,0.05)',
     top: -110,
     right: -110,
   },
@@ -97,7 +101,7 @@ const s = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: 'rgba(6,182,212,0.05)',
+    backgroundColor: 'rgba(6,182,212,0.04)',
     bottom: 60,
     left: -90,
   },
@@ -113,6 +117,6 @@ const s = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: 'rgba(34,211,238,0.55)',
+    backgroundColor: 'rgba(124,58,237,0.45)',
   },
 });
