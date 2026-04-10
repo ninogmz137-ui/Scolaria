@@ -34,7 +34,7 @@ module.exports = {
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
-      backgroundColor: '#0B0F2A',
+      backgroundColor: '#FAFAF8',
     },
     ios: {
       supportsTablet: true,
