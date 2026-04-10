@@ -258,7 +258,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
         {/* ── Avatar circle (left) ── */}
         <Pressable
           onPress={handleAvatarPress}
-          style={styles.circle}
+          style={[styles.circle, styles.circleLeft]}
           accessibilityRole="button"
           accessibilityLabel="Changer d'enfant"
         >
@@ -329,7 +329,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
         {/* ── Aria circle (right) ── */}
         <Pressable
           onPress={handleAriaPress}
-          style={styles.circle}
+          style={[styles.circle, styles.circleRight]}
           accessibilityRole="button"
           accessibilityLabel="Aria"
         >
@@ -349,9 +349,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     right: 12,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
     ...Platform.select({
       android: { elevation: 0 },
     }),
@@ -370,6 +371,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...GLASS_SHADOW,
   },
+  // Explicit margins replace gap for reliable Android spacing
+  circleLeft: { marginRight: 8 },
+  circleRight: { marginLeft: 8 },
   circleImage: {
     width: 50,
     height: 50,

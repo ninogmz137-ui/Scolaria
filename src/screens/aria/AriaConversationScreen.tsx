@@ -10,13 +10,22 @@ import {
   Pressable,
   StyleSheet,
   Animated,
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MessagesSquare, Search, Plus, MessageCirclePlus, Send } from 'lucide-react-native';
-import { Sparkles as SparklesIcon } from '@getpapillon/papicons';
+import {
+  MessagesSquare,
+  MessageCirclePlus,
+  Plus,
+  Send,
+  MessageSquare,
+  FileText,
+  Bell,
+  Search,
+  Sparkles,
+} from 'lucide-react-native';
 import WallpaperBackground from '../../components/WallpaperBackground';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
@@ -26,6 +35,23 @@ import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
 
+// ─── Constants ─────────────────────────────────────────────
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
+const SEARCH_PILL_W = DRAWER_WIDTH - 32;
+const ARIA_ALERTS_UNREAD = 2;
+
+// ─── Category keyword filters for real conversations ────────
+type ConvCategory = 'all' | 'discussions' | 'syntheses' | 'alertes';
+
+const CATEGORY_KEYWORDS: Record<ConvCategory, RegExp | null> = {
+  all: null,
+  discussions: null, // shows all
+  syntheses: /synth[eè]se|bilan|r[eé]sum[eé]|progression/i,
+  alertes: /alerte|score|joie|urgent|interro|contrôle/i,
+};
+
+// ─── Types ──────────────────────────────────────────────────
 type RouteParams = {
   conversationId: string;
   title?: string;
@@ -39,22 +65,21 @@ type Conversation = {
   updatedAt: string;
 };
 
+// ─── Storage helpers ─────────────────────────────────────────
 function conversationsKey(childId: string) {
   return `@scolaria_aria_conversations:${childId}`;
 }
-
 function messagesKey(childId: string, conversationId: string) {
   return `@scolaria_aria_messages:${childId}:${conversationId}`;
 }
-
 function historyKey(childId: string, conversationId: string) {
   return `@scolaria_aria_history:${childId}:${conversationId}`;
 }
-
 function nowTime() {
   return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ─── Suggestions ─────────────────────────────────────────────
 function makeSuggestions(childName: string, mode: string): string[] {
   if (mode === 'maternelle') {
     return [
@@ -69,7 +94,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
       '📊 Bilan de la semaine',
       '📝 Réviser pour le prochain contrôle',
       '📈 Évolution des notes',
-      '🎯 Forces et axes d’amélioration',
+      "🎯 Forces et axes d'amélioration",
     ];
   }
   return [
@@ -80,6 +105,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
   ];
 }
 
+// ─── Component ───────────────────────────────────────────────
 export default function AriaConversationScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -89,7 +115,6 @@ export default function AriaConversationScreen() {
 
   const childId = selectedChild?.id ?? '1';
   const childFirstName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
-
   const { conversationId, title, initialMessage } = (route.params ?? {}) as RouteParams;
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,13 +122,16 @@ export default function AriaConversationScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const listRef = useRef<FlatList>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerQuery, setDrawerQuery] = useState('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
 
-  // Claude history (kept separate from UI messages)
-  const historyRef = useRef<ClaudeMessage[]>([]);
+  // Sidebar state
+  const [selectedCategory, setSelectedCategory] = useState<ConvCategory>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
 
+  const historyRef = useRef<ClaudeMessage[]>([]);
   const suggestions = useMemo(() => makeSuggestions(childFirstName, mode), [childFirstName, mode]);
 
   const scrollToEnd = useCallback(() => {
@@ -111,7 +139,6 @@ export default function AriaConversationScreen() {
   }, []);
 
   const loadPersisted = useCallback(async () => {
-    // Load conversation list (drawer)
     const rawConvs = await AsyncStorage.getItem(conversationsKey(childId));
     if (rawConvs) {
       try {
@@ -125,7 +152,6 @@ export default function AriaConversationScreen() {
         }
       } catch {}
     }
-
     const rawMsgs = await AsyncStorage.getItem(messagesKey(childId, conversationId));
     const rawHist = await AsyncStorage.getItem(historyKey(childId, conversationId));
     if (rawMsgs) {
@@ -142,13 +168,8 @@ export default function AriaConversationScreen() {
     }
   }, [childId, conversationId]);
 
-  useEffect(() => {
-    loadPersisted().catch(() => {});
-  }, [loadPersisted]);
-
-  useEffect(() => {
-    scrollToEnd();
-  }, [messages.length, scrollToEnd]);
+  useEffect(() => { loadPersisted().catch(() => {}); }, [loadPersisted]);
+  useEffect(() => { scrollToEnd(); }, [messages.length, scrollToEnd]);
 
   const persist = useCallback(async (nextMessages: Message[], nextHistory: ClaudeMessage[]) => {
     await AsyncStorage.multiSet([
@@ -169,11 +190,7 @@ export default function AriaConversationScreen() {
           : c,
       );
       await AsyncStorage.setItem(conversationsKey(childId), JSON.stringify(next));
-      setConversations(
-        next
-          .filter((c) => !!c?.id && !!c?.title)
-          .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')),
-      );
+      setConversations(next.filter((c) => !!c?.id && !!c?.title).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')));
     } catch {}
   }, [childId, conversationId]);
 
@@ -181,13 +198,7 @@ export default function AriaConversationScreen() {
     const trimmed = (textOverride ?? input).trim();
     if (!trimmed || isTyping) return;
 
-    const userMsg: Message = {
-      id: `u_${Date.now()}`,
-      text: trimmed,
-      sender: 'parent',
-      timestamp: nowTime(),
-    };
-
+    const userMsg: Message = { id: `u_${Date.now()}`, text: trimmed, sender: 'parent', timestamp: nowTime() };
     const nextUI = [...messages, userMsg];
     setMessages(nextUI);
     setInput('');
@@ -196,21 +207,13 @@ export default function AriaConversationScreen() {
 
     try {
       const response = await sendToAria(trimmed, historyRef.current, childId);
-
       const nextHistory: ClaudeMessage[] = [
         ...historyRef.current,
         { role: 'user', content: trimmed },
         { role: 'assistant', content: response },
       ].slice(-20);
       historyRef.current = nextHistory;
-
-      const ariaMsg: Message = {
-        id: `a_${Date.now() + 1}`,
-        text: response,
-        sender: 'aria',
-        timestamp: nowTime(),
-      };
-
+      const ariaMsg: Message = { id: `a_${Date.now() + 1}`, text: response, sender: 'aria', timestamp: nowTime() };
       const finalUI = [...nextUI, ariaMsg];
       setMessages(finalUI);
       await persist(finalUI, nextHistory);
@@ -232,42 +235,48 @@ export default function AriaConversationScreen() {
     }
   }, [childId, input, isTyping, messages, persist, scrollToEnd, updateConversationPreview]);
 
-  // If we arrive from AriaHome with an initial message, auto-send it once.
   const didAutoSendRef = useRef(false);
   useEffect(() => {
-    if (!initialMessage) return;
-    if (didAutoSendRef.current) return;
-    if (messages.length > 0) return;
+    if (!initialMessage || didAutoSendRef.current || messages.length > 0) return;
     didAutoSendRef.current = true;
-    setTimeout(() => {
-      sendMessage(initialMessage);
-    }, 60);
+    setTimeout(() => { sendMessage(initialMessage); }, 60);
   }, [initialMessage, messages.length, sendMessage]);
 
-  const typingMessage: Message = useMemo(() => ({
-    id: 'typing',
-    text: '',
-    sender: 'aria',
-    timestamp: '',
-  }), []);
+  const typingMessage: Message = useMemo(() => ({ id: 'typing', text: '', sender: 'aria', timestamp: '' }), []);
 
-  const topPad = insets.top + 10;
-
-  const drawerTranslate = useRef(new Animated.Value(-320)).current;
+  // ─── Drawer animation ──────────────────────────────────────
+  const drawerTranslate = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   useEffect(() => {
     Animated.timing(drawerTranslate, {
-      toValue: drawerOpen ? 0 : -320,
-      duration: drawerOpen ? 220 : 180,
+      toValue: drawerOpen ? 0 : -DRAWER_WIDTH,
+      duration: drawerOpen ? 230 : 190,
       useNativeDriver: true,
     }).start();
   }, [drawerOpen, drawerTranslate]);
 
-  const filteredConversations = useMemo(() => {
-    const q = drawerQuery.trim().toLowerCase();
-    if (!q) return conversations;
-    return conversations.filter((c) => (c.title || '').toLowerCase().includes(q));
-  }, [conversations, drawerQuery]);
+  // ─── Liquid Glass search animation ────────────────────────
+  const searchWidthAnim = useRef(new Animated.Value(44)).current;
 
+  const collapseSearch = useCallback(() => {
+    setIsSearchExpanded(false);
+    setSearchQuery('');
+    Animated.spring(searchWidthAnim, { toValue: 44, tension: 200, friction: 20, useNativeDriver: false }).start();
+  }, [searchWidthAnim]);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    collapseSearch();
+  }, [collapseSearch]);
+
+  const expandSearch = useCallback(() => {
+    Animated.spring(searchWidthAnim, { toValue: SEARCH_PILL_W, tension: 200, friction: 20, useNativeDriver: false }).start();
+    setTimeout(() => {
+      setIsSearchExpanded(true);
+      setTimeout(() => searchInputRef.current?.focus(), 60);
+    }, 140);
+  }, [searchWidthAnim]);
+
+  // ─── Create new conversation ───────────────────────────────
   const createConversationAndNavigate = useCallback(async () => {
     try {
       const raw = await AsyncStorage.getItem(conversationsKey(childId));
@@ -282,14 +291,27 @@ export default function AriaConversationScreen() {
       };
       const next = [newConv, ...list];
       await AsyncStorage.setItem(conversationsKey(childId), JSON.stringify(next));
-      setConversations(
-        next
-          .filter((c) => !!c?.id && !!c?.title)
-          .sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')),
-      );
+      setConversations(next.filter((c) => !!c?.id && !!c?.title).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')));
+      setDrawerOpen(false);
       navigation.navigate('AriaConversation', { conversationId: newConv.id, title: newConv.title });
     } catch {}
   }, [childFirstName, childId, navigation]);
+
+  // ─── Filtered conversations (sidebar) ─────────────────────
+  const filteredConversations = useMemo(() => {
+    let list = conversations;
+    const regex = CATEGORY_KEYWORDS[selectedCategory];
+    if (regex) {
+      list = list.filter((c) => regex.test(c.title));
+    }
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      list = list.filter((c) => c.title.toLowerCase().includes(q));
+    }
+    return list;
+  }, [conversations, selectedCategory, searchQuery]);
+
+  const topPad = insets.top + 10;
 
   return (
     <View style={styles.root}>
@@ -297,17 +319,17 @@ export default function AriaConversationScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
-        {/* Topbar */}
+        {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: topPad }]}>
           <Pressable
             onPress={() => setDrawerOpen(true)}
-            style={({ pressed }) => [styles.discussionsBtn, { opacity: pressed ? 0.75 : 1 }]}
+            style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.75 : 1 }]}
             hitSlop={10}
             accessibilityRole="button"
-            accessibilityLabel="Discussions"
+            accessibilityLabel="Historique"
           >
             <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
           </Pressable>
@@ -323,38 +345,33 @@ export default function AriaConversationScreen() {
 
           <Pressable
             onPress={createConversationAndNavigate}
-            style={({ pressed }) => [styles.newChatBtn, pressed && { opacity: 0.85 }]}
+            style={({ pressed }) => [styles.topBtn, pressed && { opacity: 0.85 }]}
             accessibilityRole="button"
             accessibilityLabel="Nouvelle discussion"
           >
-            <View style={styles.newChatIconWrap}>
-              <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
-            </View>
+            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
           </Pressable>
         </View>
 
+        {/* ─── Messages ─────────────────────────────────────── */}
         <FlatList
           ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
           renderItem={({ item }) => <ChatBubble message={item} />}
           style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingTop: 12,
-            paddingBottom: 12,
-          }}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: 12 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             messages.length === 0 ? (
               <View style={styles.empty}>
                 <View style={styles.emptyIcon}>
-                  <SparklesIcon size={22} color="#7C3AED" />
+                  <Sparkles size={22} color="#7C3AED" strokeWidth={2} />
                 </View>
                 <Text style={styles.emptyTitle}>Bonjour !</Text>
                 <Text style={styles.emptyText}>
                   Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
                 </Text>
-
                 <FlatList
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -382,7 +399,7 @@ export default function AriaConversationScreen() {
           onContentSizeChange={() => scrollToEnd()}
         />
 
-        {/* Input */}
+        {/* ─── Input ────────────────────────────────────────── */}
         <View style={[styles.inputWrap, { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }]}>
           <View style={styles.inputRow}>
             <Pressable
@@ -416,11 +433,7 @@ export default function AriaConversationScreen() {
               accessibilityRole="button"
               accessibilityLabel="Envoyer"
             >
-              <Send
-                size={18}
-                color={input.trim() ? '#FFFFFF' : '#94A3B8'}
-                strokeWidth={2.2}
-              />
+              <Send size={18} color={input.trim() ? '#FFFFFF' : '#94A3B8'} strokeWidth={2.2} />
             </Pressable>
           </View>
         </View>
@@ -428,88 +441,151 @@ export default function AriaConversationScreen() {
 
       <AddToDiscussionSheet visible={addSheetOpen} onClose={() => setAddSheetOpen(false)} onPick={() => {}} />
 
-      {/* Left drawer — conversations history (Claude-like) */}
+      {/* ─── Overlay ──────────────────────────────────────────── */}
       {drawerOpen && (
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={() => setDrawerOpen(false)}
-          accessibilityLabel="Fermer l'historique"
-        >
+        <Pressable style={StyleSheet.absoluteFill} onPress={closeDrawer} accessibilityLabel="Fermer">
           <View style={styles.drawerOverlay} />
         </Pressable>
       )}
+
+      {/* ─── Claude-style sidebar (light) ────────────────────── */}
       <Animated.View
         pointerEvents={drawerOpen ? 'auto' : 'none'}
         style={[
           styles.drawer,
-          { paddingTop: insets.top + 12, transform: [{ translateX: drawerTranslate }] },
+          {
+            width: DRAWER_WIDTH,
+            paddingTop: insets.top + 18,
+            transform: [{ translateX: drawerTranslate }],
+          },
         ]}
       >
+        {/* Header */}
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerTitle}>Conversations</Text>
-          <Text style={styles.drawerSub} numberOfLines={1}>
-            Aria
+          <Text style={styles.drawerTitle}>
+            <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
+            <Text style={styles.drawerTitleARIA}>{'ARIA'}</Text>
           </Text>
         </View>
 
-        <View style={styles.searchRow}>
-          <Search size={16} color="rgba(255,255,255,0.55)" strokeWidth={2} />
-          <TextInput
-            value={drawerQuery}
-            onChangeText={setDrawerQuery}
-            placeholder="Rechercher"
-            placeholderTextColor="rgba(255,255,255,0.35)"
-            style={styles.searchInput}
-          />
+        {/* Categories */}
+        <View style={styles.categories}>
+          {(
+            [
+              { key: 'discussions', label: 'Discussions', Icon: MessageSquare },
+              { key: 'syntheses', label: 'Synthèses', Icon: FileText },
+              { key: 'alertes', label: 'Alertes', Icon: Bell, hasDot: true },
+            ] as const
+          ).map(({ key, label, Icon, hasDot }) => {
+            const isActive = selectedCategory === key || (key === 'discussions' && selectedCategory === 'all');
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setSelectedCategory(selectedCategory === key ? 'all' : key)}
+                style={({ pressed }) => [
+                  styles.categoryRow,
+                  isActive && styles.categoryRowActive,
+                  pressed && !isActive && styles.categoryRowPressed,
+                ]}
+              >
+                <Icon size={18} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
+                <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
+                  {label}
+                </Text>
+                {hasDot && ARIA_ALERTS_UNREAD > 0 && <View style={styles.alertDot} />}
+              </Pressable>
+            );
+          })}
         </View>
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 30 }}
-        >
-          {filteredConversations.length === 0 ? (
-            <View style={{ paddingHorizontal: 14, paddingTop: 18 }}>
-              <Text style={styles.drawerEmptyTitle}>Aucune conversation</Text>
-              <Text style={styles.drawerEmptyText}>
-                Crée une conversation depuis l’écran Aria pour la retrouver ici.
-              </Text>
-            </View>
-          ) : (
-            filteredConversations.map((c) => {
-              const isActive = c.id === conversationId;
-              return (
-                <Pressable
-                  key={c.id}
-                  onPress={() => {
-                    setDrawerOpen(false);
-                    navigation.navigate('AriaConversation', { conversationId: c.id, title: c.title });
-                  }}
-                  style={({ pressed }) => [
-                    styles.drawerItem,
-                    isActive && styles.drawerItemActive,
-                    pressed && { opacity: 0.82 },
-                  ]}
-                >
-                  <View style={styles.drawerAvatar}>
-                    <Text style={styles.drawerAvatarText}>✦</Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={styles.drawerItemTitle} numberOfLines={1}>{c.title}</Text>
-                    <Text style={styles.drawerItemPreview} numberOfLines={1}>{c.lastMessage}</Text>
-                  </View>
-                </Pressable>
-              );
-            })
-          )}
-        </ScrollView>
+        {/* Divider */}
+        <View style={styles.drawerDivider} />
+
+        {/* Recents label */}
+        <Text style={styles.recentsLabel}>Récents</Text>
+
+        {/* Recents list + pinned search — relative wrapper */}
+        <View style={{ flex: 1, position: 'relative' }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 80 }}
+          >
+            {filteredConversations.length === 0 ? (
+              <Text style={styles.emptyListText}>Aucune conversation</Text>
+            ) : (
+              filteredConversations.map((c) => {
+                const isActiveConv = c.id === conversationId;
+                return (
+                  <Pressable
+                    key={c.id}
+                    onPress={() => {
+                      closeDrawer();
+                      navigation.navigate('AriaConversation', { conversationId: c.id, title: c.title });
+                    }}
+                    style={({ pressed }) => [
+                      styles.recentRow,
+                      isActiveConv && styles.recentRowActive,
+                      pressed && !isActiveConv && styles.recentRowPressed,
+                    ]}
+                  >
+                    <Text style={styles.recentTitle} numberOfLines={1}>{c.title}</Text>
+                  </Pressable>
+                );
+              })
+            )}
+          </ScrollView>
+
+          {/* ─── Liquid Glass Search Button — absolute pin ─── */}
+          <View style={{ position: 'absolute', bottom: 120, left: 16 }}>
+            <Animated.View
+              style={[
+                styles.liquidGlass,
+                { width: searchWidthAnim },
+                Platform.OS === 'web'
+                  ? ({
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                    } as any)
+                  : {},
+              ]}
+            >
+              <Pressable
+                onPress={isSearchExpanded ? collapseSearch : expandSearch}
+                style={styles.liquidGlassInner}
+                hitSlop={!isSearchExpanded ? 8 : 0}
+              >
+                <Search
+                  size={isSearchExpanded ? 14 : 16}
+                  color={isSearchExpanded ? '#9ca3af' : '#374151'}
+                  strokeWidth={2}
+                />
+                {isSearchExpanded && (
+                  <TextInput
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Rechercher…"
+                    placeholderTextColor="#9ca3af"
+                    style={styles.searchPillInput}
+                    returnKeyType="done"
+                    onSubmitEditing={collapseSearch}
+                  />
+                )}
+              </Pressable>
+            </Animated.View>
+          </View>
+        </View>
       </Animated.View>
     </View>
   );
 }
 
+// ─── Styles ──────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F2F2F7' },
 
+  // Top bar
   topbar: {
     paddingHorizontal: 16,
     paddingBottom: 10,
@@ -517,7 +593,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  discussionsBtn: {
+  topBtn: {
     width: 42,
     height: 42,
     borderRadius: 14,
@@ -532,249 +608,109 @@ const styles = StyleSheet.create({
       default: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 14 },
     }),
   },
-  newChatBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.80)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.85)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.10, shadowRadius: 16 },
-      android: { elevation: 0 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.10, shadowRadius: 16 },
-    }),
-  },
-  newChatIconWrap: {
-    width: 42,
-    height: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 16,
-    color: '#0F172A',
-    letterSpacing: -0.2,
-  },
+  topTitle: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#0F172A', letterSpacing: -0.2 },
   topTitleIA: { color: '#7C3AED' },
-  topSubtitle: {
-    marginTop: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: '#94A3B8',
-  },
-  // newChatBtn/newChatIconWrap defined below (glass button)
+  topSubtitle: { marginTop: 1, fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 
-  empty: {
-    paddingHorizontal: 16,
-    paddingTop: 22,
-    paddingBottom: 10,
-    alignItems: 'center',
-  },
+  // Empty state
+  empty: { paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10, alignItems: 'center' },
   emptyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: 'rgba(124,58,237,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 56, height: 56, borderRadius: 18,
+    backgroundColor: 'rgba(124,58,237,0.10)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.18)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  emptyTitle: {
-    marginTop: 12,
-    fontFamily: FontFamily.sansBold,
-    fontSize: 18,
-    color: '#0F172A',
-  },
-  emptyText: {
-    marginTop: 8,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    lineHeight: 19,
-    color: '#64748B',
-    textAlign: 'center',
-  },
+  emptyTitle: { marginTop: 12, fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
+  emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
   suggestionChip: {
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.22)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    marginRight: 8,
+    backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.22)',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, marginRight: 8,
   },
-  suggestionText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#475569',
-  },
+  suggestionText: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#475569' },
 
+  // Input
   inputWrap: { paddingHorizontal: 12, paddingTop: 8 },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 28,
-    paddingLeft: 10,
-    paddingRight: 6,
-    paddingVertical: 6,
+    flexDirection: 'row', alignItems: 'flex-end', gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 28, paddingLeft: 10, paddingRight: 6, paddingVertical: 6,
     ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 20,
-      },
+      ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20 },
       android: { elevation: 0 },
     }),
   },
   plusBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.18)',
-    marginBottom: 2,
+    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(148,163,184,0.10)', borderWidth: 1, borderColor: 'rgba(148,163,184,0.18)', marginBottom: 2,
   },
-  input: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 15,
-    color: '#0F172A',
-    maxHeight: 120,
-    paddingVertical: 10,
-  },
+  input: { flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 15, color: '#0F172A', maxHeight: 120, paddingVertical: 10 },
   sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.18)',
-    marginBottom: 2,
+    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(148,163,184,0.10)', borderWidth: 1, borderColor: 'rgba(148,163,184,0.18)', marginBottom: 2,
   },
-  sendBtnActive: {
-    backgroundColor: '#6366F1',
-    borderColor: '#6366F1',
-  },
+  sendBtnActive: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
 
-  // FAB removed: "nouvelle discussion" is in topbar now.
+  // Overlay
+  drawerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.30)' },
 
-  // Drawer (Claude-like)
-  drawerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10,12,22,0.40)',
-  },
+  // Drawer — light, Claude-style
   drawer: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    width: 320,
-    backgroundColor: 'rgba(16,20,38,0.92)',
-    borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.08)',
+    position: 'absolute', top: 0, bottom: 0, left: 0,
+    backgroundColor: '#FAFAFA',
+    borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.06)',
+    flexDirection: 'column',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
+      android: { elevation: 8 },
+      default: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
+    }),
   },
-  drawerHeader: {
-    paddingHorizontal: 14,
-    paddingBottom: 12,
+  drawerHeader: { paddingHorizontal: 20, paddingBottom: 20 },
+  drawerTitle: { fontFamily: FontFamily.displayBold, fontSize: 28, letterSpacing: 2 },
+  drawerTitleSparkle: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 28 },
+  drawerTitleARIA: { color: '#1A2340', fontFamily: FontFamily.displayBold, fontSize: 28, letterSpacing: 2 },
+
+  // Categories
+  categories: { paddingHorizontal: 8, gap: 2 },
+  categoryRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10, minHeight: 44,
   },
-  drawerTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 18,
-    color: '#FFFFFF',
+  categoryRowActive: { backgroundColor: 'rgba(124,58,237,0.08)' },
+  categoryRowPressed: { backgroundColor: 'rgba(124,58,237,0.04)' },
+  categoryLabel: { fontFamily: FontFamily.sansMedium, fontSize: 15, color: '#1A2340', flex: 1 },
+  categoryLabelActive: { color: '#7C3AED', fontFamily: FontFamily.sansSemiBold },
+  alertDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#7C3AED' },
+
+  // Divider
+  drawerDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginHorizontal: 20, marginVertical: 4 },
+
+  // Recents
+  recentsLabel: {
+    fontFamily: FontFamily.sansMedium, fontSize: 12, color: '#9ca3af',
+    letterSpacing: 0.84, textTransform: 'uppercase',
+    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4,
   },
-  drawerSub: {
-    marginTop: 4,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
+  recentRow: {
+    paddingHorizontal: 20, paddingVertical: 10,
   },
-  searchRow: {
-    marginHorizontal: 14,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  recentRowActive: { backgroundColor: 'rgba(124,58,237,0.10)' },
+  recentRowPressed: { backgroundColor: 'rgba(124,58,237,0.05)' },
+  recentTitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#374151' },
+  emptyListText: {
+    fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#9ca3af',
+    paddingHorizontal: 20, paddingTop: 16,
   },
-  searchInput: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#FFFFFF',
-    paddingVertical: 0,
+
+  liquidGlass: {
+    height: 44, borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.70)',
+    overflow: 'hidden',
   },
-  drawerItem: {
-    marginHorizontal: 10,
-    marginBottom: 6,
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+  liquidGlassInner: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 8,
   },
-  drawerItemActive: {
-    backgroundColor: 'rgba(124,58,237,0.18)',
-    borderColor: 'rgba(124,58,237,0.28)',
-  },
-  drawerAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(124,58,237,0.35)',
-  },
-  drawerAvatarText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 12,
-    color: '#FFFFFF',
-  },
-  drawerItemTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#FFFFFF',
-  },
-  drawerItemPreview: {
-    marginTop: 2,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
-  },
-  drawerEmptyTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#FFFFFF',
-  },
-  drawerEmptyText: {
-    marginTop: 6,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    lineHeight: 18,
-    color: 'rgba(255,255,255,0.55)',
+  searchPillInput: {
+    flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#374151', paddingVertical: 0,
   },
 });
-

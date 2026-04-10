@@ -661,10 +661,10 @@ export default function MessagerieScreen() {
   // ─── Render ───────────────────────────────────────────────
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: 16 }]}
       >
         {/* Header */}
         <View style={styles.header}>
@@ -858,7 +858,7 @@ export default function MessagerieScreen() {
             style={StyleSheet.absoluteFill}
             onPress={() => setDropdownVisible(false)}
           />
-          <View style={[styles.filterDropdown, { top: insets.top + 62 }]}>
+          <View style={[styles.filterDropdown, { top: 62 }]}>
             {FILTER_OPTIONS.map((opt) => {
               const isActive = activeFilter === opt.id;
               return (
