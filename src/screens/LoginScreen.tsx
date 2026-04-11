@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -153,6 +154,7 @@ interface Props {
 
 export default function LoginScreen({ onNavigatePin }: Props) {
   const { signIn, enterDemoMode } = useAuth();
+  const insets = useSafeAreaInsets();
   const [serifLoaded] = useFonts({ DMSerifDisplay_400Regular });
 
   const [showEmail, setShowEmail] = useState(false);
@@ -182,103 +184,104 @@ export default function LoginScreen({ onNavigatePin }: Props) {
   return (
     <View style={s.root}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={s.kav}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        {/* Espace vide en haut */}
-        <View style={{ flex: 1 }} />
+        <View style={s.column}>
+          <View style={s.topSpacer} />
 
-        {/* Zone logo + sparkles */}
-        <View style={s.logoWrap}>
-          <View style={s.sparkleLayer} pointerEvents="none">
-            <Sparkle size={22} left={-46} top={-4} delay={0} />
-            <Sparkle size={13} left={18} top={-18} delay={600} />
-            <Sparkle size={10} left={42} top={6} delay={1200} />
+          <View style={s.logoWrap}>
+            <View style={s.sparkleLayer} pointerEvents="none">
+              <Sparkle size={22} left={-46} top={-4} delay={0} />
+              <Sparkle size={13} left={18} top={-18} delay={600} />
+              <Sparkle size={10} left={42} top={6} delay={1200} />
+            </View>
+            {serifLoaded ? <WordmarkLight height={46} /> : <View style={{ height: 46 }} />}
           </View>
-          {serifLoaded ? <WordmarkLight height={46} /> : <View style={{ height: 46 }} />}
+
+          <View style={s.actions}>
+            {!showEmail ? (
+              <>
+                <Pressable
+                  style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
+                  onPress={() => setShowEmail(true)}
+                >
+                  <Text style={s.btnPrimaryText}>Se connecter</Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [s.btnSecondary, pressed && { opacity: 0.7 }]}
+                  onPress={onNavigatePin}
+                >
+                  <Text style={s.btnSecondaryText}>Créer un compte</Text>
+                </Pressable>
+
+                <Pressable onPress={enterDemoMode} hitSlop={10} style={s.demoLinkWrap}>
+                  <Text style={s.demoLink}>Essayer en mode démo</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <View style={s.field}>
+                  <TextInput
+                    style={[s.fieldInput, WEB_INPUT_FIX]}
+                    placeholder="Adresse email"
+                    placeholderTextColor="rgba(26,35,64,0.35)"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
+
+                <View style={s.field}>
+                  <TextInput
+                    style={[s.fieldInput, WEB_INPUT_FIX]}
+                    placeholder="Mot de passe"
+                    placeholderTextColor="rgba(26,35,64,0.35)"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    autoComplete="password"
+                  />
+                </View>
+
+                {error ? <Text style={s.errorText}>{error}</Text> : null}
+
+                <Pressable
+                  style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
+                  onPress={handleSubmit}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <Text style={s.btnPrimaryText}>Connexion</Text>
+                  )}
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    setShowEmail(false);
+                    setError('');
+                  }}
+                  hitSlop={10}
+                  style={s.demoLinkWrap}
+                >
+                  <Text style={s.demoLink}>Retour</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+
+          <View style={s.bottomSpacer} />
+
+          <Text style={[s.legal, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            En continuant, vous acceptez les conditions et la politique de confidentialité.
+          </Text>
         </View>
-
-        {/* Bloc actions */}
-        <View style={s.actions}>
-          {!showEmail ? (
-            <>
-              <Pressable
-                style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
-                onPress={() => setShowEmail(true)}
-              >
-                <Text style={s.btnPrimaryText}>Se connecter</Text>
-              </Pressable>
-
-              <Pressable
-                style={({ pressed }) => [s.btnSecondary, pressed && { opacity: 0.7 }]}
-                onPress={onNavigatePin}
-              >
-                <Text style={s.btnSecondaryText}>Créer un compte</Text>
-              </Pressable>
-
-              <Pressable onPress={enterDemoMode} hitSlop={10} style={s.demoLinkWrap}>
-                <Text style={s.demoLink}>Essayer en mode démo</Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <View style={s.field}>
-                <TextInput
-                  style={[s.fieldInput, WEB_INPUT_FIX]}
-                  placeholder="Adresse email"
-                  placeholderTextColor="rgba(26,35,64,0.35)"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                />
-              </View>
-
-              <View style={s.field}>
-                <TextInput
-                  style={[s.fieldInput, WEB_INPUT_FIX]}
-                  placeholder="Mot de passe"
-                  placeholderTextColor="rgba(26,35,64,0.35)"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoComplete="password"
-                />
-              </View>
-
-              {error ? <Text style={s.errorText}>{error}</Text> : null}
-
-              <Pressable
-                style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
-                onPress={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={s.btnPrimaryText}>Connexion</Text>
-                )}
-              </Pressable>
-
-              <Pressable
-                onPress={() => {
-                  setShowEmail(false);
-                  setError('');
-                }}
-                hitSlop={10}
-                style={s.demoLinkWrap}
-              >
-                <Text style={s.demoLink}>Retour</Text>
-              </Pressable>
-            </>
-          )}
-        </View>
-
-        {/* Mention légale */}
-        <Text style={s.legal}>
-          En continuant, vous acceptez les conditions et la politique de confidentialité.
-        </Text>
       </KeyboardAvoidingView>
     </View>
   );
@@ -288,11 +291,16 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
+  kav: { flex: 1 },
+  column: { flex: 1, width: '100%' },
+  topSpacer: { flex: 1, minHeight: 24 },
+  bottomSpacer: { flex: 1, minHeight: 16 },
 
   // Logo + sparkles
   logoWrap: {
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 52,
   },
   sparkleLayer: {
     position: 'absolute',
@@ -305,16 +313,19 @@ const s = StyleSheet.create({
 
   // Actions block
   actions: {
-    marginTop: 32,
-    paddingHorizontal: 28,
+    marginTop: 28,
+    paddingHorizontal: 16,
     gap: 12,
+    width: '100%',
+    alignSelf: 'center',
   },
   btnPrimary: {
-    height: 56,
-    borderRadius: 100,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   btnPrimaryText: {
     color: '#FFFFFF',
@@ -323,13 +334,14 @@ const s = StyleSheet.create({
     letterSpacing: 0.2,
   },
   btnSecondary: {
-    height: 56,
-    borderRadius: 100,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: 'rgba(26,35,64,0.18)',
+    borderColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   btnSecondaryText: {
     color: NAVY,
@@ -344,7 +356,7 @@ const s = StyleSheet.create({
   },
   demoLink: {
     fontSize: 13,
-    color: 'rgba(26,35,64,0.32)',
+    color: 'rgba(26,35,64,0.45)',
     fontFamily: FontFamily.sansMedium,
   },
 
@@ -374,11 +386,10 @@ const s = StyleSheet.create({
   // Legal
   legal: {
     fontSize: 11,
-    color: 'rgba(26,35,64,0.22)',
+    color: 'rgba(26,35,64,0.35)',
     fontFamily: FontFamily.sansRegular,
     textAlign: 'center',
-    paddingHorizontal: 40,
-    paddingBottom: 32,
-    marginTop: 24,
+    paddingHorizontal: 28,
+    marginTop: 8,
   },
 });

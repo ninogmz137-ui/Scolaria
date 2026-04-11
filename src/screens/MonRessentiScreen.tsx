@@ -10,7 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { ChevronLeft, Check, MessageCircle } from 'lucide-react-native';
+import { ChevronLeft, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
@@ -265,8 +265,7 @@ export default function MonRessentiScreen() {
             onPress={onSubmit}
             disabled={mode === 'maternelle' && !canSubmit}
           >
-            <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
-            <Text style={styles.submitTxt}>Enregistrer mon ressenti</Text>
+            <Text style={styles.submitTxt}>✓ Enregistrer mon ressenti</Text>
           </Pressable>
 
           <Text style={styles.privacy}>
@@ -380,7 +379,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     backgroundColor: 'rgba(255,255,255,0.75)',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: 'rgba(255,255,255,0.92)',
   },
   mainCardInner: {
     padding: 16,

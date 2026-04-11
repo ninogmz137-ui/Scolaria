@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.65)',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(255, 255, 255, 0.92)',
     overflow: 'hidden',
     // @ts-ignore — borderCurve is supported on iOS 17+
     borderCurve: 'continuous',
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.92)',
     overflow: 'hidden',
     // @ts-ignore
     borderCurve: 'continuous',

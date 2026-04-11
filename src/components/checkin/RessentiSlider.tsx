@@ -1,7 +1,6 @@
 import type { ComponentType } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 const NAVY = '#1A2340';
@@ -26,12 +25,7 @@ export default function RessentiSlider({ label, Icon, value, onChange }: Props) 
       </View>
       <View style={styles.trackWrap}>
         <View style={styles.trackBg} />
-        <LinearGradient
-          colors={['#7C3AED', '#06B6D4']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.fill, { width: `${value * 10}%` }]}
-        />
+        <View style={[styles.fill, { width: `${value * 10}%`, backgroundColor: NAVY }]} />
         <Slider
           style={styles.slider}
           minimumValue={0}

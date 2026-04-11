@@ -71,7 +71,19 @@ const glassStyle = Platform.select<any>({
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: 'rgba(255,255,255,0.92)',
+  },
+});
+
+/** Native-only filter trigger — visible on Android (no reliance on near-white glass). */
+const filterTriggerStyle = Platform.select({
+  web: undefined,
+  default: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 0,
   },
 });
 
@@ -389,13 +401,14 @@ export default function MessagerieScreen() {
               }
             </Pressable>
 
-            {/* Filter pill */}
+            {/* Filter pill — explicit native styles so the control is visible on Android */}
             <Pressable
               onPress={() => setDropdownVisible((v) => !v)}
               style={({ pressed }) => [
-                styles.glassPill,
-                glassStyle,
-                isFiltered && styles.glassPillActive,
+                styles.filterPillRow,
+                Platform.OS === 'web'
+                  ? [styles.glassPill, glassStyle, isFiltered && styles.glassPillActive]
+                  : [filterTriggerStyle, isFiltered && styles.filterPillActiveNative],
                 pressed && { opacity: 0.75 },
               ]}
               hitSlop={6}
@@ -591,7 +604,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Glass filter pill — true pill (borderRadius = height/2)
+  // Glass filter pill — web only (native uses filterTriggerStyle)
   glassPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -600,13 +613,21 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
   },
+  filterPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   glassPillActive: {
-    // violet tint overlay when filter is active
     borderColor: 'rgba(124,58,237,0.35)',
+  },
+  filterPillActiveNative: {
+    backgroundColor: 'rgba(124,58,237,0.08)',
   },
   filterPillLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
+    fontWeight: '600',
     color: NAVY,
   },
 

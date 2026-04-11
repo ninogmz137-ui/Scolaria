@@ -37,6 +37,7 @@ import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
+const CHIP_MAX_W = (SCREEN_WIDTH - 32 - 8) / 2;
 const ARIA_ALERTS_UNREAD = 2;
 
 // ─── Demo recents data ──────────────────────────────────────
@@ -295,22 +296,16 @@ export default function AriaHomeScreen() {
             <Text style={styles.heroTitle}>Comment puis-je t'aider ce soir ?</Text>
           </View>
 
-          <View style={{ marginTop: 26 }}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 4 }}
-            >
-              {suggestions.map((s) => (
-                <Pressable
-                  key={s}
-                  onPress={() => sendFromHome(s)}
-                  style={({ pressed }) => [styles.suggestionChip, pressed && { opacity: 0.86 }]}
-                >
-                  <Text style={styles.suggestionText}>{s}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+          <View style={[styles.suggestionWrap, { marginTop: 26 }]}>
+            {suggestions.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => sendFromHome(s)}
+                style={({ pressed }) => [styles.suggestionChip, pressed && { opacity: 0.86 }]}
+              >
+                <Text style={styles.suggestionText}>{s}</Text>
+              </Pressable>
+            ))}
           </View>
         </ScrollView>
 
@@ -393,21 +388,25 @@ export default function AriaHomeScreen() {
           },
         ]}
       >
-        {/* Header */}
+        {/* Header — brand left, orb centered */}
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerTitle}>
+          <Text style={styles.drawerBrand}>
             <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
             <Text style={styles.drawerTitleARIA}>{'ARIA'}</Text>
           </Text>
+          <View style={styles.drawerOrbWrap} pointerEvents="none">
+            <AriaOrb state={orbState} size={52} />
+          </View>
+          <View style={styles.drawerHeaderSpacer} />
         </View>
 
         {/* Categories — filter buttons only, no navigation */}
         <View style={styles.categories}>
           {(
             [
-              { key: 'discussions', label: 'Discussions', Icon: MessageSquare },
-              { key: 'syntheses',   label: 'Synthèses',   Icon: FileText },
-              { key: 'alertes',     label: 'Alertes',     Icon: Bell, hasDot: true },
+              { key: 'discussions', label: 'Discussions', Icon: MessageSquare, hasDot: false as const },
+              { key: 'syntheses',   label: 'Documents',   Icon: FileText, hasDot: false as const },
+              { key: 'alertes',     label: 'Alertes',     Icon: Bell, hasDot: true as const },
             ] as const
           ).map(({ key, label, Icon, hasDot }) => {
             const isActive = selectedCategory === key;
@@ -435,13 +434,13 @@ export default function AriaHomeScreen() {
         <View style={styles.drawerDivider} />
 
         {/* Recents label */}
-        <Text style={styles.recentsLabel}>Récents</Text>
+        <Text style={styles.recentsLabel}>RÉCENTS</Text>
 
-        {/* Recents list + pinned search — relative wrapper */}
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 80 }}
+            contentContainerStyle={{ paddingBottom: 16 }}
+            style={styles.drawerRecentsScroll}
           >
             {filteredRecents.map((r) => (
               <Pressable
@@ -463,8 +462,7 @@ export default function AriaHomeScreen() {
             ))}
           </ScrollView>
 
-          {/* ─── Liquid Glass Search Button — absolute pin ────── */}
-          <View style={{ position: 'absolute', bottom: 120, left: 16 }}>
+          <View style={styles.drawerSearchBar}>
             <Animated.View
               style={[
                 styles.liquidGlass,
@@ -475,7 +473,11 @@ export default function AriaHomeScreen() {
                       WebkitBackdropFilter: 'blur(20px)',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                     } as any)
-                  : {},
+                  : {
+                      backgroundColor: 'rgba(255,255,255,0.92)',
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.92)',
+                    },
               ]}
             >
               <Pressable
@@ -484,7 +486,7 @@ export default function AriaHomeScreen() {
                 hitSlop={!isSearchExpanded ? 8 : 0}
               >
                 <Search
-                  size={isSearchExpanded ? 14 : 16}
+                  size={isSearchExpanded ? 14 : 18}
                   color={isSearchExpanded ? '#9ca3af' : '#374151'}
                   strokeWidth={2}
                 />
@@ -585,15 +587,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Suggestion chips
+  suggestionWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 4,
+  },
   suggestionChip: {
+    maxWidth: CHIP_MAX_W,
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.22)',
+    borderColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
-    marginRight: 8,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
@@ -675,6 +682,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',
+    alignSelf: 'stretch',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -692,24 +700,51 @@ const styles = StyleSheet.create({
     }),
   },
   drawerHeader: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    minHeight: 56,
   },
-  drawerTitle: {
+  drawerBrand: {
+    width: 100,
     fontFamily: FontFamily.displayBold,
-    fontSize: 28,
-    letterSpacing: 2,
+    fontSize: 26,
+    letterSpacing: 1,
   },
   drawerTitleSparkle: {
     color: '#7C3AED',
     fontFamily: FontFamily.displayBold,
-    fontSize: 28,
+    fontSize: 26,
   },
   drawerTitleARIA: {
-    color: '#1A2340',
+    color: '#7C3AED',
     fontFamily: FontFamily.displayBold,
-    fontSize: 28,
-    letterSpacing: 2,
+    fontSize: 26,
+    letterSpacing: 1,
+  },
+  drawerOrbWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  drawerHeaderSpacer: {
+    width: 100,
+  },
+  drawerBody: {
+    flex: 1,
+    minHeight: 120,
+    justifyContent: 'flex-end',
+  },
+  drawerRecentsScroll: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  drawerSearchBar: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 4,
+    alignItems: 'flex-start',
   },
 
   // Categories

@@ -212,8 +212,8 @@ export default function AriaConversationScreen() {
       const response = await sendToAria(trimmed, historyRef.current, childId);
       const nextHistory: ClaudeMessage[] = [
         ...historyRef.current,
-        { role: 'user', content: trimmed },
-        { role: 'assistant', content: response },
+        { role: 'user' as const, content: trimmed },
+        { role: 'assistant' as const, content: response },
       ].slice(-20);
       historyRef.current = nextHistory;
       const ariaMsg: Message = { id: `a_${Date.now() + 1}`, text: response, sender: 'aria', timestamp: nowTime() };
@@ -463,21 +463,25 @@ export default function AriaConversationScreen() {
           },
         ]}
       >
-        {/* Header */}
+        {/* Header — brand left, orb centered */}
         <View style={styles.drawerHeader}>
-          <Text style={styles.drawerTitle}>
+          <Text style={styles.drawerBrand}>
             <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
             <Text style={styles.drawerTitleARIA}>{'ARIA'}</Text>
           </Text>
+          <View style={styles.drawerOrbWrap} pointerEvents="none">
+            <AriaOrb state={isTyping ? 'thinking' : 'idle'} size={52} />
+          </View>
+          <View style={styles.drawerHeaderSpacer} />
         </View>
 
         {/* Categories */}
         <View style={styles.categories}>
           {(
             [
-              { key: 'discussions', label: 'Discussions', Icon: MessageSquare },
-              { key: 'syntheses', label: 'Synthèses', Icon: FileText },
-              { key: 'alertes', label: 'Alertes', Icon: Bell, hasDot: true },
+              { key: 'discussions', label: 'Discussions', Icon: MessageSquare, hasDot: false as const },
+              { key: 'syntheses', label: 'Documents', Icon: FileText, hasDot: false as const },
+              { key: 'alertes', label: 'Alertes', Icon: Bell, hasDot: true as const },
             ] as const
           ).map(({ key, label, Icon, hasDot }) => {
             const isActive = selectedCategory === key || (key === 'discussions' && selectedCategory === 'all');
@@ -505,13 +509,13 @@ export default function AriaConversationScreen() {
         <View style={styles.drawerDivider} />
 
         {/* Recents label */}
-        <Text style={styles.recentsLabel}>Récents</Text>
+        <Text style={styles.recentsLabel}>RÉCENTS</Text>
 
-        {/* Recents list + pinned search — relative wrapper */}
-        <View style={{ flex: 1, position: 'relative' }}>
+        <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 80 }}
+            contentContainerStyle={{ paddingBottom: 16 }}
+            style={styles.drawerRecentsScroll}
           >
             {filteredConversations.length === 0 ? (
               <Text style={styles.emptyListText}>Aucune conversation</Text>
@@ -538,8 +542,7 @@ export default function AriaConversationScreen() {
             )}
           </ScrollView>
 
-          {/* ─── Liquid Glass Search Button — absolute pin ─── */}
-          <View style={{ position: 'absolute', bottom: 120, left: 16 }}>
+          <View style={styles.drawerSearchBar}>
             <Animated.View
               style={[
                 styles.liquidGlass,
@@ -550,7 +553,11 @@ export default function AriaConversationScreen() {
                       WebkitBackdropFilter: 'blur(20px)',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                     } as any)
-                  : {},
+                  : {
+                      backgroundColor: 'rgba(255,255,255,0.92)',
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.92)',
+                    },
               ]}
             >
               <Pressable
@@ -559,7 +566,7 @@ export default function AriaConversationScreen() {
                 hitSlop={!isSearchExpanded ? 8 : 0}
               >
                 <Search
-                  size={isSearchExpanded ? 14 : 16}
+                  size={isSearchExpanded ? 14 : 18}
                   color={isSearchExpanded ? '#9ca3af' : '#374151'}
                   strokeWidth={2}
                 />
@@ -701,16 +708,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
     borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',
+    alignSelf: 'stretch',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
       android: { elevation: 8 },
       default: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
     }),
   },
-  drawerHeader: { paddingHorizontal: 20, paddingBottom: 20 },
-  drawerTitle: { fontFamily: FontFamily.displayBold, fontSize: 28, letterSpacing: 2 },
-  drawerTitleSparkle: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 28 },
-  drawerTitleARIA: { color: '#1A2340', fontFamily: FontFamily.displayBold, fontSize: 28, letterSpacing: 2 },
+  drawerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    minHeight: 56,
+  },
+  drawerBrand: {
+    width: 100,
+    fontFamily: FontFamily.displayBold,
+    fontSize: 26,
+    letterSpacing: 1,
+  },
+  drawerTitleSparkle: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26 },
+  drawerTitleARIA: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26, letterSpacing: 1 },
+  drawerOrbWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  drawerHeaderSpacer: { width: 100 },
+  drawerBody: { flex: 1, minHeight: 120, justifyContent: 'flex-end' },
+  drawerRecentsScroll: { flexGrow: 1, flexShrink: 1 },
+  drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 
   // Categories
   categories: { paddingHorizontal: 8, gap: 2 },

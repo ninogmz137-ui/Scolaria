@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, View, Platform, Pressable as RNPressable, Image } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+  Platform,
+  Pressable as RNPressable,
+  Image,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +29,7 @@ import {
 import { Box, Text, Pressable } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
-import { useWallpaper } from '../contexts/WallpaperContext';
+import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 type RowType = 'navigate' | 'toggle';
@@ -84,7 +92,12 @@ export default function ReglagesScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { signOut, isDemo } = useAuth();
-  const { wallpaper, wallpapers, setWallpaperId, customUri, setCustomWallpaper } = useWallpaper();
+  const { wallpaper, wallpapers, setWallpaperId, customUri } = useWallpaper();
+
+  const wallpaperGridSource = useMemo((): WallpaperDef[] => {
+    const list = wallpapers?.length ? wallpapers : WALLPAPERS;
+    return list.slice(0, 12);
+  }, [wallpapers]);
 
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
 
@@ -182,55 +195,44 @@ export default function ReglagesScreen() {
 
           <SectionLabel label="FONDS D'ÉCRAN" />
           <View style={styles.wallpaperGroup}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.wallpaperRow}
-            >
-              {wallpapers.map((wp) => {
+            <View style={styles.wallpaperGrid}>
+              {wallpaperGridSource.map((wp) => {
+                const hasRemote = !!wp.imageUrl;
                 const isActive = !customUri && wallpaper.id === wp.id;
+                const grad = (
+                  wp.colors.length >= 2
+                    ? [wp.colors[0], wp.colors[wp.colors.length - 1]]
+                    : ['#6366F1', '#22D3EE']
+                ) as [string, string, ...string[]];
                 return (
                   <RNPressable
                     key={wp.id}
                     onPress={() => setWallpaperId(wp.id)}
                     style={({ pressed }) => [
-                      styles.wallpaperTile,
+                      styles.wallpaperGridTile,
                       isActive && styles.wallpaperTileActive,
-                      pressed && { opacity: 0.86 },
+                      pressed && { opacity: 0.9 },
                     ]}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: isActive }}
                     accessibilityLabel={wp.label}
                   >
-                    {wp.imageUrl ? (
-                      <Image source={{ uri: wp.imageUrl }} style={styles.wallpaperTileImage} />
-                    ) : (
-                      Platform.OS === 'web' ? (
-                        // @ts-ignore — web-only CSS property
-                        <View
-                          style={[
-                            styles.wallpaperTileImage,
-                            { backgroundImage: `linear-gradient(135deg, ${wp.colors[0]}, ${wp.colors[wp.colors.length - 1]})` } as any,
-                          ]}
-                        />
-                      ) : (
-                        <LinearGradient
-                          colors={wp.colors as [string, string, ...string[]]}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 1 }}
-                          style={styles.wallpaperTileImage}
-                        />
-                      )
-                    )}
+                    <LinearGradient
+                      colors={grad}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={StyleSheet.absoluteFill}
+                    />
+                    {hasRemote ? (
+                      <Image source={{ uri: wp.imageUrl! }} style={styles.wallpaperTileImageOverlay} />
+                    ) : null}
                   </RNPressable>
                 );
               })}
-
-              {/* Custom tile placeholder (kept minimal; actual pick can be wired later) */}
-              <View style={[styles.wallpaperTile, styles.wallpaperCustomTile]}>
-                <ImageIcon size={18} color="#64748B" strokeWidth={2} />
+              <View style={[styles.wallpaperGridTile, styles.wallpaperCustomTile]}>
+                <ImageIcon size={22} color="#64748B" strokeWidth={2} />
               </View>
-            </ScrollView>
+            </View>
           </View>
 
           <SectionLabel label="PRÉFÉRENCES" />
@@ -347,34 +349,37 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 14,
   },
-  wallpaperRow: {
+  wallpaperGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 12,
     gap: 10,
+    justifyContent: 'space-between',
   },
-  wallpaperTile: {
-    width: 54,
-    height: 54,
-    borderRadius: 14,
+  wallpaperGridTile: {
+    width: '48%',
+    height: 100,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.10)',
-    backgroundColor: 'rgba(148,163,184,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(148,163,184,0.12)',
   },
   wallpaperTileActive: {
     borderWidth: 2,
     borderColor: '#6366F1',
   },
-  wallpaperTileImage: {
-    width: '100%',
-    height: '100%',
+  wallpaperTileImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: Platform.OS === 'web' ? 1 : 0.92,
   },
   wallpaperCustomTile: {
     borderStyle: 'dashed',
     borderColor: 'rgba(100,116,139,0.35)',
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
