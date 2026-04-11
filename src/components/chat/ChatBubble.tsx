@@ -4,7 +4,7 @@ import { Box, Text, HStack } from '../ui';
 import { Colors } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
-import AriaAvatar from './AriaAvatar';
+import AriaOrb from '../AriaOrb';
 import TypingIndicator from './TypingIndicator';
 import SimpleMarkdown from './SimpleMarkdown';
 
@@ -60,7 +60,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
       className="mb-3 px-4 items-end gap-2"
       style={{ justifyContent: isAria ? 'flex-start' : 'flex-end' }}
     >
-      {isAria && <AriaAvatar size={32} />}
+      {isAria && <AriaOrb variant="bubble" state="idle" />}
       <Box
         className="rounded-2xl px-4 py-3"
         style={{

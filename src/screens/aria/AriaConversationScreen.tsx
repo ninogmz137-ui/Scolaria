@@ -41,6 +41,9 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
 const ARIA_ALERTS_UNREAD = 2;
 
+/** Header orb: natural `size` on AriaOrb (no parent scale transform); ≥80px so rings aren’t clipped */
+const HEADER_ORB_SIZE = 80;
+
 // ─── Category keyword filters for real conversations ────────
 type ConvCategory = 'all' | 'discussions' | 'syntheses' | 'alertes';
 
@@ -335,18 +338,8 @@ export default function AriaConversationScreen() {
           </Pressable>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
-            <View
-              style={{
-                height: 52,
-                width: 200,
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-              }}
-            >
-              <View style={{ transform: [{ scale: 0.26 }], marginTop: -74 }}>
-                <AriaOrb state={isTyping ? 'thinking' : 'idle'} />
-              </View>
+            <View style={styles.headerOrbSlot}>
+              <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : 'idle'} />
             </View>
             <Text style={styles.topTitle}>
               Ar<Text style={styles.topTitleIA}>ia</Text>
@@ -645,7 +638,25 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  topTitle: { fontFamily: FontFamily.sansBold, fontSize: 16, color: '#0F172A', letterSpacing: -0.2 },
+  /** Fits natural `size={80}` AriaOrb (idle + thinking); no transform scale on parent */
+  headerOrbSlot: {
+    width: HEADER_ORB_SIZE,
+    minWidth: HEADER_ORB_SIZE,
+    minHeight: HEADER_ORB_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 6,
+    overflow: 'visible',
+    zIndex: 2,
+  },
+  topTitle: {
+    marginTop: 2,
+    fontFamily: FontFamily.sansBold,
+    fontSize: 16,
+    color: '#0F172A',
+    letterSpacing: -0.2,
+  },
   topTitleIA: { color: '#7C3AED' },
   topSubtitle: { marginTop: 1, fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 

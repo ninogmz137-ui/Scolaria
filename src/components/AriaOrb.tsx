@@ -16,10 +16,9 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 const VIOLET = '#7C3AED';
 const CYAN = '#06B6D4';
 const CORE = 60;
-const CORE_R = 30;
 
-/** Max diameter for thinking waves + padding for shadows */
-const CONTAINER = 200;
+/** Design reference width/height; `size` prop scales from this */
+const REF_SIZE = 200;
 
 export type AriaOrbState = 'idle' | 'listening' | 'thinking';
 
@@ -28,6 +27,13 @@ type Props = {
   /** Background visible through ring “holes” (Aria screens use #F2F2F7) */
   holeColor?: string;
   style?: ViewStyle;
+  /** 32px idle orb: white core + gradient ✦ + subtle ring (for message avatars) */
+  variant?: 'default' | 'bubble';
+  /**
+   * Outer layout size (width & height) in px — scales all orb geometry without parent `transform`.
+   * Default 200 (design reference).
+   */
+  size?: number;
 };
 
 function GradientRingBorder({
@@ -75,7 +81,152 @@ function GradientRingBorder({
   );
 }
 
-export default function AriaOrb({ state, holeColor = '#F2F2F7', style }: Props) {
+const BUBBLE = 32;
+const BUBBLE_CORE_SZ = 20;
+const BUBBLE_CORE_R = 10;
+
+/** Small idle orb for chat avatars — does not use Reanimated (state is always idle look). */
+function AriaOrbBubble({ holeColor = '#F2F2F7', style }: { holeColor?: string; style?: ViewStyle }) {
+  return (
+    <View style={[{ width: BUBBLE, height: BUBBLE, alignItems: 'center', justifyContent: 'center' }, style]}>
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center' }]}
+      >
+        <GradientRingBorder
+          outer={BUBBLE}
+          borderW={1}
+          colors={[VIOLET, CYAN]}
+          holeColor={holeColor}
+          opacity={0.42}
+        />
+      </View>
+      <View
+        style={{
+          width: BUBBLE_CORE_SZ,
+          height: BUBBLE_CORE_SZ,
+          borderRadius: BUBBLE_CORE_R,
+          backgroundColor: '#FFFFFF',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2,
+          ...Platform.select({
+            ios: {
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            },
+            android: { elevation: 2 },
+            default: {
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3,
+            },
+          }),
+        }}
+      >
+        {Platform.OS === 'web' ? (
+          <Text allowFontScaling={false} style={bubbleStyles.sparkleWeb}>
+            ✦
+          </Text>
+        ) : (
+          <MaskedView
+            style={bubbleStyles.mask}
+            collapsable={false}
+            maskElement={
+              <View style={bubbleStyles.maskInner}>
+                <Text style={bubbleStyles.sparkleMask} allowFontScaling={false}>
+                  ✦
+                </Text>
+              </View>
+            }
+          >
+            <LinearGradient
+              colors={[VIOLET, CYAN]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={bubbleStyles.gradientFill}
+            />
+          </MaskedView>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const bubbleStyles = StyleSheet.create({
+  mask: {
+    width: BUBBLE_CORE_SZ,
+    height: BUBBLE_CORE_SZ,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  maskInner: {
+    width: BUBBLE_CORE_SZ,
+    height: BUBBLE_CORE_SZ,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  sparkleMask: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 11,
+    lineHeight: 13,
+    textAlign: 'center',
+    color: '#FFFFFF',
+  },
+  gradientFill: {
+    width: BUBBLE_CORE_SZ,
+    height: BUBBLE_CORE_SZ,
+  },
+  sparkleWeb: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 11,
+    lineHeight: 13,
+    textAlign: 'center',
+    color: VIOLET,
+    ...(Platform.OS === 'web'
+      ? ({
+          backgroundImage: 'linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        } as const)
+      : {}),
+  },
+});
+
+function AriaOrbDefault({
+  state,
+  holeColor = '#F2F2F7',
+  style,
+  size = REF_SIZE,
+}: Omit<Props, 'variant'>) {
+  const s = size / REF_SIZE;
+  const container = size;
+  const coreSz = CORE * s;
+  const coreRad = coreSz / 2;
+  const o = {
+    idle1: 80 * s,
+    idle2: 96 * s,
+    l1: 80 * s,
+    l2: 98 * s,
+    l3: 116 * s,
+    wave: 80 * s,
+  };
+  const bw = {
+    i1: 2 * s,
+    i2: 1.5 * s,
+    l1: 2.5 * s,
+    l2: 1.5 * s,
+    l3: 1 * s,
+    w: 1.5 * s,
+  };
+  const fs = 24 * s;
+  const lh = 28 * s;
+
   const ring1Pulse = useSharedValue(0);
   const ring2Pulse = useSharedValue(0);
   const rot1 = useSharedValue(0);
@@ -246,23 +397,23 @@ export default function AriaOrb({ state, holeColor = '#F2F2F7', style }: Props) 
   });
 
   return (
-    <View style={[styles.wrap, style]}>
-      <View style={styles.stage}>
+    <View style={[styles.wrap, { width: container, height: container }, style]}>
+      <View style={[styles.stage, { width: container, height: container }]}>
         {/* Idle */}
         {state === 'idle' && (
           <>
             <Animated.View style={[styles.ringAbs, idleRing1Style]} pointerEvents="none">
               <GradientRingBorder
-                outer={80}
-                borderW={2}
+                outer={o.idle1}
+                borderW={bw.i1}
                 colors={[VIOLET, CYAN]}
                 holeColor={holeColor}
               />
             </Animated.View>
             <Animated.View style={[styles.ringAbs, idleRing2Style]} pointerEvents="none">
               <GradientRingBorder
-                outer={96}
-                borderW={1.5}
+                outer={o.idle2}
+                borderW={bw.i2}
                 colors={[VIOLET, CYAN]}
                 holeColor={holeColor}
               />
@@ -275,16 +426,16 @@ export default function AriaOrb({ state, holeColor = '#F2F2F7', style }: Props) 
           <>
             <Animated.View style={[styles.ringAbs, listenRing1Style]} pointerEvents="none">
               <GradientRingBorder
-                outer={80}
-                borderW={2.5}
+                outer={o.l1}
+                borderW={bw.l1}
                 colors={[VIOLET, CYAN]}
                 holeColor={holeColor}
               />
             </Animated.View>
             <Animated.View style={[styles.ringAbs, listenRing2Style]} pointerEvents="none">
               <GradientRingBorder
-                outer={98}
-                borderW={1.5}
+                outer={o.l2}
+                borderW={bw.l2}
                 colors={[CYAN, VIOLET]}
                 opacity={0.5}
                 holeColor={holeColor}
@@ -292,8 +443,8 @@ export default function AriaOrb({ state, holeColor = '#F2F2F7', style }: Props) 
             </Animated.View>
             <Animated.View style={[styles.ringAbs, listenRing3Style]} pointerEvents="none">
               <GradientRingBorder
-                outer={116}
-                borderW={1}
+                outer={o.l3}
+                borderW={bw.l3}
                 colors={[VIOLET, CYAN, VIOLET]}
                 opacity={0.3}
                 holeColor={holeColor}
@@ -306,57 +457,78 @@ export default function AriaOrb({ state, holeColor = '#F2F2F7', style }: Props) 
         {state === 'thinking' && (
           <>
             <Animated.View style={[styles.ringAbs, wave0Style]} pointerEvents="none">
-              <GradientRingBorder outer={80} borderW={1.5} colors={[VIOLET, CYAN]} holeColor={holeColor} />
+              <GradientRingBorder outer={o.wave} borderW={bw.w} colors={[VIOLET, CYAN]} holeColor={holeColor} />
             </Animated.View>
             <Animated.View style={[styles.ringAbs, wave1Style]} pointerEvents="none">
-              <GradientRingBorder outer={80} borderW={1.5} colors={[VIOLET, CYAN]} holeColor={holeColor} />
+              <GradientRingBorder outer={o.wave} borderW={bw.w} colors={[VIOLET, CYAN]} holeColor={holeColor} />
             </Animated.View>
             <Animated.View style={[styles.ringAbs, wave2Style]} pointerEvents="none">
-              <GradientRingBorder outer={80} borderW={1.5} colors={[VIOLET, CYAN]} holeColor={holeColor} />
+              <GradientRingBorder outer={o.wave} borderW={bw.w} colors={[VIOLET, CYAN]} holeColor={holeColor} />
             </Animated.View>
             <Animated.View style={[styles.ringAbs, wave3Style]} pointerEvents="none">
-              <GradientRingBorder outer={80} borderW={1.5} colors={[VIOLET, CYAN]} holeColor={holeColor} />
+              <GradientRingBorder outer={o.wave} borderW={bw.w} colors={[VIOLET, CYAN]} holeColor={holeColor} />
             </Animated.View>
           </>
         )}
 
-        {/* Core */}
-        <Animated.View style={[styles.core, coreShadowStyle]}>
-          <MaskedView
-            style={styles.mask}
-            maskElement={
-              <Text style={styles.sparkleMask} allowFontScaling={false}>
-                ✦
-              </Text>
-            }
-          >
-            <LinearGradient
-              colors={[VIOLET, CYAN]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientFill}
+        {/* Core — ✦ gradient: native = MaskedView + LinearGradient; web = CSS gradient text (MaskedView often shows wrong color) */}
+        <Animated.View
+          style={[
+            styles.core,
+            { width: coreSz, height: coreSz, borderRadius: coreRad },
+            coreShadowStyle,
+          ]}
+        >
+          {Platform.OS === 'web' ? (
+            <Text allowFontScaling={false} style={[styles.sparkleWeb, { fontSize: fs, lineHeight: lh }]}>
+              ✦
+            </Text>
+          ) : (
+            <MaskedView
+              style={[styles.mask, { width: coreSz, height: coreSz }]}
+              collapsable={false}
+              maskElement={
+                <View style={[styles.maskInner, { width: coreSz, height: coreSz }]}>
+                  <Text style={[styles.sparkleMask, { fontSize: fs, lineHeight: lh }]} allowFontScaling={false}>
+                    ✦
+                  </Text>
+                </View>
+              }
             >
-              <Text style={styles.sparkleHidden} allowFontScaling={false}>
-                ✦
-              </Text>
-            </LinearGradient>
-          </MaskedView>
+              <LinearGradient
+                colors={[VIOLET, CYAN]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ width: coreSz, height: coreSz }}
+              />
+            </MaskedView>
+          )}
         </Animated.View>
       </View>
     </View>
   );
 }
 
+export default function AriaOrb(props: Props) {
+  if (props.variant === 'bubble') {
+    return <AriaOrbBubble holeColor={props.holeColor} style={props.style} />;
+  }
+  return (
+    <AriaOrbDefault
+      state={props.state}
+      holeColor={props.holeColor}
+      style={props.style}
+      size={props.size ?? REF_SIZE}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   wrap: {
-    width: CONTAINER,
-    height: CONTAINER,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stage: {
-    width: CONTAINER,
-    height: CONTAINER,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -366,9 +538,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   core: {
-    width: CORE,
-    height: CORE,
-    borderRadius: CORE_R,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -376,28 +545,32 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'android' ? { elevation: 4 } : {}),
   },
   mask: {
-    width: CORE,
-    height: CORE,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  /** Ensures mask text is centered; opaque pixels define the mask (never use black — can render as visible black on some targets). */
+  maskInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   sparkleMask: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 24,
     textAlign: 'center',
-    lineHeight: 28,
-    backgroundColor: 'transparent',
-    color: '#000000',
+    color: '#FFFFFF',
   },
-  gradientFill: {
-    width: CORE,
-    height: CORE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sparkleHidden: {
+  /** Web: same gradient as LinearGradient + MaskedView; solid violet if clip unsupported (never black). */
+  sparkleWeb: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 24,
-    opacity: 0,
+    textAlign: 'center',
+    color: VIOLET,
+    ...(Platform.OS === 'web'
+      ? ({
+          backgroundImage: 'linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        } as const)
+      : {}),
   },
 });
