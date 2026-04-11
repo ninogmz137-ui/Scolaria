@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextInput, Linking } from 'react-native';
+import { TextInput, Linking, Text as RNText } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { detectCriticalKeywords } from '../profile/JoyAlerts';
+import { ressentiSubmitStyles } from './ressentiSubmitStyles';
 
 interface SliderData {
   key: string;
@@ -230,15 +231,8 @@ export default function LyceeMode({ onSubmit }: Props) {
       )}
 
       {/* Submit */}
-      <Pressable
-        className="py-[18px] rounded-[30px] flex-row items-center justify-center"
-        style={{ backgroundColor: Colors.warmOrange, gap: 10 }}
-        onPress={handleSubmit}
-      >
-        <Ionicons name="shield-checkmark" size={22} color={Colors.white} />
-        <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
-          Enregistrer mon ressenti
-        </Text>
+      <Pressable style={ressentiSubmitStyles.button} onPress={handleSubmit}>
+        <RNText style={ressentiSubmitStyles.label}>Enregistrer mon ressenti</RNText>
       </Pressable>
 
       <Text

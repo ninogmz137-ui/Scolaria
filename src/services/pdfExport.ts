@@ -23,7 +23,6 @@ interface ChildData {
 interface Competence {
   label: string;
   value: number;
-  emoji: string;
 }
 
 interface Activity {
@@ -63,7 +62,7 @@ function generateHTML(data: PDFExportData): string {
 
   const compBars = competences.map(c => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="font-size:20px;width:30px;">${c.emoji}</span>
+      <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
       <span style="flex:1;font-weight:600;color:#37352F;font-size:13px;">${c.label}</span>
       <div style="width:120px;height:8px;background:#E8E5E0;border-radius:4px;overflow:hidden;">
         <div style="width:${c.value * 10}%;height:100%;background:linear-gradient(to right,#6D28D9,#22D3EE);border-radius:4px;"></div>
@@ -260,7 +259,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
   const topComps = [...competences].sort((a, b) => b.value - a.value).slice(0, 3);
   const compList = topComps.map(c => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F7F7F5;border-radius:10px;margin-bottom:6px;">
-      <span style="font-size:22px;">${c.emoji}</span>
+      <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
       <div style="flex:1;">
         <div style="font-weight:700;color:#37352F;font-size:14px;">${c.label}</div>
         <div style="font-size:12px;color:#787774;">Niveau ${c.value}/10</div>

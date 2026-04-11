@@ -1,5 +1,5 @@
 /**
- * WallpaperBackground — Solid #F2F2F7 background for all screens except Accueil.
+ * WallpaperBackground — Standard app page background for screens except Accueil.
  *
  * Wallpaper gradient is ONLY shown on AccueilScreen.
  * All other screens use this plain background.
@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: 'rgba(248, 249, 252, 1)',
   },
 });

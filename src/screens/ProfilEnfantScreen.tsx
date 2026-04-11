@@ -16,7 +16,24 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { FileText, GraduationCap, Pencil, Fingerprint } from 'lucide-react-native';
+import {
+  FileText,
+  GraduationCap,
+  Pencil,
+  Fingerprint,
+  MessageCircle,
+  Activity,
+  Palette,
+  Users,
+  Star,
+  BookOpen,
+  Shield,
+  Cpu,
+  Mic,
+  BarChart2,
+  ClipboardList,
+  Search,
+} from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import ChildAvatar from '../components/ChildAvatar';
@@ -40,6 +57,24 @@ import {
 import { getChild, getCheckins } from '../services/database';
 import { Colors } from '../constants/colors';
 
+const PAGE_BG = 'rgba(248, 249, 252, 1)';
+const COMPETENCE_ICON_COLOR = '#6B7280';
+
+const COMPETENCE_ICONS: Record<string, typeof MessageCircle> = {
+  Langage: MessageCircle,
+  Motricité: Activity,
+  Créativité: Palette,
+  Sociabilité: Users,
+  Autonomie: Star,
+  Connaissances: BookOpen,
+  Confiance: Shield,
+  Logique: Cpu,
+  Expression: Mic,
+  Analyse: BarChart2,
+  Organisation: ClipboardList,
+  Curiosité: Search,
+};
+
 // ─── Types ────────────────────────────────────────────────
 
 interface ChildProfileData {
@@ -53,7 +88,7 @@ interface ChildProfileData {
   superPowerEmoji: string;
   superPowerDescription: string;
   tags: ProfileTag[];
-  competences: { label: string; value: number; emoji: string }[];
+  competences: { label: string; value: number }[];
   portfolio: {
     id: string;
     name: string;
@@ -94,11 +129,11 @@ function getChildProfileData(childId: string): ChildProfileData {
           { label: 'Expressive', emoji: '🗣️', color: Colors.orange },
         ],
         competences: [
-          { label: 'Langage', value: 7, emoji: '🗣️' },
-          { label: 'Motricité', value: 8, emoji: '🤸' },
-          { label: 'Créativité', value: 9, emoji: '🎨' },
-          { label: 'Sociabilité', value: 8, emoji: '🤝' },
-          { label: 'Autonomie', value: 6, emoji: '⭐' },
+          { label: 'Langage', value: 7 },
+          { label: 'Motricité', value: 8 },
+          { label: 'Créativité', value: 9 },
+          { label: 'Sociabilité', value: 8 },
+          { label: 'Autonomie', value: 6 },
         ],
         portfolio: [
           { id: '1', name: 'Éveil musical', emoji: '🎵', category: 'Musique', level: '1ère année', color: Colors.violet, hoursPerWeek: 1, progressPercent: 60, since: '2025' },
@@ -131,11 +166,11 @@ function getChildProfileData(childId: string): ChildProfileData {
           { label: 'Persévérant', emoji: '💪', color: Colors.orange },
         ],
         competences: [
-          { label: 'Connaissances', value: 8, emoji: '📚' },
-          { label: 'Créativité', value: 7, emoji: '🎨' },
-          { label: 'Confiance', value: 6, emoji: '💪' },
-          { label: 'Logique', value: 8, emoji: '🧠' },
-          { label: 'Curiosité', value: 7, emoji: '🔍' },
+          { label: 'Connaissances', value: 8 },
+          { label: 'Créativité', value: 7 },
+          { label: 'Confiance', value: 6 },
+          { label: 'Logique', value: 8 },
+          { label: 'Curiosité', value: 7 },
         ],
         portfolio: [
           { id: '1', name: 'Judo', emoji: '🥋', category: 'Sport', level: 'Ceinture verte', color: Colors.green, hoursPerWeek: 3, progressPercent: 65, since: '2023' },
@@ -174,11 +209,11 @@ function getChildProfileData(childId: string): ChildProfileData {
           { label: 'Littéraire', emoji: '📖', color: Colors.green },
         ],
         competences: [
-          { label: 'Expression', value: 9, emoji: '✍️' },
-          { label: 'Créativité', value: 9, emoji: '🎨' },
-          { label: 'Analyse', value: 7, emoji: '🔬' },
-          { label: 'Organisation', value: 7, emoji: '📋' },
-          { label: 'Autonomie', value: 8, emoji: '🚀' },
+          { label: 'Expression', value: 9 },
+          { label: 'Créativité', value: 9 },
+          { label: 'Analyse', value: 7 },
+          { label: 'Organisation', value: 7 },
+          { label: 'Autonomie', value: 8 },
         ],
         portfolio: [
           { id: '1', name: 'Dessin', emoji: '✏️', category: 'Art', level: 'Avancé', color: Colors.pink, hoursPerWeek: 3, progressPercent: 85, since: '2021' },
@@ -204,17 +239,19 @@ function Card({ children, style }: { children: React.ReactNode; style?: object }
 }
 
 interface CompetenceRowProps {
-  emoji: string;
   label: string;
   value: number; // 0–10
   accentColor: string;
 }
 
-function CompetenceRow({ emoji, label, value, accentColor }: CompetenceRowProps) {
+function CompetenceRow({ label, value, accentColor }: CompetenceRowProps) {
   const pct = Math.min(100, Math.max(0, value * 10));
+  const Icon = COMPETENCE_ICONS[label] ?? Star;
   return (
     <View style={styles.competenceRow}>
-      <Text style={styles.competenceEmoji}>{emoji}</Text>
+      <View style={styles.competenceIconWrap}>
+        <Icon size={18} color={COMPETENCE_ICON_COLOR} strokeWidth={1.5} />
+      </View>
       <Text style={styles.competenceLabel}>{label}</Text>
       <View style={styles.competenceBarTrack}>
         <View style={[styles.competenceBarFill, { width: `${pct}%` as any, backgroundColor: accentColor }]} />
@@ -428,7 +465,6 @@ export default function ProfilEnfantScreen() {
           {data.competences.map((c) => (
             <CompetenceRow
               key={c.label}
-              emoji={c.emoji}
               label={c.label}
               value={c.value}
               accentColor={accent}
@@ -501,7 +537,7 @@ export default function ProfilEnfantScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: PAGE_BG,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -601,10 +637,10 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  competenceEmoji: {
-    fontSize: 16,
+  competenceIconWrap: {
     width: 22,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   competenceLabel: {
     fontFamily: FontFamily.sansMedium,

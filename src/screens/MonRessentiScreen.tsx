@@ -134,7 +134,7 @@ export default function MonRessentiScreen() {
             <MaternelleMode onSubmit={handleMaternelleSubmit} />
           )}
           {mode === 'primaire' && (
-            <PrimaireMode onSubmit={handlePrimaireSubmit} currentXP={230} />
+            <PrimaireMode onSubmit={handlePrimaireSubmit} />
           )}
           {mode === 'lycee' && <LyceeMode onSubmit={handleLyceeSubmit} />}
         </GlassCard>

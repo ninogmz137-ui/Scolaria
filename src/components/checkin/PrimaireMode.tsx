@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { TextInput, Linking } from 'react-native';
+import { TextInput, Linking, Text as RNText } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { detectCriticalKeywords } from '../profile/JoyAlerts';
+import { ressentiSubmitStyles } from './ressentiSubmitStyles';
 
 const EMOTIONS = [
   { emoji: '😄', label: 'Super', value: 4 },
@@ -20,10 +21,9 @@ interface Props {
     stress: number;
     message?: string;
   }) => void;
-  currentXP: number;
 }
 
-export default function PrimaireMode({ onSubmit, currentXP }: Props) {
+export default function PrimaireMode({ onSubmit }: Props) {
   const [emotion, setEmotion] = useState<number | null>(null);
   const [energy, setEnergy] = useState(5);
   const [stress, setStress] = useState(3);
@@ -39,33 +39,18 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
   if (submitted) {
     return (
       <VStack className="items-center pt-10">
-        <Text style={{ fontSize: 72, marginBottom: 12 }}>🌟</Text>
+        <Text style={{ fontSize: 64, marginBottom: 12 }}>✅</Text>
         <Text
-          className="text-[28px] font-extrabold mb-2"
+          className="text-2xl font-extrabold mb-2"
           style={{ color: Colors.warmOrange }}
         >
-          Bravo !
+          Ressenti enregistré
         </Text>
         <Text
-          className="text-4xl font-black mb-5"
-          style={{ color: Colors.warmYellow }}
+          className="text-[15px] mb-4 text-center px-2"
+          style={{ color: '#64748B' }}
         >
-          +50 XP
-        </Text>
-        <Box
-          className="w-4/5 h-3.5 rounded-[7px] overflow-hidden mb-2"
-          style={{ backgroundColor: Colors.warmCardLight }}
-        >
-          <Box
-            className="h-full rounded-[7px]"
-            style={{
-              width: `${Math.min(((currentXP + 50) / 500) * 100, 100)}%`,
-              backgroundColor: Colors.warmYellow,
-            }}
-          />
-        </Box>
-        <Text className="text-sm font-semibold" style={{ color: '#64748B' }}>
-          {currentXP + 50} / 500 XP
+          Merci, ton ressenti a bien été pris en compte.
         </Text>
       </VStack>
     );
@@ -73,16 +58,6 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
 
   return (
     <Box className="pt-2.5">
-      {/* XP badge */}
-      <Box
-        className="self-end px-3.5 py-1.5 rounded-[20px] mb-4"
-        style={{ backgroundColor: Colors.warmCardLight }}
-      >
-        <Text className="text-sm font-bold" style={{ color: Colors.warmYellow }}>
-          ⭐ {currentXP} XP
-        </Text>
-      </Box>
-
       {/* Emotion picker */}
       <Text className="text-lg font-bold mb-3" style={{ color: '#0F172A' }}>
         Comment tu te sens ?
@@ -225,17 +200,14 @@ export default function PrimaireMode({ onSubmit, currentXP }: Props) {
 
       {/* Submit */}
       <Pressable
-        className="py-[18px] rounded-[30px] items-center"
-        style={{
-          backgroundColor: Colors.warmOrange,
-          opacity: !emotion ? 0.4 : 1,
-        }}
+        style={[
+          ressentiSubmitStyles.button,
+          { opacity: !emotion ? 0.4 : 1 },
+        ]}
         onPress={handleSubmit}
         disabled={!emotion}
       >
-        <Text className="text-lg font-extrabold" style={{ color: Colors.white }}>
-          Valider +50 XP ⭐
-        </Text>
+        <RNText style={ressentiSubmitStyles.label}>Enregistrer mon ressenti</RNText>
       </Pressable>
     </Box>
   );

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Animated } from 'react-native';
+import { Animated, Text as RNText } from 'react-native';
 import { Box, Text, Pressable, VStack } from '../ui';
 import { Colors } from '../../constants/colors';
+import { ressentiSubmitStyles } from './ressentiSubmitStyles';
 
 const EMOTIONS = [
   { emoji: '😄', label: 'Super !', value: 'super' },
@@ -87,13 +88,10 @@ export default function MaternelleMode({ onSubmit }: Props) {
 
       {selected && (
         <Pressable
-          className="mt-9 px-12 py-[18px] rounded-[30px]"
-          style={{ backgroundColor: Colors.warmOrange }}
+          style={ressentiSubmitStyles.button}
           onPress={() => onSubmit(selected)}
         >
-          <Text className="text-xl font-extrabold" style={{ color: Colors.white }}>
-            C'est parti ! 🎉
-          </Text>
+          <RNText style={ressentiSubmitStyles.label}>Enregistrer mon ressenti</RNText>
         </Pressable>
       )}
     </VStack>
