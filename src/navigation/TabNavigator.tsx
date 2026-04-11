@@ -140,7 +140,11 @@ function AccueilStackScreen() {
           const index = data?.state?.index ?? 0;
           const routeName = routes?.[index]?.name as string | undefined;
           const isReglagesModal = routeName === 'ReglagesScreen';
-          backArrowRef.current?.setShowBack(index > 0 && !isReglagesModal);
+          const hasScreenHeaderBack =
+            routeName === 'ProfilEnfant' || routeName === 'BienEtreScreen';
+          backArrowRef.current?.setShowBack(
+            index > 0 && !isReglagesModal && !hasScreenHeaderBack,
+          );
           if (routeName) {
             currentAccueilRouteRef.current?.setRouteName(routeName);
           }

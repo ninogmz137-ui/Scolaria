@@ -568,39 +568,35 @@ export default function ProfilEnfantScreen() {
           <Portfolio activities={data.portfolio} />
 
           <SectionTitle label="Actions" />
-          <View style={styles.actionsGlass}>
-            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
-            <View style={styles.actionsInner}>
-              <Pressable
-                style={styles.actionPdf}
-                onPress={handleExportPDF}
-                disabled={exporting}
-              >
-                {exporting ? (
-                  <ActivityIndicator color={NAVY} size="small" />
-                ) : (
-                  <FileText size={18} color={NAVY} strokeWidth={2} />
-                )}
-                <Text style={styles.actionPdfText}>
-                  {exporting ? 'Génération…' : 'Exporter en PDF'}
-                </Text>
-              </Pressable>
-              <Text style={styles.actionSep}>···</Text>
-              <Pressable
-                style={styles.actionMemo}
-                onPress={handleExportMemo}
-                disabled={exportingMemo}
-              >
-                {exportingMemo ? (
-                  <ActivityIndicator color={VIOLET} size="small" />
-                ) : (
-                  <GraduationCap size={18} color={VIOLET} strokeWidth={2} />
-                )}
-                <Text style={styles.actionMemoText}>
-                  {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
-                </Text>
-              </Pressable>
-            </View>
+          <View style={styles.actionsCol}>
+            <Pressable
+              style={styles.actionPill}
+              onPress={handleExportPDF}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <ActivityIndicator color={NAVY} size="small" />
+              ) : (
+                <FileText size={18} color={NAVY} strokeWidth={2} />
+              )}
+              <Text style={styles.actionPillText}>
+                {exporting ? 'Génération…' : 'Exporter en PDF'}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.actionPill}
+              onPress={handleExportMemo}
+              disabled={exportingMemo}
+            >
+              {exportingMemo ? (
+                <ActivityIndicator color={NAVY} size="small" />
+              ) : (
+                <GraduationCap size={18} color={NAVY} strokeWidth={2} />
+              )}
+              <Text style={styles.actionPillText}>
+                {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
@@ -889,57 +885,25 @@ const styles = StyleSheet.create({
     width: 22,
     textAlign: 'right',
   },
-  actionsGlass: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+  actionsCol: {
+    gap: 10,
     marginBottom: 24,
   },
-  actionsInner: {
-    padding: 11,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  actionPdf: {
-    flex: 1,
+  actionPill: {
+    height: 50,
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: 'rgba(26,35,64,0.06)',
-    borderRadius: 13,
-    padding: 12,
+    backgroundColor: 'rgba(26, 35, 64, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 35, 64, 0.1)',
   },
-  actionPdfText: {
+  actionPillText: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
     color: NAVY,
-  },
-  actionSep: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    color: '#D1D5DB',
-    paddingHorizontal: 4,
-  },
-  actionMemo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(124,58,237,0.08)',
-    borderRadius: 13,
-    padding: 12,
-  },
-  actionMemoText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: VIOLET,
   },
 });

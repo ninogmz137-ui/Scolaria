@@ -260,7 +260,7 @@ export default function MonRessentiScreen() {
 
           {mode === 'maternelle' && (
             <LinearGradient
-              colors={['#F59E0B', '#FCD34D']}
+              colors={['#6D28D9', '#7C3AED']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[styles.submitGrad, { opacity: canSubmit ? 1 : 0.45 }]}
@@ -278,7 +278,7 @@ export default function MonRessentiScreen() {
 
           {mode === 'primaire' && (
             <LinearGradient
-              colors={['#22C55E', '#86EFAC']}
+              colors={['#0891B2', '#06B6D4']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.submitGrad}
