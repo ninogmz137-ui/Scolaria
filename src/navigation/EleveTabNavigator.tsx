@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Screens
 import AccueilScreen from '../screens/AccueilScreen';
 import NotesScreen from '../screens/NotesScreen';
+import SubjectDetailScreen from '../screens/SubjectDetailScreen';
 import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import ReglagesScreen from '../screens/ReglagesScreen';
@@ -65,6 +66,11 @@ function NotesEleveStackScreen() {
         name="MesNotesHome"
         component={NotesScreen}
         options={{ title: 'Mes notes' }}
+      />
+      <NotesEleveStack.Screen
+        name="SubjectDetail"
+        component={SubjectDetailScreen}
+        options={{ title: 'Détail matière' }}
       />
     </NotesEleveStack.Navigator>
   );

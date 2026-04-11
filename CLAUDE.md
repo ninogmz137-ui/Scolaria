@@ -56,9 +56,15 @@ animations fluides, premium. JAMAIS plat, JAMAIS générique.
 
 ### Icones
 - lucide-react-native pour toute la navigation et l'UI
-- Emoji uniquement dans le contenu (matieres, messages, badges)
+- Emoji autorisés ailleurs dans le contenu (messages, badges, etc.) — **jamais** sur les noms de matières (voir règle ci-dessous)
 - Taille : 20px listes, 24px tab bar
 - strokeWidth: 2
+
+### Noms de matières (sujets) — texte brut uniquement
+
+**RULE — No emoji on subject/matière names :**  
+Les noms de matières (Mathématiques, Français, Anglais, Physique-Chimie, SVT, etc.) ne doivent **jamais** comporter d’emoji ni de préfixe/suffixe d’icône, nulle part dans l’app.  
+S’applique notamment à : écran Notes, tuiles du dashboard Accueil, cartes Point fort / À renforcer, pills de matière, et tout autre écran où un nom de matière apparaît. **Texte seul, toujours.**
 
 ### Fonds par mode scolaire
 - Maternelle : #FFF8F0 + header orange/ambre (#FF9F43 -> #FFECD2) + motif SVG subtil 3-5%
@@ -111,6 +117,7 @@ Couleurs enfant = accents UNIQUEMENT (header, tab bar, badges), jamais sur le te
 ### Regles absolues design
 - ZERO texte blanc sur fond clair
 - ZERO emoji comme icone de navigation
+- ZERO emoji ni préfixe/suffixe d’icône sur les noms de matières (texte seul partout — voir section « Noms de matières »)
 - ZERO carte plate sans glass effect
 - ZERO font systeme
 - ZERO fond blanc pur (#FFFFFF) comme background de page
