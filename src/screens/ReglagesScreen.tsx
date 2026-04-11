@@ -8,6 +8,7 @@ import {
   Pressable as RNPressable,
   Image,
   Dimensions,
+  FlatList,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,10 +35,7 @@ import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/Wallpap
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SCREEN_W = Dimensions.get('window').width;
-/** 3 columns: scroll padding 16×2 + grid padding 12×2 + two gaps between three tiles */
-const WALLPAPER_GRID_GAP = 8;
-const WALLPAPER_TILE_W =
-  (SCREEN_W - 16 * 2 - 12 * 2 - WALLPAPER_GRID_GAP * 2) / 3;
+const WALLPAPER_TILE_W = (SCREEN_W - 64) / 3;
 
 type RowType = 'navigate' | 'toggle';
 
@@ -52,6 +50,8 @@ type RowDef = {
   onToggle?: (v: boolean) => void;
   danger?: boolean;
 };
+
+type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
 function SectionLabel({ label }: { label: string }) {
   return <Text style={styles.sectionLabel}>{label}</Text>;
@@ -105,6 +105,10 @@ export default function ReglagesScreen() {
     const list = wallpapers?.length ? wallpapers : WALLPAPERS;
     return list.slice(0, 12);
   }, [wallpapers]);
+
+  const wallpaperFlatData = useMemo((): WallpaperGridRow[] => {
+    return [...wallpaperGridSource, { id: '__custom__', __custom: true }];
+  }, [wallpaperGridSource]);
 
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
 
@@ -202,8 +206,29 @@ export default function ReglagesScreen() {
 
           <SectionLabel label="FONDS D'ÉCRAN" />
           <View style={styles.wallpaperGroup}>
-            <View style={styles.wallpaperGrid}>
-              {wallpaperGridSource.map((wp) => {
+            <FlatList
+              data={wallpaperFlatData}
+              numColumns={3}
+              scrollEnabled={false}
+              nestedScrollEnabled
+              keyExtractor={(item) => item.id}
+              style={styles.wallpaperGrid}
+              columnWrapperStyle={styles.wallpaperGridRow}
+              renderItem={({ item }) => {
+                if ('__custom' in item && item.__custom) {
+                  return (
+                    <View
+                      style={[
+                        styles.wallpaperGridTile,
+                        styles.wallpaperCustomTile,
+                        { width: WALLPAPER_TILE_W },
+                      ]}
+                    >
+                      <ImageIcon size={18} color="#64748B" strokeWidth={2} />
+                    </View>
+                  );
+                }
+                const wp = item as WallpaperDef;
                 const hasRemote = !!wp.imageUrl;
                 const isActive = !customUri && wallpaper.id === wp.id;
                 const grad = (
@@ -213,7 +238,6 @@ export default function ReglagesScreen() {
                 ) as [string, string, ...string[]];
                 return (
                   <RNPressable
-                    key={wp.id}
                     onPress={() => setWallpaperId(wp.id)}
                     style={({ pressed }) => [
                       styles.wallpaperGridTile,
@@ -240,17 +264,8 @@ export default function ReglagesScreen() {
                     ) : null}
                   </RNPressable>
                 );
-              })}
-              <View
-                style={[
-                  styles.wallpaperGridTile,
-                  styles.wallpaperCustomTile,
-                  { width: WALLPAPER_TILE_W },
-                ]}
-              >
-                <ImageIcon size={18} color="#64748B" strokeWidth={2} />
-              </View>
-            </View>
+              }}
+            />
           </View>
 
           <SectionLabel label="PRÉFÉRENCES" />
@@ -368,16 +383,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   wallpaperGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 12,
-    gap: WALLPAPER_GRID_GAP,
+  },
+  wallpaperGridRow: {
     justifyContent: 'flex-start',
+    marginBottom: 0,
   },
   wallpaperGridTile: {
     height: 80,
-    borderRadius: 12,
+    borderRadius: 10,
+    margin: 4,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.92)',
