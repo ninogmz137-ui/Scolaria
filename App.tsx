@@ -14,7 +14,6 @@ import PinScreen from './src/screens/PinScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import SplashScreenAnimated from './src/screens/SplashScreen';
 import ConseilDuMatin from './src/components/ConseilDuMatin';
-import DemoBanner from './src/components/DemoBanner';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
@@ -115,7 +114,6 @@ function AppContent() {
   return (
     <View style={{ flex: 1 }}>
       {renderNavigator()}
-      <DemoBanner />
       {role === 'parent' && (
         <ConseilDuMatin
           visible={showConseil}

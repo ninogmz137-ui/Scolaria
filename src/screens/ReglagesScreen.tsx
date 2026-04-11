@@ -165,6 +165,14 @@ export default function ReglagesScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 22 }}
           style={{ flex: 1 }}
         >
+          {isDemo ? (
+            <View style={styles.demoNotice}>
+              <Text style={styles.demoNoticeText}>
+                Mode démo — les données affichées sont fictives.
+              </Text>
+            </View>
+          ) : null}
+
           <SectionLabel label="COMPTE" />
           <View style={styles.group}>
             {groups.account.map((r, idx) => (
@@ -400,5 +408,20 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
     color: '#94A3B8',
+  },
+  demoNotice: {
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.22)',
+  },
+  demoNoticeText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#92400E',
+    lineHeight: 18,
   },
 });

@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, GraduationHat } from '@getpapillon/papicons';
 import { Heart, Shield, ChevronRight } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -30,6 +31,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 interface Props {
   onClose: () => void;
   onNavigate: (screen: string) => void;
+  onLogout?: () => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -99,6 +101,7 @@ function MenuItem({
 
 export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
   const { selectedChild } = useActiveChild();
+  const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
 
   const handleItemPress = (item: MenuItemDef) => {
@@ -145,6 +148,10 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
             <Text style={styles.childClasse} numberOfLines={1}>
               {selectedChild.classe}
             </Text>
+          ) : null}
+
+          {isDemo ? (
+            <Text style={styles.demoHint}>Mode démo · données fictives</Text>
           ) : null}
         </View>
 
@@ -236,6 +243,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255,255,255,0.5)',
     marginTop: 2,
+  },
+  demoHint: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: 'rgba(251, 191, 36, 0.85)',
+    marginTop: 10,
   },
 
   // ── Divider ──
