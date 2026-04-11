@@ -24,7 +24,6 @@ import {
   FileText,
   Bell,
   Search,
-  Sparkles,
 } from 'lucide-react-native';
 import WallpaperBackground from '../../components/WallpaperBackground';
 import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
@@ -34,6 +33,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
+import AriaOrb from '../../components/AriaOrb';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -335,6 +335,19 @@ export default function AriaConversationScreen() {
           </Pressable>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
+            <View
+              style={{
+                height: 52,
+                width: 200,
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              <View style={{ transform: [{ scale: 0.26 }], marginTop: -74 }}>
+                <AriaOrb state={isTyping ? 'thinking' : 'idle'} />
+              </View>
+            </View>
             <Text style={styles.topTitle}>
               Ar<Text style={styles.topTitleIA}>ia</Text>
             </Text>
@@ -365,9 +378,6 @@ export default function AriaConversationScreen() {
           ListHeaderComponent={
             messages.length === 0 ? (
               <View style={styles.empty}>
-                <View style={styles.emptyIcon}>
-                  <Sparkles size={22} color="#7C3AED" strokeWidth={2} />
-                </View>
                 <Text style={styles.emptyTitle}>Bonjour !</Text>
                 <Text style={styles.emptyText}>
                   Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
@@ -641,12 +651,7 @@ const styles = StyleSheet.create({
 
   // Empty state
   empty: { paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10, alignItems: 'center' },
-  emptyIcon: {
-    width: 56, height: 56, borderRadius: 18,
-    backgroundColor: 'rgba(124,58,237,0.10)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.18)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  emptyTitle: { marginTop: 12, fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
+  emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
   suggestionChip: {
     backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.22)',

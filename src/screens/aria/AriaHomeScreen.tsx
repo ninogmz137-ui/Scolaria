@@ -14,7 +14,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   Plus,
   MessagesSquare,
@@ -24,6 +23,7 @@ import {
   FileText,
   Bell,
   Search,
+  Mic,
 } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import WallpaperBackground from '../../components/WallpaperBackground';
@@ -31,6 +31,7 @@ import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
+import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -140,6 +141,7 @@ export default function AriaHomeScreen() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<RecentCategory>('all');
+  const [orbState, setOrbState] = useState<AriaOrbState>('idle');
   const searchInputRef = useRef<TextInput>(null);
 
   const suggestions = useMemo(() => makeSuggestions(childName, mode), [childName, mode]);
@@ -179,7 +181,12 @@ export default function AriaHomeScreen() {
       const trimmed = text.trim();
       if (!trimmed) return;
       setInput('');
-      await createConversation(trimmed);
+      setOrbState('thinking');
+      try {
+        await createConversation(trimmed);
+      } finally {
+        setOrbState('idle');
+      }
     },
     [createConversation],
   );
@@ -284,14 +291,7 @@ export default function AriaHomeScreen() {
           }}
         >
           <View style={{ alignItems: 'center' }}>
-            <LinearGradient
-              colors={['#6366F1', '#22D3EE']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.heroMark}
-            >
-              <Text style={styles.heroMarkText}>✦</Text>
-            </LinearGradient>
+            <AriaOrb state={orbState} />
             <Text style={styles.heroTitle}>Comment puis-je t'aider ce soir ?</Text>
           </View>
 
@@ -324,6 +324,17 @@ export default function AriaHomeScreen() {
               accessibilityLabel="Ajouter"
             >
               <Plus size={18} color="#64748B" strokeWidth={2.2} />
+            </Pressable>
+            <Pressable
+              onPressIn={() => setOrbState('listening')}
+              onPressOut={() =>
+                setOrbState((s) => (s === 'thinking' ? 'thinking' : 'idle'))
+              }
+              style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.8 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Microphone"
+            >
+              <Mic size={18} color="#64748B" strokeWidth={2.2} />
             </Pressable>
             <TextInput
               value={input}
@@ -565,35 +576,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // Hero
-  heroMark: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.40,
-        shadowRadius: 20,
-      },
-      android: { elevation: 6 },
-      default: {
-        shadowColor: '#6366F1',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.40,
-        shadowRadius: 20,
-      },
-    }),
-  },
-  heroMarkText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 22,
-    color: '#FFFFFF',
-  },
   heroTitle: {
     marginTop: 18,
     fontFamily: FontFamily.displayBold,
