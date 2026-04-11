@@ -2,7 +2,7 @@
  * NotesScreen — Single scroll, validated mockup (glass, neutral scores, Barlow + DM Sans).
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   ScrollView,
@@ -15,6 +15,9 @@ import {
   Dimensions,
   Image,
   Modal,
+  PanResponder,
+  Animated,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,7 +29,14 @@ import Svg, {
   RadialGradient as SvgRadialGradient,
   Stop,
 } from 'react-native-svg';
-import { LayoutGrid, Check } from 'lucide-react-native';
+import {
+  ScanLine,
+  Check,
+  Camera,
+  Image as LucideImage,
+  FileText,
+  CalendarDays,
+} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
@@ -362,6 +372,138 @@ function trimesterPillLabel(v: string): string {
   return v === 'ANNEE' ? 'Année' : v;
 }
 
+/** Point fort / À renforcer: plain subject name only (strip emoji / pictographs). */
+function subjectNamePlain(raw: string): string {
+  return raw
+    .replace(/\p{Extended_Pictographic}/gu, '')
+    .replace(/[\uFE0F\u200D]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function BulletinImportSheet({
+  visible,
+  onClose,
+  bottomInset,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  bottomInset: number;
+}) {
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) translateY.setValue(0);
+  }, [visible, translateY]);
+
+  const dismissSheet = useCallback(() => {
+    Animated.timing(translateY, {
+      toValue: 400,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      translateY.setValue(0);
+      onClose();
+    });
+  }, [onClose, translateY]);
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx),
+        onPanResponderMove: (_, g) => {
+          if (g.dy > 0) translateY.setValue(g.dy);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > 72 || g.vy > 0.4) {
+            dismissSheet();
+          } else {
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              friction: 9,
+            }).start();
+          }
+        },
+      }),
+    [dismissSheet, translateY],
+  );
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.bulletinModalRoot}>
+        <Pressable style={styles.bulletinBackdrop} onPress={onClose} accessibilityRole="button" />
+        <Animated.View
+          style={[
+            styles.bulletinSheet,
+            {
+              paddingBottom: 12 + bottomInset,
+              transform: [{ translateY }],
+            },
+          ]}
+          {...panResponder.panHandlers}
+        >
+          <View style={styles.bulletinHandle} />
+          <Text style={styles.bulletinSheetTitle}>Importer un bulletin</Text>
+          <View style={styles.bulletinDivider} />
+
+          <Pressable
+            style={styles.bulletinRow}
+            onPress={() => {
+              if (__DEV__) console.log('bulletin: prendre en photo');
+              Alert.alert('Démo', 'Prendre en photo');
+            }}
+          >
+            <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(124,58,237,0.08)' }]}>
+              <Camera size={22} color="#7C3AED" strokeWidth={1.8} />
+            </View>
+            <View style={styles.bulletinRowText}>
+              <Text style={styles.bulletinRowTitle}>Prendre en photo</Text>
+              <Text style={styles.bulletinRowSub}>Photographiez le bulletin avec votre caméra</Text>
+            </View>
+            <Text style={styles.bulletinChev}>›</Text>
+          </Pressable>
+          <View style={styles.bulletinRowSep} />
+
+          <Pressable
+            style={styles.bulletinRow}
+            onPress={() => {
+              if (__DEV__) console.log('bulletin: galerie');
+              Alert.alert('Démo', 'Depuis la galerie');
+            }}
+          >
+            <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(6,182,212,0.08)' }]}>
+              <LucideImage size={22} color="#06B6D4" strokeWidth={1.8} />
+            </View>
+            <View style={styles.bulletinRowText}>
+              <Text style={styles.bulletinRowTitle}>Depuis la galerie</Text>
+              <Text style={styles.bulletinRowSub}>Sélectionnez une image ou capture ENT</Text>
+            </View>
+            <Text style={styles.bulletinChev}>›</Text>
+          </Pressable>
+          <View style={styles.bulletinRowSep} />
+
+          <Pressable
+            style={styles.bulletinRow}
+            onPress={() => {
+              if (__DEV__) console.log('bulletin: PDF');
+              Alert.alert('Démo', 'Importer un PDF');
+            }}
+          >
+            <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(26,35,64,0.06)' }]}>
+              <FileText size={22} color="#1A2340" strokeWidth={1.8} />
+            </View>
+            <View style={styles.bulletinRowText}>
+              <Text style={styles.bulletinRowTitle}>Importer un PDF</Text>
+              <Text style={styles.bulletinRowSub}>Bulletin téléchargé depuis l'ENT</Text>
+            </View>
+            <Text style={styles.bulletinChev}>›</Text>
+          </Pressable>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
 
 // ─── Liquid glass + cards ─────────────────────────────────
 
@@ -629,6 +771,7 @@ export default function NotesScreen() {
   const [selectedDomainIdx, setSelectedDomainIdx] = useState(0);
   const [selectedTrimester, setSelectedTrimester] = useState<string>(getCurrentTrimester());
   const [showTrimesterPicker, setShowTrimesterPicker] = useState(false);
+  const [showBulletinImport, setShowBulletinImport] = useState(false);
   const [yearMeta, setYearMeta] = useState<{
     trimAvgs: [number, number, number];
     overall: number;
@@ -920,18 +1063,18 @@ export default function NotesScreen() {
   const bestWorst = useMemo(() => {
     if (demoProfile && isDemoMode && !isAnnee) {
       return {
-        best: { name: demoProfile.strong.label, score: demoProfile.strong.score },
-        worst: { name: demoProfile.weak.label, score: demoProfile.weak.score },
+        best: { name: subjectNamePlain(demoProfile.strong.label), score: demoProfile.strong.score },
+        worst: { name: subjectNamePlain(demoProfile.weak.label), score: demoProfile.weak.score },
       };
     }
     if (subjects.length === 0) return { best: null, worst: null };
     const best = subjects.reduce((a, b) => (a.average > b.average ? a : b), subjects[0]);
     const worst = subjects.reduce((a, b) => (a.average < b.average ? a : b), subjects[0]);
     return {
-      best: { name: `${best.emoji} ${best.name}`, score: `${best.average.toFixed(1)}/20` },
+      best: { name: subjectNamePlain(best.name), score: `${best.average.toFixed(1)}/20` },
       worst:
         worst.id !== best.id
-          ? { name: `${worst.emoji} ${worst.name}`, score: `${worst.average.toFixed(1)}/20` }
+          ? { name: subjectNamePlain(worst.name), score: `${worst.average.toFixed(1)}/20` }
           : null,
     };
   }, [subjects, demoProfile, isDemoMode, isAnnee]);
@@ -1008,22 +1151,29 @@ export default function NotesScreen() {
             <Text style={styles.screenTitle}>{screenTitle}</Text>
             <View style={styles.titleActions}>
               <Pressable
-                onPress={() => navigation.navigate('ScannerBulletin')}
+                onPress={() => setShowBulletinImport(true)}
                 accessibilityRole="button"
                 accessibilityLabel="Scanner un bulletin"
               >
                 <LiquidGlass circle style={styles.iconCircle}>
                   <View style={styles.iconCircleInner}>
-                    <LayoutGrid size={17} color={C.ink} strokeWidth={2} />
+                    <ScanLine size={18} color="#1A2340" strokeWidth={1.8} />
                   </View>
                 </LiquidGlass>
               </Pressable>
               <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
                 <LiquidGlass style={styles.trimPill}>
                   <View style={styles.trimPillInner}>
-                    <Text style={styles.trimPillText}>
-                      {trimesterPillLabel(selectedTrimester)} ▾
-                    </Text>
+                    {selectedTrimester === 'ANNEE' ? (
+                      <>
+                        <CalendarDays size={16} color="#1A2340" strokeWidth={1.8} />
+                        <Text style={[styles.trimPillText, { marginLeft: 4 }]}>▾</Text>
+                      </>
+                    ) : (
+                      <Text style={styles.trimPillText}>
+                        {trimesterPillLabel(selectedTrimester)} ▾
+                      </Text>
+                    )}
                   </View>
                 </LiquidGlass>
               </Pressable>
@@ -1048,9 +1198,18 @@ export default function NotesScreen() {
                         }}
                       >
                         <View style={styles.trimesterOptionRow}>
-                          <Text style={[styles.trimesterOptionText, isActive && styles.trimesterOptionTextActive]}>
-                            {opt.label}
-                          </Text>
+                          <View style={styles.trimesterOptionLabelWrap}>
+                            {opt.value === 'ANNEE' ? (
+                              <CalendarDays
+                                size={16}
+                                color={isActive ? C.violet : C.label}
+                                strokeWidth={1.8}
+                              />
+                            ) : null}
+                            <Text style={[styles.trimesterOptionText, isActive && styles.trimesterOptionTextActive]}>
+                              {opt.label}
+                            </Text>
+                          </View>
                           {isActive ? <Check size={16} color={C.violet} strokeWidth={2.5} /> : null}
                         </View>
                       </Pressable>
@@ -1187,6 +1346,11 @@ export default function NotesScreen() {
             <Text style={styles.obsQuote}>{observationText}</Text>
           </LinearGradient>
         </ScrollView>
+        <BulletinImportSheet
+          visible={showBulletinImport}
+          onClose={() => setShowBulletinImport(false)}
+          bottomInset={insets.bottom}
+        />
       </View>
     );
   }
@@ -1222,20 +1386,27 @@ export default function NotesScreen() {
           <Text style={styles.screenTitle}>{screenTitle}</Text>
           <View style={styles.titleActions}>
             <Pressable
-              onPress={() => navigation.navigate('ScannerBulletin')}
+              onPress={() => setShowBulletinImport(true)}
               accessibilityRole="button"
               accessibilityLabel="Scanner un bulletin"
             >
               <LiquidGlass circle style={styles.iconCircle}>
                 <View style={styles.iconCircleInner}>
-                  <LayoutGrid size={17} color={C.ink} strokeWidth={2} />
+                  <ScanLine size={18} color="#1A2340" strokeWidth={1.8} />
                 </View>
               </LiquidGlass>
             </Pressable>
             <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
               <LiquidGlass style={styles.trimPill}>
                 <View style={styles.trimPillInner}>
-                  <Text style={styles.trimPillText}>{trimesterPillLabel(selectedTrimester)} ▾</Text>
+                  {selectedTrimester === 'ANNEE' ? (
+                    <>
+                      <CalendarDays size={16} color="#1A2340" strokeWidth={1.8} />
+                      <Text style={[styles.trimPillText, { marginLeft: 4 }]}>▾</Text>
+                    </>
+                  ) : (
+                    <Text style={styles.trimPillText}>{trimesterPillLabel(selectedTrimester)} ▾</Text>
+                  )}
                 </View>
               </LiquidGlass>
             </Pressable>
@@ -1260,9 +1431,18 @@ export default function NotesScreen() {
                       }}
                     >
                       <View style={styles.trimesterOptionRow}>
-                        <Text style={[styles.trimesterOptionText, isActive && styles.trimesterOptionTextActive]}>
-                          {opt.label}
-                        </Text>
+                        <View style={styles.trimesterOptionLabelWrap}>
+                          {opt.value === 'ANNEE' ? (
+                            <CalendarDays
+                              size={16}
+                              color={isActive ? C.violet : C.label}
+                              strokeWidth={1.8}
+                            />
+                          ) : null}
+                          <Text style={[styles.trimesterOptionText, isActive && styles.trimesterOptionTextActive]}>
+                            {opt.label}
+                          </Text>
+                        </View>
                         {isActive ? <Check size={16} color={C.violet} strokeWidth={2.5} /> : null}
                       </View>
                     </Pressable>
@@ -1307,7 +1487,7 @@ export default function NotesScreen() {
 
         {/* Stats row */}
         <View style={styles.statsRow}>
-          <GlassPanel style={[styles.statCard, styles.statCardLastNote]}>
+          <GlassPanel style={styles.statCard}>
             <Text style={styles.statLabelViolet}>DERNIÈRE NOTE</Text>
             {lastGradeDisplay ? (
               <>
@@ -1339,7 +1519,7 @@ export default function NotesScreen() {
             ) : (
               <Text style={styles.statSub}>—</Text>
             )}
-            <Text style={[styles.statLabelViolet, { marginTop: 10 }]}>À RENFORCER</Text>
+            <Text style={[styles.statLabelViolet, { marginTop: 10, color: '#7C3AED' }]}>À RENFORCER</Text>
             {bestWorst.worst ? (
               <>
                 <Text style={styles.statStrong} numberOfLines={2}>
@@ -1527,6 +1707,11 @@ export default function NotesScreen() {
           <Text style={styles.obsQuote}>{observationText}</Text>
         </LinearGradient>
       </ScrollView>
+      <BulletinImportSheet
+        visible={showBulletinImport}
+        onClose={() => setShowBulletinImport(false)}
+        bottomInset={insets.bottom}
+      />
     </View>
   );
 }
@@ -1586,6 +1771,80 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
+  bulletinModalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'transparent',
+  },
+  bulletinBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  bulletinSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 0,
+    overflow: 'hidden',
+  },
+  bulletinHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginVertical: 12,
+    backgroundColor: 'rgba(0,0,0,0.12)',
+  },
+  bulletinSheetTitle: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1A2340',
+    paddingHorizontal: 24,
+    marginBottom: 8,
+  },
+  bulletinDivider: {
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  bulletinRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  bulletinIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  bulletinRowText: { flex: 1, minWidth: 0 },
+  bulletinRowTitle: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A2340',
+  },
+  bulletinRowSub: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  bulletinChev: {
+    fontSize: 22,
+    color: '#d1d5db',
+    marginLeft: 8,
+  },
+  bulletinRowSep: {
+    height: 1,
+    marginLeft: 24,
+    marginRight: 24,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
   trimesterDropdownWrap: {
     position: 'absolute',
     right: 18,
@@ -1611,6 +1870,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  trimesterOptionLabelWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+    minWidth: 0,
   },
   trimesterOptionText: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: C.label },
   trimesterOptionTextActive: { fontFamily: FontFamily.sansSemiBold, color: C.violet },
@@ -1688,11 +1954,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 6,
-  },
-  statCardLastNote: {
-    backgroundColor: 'rgba(124,58,237,0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.12)',
   },
   inlineScore: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
   score26: {
