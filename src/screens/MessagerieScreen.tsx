@@ -8,19 +8,21 @@
  * - Zero Aria content, no Supabase, local store only.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
   Platform,
+  Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import { School, CalendarX } from 'lucide-react-native';
+import { School, CalendarX, Search, X, ChevronDown, Check } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
@@ -32,8 +34,46 @@ import type { Conversation } from '../data/messagerieData';
 // ─── Constants ────────────────────────────────────────────
 
 const NAVY = '#1A2340';
+const VIOLET = '#7C3AED';
 const UNREAD_DOT = '#3B82F6';
 const BG = '#F2F2F7';
+
+// ─── Filter types ─────────────────────────────────────────
+
+type FilterId = 'all' | 'unread' | 'teachers' | 'school' | 'absences';
+
+const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
+  { id: 'all', label: 'Tout' },
+  { id: 'unread', label: 'Non lus' },
+  { id: 'teachers', label: 'Enseignants' },
+  { id: 'school', label: 'École' },
+  { id: 'absences', label: 'Absences' },
+];
+
+// ─── Liquid Glass style ───────────────────────────────────
+
+const glassStyle = Platform.select<any>({
+  web: {
+    backgroundColor: 'rgba(255,255,255,0.45)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    backgroundImage:
+      'linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.28) 100%)',
+  },
+  default: {
+    backgroundColor: 'rgba(255,255,255,0.60)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+});
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -196,7 +236,7 @@ export default function MessagerieScreen() {
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
 
-  // Re-render on focus (back from thread) to pick up read-state changes
+  // ── Focus refresh ────────────────────────────────────────
   const [tick, setTick] = useState(0);
   useFocusEffect(
     useCallback(() => {
@@ -204,12 +244,62 @@ export default function MessagerieScreen() {
     }, []),
   );
 
-  // Read fresh from store on every render (tick forces re-render on focus)
-  const conversations = getConversations(selectedChild.id);
+  // ── Search state ─────────────────────────────────────────
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<any>(null);
+  const searchAnim = useRef(new Animated.Value(0)).current;
 
-  const thisWeek = conversations.filter((c) => isThisWeek(c.lastDate));
-  const earlier = conversations.filter((c) => !isThisWeek(c.lastDate));
+  const openSearch = useCallback(() => {
+    setSearchOpen(true);
+    Animated.timing(searchAnim, {
+      toValue: 1,
+      duration: 220,
+      useNativeDriver: false,
+    }).start(() => searchInputRef.current?.focus());
+  }, [searchAnim]);
+
+  const closeSearch = useCallback(() => {
+    searchInputRef.current?.blur();
+    Animated.timing(searchAnim, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: false,
+    }).start(() => {
+      setSearchOpen(false);
+      setSearchQuery('');
+    });
+  }, [searchAnim]);
+
+  // ── Filter state ─────────────────────────────────────────
+  const [activeFilter, setActiveFilter] = useState<FilterId>('all');
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
+  // ── Data ─────────────────────────────────────────────────
+  const conversations = getConversations(selectedChild.id);
   const unreadCount = conversations.filter((c) => c.unread).length;
+
+  const filtered = useMemo(() => {
+    let result = conversations;
+    switch (activeFilter) {
+      case 'unread':    result = result.filter((c) => c.unread); break;
+      case 'teachers':  result = result.filter((c) => c.avatarType === 'initials'); break;
+      case 'school':    result = result.filter((c) => c.avatarType === 'school'); break;
+      case 'absences':  result = result.filter((c) => c.avatarType === 'absence'); break;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.lastMessage.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [conversations, activeFilter, searchQuery, tick]); // tick keeps it fresh on focus
+
+  const thisWeek = filtered.filter((c) => isThisWeek(c.lastDate));
+  const earlier  = filtered.filter((c) => !isThisWeek(c.lastDate));
 
   const handlePress = useCallback(
     (conv: Conversation) => {
@@ -222,27 +312,175 @@ export default function MessagerieScreen() {
     [navigation],
   );
 
+  const currentFilterLabel =
+    FILTER_OPTIONS.find((f) => f.id === activeFilter)?.label ?? 'Tout';
+  const isFiltered = activeFilter !== 'all';
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messagerie</Text>
-        <Text style={styles.headerSub}>
-          {unreadCount > 0
-            ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
-            : 'Tout est à jour'}
-        </Text>
+
+      {/* ── Header wrap (zIndex keeps dropdown on top) ── */}
+      <View style={styles.headerWrap}>
+
+        {/* Main header row */}
+        <View style={styles.headerRow}>
+
+          {/* Left: title OR search input */}
+          {!searchOpen ? (
+            <View style={styles.headerTextArea}>
+              <Text style={styles.headerTitle}>Messagerie</Text>
+              <Text style={styles.headerSub}>
+                {unreadCount > 0
+                  ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
+                  : 'Tout est à jour'}
+              </Text>
+            </View>
+          ) : (
+            <Animated.View
+              style={[
+                styles.searchInputWrap,
+                glassStyle,
+                {
+                  opacity: searchAnim,
+                  maxWidth: searchAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 600],
+                  }),
+                },
+              ]}
+            >
+              <Search size={14} color="#94A3B8" strokeWidth={2} />
+              <TextInput
+                ref={searchInputRef}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Rechercher…"
+                placeholderTextColor="#94A3B8"
+                style={styles.searchInput}
+                returnKeyType="search"
+                onSubmitEditing={closeSearch}
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
+                  <X size={13} color="#94A3B8" strokeWidth={2.5} />
+                </Pressable>
+              )}
+            </Animated.View>
+          )}
+
+          {/* Right: search toggle + filter pill */}
+          <View style={styles.headerActions}>
+            {/* Search icon / close */}
+            <Pressable
+              onPress={searchOpen ? closeSearch : openSearch}
+              style={({ pressed }) => [
+                styles.glassBtn,
+                glassStyle,
+                pressed && { opacity: 0.75 },
+              ]}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
+            >
+              {searchOpen
+                ? <X size={18} color={NAVY} strokeWidth={2.2} />
+                : <Search size={18} color={NAVY} strokeWidth={2.2} />
+              }
+            </Pressable>
+
+            {/* Filter pill */}
+            <Pressable
+              onPress={() => setDropdownVisible((v) => !v)}
+              style={({ pressed }) => [
+                styles.glassPill,
+                glassStyle,
+                isFiltered && styles.glassPillActive,
+                pressed && { opacity: 0.75 },
+              ]}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel="Filtrer les conversations"
+            >
+              <Text
+                style={[
+                  styles.filterPillLabel,
+                  isFiltered && { color: VIOLET, fontFamily: FontFamily.sansBold },
+                ]}
+              >
+                {currentFilterLabel}
+              </Text>
+              <ChevronDown
+                size={12}
+                color={isFiltered ? VIOLET : NAVY}
+                strokeWidth={2.5}
+                style={dropdownVisible ? { transform: [{ rotate: '180deg' }] } : undefined}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Filter dropdown */}
+        {dropdownVisible && (
+          <>
+            <Pressable
+              style={StyleSheet.absoluteFillObject}
+              onPress={() => setDropdownVisible(false)}
+            />
+            <View style={styles.dropdown}>
+              {FILTER_OPTIONS.map((opt, idx) => {
+                const active = opt.id === activeFilter;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    onPress={() => {
+                      setActiveFilter(opt.id);
+                      setDropdownVisible(false);
+                    }}
+                    style={({ pressed }) => [
+                      styles.dropdownItem,
+                      idx > 0 && styles.dropdownItemBorder,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        active && styles.dropdownItemTextActive,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                    {active && (
+                      <Check size={14} color={VIOLET} strokeWidth={2.5} />
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
       </View>
 
+      {/* ── Conversation list ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        onScrollBeginDrag={() => {
+          if (dropdownVisible) setDropdownVisible(false);
+        }}
       >
-        {conversations.length === 0 ? (
+        {filtered.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>Aucune conversation</Text>
+            <Text style={styles.emptyTitle}>
+              {searchQuery.trim()
+                ? 'Aucun résultat'
+                : 'Aucune conversation'}
+            </Text>
             <Text style={styles.emptyText}>
-              Sélectionnez un autre enfant ou revenez plus tard.
+              {searchQuery.trim()
+                ? 'Modifiez votre recherche ou changez de filtre.'
+                : 'Sélectionnez un autre enfant ou revenez plus tard.'}
             </Text>
           </View>
         ) : (
@@ -278,11 +516,22 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
   },
 
-  // Header
-  header: {
-    paddingHorizontal: 20,
+  // ── Header ────────────────────────────────────────────
+  headerWrap: {
     paddingTop: 10,
-    paddingBottom: 14,
+    paddingBottom: 10,
+    zIndex: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    gap: 8,
+    minHeight: 52,
+  },
+  headerTextArea: {
+    flex: 1,
+    paddingLeft: 4,
   },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
@@ -295,6 +544,121 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     color: '#94A3B8',
+  },
+
+  // Search input (animated) — true pill shape
+  searchInputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    height: 40,
+    gap: 8,
+    overflow: 'hidden',
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: NAVY,
+    paddingVertical: 0,
+  },
+
+  // Right action buttons
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
+
+  // Glass icon button (search toggle) — perfect circle
+  glassBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Glass filter pill — true pill (borderRadius = height/2)
+  glassPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 16,
+    height: 40,
+    borderRadius: 20,
+  },
+  glassPillActive: {
+    // violet tint overlay when filter is active
+    borderColor: 'rgba(124,58,237,0.35)',
+  },
+  filterPillLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: NAVY,
+  },
+
+  // Filter dropdown — Liquid Glass
+  dropdown: {
+    position: 'absolute',
+    right: 16,
+    top: 62,
+    minWidth: 180,
+    borderRadius: 16,
+    paddingVertical: 4,
+    zIndex: 30,
+    ...Platform.select<any>({
+      web: {
+        backgroundColor: 'rgba(255,255,255,0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.7)',
+      },
+      ios: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 20,
+      },
+      android: {
+        backgroundColor: '#FFFFFF',
+        elevation: 8,
+      },
+      default: {
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.12,
+        shadowRadius: 20,
+      },
+    }),
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  dropdownItemBorder: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(15,23,42,0.06)',
+  },
+  dropdownItemText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: NAVY,
+    flex: 1,
+  },
+  dropdownItemTextActive: {
+    fontFamily: FontFamily.sansBold,
+    color: VIOLET,
   },
 
   // Scroll
