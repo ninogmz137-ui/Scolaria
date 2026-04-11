@@ -209,7 +209,7 @@ export default function ReglagesScreen() {
           <View style={styles.wallpaperGroup}>
             <FlatList
               data={wallpaperFlatData}
-              numColumns={WALLPAPER_NUM_COLUMNS}
+              numColumns={3}
               scrollEnabled={false}
               nestedScrollEnabled
               keyExtractor={(item) => item.id}
