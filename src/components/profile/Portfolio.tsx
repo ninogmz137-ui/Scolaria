@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { ScrollView, Animated } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../ui';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { Plus } from 'lucide-react-native';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 interface Activity {
   id: string;
@@ -21,139 +20,157 @@ interface Props {
 }
 
 export default function Portfolio({ activities }: Props) {
-  const fadeAnims = useRef(activities.map(() => new Animated.Value(0))).current;
-  const slideAnims = useRef(activities.map(() => new Animated.Value(20))).current;
-
-  useEffect(() => {
-    Animated.stagger(
-      100,
-      activities.map((_, i) =>
-        Animated.parallel([
-          Animated.timing(fadeAnims[i], {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.spring(slideAnims[i], {
-            toValue: 0,
-            tension: 60,
-            friction: 8,
-            useNativeDriver: true,
-          }),
-        ]),
-      ),
-    ).start();
-  }, []);
+  const totalH = activities.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0);
 
   return (
-    <Box className="mb-1">
-      <HStack className="justify-between items-center mb-3">
-        <Box>
-          <Text className="text-base font-bold" style={{ color: '#0F172A' }}>
-            Portfolio extra-scolaire
-          </Text>
-          <Text className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>
-            {activities.length} activité{activities.length > 1 ? 's' : ''}
-            {' '}•{' '}
-            {activities.reduce((sum, a) => sum + (a.hoursPerWeek || 0), 0)}h/semaine
-          </Text>
-        </Box>
-        <Pressable
-          className="justify-center items-center"
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            backgroundColor: 'rgba(34,211,238,0.1)',
-          }}
-        >
-          <Ionicons name="add" size={18} color={Colors.cyan} />
-        </Pressable>
-      </HStack>
+    <View style={styles.wrap}>
+      <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+      <View style={styles.inner}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.title}>Portfolio</Text>
+            <Text style={styles.meta}>
+              {activities.length} activité{activities.length > 1 ? 's' : ''} · {totalH}h/semaine
+            </Text>
+          </View>
+          <Pressable style={styles.addBtn} hitSlop={8}>
+            <Plus size={16} color="#7C3AED" strokeWidth={2} />
+          </Pressable>
+        </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 10, paddingRight: 20 }}
-      >
-        {activities.map((activity, i) => (
-          <Animated.View
-            key={activity.id}
-            style={{
-              opacity: fadeAnims[i],
-              transform: [{ translateX: slideAnims[i] }],
-            }}
-          >
-            <VStack
-              className="items-center rounded-2xl p-3.5"
-              style={{
-                width: 140,
-                backgroundColor: '#FFFFFF',
-              }}
-            >
-              {/* Icon */}
-              <Box
-                className="justify-center items-center mb-2.5"
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: activity.color + '20',
-                }}
-              >
-                <Text className="text-2xl">{activity.emoji}</Text>
-              </Box>
-
-              <Text className="text-[13px] font-bold text-center mb-0.5" style={{ color: '#0F172A' }}>
-                {activity.name}
-              </Text>
-              <Text className="text-[11px] mb-2" style={{ color: '#94A3B8' }}>
-                {activity.category}
-              </Text>
-
-              {/* Progress bar */}
-              {activity.progressPercent != null && (
-                <HStack className="items-center gap-1.5 w-full mb-2">
-                  <Box
-                    className="flex-1 rounded-sm overflow-hidden"
-                    style={{ height: 4, backgroundColor: '#EEF0F5' }}
-                  >
-                    <Box
-                      className="rounded-sm"
-                      style={{
-                        height: '100%',
-                        width: `${activity.progressPercent}%`,
-                        backgroundColor: activity.color,
-                      }}
-                    />
-                  </Box>
-                  <Text className="text-[10px] font-bold" style={{ color: activity.color }}>
-                    {activity.progressPercent}%
+        <View style={styles.grid}>
+          {activities.map((activity) => (
+            <View key={activity.id} style={styles.cell}>
+              <View style={[styles.cellInner, { borderTopColor: activity.color, borderTopWidth: 3 }]}>
+                <Text style={styles.emoji}>{activity.emoji}</Text>
+                <Text style={styles.name} numberOfLines={2}>
+                  {activity.name}
+                </Text>
+                <Text style={styles.category} numberOfLines={1}>
+                  {activity.category}
+                </Text>
+                {activity.progressPercent != null && (
+                  <View style={styles.progressRow}>
+                    <View style={styles.track}>
+                      <View
+                        style={[
+                          styles.fill,
+                          { width: `${activity.progressPercent}%`, backgroundColor: activity.color },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[styles.pct, { color: activity.color }]}>{activity.progressPercent}%</Text>
+                  </View>
+                )}
+                <View style={[styles.badge, { borderColor: activity.color }]}>
+                  <Text style={[styles.badgeText, { color: activity.color }]} numberOfLines={1}>
+                    {activity.level}
                   </Text>
-                </HStack>
-              )}
-
-              {/* Level badge */}
-              <Box
-                className="rounded-xl px-2 py-0.5 mb-1"
-                style={{ borderWidth: 1, borderColor: activity.color }}
-              >
-                <Text className="text-[10px] font-bold" style={{ color: activity.color }}>
-                  {activity.level}
-                </Text>
-              </Box>
-
-              {/* Hours */}
-              {activity.hoursPerWeek != null && (
-                <Text className="text-[10px] mt-0.5" style={{ color: '#94A3B8' }}>
-                  {activity.hoursPerWeek}h/sem
-                  {activity.since ? ` • ${activity.since}` : ''}
-                </Text>
-              )}
-            </VStack>
-          </Animated.View>
-        ))}
-      </ScrollView>
-    </Box>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+  },
+  inner: { padding: 16 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 14,
+  },
+  title: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    color: '#9CA3AF',
+  },
+  meta: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  addBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(124,58,237,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'space-between',
+  },
+  cell: {
+    width: '31%',
+    minWidth: 100,
+    marginBottom: 8,
+  },
+  cellInner: {
+    backgroundColor: 'rgba(248,249,252,0.85)',
+    borderRadius: 14,
+    padding: 10,
+    alignItems: 'center',
+  },
+  emoji: { fontSize: 22, marginBottom: 6 },
+  name: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 11,
+    color: '#1A2340',
+    textAlign: 'center',
+    minHeight: 28,
+  },
+  category: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 9,
+    color: '#9CA3AF',
+    marginBottom: 8,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 4,
+    marginBottom: 6,
+  },
+  track: {
+    flex: 1,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    overflow: 'hidden',
+  },
+  fill: { height: '100%', borderRadius: 2 },
+  pct: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 9,
+  },
+  badge: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    maxWidth: '100%',
+  },
+  badgeText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 9,
+  },
+});

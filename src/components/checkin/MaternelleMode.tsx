@@ -1,99 +1,104 @@
 import { useState } from 'react';
-import { Animated, Text as RNText } from 'react-native';
-import { Box, Text, Pressable, VStack } from '../ui';
-import { Colors } from '../../constants/colors';
-import { ressentiSubmitStyles } from './ressentiSubmitStyles';
+import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
+import { FontFamily } from '../../hooks/useSolariaFonts';
+
+const NAVY = '#1A2340';
+const AMBER = '#F59E0B';
 
 const EMOTIONS = [
   { emoji: '😄', label: 'Super !', value: 'super' },
   { emoji: '🙂', label: 'Bien', value: 'bien' },
   { emoji: '😢', label: 'Triste', value: 'triste' },
-  { emoji: '😠', label: 'En colere', value: 'colere' },
+  { emoji: '😤', label: 'En colère', value: 'colere' },
 ];
 
 interface Props {
-  onSubmit: (value: string) => void;
+  selected: string | null;
+  onSelect: (value: string) => void;
 }
 
-export default function MaternelleMode({ onSubmit }: Props) {
-  const [selected, setSelected] = useState<string | null>(null);
+export default function MaternelleMode({ selected, onSelect }: Props) {
   const [scales] = useState(() => EMOTIONS.map(() => new Animated.Value(1)));
 
   const handlePress = (value: string, index: number) => {
-    setSelected(value);
+    onSelect(value);
     Animated.sequence([
-      Animated.spring(scales[index], {
-        toValue: 1.25,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scales[index], {
-        toValue: 1.1,
-        useNativeDriver: true,
-      }),
+      Animated.spring(scales[index], { toValue: 1.08, useNativeDriver: true }),
+      Animated.spring(scales[index], { toValue: 1, useNativeDriver: true }),
     ]).start();
-
-    // Reset others
     scales.forEach((scale, i) => {
-      if (i !== index) {
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
-      }
+      if (i !== index) Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
     });
   };
 
   return (
-    <VStack className="items-center pt-5">
-      <Text
-        className="text-[26px] font-extrabold mb-1.5 text-center"
-        style={{ color: Colors.warmOrange }}
-      >
-        Comment tu te sens ?
-      </Text>
-      <Text
-        className="text-[15px] text-center mb-[30px]"
-        style={{ color: '#64748B' }}
-      >
-        Touche le visage qui te ressemble
-      </Text>
-
-      <Box className="flex-row flex-wrap justify-center" style={{ gap: 16 }}>
+    <View style={styles.root}>
+      <Text style={styles.title}>Comment tu te sens ?</Text>
+      <View style={styles.grid}>
         {EMOTIONS.map((emotion, index) => (
           <Pressable
             key={emotion.value}
             onPress={() => handlePress(emotion.value, index)}
+            style={styles.cellOuter}
           >
             <Animated.View
-              style={{
-                width: 140,
-                height: 140,
-                borderRadius: 24,
-                backgroundColor: selected === emotion.value ? Colors.warmCardLight : Colors.warmCard,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 3,
-                borderColor: selected === emotion.value ? Colors.warmOrange : 'transparent',
-                transform: [{ scale: scales[index] }],
-              }}
+              style={[
+                styles.cell,
+                selected === emotion.value && styles.cellSelected,
+                { transform: [{ scale: scales[index] }] },
+              ]}
             >
-              <Text style={{ fontSize: 56, marginBottom: 8 }}>{emotion.emoji}</Text>
-              <Text
-                className="text-base font-semibold"
-                style={{ color: selected === emotion.value ? Colors.warmOrange : '#64748B' }}
-              >
+              <Text style={styles.emoji}>{emotion.emoji}</Text>
+              <Text style={[styles.label, selected === emotion.value && styles.labelSelected]}>
                 {emotion.label}
               </Text>
             </Animated.View>
           </Pressable>
         ))}
-      </Box>
-
-      {selected && (
-        <Pressable
-          style={ressentiSubmitStyles.button}
-          onPress={() => onSubmit(selected)}
-        >
-          <RNText style={ressentiSubmitStyles.label}>Enregistrer mon ressenti</RNText>
-        </Pressable>
-      )}
-    </VStack>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { paddingTop: 4 },
+  title: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: NAVY,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  cellOuter: {
+    width: '47%',
+    minWidth: 140,
+  },
+  cell: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    paddingBottom: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(248,249,252,0.9)',
+    borderWidth: 2,
+    borderColor: 'rgba(0,0,0,0.06)',
+  },
+  cellSelected: {
+    borderColor: AMBER,
+    backgroundColor: 'rgba(245,158,11,0.06)',
+  },
+  emoji: { fontSize: 38, marginBottom: 6 },
+  label: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: NAVY,
+    textAlign: 'center',
+  },
+  labelSelected: { color: NAVY },
+});

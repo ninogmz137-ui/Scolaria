@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, StyleSheet, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
@@ -187,13 +188,10 @@ export default function JoyAlerts({
         transform: [{ translateY: slideAnim }, { scale: pulseAnim }],
       }}
     >
-      {/* Alert banner */}
-      <Box
-        className="rounded-2xl p-4"
-        style={{
-          backgroundColor: config.bgColor,
-        }}
-      >
+      {/* Alert banner — premium amber glass */}
+      <View style={alertStyles.alertShell}>
+        <BlurView intensity={12} tint="light" style={StyleSheet.absoluteFill} />
+        <Box className="rounded-2xl p-4" style={{ backgroundColor: 'transparent' }}>
         {/* Header */}
         <HStack className="justify-between items-center mb-2.5">
           <HStack
@@ -247,7 +245,8 @@ export default function JoyAlerts({
             <Ionicons name="arrow-forward" size={14} color={config.color} />
           </Pressable>
         )}
-      </Box>
+        </Box>
+      </View>
 
       {/* Urgency protocol — help numbers */}
       {(effectiveLevel === 'urgence' || showUrgencyProtocol) && (
@@ -357,3 +356,13 @@ export default function JoyAlerts({
     </Animated.View>
   );
 }
+
+const alertStyles = StyleSheet.create({
+  alertShell: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.2)',
+    backgroundColor: 'rgba(254,243,199,0.8)',
+  },
+});

@@ -1,6 +1,6 @@
-import { ScrollView } from 'react-native';
-import { Box, Text, HStack, VStack } from '../ui';
-import { Colors } from '../../constants/colors';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 interface DayScore {
   day: number;
@@ -12,15 +12,15 @@ interface Props {
   month: string;
 }
 
-const getColor = (score: number) => {
-  if (score >= 8) return Colors.green;
-  if (score >= 6) return Colors.cyan;
-  if (score >= 4) return Colors.orange;
-  return Colors.red;
+const getDotColor = (score: number) => {
+  if (score >= 8) return '#22C55E';
+  if (score >= 6) return '#3B82F6';
+  if (score >= 4) return '#F59E0B';
+  return '#EF4444';
 };
 
 export default function JoyHistory({ data, month }: Props) {
-  const avg = data.reduce((s, d) => s + d.score, 0) / data.length;
+  const avg = data.length ? data.reduce((s, d) => s + d.score, 0) / data.length : 0;
   const maxStreak = (() => {
     let max = 0;
     let cur = 0;
@@ -34,100 +34,145 @@ export default function JoyHistory({ data, month }: Props) {
     }
     return max;
   })();
+  const happyDays = data.filter((d) => d.score >= 7).length;
 
   return (
-    <Box
-      className="rounded-2xl p-4"
-      style={{
-        backgroundColor: Colors.card,
-      }}
-    >
-      {/* Header */}
-      <HStack className="justify-between items-center mb-3.5">
-        <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>
-          Score de Joie
-        </Text>
-        <Text className="text-[13px] font-semibold" style={{ color: Colors.cyan }}>
-          {month}
-        </Text>
-      </HStack>
+    <View style={styles.wrap}>
+      <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+      <View style={styles.inner}>
+        <View style={styles.headerRow}>
+          <Text style={styles.labelLeft}>Score de Joie</Text>
+          <Text style={styles.monthRight}>{month}</Text>
+        </View>
 
-      {/* Stats row */}
-      <HStack
-        className="rounded-xl p-3.5 mb-4"
-        style={{ backgroundColor: '#F1F5F9' }}
-      >
-        <VStack className="flex-1 items-center">
-          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.cyan }}>
-            {avg.toFixed(1)}
-          </Text>
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Moyenne</Text>
-        </VStack>
-        <Box style={{ width: 1, backgroundColor: Colors.cardBorder }} />
-        <VStack className="flex-1 items-center">
-          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.green }}>
-            {maxStreak}j
-          </Text>
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Meilleure série</Text>
-        </VStack>
-        <Box style={{ width: 1, backgroundColor: Colors.cardBorder }} />
-        <VStack className="flex-1 items-center">
-          <Text className="text-xl font-black mb-0.5" style={{ color: Colors.orange }}>
-            {data.filter((d) => d.score >= 7).length}
-          </Text>
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>Jours heureux</Text>
-        </VStack>
-      </HStack>
+        <View style={styles.statsRow}>
+          <View style={styles.statCol}>
+            <Text style={[styles.statNum, { color: '#7C3AED' }]}>{avg.toFixed(1)}</Text>
+            <Text style={styles.statMeta}>Moyenne</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCol}>
+            <Text style={[styles.statNum, { color: '#22C55E' }]}>{maxStreak}j</Text>
+            <Text style={styles.statMeta}>Série</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCol}>
+            <Text style={[styles.statNum, { color: '#F59E0B' }]}>{happyDays}</Text>
+            <Text style={styles.statMeta}>Jours</Text>
+          </View>
+        </View>
 
-      {/* Calendar grid */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <HStack className="gap-1.5 py-1">
-          {data.map((d) => (
-            <VStack key={d.day} className="items-center gap-1" style={{ width: 28 }}>
-              <Box
-                className="rounded-full"
-                style={{
-                  width: 18,
-                  height: 18,
-                  backgroundColor: getColor(d.score),
-                  ...(d.score >= 8
-                    ? {
-                        shadowColor: 'transparent',
-                        shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: 0,
-                        shadowRadius: 0,
-                        elevation: 0,
-                      }
-                    : {}),
-                }}
-              />
-              <Text className="text-[10px] font-medium" style={{ color: Colors.textMuted }}>
-                {d.day}
-              </Text>
-            </VStack>
-          ))}
-        </HStack>
-      </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.dotsRow}>
+            {data.map((d) => (
+              <View key={d.day} style={styles.dotCol}>
+                <View style={[styles.dot, { backgroundColor: getDotColor(d.score) }]} />
+                <Text style={styles.dayLabel}>{d.day}</Text>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
 
-      {/* Legend */}
-      <HStack className="justify-center gap-4 mt-3">
-        <HStack className="items-center gap-1">
-          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.green }} />
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>8-10</Text>
-        </HStack>
-        <HStack className="items-center gap-1">
-          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.cyan }} />
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>6-7</Text>
-        </HStack>
-        <HStack className="items-center gap-1">
-          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.orange }} />
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>4-5</Text>
-        </HStack>
-        <HStack className="items-center gap-1">
-          <Box className="rounded-full" style={{ width: 10, height: 10, backgroundColor: Colors.red }} />
-          <Text className="text-[11px]" style={{ color: Colors.textMuted }}>0-3</Text>
-        </HStack>
-      </HStack>
-    </Box>
+        <View style={styles.legend}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#22C55E' }]} />
+            <Text style={styles.legendText}>8–10</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#3B82F6' }]} />
+            <Text style={styles.legendText}>6–7</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+            <Text style={styles.legendText}>4–5</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
+            <Text style={styles.legendText}>0–3</Text>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+  },
+  inner: {
+    padding: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  labelLeft: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    color: '#9CA3AF',
+  },
+  monthRight: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: '#06B6D4',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 14,
+    backgroundColor: 'rgba(248,249,252,0.9)',
+  },
+  statCol: { flex: 1, alignItems: 'center' },
+  statDivider: { width: 1, backgroundColor: 'rgba(0,0,0,0.06)' },
+  statNum: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 26,
+    marginBottom: 2,
+  },
+  statMeta: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#9CA3AF',
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingVertical: 4,
+  },
+  dotCol: { width: 28, alignItems: 'center', gap: 4 },
+  dot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+  },
+  dayLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  legend: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 12,
+    flexWrap: 'wrap',
+  },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#9CA3AF',
+  },
+});

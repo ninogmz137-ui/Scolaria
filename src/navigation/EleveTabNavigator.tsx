@@ -43,7 +43,7 @@ function ProfilStackScreen() {
       <ProfilStack.Screen
         name="MonProfilHome"
         component={ProfilEnfantScreen}
-        options={{ title: 'Mon profil' }}
+        options={{ title: 'Mon profil', headerShown: false }}
       />
     </ProfilStack.Navigator>
   );
@@ -92,7 +92,7 @@ function RessentiStackScreen() {
       <RessentiStack.Screen
         name="MonRessentiHome"
         component={MonRessentiScreen}
-        options={{ title: 'Mon ressenti' }}
+        options={{ title: 'Mon ressenti', headerShown: false }}
       />
     </RessentiStack.Navigator>
   );

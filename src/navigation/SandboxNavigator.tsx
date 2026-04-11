@@ -69,7 +69,11 @@ const RessentiStack = createNativeStackNavigator();
 function RessentiStackScreen() {
   return (
     <RessentiStack.Navigator screenOptions={{ headerShown: false }}>
-      <RessentiStack.Screen name="RessentiHome" component={MonRessentiScreen} />
+      <RessentiStack.Screen
+        name="RessentiHome"
+        component={MonRessentiScreen}
+        options={{ headerShown: false }}
+      />
     </RessentiStack.Navigator>
   );
 }
@@ -78,7 +82,11 @@ const ProfilStack = createNativeStackNavigator();
 function ProfilStackScreen() {
   return (
     <ProfilStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfilStack.Screen name="ProfilHome" component={ProfilEnfantScreen} />
+      <ProfilStack.Screen
+        name="ProfilHome"
+        component={ProfilEnfantScreen}
+        options={{ headerShown: false }}
+      />
     </ProfilStack.Navigator>
   );
 }

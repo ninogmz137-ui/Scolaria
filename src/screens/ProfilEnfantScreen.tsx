@@ -1,34 +1,39 @@
 /**
- * ProfilEnfantScreen — Clean white/black design.
- * No WallpaperBackground, no GlassCard, no Papicons.
- * Matches SettingsScreen / NotesScreen visual language.
+ * ProfilEnfantScreen — Premium design system v2.0 (glass, white header, neutral base).
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Platform,
   Alert,
   ActivityIndicator,
+  Share,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import {
   FileText,
   GraduationCap,
-  Pencil,
+  PenLine,
   Fingerprint,
+  ChevronLeft,
+  Info,
+  Share2,
   MessageCircle,
   Activity,
-  Palette,
+  Sparkles,
   Users,
-  Star,
+  Clock,
   BookOpen,
   Shield,
-  Cpu,
+  GitBranch,
   Mic,
   BarChart2,
   ClipboardList,
@@ -36,12 +41,11 @@ import {
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import ChildAvatar from '../components/ChildAvatar';
 import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import SuperPowerBadge, { type ProfileTag } from '../components/profile/SuperPowerBadge';
+import { type ProfileTag } from '../components/profile/SuperPowerBadge';
 import JoyHistory from '../components/profile/JoyHistory';
 import Portfolio from '../components/profile/Portfolio';
 import JoyAlerts, {
@@ -57,25 +61,26 @@ import {
 import { getChild, getCheckins } from '../services/database';
 import { Colors } from '../constants/colors';
 
-const PAGE_BG = 'rgba(248, 249, 252, 1)';
-const COMPETENCE_ICON_COLOR = '#6B7280';
+const PAGE_BG = '#F2F4F8';
+const NAVY = '#1A2340';
+const VIOLET = '#7C3AED';
+const CYAN = '#06B6D4';
+const COMPETENCE_ICON = '#6B7280';
 
 const COMPETENCE_ICONS: Record<string, typeof MessageCircle> = {
   Langage: MessageCircle,
   Motricité: Activity,
-  Créativité: Palette,
+  Créativité: Sparkles,
   Sociabilité: Users,
-  Autonomie: Star,
+  Autonomie: Clock,
   Connaissances: BookOpen,
   Confiance: Shield,
-  Logique: Cpu,
+  Logique: GitBranch,
   Expression: Mic,
   Analyse: BarChart2,
   Organisation: ClipboardList,
   Curiosité: Search,
 };
-
-// ─── Types ────────────────────────────────────────────────
 
 interface ChildProfileData {
   name: string;
@@ -105,8 +110,6 @@ interface ChildProfileData {
   trimesterWeeksLeft: number;
 }
 
-// ─── Mock data ────────────────────────────────────────────
-
 function getChildProfileData(childId: string): ChildProfileData {
   switch (childId) {
     case '1':
@@ -114,7 +117,7 @@ function getChildProfileData(childId: string): ChildProfileData {
       return {
         name: 'Léa Moreau',
         firstName: 'Léa',
-        avatar: '👧',
+        avatar: '🦁',
         classe: 'Grande section — Maternelle Pasteur',
         scolariaId: 'SCA-2026-FR-048720',
         age: 4,
@@ -228,47 +231,106 @@ function getChildProfileData(childId: string): ChildProfileData {
   }
 }
 
-// ─── Inline sub-components ────────────────────────────────
-
 function SectionTitle({ label }: { label: string }) {
   return <Text style={styles.sectionTitle}>{label}</Text>;
 }
 
-function Card({ children, style }: { children: React.ReactNode; style?: object }) {
-  return <View style={[styles.card, style]}>{children}</View>;
-}
-
-interface CompetenceRowProps {
-  label: string;
-  value: number; // 0–10
-  accentColor: string;
-}
-
-function CompetenceRow({ label, value, accentColor }: CompetenceRowProps) {
+function CompetenceRow({ label, value }: { label: string; value: number }) {
   const pct = Math.min(100, Math.max(0, value * 10));
-  const Icon = COMPETENCE_ICONS[label] ?? Star;
+  const Icon = COMPETENCE_ICONS[label] ?? Sparkles;
   return (
-    <View style={styles.competenceRow}>
-      <View style={styles.competenceIconWrap}>
-        <Icon size={18} color={COMPETENCE_ICON_COLOR} strokeWidth={1.5} />
+    <View style={styles.compRow}>
+      <View style={styles.compIconSq}>
+        <Icon size={14} color={COMPETENCE_ICON} strokeWidth={1.5} />
       </View>
-      <Text style={styles.competenceLabel}>{label}</Text>
-      <View style={styles.competenceBarTrack}>
-        <View style={[styles.competenceBarFill, { width: `${pct}%` as any, backgroundColor: accentColor }]} />
+      <Text style={styles.compLabel}>{label}</Text>
+      <View style={styles.compTrack}>
+        <LinearGradient
+          colors={[VIOLET, CYAN]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.compFill, { width: `${pct}%` }]}
+        />
       </View>
-      <Text style={[styles.competenceValue, { color: accentColor }]}>{value}</Text>
+      <Text style={styles.compScore}>{value}</Text>
     </View>
   );
 }
 
-// ─── Main component ───────────────────────────────────────
+function SuperPouvoirCard({
+  power,
+  emoji,
+  description,
+  tags,
+  weeks,
+  onShare,
+}: {
+  power: string;
+  emoji: string;
+  description: string;
+  tags: ProfileTag[];
+  weeks: number;
+  onShare: () => void;
+}) {
+  return (
+    <LinearGradient
+      colors={['rgba(124,58,237,0.07)', 'rgba(6,182,212,0.05)']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.spCard}
+    >
+      <View style={styles.spTopRow}>
+        <Text style={styles.spSectionLeft}>✦ SUPER-POUVOIR</Text>
+        <LinearGradient
+          colors={['rgba(124,58,237,0.1)', 'rgba(6,182,212,0.08)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.spAriaBadge}
+        >
+          <Text style={styles.spAriaBadgeText}>✦ Observé par Aria</Text>
+        </LinearGradient>
+      </View>
+
+      <LinearGradient
+        colors={[VIOLET, CYAN]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.spIconGrad}
+      >
+        <Text style={styles.spEmoji}>{emoji}</Text>
+      </LinearGradient>
+
+      <Text style={styles.spName}>{power}</Text>
+      <Text style={styles.spDesc}>{description}</Text>
+
+      <View style={styles.spTraits}>
+        {tags.map((t) => (
+          <View key={t.label} style={styles.traitPill}>
+            <Text style={styles.traitEmoji}>{t.emoji}</Text>
+            <Text style={styles.traitLabel}>{t.label}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.spFooter}>
+        <View style={styles.spFooterLeft}>
+          <Info size={14} color="#9CA3AF" strokeWidth={2} />
+          <Text style={styles.spFooterGrey}>Révisé dans {weeks} semaines</Text>
+        </View>
+        <Pressable onPress={onShare} style={styles.spShareBtn} hitSlop={8}>
+          <Share2 size={14} color={VIOLET} strokeWidth={2} />
+          <Text style={styles.spShareText}>Partager</Text>
+        </Pressable>
+      </View>
+    </LinearGradient>
+  );
+}
 
 export default function ProfilEnfantScreen() {
   useChildTheme();
   const { selectedChild, updateChildAvatar } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
   const childId = selectedChild?.id ?? '2';
 
   const [data, setData] = useState<ChildProfileData>(() => getChildProfileData(childId));
@@ -276,18 +338,24 @@ export default function ProfilEnfantScreen() {
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
 
-  const handleAvatarSelect = useCallback((selection: AvatarSelection) => {
-    updateChildAvatar(childId, selection.type, selection.emoji, selection.photoUri);
-  }, [childId, updateChildAvatar]);
+  const displayEmoji =
+    selectedChild.avatarType === 'photo'
+      ? undefined
+      : selectedChild.avatarEmoji || data.avatar;
+
+  const handleAvatarSelect = useCallback(
+    (selection: AvatarSelection) => {
+      updateChildAvatar(childId, selection.type, selection.emoji, selection.photoUri);
+    },
+    [childId, updateChildAvatar],
+  );
 
   const loadProfile = useCallback(async () => {
     const mock = getChildProfileData(childId);
-
     const [childResult, checkinsResult] = await Promise.all([
       getChild(childId),
       getCheckins(childId, { days: 30 }),
     ]);
-
     const child = childResult?.data;
     const checkins = checkinsResult?.data ?? [];
 
@@ -336,9 +404,8 @@ export default function ProfilEnfantScreen() {
       name: `${child.first_name} ${child.last_name ?? ''}`.trim(),
       firstName: child.first_name,
       avatar: child.avatar_emoji || '👦',
-      classe: child.classe && child.school
-        ? `${child.classe} — ${child.school}`
-        : mock.classe,
+      classe:
+        child.classe && child.school ? `${child.classe} — ${child.school}` : mock.classe,
       scolariaId: child.scolaria_id || mock.scolariaId,
       age,
       superPower: child.super_power || mock.superPower,
@@ -396,126 +463,145 @@ export default function ProfilEnfantScreen() {
     }
   };
 
-  const accent = '#7C3AED';
+  const handleShareSuper = async () => {
+    const tagLine = data.tags.map((t) => `${t.emoji} ${t.label}`).join(' · ');
+    try {
+      await Share.share({
+        message: `${data.superPowerEmoji} ${data.firstName} — ${data.superPower}\n\n${data.superPowerDescription}\n\n${tagLine}\n\n— Profil Scolaria`,
+        title: `Super-pouvoir de ${data.firstName}`,
+      });
+    } catch {
+      /* cancelled */
+    }
+  };
+
+  const headerBottom = insets.top + 12 + 44 + 12 + 72 + 12 + 22 + 8 + 36;
 
   return (
     <View style={styles.root}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: TOPBAR_H + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 24 },
-        ]}
+        contentContainerStyle={{
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 28,
+        }}
       >
-        {/* ── Header ── */}
-        <Card style={styles.headerCard}>
-          <Pressable onPress={() => setAvatarPickerVisible(true)} style={styles.avatarWrap}>
-            <ChildAvatar
-              name={data.name}
-              emoji={selectedChild.avatarType === 'photo' ? undefined : (selectedChild.avatarEmoji || data.avatar)}
-              photoUri={selectedChild.avatarPhotoUri}
-              accentColor={accent}
-              size={64}
-            />
-            <View style={styles.avatarEditBadge}>
-              <Pencil size={10} color="#FFFFFF" strokeWidth={2.5} />
+        <View style={[styles.whiteHeader, { paddingTop: insets.top + 12 }]}>
+          <View style={styles.navRow}>
+            <Pressable
+              style={styles.backBtn}
+              onPress={() => navigation.goBack()}
+              hitSlop={12}
+            >
+              <ChevronLeft size={18} color={NAVY} strokeWidth={2.5} />
+            </Pressable>
+            <Text style={styles.navTitle}>Profil élève</Text>
+            <View style={{ width: 34 }} />
+          </View>
+
+          <Pressable
+            onPress={() => setAvatarPickerVisible(true)}
+            style={styles.avatarPress}
+          >
+            <View style={styles.avatarRing}>
+              {selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri ? (
+                <Image
+                  source={{ uri: selectedChild.avatarPhotoUri }}
+                  style={styles.avatarPhoto}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarEmoji}>{displayEmoji}</Text>
+              )}
+            </View>
+            <View style={styles.editBadge}>
+              <PenLine size={10} color="#FFFFFF" strokeWidth={2.5} />
             </View>
           </Pressable>
 
-          <Text style={styles.nameText}>{data.name}</Text>
-          <Text style={styles.classeText}>{data.classe}</Text>
+          <Text style={styles.childName}>{data.name}</Text>
+          <Text style={styles.schoolInfo}>{data.classe}</Text>
+        </View>
 
-          <View style={styles.idPill}>
-            <Fingerprint size={13} color="#94A3B8" strokeWidth={2} />
-            <Text style={styles.idText}>{data.scolariaId}</Text>
+        <View style={[styles.scaWrap, { marginTop: -6 }]}>
+          <View style={styles.scaPill}>
+            <Fingerprint size={12} color="#9CA3AF" strokeWidth={2} />
+            <Text style={styles.scaText}>{data.scolariaId}</Text>
           </View>
-        </Card>
+        </View>
 
-        {/* ── Joy alerts ── */}
-        {(joyAlert.level || hasCriticalMessage) && (
-          <View style={styles.section}>
-            <JoyAlerts
-              level={joyAlert.level}
-              dropPercent={joyAlert.dropPercent}
-              recentAvg={joyAlert.recentAvg}
-              childName={data.firstName}
-              showUrgencyProtocol={hasCriticalMessage}
-            />
-          </View>
-        )}
+        <View style={{ paddingHorizontal: 18, marginTop: 8 }}>
+          {(joyAlert.level || hasCriticalMessage) && (
+            <View style={{ marginBottom: 16 }}>
+              <JoyAlerts
+                level={joyAlert.level}
+                dropPercent={joyAlert.dropPercent}
+                recentAvg={joyAlert.recentAvg}
+                childName={data.firstName}
+                showUrgencyProtocol={hasCriticalMessage}
+              />
+            </View>
+          )}
 
-        {/* ── Super-Pouvoir ── */}
-        <SectionTitle label="SUPER-POUVOIR" />
-        <Card style={styles.section}>
-          <SuperPowerBadge
+          <SuperPouvoirCard
             power={data.superPower}
             emoji={data.superPowerEmoji}
             description={data.superPowerDescription}
-            childName={data.firstName}
             tags={data.tags}
-            trimesterWeeksLeft={data.trimesterWeeksLeft}
-            accentColor={accent}
-            accentLight={accent}
+            weeks={data.trimesterWeeksLeft}
+            onShare={handleShareSuper}
           />
-        </Card>
 
-        {/* ── Compétences clés ── */}
-        <SectionTitle label="COMPÉTENCES CLÉS" />
-        <Card style={styles.section}>
-          {data.competences.map((c) => (
-            <CompetenceRow
-              key={c.label}
-              label={c.label}
-              value={c.value}
-              accentColor={accent}
-            />
-          ))}
-        </Card>
+          <SectionTitle label="Compétences clés" />
+          <View style={styles.glassCard}>
+            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+            <View style={styles.glassInner}>
+              {data.competences.map((c) => (
+                <CompetenceRow key={c.label} label={c.label} value={c.value} />
+              ))}
+            </View>
+          </View>
 
-        {/* ── Score de joie ── */}
-        <SectionTitle label="SCORE DE JOIE" />
-        <View style={styles.section}>
+          <SectionTitle label="Score de joie" />
           <JoyHistory data={data.joy30Days} month="Mars 2026" />
-        </View>
 
-        {/* ── Portfolio ── */}
-        <SectionTitle label="PORTFOLIO EXTRA-SCOLAIRE" />
-        <View style={styles.section}>
+          <SectionTitle label="Portfolio extra-scolaire" />
           <Portfolio activities={data.portfolio} />
-        </View>
 
-        {/* ── Actions ── */}
-        <SectionTitle label="ACTIONS" />
-        <View style={styles.actionsContainer}>
-          <Pressable
-            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.6 }]}
-            onPress={handleExportPDF}
-            disabled={exporting}
-          >
-            {exporting ? (
-              <ActivityIndicator color="#7C3AED" size="small" />
-            ) : (
-              <FileText size={20} color="#7C3AED" strokeWidth={1.5} />
-            )}
-            <Text style={styles.actionBtnText}>
-              {exporting ? 'Génération…' : 'Exporter en PDF'}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.6 }]}
-            onPress={handleExportMemo}
-            disabled={exportingMemo}
-          >
-            {exportingMemo ? (
-              <ActivityIndicator color="#7C3AED" size="small" />
-            ) : (
-              <GraduationCap size={20} color="#7C3AED" strokeWidth={1.5} />
-            )}
-            <Text style={styles.actionBtnText}>
-              {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
-            </Text>
-          </Pressable>
+          <SectionTitle label="Actions" />
+          <View style={styles.actionsGlass}>
+            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+            <View style={styles.actionsInner}>
+              <Pressable
+                style={styles.actionPdf}
+                onPress={handleExportPDF}
+                disabled={exporting}
+              >
+                {exporting ? (
+                  <ActivityIndicator color={NAVY} size="small" />
+                ) : (
+                  <FileText size={18} color={NAVY} strokeWidth={2} />
+                )}
+                <Text style={styles.actionPdfText}>
+                  {exporting ? 'Génération…' : 'Exporter en PDF'}
+                </Text>
+              </Pressable>
+              <Text style={styles.actionSep}>···</Text>
+              <Pressable
+                style={styles.actionMemo}
+                onPress={handleExportMemo}
+                disabled={exportingMemo}
+              >
+                {exportingMemo ? (
+                  <ActivityIndicator color={VIOLET} size="small" />
+                ) : (
+                  <GraduationCap size={18} color={VIOLET} strokeWidth={2} />
+                )}
+                <Text style={styles.actionMemoText}>
+                  {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
@@ -524,7 +610,7 @@ export default function ProfilEnfantScreen() {
         onClose={() => setAvatarPickerVisible(false)}
         onSelect={handleAvatarSelect}
         childName={data.name}
-        accentColor={accent}
+        accentColor={VIOLET}
         currentEmoji={selectedChild.avatarEmoji || data.avatar}
         currentPhotoUri={selectedChild.avatarPhotoUri}
       />
@@ -532,154 +618,328 @@ export default function ProfilEnfantScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: PAGE_BG,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-
-  // Section title
-  sectionTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    color: '#94A3B8',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-    marginTop: 4,
-  },
-
-  // Card
-  card: {
+  whiteHeader: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 16,
-    elevation: 0,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    paddingBottom: 20,
+    paddingHorizontal: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
   },
-
-  section: {
-    marginBottom: 20,
-  },
-
-  // Header card
-  headerCard: {
+  navRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 24,
-    marginBottom: 24,
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-
-  avatarWrap: {
+  backBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 17,
+    textTransform: 'uppercase',
+    letterSpacing: 0.05 * 17,
+    color: NAVY,
+  },
+  avatarPress: {
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  avatarRing: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F1F5F9',
-    justifyContent: 'center',
+    backgroundColor: '#F2F4F8',
+    borderWidth: 2.5,
+    borderColor: 'rgba(124,58,237,0.2)',
     alignItems: 'center',
-    marginBottom: 14,
+    justifyContent: 'center',
   },
-  avatarEditBadge: {
+  avatarEmoji: {
+    fontSize: 34,
+  },
+  avatarPhoto: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+  },
+  editBadge: {
     position: 'absolute',
-    bottom: 2,
+    bottom: 0,
     right: 0,
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#7C3AED',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: NAVY,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  nameText: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 24,
-    color: '#1A2340',
+  childName: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 18,
+    color: NAVY,
+    textAlign: 'center',
     marginBottom: 4,
-    textAlign: 'center',
   },
-  classeText: {
+  schoolInfo: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#94A3B8',
-    marginBottom: 14,
+    fontSize: 12,
+    color: '#9CA3AF',
     textAlign: 'center',
   },
-  idPill: {
+  scaWrap: {
+    alignItems: 'center',
+    zIndex: 2,
+    marginBottom: 8,
+  },
+  scaPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    backgroundColor: 'rgba(255,255,255,0.75)',
     borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  idText: {
+  scaText: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    fontSize: 12,
-    color: '#64748B',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    color: '#6B7280',
+    letterSpacing: 0.3,
   },
-
-  // Competence rows
-  competenceRow: {
+  sectionTitle: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    color: '#9CA3AF',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  spCard: {
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(124,58,237,0.14)',
+    marginBottom: 4,
+  },
+  spTopRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  competenceIconWrap: {
-    width: 22,
+  spSectionLeft: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    color: VIOLET,
+  },
+  spAriaBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(124,58,237,0.18)',
+  },
+  spAriaBadgeText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 10,
+    color: VIOLET,
+  },
+  spIconGrad: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 10,
   },
-  competenceLabel: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#1A2340',
-    width: 100,
-  },
-  competenceBarTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  competenceBarFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  competenceValue: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 12,
-    width: 20,
-    textAlign: 'right',
-  },
-
-  // Actions
-  actionsContainer: {
+  spEmoji: { fontSize: 26 },
+  spName: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 20,
+    color: NAVY,
+    textAlign: 'center',
     marginBottom: 8,
   },
-  actionBtn: {
+  spDesc: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 18,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  spTraits: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  traitPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(124,58,237,0.15)',
+    borderRadius: 9,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  traitEmoji: { fontSize: 11 },
+  traitLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    fontWeight: '500',
+    color: VIOLET,
+  },
+  spFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 11,
+    paddingTop: 11,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(124,58,237,0.1)',
+  },
+  spFooterLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+  spFooterGrey: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#9CA3AF',
+    flexShrink: 1,
+  },
+  spShareBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  spShareText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: VIOLET,
+  },
+  glassCard: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    marginBottom: 8,
+  },
+  glassInner: { padding: 16 },
+  compRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  compIconSq: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: '#F8F9FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    fontWeight: '500',
+    color: NAVY,
+    width: 96,
+  },
+  compTrack: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    overflow: 'hidden',
+  },
+  compFill: { height: '100%', borderRadius: 2 },
+  compScore: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 12,
+    color: NAVY,
+    width: 22,
+    textAlign: 'right',
+  },
+  actionsGlass: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    marginBottom: 24,
+  },
+  actionsInner: {
+    padding: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  actionPdf: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 14,
+    backgroundColor: 'rgba(26,35,64,0.06)',
+    borderRadius: 13,
+    padding: 12,
   },
-  actionBtnText: {
+  actionPdfText: {
     fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: NAVY,
+  },
+  actionSep: {
+    fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#D1D5DB',
+    paddingHorizontal: 4,
+  },
+  actionMemo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(124,58,237,0.08)',
+    borderRadius: 13,
+    padding: 12,
+  },
+  actionMemoText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: VIOLET,
   },
 });

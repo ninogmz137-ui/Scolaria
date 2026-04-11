@@ -174,12 +174,12 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="BienEtreScreen"
         component={MonRessentiScreen}
-        options={{ title: 'Bien-être' }}
+        options={{ title: 'Bien-être', headerShown: false }}
       />
       <AccueilStack.Screen
         name="ProfilEnfant"
         component={ProfilEnfantScreen}
-        options={{ title: 'Profil' }}
+        options={{ title: 'Profil', headerShown: false }}
       />
       <AccueilStack.Screen
         name="AjouterEnfant"
