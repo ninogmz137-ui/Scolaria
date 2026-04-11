@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable as RNPressable,
   Image,
+  Dimensions,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -31,6 +32,12 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const SCREEN_W = Dimensions.get('window').width;
+/** 3 columns: scroll padding 16×2 + grid padding 12×2 + two gaps between three tiles */
+const WALLPAPER_GRID_GAP = 8;
+const WALLPAPER_TILE_W =
+  (SCREEN_W - 16 * 2 - 12 * 2 - WALLPAPER_GRID_GAP * 2) / 3;
 
 type RowType = 'navigate' | 'toggle';
 
@@ -210,6 +217,7 @@ export default function ReglagesScreen() {
                     onPress={() => setWallpaperId(wp.id)}
                     style={({ pressed }) => [
                       styles.wallpaperGridTile,
+                      { width: WALLPAPER_TILE_W },
                       isActive && styles.wallpaperTileActive,
                       pressed && { opacity: 0.9 },
                     ]}
@@ -224,13 +232,23 @@ export default function ReglagesScreen() {
                       style={StyleSheet.absoluteFill}
                     />
                     {hasRemote ? (
-                      <Image source={{ uri: wp.imageUrl! }} style={styles.wallpaperTileImageOverlay} />
+                      <Image
+                        source={{ uri: wp.imageUrl! }}
+                        style={styles.wallpaperTileImageOverlay}
+                        resizeMode="cover"
+                      />
                     ) : null}
                   </RNPressable>
                 );
               })}
-              <View style={[styles.wallpaperGridTile, styles.wallpaperCustomTile]}>
-                <ImageIcon size={22} color="#64748B" strokeWidth={2} />
+              <View
+                style={[
+                  styles.wallpaperGridTile,
+                  styles.wallpaperCustomTile,
+                  { width: WALLPAPER_TILE_W },
+                ]}
+              >
+                <ImageIcon size={18} color="#64748B" strokeWidth={2} />
               </View>
             </View>
           </View>
@@ -354,12 +372,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 12,
-    gap: 10,
-    justifyContent: 'space-between',
+    gap: WALLPAPER_GRID_GAP,
+    justifyContent: 'flex-start',
   },
   wallpaperGridTile: {
-    width: '48%',
-    height: 100,
+    height: 80,
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
@@ -368,7 +385,7 @@ const styles = StyleSheet.create({
   },
   wallpaperTileActive: {
     borderWidth: 2,
-    borderColor: '#6366F1',
+    borderColor: '#7C3AED',
   },
   wallpaperTileImageOverlay: {
     ...StyleSheet.absoluteFillObject,
