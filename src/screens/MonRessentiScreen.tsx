@@ -9,7 +9,6 @@ import {
   TextInput,
   Linking,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { ChevronLeft, Check, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -258,44 +257,17 @@ export default function MonRessentiScreen() {
             </View>
           )}
 
-          {mode === 'maternelle' && (
-            <LinearGradient
-              colors={['#6D28D9', '#7C3AED']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.submitGrad, { opacity: canSubmit ? 1 : 0.45 }]}
-            >
-              <Pressable
-                style={styles.submitInner}
-                onPress={onSubmit}
-                disabled={!canSubmit}
-              >
-                <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
-                <Text style={styles.submitTxt}>Enregistrer mon ressenti</Text>
-              </Pressable>
-            </LinearGradient>
-          )}
-
-          {mode === 'primaire' && (
-            <LinearGradient
-              colors={['#0891B2', '#06B6D4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.submitGrad}
-            >
-              <Pressable style={styles.submitInner} onPress={onSubmit}>
-                <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
-                <Text style={styles.submitTxt}>Enregistrer mon ressenti</Text>
-              </Pressable>
-            </LinearGradient>
-          )}
-
-          {mode === 'lycee' && (
-            <Pressable style={styles.submitSolid} onPress={onSubmit}>
-              <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
-              <Text style={styles.submitTxt}>Enregistrer mon ressenti</Text>
-            </Pressable>
-          )}
+          <Pressable
+            style={[
+              styles.submitSolid,
+              mode === 'maternelle' && !canSubmit ? { opacity: 0.45 } : null,
+            ]}
+            onPress={onSubmit}
+            disabled={mode === 'maternelle' && !canSubmit}
+          >
+            <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
+            <Text style={styles.submitTxt}>Enregistrer mon ressenti</Text>
+          </Pressable>
 
           <Text style={styles.privacy}>
             🔒 Tes réponses sont chiffrées et ne sont partagées avec personne.
@@ -458,20 +430,6 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'right',
     marginTop: 4,
-  },
-  submitGrad: {
-    height: 50,
-    borderRadius: 25,
-    marginTop: 4,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  submitInner: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
   },
   submitSolid: {
     height: 50,

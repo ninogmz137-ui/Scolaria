@@ -568,7 +568,7 @@ export default function ProfilEnfantScreen() {
           <Portfolio activities={data.portfolio} />
 
           <SectionTitle label="Actions" />
-          <View style={styles.actionsCol}>
+          <View style={styles.actionsRow}>
             <Pressable
               style={styles.actionPill}
               onPress={handleExportPDF}
@@ -577,9 +577,9 @@ export default function ProfilEnfantScreen() {
               {exporting ? (
                 <ActivityIndicator color={NAVY} size="small" />
               ) : (
-                <FileText size={18} color={NAVY} strokeWidth={2} />
+                <FileText size={16} color={NAVY} strokeWidth={2} />
               )}
-              <Text style={styles.actionPillText}>
+              <Text style={styles.actionPillText} numberOfLines={2}>
                 {exporting ? 'Génération…' : 'Exporter en PDF'}
               </Text>
             </Pressable>
@@ -591,9 +591,9 @@ export default function ProfilEnfantScreen() {
               {exportingMemo ? (
                 <ActivityIndicator color={NAVY} size="small" />
               ) : (
-                <GraduationCap size={18} color={NAVY} strokeWidth={2} />
+                <GraduationCap size={16} color={NAVY} strokeWidth={2} />
               )}
-              <Text style={styles.actionPillText}>
+              <Text style={styles.actionPillText} numberOfLines={2}>
                 {exportingMemo ? 'Génération…' : 'Mémo de bienvenue'}
               </Text>
             </Pressable>
@@ -885,25 +885,36 @@ const styles = StyleSheet.create({
     width: 22,
     textAlign: 'right',
   },
-  actionsCol: {
-    gap: 10,
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    gap: 8,
     marginBottom: 24,
+    width: '100%',
+    alignSelf: 'center',
   },
   actionPill: {
-    height: 50,
-    borderRadius: 25,
+    flex: 1,
+    minWidth: 0,
+    minHeight: 40,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 4,
     backgroundColor: 'rgba(26, 35, 64, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(26, 35, 64, 0.1)',
   },
   actionPillText: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '600',
     color: NAVY,
+    textAlign: 'center',
+    flexShrink: 1,
   },
 });

@@ -550,8 +550,16 @@ export default function TabNavigator() {
   //   - Notes / Agenda / Messagerie roots → hidden
   const isStackedScreen = showBack;
   const isAccueilRoot = activeTab === 'Accueil' && !isStackedScreen;
-  const ariaInternalRoutes = new Set(['AriaHome', 'AriaConversation', 'AriaScreen']);
-  const hideTopbarForThisScreen = activeTab === 'Accueil' && ariaInternalRoutes.has(currentAccueilRoute);
+  /** Accueil stack: own header / no AppTopbar (Aria, profil élève, mon ressenti). */
+  const accueilNoAppTopbarRoutes = new Set([
+    'AriaHome',
+    'AriaConversation',
+    'AriaScreen',
+    'ProfilEnfant',
+    'BienEtreScreen',
+  ]);
+  const hideTopbarForThisScreen =
+    activeTab === 'Accueil' && accueilNoAppTopbarRoutes.has(currentAccueilRoute);
   const showTopbar = (isAccueilRoot || isStackedScreen) && !hideTopbarForThisScreen;
   const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : 'home';
 
@@ -621,6 +629,12 @@ export default function TabNavigator() {
   currentRouteRef.current = currentAccueilRoute;
 
   const ARIA_ROUTES = new Set(['AriaHome', 'AriaConversation', 'AriaScreen']);
+  /** Swipe depuis le bord gauche : pas d’ouverture burger (écran plein avec header intégré). */
+  const ACCUEIL_NO_BURGER_EDGE_ROUTES = new Set([
+    ...ARIA_ROUTES,
+    'ProfilEnfant',
+    'BienEtreScreen',
+  ]);
 
   const swipePan = useRef(
     PanResponder.create({
@@ -628,24 +642,37 @@ export default function TabNavigator() {
         if (evt.nativeEvent.pageX >= 40) return false;
         // Swipe-back : écran stacké
         if (showBackRef.current) return true;
+        // Profil / Mon ressenti : retour (topbar masquée, pas de showBack)
+        if (
+          activeTabRef2.current === 'Accueil' &&
+          (currentRouteRef.current === 'ProfilEnfant' ||
+            currentRouteRef.current === 'BienEtreScreen')
+        )
+          return true;
         // Fermer la feuille Réglages (modal transparent)
         if (currentRouteRef.current === 'ReglagesScreen') return true;
-        // Ouvrir burger : accueil racine, burger fermé, pas sur Aria
+        // Ouvrir burger : accueil racine, burger fermé, pas sur écrans plein
         if (
           activeTabRef2.current === 'Accueil' &&
           !burgerVisibleRef.current &&
-          !ARIA_ROUTES.has(currentRouteRef.current)
+          !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
         ) return true;
         return false;
       },
       onMoveShouldSetPanResponder: (_, g) => {
         if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
         if (showBackRef.current) return true;
+        if (
+          activeTabRef2.current === 'Accueil' &&
+          (currentRouteRef.current === 'ProfilEnfant' ||
+            currentRouteRef.current === 'BienEtreScreen')
+        )
+          return true;
         if (currentRouteRef.current === 'ReglagesScreen') return true;
         if (
           activeTabRef2.current === 'Accueil' &&
           !burgerVisibleRef.current &&
-          !ARIA_ROUTES.has(currentRouteRef.current)
+          !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
         ) return true;
         return false;
       },
@@ -658,8 +685,14 @@ export default function TabNavigator() {
             goBackRef.current?.();
           } else if (
             activeTabRef2.current === 'Accueil' &&
+            (currentRouteRef.current === 'ProfilEnfant' ||
+              currentRouteRef.current === 'BienEtreScreen')
+          ) {
+            goBackRef.current?.();
+          } else if (
+            activeTabRef2.current === 'Accueil' &&
             !burgerVisibleRef.current &&
-            !ARIA_ROUTES.has(currentRouteRef.current)
+            !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
           ) {
             setBurgerVisible(true);
           }

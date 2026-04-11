@@ -23,6 +23,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
 import {
   getConversation,
   sendMessage as storeSendMessage,
@@ -248,7 +249,7 @@ export default function ConversationDetailScreen({
         <View
           style={[
             styles.inputBar,
-            { paddingBottom: Math.max(insets.bottom, 8) + 6 },
+            { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 },
           ]}
         >
           <TextInput
