@@ -49,7 +49,6 @@ import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
 import ReglagesScreen from '../screens/ReglagesScreen';
-import ScannerBulletinScreen from '../screens/ScannerBulletinScreen';
 // Legacy AriaScreen has been superseded by AriaHome/AriaConversation.
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 import TextSizeScreen from '../screens/TextSizeScreen';
@@ -111,7 +110,6 @@ const SCREEN_TITLES: Record<string, string> = {
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
-  ScannerBulletin: 'Scanner un bulletin',
   AriaScreen: 'Aria',
   AriaHome: 'Aria',
   AriaConversation: 'Aria',
@@ -140,11 +138,13 @@ function AccueilStackScreen() {
           const data = e.data as any;
           const routes = data?.state?.routes;
           const index = data?.state?.index ?? 0;
-          backArrowRef.current?.setShowBack(index > 0);
-          if (routes?.[index]?.name) {
-            currentAccueilRouteRef.current?.setRouteName(routes[index].name as string);
+          const routeName = routes?.[index]?.name as string | undefined;
+          const isReglagesModal = routeName === 'ReglagesScreen';
+          backArrowRef.current?.setShowBack(index > 0 && !isReglagesModal);
+          if (routeName) {
+            currentAccueilRouteRef.current?.setRouteName(routeName);
           }
-          if (index > 0 && routes?.[index]) {
+          if (index > 0 && routes?.[index] && !isReglagesModal) {
             const screenName = routes[index].name as string;
             const params = routes[index].params as any;
             if (screenName === 'ArchivedYearDetail' && params?.year && params?.niveau) {
@@ -199,7 +199,13 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="ReglagesScreen"
         component={ReglagesScreen}
-        options={{ title: 'Réglages' }}
+        options={{
+          title: 'Réglages',
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
       <AccueilStack.Screen
         name="RGPDScreen"
@@ -313,11 +319,6 @@ function NotesStackScreen() {
         name="NotesHome"
         component={NotesScreen}
         options={{ headerShown: false }}
-      />
-      <NotesStack.Screen
-        name="ScannerBulletin"
-        component={ScannerBulletinScreen}
-        options={{ animation: 'slide_from_bottom' }}
       />
       <NotesStack.Screen
         name="SubjectDetail"
@@ -623,6 +624,8 @@ export default function TabNavigator() {
         if (evt.nativeEvent.pageX >= 40) return false;
         // Swipe-back : écran stacké
         if (showBackRef.current) return true;
+        // Fermer la feuille Réglages (modal transparent)
+        if (currentRouteRef.current === 'ReglagesScreen') return true;
         // Ouvrir burger : accueil racine, burger fermé, pas sur Aria
         if (
           activeTabRef2.current === 'Accueil' &&
@@ -634,6 +637,7 @@ export default function TabNavigator() {
       onMoveShouldSetPanResponder: (_, g) => {
         if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
         if (showBackRef.current) return true;
+        if (currentRouteRef.current === 'ReglagesScreen') return true;
         if (
           activeTabRef2.current === 'Accueil' &&
           !burgerVisibleRef.current &&
@@ -646,6 +650,8 @@ export default function TabNavigator() {
           if (showBackRef.current) {
             goBackRef.current?.();
             setShowBack(false);
+          } else if (currentRouteRef.current === 'ReglagesScreen') {
+            goBackRef.current?.();
           } else if (
             activeTabRef2.current === 'Accueil' &&
             !burgerVisibleRef.current &&

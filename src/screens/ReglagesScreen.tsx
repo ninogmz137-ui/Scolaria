@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, View, Platform, Pressable as RNPressable, Image } from 'react-native';
+import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -128,6 +129,11 @@ export default function ReglagesScreen() {
     <View style={[styles.overlay, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 10 }]}>
       {/* Tap outside to close */}
       <RNPressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
+      {Platform.OS === 'web' ? (
+        <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
+      ) : (
+        <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} pointerEvents="none" />
+      )}
 
       {/* Card sheet */}
       <View style={styles.sheet}>
@@ -142,7 +148,7 @@ export default function ReglagesScreen() {
             <X size={18} color="#0F172A" strokeWidth={2.2} />
           </RNPressable>
 
-          <Text style={styles.headerTitle}>Paramètres</Text>
+          <Text style={styles.headerTitle}>Réglages</Text>
 
           <RNPressable
             onPress={() => nav.navigate('APropos')}
@@ -253,8 +259,11 @@ export default function ReglagesScreen() {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.22)',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
+  },
+  backdropFallback: {
+    backgroundColor: 'rgba(15,23,42,0.22)',
   },
   sheet: {
     marginHorizontal: 12,
