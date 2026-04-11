@@ -35,7 +35,8 @@ import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/Wallpap
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SCREEN_W = Dimensions.get('window').width;
-const WALLPAPER_TILE_W = (SCREEN_W - 64) / 3;
+const WALLPAPER_NUM_COLUMNS = 3;
+const WALLPAPER_TILE_W = (SCREEN_W - 64) / WALLPAPER_NUM_COLUMNS;
 
 type RowType = 'navigate' | 'toggle';
 
@@ -208,7 +209,7 @@ export default function ReglagesScreen() {
           <View style={styles.wallpaperGroup}>
             <FlatList
               data={wallpaperFlatData}
-              numColumns={3}
+              numColumns={WALLPAPER_NUM_COLUMNS}
               scrollEnabled={false}
               nestedScrollEnabled
               keyExtractor={(item) => item.id}
