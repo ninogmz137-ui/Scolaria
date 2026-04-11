@@ -22,7 +22,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
-import { School, CalendarX, Search, X, ChevronDown, Check } from 'lucide-react-native';
+import { School, CalendarX, Search, X, ChevronDown, Check, MessageSquarePlus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
@@ -504,6 +504,15 @@ export default function MessagerieScreen() {
 
         <View style={{ height: 24 }} />
       </ScrollView>
+
+      <Pressable
+        onPress={() => navigation.navigate('MessagesListScreen')}
+        style={({ pressed }) => [styles.fab, pressed && { opacity: 0.92 }]}
+        accessibilityRole="button"
+        accessibilityLabel="Nouveau message"
+      >
+        <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
+      </Pressable>
     </View>
   );
 }
@@ -664,6 +673,39 @@ const styles = StyleSheet.create({
   // Scroll
   scrollContent: {
     paddingBottom: 120,
+  },
+
+  fab: {
+    position: 'absolute',
+    bottom: 80,
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1A2340',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    ...Platform.select<any>({
+      web: {
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+      },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 8,
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 16,
+      },
+    }),
   },
 
   // Section
