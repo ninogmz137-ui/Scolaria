@@ -19,8 +19,12 @@ import {
   Platform,
   ActivityIndicator,
   StyleSheet,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import MaskedView from '@react-native-masked-view/masked-view';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -45,7 +49,8 @@ const WEB_INPUT_FIX = Platform.OS === 'web'
 
 // ─── Wordmark inline ────────────────────────────────────
 
-function WordmarkLight({ height = 46 }: { height?: number }) {
+/** Web + iOS: SVG wordmark. Android: nested SvgText/TSpan can fail layout — use WordmarkNative. */
+function WordmarkSvg({ height = 46 }: { height?: number }) {
   const vbW = 280;
   const vbH = 64;
   const width = (vbW / vbH) * height;
@@ -78,6 +83,51 @@ function WordmarkLight({ height = 46 }: { height?: number }) {
       </SvgText>
     </Svg>
   );
+}
+
+/** Native Android-safe wordmark: RN Text + gradient mask (no SvgText/TSpan). */
+function WordmarkNative({ height = 46 }: { height?: number }) {
+  const fontSize = Math.round(height * 0.88);
+  const lineH = Math.round(fontSize * 1.2);
+  const iaW = Math.round(fontSize * 1.25);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
+      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: NAVY }}>Scolar</Text>
+      <MaskedView
+        style={{ marginLeft: 0, width: iaW, height: lineH }}
+        maskElement={
+          <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'flex-end' }}>
+            <Text
+              style={{
+                fontFamily: 'DMSerifDisplay_400Regular',
+                fontSize,
+                color: '#fff',
+                textAlign: 'center',
+              }}
+            >
+              ia
+            </Text>
+          </View>
+        }
+      >
+        <LinearGradient
+          colors={[VIOLET, CYAN]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ width: iaW, height: lineH, alignItems: 'center', justifyContent: 'flex-end' }}
+        >
+          <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, opacity: 0 }}>ia</Text>
+        </LinearGradient>
+      </MaskedView>
+    </View>
+  );
+}
+
+function WordmarkLight({ height = 46 }: { height?: number }) {
+  if (Platform.OS === 'android') {
+    return <WordmarkNative height={height} />;
+  }
+  return <WordmarkSvg height={height} />;
 }
 
 // ─── Floating sparkle ───────────────────────────────────
@@ -155,6 +205,7 @@ interface Props {
 export default function LoginScreen({ onNavigatePin }: Props) {
   const { signIn, enterDemoMode } = useAuth();
   const insets = useSafeAreaInsets();
+  const { height: winH } = Dimensions.get('window');
   const [serifLoaded] = useFonts({ DMSerifDisplay_400Regular });
 
   const [showEmail, setShowEmail] = useState(false);
@@ -185,103 +236,112 @@ export default function LoginScreen({ onNavigatePin }: Props) {
     <View style={s.root}>
       <KeyboardAvoidingView
         style={s.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        <View style={s.column}>
-          <View style={s.topSpacer} />
-
-          <View style={s.logoWrap}>
-            <View style={s.sparkleLayer} pointerEvents="none">
-              <Sparkle size={22} left={-46} top={-4} delay={0} />
-              <Sparkle size={13} left={18} top={-18} delay={600} />
-              <Sparkle size={10} left={42} top={6} delay={1200} />
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            s.scrollContent,
+            {
+              minHeight: winH,
+              paddingTop: Math.max(insets.top, 12),
+              paddingBottom: Math.max(insets.bottom, 20),
+            },
+          ]}
+        >
+          <View style={s.column}>
+            <View style={s.logoWrap}>
+              <View style={s.sparkleLayer} pointerEvents="none">
+                <Sparkle size={22} left={-46} top={-4} delay={0} />
+                <Sparkle size={13} left={18} top={-18} delay={600} />
+                <Sparkle size={10} left={42} top={6} delay={1200} />
+              </View>
+              {serifLoaded ? <WordmarkLight height={46} /> : <View style={{ height: 46 }} />}
             </View>
-            {serifLoaded ? <WordmarkLight height={46} /> : <View style={{ height: 46 }} />}
+
+            <View style={s.actions}>
+              {!showEmail ? (
+                <>
+                  <Pressable
+                    style={({ pressed }) => [s.btnPrimary, s.actionAfterPrimary, pressed && { opacity: 0.9 }]}
+                    onPress={() => setShowEmail(true)}
+                  >
+                    <Text style={s.btnPrimaryText}>Se connecter</Text>
+                  </Pressable>
+
+                  <Pressable
+                    style={({ pressed }) => [s.btnSecondary, s.actionAfterSecondary, pressed && { opacity: 0.7 }]}
+                    onPress={onNavigatePin}
+                  >
+                    <Text style={s.btnSecondaryText}>Créer un compte</Text>
+                  </Pressable>
+
+                  <Pressable onPress={enterDemoMode} hitSlop={10} style={s.demoLinkWrap}>
+                    <Text style={s.demoLink}>Essayer en mode démo</Text>
+                  </Pressable>
+                </>
+              ) : (
+                <>
+                  <View style={[s.field, s.actionAfterPrimary]}>
+                    <TextInput
+                      style={[s.fieldInput, WEB_INPUT_FIX]}
+                      placeholder="Adresse email"
+                      placeholderTextColor="rgba(26,35,64,0.35)"
+                      value={email}
+                      onChangeText={setEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoComplete="email"
+                    />
+                  </View>
+
+                  <View style={[s.field, s.actionAfterSecondary]}>
+                    <TextInput
+                      style={[s.fieldInput, WEB_INPUT_FIX]}
+                      placeholder="Mot de passe"
+                      placeholderTextColor="rgba(26,35,64,0.35)"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                      autoComplete="password"
+                    />
+                  </View>
+
+                  {error ? <Text style={s.errorText}>{error}</Text> : null}
+
+                  <Pressable
+                    style={({ pressed }) => [s.btnPrimary, s.actionAfterPrimary, pressed && { opacity: 0.9 }]}
+                    onPress={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                      <Text style={s.btnPrimaryText}>Connexion</Text>
+                    )}
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setShowEmail(false);
+                      setError('');
+                    }}
+                    hitSlop={10}
+                    style={s.demoLinkWrap}
+                  >
+                    <Text style={s.demoLink}>Retour</Text>
+                  </Pressable>
+                </>
+              )}
+            </View>
+
+            <Text style={s.legal}>
+              En continuant, vous acceptez les conditions et la politique de confidentialité.
+            </Text>
           </View>
-
-          <View style={s.actions}>
-            {!showEmail ? (
-              <>
-                <Pressable
-                  style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
-                  onPress={() => setShowEmail(true)}
-                >
-                  <Text style={s.btnPrimaryText}>Se connecter</Text>
-                </Pressable>
-
-                <Pressable
-                  style={({ pressed }) => [s.btnSecondary, pressed && { opacity: 0.7 }]}
-                  onPress={onNavigatePin}
-                >
-                  <Text style={s.btnSecondaryText}>Créer un compte</Text>
-                </Pressable>
-
-                <Pressable onPress={enterDemoMode} hitSlop={10} style={s.demoLinkWrap}>
-                  <Text style={s.demoLink}>Essayer en mode démo</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                <View style={s.field}>
-                  <TextInput
-                    style={[s.fieldInput, WEB_INPUT_FIX]}
-                    placeholder="Adresse email"
-                    placeholderTextColor="rgba(26,35,64,0.35)"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                  />
-                </View>
-
-                <View style={s.field}>
-                  <TextInput
-                    style={[s.fieldInput, WEB_INPUT_FIX]}
-                    placeholder="Mot de passe"
-                    placeholderTextColor="rgba(26,35,64,0.35)"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    autoComplete="password"
-                  />
-                </View>
-
-                {error ? <Text style={s.errorText}>{error}</Text> : null}
-
-                <Pressable
-                  style={({ pressed }) => [s.btnPrimary, pressed && { opacity: 0.9 }]}
-                  onPress={handleSubmit}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <Text style={s.btnPrimaryText}>Connexion</Text>
-                  )}
-                </Pressable>
-
-                <Pressable
-                  onPress={() => {
-                    setShowEmail(false);
-                    setError('');
-                  }}
-                  hitSlop={10}
-                  style={s.demoLinkWrap}
-                >
-                  <Text style={s.demoLink}>Retour</Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-
-          <View style={s.bottomSpacer} />
-
-          <Text style={[s.legal, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-            En continuant, vous acceptez les conditions et la politique de confidentialité.
-          </Text>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -292,9 +352,12 @@ export default function LoginScreen({ onNavigatePin }: Props) {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
   kav: { flex: 1 },
-  column: { flex: 1, width: '100%' },
-  topSpacer: { flex: 1, minHeight: 24 },
-  bottomSpacer: { flex: 1, minHeight: 16 },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  column: { width: '100%', flexShrink: 0 },
 
   // Logo + sparkles
   logoWrap: {
@@ -311,13 +374,19 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Actions block
+  // Actions block (no `gap` — unreliable on some Android flex layouts)
   actions: {
     marginTop: 28,
     paddingHorizontal: 16,
-    gap: 12,
     width: '100%',
     alignSelf: 'center',
+    flexShrink: 0,
+  },
+  actionAfterPrimary: {
+    marginBottom: 12,
+  },
+  actionAfterSecondary: {
+    marginBottom: 12,
   },
   btnPrimary: {
     height: 52,
@@ -351,7 +420,6 @@ const s = StyleSheet.create({
   },
   demoLinkWrap: {
     alignItems: 'center',
-    marginTop: 8,
     paddingVertical: 8,
   },
   demoLink: {
@@ -390,6 +458,6 @@ const s = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     textAlign: 'center',
     paddingHorizontal: 28,
-    marginTop: 8,
+    marginTop: 24,
   },
 });

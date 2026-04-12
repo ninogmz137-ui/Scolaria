@@ -37,7 +37,8 @@ import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
-const CHIP_MAX_W = (SCREEN_WIDTH - 32 - 8) / 2;
+/** Two columns in content width; matches (windowWidth - 32) / 2 - 8 */
+const CHIP_MAX_W = (SCREEN_WIDTH - 32) / 2 - 8;
 const ARIA_ALERTS_UNREAD = 2;
 
 // ─── Demo recents data ──────────────────────────────────────
@@ -303,7 +304,9 @@ export default function AriaHomeScreen() {
                 onPress={() => sendFromHome(s)}
                 style={({ pressed }) => [styles.suggestionChip, pressed && { opacity: 0.86 }]}
               >
-                <Text style={styles.suggestionText}>{s}</Text>
+                <Text style={styles.suggestionText} numberOfLines={3}>
+                  {s}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -420,11 +423,15 @@ export default function AriaHomeScreen() {
                   pressed && !isActive && styles.categoryRowPressed,
                 ]}
               >
-                <Icon size={18} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
-                <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
-                  {label}
-                </Text>
-                {hasDot && ARIA_ALERTS_UNREAD > 0 && <View style={styles.alertDot} />}
+                <View style={styles.categoryCell}>
+                  <Icon size={20} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
+                  <View style={styles.categoryLabelRow}>
+                    <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
+                      {label}
+                    </Text>
+                    {hasDot && ARIA_ALERTS_UNREAD > 0 ? <View style={styles.alertDot} /> : null}
+                  </View>
+                </View>
               </Pressable>
             );
           })}
@@ -520,7 +527,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    columnGap: 10,
     paddingBottom: 8,
   },
   topBtn: {
@@ -551,7 +558,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.80)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.85)',
-        elevation: 2,
+        elevation: 0,
       },
       default: {
         backgroundColor: 'rgba(255,255,255,0.80)',
@@ -590,11 +597,17 @@ const styles = StyleSheet.create({
   suggestionWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    paddingHorizontal: 4,
+    alignContent: 'flex-start',
+    width: '100%',
+    rowGap: 8,
+    columnGap: 8,
   },
   suggestionChip: {
     maxWidth: CHIP_MAX_W,
+    minWidth: 0,
+    flexGrow: 0,
+    flexShrink: 1,
+    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.92)',
@@ -606,6 +619,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: '#475569',
+    flexShrink: 1,
   },
 
   // Input dock
@@ -613,7 +627,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 8,
+    columnGap: 8,
     backgroundColor: 'rgba(255,255,255,0.72)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.85)',
@@ -750,16 +764,28 @@ const styles = StyleSheet.create({
   // Categories
   categories: {
     paddingHorizontal: 8,
-    gap: 2,
+    rowGap: 6,
   },
   categoryRow: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
+    minHeight: 76,
+    width: '100%',
+  },
+  categoryCell: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
-    borderRadius: 10,
-    minHeight: 44,
+    justifyContent: 'center',
+    marginTop: 8,
+    columnGap: 6,
+    flexWrap: 'wrap',
+    paddingHorizontal: 4,
   },
   categoryRowActive: {
     backgroundColor: 'rgba(124,58,237,0.08)',
@@ -769,9 +795,9 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
+    fontSize: 14,
     color: '#1A2340',
-    flex: 1,
+    textAlign: 'center',
   },
   categoryLabelActive: {
     color: '#7C3AED',
@@ -809,7 +835,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    gap: 8,
+    columnGap: 8,
   },
   recentRowPressed: {
     backgroundColor: 'rgba(124,58,237,0.08)',
@@ -840,7 +866,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
-    gap: 8,
+    columnGap: 8,
   },
   searchPillInput: {
     flex: 1,

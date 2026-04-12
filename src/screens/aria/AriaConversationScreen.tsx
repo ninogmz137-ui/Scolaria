@@ -39,6 +39,7 @@ import AriaOrb from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
+const CHIP_MAX_W = (SCREEN_WIDTH - 32) / 2 - 8;
 const ARIA_ALERTS_UNREAD = 2;
 
 /** Header orb: natural `size` on AriaOrb (no parent scale transform); ≥80px so rings aren’t clipped */
@@ -375,14 +376,10 @@ export default function AriaConversationScreen() {
                 <Text style={styles.emptyText}>
                   Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
                 </Text>
-                <FlatList
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  data={suggestions}
-                  keyExtractor={(s) => s}
-                  contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 12 }}
-                  renderItem={({ item }) => (
+                <View style={styles.suggestionWrap}>
+                  {suggestions.map((item) => (
                     <Pressable
+                      key={item}
                       onPress={() => sendMessage(item)}
                       disabled={isTyping}
                       style={({ pressed }) => [
@@ -391,10 +388,12 @@ export default function AriaConversationScreen() {
                         isTyping && { opacity: 0.5 },
                       ]}
                     >
-                      <Text style={styles.suggestionText}>{item}</Text>
+                      <Text style={styles.suggestionText} numberOfLines={3}>
+                        {item}
+                      </Text>
                     </Pressable>
-                  )}
-                />
+                  ))}
+                </View>
               </View>
             ) : null
           }
@@ -495,11 +494,15 @@ export default function AriaConversationScreen() {
                   pressed && !isActive && styles.categoryRowPressed,
                 ]}
               >
-                <Icon size={18} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
-                <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
-                  {label}
-                </Text>
-                {hasDot && ARIA_ALERTS_UNREAD > 0 && <View style={styles.alertDot} />}
+                <View style={styles.categoryCell}>
+                  <Icon size={20} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
+                  <View style={styles.categoryLabelRow}>
+                    <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
+                      {label}
+                    </Text>
+                    {hasDot && ARIA_ALERTS_UNREAD > 0 ? <View style={styles.alertDot} /> : null}
+                  </View>
+                </View>
               </Pressable>
             );
           })}
@@ -601,7 +604,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    columnGap: 10,
   },
   // Liquid Glass — aligned with Aria home top bar (38px circle, blur + frosted)
   topBtn: {
@@ -632,7 +635,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.6)',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.8)',
-        elevation: 2,
+        elevation: 0,
       },
       default: {
         backgroundColor: 'rgba(255,255,255,0.6)',
@@ -671,17 +674,46 @@ const styles = StyleSheet.create({
   empty: { paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10, alignItems: 'center' },
   emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
-  suggestionChip: {
-    backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: 'rgba(124,58,237,0.22)',
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 18, marginRight: 8,
+  suggestionWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignContent: 'flex-start',
+    alignSelf: 'stretch',
+    width: '100%',
+    paddingHorizontal: 4,
+    paddingTop: 12,
+    rowGap: 8,
+    columnGap: 8,
   },
-  suggestionText: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#475569' },
+  suggestionChip: {
+    maxWidth: CHIP_MAX_W,
+    minWidth: 0,
+    flexGrow: 0,
+    flexShrink: 1,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  suggestionText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: '#475569',
+    flexShrink: 1,
+  },
 
   // Input
   inputWrap: { paddingHorizontal: 12, paddingTop: 8 },
   inputRow: {
-    flexDirection: 'row', alignItems: 'flex-end', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    columnGap: 8,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.85)',
     borderRadius: 28, paddingLeft: 10, paddingRight: 6, paddingVertical: 6,
     ...Platform.select({
       ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20 },
@@ -737,14 +769,36 @@ const styles = StyleSheet.create({
   drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 
   // Categories
-  categories: { paddingHorizontal: 8, gap: 2 },
+  categories: { paddingHorizontal: 8, rowGap: 6 },
   categoryRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10, minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
+    minHeight: 76,
+    width: '100%',
+  },
+  categoryCell: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    columnGap: 6,
+    flexWrap: 'wrap',
+    paddingHorizontal: 4,
   },
   categoryRowActive: { backgroundColor: 'rgba(124,58,237,0.08)' },
   categoryRowPressed: { backgroundColor: 'rgba(124,58,237,0.04)' },
-  categoryLabel: { fontFamily: FontFamily.sansMedium, fontSize: 15, color: '#1A2340', flex: 1 },
+  categoryLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 14,
+    color: '#1A2340',
+    textAlign: 'center',
+  },
   categoryLabelActive: { color: '#7C3AED', fontFamily: FontFamily.sansSemiBold },
   alertDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#7C3AED' },
 
@@ -775,7 +829,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   liquidGlassInner: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 8,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    columnGap: 8,
   },
   searchPillInput: {
     flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#374151', paddingVertical: 0,

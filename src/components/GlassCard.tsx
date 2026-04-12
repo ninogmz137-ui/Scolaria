@@ -42,6 +42,8 @@ export default function GlassCard({
         dark ? styles.containerDark : styles.container,
         { borderRadius },
         style,
+        // Android: default grey hairline when borderWidth is set; parent `style` must not drop borderColor.
+        Platform.OS === 'android' && styles.androidBorderLock,
       ]}
     >
       <View style={noPadding ? undefined : styles.content}>
@@ -92,5 +94,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  androidBorderLock: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.92)',
+    elevation: 0,
   },
 });
