@@ -24,6 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { School, CalendarX, Search, X, ChevronDown, Check, MessageSquarePlus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -179,6 +180,7 @@ function ConvRow({
               },
             ]}
             numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {conv.name}
           </Text>
@@ -198,6 +200,7 @@ function ConvRow({
               },
             ]}
             numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {conv.lastMessage}
           </Text>
@@ -478,7 +481,10 @@ export default function MessagerieScreen() {
       {/* ── Conversation list ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 32 },
+        ]}
         onScrollBeginDrag={() => {
           if (dropdownVisible) setDropdownVisible(false);
         }}
@@ -536,6 +542,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: BG,
+    maxWidth: '100%',
+    overflow: 'hidden',
+    paddingHorizontal: 16,
   },
 
   // ── Header ────────────────────────────────────────────
@@ -547,7 +556,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     gap: 8,
     minHeight: 52,
   },
@@ -634,7 +643,7 @@ const styles = StyleSheet.create({
   // Filter dropdown — Liquid Glass
   dropdown: {
     position: 'absolute',
-    right: 16,
+    right: 0,
     top: 62,
     minWidth: 180,
     borderRadius: 16,
@@ -694,12 +703,13 @@ const styles = StyleSheet.create({
   // Scroll
   scrollContent: {
     paddingBottom: 120,
+    paddingHorizontal: 0,
   },
 
   fab: {
     position: 'absolute',
     bottom: 80,
-    right: 16,
+    right: 0,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -755,10 +765,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 11,
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingLeft: 0,
+    paddingRight: 0,
     backgroundColor: '#FFFFFF',
     position: 'relative',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   rowUnread: {
     backgroundColor: '#F0F4FF',
@@ -787,6 +799,8 @@ const styles = StyleSheet.create({
   rowBody: {
     flex: 1,
     minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   rowTop: {
     flexDirection: 'row',
@@ -827,7 +841,7 @@ const styles = StyleSheet.create({
   separator: {
     position: 'absolute',
     bottom: 0,
-    left: 76, // 16 + 48 + 12 = 76 — aligns with text
+    left: 60, // 48 + 12 — avatar + gap (row padding lives on root)
     right: 0,
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#E5E7EB',

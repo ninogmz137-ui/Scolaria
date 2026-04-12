@@ -176,7 +176,7 @@ export default function SubjectDetailScreen({ route }: any) {
           styles.scroll,
           {
             paddingTop: insets.top + 60,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom,
           },
         ]}
         showsVerticalScrollIndicator={false}

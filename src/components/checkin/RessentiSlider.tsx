@@ -4,7 +4,9 @@ import Slider from '@react-native-community/slider';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 const NAVY = '#1A2340';
-const TRACK = 'rgba(0,0,0,0.07)';
+const VIOLET = '#7C3AED';
+/** Track — no gradient: Android does not render gradient fills on slider tracks reliably */
+const TRACK_BG = 'rgba(0,0,0,0.08)';
 
 interface Props {
   label: string;
@@ -23,18 +25,18 @@ export default function RessentiSlider({ label, Icon, value, onChange }: Props) 
         </View>
         <Text style={styles.scoreText}>{value}/10</Text>
       </View>
-      <View style={styles.trackWrap}>
+      <View style={styles.trackOuter}>
         <View style={styles.trackBg} />
-        <View style={[styles.fill, { width: `${value * 10}%`, backgroundColor: NAVY }]} />
+        <View style={[styles.fill, { width: `${value * 10}%` }]} />
         <Slider
-          style={styles.slider}
+          style={styles.sliderOverlay}
           minimumValue={0}
           maximumValue={10}
           step={1}
           value={value}
           onValueChange={onChange}
-          minimumTrackTintColor="transparent"
-          maximumTrackTintColor="transparent"
+          minimumTrackTintColor="rgba(0,0,0,0)"
+          maximumTrackTintColor="rgba(0,0,0,0)"
           thumbTintColor="#FFFFFF"
         />
       </View>
@@ -50,7 +52,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 6,
   },
-  labelLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  labelLeft: { flexDirection: 'row', alignItems: 'center', columnGap: 8 },
   labelText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
@@ -62,10 +64,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: NAVY,
   },
-  trackWrap: {
+  trackOuter: {
     height: 40,
     justifyContent: 'center',
     position: 'relative',
+    width: '100%',
+    maxWidth: '100%',
   },
   trackBg: {
     position: 'absolute',
@@ -75,7 +79,7 @@ const styles = StyleSheet.create({
     top: '50%',
     marginTop: -2.5,
     borderRadius: 3,
-    backgroundColor: TRACK,
+    backgroundColor: TRACK_BG,
   },
   fill: {
     position: 'absolute',
@@ -84,9 +88,16 @@ const styles = StyleSheet.create({
     top: '50%',
     marginTop: -2.5,
     borderRadius: 3,
+    backgroundColor: VIOLET,
   },
-  slider: {
+  sliderOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     width: '100%',
     height: 40,
+    zIndex: 2,
   },
 });

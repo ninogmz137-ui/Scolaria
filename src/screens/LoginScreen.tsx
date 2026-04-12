@@ -23,8 +23,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import MaskedView from '@react-native-masked-view/masked-view';
 import Svg, {
   Defs,
   LinearGradient as SvgLinearGradient,
@@ -85,47 +83,20 @@ function WordmarkSvg({ height = 46 }: { height?: number }) {
   );
 }
 
-/** Native Android-safe wordmark: RN Text + gradient mask (no SvgText/TSpan). */
-function WordmarkNative({ height = 46 }: { height?: number }) {
+/** Android: gradient/MaskedView on text renders as a solid block — plain Text only. */
+function WordmarkAndroidPlain({ height = 46 }: { height?: number }) {
   const fontSize = Math.round(height * 0.88);
-  const lineH = Math.round(fontSize * 1.2);
-  const iaW = Math.round(fontSize * 1.25);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
       <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: NAVY }}>Scolar</Text>
-      <MaskedView
-        style={{ marginLeft: 0, width: iaW, height: lineH }}
-        maskElement={
-          <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'flex-end' }}>
-            <Text
-              style={{
-                fontFamily: 'DMSerifDisplay_400Regular',
-                fontSize,
-                color: '#fff',
-                textAlign: 'center',
-              }}
-            >
-              ia
-            </Text>
-          </View>
-        }
-      >
-        <LinearGradient
-          colors={[VIOLET, CYAN]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={{ width: iaW, height: lineH, alignItems: 'center', justifyContent: 'flex-end' }}
-        >
-          <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, opacity: 0 }}>ia</Text>
-        </LinearGradient>
-      </MaskedView>
+      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: '#7C3AED' }}>ia</Text>
     </View>
   );
 }
 
 function WordmarkLight({ height = 46 }: { height?: number }) {
   if (Platform.OS === 'android') {
-    return <WordmarkNative height={height} />;
+    return <WordmarkAndroidPlain height={height} />;
   }
   return <WordmarkSvg height={height} />;
 }
@@ -265,7 +236,12 @@ export default function LoginScreen({ onNavigatePin }: Props) {
               {!showEmail ? (
                 <>
                   <Pressable
-                    style={({ pressed }) => [s.btnPrimary, s.actionAfterPrimary, pressed && { opacity: 0.9 }]}
+                    android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
+                    style={({ pressed }) => [
+                      s.btnPrimary,
+                      s.actionAfterPrimary,
+                      pressed && { opacity: 0.9 },
+                    ]}
                     onPress={() => setShowEmail(true)}
                   >
                     <Text style={s.btnPrimaryText}>Se connecter</Text>
@@ -312,6 +288,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                   {error ? <Text style={s.errorText}>{error}</Text> : null}
 
                   <Pressable
+                    android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
                     style={({ pressed }) => [s.btnPrimary, s.actionAfterPrimary, pressed && { opacity: 0.9 }]}
                     onPress={handleSubmit}
                     disabled={loading}
@@ -391,10 +368,12 @@ const s = StyleSheet.create({
   btnPrimary: {
     height: 52,
     borderRadius: 26,
-    backgroundColor: NAVY,
+    backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    zIndex: 2,
+    elevation: 0,
   },
   btnPrimaryText: {
     color: '#FFFFFF',

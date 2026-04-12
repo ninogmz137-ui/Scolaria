@@ -1144,7 +1144,7 @@ export default function NotesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 24 },
+            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom },
           ]}
         >
           <View style={styles.titleRow}>
@@ -1379,7 +1379,7 @@ export default function NotesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 24 },
+          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom },
         ]}
       >
         <View style={styles.titleRow}>
