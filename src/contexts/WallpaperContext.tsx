@@ -1,14 +1,13 @@
 /**
  * WallpaperContext — Global wallpaper selection for Accueil background.
  *
- * Supports curated Unsplash images with gradient fallback.
- * Supports custom image from device gallery.
- * Persists selection in AsyncStorage.
- * Used primarily on AccueilScreen (top 40% area).
+ * Preset images are bundled with `require()` so thumbnails render reliably on Android.
+ * Custom photos from the gallery use a file URI.
  */
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { ImageSourcePropType } from 'react-native';
 
 // ─── Wallpaper definitions ──────────────────────────────
 
@@ -16,25 +15,21 @@ export interface WallpaperDef {
   id: string;
   label: string;
   category: 'nature' | 'abstract' | 'custom';
-  /** Thumbnail + full-screen rendering: photo vs pure gradient swatch */
+  /** Thumbnail + full-screen: bundled JPEG */
   type: 'image' | 'gradient';
-  // Gradient fallback if image fails or no image; also used when type === 'gradient'
   colors: string[];
-  // Remote image URL
-  imageUrl?: string;
-  // User's custom local URI
-  localUri?: string;
+  /** Bundled asset — required for native Image */
+  source: ImageSourcePropType;
 }
 
 export const WALLPAPERS: WallpaperDef[] = [
-  // Nature category
   {
     id: 'mountains',
     label: 'Montagnes',
     category: 'nature',
     type: 'image',
     colors: ['#1E3A5F', '#3B7DD8', '#89B4E8'],
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    source: require('../../assets/wallpapers/mountains.jpg'),
   },
   {
     id: 'lake',
@@ -42,7 +37,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'nature',
     type: 'image',
     colors: ['#0B3D2E', '#1A6B4A', '#7BC8A4'],
-    imageUrl: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=800&q=80',
+    source: require('../../assets/wallpapers/lake.jpg'),
   },
   {
     id: 'forest',
@@ -50,7 +45,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'nature',
     type: 'image',
     colors: ['#1B4332', '#2D6A4F', '#52B788'],
-    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
+    source: require('../../assets/wallpapers/forest.jpg'),
   },
   {
     id: 'ocean',
@@ -58,7 +53,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'nature',
     type: 'image',
     colors: ['#0077B6', '#00B4D8', '#90E0EF'],
-    imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80',
+    source: require('../../assets/wallpapers/ocean.jpg'),
   },
   {
     id: 'sunset',
@@ -66,16 +61,15 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'nature',
     type: 'image',
     colors: ['#FF6B35', '#F7C59F', '#EFEFD0'],
-    imageUrl: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=800&q=80',
+    source: require('../../assets/wallpapers/sunset.jpg'),
   },
-  // Abstract category
   {
     id: 'aurora',
     label: 'Aurore',
     category: 'abstract',
     type: 'image',
     colors: ['#0B0C1A', '#1B264F', '#4CC9F0'],
-    imageUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80',
+    source: require('../../assets/wallpapers/aurora.jpg'),
   },
   {
     id: 'gradient-warm',
@@ -83,7 +77,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'abstract',
     type: 'gradient',
     colors: ['#FF6B6B', '#FCA311', '#FFD93D'],
-    imageUrl: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&q=80',
+    source: require('../../assets/wallpapers/gradient-warm.jpg'),
   },
   {
     id: 'gradient-cool',
@@ -91,7 +85,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'abstract',
     type: 'gradient',
     colors: ['#667EEA', '#764BA2', '#F093FB'],
-    imageUrl: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=800&q=80',
+    source: require('../../assets/wallpapers/gradient-cool.jpg'),
   },
   {
     id: 'nebula',
@@ -99,7 +93,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'abstract',
     type: 'image',
     colors: ['#0A0A14', '#1A1A3E', '#6D28D9'],
-    imageUrl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80',
+    source: require('../../assets/wallpapers/nebula.jpg'),
   },
   {
     id: 'pastel',
@@ -107,7 +101,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     category: 'abstract',
     type: 'gradient',
     colors: ['#FFE5EC', '#E8D5FF', '#D5EEFF'],
-    imageUrl: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80',
+    source: require('../../assets/wallpapers/pastel.jpg'),
   },
 ];
 
@@ -115,11 +109,9 @@ const STORAGE_KEY = 'selectedWallpaper';
 const STORAGE_KEY_CUSTOM = 'customWallpaperUri';
 const DEFAULT_ID = 'mountains';
 
-// ─── Wallpaper source — resolved type for rendering ────
+// ─── Wallpaper source — resolved for rendering ────
 
-export type WallpaperSource =
-  | { type: 'image'; uri: string }
-  | { type: 'gradient'; colors: string[] };
+export type WallpaperSource = { type: 'image'; source: ImageSourcePropType };
 
 // ─── Context ────────────────────────────────────────────
 
@@ -129,7 +121,6 @@ interface WallpaperContextValue {
   setWallpaperId: (id: string) => void;
   setCustomWallpaper: (uri: string) => void;
   customUri: string | null;
-  // Computed — ready to use in AccueilScreen or anywhere
   wallpaperSource: WallpaperSource;
 }
 
@@ -139,16 +130,15 @@ const WallpaperContext = createContext<WallpaperContextValue>({
   setWallpaperId: () => {},
   setCustomWallpaper: () => {},
   customUri: null,
-  wallpaperSource: { type: 'gradient', colors: WALLPAPERS[0].colors },
-});
+  wallpaperSource: { type: 'image', source: WALLPAPERS[0].source },
+} as WallpaperContextValue);
 
-// ─── Provider ───────────────────────────────────────────
+// ─── Provider ─────────────────────────────────────────
 
 export function WallpaperProvider({ children }: { children: React.ReactNode }) {
   const [selectedId, setSelectedId] = useState(DEFAULT_ID);
   const [customUri, setCustomUri] = useState<string | null>(null);
 
-  // Rehydrate persisted state on mount
   useEffect(() => {
     Promise.all([
       AsyncStorage.getItem(STORAGE_KEY),
@@ -165,7 +155,6 @@ export function WallpaperProvider({ children }: { children: React.ReactNode }) {
 
   const setWallpaperId = (id: string) => {
     setSelectedId(id);
-    // Selecting a preset clears the custom override
     setCustomUri(null);
     AsyncStorage.setItem(STORAGE_KEY, id);
     AsyncStorage.removeItem(STORAGE_KEY_CUSTOM);
@@ -180,12 +169,9 @@ export function WallpaperProvider({ children }: { children: React.ReactNode }) {
 
   const wallpaperSource: WallpaperSource = useMemo(() => {
     if (customUri) {
-      return { type: 'image', uri: customUri };
+      return { type: 'image', source: { uri: customUri } };
     }
-    if (wallpaper.imageUrl) {
-      return { type: 'image', uri: wallpaper.imageUrl };
-    }
-    return { type: 'gradient', colors: wallpaper.colors };
+    return { type: 'image', source: wallpaper.source };
   }, [customUri, wallpaper]);
 
   return (
@@ -197,6 +183,6 @@ export function WallpaperProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Hook ───────────────────────────────────────────────
+// ─── Hook ─────────────────────────────────────────────
 
 export const useWallpaper = () => useContext(WallpaperContext);

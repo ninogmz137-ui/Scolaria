@@ -7,15 +7,14 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import { nativeInactivePillShadow, PILL_ACTIVE_NAVY } from '../constants/theme';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -49,28 +48,7 @@ function WallpaperCard({
         pressed && { opacity: 0.8 },
       ]}
     >
-      {wp.imageUrl ? (
-        <Image source={{ uri: wp.imageUrl }} style={styles.cardImage} />
-      ) : (
-        Platform.OS === 'web' ? (
-          // @ts-ignore — web-only CSS property
-          <View
-            style={[
-              styles.cardImage,
-              {
-                backgroundImage: `linear-gradient(135deg, ${wp.colors[0]}, ${wp.colors[wp.colors.length - 1]})`,
-              } as any,
-            ]}
-          />
-        ) : (
-          <LinearGradient
-            colors={wp.colors as [string, string, ...string[]]}
-            style={styles.cardImage}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          />
-        )
-      )}
+      <Image source={wp.source} style={styles.cardImage} resizeMode="cover" />
       {isActive && (
         <View style={styles.checkBadge}>
           <Check size={14} color="#FFFFFF" strokeWidth={3} />
@@ -105,7 +83,7 @@ export default function WallpaperPickerScreen() {
             onPress={() => setActiveCategory(cat.key)}
             style={[
               styles.pill,
-              activeCategory === cat.key && styles.pillActive,
+              activeCategory === cat.key ? styles.pillActive : nativeInactivePillShadow,
             ]}
           >
             <Text
@@ -160,10 +138,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
   },
   pillActive: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: PILL_ACTIVE_NAVY,
   },
   pillText: {
     fontFamily: FontFamily.sansSemiBold,

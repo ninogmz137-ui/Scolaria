@@ -9,7 +9,6 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -31,8 +30,8 @@ import { Box, Text, Pressable } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
-import { LinearGradient } from 'expo-linear-gradient';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { nativeWhiteInteractiveShadow } from '../constants/theme';
 
 const WALLPAPER_THUMB_W = 80;
 const WALLPAPER_THUMB_H = 60;
@@ -67,15 +66,6 @@ function WallpaperPresetTile({
   isActive: boolean;
   onSelect: () => void;
 }) {
-  const baseColor = wp.colors[0] ?? '#6366F1';
-  const grad = (
-    wp.colors.length >= 2
-      ? [wp.colors[0], wp.colors[wp.colors.length - 1]]
-      : [baseColor, '#22D3EE']
-  ) as [string, string, ...string[]];
-
-  const showImageThumb = wp.type === 'image' && wp.imageUrl;
-
   return (
     <RNPressable
       onPress={onSelect}
@@ -89,23 +79,7 @@ function WallpaperPresetTile({
       accessibilityState={{ checked: isActive }}
       accessibilityLabel={wp.label}
     >
-      {showImageThumb ? (
-        <Image
-          source={{ uri: wp.imageUrl }}
-          style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={[StyleSheet.absoluteFill, styles.wallpaperTileFallback]} pointerEvents="none">
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: baseColor }]} />
-          <LinearGradient
-            colors={grad}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-        </View>
-      )}
+      <Image source={wp.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
     </RNPressable>
   );
 }
@@ -116,41 +90,43 @@ function SectionLabel({ label }: { label: string }) {
 
 function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
   return (
-    <Pressable
-      onPress={row.type === 'navigate' ? row.onPress : undefined}
-      style={({ pressed }) => [
-        styles.row,
-        pressed && row.type === 'navigate' ? { opacity: 0.7 } : null,
-        !isLast && styles.rowSeparator,
-      ]}
-      accessibilityRole={row.type === 'toggle' ? 'switch' : 'button'}
-      accessibilityLabel={row.label}
-    >
-      <View style={styles.rowInner}>
-        <row.Icon
-          size={20}
-          color={row.danger ? '#EF4444' : '#0F172A'}
-          strokeWidth={2}
-        />
-        <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
-          {row.label}
-        </Text>
-        <View style={{ flex: 1 }} />
-        {row.valueText ? (
-          <Text style={styles.rowValue}>{row.valueText}</Text>
-        ) : null}
-        {row.type === 'navigate' ? (
-          <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
-        ) : (
-          <Switch
-            value={!!row.toggleValue}
-            onValueChange={row.onToggle}
-            trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
-            thumbColor="#FFFFFF"
+    <>
+      <Pressable
+        onPress={row.type === 'navigate' ? row.onPress : undefined}
+        style={({ pressed }) => [
+          styles.row,
+          pressed && row.type === 'navigate' ? { opacity: 0.7 } : null,
+        ]}
+        accessibilityRole={row.type === 'toggle' ? 'switch' : 'button'}
+        accessibilityLabel={row.label}
+      >
+        <View style={styles.rowInner}>
+          <row.Icon
+            size={20}
+            color={row.danger ? '#EF4444' : '#0F172A'}
+            strokeWidth={2}
           />
-        )}
-      </View>
-    </Pressable>
+          <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
+            {row.label}
+          </Text>
+          <View style={{ flex: 1 }} />
+          {row.valueText ? (
+            <Text style={styles.rowValue}>{row.valueText}</Text>
+          ) : null}
+          {row.type === 'navigate' ? (
+            <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
+          ) : (
+            <Switch
+              value={!!row.toggleValue}
+              onValueChange={row.onToggle}
+              trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
+              thumbColor="#FFFFFF"
+            />
+          )}
+        </View>
+      </Pressable>
+      {!isLast ? <View style={styles.rowHairline} /> : null}
+    </>
   );
 }
 
@@ -212,11 +188,7 @@ export default function ReglagesScreen() {
     <View style={[styles.overlay, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 10 }]}>
       {/* Tap outside to close */}
       <RNPressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
-      {Platform.OS === 'web' ? (
-        <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
-      ) : (
-        <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} pointerEvents="none" />
-      )}
+      <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
 
       {/* Card sheet */}
       <View style={styles.sheet}>
@@ -345,7 +317,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdropFallback: {
-    backgroundColor: 'rgba(15,23,42,0.22)',
+    backgroundColor: 'rgba(15,23,42,0.45)',
   },
   sheet: {
     marginHorizontal: 12,
@@ -358,7 +330,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
-      android: { elevation: 0 },
+      android: { elevation: 12 },
       default: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
     }),
   },
@@ -374,16 +346,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 12 },
-      android: { elevation: 0 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 12 },
-    }),
+    ...nativeWhiteInteractiveShadow,
   },
   headerTitle: {
     fontFamily: FontFamily.sansSemiBold,
@@ -396,22 +363,17 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     color: 'rgba(15,23,42,0.45)',
     textTransform: 'uppercase',
-    paddingHorizontal: 4,
-    marginTop: 6,
-    marginBottom: 8,
+    paddingHorizontal: 20,
+    marginTop: 28,
+    marginBottom: 6,
   },
   group: {
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
     overflow: 'hidden',
-    marginBottom: 14,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 16 },
-      android: { elevation: 0 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 16 },
-    }),
+    marginBottom: 16,
+    ...nativeWhiteInteractiveShadow,
   },
   wallpaperGroup: {
     borderRadius: 20,
@@ -435,9 +397,6 @@ const styles = StyleSheet.create({
     /** Visible if children fail to paint (Android). */
     backgroundColor: '#CBD5E1',
   },
-  wallpaperTileFallback: {
-    zIndex: 0,
-  },
   wallpaperTileActive: {
     borderWidth: 2,
     borderColor: '#7C3AED',
@@ -450,8 +409,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   row: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   rowInner: {
     flexDirection: 'row',
@@ -459,9 +418,10 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 12,
   },
-  rowSeparator: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(15,23,42,0.08)',
+  rowHairline: {
+    height: 1,
+    backgroundColor: '#F0F0F5',
+    marginHorizontal: 16,
   },
   rowLabel: {
     fontFamily: FontFamily.sansRegular,

@@ -29,6 +29,7 @@ import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { nativeWhiteInteractiveShadow } from '../../constants/theme';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -285,7 +286,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         ))}
 
         {/* ── Section: Mots à signer ── */}
-        <View style={[styles.sectionHeaderRow, { marginTop: 20 }]}>
+        <View style={[styles.sectionHeaderRow, styles.sectionSecond]}>
           <View style={[styles.sectionAccentBar, { backgroundColor: '#FF8C42' }]} />
           <Text style={styles.sectionLabel}>Mots à signer</Text>
         </View>
@@ -430,7 +431,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  sectionSecond: {
+    marginTop: 24,
   },
   sectionAccentBar: {
     width: 30,
@@ -447,17 +451,17 @@ const styles = StyleSheet.create({
 
   // ── Generic card (plain white, not glass)
   card: {
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 14,
+    borderWidth: 0,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 16,
     maxWidth: '100%',
     overflow: 'hidden',
+    ...nativeWhiteInteractiveShadow,
   },
 
   // ── Conversation avatar
@@ -605,9 +609,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#F0F0F5',
     maxWidth: '100%',
     overflow: 'hidden',
   },

@@ -38,6 +38,8 @@ import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
+import { ariaSidebarTitle, defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
+import { nativeAriaSuggestionShadow, nativeWhiteInteractiveShadow } from '../../constants/theme';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -200,9 +202,29 @@ export default function AriaConversationScreen() {
     } catch {}
   }, [childId, conversationId]);
 
+  const persistConversationTitle = useCallback(
+    async (title: string) => {
+      try {
+        const raw = await AsyncStorage.getItem(conversationsKey(childId));
+        const parsed = raw ? (JSON.parse(raw) as Conversation[]) : [];
+        const list = Array.isArray(parsed) ? parsed : [];
+        const next = list.map((c) => (c.id === conversationId ? { ...c, title } : c));
+        await AsyncStorage.setItem(conversationsKey(childId), JSON.stringify(next));
+        setConversations(
+          next.filter((c) => !!c?.id && !!c?.title).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')),
+        );
+      } catch {}
+    },
+    [childId, conversationId],
+  );
+
   const sendMessage = useCallback(async (textOverride?: string) => {
     const trimmed = (textOverride ?? input).trim();
     if (!trimmed || isTyping) return;
+
+    if (messages.length === 0) {
+      void persistConversationTitle(trimmed.slice(0, 40));
+    }
 
     const userMsg: Message = { id: `u_${Date.now()}`, text: trimmed, sender: 'parent', timestamp: nowTime() };
     const nextUI = [...messages, userMsg];
@@ -241,7 +263,7 @@ export default function AriaConversationScreen() {
       setIsTyping(false);
       scrollToEnd();
     }
-  }, [childId, input, isTyping, messages, persist, scrollToEnd, updateConversationPreview]);
+  }, [childId, input, isTyping, messages, persist, persistConversationTitle, scrollToEnd, updateConversationPreview]);
 
   const didAutoSendRef = useRef(false);
   useEffect(() => {
@@ -293,7 +315,7 @@ export default function AriaConversationScreen() {
       const now = new Date().toISOString();
       const newConv: Conversation = {
         id: `c_${Date.now()}`,
-        title: `Conseils pour ${childFirstName}`,
+        title: defaultNewAriaConversationTitle(),
         lastMessage: 'Nouvelle conversation',
         updatedAt: now,
       };
@@ -521,7 +543,9 @@ export default function AriaConversationScreen() {
                       pressed && !isActiveConv && styles.recentRowPressed,
                     ]}
                   >
-                    <Text style={styles.recentTitle} numberOfLines={1}>{c.title}</Text>
+                    <Text style={styles.recentTitle} numberOfLines={1}>
+                      {ariaSidebarTitle(c, conversations)}
+                    </Text>
                   </Pressable>
                 );
               })
@@ -533,17 +557,7 @@ export default function AriaConversationScreen() {
               style={[
                 styles.liquidGlass,
                 { width: searchWidthAnim },
-                Platform.OS === 'web'
-                  ? ({
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                    } as any)
-                  : {
-                      backgroundColor: 'rgba(255,255,255,0.92)',
-                      borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.92)',
-                    },
+                nativeWhiteInteractiveShadow,
               ]}
             >
               <Pressable
@@ -591,45 +605,14 @@ const styles = StyleSheet.create({
   },
   // Liquid Glass — aligned with Aria home top bar (38px circle, blur + frosted)
   topBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select<any>({
-      web: {
-        backgroundColor: 'rgba(255,255,255,0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.8)',
-      },
-      ios: {
-        backgroundColor: 'rgba(255,255,255,0.6)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.8)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      },
-      android: {
-        backgroundColor: 'rgba(255,255,255,0.6)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.8)',
-        elevation: 0,
-      },
-      default: {
-        backgroundColor: 'rgba(255,255,255,0.6)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.8)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-      },
-    }),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    ...nativeWhiteInteractiveShadow,
   },
   /** Fits natural `size={80}` AriaOrb (idle + thinking); no transform scale on parent */
   headerOrbSlot: {
@@ -676,13 +659,12 @@ const styles = StyleSheet.create({
   suggestionChip: {
     width: '48%',
     minWidth: 0,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    marginBottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    ...nativeAriaSuggestionShadow,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
@@ -784,7 +766,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4,
   },
   recentRow: {
-    paddingHorizontal: 20, paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 2,
   },
   recentRowActive: { backgroundColor: 'rgba(124,58,237,0.10)' },
   recentRowPressed: { backgroundColor: 'rgba(124,58,237,0.05)' },
@@ -795,9 +779,10 @@ const styles = StyleSheet.create({
   },
 
   liquidGlass: {
-    height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.45)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.70)',
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
     overflow: 'hidden',
   },
   liquidGlassInner: {

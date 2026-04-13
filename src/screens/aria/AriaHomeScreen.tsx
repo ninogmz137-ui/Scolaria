@@ -34,6 +34,8 @@ import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { nativeAriaSuggestionShadow, nativeWhiteInteractiveShadow } from '../../constants/theme';
+import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -161,7 +163,7 @@ export default function AriaHomeScreen() {
       const now = new Date().toISOString();
       const newConv: Conversation = {
         id: `c_${Date.now()}`,
-        title: `Conseils pour ${childName}`,
+        title: defaultNewAriaConversationTitle(),
         lastMessage: 'Nouvelle conversation',
         updatedAt: now,
       };
@@ -438,17 +440,7 @@ export default function AriaHomeScreen() {
               style={[
                 styles.liquidGlass,
                 { width: searchWidthAnim },
-                Platform.OS === 'web'
-                  ? ({
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                    } as any)
-                  : {
-                      backgroundColor: 'rgba(255,255,255,0.92)',
-                      borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.92)',
-                    },
+                nativeWhiteInteractiveShadow,
               ]}
             >
               <Pressable
@@ -500,40 +492,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select<any>({
-      web: {
-        backgroundColor: 'rgba(255,255,255,0.45)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.7)',
-      },
-      ios: {
-        backgroundColor: 'rgba(255,255,255,0.80)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.85)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      },
-      android: {
-        backgroundColor: 'rgba(255,255,255,0.80)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.85)',
-        elevation: 0,
-      },
-      default: {
-        backgroundColor: 'rgba(255,255,255,0.80)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.85)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      },
-    }),
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    ...nativeWhiteInteractiveShadow,
   },
   topTitle: {
     fontFamily: FontFamily.sansBold,
@@ -568,13 +529,12 @@ const styles = StyleSheet.create({
   suggestionChip: {
     width: '48%',
     minWidth: 0,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    marginBottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    ...nativeAriaSuggestionShadow,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
@@ -740,8 +700,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 2,
     columnGap: 8,
   },
   recentRowPressed: {
@@ -763,9 +724,8 @@ const styles = StyleSheet.create({
   liquidGlass: {
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.45)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.70)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 0,
     overflow: 'hidden',
   },
   liquidGlassInner: {

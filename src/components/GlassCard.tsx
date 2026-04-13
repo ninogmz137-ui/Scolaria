@@ -1,20 +1,19 @@
 /**
- * GlassCard — Glass morphism card with semi-transparent background.
+ * GlassCard — semi-transparent card (no backdrop blur; Android-safe).
  *
- * Light mode (default): white 75% opacity (Android-friendly — no backdrop blur).
- * Dark mode (dark=true): white 12% opacity.
- *
- * No backdropFilter — not supported on Android with React Native.
+ * Light: rgba white 85% + soft shadow. Dark variant for headers / dark wallpapers.
  */
 
 import { type ReactNode } from 'react';
-import { View, Platform, StyleSheet, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type ViewStyle } from 'react-native';
+
+import { GLASS_CARD_RADIUS, nativeGlassCardShadow } from '../constants/theme';
 
 // ─── Types ─────────────────────────────────────────────
 
 interface GlassCardProps {
   children: ReactNode;
-  /** Override border radius, default 18 */
+  /** Override border radius — default matches design system */
   borderRadius?: number;
   /** Additional styles on the outer container */
   style?: ViewStyle | ViewStyle[] | (ViewStyle | false | undefined)[];
@@ -30,7 +29,7 @@ interface GlassCardProps {
 
 export default function GlassCard({
   children,
-  borderRadius = 18,
+  borderRadius = GLASS_CARD_RADIUS,
   style,
   noPadding = false,
   dark = false,
@@ -43,9 +42,7 @@ export default function GlassCard({
         style,
       ]}
     >
-      <View style={noPadding ? undefined : styles.content}>
-        {children}
-      </View>
+      <View style={noPadding ? undefined : styles.content}>{children}</View>
     </View>
   );
 }
@@ -54,47 +51,18 @@ export default function GlassCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
-    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderWidth: 0,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 2,
-        shadowColor: 'transparent',
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
-      },
-    }),
+    ...nativeGlassCardShadow,
   },
   containerDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderRadius: 18,
     borderWidth: 0,
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: 'transparent',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0,
-        shadowRadius: 0,
-      },
-      android: {
-        elevation: 1,
-        shadowColor: 'transparent',
-      },
-      default: {},
-    }),
+    ...nativeGlassCardShadow,
   },
   content: {
     padding: 16,

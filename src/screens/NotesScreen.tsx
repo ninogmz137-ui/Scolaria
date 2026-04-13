@@ -1135,14 +1135,7 @@ export default function NotesScreen() {
     return (
       <View style={styles.root}>
         <View style={styles.wallpaperClip} pointerEvents="none">
-          {wallpaperSource.type === 'image' ? (
-            <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperFill} resizeMode="cover" />
-          ) : (
-            <LinearGradient
-              colors={wallpaperSource.colors as [string, string, ...string[]]}
-              style={styles.wallpaperFill}
-            />
-          )}
+          <Image source={wallpaperSource.source} style={styles.wallpaperFill} resizeMode="cover" />
           <View style={styles.wallpaperFade} />
         </View>
 
@@ -1373,14 +1366,7 @@ export default function NotesScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.wallpaperClip} pointerEvents="none">
-        {wallpaperSource.type === 'image' ? (
-          <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperFill} resizeMode="cover" />
-        ) : (
-          <LinearGradient
-            colors={wallpaperSource.colors as [string, string, ...string[]]}
-            style={styles.wallpaperFill}
-          />
-        )}
+        <Image source={wallpaperSource.source} style={styles.wallpaperFill} resizeMode="cover" />
         <View style={styles.wallpaperFade} />
       </View>
 

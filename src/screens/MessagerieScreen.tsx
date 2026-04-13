@@ -41,6 +41,7 @@ import {
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import { nativeWhiteInteractiveShadow, nativeInactivePillShadow } from '../constants/theme';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -65,24 +66,12 @@ const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
 const SEARCH_PILL_MAX_W = 220;
 
-/** White pill — search button + filter selector (no border, subtle shadow) */
-const whitePillShadow = Platform.select({
-  ios: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-  },
-  android: {
-    backgroundColor: '#FFFFFF',
-    elevation: 3,
-  },
-  default: {
-    backgroundColor: '#FFFFFF',
-    ...(Platform.OS === 'web' ? ({ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } as object) : {}),
-  },
-});
+/** White pill — search + filter (native shadows) */
+const whitePillBase = {
+  backgroundColor: '#FFFFFF',
+  borderWidth: 0 as const,
+  ...nativeWhiteInteractiveShadow,
+};
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -407,7 +396,9 @@ export default function MessagerieScreen() {
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextArea}>
-            <Text style={styles.headerTitle}>Messagerie</Text>
+            <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+              Messagerie
+            </Text>
             <Text style={styles.headerSub}>
               {unreadCount > 0
                 ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
@@ -416,7 +407,7 @@ export default function MessagerieScreen() {
           </View>
 
           <View style={styles.headerActionsCluster}>
-            <Animated.View style={[styles.searchPillShell, whitePillShadow, searchPillWidthStyle]}>
+            <Animated.View style={[styles.searchPillShell, whitePillBase, searchPillWidthStyle]}>
               <View
                 style={[
                   styles.searchPillInnerRow,
@@ -461,16 +452,26 @@ export default function MessagerieScreen() {
                   onPress={openFilterDropdown}
                   style={({ pressed }) => [
                     styles.filterSelectorPill,
-                    whitePillShadow,
-                    pressed && { opacity: 0.9 },
+                    activeFilter === 'all' ? nativeInactivePillShadow : styles.filterSelectorPillNavy,
+                    pressed && { opacity: 0.92 },
                   ]}
                   accessibilityRole="button"
                   accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                 >
-                  <Text style={styles.filterSelectorPillText} numberOfLines={1}>
+                  <Text
+                    style={[
+                      styles.filterSelectorPillText,
+                      activeFilter !== 'all' && styles.filterSelectorPillTextOnNavy,
+                    ]}
+                    numberOfLines={1}
+                  >
                     {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
                   </Text>
-                  <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                  <ChevronDown
+                    size={14}
+                    color={activeFilter === 'all' ? NAVY : '#FFFFFF'}
+                    strokeWidth={2}
+                  />
                 </Pressable>
               </View>
             </View>
@@ -637,15 +638,13 @@ const styles = StyleSheet.create({
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 0,
-    gap: 8,
     minHeight: 52,
   },
   headerActionsCluster: {
-    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
     gap: HEADER_ACTION_GAP,
     flexShrink: 0,
     minHeight: 40,
@@ -717,22 +716,33 @@ const styles = StyleSheet.create({
   headerTextArea: {
     flex: 1,
     minWidth: 0,
+    flexShrink: 1,
     paddingLeft: 4,
+    paddingRight: 8,
+    marginRight: 8,
   },
   filterSelectorPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 36,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 6,
+    paddingVertical: 8,
+    gap: 4,
     maxWidth: 168,
+    borderWidth: 0,
+  },
+  filterSelectorPillNavy: {
+    backgroundColor: '#0F1B2D',
   },
   filterSelectorPillText: {
     flexShrink: 1,
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
     color: NAVY,
+  },
+  filterSelectorPillTextOnNavy: {
+    color: '#FFFFFF',
   },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
@@ -857,7 +867,7 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    marginBottom: 0,
+    marginBottom: 16,
   },
   sectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
@@ -866,8 +876,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     paddingHorizontal: 0,
-    paddingTop: 16,
-    paddingBottom: 6,
+    marginTop: 24,
+    marginBottom: 8,
   },
   sectionCard: {
     backgroundColor: 'transparent',
@@ -877,9 +887,8 @@ const styles = StyleSheet.create({
 
   // Row
   row: {
-    paddingVertical: 11,
-    paddingLeft: 0,
-    paddingRight: 0,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     backgroundColor: SCREEN_BACKGROUND,
     position: 'relative',
     maxWidth: '100%',

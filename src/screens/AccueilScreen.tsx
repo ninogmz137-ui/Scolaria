@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Plus } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
@@ -281,18 +280,11 @@ export default function AccueilScreen() {
   return (
     <View style={[styles.root, { backgroundColor: SCREEN_BACKGROUND }]}>
       {/* Wallpaper — top 40% of screen */}
-      {wallpaperSource.type === 'image' ? (
-        <Image
-          source={{ uri: wallpaperSource.uri }}
-          style={styles.wallpaperGradient}
-          resizeMode="cover"
-        />
-      ) : (
-        <LinearGradient
-          colors={wallpaperSource.colors as [string, string, ...string[]]}
-          style={styles.wallpaperGradient}
-        />
-      )}
+      <Image
+        source={wallpaperSource.source}
+        style={styles.wallpaperGradient}
+        resizeMode="cover"
+      />
 
       <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
         <ScrollView
