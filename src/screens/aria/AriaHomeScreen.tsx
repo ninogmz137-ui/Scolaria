@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, StackActions } from '@react-navigation/native';
 import {
   MessagesSquare,
   MessageCirclePlus,
@@ -168,11 +168,13 @@ export default function AriaHomeScreen() {
       const next = [newConv, ...conversations];
       setConversations(next);
       await saveConversations(childId, next);
-      navigation.navigate('AriaConversation', {
-        conversationId: newConv.id,
-        title: newConv.title,
-        initialMessage,
-      });
+      navigation.dispatch(
+        StackActions.push('AriaConversation', {
+          conversationId: newConv.id,
+          title: newConv.title,
+          ...(initialMessage !== undefined ? { initialMessage } : {}),
+        }),
+      );
     },
     [childId, childName, conversations, navigation],
   );

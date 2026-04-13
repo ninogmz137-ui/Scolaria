@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   MessagesSquare,
@@ -301,7 +301,7 @@ export default function AriaConversationScreen() {
       await AsyncStorage.setItem(conversationsKey(childId), JSON.stringify(next));
       setConversations(next.filter((c) => !!c?.id && !!c?.title).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')));
       setDrawerOpen(false);
-      navigation.navigate('AriaConversation', { conversationId: newConv.id, title: newConv.title });
+      navigation.dispatch(StackActions.push('AriaConversation', { conversationId: newConv.id, title: newConv.title }));
     } catch {}
   }, [childFirstName, childId, navigation]);
 

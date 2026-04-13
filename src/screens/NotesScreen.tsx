@@ -47,6 +47,7 @@ import { useWallpaper } from '../contexts/WallpaperContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -147,6 +148,9 @@ function getCurrentTrimester(): string {
 }
 
 const COLOR_PALETTE = ['#4A90D9', '#7C3AED', '#F59E0B', '#10B981', '#EC4899', '#EF4444'];
+
+/** Wallpaper visible only behind the top area — clipped; scroll body uses SCREEN_BACKGROUND. */
+const NOTES_WALLPAPER_HEADER_HEIGHT = Math.min(Dimensions.get('window').height * 0.42, 380);
 
 const FRENCH_MONTHS: Record<string, string> = {
   '01': 'jan', '02': 'fév', '03': 'mars', '04': 'avr',
@@ -1130,17 +1134,20 @@ export default function NotesScreen() {
 
     return (
       <View style={styles.root}>
-        {wallpaperSource.type === 'image' ? (
-          <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperGradient} resizeMode="cover" />
-        ) : (
-          <LinearGradient
-            colors={wallpaperSource.colors as [string, string, ...string[]]}
-            style={styles.wallpaperGradient}
-          />
-        )}
-        <View style={[styles.wallpaperFade, { height: insets.top + 420 }]} />
+        <View style={styles.wallpaperClip} pointerEvents="none">
+          {wallpaperSource.type === 'image' ? (
+            <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperFill} resizeMode="cover" />
+          ) : (
+            <LinearGradient
+              colors={wallpaperSource.colors as [string, string, ...string[]]}
+              style={styles.wallpaperFill}
+            />
+          )}
+          <View style={styles.wallpaperFade} />
+        </View>
 
         <ScrollView
+          style={styles.mainScroll}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
@@ -1365,17 +1372,20 @@ export default function NotesScreen() {
 
   return (
     <View style={styles.root}>
-      {wallpaperSource.type === 'image' ? (
-        <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperGradient} resizeMode="cover" />
-      ) : (
-        <LinearGradient
-          colors={wallpaperSource.colors as [string, string, ...string[]]}
-          style={styles.wallpaperGradient}
-        />
-      )}
-      <View style={[styles.wallpaperFade, { height: insets.top + 420 }]} />
+      <View style={styles.wallpaperClip} pointerEvents="none">
+        {wallpaperSource.type === 'image' ? (
+          <Image source={{ uri: wallpaperSource.uri }} style={styles.wallpaperFill} resizeMode="cover" />
+        ) : (
+          <LinearGradient
+            colors={wallpaperSource.colors as [string, string, ...string[]]}
+            style={styles.wallpaperFill}
+          />
+        )}
+        <View style={styles.wallpaperFade} />
+      </View>
 
       <ScrollView
+        style={styles.mainScroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scroll,
@@ -1725,20 +1735,27 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#EEF2F7' },
-  wallpaperGradient: {
+  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
+  wallpaperClip: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: Math.min(Dimensions.get('window').height * 0.42, 380),
+    height: NOTES_WALLPAPER_HEADER_HEIGHT,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  wallpaperFill: {
+    ...StyleSheet.absoluteFillObject,
   },
   wallpaperFade: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(238,242,247,0.92)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(248,249,250,0.88)',
+  },
+  mainScroll: {
+    flex: 1,
+    zIndex: 1,
+    backgroundColor: SCREEN_BACKGROUND,
   },
   scroll: { paddingHorizontal: 18 },
   titleRow: {

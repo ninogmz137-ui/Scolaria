@@ -6,7 +6,6 @@ import {
   View,
   Platform,
   Pressable as RNPressable,
-  Image,
   FlatList,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -37,20 +36,6 @@ import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/F
 const WALLPAPER_THUMB_W = 80;
 const WALLPAPER_THUMB_H = 60;
 
-/** Bundled thumbnails (Metro `require`) — reliable on Android vs remote URIs */
-const WALLPAPER_THUMB_REQUIRES: Record<string, number> = {
-  mountains: require('../../assets/logo-scolaria.png'),
-  lake: require('../../assets/splash-icon.png'),
-  forest: require('../../assets/favicon.png'),
-  ocean: require('../../assets/icon.png'),
-  sunset: require('../../assets/android-icon-foreground.png'),
-  aurora: require('../../assets/android-icon-background.png'),
-  'gradient-warm': require('../../assets/logo-scolaria.png'),
-  'gradient-cool': require('../../assets/icon.png'),
-  nebula: require('../../assets/splash-icon.png'),
-  pastel: require('../../assets/favicon.png'),
-};
-
 type RowType = 'navigate' | 'toggle';
 
 type RowDef = {
@@ -67,26 +52,20 @@ type RowDef = {
 
 type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
-/**
- * Preset wallpaper tile: solid color under gradient so Android always shows a fill
- * if LinearGradient or remote Image fails; Image onError hides overlay and fallback shows.
- */
+/** Preset wallpaper tile — gradient-only thumbnails (no bundled logo placeholders). */
 function WallpaperPresetTile({
   wp,
   tileWidth,
   tileHeight,
   isActive,
   onSelect,
-  bundledThumb,
 }: {
   wp: WallpaperDef;
   tileWidth: number;
   tileHeight?: number;
   isActive: boolean;
   onSelect: () => void;
-  bundledThumb?: number;
 }) {
-  const [imageFailed, setImageFailed] = useState(false);
   const baseColor = wp.colors[0] ?? '#6366F1';
   const grad = (
     wp.colors.length >= 2
@@ -116,20 +95,6 @@ function WallpaperPresetTile({
           style={StyleSheet.absoluteFill}
         />
       </View>
-      {bundledThumb ? (
-        <Image
-          source={bundledThumb}
-          style={styles.wallpaperTileImageOverlay}
-          resizeMode="cover"
-        />
-      ) : wp.imageUrl && !imageFailed ? (
-        <Image
-          source={{ uri: wp.imageUrl }}
-          style={styles.wallpaperTileImageOverlay}
-          resizeMode="cover"
-          onError={() => setImageFailed(true)}
-        />
-      ) : null}
     </RNPressable>
   );
 }
@@ -322,7 +287,6 @@ export default function ReglagesScreen() {
                       wp={wp}
                       tileWidth={WALLPAPER_THUMB_W}
                       tileHeight={WALLPAPER_THUMB_H}
-                      bundledThumb={WALLPAPER_THUMB_REQUIRES[wp.id]}
                       isActive={isActive}
                       onSelect={() => setWallpaperId(wp.id)}
                     />
@@ -466,11 +430,6 @@ const styles = StyleSheet.create({
   wallpaperTileActive: {
     borderWidth: 2,
     borderColor: '#7C3AED',
-  },
-  wallpaperTileImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-    opacity: Platform.OS === 'web' ? 1 : 0.92,
   },
   wallpaperCustomTile: {
     borderStyle: 'dashed',
