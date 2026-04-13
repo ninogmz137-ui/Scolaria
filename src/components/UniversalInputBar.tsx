@@ -10,7 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Mic, Send } from 'lucide-react-native';
+import { Plus, Mic, Send, ArrowUp } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
 
@@ -133,26 +133,24 @@ export default function UniversalInputBar({
 
             {variant === 'aria' ? (
               canSend ? (
-                <View style={styles.sendShadowAria}>
-                  <TouchableOpacity
-                    onPress={onSend}
-                    activeOpacity={0.88}
-                    accessibilityRole="button"
-                    accessibilityLabel="Envoyer"
+                <TouchableOpacity
+                  onPress={onSend}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Envoyer"
+                >
+                  <LinearGradient
+                    colors={['#7C3AED', '#06B6D4']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.sendAriaGradient}
                   >
-                    <LinearGradient
-                      colors={['#7C3AED', '#06B6D4']}
-                      start={{ x: 0, y: 1 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.sendGradientInner}
-                    >
-                      <Send size={16} color="#FFFFFF" strokeWidth={2} />
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
+                    <ArrowUp size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  </LinearGradient>
+                </TouchableOpacity>
               ) : (
-                <View style={[styles.sendBtnHuman, styles.sendBtnHumanDisabled]}>
-                  <Send size={16} color="#9CA3AF" strokeWidth={2} />
+                <View style={styles.sendAriaDisabled}>
+                  <ArrowUp size={16} color="#9CA3AF" strokeWidth={2.5} />
                 </View>
               )
             ) : (
@@ -235,28 +233,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sendShadowAria: {
-    borderRadius: 15,
+  /** Aria send — gradient must live on LinearGradient (not parent backgroundColor). */
+  sendAriaGradient: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#7C3AED',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.45,
         shadowRadius: 6,
       },
       android: { elevation: 4 },
       default: {
         shadowColor: '#7C3AED',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.4,
+        shadowOpacity: 0.45,
         shadowRadius: 6,
       },
     }),
   },
-  sendGradientInner: {
-    borderRadius: 15,
-    width: 30,
-    height: 30,
+  sendAriaDisabled: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
   },
