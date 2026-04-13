@@ -113,7 +113,11 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
             {/* Text column */}
             <View style={styles.annBody}>
               <View style={styles.annTitleRow}>
-                <Text style={styles.annTitle} numberOfLines={1}>
+                <Text
+                  style={styles.annTitle}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {ann.title}
                 </Text>
                 <View
@@ -122,12 +126,20 @@ export default function EcoleListScreen({ navigation }: { navigation: any }) {
                     { backgroundColor: ann.categoryColor + '26' },
                   ]}
                 >
-                  <Text style={[styles.categoryText, { color: ann.categoryColor }]}>
+                  <Text
+                    style={[styles.categoryText, { color: ann.categoryColor }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {ann.category}
                   </Text>
                 </View>
               </View>
-              <Text style={styles.annSubtitle} numberOfLines={2}>
+              <Text
+                style={styles.annSubtitle}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
                 {ann.subtitle}
               </Text>
               <Text style={styles.annDate}>{ann.date}</Text>
@@ -145,10 +157,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
+    maxWidth: '100%',
   },
 
   // ── Section header
@@ -182,6 +197,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 8,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   annIconContainer: {
@@ -197,6 +214,9 @@ const styles = StyleSheet.create({
   },
   annBody: {
     flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     gap: 3,
   },
   annTitleRow: {
@@ -204,12 +224,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   annTitle: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
     color: '#1A2340',
     flex: 1,
+    minWidth: 0,
   },
   categoryBadge: {
     paddingHorizontal: 8,
@@ -226,6 +249,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     lineHeight: 18,
+    minWidth: 0,
   },
   annDate: {
     fontFamily: FontFamily.sansRegular,

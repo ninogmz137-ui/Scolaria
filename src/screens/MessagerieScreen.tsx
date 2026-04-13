@@ -184,7 +184,9 @@ function ConvRow({
           >
             {conv.name}
           </Text>
-          <Text style={styles.rowTime}>{formatLastDate(conv.lastDate)}</Text>
+          <Text style={styles.rowTime} numberOfLines={1} ellipsizeMode="tail">
+            {formatLastDate(conv.lastDate)}
+          </Text>
         </View>
 
         {/* Preview + unread dot */}
@@ -335,7 +337,7 @@ export default function MessagerieScreen() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
 
       {/* ── Header wrap (zIndex keeps dropdown on top) ── */}
-      <View style={styles.headerWrap}>
+      <View style={[styles.headerWrap, styles.screenHorizontalPad]}>
 
         {/* Main header row */}
         <View style={styles.headerRow}>
@@ -483,6 +485,7 @@ export default function MessagerieScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
+          styles.screenHorizontalPad,
           { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING },
         ]}
         onScrollBeginDrag={() => {
@@ -526,7 +529,7 @@ export default function MessagerieScreen() {
 
       <Pressable
         onPress={() => navigation.navigate('MessagesListScreen')}
-        style={({ pressed }) => [styles.fab, pressed && { opacity: 0.92 }]}
+        style={({ pressed }) => [styles.fab, styles.fabPosition, pressed && { opacity: 0.92 }]}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
       >
@@ -544,6 +547,9 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
     maxWidth: '100%',
     overflow: 'hidden',
+  },
+  /** Shared horizontal inset for header + conversation list (Android overflow). */
+  screenHorizontalPad: {
     paddingHorizontal: 16,
   },
 
@@ -552,6 +558,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 10,
     zIndex: 20,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   headerRow: {
     flexDirection: 'row',
@@ -705,13 +713,12 @@ const styles = StyleSheet.create({
   // Scroll
   scrollContent: {
     paddingBottom: TAB_BAR_SCROLL_PADDING,
-    paddingHorizontal: 0,
+    maxWidth: '100%',
   },
 
   fab: {
     position: 'absolute',
     bottom: 80,
-    right: 0,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -740,6 +747,9 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  fabPosition: {
+    right: 16,
+  },
 
   // Section
   section: {
@@ -751,7 +761,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingTop: 16,
     paddingBottom: 6,
   },
@@ -760,6 +770,8 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: '#D1D5DB',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   // Row
@@ -810,9 +822,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
     marginBottom: 3,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   rowName: {
     flex: 1,
+    minWidth: 0,
     fontSize: 16,
     color: NAVY,
   },
@@ -821,14 +836,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94A3B8',
     flexShrink: 0,
+    maxWidth: '42%',
   },
   rowBottom: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   rowPreview: {
     flex: 1,
+    minWidth: 0,
     fontSize: 14,
   },
   unreadDot: {

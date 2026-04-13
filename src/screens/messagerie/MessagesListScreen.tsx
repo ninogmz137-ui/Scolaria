@@ -233,12 +233,23 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                     },
                   ]}
                   numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
                   {conv.name}
                 </Text>
-                <Text style={styles.convDate}>{conv.date}</Text>
+                <Text
+                  style={styles.convDate}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {conv.date}
+                </Text>
               </View>
-              <Text style={styles.convRole} numberOfLines={1}>
+              <Text
+                style={styles.convRole}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {conv.role}
               </Text>
               <Text
@@ -252,6 +263,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                   },
                 ]}
                 numberOfLines={1}
+                ellipsizeMode="tail"
               >
                 {conv.lastMessage}
               </Text>
@@ -279,7 +291,11 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
 
             {/* Text */}
             <View style={styles.motBody}>
-              <Text style={styles.motTitle} numberOfLines={1}>
+              <Text
+                style={styles.motTitle}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {mot.title}
               </Text>
               {mot.deadline && !mot.signed && (
@@ -344,9 +360,21 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                         {getInitials(teacher.name)}
                       </Text>
                     </View>
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text style={styles.teacherName}>{teacher.name}</Text>
-                      <Text style={styles.teacherSubject}>{teacher.subject}</Text>
+                    <View style={styles.teacherTextCol}>
+                      <Text
+                        style={styles.teacherName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {teacher.name}
+                      </Text>
+                      <Text
+                        style={styles.teacherSubject}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {teacher.subject}
+                      </Text>
                     </View>
                     <ChevronRight size={16} color="#94A3B8" strokeWidth={2} />
                   </Pressable>
@@ -366,11 +394,14 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 8,
+    maxWidth: '100%',
   },
 
   // ── Section headers
@@ -404,6 +435,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     marginBottom: 8,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   // ── Conversation avatar
@@ -435,6 +468,9 @@ const styles = StyleSheet.create({
   // ── Conversation text
   convBody: {
     flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     gap: 2,
   },
   convTitleRow: {
@@ -442,9 +478,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   convName: {
     flex: 1,
+    minWidth: 0,
     fontSize: 15,
     color: '#1A2340',
   },
@@ -453,6 +492,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#CBD5E1',
     flexShrink: 0,
+    maxWidth: '40%',
   },
   convRole: {
     fontFamily: FontFamily.sansRegular,
@@ -461,6 +501,7 @@ const styles = StyleSheet.create({
   },
   convMessage: {
     fontSize: 13,
+    minWidth: 0,
   },
 
   // ── Mot icon
@@ -479,6 +520,9 @@ const styles = StyleSheet.create({
   },
   motBody: {
     flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     gap: 2,
   },
   motTitle: {
@@ -543,6 +587,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#F1F5F9',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   teacherAvatar: {
     width: 40,
@@ -555,6 +601,13 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansBold,
     fontSize: 14,
     color: '#64748B',
+  },
+  teacherTextCol: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
+    gap: 2,
   },
   teacherName: {
     fontFamily: FontFamily.sansSemiBold,

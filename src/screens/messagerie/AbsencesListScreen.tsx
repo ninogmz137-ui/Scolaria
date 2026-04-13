@@ -144,21 +144,39 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
               {/* Text */}
               <View style={styles.absenceBody}>
                 <View style={styles.absenceTitleRow}>
-                  <Text style={styles.absenceDate} numberOfLines={1}>
+                  <Text
+                    style={styles.absenceDate}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {absence.date_fin
                       ? `${absence.date_debut} — ${absence.date_fin}`
                       : absence.date_debut}
                   </Text>
                   <View style={[styles.statutBadge, { backgroundColor: statut.bg }]}>
-                    <Text style={[styles.statutText, { color: statut.text }]}>
+                    <Text
+                      style={[styles.statutText, { color: statut.text }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
                       {statut.label}
                     </Text>
                   </View>
                 </View>
 
-                <Text style={styles.absenceMotif}>{absence.motif}</Text>
+                <Text
+                  style={styles.absenceMotif}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {absence.motif}
+                </Text>
 
-                <Text style={styles.absencePeriode}>
+                <Text
+                  style={styles.absencePeriode}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
                   {DEMI_JOURNEE_LABELS[absence.demi_journee]}
                   {absence.commentaire ? ` · ${absence.commentaire}` : ''}
                 </Text>
@@ -185,10 +203,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   scrollContent: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
+    maxWidth: '100%',
   },
 
   // ── Section header
@@ -222,6 +243,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 8,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   absenceIconContainer: {
@@ -237,6 +260,9 @@ const styles = StyleSheet.create({
   },
   absenceBody: {
     flex: 1,
+    minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
     gap: 3,
   },
   absenceTitleRow: {
@@ -244,22 +270,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+    minWidth: 0,
+    maxWidth: '100%',
   },
   absenceDate: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
     color: '#1A2340',
     flex: 1,
+    minWidth: 0,
   },
   absenceMotif: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,
     color: '#1A2340',
+    minWidth: 0,
   },
   absencePeriode: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
     color: '#64748B',
+    minWidth: 0,
   },
 
   // ── Status badge

@@ -161,11 +161,19 @@ export default function ConversationDetailScreen({
         <View style={styles.participantStrip}>
           <SmallAvatar conv={conv} />
           <View style={styles.participantInfo}>
-            <Text style={styles.participantName} numberOfLines={1}>
+            <Text
+              style={styles.participantName}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {conv.name}
             </Text>
             {conv.role ? (
-              <Text style={styles.participantRole} numberOfLines={1}>
+              <Text
+                style={styles.participantRole}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {conv.role}
               </Text>
             ) : null}
@@ -292,6 +300,8 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#EEF2F7',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 
   // Participant strip
@@ -304,6 +314,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#D1D5DB',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   stripAvatar: {
     width: 36,
@@ -321,6 +333,8 @@ const styles = StyleSheet.create({
   participantInfo: {
     flex: 1,
     minWidth: 0,
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   participantName: {
     fontFamily: FontFamily.sansSemiBold,
@@ -344,9 +358,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageListContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: TAB_BAR_SCROLL_PADDING,
+    maxWidth: '100%',
   },
 
   // Date separator
@@ -383,6 +398,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 13,
     paddingVertical: 9,
     borderRadius: 20,
+    overflow: 'hidden',
   },
   bubbleParent: {
     backgroundColor: NAVY,
@@ -437,7 +453,7 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingTop: 8,
     backgroundColor: '#FFFFFF',
     borderTopWidth: StyleSheet.hairlineWidth,
