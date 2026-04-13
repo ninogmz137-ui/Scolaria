@@ -27,10 +27,9 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  withDelay,
   runOnJS,
   Easing,
-  interpolate,
-  Extrapolation,
 } from 'react-native-reanimated';
 import { School, CalendarX, Search, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -61,10 +60,10 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
   { id: 'absences', label: 'Absences' },
 ];
 
-/** Search field expands left from fixed icon; max input width */
-const SEARCH_ICON_W = 44;
+/** Single pill: collapsed width → expanded (same component) */
 const HEADER_ACTION_GAP = 8;
-const SEARCH_INPUT_MAX_W = 220;
+const SEARCH_PILL_MIN_W = 40;
+const SEARCH_PILL_MAX_W = 220;
 
 /** White pill — search button + filter selector (no border, subtle shadow) */
 const whitePillShadow = Platform.select({
@@ -260,17 +259,18 @@ export default function MessagerieScreen() {
     }, []),
   );
 
-  // ── Search: field expands left from bare icon; filter pill always visible ──
+  // ── Search: one white pill expands in-place (width + input opacity); filter always visible ──
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-  const [filterPillW, setFilterPillW] = useState(120);
   const [headerBlockH, setHeaderBlockH] = useState(72);
   const [dropdownWin, setDropdownWin] = useState<{ left: number; top: number; width: number } | null>(null);
 
   const searchInputRef = useRef<any>(null);
   const filterPillRef = useRef<View | null>(null);
-  const searchWidthSV = useSharedValue(0);
+  const searchWidthSV = useSharedValue(SEARCH_PILL_MIN_W);
+  const inputOpacitySV = useSharedValue(0);
+  const isSearchOpenSV = useSharedValue(0);
   const ddOpacitySV = useSharedValue(0);
   const ddTranslateYSV = useSharedValue(-4);
 
@@ -288,23 +288,35 @@ export default function MessagerieScreen() {
   const openSearch = useCallback(() => {
     setFilterDropdownVisible(false);
     setSearchOpen(true);
+    isSearchOpenSV.value = 1;
+    inputOpacitySV.value = 0;
     searchWidthSV.value = withTiming(
-      SEARCH_INPUT_MAX_W,
+      SEARCH_PILL_MAX_W,
       { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) },
       (finished) => {
         if (finished) runOnJS(focusSearchInput)();
       },
     );
-  }, [focusSearchInput, searchWidthSV]);
+    inputOpacitySV.value = withDelay(
+      100,
+      withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [focusSearchInput, isSearchOpenSV, inputOpacitySV, searchWidthSV]);
 
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
-    searchWidthSV.value = withTiming(0, { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) }, (finished) => {
-      if (finished) runOnJS(finishCloseSearch)();
-    });
-  }, [finishCloseSearch, searchWidthSV]);
+    isSearchOpenSV.value = 0;
+    inputOpacitySV.value = withTiming(0, { duration: 120, easing: Easing.out(Easing.cubic) });
+    searchWidthSV.value = withTiming(
+      SEARCH_PILL_MIN_W,
+      { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) },
+      (finished) => {
+        if (finished) runOnJS(finishCloseSearch)();
+      },
+    );
+  }, [finishCloseSearch, inputOpacitySV, isSearchOpenSV, searchWidthSV]);
 
-  const toggleSearch = useCallback(() => {
+  const onSearchIconPress = useCallback(() => {
     if (searchOpen) {
       closeSearch();
     } else {
@@ -312,13 +324,13 @@ export default function MessagerieScreen() {
     }
   }, [searchOpen, openSearch, closeSearch]);
 
-  const searchWidthStyle = useAnimatedStyle(() => {
-    const w = searchWidthSV.value;
-    return {
-      width: w,
-      opacity: interpolate(w, [0, 16], [0, 1], Extrapolation.CLAMP),
-    };
-  });
+  const searchPillWidthStyle = useAnimatedStyle(() => ({
+    width: searchWidthSV.value,
+  }));
+
+  const searchInputOpacityStyle = useAnimatedStyle(() => ({
+    opacity: inputOpacitySV.value,
+  }));
 
   const dropdownEnterStyle = useAnimatedStyle(() => ({
     opacity: ddOpacitySV.value,
@@ -387,9 +399,6 @@ export default function MessagerieScreen() {
     [navigation],
   );
 
-  const inputRightOffset =
-    filterPillW + HEADER_ACTION_GAP + SEARCH_ICON_W + HEADER_ACTION_GAP;
-
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View
@@ -407,45 +416,36 @@ export default function MessagerieScreen() {
           </View>
 
           <View style={styles.headerActionsCluster}>
-            <Animated.View
-              style={[
-                styles.searchInputAbs,
-                styles.searchInputPill,
-                searchWidthStyle,
-                { right: inputRightOffset },
-              ]}
-              pointerEvents={searchOpen ? 'auto' : 'none'}
-            >
-              <TextInput
-                ref={searchInputRef}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="Rechercher…"
-                placeholderTextColor="#94A3B8"
-                style={styles.searchInputField}
-                returnKeyType="search"
-                onSubmitEditing={() => searchInputRef.current?.blur()}
-                autoCorrect={false}
-                editable={searchOpen}
-              />
+            <Animated.View style={[styles.searchPillShell, whitePillShadow, searchPillWidthStyle]}>
+              <View style={styles.searchPillInnerRow}>
+                <Animated.View style={[styles.searchInputOpaqueWrap, searchInputOpacityStyle]}>
+                  <TextInput
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Rechercher…"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.searchInputField}
+                    returnKeyType="search"
+                    onSubmitEditing={() => searchInputRef.current?.blur()}
+                    autoCorrect={false}
+                    editable={searchOpen}
+                  />
+                </Animated.View>
+                <Pressable
+                  onPress={onSearchIconPress}
+                  style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
+                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
+                >
+                  <Search size={20} color={NAVY} strokeWidth={1.5} />
+                </Pressable>
+              </View>
             </Animated.View>
 
-            <Pressable
-              onPress={toggleSearch}
-              style={({ pressed }) => [styles.searchIconBare, pressed && { opacity: 0.65 }]}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
-            >
-              <Search size={22} color={NAVY} strokeWidth={1.5} />
-            </Pressable>
-
             <View style={styles.filterPillSlot}>
-              <View
-                ref={filterPillRef}
-                collapsable={false}
-                onLayout={(e) => setFilterPillW(e.nativeEvent.layout.width)}
-              >
+              <View ref={filterPillRef} collapsable={false}>
                 <Pressable
                   onPress={openFilterDropdown}
                   style={({ pressed }) => [
@@ -639,30 +639,25 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minHeight: 40,
   },
-  searchInputAbs: {
-    position: 'absolute',
-    top: 0,
+  /** Single expanding pill — width 40 → 220; white + shadow via whitePillShadow */
+  searchPillShell: {
     height: 40,
-    overflow: 'hidden',
-    zIndex: 1,
-    paddingLeft: 12,
-  },
-  /** Expanding field only — white pill + shadow (opacity follows width via animated style) */
-  searchInputPill: {
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-      },
-      android: { elevation: 3 },
-      default: {
-        ...(Platform.OS === 'web' ? ({ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } as object) : {}),
-      },
-    }),
+    overflow: 'hidden',
+    maxWidth: SEARCH_PILL_MAX_W,
+  },
+  searchPillInnerRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 40,
+    paddingLeft: 10,
+    paddingRight: 6,
+  },
+  searchInputOpaqueWrap: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
   },
   searchInputField: {
     flex: 1,
@@ -671,13 +666,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: NAVY,
     paddingVertical: 0,
+    paddingRight: 4,
   },
-  /** Bare Search tap target — no pill, no background */
-  searchIconBare: {
+  searchIconHit: {
+    width: 28,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
-    backgroundColor: 'transparent',
   },
   filterPillSlot: {
     zIndex: 2,
