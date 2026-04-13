@@ -43,7 +43,8 @@ import AriaOrb from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
-const CHIP_MAX_W = (SCREEN_WIDTH - 32) / 2 - 8;
+/** Half-width chips minus padding; avoids truncation on narrow Android layouts */
+const CHIP_MAX_W = SCREEN_WIDTH / 2 - 24;
 const ARIA_ALERTS_UNREAD = 2;
 
 /** Header orb: natural `size` on AriaOrb (no parent scale transform); ≥80px so rings aren’t clipped */
@@ -392,7 +393,7 @@ export default function AriaConversationScreen() {
                         isTyping && { opacity: 0.5 },
                       ]}
                     >
-                      <Text style={styles.suggestionText} numberOfLines={3}>
+                      <Text style={styles.suggestionText}>
                         {item}
                       </Text>
                     </Pressable>
@@ -680,7 +681,13 @@ const styles = StyleSheet.create({
   topSubtitle: { marginTop: 1, fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 
   // Empty state
-  empty: { paddingHorizontal: 16, paddingTop: 22, paddingBottom: 10, alignItems: 'center' },
+  empty: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingTop: 22,
+    paddingBottom: 10,
+    alignItems: 'center',
+  },
   emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
   suggestionWrap: {
@@ -691,14 +698,12 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 4,
     paddingTop: 12,
-    rowGap: 8,
-    columnGap: 8,
   },
   suggestionChip: {
     maxWidth: CHIP_MAX_W,
     minWidth: 0,
     flexGrow: 0,
-    flexShrink: 1,
+    flexShrink: 0,
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
@@ -706,12 +711,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
+    marginHorizontal: 4,
+    marginBottom: 8,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: '#475569',
-    flexShrink: 1,
   },
 
   // Input
@@ -777,20 +783,25 @@ const styles = StyleSheet.create({
   drawerRecentsScroll: { flexGrow: 1, flexShrink: 1 },
   drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 
-  // Categories
+  // Categories — row layout (explicit for older Android; no gap)
   categories: {
+    width: '100%',
     flexDirection: 'row',
+    flexWrap: 'nowrap',
     justifyContent: 'space-around',
-    paddingHorizontal: 8,
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   categoryRow: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     borderRadius: 10,
     minWidth: 80,
     alignItems: 'center',
+    marginHorizontal: 4,
   },
   categoryCell: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -799,7 +810,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    columnGap: 6,
     flexWrap: 'wrap',
     paddingHorizontal: 4,
   },
@@ -812,7 +822,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryLabelActive: { color: '#7C3AED', fontFamily: FontFamily.sansSemiBold },
-  alertDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#7C3AED' },
+  alertDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#7C3AED',
+    marginLeft: 6,
+  },
 
   // Divider
   drawerDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginHorizontal: 20, marginVertical: 4 },

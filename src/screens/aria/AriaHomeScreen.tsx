@@ -37,8 +37,8 @@ import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
-/** Two columns in content width; matches (windowWidth - 32) / 2 - 8 */
-const CHIP_MAX_W = (SCREEN_WIDTH - 32) / 2 - 8;
+/** Half-width chips minus padding (Android-friendly) */
+const CHIP_MAX_W = SCREEN_WIDTH / 2 - 24;
 const ARIA_ALERTS_UNREAD = 2;
 
 // ─── Demo recents data ──────────────────────────────────────
@@ -304,7 +304,7 @@ export default function AriaHomeScreen() {
                 onPress={() => sendFromHome(s)}
                 style={({ pressed }) => [styles.suggestionChip, pressed && { opacity: 0.86 }]}
               >
-                <Text style={styles.suggestionText} numberOfLines={3}>
+                <Text style={styles.suggestionText}>
                   {s}
                 </Text>
               </Pressable>
@@ -599,14 +599,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignContent: 'flex-start',
     width: '100%',
-    rowGap: 8,
-    columnGap: 8,
   },
   suggestionChip: {
     maxWidth: CHIP_MAX_W,
     minWidth: 0,
     flexGrow: 0,
-    flexShrink: 1,
+    flexShrink: 0,
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
@@ -614,12 +612,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
+    marginHorizontal: 4,
+    marginBottom: 8,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: '#475569',
-    flexShrink: 1,
   },
 
   // Input dock
@@ -761,20 +760,25 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
 
-  // Categories
+  // Categories — row layout (explicit for older Android; no gap)
   categories: {
+    width: '100%',
     flexDirection: 'row',
+    flexWrap: 'nowrap',
     justifyContent: 'space-around',
-    paddingHorizontal: 8,
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
   categoryRow: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     borderRadius: 10,
     minWidth: 80,
     alignItems: 'center',
+    marginHorizontal: 4,
   },
   categoryCell: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -783,7 +787,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
-    columnGap: 6,
     flexWrap: 'wrap',
     paddingHorizontal: 4,
   },
@@ -808,6 +811,7 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 3.5,
     backgroundColor: '#7C3AED',
+    marginLeft: 6,
   },
 
   // Divider
