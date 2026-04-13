@@ -8,7 +8,7 @@
  * - Zero Aria content, no Supabase, local store only.
  */
 
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {
   StyleSheet,
   Platform,
   Modal,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,9 +27,11 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withTiming,
   runOnJS,
+  Easing,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, X, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
+import { School, CalendarX, Search, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -37,7 +40,7 @@ import {
   markConversationRead,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
-import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -57,32 +60,27 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
   { id: 'absences', label: 'Absences' },
 ];
 
-/** Inline search pill: collapsed (icon-only) → expanded (≈220px), spring-animated */
-const SEARCH_PILL_COLLAPSED = 44;
-const SEARCH_PILL_EXPANDED = 220;
+/** Search field expands left from fixed icon; max input width */
+const SEARCH_ICON_W = 44;
+const HEADER_ACTION_GAP = 8;
+const SEARCH_INPUT_MAX_W = 220;
 
-// ─── Liquid Glass style ───────────────────────────────────
-
-const glassStyle = Platform.select<any>({
-  web: {
-    backgroundColor: 'rgba(255,255,255,0.45)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
-    backgroundImage:
-      'linear-gradient(180deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.28) 100%)',
-  },
-  default: {
-    backgroundColor: 'rgba(255,255,255,0.60)',
+/** White pill — search button + filter selector (no border, subtle shadow) */
+const whitePillShadow = Platform.select({
+  ios: {
+    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
+  },
+  android: {
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
+  },
+  default: {
+    backgroundColor: '#FFFFFF',
+    ...(Platform.OS === 'web' ? ({ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } as object) : {}),
   },
 });
 
@@ -261,12 +259,20 @@ export default function MessagerieScreen() {
     }, []),
   );
 
-  // ── Search: spring width on pill; title always visible ──
+  // ── Search: width expands left from fixed icon; filter pill fades out (no layout shift) ──
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const [filterPillW, setFilterPillW] = useState(120);
+  const [headerBlockH, setHeaderBlockH] = useState(72);
+  const [dropdownWin, setDropdownWin] = useState<{ left: number; top: number; width: number } | null>(null);
+
   const searchInputRef = useRef<any>(null);
-  const pillW = useSharedValue(SEARCH_PILL_COLLAPSED);
+  const filterPillRef = useRef<View | null>(null);
+  const searchWidthSV = useSharedValue(0);
+  const filterOpacitySV = useSharedValue(1);
+  const ddOpacitySV = useSharedValue(0);
+  const ddTranslateYSV = useSharedValue(-4);
 
   const focusSearchInput = useCallback(() => {
     searchInputRef.current?.focus();
@@ -278,22 +284,64 @@ export default function MessagerieScreen() {
   }, []);
 
   const openSearch = useCallback(() => {
+    setFilterDropdownVisible(false);
     setSearchOpen(true);
-    pillW.value = withSpring(SEARCH_PILL_EXPANDED, { damping: 17, stiffness: 320 }, (finished) => {
+    filterOpacitySV.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.cubic) });
+    searchWidthSV.value = withSpring(SEARCH_INPUT_MAX_W, { damping: 20, stiffness: 200 }, (finished) => {
       if (finished) runOnJS(focusSearchInput)();
     });
-  }, [focusSearchInput, pillW]);
+  }, [filterOpacitySV, focusSearchInput, searchWidthSV]);
 
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
-    pillW.value = withSpring(SEARCH_PILL_COLLAPSED, { damping: 17, stiffness: 320 }, (finished) => {
+    filterOpacitySV.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.cubic) });
+    searchWidthSV.value = withSpring(0, { damping: 20, stiffness: 200 }, (finished) => {
       if (finished) runOnJS(finishCloseSearch)();
     });
-  }, [finishCloseSearch, pillW]);
+  }, [filterOpacitySV, finishCloseSearch, searchWidthSV]);
 
-  const pillAnimatedStyle = useAnimatedStyle(() => ({
-    width: pillW.value,
+  const toggleSearch = useCallback(() => {
+    if (searchOpen) {
+      closeSearch();
+    } else {
+      openSearch();
+    }
+  }, [searchOpen, openSearch, closeSearch]);
+
+  const searchWidthStyle = useAnimatedStyle(() => ({
+    width: searchWidthSV.value,
   }));
+
+  const filterPillAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: filterOpacitySV.value,
+  }));
+
+  const dropdownEnterStyle = useAnimatedStyle(() => ({
+    opacity: ddOpacitySV.value,
+    transform: [{ translateY: ddTranslateYSV.value }],
+  }));
+
+  useEffect(() => {
+    if (filterDropdownVisible) {
+      ddOpacitySV.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.cubic) });
+      ddTranslateYSV.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.cubic) });
+    } else {
+      ddOpacitySV.value = withTiming(0, { duration: 150, easing: Easing.in(Easing.cubic) });
+      ddTranslateYSV.value = withTiming(-4, { duration: 150, easing: Easing.in(Easing.cubic) });
+    }
+  }, [filterDropdownVisible, ddOpacitySV, ddTranslateYSV]);
+
+  const openFilterDropdown = useCallback(() => {
+    filterPillRef.current?.measureInWindow((x, y, width, height) => {
+      setDropdownWin({ left: x, top: y + height + 4, width });
+      setFilterDropdownVisible(true);
+    });
+  }, []);
+
+  const closeFilterDropdown = useCallback(() => {
+    setFilterDropdownVisible(false);
+    setDropdownWin(null);
+  }, []);
 
   // ── Filter state ─────────────────────────────────────────
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
@@ -335,10 +383,15 @@ export default function MessagerieScreen() {
     [navigation],
   );
 
+  const inputRightOffset =
+    filterPillW + HEADER_ACTION_GAP + SEARCH_ICON_W + HEADER_ACTION_GAP;
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-
-      <View style={[styles.headerWrap, styles.screenHorizontalPad]}>
+      <View
+        style={[styles.headerWrap, styles.screenHorizontalPad]}
+        onLayout={(e) => setHeaderBlockH(e.nativeEvent.layout.height)}
+      >
         <View style={styles.headerRow}>
           <View style={styles.headerTextArea}>
             <Text style={styles.headerTitle}>Messagerie</Text>
@@ -349,119 +402,149 @@ export default function MessagerieScreen() {
             </Text>
           </View>
 
-          <View style={styles.headerActions}>
+          <View style={styles.headerActionsCluster}>
             <Animated.View
               style={[
-                styles.searchPill,
-                glassStyle,
-                pillAnimatedStyle,
-                { borderWidth: 1, borderColor: Colors.cardBorder },
+                styles.searchInputAbs,
+                whitePillShadow,
+                styles.searchInputRounded,
+                searchWidthStyle,
+                { right: inputRightOffset },
               ]}
+              pointerEvents={searchOpen ? 'auto' : 'none'}
             >
-              <View style={styles.searchPillInner}>
-                {searchOpen ? (
-                  <>
-                    <TextInput
-                      ref={searchInputRef}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholder="Rechercher…"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.searchInputInPill}
-                      returnKeyType="search"
-                      onSubmitEditing={() => searchInputRef.current?.blur()}
-                      autoCorrect={false}
-                    />
-                    <Pressable
-                      onPress={closeSearch}
-                      hitSlop={8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Fermer la recherche"
-                    >
-                      <X size={17} color="#64748B" strokeWidth={2.2} />
-                    </Pressable>
-                  </>
-                ) : null}
+              <TextInput
+                ref={searchInputRef}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Rechercher…"
+                placeholderTextColor="#94A3B8"
+                style={styles.searchInputField}
+                returnKeyType="search"
+                onSubmitEditing={() => searchInputRef.current?.blur()}
+                autoCorrect={false}
+                editable={searchOpen}
+              />
+            </Animated.View>
+
+            <Pressable
+              onPress={toggleSearch}
+              style={({ pressed }) => [
+                styles.searchIconBtn,
+                whitePillShadow,
+                pressed && { opacity: 0.88 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
+            >
+              <Search size={22} color={NAVY} strokeWidth={1.5} />
+            </Pressable>
+
+            <Animated.View
+              style={[filterPillAnimatedStyle, styles.filterPillSlot]}
+              pointerEvents={searchOpen ? 'none' : 'auto'}
+            >
+              <View
+                ref={filterPillRef}
+                collapsable={false}
+                onLayout={(e) => setFilterPillW(e.nativeEvent.layout.width)}
+              >
                 <Pressable
-                  onPress={searchOpen ? () => searchInputRef.current?.focus() : openSearch}
-                  style={({ pressed }) => [styles.searchIconSlot, pressed && { opacity: 0.8 }]}
+                  onPress={openFilterDropdown}
+                  style={({ pressed }) => [
+                    styles.filterSelectorPill,
+                    whitePillShadow,
+                    pressed && { opacity: 0.9 },
+                  ]}
                   accessibilityRole="button"
-                  accessibilityLabel="Rechercher"
+                  accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                 >
-                  <Search size={22} color={NAVY} strokeWidth={1.5} />
+                  <Text style={styles.filterSelectorPillText} numberOfLines={1}>
+                    {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
+                  </Text>
+                  <ChevronDown size={14} color={NAVY} strokeWidth={2} />
                 </Pressable>
               </View>
             </Animated.View>
-
-            {!searchOpen ? (
-              <Pressable
-                onPress={() => setFilterModalVisible(true)}
-                style={({ pressed }) => [
-                  styles.filterSelectorPill,
-                  pressed && { opacity: 0.88 },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
-              >
-                <Text style={styles.filterSelectorPillText} numberOfLines={1}>
-                  {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
-                </Text>
-                <ChevronDown size={14} color={NAVY} strokeWidth={2} />
-              </Pressable>
-            ) : null}
           </View>
         </View>
-
-        <Modal
-          visible={filterModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setFilterModalVisible(false)}
-        >
-          <View style={styles.filterModalRoot}>
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => setFilterModalVisible(false)}
-              accessibilityLabel="Fermer"
-            />
-            <View style={styles.filterModalCenter} pointerEvents="box-none">
-              <View style={styles.filterModalCard}>
-                <Text style={styles.filterModalTitle}>AFFICHER</Text>
-                {FILTER_OPTIONS.map((opt) => {
-                  const active = opt.id === activeFilter;
-                  return (
-                    <Pressable
-                      key={opt.id}
-                      onPress={() => {
-                        setActiveFilter(opt.id);
-                        setFilterModalVisible(false);
-                      }}
-                      style={({ pressed }) => [
-                        styles.filterModalRow,
-                        pressed && { opacity: 0.88 },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Text style={[styles.filterModalCheck, active ? styles.filterModalCheckOn : styles.filterModalCheckOff]}>
-                        {active ? '✓' : ' '}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.filterModalRowText,
-                          active && styles.filterModalRowTextActive,
-                        ]}
-                      >
-                        {opt.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
-        </Modal>
       </View>
+
+      {searchOpen ? (
+        <Pressable
+          style={[styles.searchDismissLayer, { top: insets.top + headerBlockH }]}
+          onPress={closeSearch}
+          accessibilityLabel="Fermer la recherche"
+        />
+      ) : null}
+
+      <Modal
+        visible={filterDropdownVisible && dropdownWin != null}
+        transparent
+        animationType="none"
+        onRequestClose={closeFilterDropdown}
+      >
+        <View style={styles.filterDropdownModalRoot} pointerEvents="box-none">
+          <Pressable style={StyleSheet.absoluteFill} onPress={closeFilterDropdown} />
+          {dropdownWin ? (
+            <Animated.View
+              style={[
+                styles.filterDropdownCard,
+                dropdownEnterStyle,
+                {
+                  position: 'absolute',
+                  left: Math.max(
+                    16,
+                    Math.min(
+                      dropdownWin.left,
+                      Dimensions.get('window').width - 16 - 160,
+                    ),
+                  ),
+                  top: dropdownWin.top,
+                  minWidth: Math.max(160, dropdownWin.width),
+                },
+              ]}
+            >
+              <Text style={styles.filterModalTitle}>AFFICHER</Text>
+              {FILTER_OPTIONS.map((opt) => {
+                const active = opt.id === activeFilter;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    onPress={() => {
+                      setActiveFilter(opt.id);
+                      closeFilterDropdown();
+                    }}
+                    style={({ pressed }) => [
+                      styles.filterModalRow,
+                      pressed && { opacity: 0.88 },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <Text
+                      style={[
+                        styles.filterModalCheck,
+                        active ? styles.filterModalCheckOn : styles.filterModalCheckOff,
+                      ]}
+                    >
+                      {active ? '✓' : ' '}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.filterModalRowText,
+                        active && styles.filterModalRowTextActive,
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </Animated.View>
+          ) : null}
+        </View>
+      </Modal>
 
       {/* ── Conversation list ── */}
       <ScrollView
@@ -538,9 +621,9 @@ const styles = StyleSheet.create({
   headerWrap: {
     paddingTop: 10,
     paddingBottom: 10,
-    zIndex: 20,
+    zIndex: 100,
     maxWidth: '100%',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   headerRow: {
     position: 'relative',
@@ -550,11 +633,55 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 52,
   },
-  headerActions: {
+  headerActionsCluster: {
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'flex-end',
+    gap: HEADER_ACTION_GAP,
     flexShrink: 0,
+    minHeight: 40,
+  },
+  searchInputAbs: {
+    position: 'absolute',
+    top: 0,
+    height: 40,
+    overflow: 'hidden',
+    zIndex: 1,
+    paddingLeft: 12,
+  },
+  searchInputRounded: {
+    borderRadius: 20,
+  },
+  searchInputField: {
+    flex: 1,
+    height: 40,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: NAVY,
+    paddingVertical: 0,
+  },
+  searchIconBtn: {
+    width: SEARCH_ICON_W,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  filterPillSlot: {
+    zIndex: 2,
+  },
+  searchDismissLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 40,
+    backgroundColor: 'transparent',
+  },
+  filterDropdownModalRoot: {
+    flex: 1,
   },
   headerTextArea: {
     flex: 1,
@@ -564,10 +691,9 @@ const styles = StyleSheet.create({
   filterSelectorPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 36,
+    minHeight: 36,
     paddingHorizontal: 12,
-    borderRadius: 18,
-    backgroundColor: '#F2F2F7',
+    borderRadius: 20,
     gap: 6,
     maxWidth: 168,
   },
@@ -590,66 +716,27 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  searchPill: {
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    maxWidth: SEARCH_PILL_EXPANDED,
-  },
-  searchPillInner: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingLeft: 10,
-    paddingRight: 8,
-    gap: 6,
-    minWidth: 0,
-  },
-  searchInputInPill: {
-    flex: 1,
-    minWidth: 0,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: NAVY,
-    paddingVertical: 0,
-  },
-  searchIconSlot: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-
-  filterModalRoot: {
-    flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.35)',
-  },
-  filterModalCenter: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    zIndex: 1,
-  },
-  filterModalCard: {
+  filterDropdownCard: {
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
     paddingVertical: 6,
-    maxWidth: 360,
-    alignSelf: 'center',
-    width: '100%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
       },
-      android: { elevation: 8 },
+      android: { elevation: 6 },
       default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 16,
+        ...(Platform.OS === 'web'
+          ? ({ boxShadow: '0 4px 16px rgba(0,0,0,0.12)' } as object)
+          : {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 12,
+            }),
       },
     }),
   },
