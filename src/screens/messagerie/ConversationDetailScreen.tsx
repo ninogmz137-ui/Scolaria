@@ -22,7 +22,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getInputBarPaddingBottom, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import {
   getConversation,
@@ -254,14 +254,7 @@ export default function ConversationDetailScreen({
           ))}
         </ScrollView>
 
-        <View
-          style={{
-            backgroundColor: SCREEN_BACKGROUND,
-            borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: '#D1D5DB',
-            paddingTop: 8,
-          }}
-        >
+        <View style={{ backgroundColor: 'transparent' }}>
           <UniversalInputBar
             placeholder="Écrire un message…"
             value={inputText}
@@ -271,7 +264,7 @@ export default function ConversationDetailScreen({
             onPressMic={() => {}}
             variant="human"
             containerStyle={{
-              paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8,
+              paddingBottom: getInputBarPaddingBottom(insets.bottom),
               paddingHorizontal: 4,
             }}
             maxLength={2000}

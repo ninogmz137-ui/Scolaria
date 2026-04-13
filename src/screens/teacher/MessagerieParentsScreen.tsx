@@ -8,11 +8,12 @@ import {
   Platform,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { TAB_BAR_SCROLL_PADDING, getTeacherInputBarPaddingBottom } from '../../components/FloatingTabBar';
 import UniversalInputBar from '../../components/UniversalInputBar';
 
 const TEACHER_ORANGE = '#FF8C42';
@@ -114,6 +115,7 @@ const CONVERSATIONS: Conversation[] = [
 // ─── Component ────────────────────────────────────────────
 
 export default function MessagerieParentsScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
   const [messageText, setMessageText] = useState('');
   const [conversations, setConversations] = useState(CONVERSATIONS);
@@ -249,15 +251,7 @@ export default function MessagerieParentsScreen() {
           })}
         </ScrollView>
 
-        <View
-          style={{
-            backgroundColor: SCREEN_BACKGROUND,
-            borderTopWidth: 1,
-            borderTopColor: '#EEF0F5',
-            paddingTop: 10,
-            paddingBottom: 10,
-          }}
-        >
+        <View style={{ backgroundColor: 'transparent' }}>
           <UniversalInputBar
             placeholder="Écrire un message..."
             value={messageText}
@@ -266,7 +260,10 @@ export default function MessagerieParentsScreen() {
             onPressPlus={() => {}}
             onPressMic={() => {}}
             variant="human"
-            containerStyle={{ paddingHorizontal: 8 }}
+            containerStyle={{
+              paddingHorizontal: 8,
+              paddingBottom: getTeacherInputBarPaddingBottom(insets.bottom),
+            }}
           />
         </View>
       </KeyboardAvoidingView>

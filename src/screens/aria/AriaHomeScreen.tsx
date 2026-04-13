@@ -24,7 +24,11 @@ import {
 } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import WallpaperBackground from '../../components/WallpaperBackground';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  TAB_BAR_SCROLL_PADDING,
+  getInputBarPaddingBottom,
+} from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
@@ -319,7 +323,7 @@ export default function AriaHomeScreen() {
             setOrbState((s) => (s === 'thinking' ? 'thinking' : 'idle'))
           }
           variant="aria"
-          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
           maxLength={800}
           returnKeyType="send"
           onSubmitEditing={() => sendFromHome(input)}

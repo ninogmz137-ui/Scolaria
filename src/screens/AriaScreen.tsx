@@ -14,9 +14,9 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import UniversalInputBar from '../components/UniversalInputBar';
 import {
-  FLOATING_TAB_BAR_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
   FLAT_LIST_TAB_BAR_FOOTER_SPACER,
+  getInputBarPaddingBottom,
 } from '../components/FloatingTabBar';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
@@ -293,7 +293,7 @@ export default function AriaScreen() {
           onPressMic={() => {}}
           variant="aria"
           editable={!isTyping}
-          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }}
+          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
           maxLength={500}
           returnKeyType="send"
           onSubmitEditing={() => sendMessage()}

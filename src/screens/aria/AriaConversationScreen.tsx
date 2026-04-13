@@ -25,9 +25,9 @@ import {
 } from 'lucide-react-native';
 import WallpaperBackground from '../../components/WallpaperBackground';
 import {
-  FLOATING_TAB_BAR_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
   FLAT_LIST_TAB_BAR_FOOTER_SPACER,
+  getInputBarPaddingBottom,
 } from '../../components/FloatingTabBar';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
@@ -419,7 +419,7 @@ export default function AriaConversationScreen() {
           onPressMic={() => {}}
           variant="aria"
           editable={!isTyping}
-          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }}
+          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
           maxLength={800}
           returnKeyType="send"
           onSubmitEditing={() => sendMessage()}

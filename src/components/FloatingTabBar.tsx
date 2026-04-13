@@ -48,6 +48,36 @@ import { SCREEN_BACKGROUND } from '../constants/colors';
 /** Total height the floating tab bar occupies (bar 64 + bottom margin + safe area) */
 export const FLOATING_TAB_BAR_HEIGHT = 100;
 
+/** Height of the floating tab row (pill + side circles). Matches `styles.container.height`. */
+export const FLOATING_TAB_BAR_ROW_HEIGHT = 50;
+
+/**
+ * Gap between the bottom of the input bar bubble and the top of the floating tab bar.
+ * Keep ~12–16px so the composer sits just above the pill.
+ */
+export const INPUT_BAR_GAP_ABOVE_TAB_BAR = 14;
+
+/** Same rule as `bottomOffset` inside FloatingTabBar (safe area + margin, or 16 on older devices). */
+export function getFloatingTabBottomOffset(insetsBottom: number): number {
+  return insetsBottom > 0 ? insetsBottom + 8 : 16;
+}
+
+/** Bottom padding for UniversalInputBar on parent tab screens (floating pill). */
+export function getInputBarPaddingBottom(insetsBottom: number): number {
+  return (
+    getFloatingTabBottomOffset(insetsBottom) +
+    FLOATING_TAB_BAR_ROW_HEIGHT +
+    INPUT_BAR_GAP_ABOVE_TAB_BAR
+  );
+}
+
+/** Teacher bottom tabs: base bar from TeacherTabNavigator `tabBarStyle.height` minus safe inset. */
+export const TEACHER_TAB_BAR_CONTENT_HEIGHT = 62;
+
+export function getTeacherInputBarPaddingBottom(insetsBottom: number): number {
+  return TEACHER_TAB_BAR_CONTENT_HEIGHT + Math.max(insetsBottom, 5) + INPUT_BAR_GAP_ABOVE_TAB_BAR;
+}
+
 /**
  * Extra bottom padding for ScrollView / FlatList content so it clears the pill tab bar
  * (especially on Android). Use with FLOATING_TAB_BAR_HEIGHT + insets.bottom on tab screens.

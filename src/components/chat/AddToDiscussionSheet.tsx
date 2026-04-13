@@ -1,11 +1,28 @@
-import { useCallback } from 'react';
-import { Modal, View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import Animated, { SlideInUp } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Camera, Image as ImageIcon, FileUp, X } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 export type AddAttachment = { kind: 'camera' | 'photo' | 'file'; uri: string; name?: string | null };
+
+const SPRING = { damping: 20, stiffness: 200 };
 
 export default function AddToDiscussionSheet({
   visible,
@@ -16,6 +33,38 @@ export default function AddToDiscussionSheet({
   onClose: () => void;
   onPick: (a: AddAttachment) => void;
 }) {
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const translateY = useSharedValue(300);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const hiddenY = useMemo(
+    () => Math.max(windowHeight * 0.45, 320),
+    [windowHeight],
+  );
+
+  useEffect(() => {
+    if (visible) {
+      setModalVisible(true);
+      translateY.value = hiddenY;
+      translateY.value = withSpring(0, SPRING);
+    }
+  }, [visible, hiddenY]);
+
+  useEffect(() => {
+    if (!visible && modalVisible) {
+      translateY.value = withTiming(hiddenY, { duration: 200 }, (finished) => {
+        if (finished) {
+          runOnJS(setModalVisible)(false);
+        }
+      });
+    }
+  }, [visible, modalVisible, hiddenY]);
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   const pickFromCamera = useCallback(async () => {
     if (Platform.OS === 'web') return;
     const ImagePicker = await import('expo-image-picker');
@@ -50,16 +99,25 @@ export default function AddToDiscussionSheet({
   }, [onClose, onPick]);
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal visible={modalVisible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Fermer" />
         {Platform.OS === 'web' ? (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(15,23,42,0.22)' }]} />
         ) : (
           <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
         )}
 
-        <Animated.View entering={SlideInUp.duration(280)} style={styles.sheetWrap}>
+        <Animated.View
+          style={[
+            styles.sheet,
+            sheetAnimatedStyle,
+            {
+              paddingBottom: Math.max(insets.bottom, 12) + 16,
+              zIndex: 100,
+            },
+          ]}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Ajouter à la discussion</Text>
             <Pressable onPress={onClose} style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7 }]}>
@@ -101,9 +159,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  sheetWrap: {
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingHorizontal: 16,
-    paddingBottom: 28,
+    paddingTop: 14,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+      },
+      android: { elevation: 16 },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+      },
+    }),
   },
   header: {
     flexDirection: 'row',
@@ -115,18 +199,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 15,
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0,0,0,0.35)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    color: '#0F172A',
   },
   closeBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
