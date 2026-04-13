@@ -90,7 +90,7 @@ export default function AuthScreen() {
           end={{ x: 0.5, y: 1 }}
           style={{ alignItems: 'center', paddingTop: 60, paddingBottom: 40 }}
         >
-          <LogoScolaria size={72} showSubtitle variant="dark" />
+          <LogoScolaria size={72} variant="dark" />
         </LinearGradient>
 
         {/* Form */}

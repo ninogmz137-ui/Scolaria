@@ -6,12 +6,14 @@ import {
   Animated,
   KeyboardAvoidingView,
   Platform,
+  View,
 } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import UniversalInputBar from '../../components/UniversalInputBar';
 
 const TEACHER_ORANGE = '#FF8C42';
 
@@ -247,29 +249,26 @@ export default function MessagerieParentsScreen() {
           })}
         </ScrollView>
 
-        {/* Input bar */}
-        <HStack className="items-end gap-2.5 px-4 py-3" style={{ backgroundColor: SCREEN_BACKGROUND, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}>
-          <TextInput
-            style={{
-              flex: 1, backgroundColor: SCREEN_BACKGROUND, borderRadius: 20, padding: 12, paddingTop: 12,
-              color: '#0F172A', fontSize: 14, maxHeight: 100,
-              borderWidth: 1, borderColor: '#EEF0F5',
-            }}
+        <View
+          style={{
+            backgroundColor: SCREEN_BACKGROUND,
+            borderTopWidth: 1,
+            borderTopColor: '#EEF0F5',
+            paddingTop: 10,
+            paddingBottom: 10,
+          }}
+        >
+          <UniversalInputBar
             placeholder="Écrire un message..."
-            placeholderTextColor="#94A3B8"
             value={messageText}
             onChangeText={setMessageText}
-            multiline
+            onSend={handleSend}
+            onPressPlus={() => {}}
+            onPressMic={() => {}}
+            variant="human"
+            containerStyle={{ paddingHorizontal: 8 }}
           />
-          <Pressable
-            onPress={handleSend}
-            disabled={!messageText.trim()}
-            className="w-11 h-11 rounded-[22px] justify-center items-center"
-            style={{ backgroundColor: TEACHER_ORANGE, opacity: !messageText.trim() ? 0.4 : 1 }}
-          >
-            <Ionicons name="send" size={20} color={Colors.white} />
-          </Pressable>
-        </HStack>
+        </View>
       </KeyboardAvoidingView>
     );
   }

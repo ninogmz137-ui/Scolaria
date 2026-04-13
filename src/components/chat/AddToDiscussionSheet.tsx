@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet, Platform } from 'react-native';
-import { Camera, Image as ImageIcon, FileText, X } from 'lucide-react-native';
+import { BlurView } from 'expo-blur';
+import Animated, { SlideInUp } from 'react-native-reanimated';
+import { Camera, Image as ImageIcon, FileUp, X } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 export type AddAttachment = { kind: 'camera' | 'photo' | 'file'; uri: string; name?: string | null };
@@ -14,8 +16,6 @@ export default function AddToDiscussionSheet({
   onClose: () => void;
   onPick: (a: AddAttachment) => void;
 }) {
-  const BlurView = Platform.OS === 'web' ? null : (require('expo-blur').BlurView as React.ComponentType<any>);
-
   const pickFromCamera = useCallback(async () => {
     if (Platform.OS === 'web') return;
     const ImagePicker = await import('expo-image-picker');
@@ -50,7 +50,7 @@ export default function AddToDiscussionSheet({
   }, [onClose, onPick]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         {Platform.OS === 'web' ? (
@@ -59,7 +59,7 @@ export default function AddToDiscussionSheet({
           <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
         )}
 
-        <View style={styles.sheet}>
+        <Animated.View entering={SlideInUp.duration(280)} style={styles.sheetWrap}>
           <View style={styles.header}>
             <Text style={styles.title}>Ajouter à la discussion</Text>
             <Pressable onPress={onClose} style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7 }]}>
@@ -67,45 +67,58 @@ export default function AddToDiscussionSheet({
             </Pressable>
           </View>
 
-          <View style={styles.card}>
-            <Pressable onPress={pickFromCamera} style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}>
-              <Camera size={20} color="#0F172A" strokeWidth={2} />
-              <Text style={styles.rowLabel}>Caméra</Text>
+          <View style={styles.optionsRow}>
+            <Pressable
+              onPress={pickFromCamera}
+              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+            >
+              <Camera size={22} color="#0F172A" strokeWidth={2} />
+              <Text style={styles.optionLabel}>Caméra</Text>
             </Pressable>
-            <View style={styles.sep} />
-            <Pressable onPress={pickFromPhotos} style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}>
-              <ImageIcon size={20} color="#0F172A" strokeWidth={2} />
-              <Text style={styles.rowLabel}>Photos</Text>
+            <Pressable
+              onPress={pickFromPhotos}
+              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+            >
+              <ImageIcon size={22} color="#0F172A" strokeWidth={2} />
+              <Text style={styles.optionLabel}>Photos</Text>
             </Pressable>
-            <View style={styles.sep} />
-            <Pressable onPress={pickFile} style={({ pressed }) => [styles.row, pressed && { opacity: 0.75 }]}>
-              <FileText size={20} color="#0F172A" strokeWidth={2} />
-              <Text style={styles.rowLabel}>Fichiers</Text>
+            <Pressable
+              onPress={pickFile}
+              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+            >
+              <FileUp size={22} color="#0F172A" strokeWidth={2} />
+              <Text style={styles.optionLabel}>Fichiers</Text>
             </Pressable>
           </View>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, justifyContent: 'flex-end' },
-  sheet: {
+  root: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  sheetWrap: {
     paddingHorizontal: 16,
-    paddingBottom: 18,
+    paddingBottom: 28,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   title: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
+    fontSize: 15,
     color: '#FFFFFF',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   closeBtn: {
     width: 36,
@@ -117,34 +130,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  card: {
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.16, shadowRadius: 28 },
-      android: { elevation: 0 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.16, shadowRadius: 28 },
-    }),
-  },
-  row: {
+  optionsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  option: {
+    flex: 1,
+    minWidth: 0,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 14,
+    padding: 14,
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: 10,
   },
-  rowLabel: {
+  optionLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
+    fontSize: 12,
     color: '#0F172A',
-  },
-  sep: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(15,23,42,0.08)',
-    marginLeft: 48,
+    textAlign: 'center',
   },
 });
-

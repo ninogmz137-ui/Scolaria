@@ -18,8 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   MessagesSquare,
   MessageCirclePlus,
-  Plus,
-  Send,
   MessageSquare,
   FileText,
   Bell,
@@ -38,7 +36,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { useAuth } from '../../contexts/AuthContext';
-import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
+import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
 
 // ─── Constants ─────────────────────────────────────────────
@@ -133,8 +131,6 @@ export default function AriaConversationScreen() {
   const listRef = useRef<FlatList>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [addSheetOpen, setAddSheetOpen] = useState(false);
-
   // Sidebar state
   const [selectedCategory, setSelectedCategory] = useState<ConvCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -414,47 +410,21 @@ export default function AriaConversationScreen() {
           onContentSizeChange={() => scrollToEnd()}
         />
 
-        {/* ─── Input ────────────────────────────────────────── */}
-        <View style={[styles.inputWrap, { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }]}>
-          <View style={styles.inputRow}>
-            <Pressable
-              onPress={() => setAddSheetOpen(true)}
-              style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.82 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Ajouter à la discussion"
-            >
-              <Plus size={18} color="#64748B" strokeWidth={2.2} />
-            </Pressable>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Demandez à Aria…"
-              placeholderTextColor="#94A3B8"
-              style={styles.input}
-              multiline
-              maxLength={800}
-              editable={!isTyping}
-              returnKeyType="send"
-              onSubmitEditing={() => sendMessage()}
-            />
-            <Pressable
-              onPress={() => sendMessage()}
-              disabled={!input.trim() || isTyping}
-              style={({ pressed }) => [
-                styles.sendBtn,
-                input.trim() ? styles.sendBtnActive : null,
-                pressed && input.trim() && !isTyping ? { opacity: 0.82 } : null,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Envoyer"
-            >
-              <Send size={18} color={input.trim() ? '#FFFFFF' : '#94A3B8'} strokeWidth={2.2} />
-            </Pressable>
-          </View>
-        </View>
+        <UniversalInputBar
+          placeholder="Demandez à Aria…"
+          value={input}
+          onChangeText={setInput}
+          onSend={() => sendMessage()}
+          onPressPlus={() => {}}
+          onPressMic={() => {}}
+          variant="aria"
+          editable={!isTyping}
+          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }}
+          maxLength={800}
+          returnKeyType="send"
+          onSubmitEditing={() => sendMessage()}
+        />
       </KeyboardAvoidingView>
-
-      <AddToDiscussionSheet visible={addSheetOpen} onClose={() => setAddSheetOpen(false)} onPick={() => {}} />
 
       {/* ─── Overlay ──────────────────────────────────────────── */}
       {drawerOpen && (
@@ -719,32 +689,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#475569',
   },
-
-  // Input
-  inputWrap: { paddingHorizontal: 12, paddingTop: 8 },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    columnGap: 8,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 28, paddingLeft: 10, paddingRight: 6, paddingVertical: 6,
-    ...Platform.select({
-      ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.08, shadowRadius: 20 },
-      android: { elevation: 0 },
-    }),
-  },
-  plusBtn: {
-    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)', borderWidth: 1, borderColor: 'rgba(148,163,184,0.18)', marginBottom: 2,
-  },
-  input: { flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 15, color: '#0F172A', maxHeight: 120, paddingVertical: 10 },
-  sendBtn: {
-    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)', borderWidth: 1, borderColor: 'rgba(148,163,184,0.18)', marginBottom: 2,
-  },
-  sendBtnActive: { backgroundColor: '#6366F1', borderColor: '#6366F1' },
 
   // Overlay
   drawerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.30)' },

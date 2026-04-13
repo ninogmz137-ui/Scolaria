@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,10 +10,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkles as SparklesIcon } from '@getpapillon/papicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
+import UniversalInputBar from '../components/UniversalInputBar';
 import {
   FLOATING_TAB_BAR_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
@@ -286,62 +284,20 @@ export default function AriaScreen() {
           }
         />
 
-        {/* Glass input bar */}
-        <View style={[styles.inputWrapper, { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }]}>
-          <View
-            style={[
-              styles.inputRow,
-              {
-                borderColor: accentBorder,
-                backgroundColor: 'rgba(255,255,255,0.55)',
-              },
-            ]}
-          >
-            <TextInput
-              style={[styles.textInput, { color: '#0F172A' }]}
-              placeholder="Demandez à Aria..."
-              placeholderTextColor="#94A3B8"
-              value={input}
-              onChangeText={setInput}
-              multiline
-              maxLength={500}
-              onSubmitEditing={() => sendMessage()}
-              editable={!isTyping}
-            />
-            {input.trim() ? (
-              <Pressable
-                style={[
-                  styles.sendButton,
-                  isTyping && styles.buttonDisabled,
-                ]}
-                onPress={() => sendMessage()}
-                disabled={isTyping}
-              >
-                {Platform.OS === 'web' ? (
-                  <View style={[styles.sendGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
-                    <SparklesIcon size={20} color="#FFFFFF" />
-                  </View>
-                ) : (
-                  <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sendGradient}>
-                    <SparklesIcon size={20} color="#FFFFFF" />
-                  </LinearGradient>
-                )}
-              </Pressable>
-            ) : (
-              <Pressable style={styles.sendButton}>
-                {Platform.OS === 'web' ? (
-                  <View style={[styles.sendGradient, { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any]}>
-                    <SparklesIcon size={20} color="#FFFFFF" />
-                  </View>
-                ) : (
-                  <LinearGradient colors={['#7C3AED', '#06B6D4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.sendGradient}>
-                    <SparklesIcon size={20} color="#FFFFFF" />
-                  </LinearGradient>
-                )}
-              </Pressable>
-            )}
-          </View>
-        </View>
+        <UniversalInputBar
+          placeholder="Demandez à Aria…"
+          value={input}
+          onChangeText={setInput}
+          onSend={() => sendMessage()}
+          onPressPlus={() => {}}
+          onPressMic={() => {}}
+          variant="aria"
+          editable={!isTyping}
+          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 }}
+          maxLength={500}
+          returnKeyType="send"
+          onSubmitEditing={() => sendMessage()}
+        />
       </KeyboardAvoidingView>
 
     </View>
@@ -382,49 +338,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   textDisabled: {
-    opacity: 0.4,
-  },
-  // ── Input bar ──
-  inputWrapper: {
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    borderWidth: 1.5,
-    borderRadius: 28,
-    paddingLeft: 16,
-    paddingRight: 4,
-    paddingVertical: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  textInput: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 15,
-    maxHeight: 100,
-    paddingVertical: 10,
-  },
-  sendButton: {
-    marginBottom: 2,
-  },
-  sendGradient: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonDisabled: {
     opacity: 0.4,
   },
   menuButton: {

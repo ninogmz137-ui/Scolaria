@@ -4,11 +4,13 @@ import { Colors } from '../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
+type ErrorBoundaryState = { error: Error | null; info: React.ErrorInfo | null };
+
 export default class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { error: Error | null; info: React.ErrorInfo | null }
+  ErrorBoundaryState
 > {
-  state = { error: null, info: null };
+  state: ErrorBoundaryState = { error: null, info: null };
 
   static getDerivedStateFromError(error: Error) {
     return { error, info: null };
@@ -22,18 +24,19 @@ export default class ErrorBoundary extends React.Component<
   }
 
   render() {
-    if (!this.state.error) return this.props.children;
+    const { error, info } = this.state;
+    if (!error) return this.props.children;
 
     return (
       <View style={styles.root}>
         <Text style={styles.title}>Erreur de rendu</Text>
         <Text style={styles.subtitle}>Copie-colle ce message ici.</Text>
         <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}>
-          <Text style={styles.mono}>{String(this.state.error?.stack || this.state.error?.message)}</Text>
-          {this.state.info?.componentStack ? (
+          <Text style={styles.mono}>{String(error.stack || error.message)}</Text>
+          {info?.componentStack ? (
             <>
               <Text style={styles.section}>Component stack</Text>
-              <Text style={styles.mono}>{this.state.info.componentStack}</Text>
+              <Text style={styles.mono}>{info.componentStack}</Text>
             </>
           ) : null}
         </ScrollView>

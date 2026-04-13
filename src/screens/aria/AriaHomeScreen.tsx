@@ -6,31 +6,28 @@ import {
   Pressable,
   StyleSheet,
   Platform,
-  TextInput,
   KeyboardAvoidingView,
   Animated,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
-  Plus,
   MessagesSquare,
   MessageCirclePlus,
-  Send,
   MessageSquare,
   FileText,
   Bell,
   Search,
-  Mic,
 } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import WallpaperBackground from '../../components/WallpaperBackground';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
-import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
+import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 
@@ -138,7 +135,6 @@ export default function AriaHomeScreen() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [input, setInput] = useState('');
-  const [addSheetOpen, setAddSheetOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<RecentCategory>('all');
@@ -311,61 +307,24 @@ export default function AriaHomeScreen() {
           </View>
         </ScrollView>
 
-        {/* ─── Input dock ───────────────────────────────────── */}
-        <View style={[styles.inputDock, { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }]}>
-          <View style={styles.inputRow}>
-            <Pressable
-              onPress={() => setAddSheetOpen(true)}
-              style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.8 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Ajouter"
-            >
-              <Plus size={18} color="#64748B" strokeWidth={2.2} />
-            </Pressable>
-            <Pressable
-              onPressIn={() => setOrbState('listening')}
-              onPressOut={() =>
-                setOrbState((s) => (s === 'thinking' ? 'thinking' : 'idle'))
-              }
-              style={({ pressed }) => [styles.plusBtn, pressed && { opacity: 0.8 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Microphone"
-            >
-              <Mic size={18} color="#64748B" strokeWidth={2.2} />
-            </Pressable>
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Demandez à Aria…"
-              placeholderTextColor="#94A3B8"
-              style={styles.input}
-              multiline
-              maxLength={800}
-              returnKeyType="send"
-              onSubmitEditing={() => sendFromHome(input)}
-            />
-            <Pressable
-              onPress={() => sendFromHome(input)}
-              disabled={!input.trim()}
-              style={({ pressed }) => [
-                styles.sendBtn,
-                input.trim() ? styles.sendBtnActive : null,
-                pressed && input.trim() ? { opacity: 0.82 } : null,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Envoyer"
-            >
-              <Send size={18} color={input.trim() ? '#FFFFFF' : '#94A3B8'} strokeWidth={2.2} />
-            </Pressable>
-          </View>
-        </View>
+        <UniversalInputBar
+          placeholder="Demandez à Aria…"
+          value={input}
+          onChangeText={setInput}
+          onSend={() => sendFromHome(input)}
+          onPressPlus={() => {}}
+          onPressMic={() => {}}
+          onMicPressIn={() => setOrbState('listening')}
+          onMicPressOut={() =>
+            setOrbState((s) => (s === 'thinking' ? 'thinking' : 'idle'))
+          }
+          variant="aria"
+          containerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+          maxLength={800}
+          returnKeyType="send"
+          onSubmitEditing={() => sendFromHome(input)}
+        />
       </KeyboardAvoidingView>
-
-      <AddToDiscussionSheet
-        visible={addSheetOpen}
-        onClose={() => setAddSheetOpen(false)}
-        onPick={() => {}}
-      />
 
       {/* ─── Overlay ──────────────────────────────────────────── */}
       {drawerOpen && (
@@ -615,64 +574,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: '#475569',
-  },
-
-  // Input dock
-  inputDock: { paddingHorizontal: 12 },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    columnGap: 8,
-    backgroundColor: 'rgba(255,255,255,0.72)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 28,
-    paddingLeft: 12,
-    paddingRight: 6,
-    paddingVertical: 6,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.08,
-        shadowRadius: 20,
-      },
-      android: { elevation: 0 },
-    }),
-  },
-  plusBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.18)',
-    marginBottom: 2,
-  },
-  input: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 15,
-    color: '#0F172A',
-    maxHeight: 120,
-    paddingVertical: 10,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(148,163,184,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(148,163,184,0.18)',
-    marginBottom: 2,
-  },
-  sendBtnActive: {
-    backgroundColor: '#6366F1',
-    borderColor: '#6366F1',
   },
 
   // Overlay

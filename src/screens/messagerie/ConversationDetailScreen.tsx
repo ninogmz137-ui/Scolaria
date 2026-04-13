@@ -13,7 +13,6 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
@@ -21,9 +20,10 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Send, School, CalendarX } from 'lucide-react-native';
+import { School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import UniversalInputBar from '../../components/UniversalInputBar';
 import {
   getConversation,
   sendMessage as storeSendMessage,
@@ -254,41 +254,28 @@ export default function ConversationDetailScreen({
           ))}
         </ScrollView>
 
-        {/* Input bar */}
         <View
-          style={[
-            styles.inputBar,
-            { paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8 },
-          ]}
+          style={{
+            backgroundColor: SCREEN_BACKGROUND,
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: '#D1D5DB',
+            paddingTop: 8,
+          }}
         >
-          <TextInput
+          <UniversalInputBar
+            placeholder="Écrire un message…"
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Écrire un message…"
-            placeholderTextColor="#94A3B8"
-            style={styles.textInput}
-            multiline
+            onSend={handleSend}
+            onPressPlus={() => {}}
+            onPressMic={() => {}}
+            variant="human"
+            containerStyle={{
+              paddingBottom: FLOATING_TAB_BAR_HEIGHT + 8,
+              paddingHorizontal: 4,
+            }}
             maxLength={2000}
-            returnKeyType="default"
           />
-          <Pressable
-            onPress={handleSend}
-            style={({ pressed }) => [
-              styles.sendBtn,
-              {
-                opacity: inputText.trim()
-                  ? pressed
-                    ? 0.75
-                    : 1
-                  : 0.35,
-              },
-            ]}
-            disabled={!inputText.trim()}
-            accessibilityRole="button"
-            accessibilityLabel="Envoyer"
-          >
-            <Send size={18} color="#FFFFFF" strokeWidth={2.2} />
-          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -450,37 +437,4 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // Input bar
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: SCREEN_BACKGROUND,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D1D5DB',
-    gap: 10,
-  },
-  textInput: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 15,
-    color: NAVY,
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
-    maxHeight: 120,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: NAVY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    marginBottom: 0,
-  },
 });
