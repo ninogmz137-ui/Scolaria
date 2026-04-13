@@ -47,6 +47,15 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 /** Total height the floating tab bar occupies (bar 64 + bottom margin + safe area) */
 export const FLOATING_TAB_BAR_HEIGHT = 100;
 
+/**
+ * Extra bottom padding for ScrollView / FlatList content so it clears the pill tab bar
+ * (especially on Android). Use with FLOATING_TAB_BAR_HEIGHT + insets.bottom on tab screens.
+ */
+export const TAB_BAR_SCROLL_PADDING = 120;
+
+/** Spacer height appended to vertical FlatList footers together with TAB_BAR_SCROLL_PADDING. */
+export const FLAT_LIST_TAB_BAR_FOOTER_SPACER = 100;
+
 // ─── Constants ──────────────────────────────────────────
 
 const MESSAGERIE_UNREAD = 3;

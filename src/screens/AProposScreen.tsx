@@ -35,7 +35,7 @@ import { Colors } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // ─── Charter data ────────────────────────────────────────
@@ -153,7 +153,7 @@ export default function AProposScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: TOPBAR_H + 12,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
           paddingHorizontal: 18,
         }}
       >

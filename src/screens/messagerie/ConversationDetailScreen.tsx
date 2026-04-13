@@ -23,7 +23,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import {
   getConversation,
   sendMessage as storeSendMessage,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   messageListContent: {
     paddingHorizontal: 12,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: TAB_BAR_SCROLL_PADDING,
   },
 
   // Date separator

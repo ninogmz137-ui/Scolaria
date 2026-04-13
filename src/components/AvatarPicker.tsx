@@ -25,6 +25,7 @@ import { Papicons } from '@getpapillon/papicons';
 import ChildAvatar from './ChildAvatar';
 import GlassCard from './GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -151,7 +152,7 @@ export default function AvatarPicker({
           </View>
 
           {/* Tab content */}
-          <ScrollView style={s.content} contentContainerStyle={{ paddingBottom: 20 }}>
+          <ScrollView style={s.content} contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}>
             {activeTab === 'emoji' && (
               <View style={s.emojiGrid}>
                 {EMOJI_OPTIONS.map((emoji) => (

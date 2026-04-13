@@ -10,6 +10,7 @@ import { useRef, useEffect, useState } from 'react';
 import { ScrollView, Animated, Easing } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
+import { TAB_BAR_SCROLL_PADDING } from '../FloatingTabBar';
 
 interface Props {
   childName: string;
@@ -315,6 +316,7 @@ export default function LyceeDashboard({ childName, childAvatar }: Props) {
     <ScrollView
       style={{ flex: 1, backgroundColor: c.bg }}
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >
       {/* Header */}
       <HStack

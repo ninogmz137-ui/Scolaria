@@ -19,7 +19,7 @@ import { createCheckin } from '../services/database';
 import MaternelleMode from '../components/checkin/MaternelleMode';
 import PrimaireMode from '../components/checkin/PrimaireMode';
 import LyceeMode from '../components/checkin/LyceeMode';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
 import { Ionicons } from '@expo/vector-icons';
@@ -173,7 +173,7 @@ export default function MonRessentiScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom,
         }}
       >
         <View style={[styles.header, { paddingTop: insets.top + 10 }]}>

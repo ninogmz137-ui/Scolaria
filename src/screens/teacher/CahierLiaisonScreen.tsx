@@ -11,6 +11,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import {
   getTeacherMots,
   getMotSignatures,
@@ -163,7 +164,10 @@ export default function CahierLiaisonScreen() {
 
     return (
       <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        >
           {/* Back + header */}
           <HStack className="items-start gap-3 p-5 pb-0">
             <Pressable onPress={() => setSelectedMot(null)} className="p-1 mt-0.5">
@@ -288,7 +292,10 @@ export default function CahierLiaisonScreen() {
     <Modal visible={showCreate} animationType="slide" transparent>
       <Box className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
         <Box className="p-6 rounded-t-3xl" style={{ backgroundColor: '#FFFFFF', maxHeight: '90%', borderWidth: 1, borderColor: '#EEF0F5' }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+          >
             {/* Modal header */}
             <HStack className="justify-between items-center mb-5">
               <Text className="text-lg font-extrabold" style={{ color: '#0F172A' }}>Nouveau mot</Text>
@@ -399,7 +406,10 @@ export default function CahierLiaisonScreen() {
   return (
     <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
       {createModal}
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      >
         {/* Header card */}
         <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           <Box className="w-11 h-11 rounded-[22px] justify-center items-center" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>

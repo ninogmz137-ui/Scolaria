@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
 import LogoScolaria from '../components/LogoScolaria';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 type Mode = 'login' | 'signup';
 
@@ -78,7 +79,7 @@ export default function AuthScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_SCROLL_PADDING }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

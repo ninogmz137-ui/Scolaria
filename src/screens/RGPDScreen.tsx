@@ -4,6 +4,7 @@ import { Pressable } from '../components/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 const RGPD_ITEMS = [
   {
@@ -50,6 +51,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
     <ScrollView
       style={[styles.root, { paddingTop: insets.top + 56 + 12 }]}
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >
       {/* Title */}
       <Text style={styles.title}>RGPD & Confidentialité</Text>

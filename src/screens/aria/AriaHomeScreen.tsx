@@ -27,7 +27,7 @@ import {
 } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import WallpaperBackground from '../../components/WallpaperBackground';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
@@ -288,7 +288,7 @@ export default function AriaHomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingTop: 44,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
             paddingHorizontal: 18,
           }}
         >
@@ -446,7 +446,7 @@ export default function AriaHomeScreen() {
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 16 }}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
             style={styles.drawerRecentsScroll}
           >
             {filteredRecents.map((r) => (
@@ -763,18 +763,18 @@ const styles = StyleSheet.create({
 
   // Categories
   categories: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     paddingHorizontal: 8,
-    rowGap: 6,
   },
   categoryRow: {
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderRadius: 10,
-    minHeight: 76,
-    width: '100%',
+    minWidth: 80,
+    alignItems: 'center',
   },
   categoryCell: {
-    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },

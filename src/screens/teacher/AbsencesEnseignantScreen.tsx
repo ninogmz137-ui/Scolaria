@@ -7,6 +7,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
 import { Colors } from '../../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import {
   getClassAbsences,
   markAbsencePriseEnCompte,
@@ -213,7 +214,7 @@ export default function AbsencesEnseignantScreen() {
       ) : (
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_SCROLL_PADDING }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

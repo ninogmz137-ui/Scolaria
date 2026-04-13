@@ -36,6 +36,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -169,7 +170,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: 120 },
+          { paddingTop: insets.top + 60, paddingBottom: TAB_BAR_SCROLL_PADDING },
         ]}
       >
         {/* ── Parent profile mini-card ── */}

@@ -11,6 +11,7 @@ import { ScrollView, Animated, Easing, Dimensions } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
+import { TAB_BAR_SCROLL_PADDING } from '../FloatingTabBar';
 
 const { width } = Dimensions.get('window');
 
@@ -464,7 +465,11 @@ function VisualTimeline() {
 
 export default function MaternelleDashboard({ childName, childAvatar }: Props) {
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#FFF8F0' }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#FFF8F0' }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+    >
       <LinearGradient
         colors={['#FFF2E5', '#FFF8F0', '#FFFFFF']}
         style={{ minHeight: '100%', paddingBottom: 20 }}

@@ -23,6 +23,7 @@ import { Heart, Shield, ChevronRight } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -120,7 +121,7 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
       <ScrollView
         showsVerticalScrollIndicator={false}
         bounces={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 16 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + TAB_BAR_SCROLL_PADDING }]}
         style={styles.container}
       >
         {/* ── Avatar section (read-only display) ── */}

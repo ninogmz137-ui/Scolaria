@@ -17,6 +17,7 @@ import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { saveAppreciation } from '../../services/teacherService';
 
 const TEACHER_ORANGE = '#FF8C42';
@@ -250,7 +251,11 @@ export default function AppreciationsScreen() {
   // ─── Render ──────────────────────────────────────────
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+    >
       {/* Header */}
       <LinearGradient
         colors={['#0B1628', TEACHER_ORANGE + 'DD']}

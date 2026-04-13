@@ -18,7 +18,7 @@ import {
 import { Colors } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   getPermissions,
@@ -260,7 +260,7 @@ export default function PermissionsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingTop: TOPBAR_H + 12,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
             paddingHorizontal: 18,
           }}
         >
@@ -385,7 +385,10 @@ export default function PermissionsScreen() {
               <View style={styles.modalHandle} />
 
               {selectedPerson && (
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+                >
                   {/* Person header */}
                   <View style={styles.personHeader}>
                     <View style={[styles.avatarCircleLg, { borderColor: getLevelConfig(selectedPerson.level).color }]}>

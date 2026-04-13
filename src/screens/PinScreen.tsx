@@ -19,6 +19,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, LockKeyhole, AlertCircle } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
@@ -189,7 +190,7 @@ const s = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 40,
+    paddingBottom: TAB_BAR_SCROLL_PADDING,
   },
   container: {
     alignSelf: 'center',

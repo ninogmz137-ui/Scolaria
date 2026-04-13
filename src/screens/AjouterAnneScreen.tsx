@@ -17,6 +17,7 @@ import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { createAcademicYear, type Niveau } from '../services/database';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -311,7 +312,11 @@ export default function AjouterAnneScreen() {
       </HStack>
 
       {/* Content */}
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      >
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}

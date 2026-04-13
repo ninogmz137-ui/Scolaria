@@ -17,6 +17,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { getClassMeteo } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
@@ -196,7 +197,11 @@ export default function MeteoClasseScreen() {
   const weeklyTrend = getWeeklyTrend(weekData);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#E8EDF5' }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+    >
       {/* ── 1. Header with big weather ── */}
       <LinearGradient
         colors={['#0B1628', TEACHER_ORANGE + 'DD']}

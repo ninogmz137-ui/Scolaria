@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 export default class ErrorBoundary extends React.Component<
@@ -27,7 +28,7 @@ export default class ErrorBoundary extends React.Component<
       <View style={styles.root}>
         <Text style={styles.title}>Erreur de rendu</Text>
         <Text style={styles.subtitle}>Copie-colle ce message ici.</Text>
-        <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}>
           <Text style={styles.mono}>{String(this.state.error?.stack || this.state.error?.message)}</Text>
           {this.state.info?.componentStack ? (
             <>

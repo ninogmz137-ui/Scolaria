@@ -3,6 +3,7 @@ import { View, Switch, ScrollView, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box, Text } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 
@@ -96,7 +97,7 @@ export default function NotificationsSettingsScreen() {
       contentContainerStyle={{
         paddingTop: insets.top + 14,
         paddingHorizontal: 16,
-        paddingBottom: insets.bottom + 24,
+        paddingBottom: insets.bottom + TAB_BAR_SCROLL_PADDING,
       }}
       showsVerticalScrollIndicator={false}
     >

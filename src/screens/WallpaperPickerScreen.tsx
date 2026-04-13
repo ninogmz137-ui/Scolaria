@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
   // ── Grid
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: 120,
+    paddingBottom: TAB_BAR_SCROLL_PADDING,
   },
   grid: {
     flexDirection: 'row',

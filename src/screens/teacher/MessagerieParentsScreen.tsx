@@ -4,7 +4,6 @@ import {
   ScrollView,
   TextInput,
   Animated,
-  FlatList,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -12,6 +11,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 
 const TEACHER_ORANGE = '#FF8C42';
 
@@ -210,7 +210,7 @@ export default function MessagerieParentsScreen() {
         {/* Messages */}
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16, gap: 8 }}
+          contentContainerStyle={[{ padding: 16, gap: 8 }, { paddingBottom: TAB_BAR_SCROLL_PADDING }]}
           showsVerticalScrollIndicator={false}
         >
           {/* Date separator */}
@@ -308,7 +308,10 @@ export default function MessagerieParentsScreen() {
 
   return (
     <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      >
         {/* Header info */}
         <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           <Box className="w-11 h-11 rounded-[22px] justify-center items-center" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>

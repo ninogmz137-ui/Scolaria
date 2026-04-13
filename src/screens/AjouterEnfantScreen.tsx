@@ -23,6 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -200,7 +201,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_SCROLL_PADDING }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

@@ -30,7 +30,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { getCheckins, getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { useDemoData } from '../contexts/DemoContext';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 
@@ -296,7 +296,7 @@ export default function AccueilScreen() {
       <Animated.View style={[styles.flex, { opacity: fadeAnim }]}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10 }}
+          contentContainerStyle={{ paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING }}
           style={styles.flex}
           scrollEventThrottle={16}
           onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}

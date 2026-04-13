@@ -8,7 +8,6 @@ import {
   Pressable as RNPressable,
   Image,
   Dimensions,
-  FlatList,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +32,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 const SCREEN_W = Dimensions.get('window').width;
 const WALLPAPER_NUM_COLUMNS = 3;
@@ -187,7 +187,10 @@ export default function ReglagesScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 22 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING,
+          }}
           style={{ flex: 1 }}
         >
           {isDemo ? (
@@ -207,18 +210,12 @@ export default function ReglagesScreen() {
 
           <SectionLabel label="FONDS D'ÉCRAN" />
           <View style={styles.wallpaperGroup}>
-            <FlatList
-              data={wallpaperFlatData}
-              numColumns={3}
-              scrollEnabled={false}
-              nestedScrollEnabled
-              keyExtractor={(item) => item.id}
-              style={styles.wallpaperGrid}
-              columnWrapperStyle={styles.wallpaperGridRow}
-              renderItem={({ item }) => {
+            <View style={styles.wallpaperGrid}>
+              {wallpaperFlatData.map((item) => {
                 if ('__custom' in item && item.__custom) {
                   return (
                     <View
+                      key={item.id}
                       style={[
                         styles.wallpaperGridTile,
                         styles.wallpaperCustomTile,
@@ -239,6 +236,7 @@ export default function ReglagesScreen() {
                 ) as [string, string, ...string[]];
                 return (
                   <RNPressable
+                    key={wp.id}
                     onPress={() => setWallpaperId(wp.id)}
                     style={({ pressed }) => [
                       styles.wallpaperGridTile,
@@ -261,12 +259,13 @@ export default function ReglagesScreen() {
                         source={{ uri: wp.imageUrl! }}
                         style={styles.wallpaperTileImageOverlay}
                         resizeMode="cover"
+                        onError={() => {}}
                       />
                     ) : null}
                   </RNPressable>
                 );
-              }}
-            />
+              })}
+            </View>
           </View>
 
           <SectionLabel label="PRÉFÉRENCES" />
@@ -384,12 +383,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   wallpaperGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 12,
-  },
-  wallpaperGridRow: {
-    justifyContent: 'flex-start',
-    marginBottom: 0,
   },
   wallpaperGridTile: {
     height: 80,

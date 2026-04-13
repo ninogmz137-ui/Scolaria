@@ -46,7 +46,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -1144,7 +1144,7 @@ export default function NotesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom },
+            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom },
           ]}
         >
           <View style={styles.titleRow}>
@@ -1379,7 +1379,7 @@ export default function NotesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom },
+          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom },
         ]}
       >
         <View style={styles.titleRow}>

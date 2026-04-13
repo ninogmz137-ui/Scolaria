@@ -32,6 +32,7 @@ import Svg, {
 import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 // ─── Tokens ─────────────────────────────────────────────
 
@@ -190,7 +191,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
             {
               minHeight: winH,
               paddingTop: Math.max(insets.top, 12),
-              paddingBottom: Math.max(insets.bottom, 20),
+              paddingBottom: Math.max(insets.bottom, TAB_BAR_SCROLL_PADDING),
             },
           ]}
         >

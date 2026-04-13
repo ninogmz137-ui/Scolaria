@@ -15,7 +15,11 @@ import { Sparkles as SparklesIcon } from '@getpapillon/papicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  TAB_BAR_SCROLL_PADDING,
+  FLAT_LIST_TAB_BAR_FOOTER_SPACER,
+} from '../components/FloatingTabBar';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
@@ -232,7 +236,7 @@ export default function AriaScreen() {
           style={styles.messageList}
           contentContainerStyle={{
             paddingTop: TOPBAR_BOTTOM,
-            paddingBottom: 120,
+            paddingBottom: TAB_BAR_SCROLL_PADDING,
           }}
           onContentSizeChange={scrollToEnd}
           ListHeaderComponent={
@@ -270,9 +274,12 @@ export default function AriaScreen() {
             />
           }
           ListFooterComponent={
-            isTyping ? (
-              <ChatBubble message={typingMessage} isTyping />
-            ) : null
+            <>
+              {isTyping ? (
+                <ChatBubble message={typingMessage} isTyping />
+              ) : null}
+              <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+            </>
           }
         />
 

@@ -43,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
 import JoyHistory from '../components/profile/JoyHistory';
@@ -245,12 +245,7 @@ function CompetenceRow({ label, value }: { label: string; value: number }) {
       </View>
       <Text style={styles.compLabel}>{label}</Text>
       <View style={styles.compTrack}>
-        <LinearGradient
-          colors={[VIOLET, CYAN]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.compFill, { width: `${pct}%` }]}
-        />
+        <View style={[styles.compFill, { width: `${pct}%`, backgroundColor: '#7C3AED' }]} />
       </View>
       <Text style={styles.compScore}>{value}</Text>
     </View>
@@ -482,7 +477,7 @@ export default function ProfilEnfantScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom,
         }}
       >
         <View style={[styles.whiteHeader, { paddingTop: insets.top + 12 }]}>

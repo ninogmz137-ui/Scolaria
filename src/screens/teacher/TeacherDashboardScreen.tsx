@@ -9,6 +9,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { getClassWellbeing, type StudentWellbeing } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
@@ -140,7 +141,10 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
 
   return (
     <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      >
         {/* ─── Header gradient ─── */}
         <LinearGradient
           colors={['#0B1628', TEACHER_ORANGE + 'DD']}

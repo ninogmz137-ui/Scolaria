@@ -26,7 +26,11 @@ import {
   Search,
 } from 'lucide-react-native';
 import WallpaperBackground from '../../components/WallpaperBackground';
-import { FLOATING_TAB_BAR_HEIGHT } from '../../components/FloatingTabBar';
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  TAB_BAR_SCROLL_PADDING,
+  FLAT_LIST_TAB_BAR_FOOTER_SPACER,
+} from '../../components/FloatingTabBar';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -367,7 +371,7 @@ export default function AriaConversationScreen() {
           keyExtractor={(m) => m.id}
           renderItem={({ item }) => <ChatBubble message={item} />}
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingTop: 12, paddingBottom: 12 }}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_SCROLL_PADDING }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             messages.length === 0 ? (
@@ -397,7 +401,12 @@ export default function AriaConversationScreen() {
               </View>
             ) : null
           }
-          ListFooterComponent={isTyping ? <ChatBubble message={typingMessage} isTyping /> : null}
+          ListFooterComponent={
+            <>
+              {isTyping ? <ChatBubble message={typingMessage} isTyping /> : null}
+              <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+            </>
+          }
           onContentSizeChange={() => scrollToEnd()}
         />
 
@@ -517,7 +526,7 @@ export default function AriaConversationScreen() {
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 16 }}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
             style={styles.drawerRecentsScroll}
           >
             {filteredConversations.length === 0 ? (
@@ -769,16 +778,19 @@ const styles = StyleSheet.create({
   drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 
   // Categories
-  categories: { paddingHorizontal: 8, rowGap: 6 },
+  categories: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 8,
+  },
   categoryRow: {
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderRadius: 10,
-    minHeight: 76,
-    width: '100%',
+    minWidth: 80,
+    alignItems: 'center',
   },
   categoryCell: {
-    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },

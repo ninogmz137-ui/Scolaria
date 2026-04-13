@@ -21,7 +21,7 @@ import { Papicons } from '@getpapillon/papicons';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -176,7 +176,7 @@ export default function SubjectDetailScreen({ route }: any) {
           styles.scroll,
           {
             paddingTop: insets.top + 60,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 120 + insets.bottom,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom,
           },
         ]}
         showsVerticalScrollIndicator={false}

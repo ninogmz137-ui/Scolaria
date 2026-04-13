@@ -24,7 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { School, CalendarX, Search, X, ChevronDown, Check, MessageSquarePlus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -483,7 +483,7 @@ export default function MessagerieScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 32 },
+          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING },
         ]}
         onScrollBeginDrag={() => {
           if (dropdownVisible) setDropdownVisible(false);
@@ -562,6 +562,7 @@ const styles = StyleSheet.create({
   },
   headerTextArea: {
     flex: 1,
+    minWidth: 0,
     paddingLeft: 4,
   },
   headerTitle: {
@@ -580,6 +581,7 @@ const styles = StyleSheet.create({
   // Search input (animated) — true pill shape
   searchInputWrap: {
     flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 20,
@@ -702,7 +704,7 @@ const styles = StyleSheet.create({
 
   // Scroll
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: TAB_BAR_SCROLL_PADDING,
     paddingHorizontal: 0,
   },
 

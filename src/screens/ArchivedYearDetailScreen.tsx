@@ -23,7 +23,7 @@ import type { RouteProp } from '@react-navigation/native';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { useDemoData, type DemoArchivedBulletin } from '../contexts/DemoContext';
 
 // ─── Navigation types ────────────────────────────────────
@@ -260,7 +260,7 @@ export default function ArchivedYearDetailScreen({ route }: any) {
           styles.scrollContent,
           {
             paddingTop: insets.top + 60,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
           },
         ]}
       >

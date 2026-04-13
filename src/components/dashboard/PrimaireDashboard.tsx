@@ -11,6 +11,7 @@ import { ScrollView, Animated, Easing } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { TAB_BAR_SCROLL_PADDING } from '../FloatingTabBar';
 
 interface Props {
   childName: string;
@@ -412,7 +413,11 @@ export default function PrimaireDashboard({ childName, childAvatar }: Props) {
   });
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F7F8FC' }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#F7F8FC' }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+    >
       <LinearGradient
         colors={['#EEF2FF', '#F5F3FF', '#F7F8FC']}
         style={{ minHeight: '100%', paddingBottom: 20 }}

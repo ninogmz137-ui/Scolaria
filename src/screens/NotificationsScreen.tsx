@@ -15,7 +15,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { getGrades, getAgendaEvents } from '../services/database';
 import { getParentMots } from '../services/liaisonService';
 import { getStudentAbsences } from '../services/absenceService';
@@ -279,7 +279,7 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: insets.top + 56 + 20,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + 10,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
           paddingHorizontal: 18,
           gap: 12,
         }}
