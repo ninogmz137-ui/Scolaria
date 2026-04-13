@@ -148,7 +148,7 @@ export default function MonParcoursScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: TOPBAR_H + 12,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16,
           paddingHorizontal: 18,
           gap: 12,
         }}

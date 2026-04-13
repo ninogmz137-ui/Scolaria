@@ -904,7 +904,7 @@ export default function AgendaScreen() {
 // ─── Styles ─────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F7FF' },
+  root: { flex: 1, backgroundColor: '#F8F7FF', position: 'relative' },
 
   // Month title
   monthTitleRow: {
@@ -1172,6 +1172,7 @@ const st = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: 16,
+    zIndex: 10,
     backgroundColor: '#1A2340',
     borderRadius: 28,
     width: 56,

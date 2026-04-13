@@ -84,12 +84,13 @@ export async function sendToAria(
   userMessage: string,
   conversationHistory: ClaudeMessage[],
   childId: string = '1',
+  options?: { isDemo?: boolean },
 ): Promise<string> {
   const apiKey = ENV.ANTHROPIC_API_KEY;
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     console.warn('[Aria] No API key configured — using fallback response');
-    return getFallbackResponse(userMessage, childId);
+    return getFallbackResponse(userMessage, childId, options?.isDemo === true);
   }
 
   const systemPrompt = buildSystemPrompt(childId);
@@ -128,7 +129,7 @@ export async function sendToAria(
         return '⏳ Trop de requêtes envoyées. Attends quelques secondes et réessaie.';
       }
 
-      return getFallbackResponse(userMessage, childId);
+      return getFallbackResponse(userMessage, childId, options?.isDemo === true);
     }
 
     const data: ClaudeResponse = await response.json();
@@ -138,7 +139,7 @@ export async function sendToAria(
       return textContent.text;
     }
 
-    return getFallbackResponse(userMessage, childId);
+    return getFallbackResponse(userMessage, childId, options?.isDemo === true);
   } catch (error) {
     console.error('[Aria] Network error:', error);
     return '📡 Impossible de contacter Aria pour le moment. Vérifie ta connexion internet et réessaie.';
@@ -147,12 +148,14 @@ export async function sendToAria(
 
 // ─── Fallback responses (when no API key) ───────────────
 
-function buildFallbackResponses(childId: string): string[] {
+function buildFallbackResponses(childId: string, isDemoApp: boolean): string[] {
   const child = getChildContext(childId);
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
-  const intro = `Je suis Aria, ton assistante scolaire ! Pour me connecter à l'IA, configure ta clé API Anthropic dans le fichier .env (EXPO_PUBLIC_ANTHROPIC_API_KEY). En attendant, je fonctionne en mode démo pour ${name}. 🔑`;
+  const intro = isDemoApp
+    ? `Bonjour ! Je suis Aria ✦, ton assistante scolaire. En mode démo, je te propose des exemples adaptés à ${name} pour découvrir Scolaria.`
+    : `Je suis Aria, ton assistante scolaire ! Pour me connecter à l'IA, configure ta clé API Anthropic dans le fichier .env (EXPO_PUBLIC_ANTHROPIC_API_KEY). En attendant, je fonctionne en mode démo pour ${name}. 🔑`;
 
   if (grades.length === 0) {
     // Maternelle — no grades
@@ -192,8 +195,8 @@ function buildFallbackResponses(childId: string): string[] {
 
 let fallbackIndex = 0;
 
-function getFallbackResponse(userMessage: string, childId: string): string {
-  const responses = buildFallbackResponses(childId);
+function getFallbackResponse(userMessage: string, childId: string, isDemoApp = false): string {
+  const responses = buildFallbackResponses(childId, isDemoApp);
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('note') || msg.includes('résultat') || msg.includes('moyenne')) {

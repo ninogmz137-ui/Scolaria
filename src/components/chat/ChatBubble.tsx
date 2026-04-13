@@ -71,7 +71,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
                 borderBottomLeftRadius: 6,
               }
             : {
-                backgroundColor: '#7C3AED',
+                backgroundColor: '#0F172A',
                 borderBottomRightRadius: 6,
               }),
         }}

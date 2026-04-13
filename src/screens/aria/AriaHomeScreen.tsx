@@ -37,8 +37,6 @@ import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
-/** Half-width chips minus padding (Android-friendly) */
-const CHIP_MAX_W = SCREEN_WIDTH / 2 - 24;
 const ARIA_ALERTS_UNREAD = 2;
 
 // ─── Demo recents data ──────────────────────────────────────
@@ -597,23 +595,20 @@ const styles = StyleSheet.create({
   suggestionWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 8,
     alignContent: 'flex-start',
     width: '100%',
   },
   suggestionChip: {
-    maxWidth: CHIP_MAX_W,
+    width: '48%',
     minWidth: 0,
-    flexGrow: 0,
-    flexShrink: 0,
-    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
-    marginHorizontal: 4,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,

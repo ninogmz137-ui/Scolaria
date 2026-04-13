@@ -477,7 +477,7 @@ export default function ProfilEnfantScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16,
         }}
       >
         <View style={[styles.whiteHeader, { paddingTop: insets.top + 12 }]}>

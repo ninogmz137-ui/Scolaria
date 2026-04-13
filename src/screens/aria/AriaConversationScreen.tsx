@@ -36,6 +36,7 @@ import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
 import AriaOrb from '../../components/AriaOrb';
 
@@ -43,8 +44,6 @@ import AriaOrb from '../../components/AriaOrb';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
 const SEARCH_PILL_W = DRAWER_WIDTH - 32;
-/** Half-width chips minus padding; avoids truncation on narrow Android layouts */
-const CHIP_MAX_W = SCREEN_WIDTH / 2 - 24;
 const ARIA_ALERTS_UNREAD = 2;
 
 /** Header orb: natural `size` on AriaOrb (no parent scale transform); ≥80px so rings aren’t clipped */
@@ -121,6 +120,7 @@ export default function AriaConversationScreen() {
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
+  const { isDemo } = useAuth();
 
   const childId = selectedChild?.id ?? '1';
   const childFirstName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
@@ -215,7 +215,9 @@ export default function AriaConversationScreen() {
     scrollToEnd();
 
     try {
-      const response = await sendToAria(trimmed, historyRef.current, childId);
+      const response = await sendToAria(trimmed, historyRef.current, childId, {
+        isDemo,
+      });
       const nextHistory: ClaudeMessage[] = [
         ...historyRef.current,
         { role: 'user' as const, content: trimmed },
@@ -693,6 +695,7 @@ const styles = StyleSheet.create({
   suggestionWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 8,
     alignContent: 'flex-start',
     alignSelf: 'stretch',
     width: '100%',
@@ -700,19 +703,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   suggestionChip: {
-    maxWidth: CHIP_MAX_W,
+    width: '48%',
     minWidth: 0,
-    flexGrow: 0,
-    flexShrink: 0,
-    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.78)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
-    marginHorizontal: 4,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,

@@ -37,7 +37,7 @@ import type { Conversation } from '../data/messagerieData';
 const NAVY = '#1A2340';
 const VIOLET = '#7C3AED';
 const UNREAD_DOT = '#3B82F6';
-const BG = '#F2F2F7';
+const BG = '#FFFFFF';
 
 // ─── Filter types ─────────────────────────────────────────
 
@@ -165,6 +165,7 @@ function ConvRow({
       ]}
       accessibilityRole="button"
     >
+      <View style={styles.rowInner}>
       <ConvAvatar conv={conv} />
 
       <View style={styles.rowBody}>
@@ -208,6 +209,7 @@ function ConvRow({
           </Text>
           {conv.unread && <View style={styles.unreadDot} />}
         </View>
+      </View>
       </View>
 
       {/* Hairline separator — between rows, not after last */}
@@ -528,7 +530,7 @@ export default function MessagerieScreen() {
       </ScrollView>
 
       <Pressable
-        onPress={() => navigation.navigate('MessagesListScreen')}
+        onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
         style={({ pressed }) => [styles.fab, styles.fabPosition, pressed && { opacity: 0.92 }]}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
@@ -766,18 +768,13 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#D1D5DB',
+    backgroundColor: 'transparent',
     maxWidth: '100%',
     overflow: 'hidden',
   },
 
   // Row
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 11,
     paddingLeft: 0,
     paddingRight: 0,
@@ -785,6 +782,11 @@ const styles = StyleSheet.create({
     position: 'relative',
     maxWidth: '100%',
     overflow: 'hidden',
+  },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
   rowUnread: {
     backgroundColor: '#F0F4FF',
@@ -862,10 +864,10 @@ const styles = StyleSheet.create({
   separator: {
     position: 'absolute',
     bottom: 0,
-    left: 60, // 48 + 12 — avatar + gap (row padding lives on root)
+    left: 0,
     right: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#F2F2F2',
   },
 
   // Empty

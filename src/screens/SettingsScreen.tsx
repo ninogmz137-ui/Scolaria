@@ -101,33 +101,35 @@ function Row({
         ]}
         onPress={type !== 'toggle' ? onPress : undefined}
       >
-        {IconComponent ? (
-          <IconComponent size={28} color="#64748B" strokeWidth={1.5} style={{ marginRight: 16 }} />
-        ) : emoji ? (
-          <Text style={styles.rowEmoji}>{emoji}</Text>
-        ) : null}
-        <View style={styles.rowTextStack}>
-          <Text style={[styles.rowLabel, labelColor ? { color: labelColor } : null]}>
-            {label}
-          </Text>
-          {sublabel ? (
-            <Text style={styles.rowSublabel}>{sublabel}</Text>
+        <View style={styles.rowInner}>
+          {IconComponent ? (
+            <IconComponent size={28} color="#64748B" strokeWidth={1.5} style={{ marginRight: 16 }} />
+          ) : emoji ? (
+            <Text style={styles.rowEmoji}>{emoji}</Text>
           ) : null}
+          <View style={styles.rowTextStack}>
+            <Text style={[styles.rowLabel, labelColor ? { color: labelColor } : null]}>
+              {label}
+            </Text>
+            {sublabel ? (
+              <Text style={styles.rowSublabel}>{sublabel}</Text>
+            ) : null}
+          </View>
+          {type === 'navigate' && (
+            <ChevronRight size={18} color="#D1D5DB" strokeWidth={1.5} />
+          )}
+          {type === 'value' && (
+            <Text style={styles.rowValueText}>{value}</Text>
+          )}
+          {type === 'toggle' && (
+            <Switch
+              value={toggleValue}
+              onValueChange={onToggle}
+              trackColor={{ false: '#E2E8F0', true: '#1A2340' }}
+              thumbColor="#FFFFFF"
+            />
+          )}
         </View>
-        {type === 'navigate' && (
-          <ChevronRight size={18} color="#D1D5DB" strokeWidth={1.5} />
-        )}
-        {type === 'value' && (
-          <Text style={styles.rowValueText}>{value}</Text>
-        )}
-        {type === 'toggle' && (
-          <Switch
-            value={toggleValue}
-            onValueChange={onToggle}
-            trackColor={{ false: '#E2E8F0', true: '#1A2340' }}
-            thumbColor="#FFFFFF"
-          />
-        )}
       </Pressable>
       {showSeparator && <Separator />}
     </>
@@ -395,10 +397,13 @@ const styles = StyleSheet.create({
 
   // Row
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 0,
+  },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
   rowEmoji: {
     width: 28,

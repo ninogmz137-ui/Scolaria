@@ -1144,7 +1144,7 @@ export default function NotesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom },
+            { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16 },
           ]}
         >
           <View style={styles.titleRow}>
@@ -1379,7 +1379,7 @@ export default function NotesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom },
+          { paddingTop: insets.top + 16, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16 },
         ]}
       >
         <View style={styles.titleRow}>
@@ -1622,21 +1622,25 @@ export default function NotesScreen() {
                             pressed && { opacity: 0.85 },
                           ]}
                         >
-                          <View style={{ flex: 1, paddingRight: 8 }}>
-                            <Text style={styles.noteTitle}>{grade.type}</Text>
+                          <View style={styles.noteRowInner}>
+                            <View style={styles.noteLineMain}>
+                              <Text style={styles.noteTitleLeft} numberOfLines={2}>
+                                {grade.type}
+                              </Text>
+                              <View style={styles.noteRight}>
+                                <Text style={styles.noteScore}>
+                                  {grade.value}
+                                  <Text style={styles.scoreSlashSmall}>/20</Text>
+                                </Text>
+                                <Text style={styles.chev}>›</Text>
+                              </View>
+                            </View>
                             <Text style={styles.noteMeta}>
                               {grade.date}
                               {grade.coefficient != null && grade.coefficient > 0
                                 ? ` · Coeff. ${grade.coefficient}`
                                 : ''}
                             </Text>
-                          </View>
-                          <View style={styles.noteRight}>
-                            <Text style={styles.noteScore}>
-                              {grade.value}
-                              <Text style={styles.scoreSlashSmall}>/20</Text>
-                            </Text>
-                            <Text style={styles.chev}>›</Text>
                           </View>
                         </Pressable>
                       );
@@ -1675,21 +1679,25 @@ export default function NotesScreen() {
                         pressed && { opacity: 0.85 },
                       ]}
                     >
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text style={styles.noteTitle}>{grade.type}</Text>
+                      <View style={styles.noteRowInner}>
+                        <View style={styles.noteLineMain}>
+                          <Text style={styles.noteTitleLeft} numberOfLines={2}>
+                            {grade.type}
+                          </Text>
+                          <View style={styles.noteRight}>
+                            <Text style={styles.noteScore}>
+                              {grade.value}
+                              <Text style={styles.scoreSlashSmall}>/20</Text>
+                            </Text>
+                            <Text style={styles.chev}>›</Text>
+                          </View>
+                        </View>
                         <Text style={styles.noteMeta}>
                           {grade.date}
                           {grade.coefficient != null && grade.coefficient > 0
                             ? ` · Coeff. ${grade.coefficient}`
                             : ''}
                         </Text>
-                      </View>
-                      <View style={styles.noteRight}>
-                        <Text style={styles.noteScore}>
-                          {grade.value}
-                          <Text style={styles.scoreSlashSmall}>/20</Text>
-                        </Text>
-                        <Text style={styles.chev}>›</Text>
                       </View>
                     </Pressable>
                   );
@@ -2031,9 +2039,23 @@ const styles = StyleSheet.create({
   },
   track3fill: { height: 3, backgroundColor: C.ink, borderRadius: 2 },
   noteRow: {
+    paddingVertical: 12,
+  },
+  noteRowInner: {
+    width: '100%',
+  },
+  noteLineMain: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  noteTitleLeft: {
+    flex: 1,
+    paddingRight: 10,
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: C.ink,
   },
   noteRowBorder: {
     borderBottomWidth: 1,
@@ -2048,8 +2070,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   noteTitle: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: C.ink },
-  noteMeta: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: C.meta, marginTop: 4 },
-  noteRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  noteMeta: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: C.meta, marginTop: 6 },
+  noteRight: { flexDirection: 'row', alignItems: 'center', flexShrink: 0, gap: 6 },
   noteScore: {
     fontFamily: FontFamily.displayBold,
     fontSize: 22,

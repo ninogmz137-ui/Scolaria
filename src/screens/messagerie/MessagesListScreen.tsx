@@ -8,7 +8,7 @@
  * FAB (+) bottom-right opens a teacher selection modal to start a new conversation.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,8 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
+import { getConversations } from '../../stores/messagerieStore';
 import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -147,6 +149,7 @@ function getInitials(name: string): string {
 // ─── Component ────────────────────────────────────────────
 
 export default function MessagesListScreen({ navigation }: { navigation: any }) {
+  const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
   const {
@@ -156,6 +159,15 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
     getMessages: getDemoMessages,
   } = useDemoData();
   const [teacherModalVisible, setTeacherModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.openCompose) {
+        setTeacherModalVisible(true);
+        navigation.setParams({ openCompose: undefined } as never);
+      }
+    }, [navigation, route.params?.openCompose]),
+  );
 
   // In demo mode, use filtered teachers for the selected child
   const teachers = isDemoMode
@@ -343,7 +355,15 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                     key={teacher.id}
                     onPress={() => {
                       setTeacherModalVisible(false);
-                      // For now, just close — future: navigate to conversation screen
+                      const list = getConversations(selectedChild.id);
+                      const match =
+                        list.find((c) => c.name.trim() === teacher.name.trim()) ??
+                        list.find((c) => c.avatarType === 'initials');
+                      if (match) {
+                        navigation.navigate('ConversationDetailScreen', {
+                          conversationId: match.id,
+                        });
+                      }
                     }}
                     style={({ pressed }) => [
                       styles.teacherRow,

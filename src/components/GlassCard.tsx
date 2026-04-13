@@ -1,11 +1,10 @@
 /**
  * GlassCard — Glass morphism card with semi-transparent background.
  *
- * Light mode (default): white 65% opacity, subtle white border, soft shadow.
- * Dark mode (dark=true): white 12% opacity, subtle white border, no shadow.
+ * Light mode (default): white 75% opacity (Android-friendly — no backdrop blur).
+ * Dark mode (dark=true): white 12% opacity.
  *
- * No backdropFilter blur — not supported on Android with React Native.
- * The semi-transparent bg + border create a convincing glass effect.
+ * No backdropFilter — not supported on Android with React Native.
  */
 
 import { type ReactNode } from 'react';
@@ -42,8 +41,6 @@ export default function GlassCard({
         dark ? styles.containerDark : styles.container,
         { borderRadius },
         style,
-        // Android: default grey hairline when borderWidth is set; parent `style` must not drop borderColor.
-        Platform.OS === 'android' && styles.androidBorderLock,
       ]}
     >
       <View style={noPadding ? undefined : styles.content}>
@@ -57,13 +54,10 @@ export default function GlassCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.92)',
+    borderWidth: 0,
     overflow: 'hidden',
-    // @ts-ignore — borderCurve is supported on iOS 17+
-    borderCurve: 'continuous',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -72,7 +66,8 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
       android: {
-        elevation: 0,
+        elevation: 2,
+        shadowColor: 'transparent',
       },
       default: {
         shadowColor: '#000',
@@ -85,19 +80,23 @@ const styles = StyleSheet.create({
   containerDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.92)',
+    borderWidth: 0,
     overflow: 'hidden',
-    // @ts-ignore
-    borderCurve: 'continuous',
-    elevation: 0,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'transparent',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0,
+        shadowRadius: 0,
+      },
+      android: {
+        elevation: 1,
+        shadowColor: 'transparent',
+      },
+      default: {},
+    }),
   },
   content: {
     padding: 16,
-  },
-  androidBorderLock: {
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.92)',
-    elevation: 0,
   },
 });

@@ -7,7 +7,7 @@ import {
   Platform,
   Pressable as RNPressable,
   Image,
-  Dimensions,
+  FlatList,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,9 +34,22 @@ import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/Wallpap
 import { LinearGradient } from 'expo-linear-gradient';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 
-const SCREEN_W = Dimensions.get('window').width;
-const WALLPAPER_NUM_COLUMNS = 3;
-const WALLPAPER_TILE_W = (SCREEN_W - 64) / WALLPAPER_NUM_COLUMNS;
+const WALLPAPER_THUMB_W = 80;
+const WALLPAPER_THUMB_H = 60;
+
+/** Bundled thumbnails (Metro `require`) — reliable on Android vs remote URIs */
+const WALLPAPER_THUMB_REQUIRES: Record<string, number> = {
+  mountains: require('../../assets/logo-scolaria.png'),
+  lake: require('../../assets/splash-icon.png'),
+  forest: require('../../assets/favicon.png'),
+  ocean: require('../../assets/icon.png'),
+  sunset: require('../../assets/android-icon-foreground.png'),
+  aurora: require('../../assets/android-icon-background.png'),
+  'gradient-warm': require('../../assets/logo-scolaria.png'),
+  'gradient-cool': require('../../assets/icon.png'),
+  nebula: require('../../assets/splash-icon.png'),
+  pastel: require('../../assets/favicon.png'),
+};
 
 type RowType = 'navigate' | 'toggle';
 
@@ -61,13 +74,17 @@ type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 function WallpaperPresetTile({
   wp,
   tileWidth,
+  tileHeight,
   isActive,
   onSelect,
+  bundledThumb,
 }: {
   wp: WallpaperDef;
   tileWidth: number;
+  tileHeight?: number;
   isActive: boolean;
   onSelect: () => void;
+  bundledThumb?: number;
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const baseColor = wp.colors[0] ?? '#6366F1';
@@ -82,7 +99,7 @@ function WallpaperPresetTile({
       onPress={onSelect}
       style={({ pressed }) => [
         styles.wallpaperGridTile,
-        { width: tileWidth },
+        { width: tileWidth, height: tileHeight ?? 80 },
         isActive && styles.wallpaperTileActive,
         pressed && { opacity: 0.9 },
       ]}
@@ -99,7 +116,13 @@ function WallpaperPresetTile({
           style={StyleSheet.absoluteFill}
         />
       </View>
-      {wp.imageUrl && !imageFailed ? (
+      {bundledThumb ? (
+        <Image
+          source={bundledThumb}
+          style={styles.wallpaperTileImageOverlay}
+          resizeMode="cover"
+        />
+      ) : wp.imageUrl && !imageFailed ? (
         <Image
           source={{ uri: wp.imageUrl }}
           style={styles.wallpaperTileImageOverlay}
@@ -127,28 +150,30 @@ function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
       accessibilityRole={row.type === 'toggle' ? 'switch' : 'button'}
       accessibilityLabel={row.label}
     >
-      <row.Icon
-        size={20}
-        color={row.danger ? '#EF4444' : '#0F172A'}
-        strokeWidth={2}
-      />
-      <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
-        {row.label}
-      </Text>
-      <View style={{ flex: 1 }} />
-      {row.valueText ? (
-        <Text style={styles.rowValue}>{row.valueText}</Text>
-      ) : null}
-      {row.type === 'navigate' ? (
-        <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
-      ) : (
-        <Switch
-          value={!!row.toggleValue}
-          onValueChange={row.onToggle}
-          trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
-          thumbColor="#FFFFFF"
+      <View style={styles.rowInner}>
+        <row.Icon
+          size={20}
+          color={row.danger ? '#EF4444' : '#0F172A'}
+          strokeWidth={2}
         />
-      )}
+        <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
+          {row.label}
+        </Text>
+        <View style={{ flex: 1 }} />
+        {row.valueText ? (
+          <Text style={styles.rowValue}>{row.valueText}</Text>
+        ) : null}
+        {row.type === 'navigate' ? (
+          <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
+        ) : (
+          <Switch
+            value={!!row.toggleValue}
+            onValueChange={row.onToggle}
+            trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
+            thumbColor="#FFFFFF"
+          />
+        )}
+      </View>
     </Pressable>
   );
 }
@@ -267,16 +292,22 @@ export default function ReglagesScreen() {
 
           <SectionLabel label="FONDS D'ÉCRAN" />
           <View style={styles.wallpaperGroup}>
-            <View style={styles.wallpaperGrid}>
-              {wallpaperFlatData.map((item) => {
+            <FlatList
+              horizontal
+              data={wallpaperFlatData}
+              keyExtractor={(item) =>
+                '__custom' in item && item.__custom ? item.id : (item as WallpaperDef).id
+              }
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.wallpaperListContent}
+              renderItem={({ item }) => {
                 if ('__custom' in item && item.__custom) {
                   return (
                     <View
-                      key={item.id}
                       style={[
                         styles.wallpaperGridTile,
                         styles.wallpaperCustomTile,
-                        { width: WALLPAPER_TILE_W },
+                        { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 8 },
                       ]}
                     >
                       <ImageIcon size={18} color="#64748B" strokeWidth={2} />
@@ -286,16 +317,19 @@ export default function ReglagesScreen() {
                 const wp = item as WallpaperDef;
                 const isActive = !customUri && wallpaper.id === wp.id;
                 return (
-                  <WallpaperPresetTile
-                    key={wp.id}
-                    wp={wp}
-                    tileWidth={WALLPAPER_TILE_W}
-                    isActive={isActive}
-                    onSelect={() => setWallpaperId(wp.id)}
-                  />
+                  <View style={{ marginRight: 8 }}>
+                    <WallpaperPresetTile
+                      wp={wp}
+                      tileWidth={WALLPAPER_THUMB_W}
+                      tileHeight={WALLPAPER_THUMB_H}
+                      bundledThumb={WALLPAPER_THUMB_REQUIRES[wp.id]}
+                      isActive={isActive}
+                      onSelect={() => setWallpaperId(wp.id)}
+                    />
+                  </View>
                 );
-              })}
-            </View>
+              }}
+            />
           </View>
 
           <SectionLabel label="PRÉFÉRENCES" />
@@ -412,15 +446,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 14,
   },
-  wallpaperGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  wallpaperListContent: {
     paddingHorizontal: 12,
     paddingVertical: 12,
+    alignItems: 'center',
   },
   wallpaperGridTile: {
-    height: 80,
-    borderRadius: 10,
+    borderRadius: 8,
     margin: 4,
     overflow: 'hidden',
     borderWidth: 1,
@@ -448,10 +480,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 14,
+  },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
     gap: 12,
   },
   rowSeparator: {

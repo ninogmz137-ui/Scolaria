@@ -173,7 +173,7 @@ export default function MonRessentiScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16,
         }}
       >
         <View style={[styles.header, { paddingTop: insets.top + 10 }]}>

@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgGrad, Stop, Text as SvgText, TSpan } from 'react-native-svg';
+import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 
 const NAVY   = '#1A2340';
 const VIOLET = '#7C3AED';
@@ -52,16 +53,17 @@ interface Props {
 }
 
 export default function SplashScreen({ onFinish }: Props) {
-  const logoOpacity    = useRef(new Animated.Value(0)).current;
-  const logoTranslateY = useRef(new Animated.Value(16)).current;
+  const [fontsLoaded] = useFonts({ DMSerifDisplay_400Regular });
+  const logoOpacity    = useRef(new Animated.Value(1)).current;
+  const logoTranslateY = useRef(new Animated.Value(8)).current;
   const dotOpacity     = useRef(new Animated.Value(0)).current;
   const dotScale       = useRef(new Animated.Value(0.8)).current;
   const screenFadeOut  = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(logoOpacity,    { toValue: 1, duration: 700, useNativeDriver: true }),
-      Animated.timing(logoTranslateY, { toValue: 0, duration: 700, useNativeDriver: true }),
+      Animated.timing(logoOpacity,    { toValue: 1, duration: 500, useNativeDriver: true }),
+      Animated.timing(logoTranslateY, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
 
     setTimeout(() => {
@@ -96,7 +98,7 @@ export default function SplashScreen({ onFinish }: Props) {
       <Animated.View
         style={[s.logoWrap, { opacity: logoOpacity, transform: [{ translateY: logoTranslateY }] }]}
       >
-        <Wordmark />
+        {fontsLoaded ? <Wordmark /> : <View style={{ height: 52 }} />}
       </Animated.View>
 
       {/* Dot pulsant violet */}

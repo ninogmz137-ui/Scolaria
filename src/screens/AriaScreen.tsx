@@ -25,6 +25,7 @@ import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
@@ -85,6 +86,7 @@ export default function AriaScreen() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
+  const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
   // Content starts below topbar (insets.top + topbar height + gap)
   const TOPBAR_BOTTOM = insets.top + 64;
@@ -142,6 +144,7 @@ export default function AriaScreen() {
           trimmed,
           conversationHistoryRef.current,
           childId,
+          { isDemo },
         );
 
         // Update conversation history
