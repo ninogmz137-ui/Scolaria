@@ -11,9 +11,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
@@ -22,7 +22,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 
 export type AddAttachment = { kind: 'camera' | 'photo' | 'file'; uri: string; name?: string | null };
 
-const SPRING = { damping: 20, stiffness: 200 };
+const TIMING_EASE = Easing.out(Easing.ease);
 
 export default function AddToDiscussionSheet({
   visible,
@@ -47,13 +47,13 @@ export default function AddToDiscussionSheet({
     if (visible) {
       setModalVisible(true);
       translateY.value = hiddenY;
-      translateY.value = withSpring(0, SPRING);
+      translateY.value = withTiming(0, { duration: 220, easing: TIMING_EASE });
     }
   }, [visible, hiddenY]);
 
   useEffect(() => {
     if (!visible && modalVisible) {
-      translateY.value = withTiming(hiddenY, { duration: 200 }, (finished) => {
+      translateY.value = withTiming(hiddenY, { duration: 180, easing: TIMING_EASE }, (finished) => {
         if (finished) {
           runOnJS(setModalVisible)(false);
         }
