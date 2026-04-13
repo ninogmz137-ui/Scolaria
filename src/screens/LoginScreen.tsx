@@ -2,7 +2,7 @@
  * LoginScreen — Épure totale v3.
  *
  * Fond #FAFAF8. Flex top vide. 3 sparkles animés au-dessus du wordmark.
- * Wordmark inline SVG (Scolar navy + ia gradient violet→cyan + ✦).
+ * Wordmark : Scolar (navy) + ia (violet plein) en Text, ✦ au-dessus (sparkles).
  * CTA pill navy "Se connecter" (toggle formulaire email),
  * CTA pill outline "Créer un compte", lien démo, mention légale.
  */
@@ -28,7 +28,6 @@ import Svg, {
   LinearGradient as SvgLinearGradient,
   Stop,
   Text as SvgText,
-  TSpan,
 } from 'react-native-svg';
 import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,60 +44,17 @@ const WEB_INPUT_FIX = Platform.OS === 'web'
   ? ({ backgroundColor: 'transparent', outlineStyle: 'none' } as any)
   : undefined;
 
-// ─── Wordmark inline ────────────────────────────────────
+// ─── Wordmark ─────────────────────────────────────────────
 
-/** Web + iOS: SVG wordmark. Android: nested SvgText/TSpan can fail layout — use WordmarkNative. */
-function WordmarkSvg({ height = 46 }: { height?: number }) {
-  const vbW = 280;
-  const vbH = 64;
-  const width = (vbW / vbH) * height;
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${vbW} ${vbH}`}>
-      <Defs>
-        <SvgLinearGradient id="iaG" x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={VIOLET} />
-          <Stop offset="1" stopColor={CYAN} />
-        </SvgLinearGradient>
-        <SvgLinearGradient id="sparkG" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={VIOLET} />
-          <Stop offset="1" stopColor={CYAN} />
-        </SvgLinearGradient>
-      </Defs>
-      <SvgText
-        x="140"
-        y="50"
-        textAnchor="middle"
-        fontFamily="DMSerifDisplay_400Regular"
-        fontSize="52"
-        letterSpacing="-0.5"
-        fill={NAVY}
-      >
-        Scolar
-        <TSpan fill="url(#iaG)">ia</TSpan>
-      </SvgText>
-      <SvgText x="191" y="22" fontSize="15" fill="url(#sparkG)">
-        ✦
-      </SvgText>
-    </Svg>
-  );
-}
-
-/** Android: gradient/MaskedView on text renders as a solid block — plain Text only. */
-function WordmarkAndroidPlain({ height = 46 }: { height?: number }) {
+/** Pas de gradient/mask/SVG sur « ia » (Android affichait un carré) — Text plein partout. */
+function Wordmark({ height = 46 }: { height?: number }) {
   const fontSize = Math.round(height * 0.88);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
       <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: NAVY }}>Scolar</Text>
-      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: '#7C3AED' }}>ia</Text>
+      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: VIOLET }}>ia</Text>
     </View>
   );
-}
-
-function WordmarkLight({ height = 46 }: { height?: number }) {
-  if (Platform.OS === 'android') {
-    return <WordmarkAndroidPlain height={height} />;
-  }
-  return <WordmarkSvg height={height} />;
 }
 
 // ─── Floating sparkle ───────────────────────────────────
@@ -135,6 +91,22 @@ function Sparkle({
 
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -6] });
   const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0.65, 1] });
+
+  if (Platform.OS === 'android') {
+    return (
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left,
+          top,
+          transform: [{ translateY }],
+          opacity,
+        }}
+      >
+        <Text style={{ fontFamily: FontFamily.displayBold, fontSize: size * 0.65, color: '#7C3AED' }}>✦</Text>
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View
@@ -229,7 +201,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                 <Sparkle size={13} left={18} top={-18} delay={600} />
                 <Sparkle size={10} left={42} top={6} delay={1200} />
               </View>
-              {serifLoaded ? <WordmarkLight height={46} /> : <View style={{ height: 46 }} />}
+              {serifLoaded ? <Wordmark height={46} /> : <View style={{ height: 46 }} />}
             </View>
 
             <View style={s.actions}>
