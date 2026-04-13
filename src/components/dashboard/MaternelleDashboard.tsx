@@ -12,6 +12,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { TAB_BAR_SCROLL_PADDING } from '../FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -129,7 +130,7 @@ function AriaMascot({ childName }: { childName: string }) {
       {/* Mascot */}
       <Animated.View style={{
         width: 88, height: 88, borderRadius: 44,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: SCREEN_BACKGROUND,
         justifyContent: 'center', alignItems: 'center',
         shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0, shadowRadius: 0, elevation: 0,
@@ -143,7 +144,7 @@ function AriaMascot({ childName }: { childName: string }) {
       <Box
         className="absolute bottom-0 rounded-[20px] px-5 py-3"
         style={{
-          backgroundColor: '#FFFFFF',
+          backgroundColor: SCREEN_BACKGROUND,
           shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0, shadowRadius: 0, elevation: 0,
           maxWidth: 220,

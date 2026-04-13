@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import {
   getClassAbsences,
@@ -126,7 +126,7 @@ export default function AbsencesEnseignantScreen() {
     const isProcessing = processingIds.has(absence.id);
 
     return (
-      <Box key={absence.id} className="rounded-[14px] p-3.5 mb-2.5" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+      <Box key={absence.id} className="rounded-[14px] p-3.5 mb-2.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
         <HStack className="items-start">
           <Box className="w-11 h-11 rounded-[22px] justify-center items-center mr-3" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>
             <Text className="text-2xl">
@@ -194,7 +194,7 @@ export default function AbsencesEnseignantScreen() {
             onPress={() => setFilter(opt.key)}
             className="px-4 py-2 rounded-[20px]"
             style={{
-              backgroundColor: filter === opt.key ? TEACHER_ORANGE + '20' : '#FFFFFF',
+              backgroundColor: filter === opt.key ? TEACHER_ORANGE + '20' : SCREEN_BACKGROUND,
               borderWidth: 1.5,
               borderColor: filter === opt.key ? TEACHER_ORANGE : '#EEF0F5',
               ...CARD_SHADOW,
@@ -241,7 +241,7 @@ export default function AbsencesEnseignantScreen() {
                 <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
                 <Text className="text-lg font-bold" style={{ color: TEACHER_ORANGE }}>Absences du jour</Text>
               </HStack>
-              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
                 <Text className="text-sm" style={{ color: '#94A3B8' }}>
                   Aucune absence signalée pour aujourd'hui
                 </Text>
@@ -258,7 +258,7 @@ export default function AbsencesEnseignantScreen() {
             {historiqueAbsences.length > 0 ? (
               historiqueAbsences.map((a) => renderAbsenceCard(a, false))
             ) : (
-              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+              <Box className="rounded-[14px] p-6 items-center" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
                 <Text className="text-sm" style={{ color: '#94A3B8' }}>Aucune absence dans l'historique</Text>
               </Box>
             )}

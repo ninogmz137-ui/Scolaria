@@ -1,6 +1,9 @@
+/** Unified light screen / page background (all main screens). */
+export const SCREEN_BACKGROUND = '#F8F9FA' as const;
+
 export const Colors = {
   // ── Light design system (primary palette) ──────────
-  pageBg: '#F7F8FC',
+  pageBg: SCREEN_BACKGROUND,
   card: '#FFFFFF',
   cardBorder: '#EEF0F5',
   textPrimary: '#0F172A',

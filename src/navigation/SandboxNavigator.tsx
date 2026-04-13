@@ -32,6 +32,7 @@ import { Box, Text, HStack, VStack } from '../components/ui';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // Screens available in sandbox
 import AccueilScreen from '../screens/AccueilScreen';
@@ -42,7 +43,7 @@ import AriaScreen from '../screens/AriaScreen';
 
 // ─── Constants ──────────────────────────────────────────
 
-const PAGE_BG = '#F7F8FC';
+const PAGE_BG = SCREEN_BACKGROUND;
 const CARD_BORDER = '#E2E8F0';
 
 // ─── Stack navigators ──────────────────────────────────

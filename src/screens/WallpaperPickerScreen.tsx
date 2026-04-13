@@ -15,6 +15,7 @@ import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -144,7 +145,7 @@ export default function WallpaperPickerScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
   },
 
   // ── Category pills

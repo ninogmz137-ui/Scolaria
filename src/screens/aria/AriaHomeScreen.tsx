@@ -32,6 +32,7 @@ import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import AddToDiscussionSheet from '../../components/chat/AddToDiscussionSheet';
 import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -518,7 +519,7 @@ export default function AriaHomeScreen() {
 
 // ─── Styles ─────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
 
   // Top bar
   topbar: {
@@ -686,7 +687,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRightWidth: 1,
     borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',

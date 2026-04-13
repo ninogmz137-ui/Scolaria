@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/colors';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Teacher screens
@@ -27,7 +27,7 @@ import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 // ─── Color constants ─────────────────────────────────────
 
 const TEACHER_ORANGE = '#FF8C42';
-const TEACHER_BG = '#F7F8FC';
+const TEACHER_BG = SCREEN_BACKGROUND;
 const TEACHER_CARD = '#FFFFFF';
 
 const STACK_OPTS = {

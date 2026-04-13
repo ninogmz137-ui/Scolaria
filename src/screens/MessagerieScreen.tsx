@@ -31,13 +31,14 @@ import {
   markConversationRead,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Constants ────────────────────────────────────────────
 
 const NAVY = '#1A2340';
 const VIOLET = '#7C3AED';
 const UNREAD_DOT = '#3B82F6';
-const BG = '#FFFFFF';
+const BG = SCREEN_BACKGROUND;
 
 // ─── Filter types ─────────────────────────────────────────
 
@@ -671,18 +672,18 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.7)',
       },
       ios: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: SCREEN_BACKGROUND,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.12,
         shadowRadius: 20,
       },
       android: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: SCREEN_BACKGROUND,
         elevation: 8,
       },
       default: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: SCREEN_BACKGROUND,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 6 },
         shadowOpacity: 0.12,
@@ -778,7 +779,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingLeft: 0,
     paddingRight: 0,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     position: 'relative',
     maxWidth: '100%',
     overflow: 'hidden',

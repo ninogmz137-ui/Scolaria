@@ -1,8 +1,10 @@
 // src/tokens/colors.ts
 // Semantic color tokens — light mode active, dark mode prepared for future
 
+import { SCREEN_BACKGROUND } from '../constants/colors';
+
 export const lightTokens = {
-  background: '#F7F8FC',
+  background: SCREEN_BACKGROUND,
   surface: '#FFFFFF',
   surfaceGlass: 'rgba(255,255,255,0.55)',
   surfaceElevated: '#FFFFFF',

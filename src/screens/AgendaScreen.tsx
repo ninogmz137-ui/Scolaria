@@ -32,7 +32,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -953,7 +953,7 @@ const st = StyleSheet.create({
   },
   calendarGridCard: {
     marginHorizontal: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 20,
     padding: 16,
     ...Platform.select({
@@ -1100,7 +1100,7 @@ const st = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
@@ -1193,7 +1193,7 @@ const st = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -1223,7 +1223,7 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -1235,7 +1235,7 @@ const st = StyleSheet.create({
     color: '#1A2340',
   },
   modalInput: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     borderWidth: 0,
     borderRadius: 14,
     paddingHorizontal: 16,
@@ -1256,7 +1256,7 @@ const st = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 0,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
   },
   modalTypePillActive: {
     backgroundColor: '#1A2340',

@@ -26,6 +26,7 @@ import ChildAvatar from './ChildAvatar';
 import GlassCard from './GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -222,7 +223,7 @@ const s = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,

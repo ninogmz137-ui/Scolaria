@@ -31,7 +31,7 @@ import {
   Database,
   Code,
 } from 'lucide-react-native';
-import { Colors } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -148,7 +148,7 @@ export default function AProposScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -283,7 +283,7 @@ export default function AProposScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',

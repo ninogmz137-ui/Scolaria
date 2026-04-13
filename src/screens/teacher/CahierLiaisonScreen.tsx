@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import {
   getTeacherMots,
@@ -188,7 +188,7 @@ export default function CahierLiaisonScreen() {
           </HStack>
 
           {/* Content card */}
-          <Box className="m-5 p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <Box className="m-5 p-4 rounded-2xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xs mb-3" style={{ color: '#94A3B8' }}>
               <Ionicons name="calendar-outline" size={13} color="#94A3B8" />{' '}
               Envoyé le {formatDate(selectedMot.date_envoi)}
@@ -224,7 +224,7 @@ export default function CahierLiaisonScreen() {
 
               {/* Signed list */}
               {signatures.length > 0 && (
-                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: Colors.green + '20', ...CARD_SHADOW }}>
+                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.green + '20', ...CARD_SHADOW }}>
                   <Text className="text-[13px] font-bold mb-2.5" style={{ color: Colors.green }}>
                     <Ionicons name="checkmark-circle" size={14} color={Colors.green} /> Signatures reçues
                   </Text>
@@ -242,7 +242,7 @@ export default function CahierLiaisonScreen() {
 
               {/* Unsigned students */}
               {unsignedStudents.length > 0 && (
-                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: Colors.red + '30', ...CARD_SHADOW }}>
+                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.red + '30', ...CARD_SHADOW }}>
                   <Text className="text-[13px] font-bold mb-2.5" style={{ color: Colors.red }}>
                     <Ionicons name="close-circle" size={14} color={Colors.red} /> En attente ({unsignedStudents.length})
                   </Text>
@@ -291,7 +291,7 @@ export default function CahierLiaisonScreen() {
   const createModal = (
     <Modal visible={showCreate} animationType="slide" transparent>
       <Box className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
-        <Box className="p-6 rounded-t-3xl" style={{ backgroundColor: '#FFFFFF', maxHeight: '90%', borderWidth: 1, borderColor: '#EEF0F5' }}>
+        <Box className="p-6 rounded-t-3xl" style={{ backgroundColor: SCREEN_BACKGROUND, maxHeight: '90%', borderWidth: 1, borderColor: '#EEF0F5' }}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
@@ -317,7 +317,7 @@ export default function CahierLiaisonScreen() {
                     className="rounded-[14px] p-3.5"
                     style={{
                       flexDirection: 'row', alignItems: 'center', gap: 10,
-                      backgroundColor: isActive ? tc.color + '20' : '#F7F8FC',
+                      backgroundColor: isActive ? tc.color + '20' : SCREEN_BACKGROUND,
                       borderWidth: 1,
                       borderColor: isActive ? tc.color : '#EEF0F5',
                     }}
@@ -339,7 +339,7 @@ export default function CahierLiaisonScreen() {
             <Text className="text-[13px] font-bold mb-2 mt-4" style={{ color: '#64748B' }}>Titre</Text>
             <TextInput
               style={{
-                backgroundColor: '#F7F8FC', borderRadius: 14, padding: 14,
+                backgroundColor: SCREEN_BACKGROUND, borderRadius: 14, padding: 14,
                 color: '#0F172A', fontSize: 14,
                 borderWidth: 1, borderColor: '#EEF0F5',
               }}
@@ -353,7 +353,7 @@ export default function CahierLiaisonScreen() {
             <Text className="text-[13px] font-bold mb-2 mt-4" style={{ color: '#64748B' }}>Message</Text>
             <TextInput
               style={{
-                backgroundColor: '#F7F8FC', borderRadius: 14, padding: 14,
+                backgroundColor: SCREEN_BACKGROUND, borderRadius: 14, padding: 14,
                 color: '#0F172A', fontSize: 14, minHeight: 120, textAlignVertical: 'top',
                 borderWidth: 1, borderColor: '#EEF0F5',
               }}
@@ -371,7 +371,7 @@ export default function CahierLiaisonScreen() {
                 <Text className="text-[13px] font-bold mb-2 mt-4" style={{ color: '#64748B' }}>Date limite de signature (optionnel)</Text>
                 <TextInput
                   style={{
-                    backgroundColor: '#F7F8FC', borderRadius: 14, padding: 14,
+                    backgroundColor: SCREEN_BACKGROUND, borderRadius: 14, padding: 14,
                     color: '#0F172A', fontSize: 14,
                     borderWidth: 1, borderColor: '#EEF0F5',
                   }}
@@ -384,7 +384,7 @@ export default function CahierLiaisonScreen() {
             )}
 
             {/* Classe info */}
-            <HStack className="items-center gap-2 mt-4 p-3 rounded-xl" style={{ backgroundColor: '#F7F8FC', borderWidth: 1, borderColor: '#EEF0F5' }}>
+            <HStack className="items-center gap-2 mt-4 p-3 rounded-xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1, borderColor: '#EEF0F5' }}>
               <Ionicons name="people" size={16} color="#64748B" />
               <Text className="flex-1 text-xs" style={{ color: '#64748B' }}>
                 Sera envoyé à tous les parents de <Text style={{ color: '#0F172A', fontFamily: FontFamily.sansBold }}>CM2 B</Text> (25 élèves)
@@ -411,7 +411,7 @@ export default function CahierLiaisonScreen() {
         contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
       >
         {/* Header card */}
-        <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+        <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           <Box className="w-11 h-11 rounded-[22px] justify-center items-center" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>
             <Ionicons name="book" size={24} color={TEACHER_ORANGE} />
           </Box>
@@ -423,15 +423,15 @@ export default function CahierLiaisonScreen() {
 
         {/* Stats */}
         <HStack className="gap-2.5 mx-5 mb-4">
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: TEACHER_ORANGE }}>{mots.length}</Text>
             <Text className="text-[10px] mt-0.5 text-center" style={{ color: '#64748B' }}>Mots envoyés</Text>
           </VStack>
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: Colors.green }}>{activeCount}</Text>
             <Text className="text-[10px] mt-0.5 text-center" style={{ color: '#64748B' }}>Actifs</Text>
           </VStack>
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: pendingSigCount > 0 ? Colors.red : Colors.green }}>
               {pendingSigCount}
             </Text>
@@ -447,7 +447,7 @@ export default function CahierLiaisonScreen() {
               onPress={() => setFilter(key)}
               className="px-4 py-2 rounded-[20px]"
               style={{
-                backgroundColor: filter === key ? TEACHER_ORANGE + '20' : '#FFFFFF',
+                backgroundColor: filter === key ? TEACHER_ORANGE + '20' : SCREEN_BACKGROUND,
                 borderWidth: 1,
                 borderColor: filter === key ? TEACHER_ORANGE : '#EEF0F5',
               }}
@@ -477,7 +477,7 @@ export default function CahierLiaisonScreen() {
               key={mot.id}
               onPress={() => openDetail(mot)}
               className="mx-5 mb-3 p-4 rounded-2xl"
-              style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}
+              style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}
             >
               {/* Type + statut row */}
               <HStack className="justify-between items-center mb-2.5">

@@ -4,6 +4,7 @@ import { Box, Text, HStack } from './ui';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 interface Props {
   onAddChild?: () => void;
@@ -75,7 +76,7 @@ export default function FusedChildHeader({ onAddChild }: Props) {
           <HStack
             className="flex-1 items-center rounded-[14px] px-3.5 py-2.5"
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: SCREEN_BACKGROUND,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 0.04,

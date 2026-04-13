@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 const TEXT_SIZES = [
   { key: 'small', label: 'Petit', preview: 12, bodySize: 13 },
@@ -57,7 +58,7 @@ export default function TextSizeScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     paddingHorizontal: 20,
     paddingTop: 24,
     gap: 12,
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',

@@ -59,7 +59,7 @@ import {
   type TransitionMemoData,
 } from '../services/pdfExport';
 import { getChild, getCheckins } from '../services/database';
-import { Colors } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 
 const PAGE_BG = '#F2F4F8';
 const NAVY = '#1A2340';
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     backgroundColor: PAGE_BG,
   },
   whiteHeader: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     paddingBottom: 20,
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderWidth: 1,
     borderColor: 'rgba(124,58,237,0.15)',
     borderRadius: 9,

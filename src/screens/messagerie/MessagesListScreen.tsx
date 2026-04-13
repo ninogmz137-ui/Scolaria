@@ -28,6 +28,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -413,7 +414,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     maxWidth: '100%',
     overflow: 'hidden',
   },
@@ -446,7 +447,7 @@ const styles = StyleSheet.create({
 
   // ── Generic card (plain white, not glass)
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',
@@ -573,7 +574,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,

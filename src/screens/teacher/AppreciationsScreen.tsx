@@ -16,7 +16,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { saveAppreciation } from '../../services/teacherService';
 
@@ -288,7 +288,7 @@ export default function AppreciationsScreen() {
                   onPress={() => setSelectedStudent(s.id)}
                   className="items-center py-2.5 px-3.5 rounded-[14px]"
                   style={{
-                    backgroundColor: selectedStudent === s.id ? Colors.cyan + '12' : '#FFFFFF',
+                    backgroundColor: selectedStudent === s.id ? Colors.cyan + '12' : SCREEN_BACKGROUND,
                     borderWidth: 1.5,
                     borderColor: selectedStudent === s.id ? Colors.cyan : '#EEF0F5',
                     ...CARD_SHADOW,
@@ -321,7 +321,7 @@ export default function AppreciationsScreen() {
                 onPress={() => setSelectedLevel(l.key)}
                 className="flex-1 items-center py-3 rounded-[14px]"
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: SCREEN_BACKGROUND,
                   borderWidth: 1.5,
                   borderColor: selectedLevel === l.key ? l.color : '#EEF0F5',
                   ...CARD_SHADOW,
@@ -369,7 +369,7 @@ export default function AppreciationsScreen() {
                       style={{
                         flexDirection: 'row', alignItems: 'center', gap: 10,
                         paddingVertical: 10, paddingHorizontal: 14,
-                        backgroundColor: isSelected ? Colors.cyan + '10' : '#FFFFFF',
+                        backgroundColor: isSelected ? Colors.cyan + '10' : SCREEN_BACKGROUND,
                         borderWidth: 1.5,
                         borderColor: isSelected ? Colors.cyan + '50' : '#EEF0F5',
                         ...CARD_SHADOW,
@@ -401,7 +401,7 @@ export default function AppreciationsScreen() {
           </HStack>
           <TextInput
             style={{
-              backgroundColor: '#FFFFFF', borderRadius: 14,
+              backgroundColor: SCREEN_BACKGROUND, borderRadius: 14,
               padding: 14, color: '#0F172A', fontSize: 14,
               minHeight: 60, textAlignVertical: 'top',
               borderWidth: 1.5, borderColor: '#EEF0F5',
@@ -454,7 +454,7 @@ export default function AppreciationsScreen() {
             }}
           >
             {/* Variant A */}
-            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
               <HStack className="items-center mb-3 gap-2">
                 <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.violet + '30' }}>
                   <Text className="text-sm font-black" style={{ color: '#0F172A' }}>A</Text>
@@ -476,7 +476,7 @@ export default function AppreciationsScreen() {
             </Box>
 
             {/* Variant B */}
-            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
               <HStack className="items-center mb-3 gap-2">
                 <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.cyan + '20' }}>
                   <Text className="text-sm font-black" style={{ color: '#0F172A' }}>B</Text>
@@ -505,7 +505,7 @@ export default function AppreciationsScreen() {
             style={{
               opacity: resultFade,
               transform: [{ translateY: resultSlide }],
-              backgroundColor: '#FFFFFF',
+              backgroundColor: SCREEN_BACKGROUND,
               borderRadius: 20,
               padding: 20,
               borderWidth: 1.5,
@@ -523,7 +523,7 @@ export default function AppreciationsScreen() {
 
             <TextInput
               style={{
-                backgroundColor: '#F7F8FC', borderRadius: 14,
+                backgroundColor: SCREEN_BACKGROUND, borderRadius: 14,
                 padding: 14, color: '#0F172A', fontSize: 15, lineHeight: 23,
                 minHeight: 120, textAlignVertical: 'top',
                 borderWidth: 1, borderColor: '#EEF0F5',

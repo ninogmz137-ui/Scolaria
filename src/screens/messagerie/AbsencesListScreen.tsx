@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -202,7 +203,7 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     maxWidth: '100%',
     overflow: 'hidden',
   },
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
 
   // ── Absence card (plain white, no glass)
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#F1F5F9',

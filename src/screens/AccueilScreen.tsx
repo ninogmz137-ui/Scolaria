@@ -33,6 +33,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import AriaSparkleIcon from '../components/AriaSparkleIcon';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Mock data ──────────────────────────────────────────
 
@@ -278,7 +279,7 @@ export default function AccueilScreen() {
   }, [selectedChildId, loadDashboard]);
 
   return (
-    <View style={[styles.root, { backgroundColor: '#F2F2F7' }]}>
+    <View style={[styles.root, { backgroundColor: SCREEN_BACKGROUND }]}>
       {/* Wallpaper — top 40% of screen */}
       {wallpaperSource.type === 'image' ? (
         <Image
@@ -510,7 +511,7 @@ function GlassTile({
 // ─── Styles ─────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
   flex: { flex: 1 },
 
   wallpaperGradient: {
@@ -522,7 +523,7 @@ const styles = StyleSheet.create({
   },
 
   contentSheet: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,

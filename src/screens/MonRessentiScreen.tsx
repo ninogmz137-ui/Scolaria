@@ -23,7 +23,7 @@ import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/F
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 
@@ -306,7 +306,7 @@ function CriticalHelp() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: PAGE_BG },
   header: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     paddingHorizontal: 18,

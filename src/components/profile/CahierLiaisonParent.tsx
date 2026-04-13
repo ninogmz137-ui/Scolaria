@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Animated, Modal, Alert } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
 import GlassCard from '../GlassCard';
 import {
@@ -114,7 +114,7 @@ export default function CahierLiaisonParent({
         <Box
           className="rounded-t-3xl p-6"
           style={{
-            backgroundColor: '#F7F8FC',
+            backgroundColor: SCREEN_BACKGROUND,
             maxHeight: '85%',
           }}
         >
@@ -164,7 +164,7 @@ export default function CahierLiaisonParent({
           <Box
             className="p-4 rounded-2xl mb-4"
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: SCREEN_BACKGROUND,
             }}
           >
             <Text className="text-sm" style={{ color: '#0F172A', lineHeight: 22 }}>
@@ -228,7 +228,7 @@ export default function CahierLiaisonParent({
           <Box
             className="w-full p-6 rounded-2xl items-center"
             style={{
-              backgroundColor: '#F7F8FC',
+              backgroundColor: SCREEN_BACKGROUND,
             }}
           >
             <Box
@@ -254,7 +254,7 @@ export default function CahierLiaisonParent({
             </Text>
             <Text
               className="text-xs italic text-center mb-5 px-3 py-2 w-full rounded-xl"
-              style={{ color: '#94A3B8', backgroundColor: '#FFFFFF' }}
+              style={{ color: '#94A3B8', backgroundColor: SCREEN_BACKGROUND }}
             >
               Signature électronique de {parentName}
             </Text>
@@ -262,7 +262,7 @@ export default function CahierLiaisonParent({
               <Pressable
                 className="flex-1 py-3.5 rounded-xl items-center"
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: SCREEN_BACKGROUND,
                 }}
                 onPress={() => setShowSignModal(false)}
               >

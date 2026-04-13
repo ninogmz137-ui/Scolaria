@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 const VIOLET = '#7C3AED';
 const CYAN = '#06B6D4';
@@ -106,7 +107,7 @@ function AriaOrbBubble({ holeColor = '#F2F2F7', style }: { holeColor?: string; s
           width: BUBBLE_CORE_SZ,
           height: BUBBLE_CORE_SZ,
           borderRadius: BUBBLE_CORE_R,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: SCREEN_BACKGROUND,
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 2,
@@ -538,7 +539,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   core: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,

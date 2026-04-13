@@ -1,3 +1,5 @@
+import { SCREEN_BACKGROUND } from './colors';
+
 /**
  * Custom color themes for per-child personalization.
  *
@@ -81,7 +83,7 @@ export function deriveThemePalette(theme: ChildTheme) {
   const accentDark = adjustBrightness(accent, -0.25);
 
   return {
-    bg: '#F7F8FC',
+    bg: SCREEN_BACKGROUND,
     bgLight: '#FFFFFF',
     card: '#FFFFFF',
     cardBorder: '#EEF0F5',
@@ -95,7 +97,7 @@ export function deriveThemePalette(theme: ChildTheme) {
     tabBorder: '#EEF0F5',
     tabActive: accent,
     tabInactive: '#94A3B8',
-    headerGradient: [accent + '10', '#F7F8FC'] as [string, string],
+    headerGradient: [accent + '10', SCREEN_BACKGROUND] as [string, string],
     ariaColor: accent,
   };
 }

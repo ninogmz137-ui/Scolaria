@@ -7,6 +7,7 @@ import {
 import { Box, Text, Pressable, HStack } from '../ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -167,7 +168,7 @@ export default function SuperPowerBadge({
           style={{
             opacity: fadeIn,
             flexDirection: 'row',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: SCREEN_BACKGROUND,
             borderRadius: 16,
             padding: 14,
             gap: 10,

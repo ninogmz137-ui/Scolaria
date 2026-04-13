@@ -7,13 +7,14 @@
 
 import { useMemo } from 'react';
 import { useChildTheme } from '../contexts/ChildThemeContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 /** Semantic color tokens (from spec) */
 export const ScolariaTokens = {
   primary:       '#6366F1',
   primaryLight:  '#818CF8',
   primaryDark:   '#6D28D9',
-  background:    '#F7F8FC',
+  background:    SCREEN_BACKGROUND,
   card:          '#FFFFFF',
   text:          '#0F172A',
   textSecondary: '#64748B',

@@ -15,6 +15,7 @@ import { Box, Text, Pressable, HStack, VStack } from './ui';
 import { Ionicons } from '@expo/vector-icons';
 import { useActiveChild, type Child } from '../contexts/ActiveChildContext';
 import { useSchoolMode, getSchoolModeFromBirthDate, THEMES } from '../contexts/SchoolModeContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -96,7 +97,7 @@ export function ChildSwitcherModal({
         <Pressable
           className="rounded-t-3xl px-5"
           style={{
-            backgroundColor: '#F2F2F7',
+            backgroundColor: SCREEN_BACKGROUND,
             maxHeight: SCREEN_HEIGHT * 0.6,
             ...Platform.select({
               ios: {

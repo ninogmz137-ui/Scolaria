@@ -41,6 +41,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Tab bar height export ───────────────────────────────
 
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     minWidth: 210,
     borderRadius: 16,
     padding: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

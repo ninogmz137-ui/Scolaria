@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 
@@ -193,7 +193,7 @@ export default function MessagerieParentsScreen() {
     return (
       <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#E8EDF5' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
         {/* Chat header */}
-        <HStack className="items-center gap-3 px-4 py-3.5" style={{ backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#EEF0F5' }}>
+        <HStack className="items-center gap-3 px-4 py-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderBottomWidth: 1, borderBottomColor: '#EEF0F5' }}>
           <Pressable onPress={() => setSelectedConv(null)} className="p-1">
             <Ionicons name="arrow-back" size={22} color="#0F172A" />
           </Pressable>
@@ -228,7 +228,7 @@ export default function MessagerieParentsScreen() {
                 className="max-w-[80%] p-3 rounded-2xl mb-1"
                 style={{
                   alignSelf: isTeacher ? 'flex-end' : 'flex-start',
-                  backgroundColor: isTeacher ? TEACHER_ORANGE : '#FFFFFF',
+                  backgroundColor: isTeacher ? TEACHER_ORANGE : SCREEN_BACKGROUND,
                   borderBottomRightRadius: isTeacher ? 4 : 16,
                   borderBottomLeftRadius: isTeacher ? 16 : 4,
                   ...(isTeacher ? {} : { borderWidth: 1, borderColor: '#EEF0F5' }),
@@ -248,10 +248,10 @@ export default function MessagerieParentsScreen() {
         </ScrollView>
 
         {/* Input bar */}
-        <HStack className="items-end gap-2.5 px-4 py-3" style={{ backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#EEF0F5' }}>
+        <HStack className="items-end gap-2.5 px-4 py-3" style={{ backgroundColor: SCREEN_BACKGROUND, borderTopWidth: 1, borderTopColor: '#EEF0F5' }}>
           <TextInput
             style={{
-              flex: 1, backgroundColor: '#F7F8FC', borderRadius: 20, padding: 12, paddingTop: 12,
+              flex: 1, backgroundColor: SCREEN_BACKGROUND, borderRadius: 20, padding: 12, paddingTop: 12,
               color: '#0F172A', fontSize: 14, maxHeight: 100,
               borderWidth: 1, borderColor: '#EEF0F5',
             }}
@@ -313,7 +313,7 @@ export default function MessagerieParentsScreen() {
         contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
       >
         {/* Header info */}
-        <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+        <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           <Box className="w-11 h-11 rounded-[22px] justify-center items-center" style={{ backgroundColor: TEACHER_ORANGE + '15' }}>
             <Ionicons name="chatbubbles" size={24} color={TEACHER_ORANGE} />
           </Box>
@@ -326,7 +326,7 @@ export default function MessagerieParentsScreen() {
         </HStack>
 
         {/* Search */}
-        <HStack className="items-center gap-2.5 mx-5 mb-3 p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+        <HStack className="items-center gap-2.5 mx-5 mb-3 p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           <Ionicons name="search" size={18} color="#94A3B8" />
           <TextInput
             style={{ flex: 1, fontSize: 14, color: '#0F172A', padding: 0 }}
@@ -344,15 +344,15 @@ export default function MessagerieParentsScreen() {
 
         {/* Quick stats */}
         <HStack className="gap-2.5 mx-5 mb-4">
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: TEACHER_ORANGE }}>{conversations.length}</Text>
             <Text className="text-[10px] mt-0.5" style={{ color: '#64748B' }}>Conversations</Text>
           </VStack>
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: totalUnread > 0 ? Colors.red : Colors.green }}>{totalUnread}</Text>
             <Text className="text-[10px] mt-0.5" style={{ color: '#64748B' }}>Non lus</Text>
           </VStack>
-          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+          <VStack className="flex-1 items-center p-3 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
             <Text className="text-xl font-black" style={{ color: Colors.cyan }}>{pinnedConvs.length}</Text>
             <Text className="text-[10px] mt-0.5" style={{ color: '#64748B' }}>Épinglées</Text>
           </VStack>
@@ -365,7 +365,7 @@ export default function MessagerieParentsScreen() {
               <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
               <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748B' }}>📌 ÉPINGLÉES</Text>
             </HStack>
-            <Box className="mx-5 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+            <Box className="mx-5 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
               {pinnedConvs.map((conv, i) => renderConvRow(conv, i, pinnedConvs.length))}
             </Box>
           </>
@@ -376,7 +376,7 @@ export default function MessagerieParentsScreen() {
           <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
           <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: '#64748B' }}>TOUTES LES CONVERSATIONS</Text>
         </HStack>
-        <Box className="mx-5 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
+        <Box className="mx-5 mb-4 rounded-2xl overflow-hidden" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>
           {otherConvs.length === 0 && (
             <VStack className="items-center p-[30px] gap-2">
               <Text className="text-[30px]">💬</Text>

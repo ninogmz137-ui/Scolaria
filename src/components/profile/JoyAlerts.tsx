@@ -3,7 +3,7 @@ import { Animated, Linking, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 // ─── Alert level types ───────────────────────────────────
@@ -253,7 +253,7 @@ export default function JoyAlerts({
         <Box
           className="mt-3 rounded-2xl p-4"
           style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: SCREEN_BACKGROUND,
           }}
         >
           <HStack className="items-center gap-2 mb-3.5">

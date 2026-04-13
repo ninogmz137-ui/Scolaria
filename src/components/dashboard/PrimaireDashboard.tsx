@@ -12,6 +12,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TAB_BAR_SCROLL_PADDING } from '../FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 interface Props {
   childName: string;
@@ -187,7 +188,7 @@ function DailyQuests() {
           <Pressable
             className="flex-row items-center mx-5 mb-2.5 rounded-[18px] p-4"
             style={{
-              backgroundColor: '#FFFFFF',
+              backgroundColor: SCREEN_BACKGROUND,
               gap: 14,
             }}
           >
@@ -287,7 +288,7 @@ function BadgesGrid() {
             <Pressable
               className="w-[100px] items-center py-[18px] rounded-[20px]"
               style={{
-                backgroundColor: b.earned ? b.color + '08' : '#F7F8FC',
+                backgroundColor: b.earned ? b.color + '08' : SCREEN_BACKGROUND,
               }}
               onPress={() => handleBadgeTap(i, b.earned)}
             >
@@ -355,7 +356,7 @@ function GradeCards() {
           >
             <Box
               className="items-center rounded-[20px] p-[18px]"
-              style={{ backgroundColor: '#FFFFFF' }}
+              style={{ backgroundColor: SCREEN_BACKGROUND }}
             >
               <Box
                 className="w-11 h-11 rounded-[22px] justify-center items-center mb-2.5"
@@ -414,12 +415,12 @@ export default function PrimaireDashboard({ childName, childAvatar }: Props) {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#F7F8FC' }}
+      style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >
       <LinearGradient
-        colors={['#EEF2FF', '#F5F3FF', '#F7F8FC']}
+        colors={['#EEF2FF', '#F5F3FF', SCREEN_BACKGROUND]}
         style={{ minHeight: '100%', paddingBottom: 20 }}
       >
         {/* Header */}

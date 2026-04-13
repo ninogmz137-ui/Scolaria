@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 const RGPD_ITEMS = [
   {
@@ -95,7 +96,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     paddingHorizontal: 20,
   },
   title: {
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 16,
     overflow: 'hidden',
     elevation: 0,

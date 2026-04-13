@@ -37,6 +37,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -316,7 +317,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
   },
   scrollContent: {
     paddingHorizontal: 20,

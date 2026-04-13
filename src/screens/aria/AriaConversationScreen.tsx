@@ -32,6 +32,7 @@ import {
   FLAT_LIST_TAB_BAR_FOOTER_SPACER,
 } from '../../components/FloatingTabBar';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
@@ -608,7 +609,7 @@ export default function AriaConversationScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F2F7' },
+  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
 
   // Top bar
   topbar: {
@@ -751,7 +752,7 @@ const styles = StyleSheet.create({
   // Drawer — light, Claude-style
   drawer: {
     position: 'absolute', top: 0, bottom: 0, left: 0,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',
     alignSelf: 'stretch',

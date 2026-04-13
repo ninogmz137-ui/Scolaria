@@ -28,6 +28,7 @@ import {
   getConversation,
   sendMessage as storeSendMessage,
 } from '../../stores/messagerieStore';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 import type { Conversation, Message } from '../../data/messagerieData';
 
 // ─── Constants ────────────────────────────────────────────
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#D1D5DB',
     maxWidth: '100%',
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 5,
   },
   bubbleOther: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderBottomLeftRadius: 5,
     ...Platform.select({
       ios: {
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 16,
     paddingTop: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#D1D5DB',
     gap: 10,
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansRegular,
     fontSize: 15,
     color: NAVY,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 22,
     paddingHorizontal: 16,
     paddingTop: 10,

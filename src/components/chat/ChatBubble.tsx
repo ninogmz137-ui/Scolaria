@@ -1,7 +1,7 @@
 import { Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, HStack } from '../ui';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
 import AriaOrb from '../AriaOrb';
@@ -67,7 +67,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
           maxWidth: '75%',
           ...(isAria
             ? {
-                backgroundColor: '#FFFFFF',
+                backgroundColor: SCREEN_BACKGROUND,
                 borderBottomLeftRadius: 6,
               }
             : {

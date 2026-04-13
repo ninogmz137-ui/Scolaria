@@ -8,6 +8,7 @@ import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FileText, Check } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 export default function MotDetailScreen({ route, navigation }: { route: any; navigation: any }) {
   const insets = useSafeAreaInsets();
@@ -71,7 +72,7 @@ export default function MotDetailScreen({ route, navigation }: { route: any; nav
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
   },
   content: {
     flex: 1,
