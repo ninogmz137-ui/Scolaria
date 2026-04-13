@@ -26,10 +26,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   runOnJS,
   Easing,
+  interpolate,
+  Extrapolation,
 } from 'react-native-reanimated';
 import { School, CalendarX, Search, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -259,7 +260,7 @@ export default function MessagerieScreen() {
     }, []),
   );
 
-  // ── Search: width expands left from fixed icon; filter pill fades out (no layout shift) ──
+  // ── Search: field expands left from bare icon; filter pill always visible ──
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
@@ -270,9 +271,10 @@ export default function MessagerieScreen() {
   const searchInputRef = useRef<any>(null);
   const filterPillRef = useRef<View | null>(null);
   const searchWidthSV = useSharedValue(0);
-  const filterOpacitySV = useSharedValue(1);
   const ddOpacitySV = useSharedValue(0);
   const ddTranslateYSV = useSharedValue(-4);
+
+  const SEARCH_TIMING_MS = 220;
 
   const focusSearchInput = useCallback(() => {
     searchInputRef.current?.focus();
@@ -286,19 +288,21 @@ export default function MessagerieScreen() {
   const openSearch = useCallback(() => {
     setFilterDropdownVisible(false);
     setSearchOpen(true);
-    filterOpacitySV.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.cubic) });
-    searchWidthSV.value = withSpring(SEARCH_INPUT_MAX_W, { damping: 20, stiffness: 200 }, (finished) => {
-      if (finished) runOnJS(focusSearchInput)();
-    });
-  }, [filterOpacitySV, focusSearchInput, searchWidthSV]);
+    searchWidthSV.value = withTiming(
+      SEARCH_INPUT_MAX_W,
+      { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) },
+      (finished) => {
+        if (finished) runOnJS(focusSearchInput)();
+      },
+    );
+  }, [focusSearchInput, searchWidthSV]);
 
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
-    filterOpacitySV.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.cubic) });
-    searchWidthSV.value = withSpring(0, { damping: 20, stiffness: 200 }, (finished) => {
+    searchWidthSV.value = withTiming(0, { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) }, (finished) => {
       if (finished) runOnJS(finishCloseSearch)();
     });
-  }, [filterOpacitySV, finishCloseSearch, searchWidthSV]);
+  }, [finishCloseSearch, searchWidthSV]);
 
   const toggleSearch = useCallback(() => {
     if (searchOpen) {
@@ -308,13 +312,13 @@ export default function MessagerieScreen() {
     }
   }, [searchOpen, openSearch, closeSearch]);
 
-  const searchWidthStyle = useAnimatedStyle(() => ({
-    width: searchWidthSV.value,
-  }));
-
-  const filterPillAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: filterOpacitySV.value,
-  }));
+  const searchWidthStyle = useAnimatedStyle(() => {
+    const w = searchWidthSV.value;
+    return {
+      width: w,
+      opacity: interpolate(w, [0, 16], [0, 1], Extrapolation.CLAMP),
+    };
+  });
 
   const dropdownEnterStyle = useAnimatedStyle(() => ({
     opacity: ddOpacitySV.value,
@@ -406,8 +410,7 @@ export default function MessagerieScreen() {
             <Animated.View
               style={[
                 styles.searchInputAbs,
-                whitePillShadow,
-                styles.searchInputRounded,
+                styles.searchInputPill,
                 searchWidthStyle,
                 { right: inputRightOffset },
               ]}
@@ -429,21 +432,15 @@ export default function MessagerieScreen() {
 
             <Pressable
               onPress={toggleSearch}
-              style={({ pressed }) => [
-                styles.searchIconBtn,
-                whitePillShadow,
-                pressed && { opacity: 0.88 },
-              ]}
+              style={({ pressed }) => [styles.searchIconBare, pressed && { opacity: 0.65 }]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
               accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
             >
               <Search size={22} color={NAVY} strokeWidth={1.5} />
             </Pressable>
 
-            <Animated.View
-              style={[filterPillAnimatedStyle, styles.filterPillSlot]}
-              pointerEvents={searchOpen ? 'none' : 'auto'}
-            >
+            <View style={styles.filterPillSlot}>
               <View
                 ref={filterPillRef}
                 collapsable={false}
@@ -465,7 +462,7 @@ export default function MessagerieScreen() {
                   <ChevronDown size={14} color={NAVY} strokeWidth={2} />
                 </Pressable>
               </View>
-            </Animated.View>
+            </View>
           </View>
         </View>
       </View>
@@ -650,8 +647,22 @@ const styles = StyleSheet.create({
     zIndex: 1,
     paddingLeft: 12,
   },
-  searchInputRounded: {
+  /** Expanding field only — white pill + shadow (opacity follows width via animated style) */
+  searchInputPill: {
     borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: { elevation: 3 },
+      default: {
+        ...(Platform.OS === 'web' ? ({ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' } as object) : {}),
+      },
+    }),
   },
   searchInputField: {
     flex: 1,
@@ -661,13 +672,12 @@ const styles = StyleSheet.create({
     color: NAVY,
     paddingVertical: 0,
   },
-  searchIconBtn: {
-    width: SEARCH_ICON_W,
-    height: 40,
-    borderRadius: 20,
+  /** Bare Search tap target — no pill, no background */
+  searchIconBare: {
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
+    backgroundColor: 'transparent',
   },
   filterPillSlot: {
     zIndex: 2,
