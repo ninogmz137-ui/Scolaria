@@ -3,6 +3,9 @@ import { BlurView } from 'expo-blur';
 import { Plus } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
+/** Single accent for all portfolio progress fills (no per-activity bar colors). */
+const PORTFOLIO_BAR_COLOR = '#7C3AED';
+
 interface Activity {
   id: string;
   name: string;
@@ -55,11 +58,11 @@ export default function Portfolio({ activities }: Props) {
                       <View
                         style={[
                           styles.fill,
-                          { width: `${activity.progressPercent}%`, backgroundColor: activity.color },
+                          { width: `${activity.progressPercent}%` },
                         ]}
                       />
                     </View>
-                    <Text style={[styles.pct, { color: activity.color }]}>{activity.progressPercent}%</Text>
+                    <Text style={styles.pct}>{activity.progressPercent}%</Text>
                   </View>
                 )}
                 <View style={[styles.badge, { borderColor: activity.color }]}>
@@ -157,10 +160,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.06)',
     overflow: 'hidden',
   },
-  fill: { height: '100%', borderRadius: 2 },
+  fill: {
+    height: '100%',
+    borderRadius: 2,
+    backgroundColor: PORTFOLIO_BAR_COLOR,
+  },
   pct: {
     fontFamily: FontFamily.sansBold,
     fontSize: 9,
+    color: PORTFOLIO_BAR_COLOR,
   },
   badge: {
     borderWidth: 1,

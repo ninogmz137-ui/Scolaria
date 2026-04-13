@@ -54,6 +54,63 @@ type RowDef = {
 
 type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
+/**
+ * Preset wallpaper tile: solid color under gradient so Android always shows a fill
+ * if LinearGradient or remote Image fails; Image onError hides overlay and fallback shows.
+ */
+function WallpaperPresetTile({
+  wp,
+  tileWidth,
+  isActive,
+  onSelect,
+}: {
+  wp: WallpaperDef;
+  tileWidth: number;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const baseColor = wp.colors[0] ?? '#6366F1';
+  const grad = (
+    wp.colors.length >= 2
+      ? [wp.colors[0], wp.colors[wp.colors.length - 1]]
+      : [baseColor, '#22D3EE']
+  ) as [string, string, ...string[]];
+
+  return (
+    <RNPressable
+      onPress={onSelect}
+      style={({ pressed }) => [
+        styles.wallpaperGridTile,
+        { width: tileWidth },
+        isActive && styles.wallpaperTileActive,
+        pressed && { opacity: 0.9 },
+      ]}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: isActive }}
+      accessibilityLabel={wp.label}
+    >
+      <View style={[StyleSheet.absoluteFill, styles.wallpaperTileFallback]} pointerEvents="none">
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: baseColor }]} />
+        <LinearGradient
+          colors={grad}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
+      {wp.imageUrl && !imageFailed ? (
+        <Image
+          source={{ uri: wp.imageUrl }}
+          style={styles.wallpaperTileImageOverlay}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : null}
+    </RNPressable>
+  );
+}
+
 function SectionLabel({ label }: { label: string }) {
   return <Text style={styles.sectionLabel}>{label}</Text>;
 }
@@ -227,42 +284,15 @@ export default function ReglagesScreen() {
                   );
                 }
                 const wp = item as WallpaperDef;
-                const hasRemote = !!wp.imageUrl;
                 const isActive = !customUri && wallpaper.id === wp.id;
-                const grad = (
-                  wp.colors.length >= 2
-                    ? [wp.colors[0], wp.colors[wp.colors.length - 1]]
-                    : ['#6366F1', '#22D3EE']
-                ) as [string, string, ...string[]];
                 return (
-                  <RNPressable
+                  <WallpaperPresetTile
                     key={wp.id}
-                    onPress={() => setWallpaperId(wp.id)}
-                    style={({ pressed }) => [
-                      styles.wallpaperGridTile,
-                      { width: WALLPAPER_TILE_W },
-                      isActive && styles.wallpaperTileActive,
-                      pressed && { opacity: 0.9 },
-                    ]}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isActive }}
-                    accessibilityLabel={wp.label}
-                  >
-                    <LinearGradient
-                      colors={grad}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={StyleSheet.absoluteFill}
-                    />
-                    {hasRemote ? (
-                      <Image
-                        source={{ uri: wp.imageUrl! }}
-                        style={styles.wallpaperTileImageOverlay}
-                        resizeMode="cover"
-                        onError={() => {}}
-                      />
-                    ) : null}
-                  </RNPressable>
+                    wp={wp}
+                    tileWidth={WALLPAPER_TILE_W}
+                    isActive={isActive}
+                    onSelect={() => setWallpaperId(wp.id)}
+                  />
                 );
               })}
             </View>
@@ -395,7 +425,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.92)',
-    backgroundColor: 'rgba(148,163,184,0.12)',
+    /** Visible if children fail to paint (Android). */
+    backgroundColor: '#CBD5E1',
+  },
+  wallpaperTileFallback: {
+    zIndex: 0,
   },
   wallpaperTileActive: {
     borderWidth: 2,
@@ -403,6 +437,7 @@ const styles = StyleSheet.create({
   },
   wallpaperTileImageOverlay: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
     opacity: Platform.OS === 'web' ? 1 : 0.92,
   },
   wallpaperCustomTile: {
