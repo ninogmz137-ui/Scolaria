@@ -11,7 +11,8 @@ import SandboxNavigator from './src/navigation/SandboxNavigator';
 import LoginScreen from './src/screens/LoginScreen';
 import PinScreen from './src/screens/PinScreen';
 import SplashScreenAnimated from './src/screens/SplashScreen';
-import ConseilDuMatin from './src/components/ConseilDuMatin';
+/** Kept for future reuse (e.g. Aria) — auto-open on Accueil disabled below. */
+// import ConseilDuMatin from './src/components/ConseilDuMatin';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
@@ -31,7 +32,6 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 function AppContent() {
   const { user, loading, role } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
-  const [showConseil, setShowConseil] = useState(false);
   const [authScreen, setAuthScreen] = useState<'login' | 'pin'>('login');
 
   useEffect(() => {
@@ -48,9 +48,6 @@ function AppContent() {
 
   const handleSplashFinish = () => {
     setShowSplash(false);
-    if (user) {
-      setTimeout(() => setShowConseil(true), 500);
-    }
   };
 
   if (loading || showSplash) {
@@ -93,12 +90,7 @@ function AppContent() {
   return (
     <View style={{ flex: 1 }}>
       {renderNavigator()}
-      {role === 'parent' && (
-        <ConseilDuMatin
-          visible={showConseil}
-          onDismiss={() => setShowConseil(false)}
-        />
-      )}
+      {/* Conseil du Matin — désactivé sur l’accueil ; réactiver via <ConseilDuMatin visible /> depuis Aria si besoin */}
     </View>
   );
 }

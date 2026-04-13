@@ -349,63 +349,67 @@ export default function MessagerieScreen() {
             </Text>
           </View>
 
-          <Pressable
-            onPress={() => setFilterModalVisible(true)}
-            style={({ pressed }) => [
-              styles.glassBtn,
-              glassStyle,
-              styles.headerRoundBtn,
-              pressed && { opacity: 0.75 },
-            ]}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel="Filtrer les conversations"
-          >
-            <ChevronDown size={20} color={NAVY} strokeWidth={2} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Animated.View
+              style={[
+                styles.searchPill,
+                glassStyle,
+                pillAnimatedStyle,
+                { borderWidth: 1, borderColor: Colors.cardBorder },
+              ]}
+            >
+              <View style={styles.searchPillInner}>
+                {searchOpen ? (
+                  <>
+                    <TextInput
+                      ref={searchInputRef}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder="Rechercher…"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.searchInputInPill}
+                      returnKeyType="search"
+                      onSubmitEditing={() => searchInputRef.current?.blur()}
+                      autoCorrect={false}
+                    />
+                    <Pressable
+                      onPress={closeSearch}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Fermer la recherche"
+                    >
+                      <X size={17} color="#64748B" strokeWidth={2.2} />
+                    </Pressable>
+                  </>
+                ) : null}
+                <Pressable
+                  onPress={searchOpen ? () => searchInputRef.current?.focus() : openSearch}
+                  style={({ pressed }) => [styles.searchIconSlot, pressed && { opacity: 0.8 }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Rechercher"
+                >
+                  <Search size={22} color={NAVY} strokeWidth={1.5} />
+                </Pressable>
+              </View>
+            </Animated.View>
 
-          <Animated.View
-            style={[
-              styles.searchPill,
-              glassStyle,
-              pillAnimatedStyle,
-              { borderWidth: 1, borderColor: Colors.cardBorder },
-            ]}
-          >
-            <View style={styles.searchPillInner}>
-              {searchOpen ? (
-                <>
-                  <TextInput
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="Rechercher…"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.searchInputInPill}
-                    returnKeyType="search"
-                    onSubmitEditing={() => searchInputRef.current?.blur()}
-                    autoCorrect={false}
-                  />
-                  <Pressable
-                    onPress={closeSearch}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel="Fermer la recherche"
-                  >
-                    <X size={17} color="#64748B" strokeWidth={2.2} />
-                  </Pressable>
-                </>
-              ) : null}
+            {!searchOpen ? (
               <Pressable
-                onPress={searchOpen ? () => searchInputRef.current?.focus() : openSearch}
-                style={({ pressed }) => [styles.searchIconSlot, pressed && { opacity: 0.8 }]}
+                onPress={() => setFilterModalVisible(true)}
+                style={({ pressed }) => [
+                  styles.filterSelectorPill,
+                  pressed && { opacity: 0.88 },
+                ]}
                 accessibilityRole="button"
-                accessibilityLabel="Rechercher"
+                accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
               >
-                <Search size={22} color={NAVY} strokeWidth={1.5} />
+                <Text style={styles.filterSelectorPillText} numberOfLines={1}>
+                  {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
+                </Text>
+                <ChevronDown size={14} color={NAVY} strokeWidth={2} />
               </Pressable>
-            </View>
-          </Animated.View>
+            ) : null}
+          </View>
         </View>
 
         <Modal
@@ -422,7 +426,7 @@ export default function MessagerieScreen() {
             />
             <View style={styles.filterModalCenter} pointerEvents="box-none">
               <View style={styles.filterModalCard}>
-                <Text style={styles.filterModalTitle}>Afficher</Text>
+                <Text style={styles.filterModalTitle}>AFFICHER</Text>
                 {FILTER_OPTIONS.map((opt) => {
                   const active = opt.id === activeFilter;
                   return (
@@ -434,12 +438,14 @@ export default function MessagerieScreen() {
                       }}
                       style={({ pressed }) => [
                         styles.filterModalRow,
-                        active && styles.filterModalRowActive,
-                        pressed && { opacity: 0.85 },
+                        pressed && { opacity: 0.88 },
                       ]}
                       accessibilityRole="button"
                       accessibilityState={{ selected: active }}
                     >
+                      <Text style={[styles.filterModalCheck, active ? styles.filterModalCheckOn : styles.filterModalCheckOff]}>
+                        {active ? '✓' : ' '}
+                      </Text>
                       <Text
                         style={[
                           styles.filterModalRowText,
@@ -455,33 +461,6 @@ export default function MessagerieScreen() {
             </View>
           </View>
         </Modal>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterPillsRow}
-        >
-          {FILTER_OPTIONS.map((opt) => {
-            const active = opt.id === activeFilter;
-            return (
-              <Pressable
-                key={opt.id}
-                onPress={() => setActiveFilter(opt.id)}
-                style={({ pressed }) => [
-                  styles.filterChip,
-                  active ? styles.filterChipActive : styles.filterChipOutline,
-                  pressed && { opacity: 0.88 },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-              >
-                <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
-                  {opt.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
       </View>
 
       {/* ── Conversation list ── */}
@@ -571,10 +550,32 @@ const styles = StyleSheet.create({
     gap: 8,
     minHeight: 52,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
+  },
   headerTextArea: {
     flex: 1,
     minWidth: 0,
     paddingLeft: 4,
+  },
+  filterSelectorPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: '#F2F2F7',
+    gap: 6,
+    maxWidth: 168,
+  },
+  filterSelectorPillText: {
+    flexShrink: 1,
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: NAVY,
   },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
@@ -619,18 +620,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
 
-  // Glass icon buttons — perfect circle
-  glassBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerRoundBtn: {
-    flexShrink: 0,
-  },
-
   filterModalRoot: {
     flex: 1,
     backgroundColor: 'rgba(15,23,42,0.35)',
@@ -642,84 +631,65 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   filterModalCard: {
-    borderRadius: 16,
-    backgroundColor: SCREEN_BACKGROUND,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 6,
     maxWidth: 360,
     alignSelf: 'center',
     width: '100%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
-        shadowRadius: 24,
+        shadowRadius: 16,
       },
-      android: { elevation: 6 },
+      android: { elevation: 8 },
       default: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.12,
-        shadowRadius: 24,
+        shadowRadius: 16,
       },
     }),
   },
   filterModalTitle: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: '#94A3B8',
-    letterSpacing: 0.6,
+    fontSize: 11,
+    color: '#8E8E93',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 10,
+    paddingBottom: 6,
   },
   filterModalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 16,
+    gap: 8,
   },
-  filterModalRowActive: {
-    backgroundColor: 'rgba(26,35,64,0.06)',
+  filterModalCheck: {
+    width: 22,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  filterModalCheckOn: {
+    color: NAVY,
+    fontFamily: FontFamily.sansBold,
+  },
+  filterModalCheckOff: {
+    color: 'transparent',
   },
   filterModalRowText: {
-    fontFamily: FontFamily.sansMedium,
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
     fontSize: 16,
     color: NAVY,
   },
   filterModalRowTextActive: {
     fontFamily: FontFamily.sansSemiBold,
-  },
-
-  filterPillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingTop: 6,
-    paddingBottom: 4,
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  filterChipOutline: {
-    borderWidth: 1,
-    borderColor: 'rgba(26,35,64,0.28)',
-    backgroundColor: 'transparent',
-  },
-  filterChipActive: {
-    backgroundColor: NAVY,
-    borderWidth: 0,
-  },
-  filterChipText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: NAVY,
-  },
-  filterChipTextActive: {
-    color: '#FFFFFF',
   },
 
   conversationScroll: {

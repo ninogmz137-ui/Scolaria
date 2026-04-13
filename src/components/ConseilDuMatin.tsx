@@ -1,8 +1,8 @@
 /**
- * Conseil du Matin — Morning tip modal shown on app launch.
+ * Conseil du Matin — Morning tip modal (optional overlay).
  *
- * Displays a contextual daily tip about the child's
- * school life, upcoming events, or well-being insights.
+ * Auto-open from App.tsx is disabled; keep this module for reuse (e.g. Aria).
+ * Displays a contextual daily tip about the child's school life or well-being.
  */
 
 import { useEffect, useRef } from 'react';
