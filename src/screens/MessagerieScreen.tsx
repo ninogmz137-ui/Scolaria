@@ -417,8 +417,19 @@ export default function MessagerieScreen() {
 
           <View style={styles.headerActionsCluster}>
             <Animated.View style={[styles.searchPillShell, whitePillShadow, searchPillWidthStyle]}>
-              <View style={styles.searchPillInnerRow}>
-                <Animated.View style={[styles.searchInputOpaqueWrap, searchInputOpacityStyle]}>
+              <View
+                style={[
+                  styles.searchPillInnerRow,
+                  searchOpen ? styles.searchPillInnerRowOpen : styles.searchPillInnerRowClosed,
+                ]}
+              >
+                <Animated.View
+                  style={[
+                    styles.searchInputOpaqueWrap,
+                    searchInputOpacityStyle,
+                    !searchOpen && styles.searchInputOpaqueWrapCollapsed,
+                  ]}
+                >
                   <TextInput
                     ref={searchInputRef}
                     value={searchQuery}
@@ -435,7 +446,7 @@ export default function MessagerieScreen() {
                 <Pressable
                   onPress={onSearchIconPress}
                   style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
-                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                   accessibilityRole="button"
                   accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
                 >
@@ -651,13 +662,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 40,
-    paddingLeft: 10,
-    paddingRight: 6,
+  },
+  /** Champ visible — padding horizontal symétrique */
+  searchPillInnerRowOpen: {
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+  },
+  /** État fermé (pill 40px) — icône seule, centrée */
+  searchPillInnerRowClosed: {
+    justifyContent: 'center',
+    paddingHorizontal: 0,
   },
   searchInputOpaqueWrap: {
     flex: 1,
     minWidth: 0,
     justifyContent: 'center',
+  },
+  searchInputOpaqueWrapCollapsed: {
+    flex: 0,
+    width: 0,
+    minWidth: 0,
+    overflow: 'hidden',
   },
   searchInputField: {
     flex: 1,
@@ -666,10 +691,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: NAVY,
     paddingVertical: 0,
-    paddingRight: 4,
+    paddingHorizontal: 0,
   },
+  /** Zone tactile icône — carré égal à la hauteur de la pill */
   searchIconHit: {
-    width: 28,
+    width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
