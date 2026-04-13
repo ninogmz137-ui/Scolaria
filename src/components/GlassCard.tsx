@@ -51,16 +51,12 @@ export default function GlassCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     overflow: 'hidden',
     ...nativeGlassCardShadow,
   },
   containerDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
     overflow: 'hidden',
     ...nativeGlassCardShadow,
   },

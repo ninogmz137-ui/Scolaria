@@ -34,7 +34,7 @@ import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
-import { nativeAriaSuggestionShadow, nativeWhiteInteractiveShadow } from '../../constants/theme';
+import { nativeWhiteInteractiveShadow } from '../../constants/theme';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 
 // ─── Constants ─────────────────────────────────────────────
@@ -260,14 +260,16 @@ export default function AriaHomeScreen() {
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: insets.top + 10 }]}>
-          <Pressable
-            onPress={() => setDrawerOpen(true)}
-            style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.75 : 1 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Historique"
-          >
-            <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
-          </Pressable>
+          <View style={styles.topBtnOuter}>
+            <Pressable
+              onPress={() => setDrawerOpen(true)}
+              style={({ pressed }) => [styles.topBtnPressable, { opacity: pressed ? 0.75 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Historique"
+            >
+              <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
+            </Pressable>
+          </View>
 
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={styles.topTitle}>
@@ -276,14 +278,16 @@ export default function AriaHomeScreen() {
             <Text style={styles.topSubtitle}>Étendu</Text>
           </View>
 
-          <Pressable
-            onPress={() => createConversation()}
-            style={({ pressed }) => [styles.topBtn, pressed && { opacity: 0.85 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Nouvelle discussion"
-          >
-            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
-          </Pressable>
+          <View style={styles.topBtnOuter}>
+            <Pressable
+              onPress={() => createConversation()}
+              style={({ pressed }) => [styles.topBtnPressable, pressed && { opacity: 0.85 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Nouvelle discussion"
+            >
+              <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
+            </Pressable>
+          </View>
         </View>
 
         {/* ─── Hero ─────────────────────────────────────────── */}
@@ -302,15 +306,16 @@ export default function AriaHomeScreen() {
 
           <View style={[styles.suggestionWrap, { marginTop: 26 }]}>
             {suggestions.map((s) => (
-              <Pressable
-                key={s}
-                onPress={() => sendFromHome(s)}
-                style={({ pressed }) => [styles.suggestionChip, pressed && { opacity: 0.86 }]}
-              >
-                <Text style={styles.suggestionText}>
-                  {s}
-                </Text>
-              </Pressable>
+              <View key={s} style={styles.suggestionCardOuter}>
+                <Pressable
+                  onPress={() => sendFromHome(s)}
+                  style={({ pressed }) => [styles.suggestionPressable, pressed && { opacity: 0.86 }]}
+                >
+                  <Text style={styles.suggestionText} numberOfLines={2}>
+                    {s}
+                  </Text>
+                </Pressable>
+              </View>
             ))}
           </View>
         </ScrollView>
@@ -416,22 +421,23 @@ export default function AriaHomeScreen() {
             style={styles.drawerRecentsScroll}
           >
             {filteredRecents.map((r) => (
-              <Pressable
-                key={r.id}
-                onPress={() => {
-                  setDrawerOpen(false);
-                  createConversation(r.title);
-                }}
-                style={({ pressed }) => [
-                  styles.recentRow,
-                  pressed && styles.recentRowPressed,
-                ]}
-              >
-                <Text style={styles.recentTitle} numberOfLines={1}>
-                  {r.title}
-                </Text>
-                <Text style={styles.recentTime}>{r.time}</Text>
-              </Pressable>
+              <View key={r.id} style={styles.recentItemOuter}>
+                <Pressable
+                  onPress={() => {
+                    setDrawerOpen(false);
+                    createConversation(r.title);
+                  }}
+                  style={({ pressed }) => [
+                    styles.recentPressableInner,
+                    pressed && { opacity: 0.88 },
+                  ]}
+                >
+                  <Text style={styles.recentItemTitle} numberOfLines={2}>
+                    {r.title}
+                  </Text>
+                  <Text style={styles.recentItemTime}>{r.time}</Text>
+                </Pressable>
+              </View>
             ))}
           </ScrollView>
 
@@ -486,15 +492,21 @@ const styles = StyleSheet.create({
     columnGap: 10,
     paddingBottom: 8,
   },
-  topBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  topBtnOuter: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  topBtnPressable: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-    ...nativeWhiteInteractiveShadow,
   },
   topTitle: {
     fontFamily: FontFamily.sansBold,
@@ -522,24 +534,32 @@ const styles = StyleSheet.create({
   suggestionWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 10,
     alignContent: 'flex-start',
     width: '100%',
   },
-  suggestionChip: {
+  suggestionCardOuter: {
     width: '48%',
     minWidth: 0,
+    marginBottom: 10,
     backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 8,
-    ...nativeAriaSuggestionShadow,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  suggestionPressable: {
+    flex: 1,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#475569',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#0F1B2D',
   },
 
   // Overlay
@@ -696,29 +716,31 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 4,
   },
-  recentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  recentItemOuter: {
+    marginBottom: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  recentPressableInner: {
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 2,
-    columnGap: 8,
   },
-  recentRowPressed: {
-    backgroundColor: 'rgba(124,58,237,0.08)',
+  recentItemTitle: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#0F1B2D',
   },
-  recentTitle: {
+  recentItemTime: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#374151',
-    flex: 1,
-  },
-  recentTime: {
-    fontFamily: FontFamily.sansRegular,
+    marginTop: 4,
     fontSize: 12,
-    color: '#9ca3af',
-    flexShrink: 0,
+    color: '#8E8E93',
   },
 
   liquidGlass: {

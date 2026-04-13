@@ -41,7 +41,7 @@ import {
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
 import { SCREEN_BACKGROUND } from '../constants/colors';
-import { nativeWhiteInteractiveShadow, nativeInactivePillShadow } from '../constants/theme';
+import { nativeWhiteInteractiveShadow } from '../constants/theme';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -448,31 +448,36 @@ export default function MessagerieScreen() {
 
             <View style={styles.filterPillSlot}>
               <View ref={filterPillRef} collapsable={false}>
-                <Pressable
-                  onPress={openFilterDropdown}
-                  style={({ pressed }) => [
-                    styles.filterSelectorPill,
-                    activeFilter === 'all' ? nativeInactivePillShadow : styles.filterSelectorPillNavy,
-                    pressed && { opacity: 0.92 },
+                <View
+                  style={[
+                    styles.filterPillShadowWrap,
+                    activeFilter === 'all'
+                      ? styles.filterPillShadowWrapLight
+                      : styles.filterPillShadowWrapNavy,
                   ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                 >
-                  <Text
-                    style={[
-                      styles.filterSelectorPillText,
-                      activeFilter !== 'all' && styles.filterSelectorPillTextOnNavy,
-                    ]}
-                    numberOfLines={1}
+                  <Pressable
+                    onPress={openFilterDropdown}
+                    style={({ pressed }) => [styles.filterPillInner, pressed && { opacity: 0.92 }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                   >
-                    {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
-                  </Text>
-                  <ChevronDown
-                    size={14}
-                    color={activeFilter === 'all' ? NAVY : '#FFFFFF'}
-                    strokeWidth={2}
-                  />
-                </Pressable>
+                    <Text
+                      style={[
+                        styles.filterSelectorPillText,
+                        activeFilter !== 'all' && styles.filterSelectorPillTextOnNavy,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
+                    </Text>
+                    <ChevronDown
+                      size={14}
+                      color={activeFilter === 'all' ? NAVY : '#FFFFFF'}
+                      strokeWidth={2}
+                    />
+                  </Pressable>
+                </View>
               </View>
             </View>
           </View>
@@ -702,6 +707,28 @@ const styles = StyleSheet.create({
   filterPillSlot: {
     zIndex: 2,
   },
+  filterPillShadowWrap: {
+    borderRadius: 18,
+    maxWidth: 168,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  filterPillShadowWrapLight: {
+    backgroundColor: '#FFFFFF',
+  },
+  filterPillShadowWrapNavy: {
+    backgroundColor: '#0F1B2D',
+  },
+  filterPillInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
   searchDismissLayer: {
     position: 'absolute',
     left: 0,
@@ -720,20 +747,6 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
     paddingRight: 8,
     marginRight: 8,
-  },
-  filterSelectorPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 4,
-    maxWidth: 168,
-    borderWidth: 0,
-  },
-  filterSelectorPillNavy: {
-    backgroundColor: '#0F1B2D',
   },
   filterSelectorPillText: {
     flexShrink: 1,

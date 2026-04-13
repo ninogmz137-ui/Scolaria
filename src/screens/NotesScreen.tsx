@@ -38,7 +38,6 @@ import {
   CalendarDays,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -48,6 +47,7 @@ import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import { nativeGlassCardShadow } from '../constants/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -525,22 +525,13 @@ function LiquidGlass({
       style={[
         {
           borderRadius: circle ? 17 : 17,
-          borderWidth: 1,
-          borderColor: C.liquidBorder,
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : C.liquidBtn,
+          backgroundColor: 'rgba(255,255,255,0.92)',
           overflow: 'hidden',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          elevation: 2,
+          ...nativeGlassCardShadow,
         },
         style,
       ]}
     >
-      {Platform.OS === 'ios' ? (
-        <BlurView intensity={10} tint="light" style={StyleSheet.absoluteFill} />
-      ) : null}
       {children}
     </View>
   );
@@ -561,22 +552,13 @@ function GlassPanel({
       style={[
         {
           borderRadius: r,
-          borderWidth: 1,
-          borderColor: C.glassBorder,
-          backgroundColor: C.glassBg,
+          backgroundColor: 'rgba(255,255,255,0.92)',
           overflow: 'hidden',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
-          elevation: 2,
+          ...nativeGlassCardShadow,
         },
         style,
       ]}
     >
-      {Platform.OS === 'ios' ? (
-        <BlurView intensity={12} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: r }]} />
-      ) : null}
       {children}
     </View>
   );
@@ -751,9 +733,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
         width: size,
         height: size,
         borderRadius: size / 2,
-        borderWidth: 1,
-        borderColor: 'rgba(124,58,237,0.2)',
-        backgroundColor: 'rgba(124,58,237,0.1)',
+        backgroundColor: 'rgba(124,58,237,0.18)',
       }}
     />
   );
@@ -1307,9 +1287,7 @@ export default function NotesScreen() {
                   width: 10,
                   height: 10,
                   borderRadius: 5,
-                  borderWidth: 1,
-                  borderColor: 'rgba(26,35,64,0.2)',
-                  backgroundColor: 'rgba(0,0,0,0.04)',
+                  backgroundColor: 'rgba(26,35,64,0.14)',
                 }}
               />
               <Text style={styles.legendLabel}>Non travaillé</Text>
@@ -1862,17 +1840,11 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   trimesterDropdown: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: C.glassBorder,
     overflow: 'hidden',
     minWidth: 120,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
+    ...nativeGlassCardShadow,
   },
   trimesterOption: { paddingHorizontal: 16, paddingVertical: 12 },
   trimesterOptionActive: { backgroundColor: 'rgba(124,58,237,0.06)' },
@@ -2008,9 +1980,8 @@ const styles = StyleSheet.create({
     }),
   },
   pillGlass: {
-    backgroundColor: 'rgba(255,255,255,0.55)',
-    borderWidth: 1,
-    borderColor: C.liquidBorder,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    ...nativeGlassCardShadow,
   },
   pillTxt: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#374151' },
   pillTxtOn: { color: '#fff', fontWeight: '500' },
@@ -2103,8 +2074,6 @@ const styles = StyleSheet.create({
   },
   obsCardGrad: {
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.1)',
     padding: 14,
     paddingHorizontal: 16,
     marginTop: 4,
