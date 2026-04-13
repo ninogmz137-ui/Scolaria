@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import TabNavigator from './src/navigation/TabNavigator';
 import TeacherTabNavigator from './src/navigation/TeacherTabNavigator';
@@ -11,7 +10,6 @@ import EleveTabNavigator from './src/navigation/EleveTabNavigator';
 import SandboxNavigator from './src/navigation/SandboxNavigator';
 import LoginScreen from './src/screens/LoginScreen';
 import PinScreen from './src/screens/PinScreen';
-import OnboardingScreen from './src/screens/OnboardingScreen';
 import SplashScreenAnimated from './src/screens/SplashScreen';
 import ConseilDuMatin from './src/components/ConseilDuMatin';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -27,8 +25,6 @@ import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 
-const ONBOARDING_KEY = '@scolaria_onboarding_done';
-
 // Prevent native splash from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -36,17 +32,11 @@ function AppContent() {
   const { user, loading, role } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
   const [showConseil, setShowConseil] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   const [authScreen, setAuthScreen] = useState<'login' | 'pin'>('login');
 
   useEffect(() => {
     // Hide the native splash screen once our custom one is ready
     ExpoSplashScreen.hideAsync().catch(() => {});
-
-    // Check if onboarding has been completed
-    AsyncStorage.getItem(ONBOARDING_KEY).then((value) => {
-      setShowOnboarding(value !== 'true');
-    });
   }, []);
 
   useEffect(() => {
@@ -56,20 +46,14 @@ function AppContent() {
     }
   }, [user]);
 
-  const handleOnboardingComplete = async () => {
-    await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
-    setShowOnboarding(false);
-  };
-
   const handleSplashFinish = () => {
     setShowSplash(false);
-    // Show morning tip after splash, only if user is logged in and onboarding is done
-    if (user && showOnboarding === false) {
+    if (user) {
       setTimeout(() => setShowConseil(true), 500);
     }
   };
 
-  if (loading || showSplash || showOnboarding === null) {
+  if (loading || showSplash) {
     return (
       <>
         {loading && (
@@ -80,11 +64,6 @@ function AppContent() {
         <SplashScreenAnimated onFinish={handleSplashFinish} />
       </>
     );
-  }
-
-  // Show onboarding for new users (before auth)
-  if (showOnboarding) {
-    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
   }
 
   // ─── AUTH SCREENS ─────────────────────────────────────

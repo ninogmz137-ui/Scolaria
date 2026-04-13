@@ -41,12 +41,10 @@ import Svg, {
 import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
-
 // ─── Tokens ─────────────────────────────────────────────
 
 const BG = '#FAFAF8';
-const NAVY = '#1A2340';
+const NAVY = '#0F172A';
 const VIOLET = '#7C3AED';
 const CYAN = '#06B6D4';
 
@@ -159,6 +157,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
   const { signIn, enterDemoMode } = useAuth();
   const insets = useSafeAreaInsets();
   const { height: winH } = Dimensions.get('window');
+  const bottomPad = Math.max(insets.bottom, 48);
   const [serifLoaded] = useFonts({ DMSerifDisplay_400Regular });
 
   useEffect(() => {
@@ -207,18 +206,21 @@ export default function LoginScreen({ onNavigatePin }: Props) {
             {
               minHeight: winH,
               paddingTop: Math.max(insets.top, 12),
-              paddingBottom: Math.max(insets.bottom, TAB_BAR_SCROLL_PADDING),
+              paddingBottom: bottomPad,
+              paddingHorizontal: 24,
             },
           ]}
         >
           <View style={s.column}>
-            <View style={s.logoWrap}>
-              <View style={s.sparkleLayer} pointerEvents="none">
-                <Sparkle size={22} left={4} top={2} delay={0} />
-                <Sparkle size={13} left={52} top={-10} delay={600} />
-                <Sparkle size={10} left={92} top={8} delay={1200} />
+            <View style={s.logoBlock}>
+              <View style={s.logoWrap}>
+                <View style={s.sparkleLayer} pointerEvents="none">
+                  <Sparkle size={22} left={4} top={2} delay={0} />
+                  <Sparkle size={13} left={52} top={-10} delay={600} />
+                  <Sparkle size={10} left={92} top={8} delay={1200} />
+                </View>
+                {serifLoaded ? <Wordmark height={46} /> : <View style={{ height: 46 }} />}
               </View>
-              {serifLoaded ? <Wordmark height={46} /> : <View style={{ height: 46 }} />}
             </View>
 
             <View style={s.actions}>
@@ -362,10 +364,16 @@ const s = StyleSheet.create({
   kav: { flex: 1 },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     width: '100%',
   },
   column: { width: '100%', flexShrink: 0 },
+
+  logoBlock: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 48,
+  },
 
   // Logo + sparkles
   logoWrap: {
@@ -386,8 +394,6 @@ const s = StyleSheet.create({
 
   // Actions block (no `gap` — unreliable on some Android flex layouts)
   actions: {
-    marginTop: 28,
-    paddingHorizontal: 16,
     width: '100%',
     alignSelf: 'center',
     flexShrink: 0,
@@ -401,7 +407,7 @@ const s = StyleSheet.create({
   btnPrimary: {
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#1A2340',
+    backgroundColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
@@ -432,12 +438,13 @@ const s = StyleSheet.create({
   },
   demoLinkWrap: {
     alignItems: 'center',
-    paddingVertical: 8,
+    marginTop: 16,
   },
   demoLink: {
-    fontSize: 13,
-    color: 'rgba(26,35,64,0.45)',
+    fontSize: 14,
+    color: '#94A3B8',
     fontFamily: FontFamily.sansMedium,
+    textAlign: 'center',
   },
 
   // Email fields
@@ -465,11 +472,10 @@ const s = StyleSheet.create({
 
   // Legal
   legal: {
-    fontSize: 11,
-    color: 'rgba(26,35,64,0.35)',
+    fontSize: 12,
+    color: '#94A3B8',
     fontFamily: FontFamily.sansRegular,
     textAlign: 'center',
-    paddingHorizontal: 28,
-    marginTop: 24,
+    marginTop: 8,
   },
 });
