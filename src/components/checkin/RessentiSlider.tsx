@@ -1,11 +1,11 @@
 import type { ComponentType } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 
 const NAVY = '#1A2340';
 const VIOLET = '#7C3AED';
-/** Track — no gradient: Android does not render gradient fills on slider tracks reliably */
+/** Track rail — solid rgba only (no LinearGradient: Android SeekBar does not support gradients on tracks). */
 const TRACK_BG = 'rgba(0,0,0,0.08)';
 
 interface Props {
@@ -26,17 +26,15 @@ export default function RessentiSlider({ label, Icon, value, onChange }: Props) 
         <Text style={styles.scoreText}>{value}/10</Text>
       </View>
       <View style={styles.trackOuter}>
-        <View style={styles.trackBg} />
-        <View style={[styles.fill, { width: `${value * 10}%` }]} />
         <Slider
-          style={styles.sliderOverlay}
+          style={[styles.slider, Platform.OS === 'android' && styles.sliderAndroid]}
           minimumValue={0}
           maximumValue={10}
           step={1}
           value={value}
           onValueChange={onChange}
-          minimumTrackTintColor="rgba(0,0,0,0)"
-          maximumTrackTintColor="rgba(0,0,0,0)"
+          minimumTrackTintColor={VIOLET}
+          maximumTrackTintColor={TRACK_BG}
           thumbTintColor="#FFFFFF"
         />
       </View>
@@ -67,37 +65,15 @@ const styles = StyleSheet.create({
   trackOuter: {
     height: 40,
     justifyContent: 'center',
-    position: 'relative',
     width: '100%',
     maxWidth: '100%',
   },
-  trackBg: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: 5,
-    top: '50%',
-    marginTop: -2.5,
-    borderRadius: 3,
-    backgroundColor: TRACK_BG,
-  },
-  fill: {
-    position: 'absolute',
-    left: 0,
-    height: 5,
-    top: '50%',
-    marginTop: -2.5,
-    borderRadius: 3,
-    backgroundColor: VIOLET,
-  },
-  sliderOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
+  slider: {
     width: '100%',
     height: 40,
-    zIndex: 2,
+  },
+  /** Material elevation for the thumb/track (thumb is white via thumbTintColor; size is system default ~18dp). */
+  sliderAndroid: {
+    elevation: 3,
   },
 });
