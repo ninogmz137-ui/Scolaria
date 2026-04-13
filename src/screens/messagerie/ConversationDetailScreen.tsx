@@ -14,14 +14,12 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { School, CalendarX, ChevronLeft } from 'lucide-react-native';
+import { School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getInputBarPaddingBottom, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import UniversalInputBar from '../../components/UniversalInputBar';
@@ -107,7 +105,6 @@ export default function ConversationDetailScreen({
   route: any;
   navigation: any;
 }) {
-  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { conversationId } = route.params ?? {};
 
@@ -162,15 +159,6 @@ export default function ConversationDetailScreen({
       {/* ── Participant strip — name + role below topbar ── */}
       {conv && (
         <View style={styles.participantStrip}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={({ pressed }) => [styles.participantBack, pressed && { opacity: 0.65 }]}
-            hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel="Retour"
-          >
-            <ChevronLeft size={24} color={NAVY} strokeWidth={1.5} />
-          </Pressable>
           <SmallAvatar conv={conv} />
           <View style={styles.participantInfo}>
             <Text
@@ -297,12 +285,6 @@ const styles = StyleSheet.create({
   },
 
   // Participant strip
-  participantBack: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 4,
-    flexShrink: 0,
-  },
   participantStrip: {
     flexDirection: 'row',
     alignItems: 'center',
