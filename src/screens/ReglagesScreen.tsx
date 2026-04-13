@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable as RNPressable,
   FlatList,
+  Image,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,7 +53,7 @@ type RowDef = {
 
 type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
-/** Preset wallpaper tile — gradient-only thumbnails (no bundled logo placeholders). */
+/** Preset wallpaper tile — image presets use the same asset as the full wallpaper; gradients use swatches. */
 function WallpaperPresetTile({
   wp,
   tileWidth,
@@ -73,6 +74,8 @@ function WallpaperPresetTile({
       : [baseColor, '#22D3EE']
   ) as [string, string, ...string[]];
 
+  const showImageThumb = wp.type === 'image' && wp.imageUrl;
+
   return (
     <RNPressable
       onPress={onSelect}
@@ -86,15 +89,23 @@ function WallpaperPresetTile({
       accessibilityState={{ checked: isActive }}
       accessibilityLabel={wp.label}
     >
-      <View style={[StyleSheet.absoluteFill, styles.wallpaperTileFallback]} pointerEvents="none">
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: baseColor }]} />
-        <LinearGradient
-          colors={grad}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+      {showImageThumb ? (
+        <Image
+          source={{ uri: wp.imageUrl }}
           style={StyleSheet.absoluteFill}
+          resizeMode="cover"
         />
-      </View>
+      ) : (
+        <View style={[StyleSheet.absoluteFill, styles.wallpaperTileFallback]} pointerEvents="none">
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: baseColor }]} />
+          <LinearGradient
+            colors={grad}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
+      )}
     </RNPressable>
   );
 }

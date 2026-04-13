@@ -16,7 +16,9 @@ export interface WallpaperDef {
   id: string;
   label: string;
   category: 'nature' | 'abstract' | 'custom';
-  // Gradient fallback if image fails or no image
+  /** Thumbnail + full-screen rendering: photo vs pure gradient swatch */
+  type: 'image' | 'gradient';
+  // Gradient fallback if image fails or no image; also used when type === 'gradient'
   colors: string[];
   // Remote image URL
   imageUrl?: string;
@@ -30,6 +32,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'mountains',
     label: 'Montagnes',
     category: 'nature',
+    type: 'image',
     colors: ['#1E3A5F', '#3B7DD8', '#89B4E8'],
     imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
   },
@@ -37,6 +40,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'lake',
     label: 'Lac alpin',
     category: 'nature',
+    type: 'image',
     colors: ['#0B3D2E', '#1A6B4A', '#7BC8A4'],
     imageUrl: 'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=800&q=80',
   },
@@ -44,6 +48,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'forest',
     label: 'Forêt',
     category: 'nature',
+    type: 'image',
     colors: ['#1B4332', '#2D6A4F', '#52B788'],
     imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
   },
@@ -51,6 +56,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'ocean',
     label: 'Océan',
     category: 'nature',
+    type: 'image',
     colors: ['#0077B6', '#00B4D8', '#90E0EF'],
     imageUrl: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80',
   },
@@ -58,6 +64,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'sunset',
     label: 'Coucher de soleil',
     category: 'nature',
+    type: 'image',
     colors: ['#FF6B35', '#F7C59F', '#EFEFD0'],
     imageUrl: 'https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=800&q=80',
   },
@@ -66,6 +73,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'aurora',
     label: 'Aurore',
     category: 'abstract',
+    type: 'image',
     colors: ['#0B0C1A', '#1B264F', '#4CC9F0'],
     imageUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80',
   },
@@ -73,6 +81,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'gradient-warm',
     label: 'Chaleur',
     category: 'abstract',
+    type: 'gradient',
     colors: ['#FF6B6B', '#FCA311', '#FFD93D'],
     imageUrl: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=800&q=80',
   },
@@ -80,6 +89,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'gradient-cool',
     label: 'Sérénité',
     category: 'abstract',
+    type: 'gradient',
     colors: ['#667EEA', '#764BA2', '#F093FB'],
     imageUrl: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=800&q=80',
   },
@@ -87,6 +97,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'nebula',
     label: 'Nébuleuse',
     category: 'abstract',
+    type: 'image',
     colors: ['#0A0A14', '#1A1A3E', '#6D28D9'],
     imageUrl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80',
   },
@@ -94,6 +105,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     id: 'pastel',
     label: 'Pastel',
     category: 'abstract',
+    type: 'gradient',
     colors: ['#FFE5EC', '#E8D5FF', '#D5EEFF'],
     imageUrl: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&q=80',
   },

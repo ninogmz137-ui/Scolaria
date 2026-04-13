@@ -17,6 +17,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,10 +25,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  withSpring,
   runOnJS,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, X, MessageSquarePlus } from 'lucide-react-native';
+import { School, CalendarX, Search, X, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -36,7 +37,7 @@ import {
   markConversationRead,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
-import { SCREEN_BACKGROUND } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -56,7 +57,9 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
   { id: 'absences', label: 'Absences' },
 ];
 
-const LOUPE_SLOT = 48;
+/** Inline search pill: collapsed (icon-only) → expanded (≈220px), spring-animated */
+const SEARCH_PILL_COLLAPSED = 44;
+const SEARCH_PILL_EXPANDED = 220;
 
 // ─── Liquid Glass style ───────────────────────────────────
 
@@ -258,42 +261,39 @@ export default function MessagerieScreen() {
     }, []),
   );
 
-  // ── Search state (Reanimated — expands left from loupe) ──
+  // ── Search: spring width on pill; title always visible ──
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const searchInputRef = useRef<any>(null);
-  const searchProgress = useSharedValue(0);
-  const headerRowWidth = useSharedValue(0);
+  const pillW = useSharedValue(SEARCH_PILL_COLLAPSED);
 
   const focusSearchInput = useCallback(() => {
     searchInputRef.current?.focus();
   }, []);
-
-  const openSearch = useCallback(() => {
-    setSearchOpen(true);
-    searchProgress.value = withTiming(1, { duration: 200 }, (finished) => {
-      if (finished) runOnJS(focusSearchInput)();
-    });
-  }, [focusSearchInput, searchProgress]);
 
   const finishCloseSearch = useCallback(() => {
     setSearchOpen(false);
     setSearchQuery('');
   }, []);
 
+  const openSearch = useCallback(() => {
+    setSearchOpen(true);
+    pillW.value = withSpring(SEARCH_PILL_EXPANDED, { damping: 17, stiffness: 320 }, (finished) => {
+      if (finished) runOnJS(focusSearchInput)();
+    });
+  }, [focusSearchInput, pillW]);
+
   const closeSearch = useCallback(() => {
     searchInputRef.current?.blur();
-    searchProgress.value = withTiming(0, { duration: 200 }, (finished) => {
+    pillW.value = withSpring(SEARCH_PILL_COLLAPSED, { damping: 17, stiffness: 320 }, (finished) => {
       if (finished) runOnJS(finishCloseSearch)();
     });
-  }, [finishCloseSearch, searchProgress]);
+  }, [finishCloseSearch, pillW]);
 
-  const searchExpandStyle = useAnimatedStyle(() => {
-    const max = Math.max(0, headerRowWidth.value - LOUPE_SLOT);
-    return {
-      width: searchProgress.value * max,
-    };
-  });
+  const pillAnimatedStyle = useAnimatedStyle(() => ({
+    width: pillW.value,
+  }));
 
   // ── Filter state ─────────────────────────────────────────
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
@@ -339,71 +339,122 @@ export default function MessagerieScreen() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
 
       <View style={[styles.headerWrap, styles.screenHorizontalPad]}>
-        <View
-          style={styles.headerRow}
-          onLayout={(e) => {
-            headerRowWidth.value = e.nativeEvent.layout.width;
-          }}
-        >
-          {!searchOpen ? (
-            <View style={styles.headerTextArea}>
-              <Text style={styles.headerTitle}>Messagerie</Text>
-              <Text style={styles.headerSub}>
-                {unreadCount > 0
-                  ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
-                  : 'Tout est à jour'}
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.headerTextSpacer} />
-          )}
-
-          <Animated.View
-            style={[
-              styles.searchInputWrap,
-              glassStyle,
-              styles.searchInputAbsolute,
-              searchExpandStyle,
-            ]}
-            pointerEvents={searchOpen ? 'auto' : 'none'}
-          >
-            <TextInput
-              ref={searchInputRef}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Rechercher…"
-              placeholderTextColor="#94A3B8"
-              style={styles.searchInput}
-              returnKeyType="search"
-              onSubmitEditing={closeSearch}
-              autoCorrect={false}
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery('')} hitSlop={8}>
-                <X size={13} color="#94A3B8" strokeWidth={2.5} />
-              </Pressable>
-            )}
-          </Animated.View>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextArea}>
+            <Text style={styles.headerTitle}>Messagerie</Text>
+            <Text style={styles.headerSub}>
+              {unreadCount > 0
+                ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
+                : 'Tout est à jour'}
+            </Text>
+          </View>
 
           <Pressable
-            onPress={searchOpen ? closeSearch : openSearch}
+            onPress={() => setFilterModalVisible(true)}
             style={({ pressed }) => [
               styles.glassBtn,
               glassStyle,
-              styles.loupeBtn,
+              styles.headerRoundBtn,
               pressed && { opacity: 0.75 },
             ]}
             hitSlop={6}
             accessibilityRole="button"
-            accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
+            accessibilityLabel="Filtrer les conversations"
           >
-            {searchOpen ? (
-              <X size={18} color={NAVY} strokeWidth={2.2} />
-            ) : (
-              <Search size={18} color={NAVY} strokeWidth={2.2} />
-            )}
+            <ChevronDown size={20} color={NAVY} strokeWidth={2} />
           </Pressable>
+
+          <Animated.View
+            style={[
+              styles.searchPill,
+              glassStyle,
+              pillAnimatedStyle,
+              { borderWidth: 1, borderColor: Colors.cardBorder },
+            ]}
+          >
+            <View style={styles.searchPillInner}>
+              {searchOpen ? (
+                <>
+                  <TextInput
+                    ref={searchInputRef}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Rechercher…"
+                    placeholderTextColor="#94A3B8"
+                    style={styles.searchInputInPill}
+                    returnKeyType="search"
+                    onSubmitEditing={() => searchInputRef.current?.blur()}
+                    autoCorrect={false}
+                  />
+                  <Pressable
+                    onPress={closeSearch}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Fermer la recherche"
+                  >
+                    <X size={17} color="#64748B" strokeWidth={2.2} />
+                  </Pressable>
+                </>
+              ) : null}
+              <Pressable
+                onPress={searchOpen ? () => searchInputRef.current?.focus() : openSearch}
+                style={({ pressed }) => [styles.searchIconSlot, pressed && { opacity: 0.8 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Rechercher"
+              >
+                <Search size={22} color={NAVY} strokeWidth={1.5} />
+              </Pressable>
+            </View>
+          </Animated.View>
         </View>
+
+        <Modal
+          visible={filterModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setFilterModalVisible(false)}
+        >
+          <View style={styles.filterModalRoot}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => setFilterModalVisible(false)}
+              accessibilityLabel="Fermer"
+            />
+            <View style={styles.filterModalCenter} pointerEvents="box-none">
+              <View style={styles.filterModalCard}>
+                <Text style={styles.filterModalTitle}>Afficher</Text>
+                {FILTER_OPTIONS.map((opt) => {
+                  const active = opt.id === activeFilter;
+                  return (
+                    <Pressable
+                      key={opt.id}
+                      onPress={() => {
+                        setActiveFilter(opt.id);
+                        setFilterModalVisible(false);
+                      }}
+                      style={({ pressed }) => [
+                        styles.filterModalRow,
+                        active && styles.filterModalRowActive,
+                        pressed && { opacity: 0.85 },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                    >
+                      <Text
+                        style={[
+                          styles.filterModalRowText,
+                          active && styles.filterModalRowTextActive,
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <ScrollView
           horizontal
@@ -525,10 +576,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
     paddingLeft: 4,
   },
-  headerTextSpacer: {
-    flex: 1,
-    minWidth: 0,
-  },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: 30,
@@ -542,42 +589,107 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
   },
 
-  // Search input (animated) — expands left from loupe
-  searchInputWrap: {
+  searchPill: {
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    maxWidth: SEARCH_PILL_EXPANDED,
+  },
+  searchPillInner: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    height: 40,
+    justifyContent: 'flex-end',
+    paddingLeft: 10,
+    paddingRight: 8,
     gap: 6,
-    overflow: 'hidden',
+    minWidth: 0,
   },
-  searchInputAbsolute: {
-    position: 'absolute',
-    right: LOUPE_SLOT,
-    top: 6,
-    zIndex: 2,
-  },
-  searchInput: {
+  searchInputInPill: {
     flex: 1,
+    minWidth: 0,
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
     color: NAVY,
     paddingVertical: 0,
   },
-
-  loupeBtn: {
-    marginLeft: 'auto',
-    zIndex: 4,
+  searchIconSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
 
-  // Glass icon button (search toggle) — perfect circle
+  // Glass icon buttons — perfect circle
   glassBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerRoundBtn: {
+    flexShrink: 0,
+  },
+
+  filterModalRoot: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.35)',
+  },
+  filterModalCenter: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    zIndex: 1,
+  },
+  filterModalCard: {
+    borderRadius: 16,
+    backgroundColor: SCREEN_BACKGROUND,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 8,
+    maxWidth: 360,
+    alignSelf: 'center',
+    width: '100%',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+      },
+      android: { elevation: 6 },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+      },
+    }),
+  },
+  filterModalTitle: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: '#94A3B8',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  filterModalRow: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  filterModalRowActive: {
+    backgroundColor: 'rgba(26,35,64,0.06)',
+  },
+  filterModalRowText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 16,
+    color: NAVY,
+  },
+  filterModalRowTextActive: {
+    fontFamily: FontFamily.sansSemiBold,
   },
 
   filterPillsRow: {
