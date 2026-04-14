@@ -10,7 +10,6 @@ import EleveTabNavigator from './src/navigation/EleveTabNavigator';
 import SandboxNavigator from './src/navigation/SandboxNavigator';
 import LoginScreen from './src/screens/LoginScreen';
 import PinScreen from './src/screens/PinScreen';
-import SplashScreenAnimated from './src/screens/SplashScreen';
 /** Kept for future reuse (e.g. Aria) — auto-open on Accueil disabled below. */
 // import ConseilDuMatin from './src/components/ConseilDuMatin';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
@@ -31,7 +30,6 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 
 function AppContent() {
   const { user, loading, role } = useAuth();
-  const [showSplash, setShowSplash] = useState(true);
   const [authScreen, setAuthScreen] = useState<'login' | 'pin'>('login');
 
   useEffect(() => {
@@ -46,20 +44,11 @@ function AppContent() {
     }
   }, [user]);
 
-  const handleSplashFinish = () => {
-    setShowSplash(false);
-  };
-
-  if (loading || showSplash) {
+  if (loading) {
     return (
-      <>
-        {loading && (
-          <View className="flex-1 bg-blue-night justify-center items-center">
-            <ActivityIndicator size="large" color={Colors.cyan} />
-          </View>
-        )}
-        <SplashScreenAnimated onFinish={handleSplashFinish} />
-      </>
+      <View className="flex-1 bg-blue-night justify-center items-center">
+        <ActivityIndicator size="large" color={Colors.cyan} />
+      </View>
     );
   }
 
