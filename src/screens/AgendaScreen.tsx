@@ -819,7 +819,7 @@ export default function AgendaScreen() {
       {/* 7. FAB */}
       <Pressable
         onPress={openAddModal}
-        style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [st.fab, { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 }, pressed && { opacity: 0.8 }]}
       >
         <Plus size={22} color="#FFFFFF" strokeWidth={2} />
       </Pressable>
@@ -1170,7 +1170,6 @@ const st = StyleSheet.create({
   // FAB
   fab: {
     position: 'absolute',
-    bottom: 80,
     right: 16,
     zIndex: 10,
     backgroundColor: '#1A2340',

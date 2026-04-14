@@ -64,7 +64,7 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
 /** Single pill: collapsed width → expanded (same component) */
 const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
-const SEARCH_PILL_MAX_W = 220;
+const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.45);
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
   headerTextArea: {
     flex: 1,
     minWidth: 0,
-    flexShrink: 1,
+    flexShrink: 0,
     paddingLeft: 4,
     paddingRight: 8,
     marginRight: 8,
@@ -886,7 +886,7 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
       android: {
-        elevation: 8,
+        elevation: 16,
       },
       default: {
         shadowColor: '#000',

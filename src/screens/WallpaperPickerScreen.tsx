@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -48,7 +49,16 @@ function WallpaperCard({
         pressed && { opacity: 0.8 },
       ]}
     >
-      <Image source={wp.source} style={styles.cardImage} resizeMode="cover" />
+      {wp.type === 'gradient' ? (
+        <LinearGradient
+          colors={wp.colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.cardImage}
+        />
+      ) : (
+        <Image source={(wp as any).source} style={styles.cardImage} resizeMode="cover" />
+      )}
       {isActive && (
         <View style={styles.checkBadge}>
           <Check size={14} color="#FFFFFF" strokeWidth={3} />

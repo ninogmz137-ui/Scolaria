@@ -365,9 +365,11 @@ export default function AriaConversationScreen() {
           </Pressable>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
-            <View style={styles.headerOrbSlot}>
-              <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : 'idle'} />
-            </View>
+            {!drawerOpen && (
+              <View style={styles.headerOrbSlot}>
+                <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : 'idle'} />
+              </View>
+            )}
             <Text style={styles.topTitle}>
               Ar<Text style={styles.topTitleIA}>ia</Text>
             </Text>

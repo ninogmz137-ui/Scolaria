@@ -260,34 +260,36 @@ export default function AriaHomeScreen() {
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: insets.top + 10 }]}>
-          <View style={styles.topBtnOuter}>
-            <Pressable
-              onPress={() => setDrawerOpen(true)}
-              style={({ pressed }) => [styles.topBtnPressable, { opacity: pressed ? 0.75 : 1 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Historique"
-            >
-              <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => setDrawerOpen(true)}
+            style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.75 : 1 }]}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel="Historique"
+          >
+            <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
+          </Pressable>
 
-          <View style={{ flex: 1, alignItems: 'center' }}>
+          <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
+            {!drawerOpen && (
+              <View style={styles.headerOrbSlot}>
+                <AriaOrb size={80} state={orbState} />
+              </View>
+            )}
             <Text style={styles.topTitle}>
               Ar<Text style={styles.topTitleIA}>ia</Text>
             </Text>
             <Text style={styles.topSubtitle}>Étendu</Text>
           </View>
 
-          <View style={styles.topBtnOuter}>
-            <Pressable
-              onPress={() => createConversation()}
-              style={({ pressed }) => [styles.topBtnPressable, pressed && { opacity: 0.85 }]}
-              accessibilityRole="button"
-              accessibilityLabel="Nouvelle discussion"
-            >
-              <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => createConversation()}
+            style={({ pressed }) => [styles.topBtn, pressed && { opacity: 0.85 }]}
+            accessibilityRole="button"
+            accessibilityLabel="Nouvelle discussion"
+          >
+            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
+          </Pressable>
         </View>
 
         {/* ─── Hero ─────────────────────────────────────────── */}
@@ -300,7 +302,6 @@ export default function AriaHomeScreen() {
           }}
         >
           <View style={{ alignItems: 'center' }}>
-            <AriaOrb state={orbState} />
             <Text style={styles.heroTitle}>Comment puis-je t'aider ce soir ?</Text>
           </View>
 
@@ -430,7 +431,6 @@ export default function AriaHomeScreen() {
                   style={({ pressed }) => [pressed && { opacity: 0.88 }]}
                 >
                   <Text style={styles.recentItemTitle}>{r.title}</Text>
-                  <Text style={styles.recentItemTime}>{r.time}</Text>
                 </Pressable>
               </View>
             ))}
@@ -483,24 +483,29 @@ const styles = StyleSheet.create({
   topbar: {
     paddingHorizontal: 18,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     columnGap: 10,
     paddingBottom: 8,
   },
-  topBtnOuter: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  topBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    ...nativeWhiteInteractiveShadow,
   },
-  topBtnPressable: {
-    width: '100%',
-    height: '100%',
+  headerOrbSlot: {
+    width: 80,
+    minWidth: 80,
+    minHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 6,
+    overflow: 'visible',
+    zIndex: 2,
   },
   topTitle: {
     fontFamily: FontFamily.sansBold,
@@ -528,12 +533,12 @@ const styles = StyleSheet.create({
   suggestionWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    columnGap: 8,
     alignContent: 'flex-start',
     width: '100%',
   },
   suggestionCardOuter: {
-    width: '48%',
+    width: '47%',
     minWidth: 0,
     marginBottom: 10,
     backgroundColor: '#FFFFFF',
@@ -728,12 +733,6 @@ const styles = StyleSheet.create({
     color: '#0F1B2D',
     flexShrink: 1,
     flexWrap: 'wrap',
-  },
-  recentItemTime: {
-    fontFamily: FontFamily.sansRegular,
-    marginTop: 4,
-    fontSize: 12,
-    color: '#8E8E93',
   },
 
   liquidGlass: {

@@ -18,7 +18,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus } from 'lucide-react-native';
 import { Papicons } from '@getpapillon/papicons';
 import GlassCard from '../components/GlassCard';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -393,23 +392,6 @@ export default function AccueilScreen() {
               </View>
             </GlassCard>
           )}
-
-          {/* ── Signal absence button ── */}
-          <RNPressable
-            style={[
-              styles.absenceButton,
-              {
-                backgroundColor: 'rgba(0,0,0,0.04)',
-                borderColor: 'rgba(0,0,0,0.1)',
-              },
-            ]}
-            onPress={() => navigation.navigate('SignalerAbsenceScreen')}
-          >
-            <Plus size={18} color={accent} strokeWidth={2} />
-            <Text style={[styles.absenceButtonText, { color: accent }]}>
-              Prévenir d'une absence
-            </Text>
-          </RNPressable>
 
           {/* ── Score de Joie ── */}
           <RNPressable onPress={() => navigation.navigate('BienEtreScreen')}>
