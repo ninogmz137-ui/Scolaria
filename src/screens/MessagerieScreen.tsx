@@ -66,13 +66,6 @@ const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
 const SEARCH_PILL_MAX_W = 220;
 
-/** White pill — search + filter (native shadows) */
-const whitePillBase = {
-  backgroundColor: '#FFFFFF',
-  borderWidth: 0 as const,
-  ...nativeWhiteInteractiveShadow,
-};
-
 // ─── Helpers ─────────────────────────────────────────────
 
 function formatLastDate(dateStr: string): string {
@@ -407,42 +400,44 @@ export default function MessagerieScreen() {
           </View>
 
           <View style={styles.headerActionsCluster}>
-            <Animated.View style={[styles.searchPillShell, whitePillBase, searchPillWidthStyle]}>
-              <View
-                style={[
-                  styles.searchPillInnerRow,
-                  searchOpen ? styles.searchPillInnerRowOpen : styles.searchPillInnerRowClosed,
-                ]}
-              >
-                <Animated.View
+            <Animated.View style={[styles.searchPillShadowWrap, searchPillWidthStyle]}>
+              <View style={styles.searchPillShell}>
+                <View
                   style={[
-                    styles.searchInputOpaqueWrap,
-                    searchInputOpacityStyle,
-                    !searchOpen && styles.searchInputOpaqueWrapCollapsed,
+                    styles.searchPillInnerRow,
+                    searchOpen ? styles.searchPillInnerRowOpen : styles.searchPillInnerRowClosed,
                   ]}
                 >
-                  <TextInput
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="Rechercher…"
-                    placeholderTextColor="#94A3B8"
-                    style={styles.searchInputField}
-                    returnKeyType="search"
-                    onSubmitEditing={() => searchInputRef.current?.blur()}
-                    autoCorrect={false}
-                    editable={searchOpen}
-                  />
-                </Animated.View>
-                <Pressable
-                  onPress={onSearchIconPress}
-                  style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                  accessibilityRole="button"
-                  accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
-                >
-                  <Search size={20} color={NAVY} strokeWidth={1.5} />
-                </Pressable>
+                  <Animated.View
+                    style={[
+                      styles.searchInputOpaqueWrap,
+                      searchInputOpacityStyle,
+                      !searchOpen && styles.searchInputOpaqueWrapCollapsed,
+                    ]}
+                  >
+                    <TextInput
+                      ref={searchInputRef}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      placeholder="Rechercher…"
+                      placeholderTextColor="#94A3B8"
+                      style={styles.searchInputField}
+                      returnKeyType="search"
+                      onSubmitEditing={() => searchInputRef.current?.blur()}
+                      autoCorrect={false}
+                      editable={searchOpen}
+                    />
+                  </Animated.View>
+                  <Pressable
+                    onPress={onSearchIconPress}
+                    style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
+                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
+                  >
+                    <Search size={20} color={NAVY} strokeWidth={1.5} />
+                  </Pressable>
+                </View>
               </View>
             </Animated.View>
 
@@ -607,7 +602,12 @@ export default function MessagerieScreen() {
 
       <Pressable
         onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
-        style={({ pressed }) => [styles.fab, styles.fabPosition, pressed && { opacity: 0.92 }]}
+        style={({ pressed }) => [
+          styles.fab,
+          styles.fabPosition,
+          { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
+          pressed && { opacity: 0.92 },
+        ]}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
       >
@@ -623,8 +623,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: BG,
-    maxWidth: '100%',
-    overflow: 'hidden',
   },
   /** Shared horizontal inset for header + conversation list (Android overflow). */
   screenHorizontalPad: {
@@ -634,10 +632,9 @@ const styles = StyleSheet.create({
   // ── Header ────────────────────────────────────────────
   headerWrap: {
     paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 16,
     zIndex: 100,
     maxWidth: '100%',
-    overflow: 'visible',
   },
   headerRow: {
     position: 'relative',
@@ -654,12 +651,19 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minHeight: 40,
   },
-  /** Single expanding pill — width 40 → 220; white + shadow via whitePillShadow */
+  searchPillShadowWrap: {
+    height: 40,
+    borderRadius: 20,
+    ...nativeWhiteInteractiveShadow,
+  },
+  /** Single expanding pill — width 40 → 220; inner clips content */
   searchPillShell: {
     height: 40,
     borderRadius: 20,
     overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
     maxWidth: SEARCH_PILL_MAX_W,
+    width: '100%',
   },
   searchPillInnerRow: {
     flex: 1,
@@ -845,7 +849,6 @@ const styles = StyleSheet.create({
 
   fab: {
     position: 'absolute',
-    bottom: 80,
     width: 56,
     height: 56,
     borderRadius: 28,

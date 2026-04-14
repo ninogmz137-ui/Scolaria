@@ -35,14 +35,15 @@ export default function GlassCard({
   dark = false,
 }: GlassCardProps) {
   return (
-    <View
-      style={[
-        dark ? styles.containerDark : styles.container,
-        { borderRadius },
-        style,
-      ]}
-    >
-      <View style={noPadding ? undefined : styles.content}>{children}</View>
+    <View style={[nativeGlassCardShadow, { borderRadius }, style]}>
+      <View
+        style={[
+          dark ? styles.innerDark : styles.inner,
+          { borderRadius },
+        ]}
+      >
+        <View style={noPadding ? undefined : styles.content}>{children}</View>
+      </View>
     </View>
   );
 }
@@ -50,15 +51,13 @@ export default function GlassCard({
 // ─── Styles ────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: {
+  inner: {
     backgroundColor: 'rgba(255, 255, 255, 0.92)',
     overflow: 'hidden',
-    ...nativeGlassCardShadow,
   },
-  containerDark: {
+  innerDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     overflow: 'hidden',
-    ...nativeGlassCardShadow,
   },
   content: {
     padding: 16,

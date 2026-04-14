@@ -630,11 +630,9 @@ const styles = StyleSheet.create({
   drawerBody: {
     flex: 1,
     minHeight: 120,
-    justifyContent: 'flex-end',
   },
   drawerRecentsScroll: {
-    flexGrow: 1,
-    flexShrink: 1,
+    flex: 1,
   },
   drawerSearchBar: {
     paddingHorizontal: 16,
