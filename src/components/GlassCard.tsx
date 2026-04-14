@@ -35,7 +35,7 @@ export default function GlassCard({
   dark = false,
 }: GlassCardProps) {
   return (
-    <View style={[nativeGlassCardShadow, { borderRadius }, style]}>
+    <View style={[nativeGlassCardShadow, { borderRadius, backgroundColor: 'rgba(255,255,255,0.92)' }, style]}>
       <View
         style={[
           dark ? styles.innerDark : styles.inner,
