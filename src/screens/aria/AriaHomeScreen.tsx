@@ -427,14 +427,9 @@ export default function AriaHomeScreen() {
                     setDrawerOpen(false);
                     createConversation(r.title);
                   }}
-                  style={({ pressed }) => [
-                    styles.recentPressableInner,
-                    pressed && { opacity: 0.88 },
-                  ]}
+                  style={({ pressed }) => [pressed && { opacity: 0.88 }]}
                 >
-                  <Text style={styles.recentItemTitle} numberOfLines={2}>
-                    {r.title}
-                  </Text>
+                  <Text style={styles.recentItemTitle}>{r.title}</Text>
                   <Text style={styles.recentItemTime}>{r.time}</Text>
                 </Pressable>
               </View>
@@ -497,14 +492,13 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
   topBtnPressable: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -715,24 +709,25 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   recentItemOuter: {
+    alignSelf: 'stretch',
     marginBottom: 8,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  recentPressableInner: {
     paddingVertical: 12,
     paddingHorizontal: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
   },
   recentItemTitle: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 15,
     fontWeight: '500',
     color: '#0F1B2D',
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   recentItemTime: {
     fontFamily: FontFamily.sansRegular,

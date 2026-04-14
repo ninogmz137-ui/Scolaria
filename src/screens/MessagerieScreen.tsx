@@ -443,36 +443,41 @@ export default function MessagerieScreen() {
 
             <View style={styles.filterPillSlot}>
               <View ref={filterPillRef} collapsable={false}>
-                <View
-                  style={[
-                    styles.filterPillShadowWrap,
-                    activeFilter === 'all'
-                      ? styles.filterPillShadowWrapLight
-                      : styles.filterPillShadowWrapNavy,
-                  ]}
-                >
-                  <Pressable
-                    onPress={openFilterDropdown}
-                    style={({ pressed }) => [styles.filterPillInner, pressed && { opacity: 0.92 }]}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
-                  >
-                    <Text
-                      style={[
-                        styles.filterSelectorPillText,
-                        activeFilter !== 'all' && styles.filterSelectorPillTextOnNavy,
+                {activeFilter === 'all' ? (
+                  <View style={styles.filterToutOuterWrap}>
+                    <Pressable
+                      onPress={openFilterDropdown}
+                      style={({ pressed }) => [
+                        styles.filterPillPressableNoBg,
+                        pressed && { opacity: 0.92 },
                       ]}
-                      numberOfLines={1}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                     >
-                      {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
-                    </Text>
-                    <ChevronDown
-                      size={14}
-                      color={activeFilter === 'all' ? NAVY : '#FFFFFF'}
-                      strokeWidth={2}
-                    />
-                  </Pressable>
-                </View>
+                      <Text style={styles.filterSelectorPillText} numberOfLines={1}>
+                        {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
+                      </Text>
+                      <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                    </Pressable>
+                  </View>
+                ) : (
+                  <View style={[styles.filterPillShadowWrap, styles.filterPillShadowWrapNavy]}>
+                    <Pressable
+                      onPress={openFilterDropdown}
+                      style={({ pressed }) => [styles.filterPillInner, pressed && { opacity: 0.92 }]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
+                    >
+                      <Text
+                        style={[styles.filterSelectorPillText, styles.filterSelectorPillTextOnNavy]}
+                        numberOfLines={1}
+                      >
+                        {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
+                      </Text>
+                      <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
+                    </Pressable>
+                  </View>
+                )}
               </View>
             </View>
           </View>
@@ -711,6 +716,23 @@ const styles = StyleSheet.create({
   filterPillSlot: {
     zIndex: 2,
   },
+  filterToutOuterWrap: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    maxWidth: 168,
+  },
+  filterPillPressableNoBg: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   filterPillShadowWrap: {
     borderRadius: 18,
     maxWidth: 168,
@@ -719,9 +741,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-  },
-  filterPillShadowWrapLight: {
-    backgroundColor: '#FFFFFF',
   },
   filterPillShadowWrapNavy: {
     backgroundColor: '#0F1B2D',
