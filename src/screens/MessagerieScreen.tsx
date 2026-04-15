@@ -562,7 +562,10 @@ export default function MessagerieScreen() {
 
       {/* ── Conversation list ── */}
       <ScrollView
-        style={styles.conversationScroll}
+        style={[
+          styles.conversationScroll,
+          Platform.OS === 'android' && styles.conversationScrollAndroid,
+        ]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
@@ -605,19 +608,27 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      <Pressable
-        onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
-        style={({ pressed }) => [
-          styles.fab,
-          styles.fabPosition,
+      {/*
+        Android: ScrollView’s native layer can paint above a sibling Pressable even with
+        elevation on the FAB — use a non-collapsing wrapper with zIndex + elevation above
+        the scroll surface, and keep ScrollView at zIndex 0.
+      */}
+      <View
+        collapsable={false}
+        style={[
+          styles.fabOuter,
           { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
-          pressed && { opacity: 0.92 },
         ]}
-        accessibilityRole="button"
-        accessibilityLabel="Nouveau message"
       >
-        <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
-      </Pressable>
+        <Pressable
+          onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
+          style={({ pressed }) => [styles.fab, pressed && { opacity: 0.92 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Nouveau message"
+        >
+          <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -628,6 +639,11 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: BG,
+    ...Platform.select({
+      /** Lets absolute children stack correctly vs ScrollView on Android. */
+      android: { overflow: 'visible' as const },
+      default: {},
+    }),
   },
   /** Shared horizontal inset for header + conversation list (Android overflow). */
   screenHorizontalPad: {
@@ -759,6 +775,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 40,
     backgroundColor: 'transparent',
+    ...Platform.select({
+      /** Must stay above FAB wrapper elevation when search is open. */
+      android: { elevation: 32 },
+      default: {},
+    }),
   },
   filterDropdownModalRoot: {
     flex: 1,
@@ -859,6 +880,24 @@ const styles = StyleSheet.create({
   conversationScroll: {
     flex: 1,
   },
+  /** Keep list layer under the FAB on Android (stacking + elevation interop). */
+  conversationScrollAndroid: {
+    zIndex: 0,
+    elevation: 0,
+  },
+
+  fabOuter: {
+    position: 'absolute',
+    right: 16,
+    /** Above ScrollView (0), below searchDismissLayer (40) so dismiss still covers the FAB when search is open. */
+    zIndex: 30,
+    ...Platform.select({
+      android: {
+        elevation: 12,
+      },
+      default: {},
+    }),
+  },
 
   // Scroll
   scrollContent: {
@@ -867,14 +906,12 @@ const styles = StyleSheet.create({
   },
 
   fab: {
-    position: 'absolute',
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
     ...Platform.select<any>({
       web: {
         boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
@@ -886,7 +923,7 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
       android: {
-        elevation: 16,
+        elevation: 6,
       },
       default: {
         shadowColor: '#000',
@@ -895,9 +932,6 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
     }),
-  },
-  fabPosition: {
-    right: 16,
   },
 
   // Section
