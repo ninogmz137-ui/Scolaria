@@ -32,7 +32,10 @@ module.exports = {
     userInterfaceStyle: 'dark',
     scheme: 'scolaria',
     splash: {
-      /* No image: native splash is a flat color only. Custom branding is handled by LoginScreen. */
+      /* Image required: expo-splash-screen references @drawable/splashscreen_logo in generated styles,
+         so omitting the image breaks `:app:processReleaseResources` (aapt linking).
+         LoginScreen takes over as soon as JS boots. */
+      image: './assets/splash-icon.png',
       backgroundColor: '#FAFAF8',
       resizeMode: 'contain',
     },
