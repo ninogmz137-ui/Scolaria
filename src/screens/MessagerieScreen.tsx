@@ -64,7 +64,7 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
 /** Single pill: collapsed width → expanded (same component) */
 const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
-const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.45);
+const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.4);
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -389,7 +389,13 @@ export default function MessagerieScreen() {
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextArea}>
-            <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+            <Text
+              style={[styles.headerTitle, searchOpen && styles.headerTitleCompact]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
               Messagerie
             </Text>
             <Text style={styles.headerSub}>
@@ -507,15 +513,13 @@ export default function MessagerieScreen() {
                 dropdownEnterStyle,
                 {
                   position: 'absolute',
-                  left: Math.max(
+                  /* Right-align dropdown to pill's right edge so it never overflows the screen. */
+                  right: Math.max(
                     16,
-                    Math.min(
-                      dropdownWin.left,
-                      Dimensions.get('window').width - 16 - 160,
-                    ),
+                    Dimensions.get('window').width - (dropdownWin.left + dropdownWin.width),
                   ),
                   top: dropdownWin.top,
-                  minWidth: Math.max(160, dropdownWin.width),
+                  minWidth: 180,
                 },
               ]}
             >
@@ -731,6 +735,7 @@ const styles = StyleSheet.create({
   },
   filterPillSlot: {
     zIndex: 2,
+    flexShrink: 0,
   },
   filterToutOuterWrap: {
     backgroundColor: '#FFFFFF',
@@ -742,16 +747,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 1 },
-    maxWidth: 168,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
   },
   filterPillPressableNoBg: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'nowrap',
     gap: 4,
   },
   filterPillShadowWrap: {
     borderRadius: 18,
-    maxWidth: 168,
+    flexShrink: 0,
+    alignSelf: 'flex-start',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -806,6 +814,10 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: NAVY,
     letterSpacing: -0.6,
+  },
+  /** Shrink title when search pill is expanded so it never gets truncated. */
+  headerTitleCompact: {
+    fontSize: 20,
   },
   headerSub: {
     marginTop: 2,
@@ -956,7 +968,7 @@ const styles = StyleSheet.create({
 
   // Row
   row: {
-    paddingVertical: 14,
+    paddingVertical: 18,
     paddingHorizontal: 20,
     backgroundColor: SCREEN_BACKGROUND,
     position: 'relative',
@@ -1003,7 +1015,7 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 8,
-    marginBottom: 3,
+    marginBottom: 6,
     minWidth: 0,
     maxWidth: '100%',
   },

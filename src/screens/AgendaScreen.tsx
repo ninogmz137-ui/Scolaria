@@ -813,16 +813,29 @@ export default function AgendaScreen() {
           isProgrammaticScroll.current = false;
         }}
         renderItem={renderDayPage}
-        style={{ flex: 1 }}
+        style={[
+          { flex: 1 },
+          Platform.OS === 'android' && { zIndex: 0, elevation: 0 },
+        ]}
       />
 
       {/* 7. FAB */}
-      <Pressable
-        onPress={openAddModal}
-        style={({ pressed }) => [st.fab, { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 }, pressed && { opacity: 0.8 }]}
+      <View
+        collapsable={false}
+        style={[
+          st.fabOuter,
+          { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
+        ]}
       >
-        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
-      </Pressable>
+        <Pressable
+          onPress={openAddModal}
+          style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Ajouter un événement"
+        >
+          <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+        </Pressable>
+      </View>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal
@@ -904,7 +917,16 @@ export default function AgendaScreen() {
 // ─── Styles ─────────────────────────────────────────────
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F8F7FF', position: 'relative' },
+  root: {
+    flex: 1,
+    backgroundColor: '#F8F7FF',
+    position: 'relative',
+    ...Platform.select({
+      /** Lets absolute children stack correctly vs FlatList on Android. */
+      android: { overflow: 'visible' as const },
+      default: {},
+    }),
+  },
 
   // Month title
   monthTitleRow: {
@@ -1168,10 +1190,17 @@ const st = StyleSheet.create({
   },
 
   // FAB
-  fab: {
+  fabOuter: {
     position: 'absolute',
     right: 16,
-    zIndex: 10,
+    /** Above FlatList (0) so the FAB paints over the scroll surface on Android. */
+    zIndex: 30,
+    ...Platform.select({
+      android: { elevation: 12 },
+      default: {},
+    }),
+  },
+  fab: {
     backgroundColor: '#1A2340',
     borderRadius: 28,
     width: 56,

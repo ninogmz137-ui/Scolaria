@@ -32,9 +32,9 @@ module.exports = {
     userInterfaceStyle: 'dark',
     scheme: 'scolaria',
     splash: {
-      image: './assets/splash-icon.png',
-      resizeMode: 'contain',
+      /* No image: native splash is a flat color only. Custom branding is handled by LoginScreen. */
       backgroundColor: '#FAFAF8',
+      resizeMode: 'contain',
     },
     ios: {
       supportsTablet: true,

@@ -46,8 +46,8 @@ function AppContent() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-blue-night justify-center items-center">
-        <ActivityIndicator size="large" color={Colors.cyan} />
+      <View style={{ flex: 1, backgroundColor: '#FAFAF8', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.violet ?? '#7C3AED'} />
       </View>
     );
   }

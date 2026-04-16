@@ -26,15 +26,15 @@ import {
   LogOut,
   ChevronRight,
 } from 'lucide-react-native';
-import { Box, Text, Pressable } from '../components/ui';
+import { Box, Text } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { nativeWhiteInteractiveShadow } from '../constants/theme';
 
-const WALLPAPER_THUMB_W = 80;
-const WALLPAPER_THUMB_H = 60;
+const WALLPAPER_THUMB_W = 96;
+const WALLPAPER_THUMB_H = 128;
 
 type RowType = 'navigate' | 'toggle';
 
@@ -90,8 +90,8 @@ function SectionLabel({ label }: { label: string }) {
 
 function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
   return (
-    <>
-      <Pressable
+    <View>
+      <RNPressable
         onPress={row.type === 'navigate' ? row.onPress : undefined}
         style={({ pressed }) => [
           styles.row,
@@ -124,9 +124,9 @@ function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
             />
           )}
         </View>
-      </Pressable>
+      </RNPressable>
       {!isLast ? <View style={styles.rowHairline} /> : null}
-    </>
+    </View>
   );
 }
 
@@ -191,7 +191,7 @@ export default function ReglagesScreen() {
       <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
 
       {/* Card sheet */}
-      <View style={styles.sheet}>
+      <View style={[styles.sheet, { marginBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 }]}>
         {/* Header like Claude */}
         <View style={styles.header}>
           <RNPressable
@@ -255,17 +255,17 @@ export default function ReglagesScreen() {
                       style={[
                         styles.wallpaperGridTile,
                         styles.wallpaperCustomTile,
-                        { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 8 },
+                        { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 10 },
                       ]}
                     >
-                      <ImageIcon size={18} color="#64748B" strokeWidth={2} />
+                      <ImageIcon size={22} color="#64748B" strokeWidth={2} />
                     </View>
                   );
                 }
                 const wp = item as WallpaperDef;
                 const isActive = !customUri && wallpaper.id === wp.id;
                 return (
-                  <View style={{ marginRight: 8 }}>
+                  <View style={{ marginRight: 10 }}>
                     <WallpaperPresetTile
                       wp={wp}
                       tileWidth={WALLPAPER_THUMB_W}
@@ -321,7 +321,6 @@ const styles = StyleSheet.create({
   },
   sheet: {
     marginHorizontal: 12,
-    marginBottom: 10,
     height: '88%',
     borderRadius: 28,
     backgroundColor: '#EEF2F7',
@@ -377,40 +376,50 @@ const styles = StyleSheet.create({
   },
   wallpaperGroup: {
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.78)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    marginBottom: 14,
+    marginBottom: 16,
+    ...nativeWhiteInteractiveShadow,
   },
   wallpaperListContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   wallpaperGridTile: {
-    borderRadius: 8,
-    margin: 4,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    /** Visible if children fail to paint (Android). */
-    backgroundColor: '#CBD5E1',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F1F5F9',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+      },
+      android: { elevation: 4 },
+      default: {},
+    }),
   },
   wallpaperTileActive: {
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#7C3AED',
   },
   wallpaperCustomTile: {
     borderStyle: 'dashed',
-    borderColor: 'rgba(100,116,139,0.35)',
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
   row: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 18,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   rowInner: {
     flexDirection: 'row',

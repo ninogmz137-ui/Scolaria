@@ -251,6 +251,34 @@ export default function AriaHomeScreen() {
     return list;
   }, [selectedCategory, searchQuery]);
 
+  // ─── Group recents into Claude-style time buckets ───────────
+  const groupedRecents = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
+    const sevenDaysAgo = startOfToday - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = startOfToday - 30 * 24 * 60 * 60 * 1000;
+
+    const buckets: { key: string; label: string; items: RecentItem[] }[] = [
+      { key: 'today',    label: "Aujourd'hui",        items: [] },
+      { key: 'yesterday',label: 'Hier',               items: [] },
+      { key: 'week',     label: '7 jours précédents', items: [] },
+      { key: 'month',    label: '30 jours précédents',items: [] },
+      { key: 'older',    label: 'Plus anciens',       items: [] },
+    ];
+
+    for (const r of filteredRecents) {
+      const t = new Date(r.updatedAt).getTime();
+      if (t >= startOfToday) buckets[0].items.push(r);
+      else if (t >= startOfYesterday) buckets[1].items.push(r);
+      else if (t >= sevenDaysAgo) buckets[2].items.push(r);
+      else if (t >= thirtyDaysAgo) buckets[3].items.push(r);
+      else buckets[4].items.push(r);
+    }
+
+    return buckets.filter((b) => b.items.length > 0);
+  }, [filteredRecents]);
+
   return (
     <View style={styles.root}>
       <WallpaperBackground />
@@ -412,26 +440,32 @@ export default function AriaHomeScreen() {
         {/* Divider */}
         <View style={styles.drawerDivider} />
 
-        {/* Recents label */}
-        <Text style={styles.recentsLabel}>RÉCENTS</Text>
-
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING, paddingTop: 4 }}
             style={styles.drawerRecentsScroll}
           >
-            {filteredRecents.map((r) => (
-              <View key={r.id} style={styles.recentItemOuter}>
-                <Pressable
-                  onPress={() => {
-                    setDrawerOpen(false);
-                    createConversation(r.title);
-                  }}
-                  style={({ pressed }) => [pressed && { opacity: 0.88 }]}
-                >
-                  <Text style={styles.recentItemTitle}>{r.title}</Text>
-                </Pressable>
+            {groupedRecents.map((bucket) => (
+              <View key={bucket.key} style={styles.recentsSection}>
+                <Text style={styles.recentsSectionLabel}>{bucket.label}</Text>
+                {bucket.items.map((r) => (
+                  <Pressable
+                    key={r.id}
+                    onPress={() => {
+                      setDrawerOpen(false);
+                      createConversation(r.title);
+                    }}
+                    style={({ pressed }) => [
+                      styles.recentRow,
+                      pressed && styles.recentRowPressed,
+                    ]}
+                  >
+                    <Text style={styles.recentRowTitle} numberOfLines={1}>
+                      {r.title}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
             ))}
           </ScrollView>
@@ -481,11 +515,11 @@ const styles = StyleSheet.create({
 
   // Top bar
   topbar: {
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     columnGap: 10,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
   topBtn: {
     width: 40,
@@ -494,7 +528,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    ...nativeWhiteInteractiveShadow,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(15,23,42,0.06)',
+      },
+      default: {},
+    }),
   },
   headerOrbSlot: {
     width: 80,
@@ -629,6 +676,7 @@ const styles = StyleSheet.create({
   drawerBody: {
     flex: 1,
     minHeight: 120,
+    paddingHorizontal: 8,
   },
   drawerRecentsScroll: {
     flex: 1,
@@ -702,37 +750,30 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
 
-  // Recents
-  recentsLabel: {
+  // Recents — Claude-style time-bucket sections
+  recentsSection: {
+    marginTop: 14,
+  },
+  recentsSectionLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
+    fontSize: 11,
     color: '#9ca3af',
-    letterSpacing: 0.84,
-    textTransform: 'uppercase',
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    letterSpacing: 0.6,
+    paddingHorizontal: 12,
     paddingBottom: 4,
   },
-  recentItemOuter: {
-    alignSelf: 'stretch',
-    marginBottom: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 1 },
+  recentRow: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
-  recentItemTitle: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
-    fontWeight: '500',
+  recentRowPressed: {
+    backgroundColor: 'rgba(15,27,45,0.06)',
+  },
+  recentRowTitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
     color: '#0F1B2D',
-    flexShrink: 1,
-    flexWrap: 'wrap',
   },
 
   liquidGlass: {
