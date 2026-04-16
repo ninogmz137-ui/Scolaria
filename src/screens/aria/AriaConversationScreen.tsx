@@ -32,6 +32,8 @@ import {
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
+import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
+import AriaActionCard from '../../components/aria/AriaActionCard';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
@@ -139,6 +141,10 @@ export default function AriaConversationScreen() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
 
+  const [pendingAction, setPendingAction] = useState<AriaAction | null>(null);
+  const [actionStatus, setActionStatus] = useState<'pending' | 'loading' | 'success' | 'error'>('pending');
+  const [actionResult, setActionResult] = useState<string | undefined>(undefined);
+
   const historyRef = useRef<ClaudeMessage[]>([]);
   const suggestions = useMemo(() => makeSuggestions(childFirstName, mode), [childFirstName, mode]);
 
@@ -237,17 +243,30 @@ export default function AriaConversationScreen() {
       const response = await sendToAria(trimmed, historyRef.current, childId, {
         isDemo,
       });
-      const nextHistory: ClaudeMessage[] = [
+
+      // Parse action tag from Aria's response
+      const { cleanText, action } = parseAriaResponse(response);
+
+      // Update history with clean text (no tag)
+      historyRef.current = [
         ...historyRef.current,
         { role: 'user' as const, content: trimmed },
-        { role: 'assistant' as const, content: response },
+        { role: 'assistant' as const, content: cleanText },
       ].slice(-20);
-      historyRef.current = nextHistory;
-      const ariaMsg: Message = { id: `a_${Date.now() + 1}`, text: response, sender: 'aria', timestamp: nowTime() };
+
+      const ariaMsg: Message = { id: `a_${Date.now() + 1}`, text: cleanText, sender: 'aria', timestamp: nowTime() };
       const finalUI = [...nextUI, ariaMsg];
       setMessages(finalUI);
-      await persist(finalUI, nextHistory);
-      await updateConversationPreview(response);
+      await persist(finalUI, historyRef.current);
+      await updateConversationPreview(cleanText);
+
+      // Show confirmation card if action detected
+      if (action) {
+        setPendingAction(action);
+        setActionStatus('pending');
+        setActionResult(undefined);
+        setTimeout(() => scrollToEnd(), 100);
+      }
     } catch {
       const errMsg: Message = {
         id: `e_${Date.now() + 1}`,
@@ -264,6 +283,49 @@ export default function AriaConversationScreen() {
       scrollToEnd();
     }
   }, [childId, input, isTyping, messages, persist, persistConversationTitle, scrollToEnd, updateConversationPreview]);
+
+  const handleConfirmAction = useCallback(async () => {
+    if (!pendingAction) return;
+    setActionStatus('loading');
+    const result = await executeAriaAction(pendingAction);
+    setActionStatus(result.success ? 'success' : 'error');
+    setActionResult(result.message);
+
+    // After 2s, inject Aria confirmation message and clear card
+    setTimeout(async () => {
+      const confirmMsg: Message = {
+        id: `a_${Date.now()}`,
+        text: result.success
+          ? `${result.message}\n\nY a-t-il autre chose que je peux faire pour toi ?`
+          : `${result.message}\n\nVeux-tu réessayer ou as-tu besoin d'aide ?`,
+        sender: 'aria',
+        timestamp: nowTime(),
+      };
+      setMessages((prev) => {
+        const next = [...prev, confirmMsg];
+        void persist(next, historyRef.current);
+        return next;
+      });
+      setPendingAction(null);
+      scrollToEnd();
+    }, 2000);
+  }, [pendingAction, persist, scrollToEnd]);
+
+  const handleCancelAction = useCallback(() => {
+    setPendingAction(null);
+    const cancelMsg: Message = {
+      id: `a_${Date.now()}`,
+      text: "D'accord, je n'ai rien fait. N'hésite pas à me redemander si tu changes d'avis. 😊",
+      sender: 'aria',
+      timestamp: nowTime(),
+    };
+    setMessages((prev) => {
+      const next = [...prev, cancelMsg];
+      void persist(next, historyRef.current);
+      return next;
+    });
+    scrollToEnd();
+  }, [persist, scrollToEnd]);
 
   const didAutoSendRef = useRef(false);
   useEffect(() => {
@@ -428,6 +490,17 @@ export default function AriaConversationScreen() {
           ListFooterComponent={
             <>
               {isTyping ? <ChatBubble message={typingMessage} isTyping /> : null}
+              {pendingAction && !isTyping ? (
+                <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+                  <AriaActionCard
+                    action={pendingAction}
+                    onConfirm={handleConfirmAction}
+                    onCancel={handleCancelAction}
+                    status={actionStatus}
+                    resultMessage={actionResult}
+                  />
+                </View>
+              ) : null}
               <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
             </>
           }
@@ -605,7 +678,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     columnGap: 10,
   },
-  // Liquid Glass — aligned with Aria home top bar (38px circle, blur + frosted)
+  // Liquid Glass — aligned with Aria home top bar (40px circle, visible shadow on Android)
   topBtn: {
     width: 40,
     height: 40,
@@ -613,8 +686,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-    ...nativeWhiteInteractiveShadow,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(15,23,42,0.06)',
+      },
+      default: {},
+    }),
   },
   /** Fits natural `size={80}` AriaOrb (idle + thinking); no transform scale on parent */
   headerOrbSlot: {

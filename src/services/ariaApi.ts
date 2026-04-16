@@ -8,6 +8,7 @@
 
 import { getChildContext, buildChildContextString } from './childContext';
 import { ENV } from './getEnv';
+import { CONVERSATIONS_BY_CHILD } from '../data/messagerieData';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -35,6 +36,12 @@ function buildSystemPrompt(childId: string): string {
   const child = getChildContext(childId);
   const contextStr = buildChildContextString(child);
 
+  const conversations = CONVERSATIONS_BY_CHILD[childId] ?? [];
+  const convList = conversations.map(c => `  - ${c.id} : ${c.name} (${c.role})`).join('\n');
+  const conversationsSection = convList
+    ? `\n═══ CONVERSATIONS DISPONIBLES POUR LES MESSAGES ═══\n${convList}\n`
+    : '';
+
   return `Tu es Aria ✦, l'assistante IA de Scolaria — le passeport scolaire numérique pour les familles françaises.
 
 ═══ TON RÔLE ═══
@@ -61,15 +68,29 @@ function buildSystemPrompt(childId: string): string {
 - Quand tu cites des notes, utilise les vraies données du profil
 
 ═══ ACTIONS DISPONIBLES ═══
-Quand un parent te demande de faire une action concrète, inclus un tag d'action dans ta réponse :
-- Si le parent veut signaler une absence → termine ta réponse par [ACTION:ABSENCE]
-- Si le parent veut envoyer un message à un enseignant → termine ta réponse par [ACTION:MESSAGE]
-- Si le parent veut voir les notes → termine ta réponse par [ACTION:NOTES]
-- Si le parent veut voir l'agenda → termine ta réponse par [ACTION:AGENDA]
-Ces tags seront transformés en boutons cliquables dans l'interface.
-N'utilise qu'UN seul tag par réponse, et seulement quand c'est pertinent.
+Quand un parent te demande de faire une action concrète, tu peux l'exécuter pour lui.
+RÈGLE IMPORTANTE : n'émets un tag d'action QUE si tu as toutes les informations nécessaires.
+Si des informations manquent (motif, destinataire...), pose d'abord une question avant d'émettre le tag.
 
-═══ DONNÉES DE L'ENFANT SUIVI ═══
+FORMAT : termine ta réponse par UN SEUL tag d'action structuré, sur une nouvelle ligne.
+
+▸ SIGNALER UNE ABSENCE :
+[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE|student_id=STUDENT_ID]
+  - date : date de l'absence au format YYYY-MM-DD (aujourd'hui si non précisé)
+  - motif : maladie | maladie_avec_certificat | raison_familiale | autre
+  - demi_journee : journee | matin | apres_midi
+  - student_id : identifiant de l'enfant (voir données ci-dessous)
+
+▸ ENVOYER UN MESSAGE :
+[ACTION:MESSAGE|conversation_id=CONV_ID|draft=TEXTE_DU_MESSAGE]
+  - conversation_id : identifiant de la conversation (voir liste ci-dessous)
+  - draft : texte complet du message que tu rédiges pour le parent, en son nom, en français poli
+
+N'utilise qu'UN seul tag par réponse. Ne génère pas de tag si l'intention n'est pas claire.
+Exemple absence : [ACTION:ABSENCE|date=2026-04-16|motif=maladie|demi_journee=journee|student_id=1]
+Exemple message : [ACTION:MESSAGE|conversation_id=lea-laurent|draft=Bonjour Madame Laurent, je vous contacte pour vous informer que Léa sera absente demain en raison d'une indisposition. Cordialement]
+
+${conversationsSection}═══ DONNÉES DE L'ENFANT SUIVI ═══
 
 ${contextStr}
 
