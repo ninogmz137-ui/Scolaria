@@ -32,10 +32,10 @@ module.exports = {
     userInterfaceStyle: 'dark',
     scheme: 'scolaria',
     splash: {
-      /* Image required: expo-splash-screen references @drawable/splashscreen_logo in generated styles,
-         so omitting the image breaks `:app:processReleaseResources` (aapt linking).
-         Using icon.png (1024×1024, white bg matching splash color) eliminates the visible seam
-         that the smaller/off-color splash-icon.png produced on Android. */
+      /* Image required: expo-splash-screen generates @drawable/splashscreen_logo,
+         omitting it breaks `:app:processReleaseResources` (aapt linking).
+         icon.png (1024×1024, Direction 01 logo on white) shares the same
+         backgroundColor as the splash → seamless on Android. */
       image: './assets/icon.png',
       backgroundColor: '#FFFFFF',
       resizeMode: 'contain',
@@ -59,6 +59,13 @@ module.exports = {
       adaptiveIcon: {
         foregroundImage: './assets/icon.png',
         backgroundColor: '#FFFFFF',
+      },
+      /* Explicit Android splash — same image + bg as the top-level splash
+         block, belt-and-suspenders against any Expo platform override. */
+      splash: {
+        image: './assets/icon.png',
+        backgroundColor: '#FFFFFF',
+        resizeMode: 'contain',
       },
       permissions: ['CAMERA', 'READ_EXTERNAL_STORAGE'],
       predictiveBackGestureEnabled: false,
