@@ -30,11 +30,16 @@ import { Box, Text } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { nativeWhiteInteractiveShadow } from '../constants/theme';
 
-const WALLPAPER_THUMB_W = 96;
-const WALLPAPER_THUMB_H = 128;
+const WALLPAPER_THUMB_W = 120;
+const WALLPAPER_THUMB_H = 180;
+
+/** Papillon-style collections — grouped by source/theme, each shown as a horizontal scroll row. */
+const WALLPAPER_COLLECTIONS: { id: 'nature' | 'abstract'; label: string }[] = [
+  { id: 'nature', label: 'Nature' },
+  { id: 'abstract', label: 'Abstrait' },
+];
 
 type RowType = 'navigate' | 'toggle';
 
@@ -51,6 +56,8 @@ type RowDef = {
 };
 
 type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
+
+type WallpaperGroup = { id: 'nature' | 'abstract'; label: string; items: WallpaperDef[] };
 
 /** Preset wallpaper tile — image presets use the same asset as the full wallpaper; gradients use swatches. */
 function WallpaperPresetTile({
@@ -141,8 +148,13 @@ export default function ReglagesScreen() {
     return list.slice(0, 12);
   }, [wallpapers]);
 
-  const wallpaperFlatData = useMemo((): WallpaperGridRow[] => {
-    return [...wallpaperGridSource, { id: '__custom__', __custom: true }];
+  /** Papillon-style grouping: one horizontal row per collection (Nature, Abstrait).
+      The custom-upload tile is appended to the last non-empty collection. */
+  const wallpaperGroups = useMemo((): WallpaperGroup[] => {
+    return WALLPAPER_COLLECTIONS.map((col) => ({
+      ...col,
+      items: wallpaperGridSource.filter((w) => w.category === col.id),
+    })).filter((g) => g.items.length > 0);
   }, [wallpaperGridSource]);
 
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
@@ -185,14 +197,21 @@ export default function ReglagesScreen() {
   }, [hapticsEnabled, isDemo, nav, signOut]);
 
   return (
-    <View style={[styles.overlay, { paddingTop: insets.top + 10, paddingBottom: insets.bottom + 10 }]}>
+    /* Bottom sheet Claude-style : s'ancre en bas, pleine largeur, coins arrondis
+       uniquement en haut. Le paddingTop de l'overlay laisse voir le backdrop au-dessus. */
+    <View style={[styles.overlay, { paddingTop: insets.top + 24 }]}>
       {/* Tap outside to close */}
       <RNPressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
       <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
 
-      {/* Card sheet */}
-      <View style={[styles.sheet, { marginBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 }]}>
-        {/* Header like Claude */}
+      {/* Bottom sheet */}
+      <View style={styles.sheet}>
+        {/* Drag handle */}
+        <View style={styles.handleWrap} pointerEvents="none">
+          <View style={styles.handle} />
+        </View>
+
+        {/* Header Claude : X à gauche, titre centré, Info à droite */}
         <View style={styles.header}>
           <RNPressable
             onPress={() => nav.goBack()}
@@ -219,7 +238,7 @@ export default function ReglagesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING,
+            paddingBottom: insets.bottom + 32,
           }}
           style={{ flex: 1 }}
         >
@@ -239,45 +258,54 @@ export default function ReglagesScreen() {
           </View>
 
           <SectionLabel label="FONDS D'ÉCRAN" />
-          <View style={styles.wallpaperGroup}>
-            <FlatList
-              horizontal
-              data={wallpaperFlatData}
-              keyExtractor={(item) =>
-                '__custom' in item && item.__custom ? item.id : (item as WallpaperDef).id
-              }
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.wallpaperListContent}
-              renderItem={({ item }) => {
-                if ('__custom' in item && item.__custom) {
-                  return (
-                    <View
-                      style={[
-                        styles.wallpaperGridTile,
-                        styles.wallpaperCustomTile,
-                        { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 10 },
-                      ]}
-                    >
-                      <ImageIcon size={22} color="#64748B" strokeWidth={2} />
-                    </View>
-                  );
-                }
-                const wp = item as WallpaperDef;
-                const isActive = !customUri && wallpaper.id === wp.id;
-                return (
-                  <View style={{ marginRight: 10 }}>
-                    <WallpaperPresetTile
-                      wp={wp}
-                      tileWidth={WALLPAPER_THUMB_W}
-                      tileHeight={WALLPAPER_THUMB_H}
-                      isActive={isActive}
-                      onSelect={() => setWallpaperId(wp.id)}
-                    />
-                  </View>
-                );
-              }}
-            />
-          </View>
+          {wallpaperGroups.map((group, groupIdx) => {
+            const isLastGroup = groupIdx === wallpaperGroups.length - 1;
+            const data: WallpaperGridRow[] = isLastGroup
+              ? [...group.items, { id: '__custom__', __custom: true }]
+              : group.items;
+            return (
+              <View key={group.id} style={styles.wallpaperCollection}>
+                <Text style={styles.wallpaperCollectionLabel}>{group.label}</Text>
+                <FlatList
+                  horizontal
+                  data={data}
+                  keyExtractor={(item) =>
+                    '__custom' in item && item.__custom ? item.id : (item as WallpaperDef).id
+                  }
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.wallpaperListContent}
+                  renderItem={({ item }) => {
+                    if ('__custom' in item && item.__custom) {
+                      return (
+                        <View
+                          style={[
+                            styles.wallpaperGridTile,
+                            styles.wallpaperCustomTile,
+                            { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 12 },
+                          ]}
+                        >
+                          <ImageIcon size={22} color="#64748B" strokeWidth={2} />
+                        </View>
+                      );
+                    }
+                    const wp = item as WallpaperDef;
+                    const isActive = !customUri && wallpaper.id === wp.id;
+                    return (
+                      <View style={{ marginRight: 12 }}>
+                        <WallpaperPresetTile
+                          wp={wp}
+                          tileWidth={WALLPAPER_THUMB_W}
+                          tileHeight={WALLPAPER_THUMB_H}
+                          isActive={isActive}
+                          onSelect={() => setWallpaperId(wp.id)}
+                        />
+                      </View>
+                    );
+                  }}
+                />
+              </View>
+            );
+          })}
 
           <SectionLabel label="PRÉFÉRENCES" />
           <View style={styles.group}>
@@ -319,21 +347,31 @@ const styles = StyleSheet.create({
   backdropFallback: {
     backgroundColor: 'rgba(15,23,42,0.45)',
   },
+  /* Bottom sheet pleine largeur, ancré en bas. Coins arrondis uniquement en haut,
+     comme l'écran Paramètres de Claude. */
   sheet: {
-    marginHorizontal: 12,
-    // flex:1 fills the overlay's safe-area-padded space, avoiding the overflow
-    // that `height: '88%'` caused when combined with `marginBottom`.
     flex: 1,
-    borderRadius: 28,
+    width: '100%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     backgroundColor: '#EEF2F7',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
     overflow: 'hidden',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.16, shadowRadius: 24 },
       android: { elevation: 12 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: 18 }, shadowOpacity: 0.18, shadowRadius: 34 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.16, shadowRadius: 24 },
     }),
+  },
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(15,23,42,0.18)',
   },
   header: {
     flexDirection: 'row',
@@ -341,7 +379,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 10,
-    paddingTop: 10,
+    paddingTop: 6,
   },
   headerBtn: {
     width: 40,
@@ -376,32 +414,38 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     ...nativeWhiteInteractiveShadow,
   },
-  wallpaperGroup: {
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
-    marginBottom: 16,
-    ...nativeWhiteInteractiveShadow,
+  // Papillon-style: each collection is its own row. No outer card — thumbnails
+  // carry their own shadow, and avoiding a wrapper avoids Android's elevation
+  // grey-frame on parent views (lesson 2026-04-02).
+  wallpaperCollection: {
+    marginBottom: 18,
+  },
+  wallpaperCollectionLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: '#0F172A',
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
   wallpaperListContent: {
-    paddingHorizontal: 14,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
     alignItems: 'center',
   },
   wallpaperGridTile: {
-    borderRadius: 14,
+    borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: 'rgba(15,23,42,0.06)',
     backgroundColor: '#F1F5F9',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.14,
+        shadowRadius: 14,
       },
-      android: { elevation: 4 },
+      android: { elevation: 5 },
       default: {},
     }),
   },

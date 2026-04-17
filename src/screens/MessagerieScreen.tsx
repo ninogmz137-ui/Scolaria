@@ -612,27 +612,20 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/*
-        Android: ScrollView’s native layer can paint above a sibling Pressable even with
-        elevation on the FAB — use a non-collapsing wrapper with zIndex + elevation above
-        the scroll surface, and keep ScrollView at zIndex 0.
-      */}
-      <View
-        collapsable={false}
-        style={[
-          styles.fabOuter,
+      {/* FAB — single Pressable; bottom-right above tab bar (same placement as Agenda).
+          Wrapper View was causing nested-elevation grey frame on Android (lesson 2026-04-02). */}
+      <Pressable
+        onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
+        style={({ pressed }) => [
+          styles.fab,
           { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
+          pressed && { opacity: 0.85 },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel="Nouveau message"
       >
-        <Pressable
-          onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
-          style={({ pressed }) => [styles.fab, pressed && { opacity: 0.92 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Nouveau message"
-        >
-          <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
-        </Pressable>
-      </View>
+        <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
+      </Pressable>
     </View>
   );
 }
@@ -898,35 +891,33 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
 
-  fabOuter: {
-    position: 'absolute',
-    right: 16,
-    /** Above ScrollView (0), below searchDismissLayer (40) so dismiss still covers the FAB when search is open. */
-    zIndex: 30,
-  },
-
   // Scroll
   scrollContent: {
     paddingBottom: TAB_BAR_SCROLL_PADDING,
     maxWidth: '100%',
   },
 
+  // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
   fab: {
+    position: 'absolute',
+    right: 16,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
+    /** Above ScrollView (0), below searchDismissLayer (40) so dismiss still covers the FAB when search is open. */
+    zIndex: 30,
     ...Platform.select<any>({
       web: {
-        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
       },
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
       },
       android: {
         elevation: 12,
@@ -934,8 +925,8 @@ const styles = StyleSheet.create({
       default: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 16,
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
       },
     }),
   },

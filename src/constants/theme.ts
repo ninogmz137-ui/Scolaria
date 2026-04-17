@@ -15,12 +15,10 @@ export const nativeGlassCardShadow: ViewStyle = Platform.select({
     shadowOpacity: 0.07,
     shadowRadius: 12,
   },
+  /* Android: elevation on cards draws a grey frame outline (lesson 2026-04-02).
+     Cards rely on background contrast only; only floating UI keeps elevation. */
   android: {
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 12,
+    elevation: 0,
   },
   default: {
     shadowColor: '#000',

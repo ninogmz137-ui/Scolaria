@@ -670,12 +670,13 @@ export default function AriaConversationScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
 
-  // Top bar
+  // Top bar — align buttons to top so they sit visually aligned with the header edge,
+  // not vertically centered against the tall AriaOrb block.
   topbar: {
     paddingHorizontal: 16,
     paddingBottom: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     columnGap: 10,
   },
   // Liquid Glass — aligned with Aria home top bar (40px circle, visible shadow on Android)
@@ -689,14 +690,14 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.18,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 8,
+        elevation: 10,
         borderWidth: 1,
-        borderColor: 'rgba(15,23,42,0.06)',
+        borderColor: 'rgba(15,23,42,0.08)',
       },
       default: {},
     }),

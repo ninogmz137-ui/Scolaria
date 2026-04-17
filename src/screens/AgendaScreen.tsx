@@ -819,23 +819,19 @@ export default function AgendaScreen() {
         ]}
       />
 
-      {/* 7. FAB */}
-      <View
-        collapsable={false}
-        style={[
-          st.fabOuter,
+      {/* 7. FAB — single Pressable; no wrapper View (nested elevation = grey-outline bug, lesson 2026-04-02) */}
+      <Pressable
+        onPress={openAddModal}
+        style={({ pressed }) => [
+          st.fab,
           { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
+          pressed && { opacity: 0.85 },
         ]}
+        accessibilityRole="button"
+        accessibilityLabel="Ajouter un événement"
       >
-        <Pressable
-          onPress={openAddModal}
-          style={({ pressed }) => [st.fab, pressed && { opacity: 0.8 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Ajouter un événement"
-        >
-          <Plus size={22} color="#FFFFFF" strokeWidth={2} />
-        </Pressable>
-      </View>
+        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+      </Pressable>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal
@@ -1189,29 +1185,32 @@ const st = StyleSheet.create({
     marginTop: 4,
   },
 
-  // FAB
-  fabOuter: {
+  // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
+  fab: {
     position: 'absolute',
     right: 16,
-    /** Above FlatList (0) so the FAB paints over the scroll surface on Android. */
-    zIndex: 30,
-    ...Platform.select({
-      android: { elevation: 12 },
-      default: {},
-    }),
-  },
-  fab: {
-    backgroundColor: '#1A2340',
-    borderRadius: 28,
     width: 56,
     height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1A2340',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    zIndex: 30,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+      android: { elevation: 12 },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+      },
+    }),
   },
 
   // Modal
