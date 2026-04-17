@@ -17,7 +17,7 @@ export interface WallpaperDef {
   category: 'nature' | 'abstract' | 'custom';
   /** Thumbnail + full-screen: bundled JPEG */
   type: 'image' | 'gradient';
-  colors: string[];
+  colors: readonly [string, string, ...string[]];
   /** Bundled asset — required for native Image */
   source: ImageSourcePropType;
 }
