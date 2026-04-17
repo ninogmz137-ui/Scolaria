@@ -27,8 +27,8 @@ import WallpaperBackground from '../../components/WallpaperBackground';
 import {
   FLOATING_TAB_BAR_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
-  getInputBarPaddingBottom,
 } from '../../components/FloatingTabBar';
+import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
@@ -133,6 +133,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
 export default function AriaHomeScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const childId = selectedChild?.id ?? '1';
@@ -361,7 +362,7 @@ export default function AriaHomeScreen() {
             setOrbState((s) => (s === 'thinking' ? 'thinking' : 'idle'))
           }
           variant="aria"
-          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
+          containerStyle={{ paddingBottom: inputPadBottom }}
           maxLength={800}
           returnKeyType="send"
           onSubmitEditing={() => sendFromHome(input)}

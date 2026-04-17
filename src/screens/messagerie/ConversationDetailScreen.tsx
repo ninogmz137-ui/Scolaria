@@ -21,7 +21,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { School, CalendarX } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { getInputBarPaddingBottom, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import {
   getConversation,
@@ -106,6 +107,7 @@ export default function ConversationDetailScreen({
   navigation: any;
 }) {
   const insets = useSafeAreaInsets();
+  const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { conversationId } = route.params ?? {};
 
   const conv: Conversation | undefined = getConversation(conversationId);
@@ -263,7 +265,7 @@ export default function ConversationDetailScreen({
             onPressMic={() => {}}
             variant="human"
             containerStyle={{
-              paddingBottom: getInputBarPaddingBottom(insets.bottom),
+              paddingBottom: inputPadBottom,
               paddingHorizontal: 4,
             }}
             maxLength={2000}

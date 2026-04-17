@@ -16,8 +16,8 @@ import UniversalInputBar from '../components/UniversalInputBar';
 import {
   TAB_BAR_SCROLL_PADDING,
   FLAT_LIST_TAB_BAR_FOOTER_SPACER,
-  getInputBarPaddingBottom,
 } from '../components/FloatingTabBar';
+import { useKeyboardInputPadding } from '../hooks/useKeyboardInputPadding';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
@@ -86,6 +86,7 @@ export default function AriaScreen() {
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
+  const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   // Content starts below topbar (insets.top + topbar height + gap)
   const TOPBAR_BOTTOM = insets.top + 64;
 
@@ -293,7 +294,7 @@ export default function AriaScreen() {
           onPressMic={() => {}}
           variant="aria"
           editable={!isTyping}
-          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
+          containerStyle={{ paddingBottom: inputPadBottom }}
           maxLength={500}
           returnKeyType="send"
           onSubmitEditing={() => sendMessage()}

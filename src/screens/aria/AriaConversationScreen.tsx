@@ -27,8 +27,8 @@ import WallpaperBackground from '../../components/WallpaperBackground';
 import {
   TAB_BAR_SCROLL_PADDING,
   FLAT_LIST_TAB_BAR_FOOTER_SPACER,
-  getInputBarPaddingBottom,
 } from '../../components/FloatingTabBar';
+import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
@@ -121,6 +121,7 @@ export default function AriaConversationScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
@@ -516,7 +517,7 @@ export default function AriaConversationScreen() {
           onPressMic={() => {}}
           variant="aria"
           editable={!isTyping}
-          containerStyle={{ paddingBottom: getInputBarPaddingBottom(insets.bottom) }}
+          containerStyle={{ paddingBottom: inputPadBottom }}
           maxLength={800}
           returnKeyType="send"
           onSubmitEditing={() => sendMessage()}

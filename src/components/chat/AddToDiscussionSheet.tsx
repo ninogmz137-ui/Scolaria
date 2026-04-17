@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  PanResponder,
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -65,6 +66,28 @@ export default function AddToDiscussionSheet({
     transform: [{ translateY: translateY.value }],
   }));
 
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 4,
+        onPanResponderMove: (_, g) => {
+          translateY.value = Math.max(0, g.dy);
+        },
+        onPanResponderRelease: (_, g) => {
+          if (g.dy > 100 || g.vy > 0.8) {
+            onClose();
+          } else {
+            translateY.value = withTiming(0, { duration: 180, easing: TIMING_EASE });
+          }
+        },
+        onPanResponderTerminate: () => {
+          translateY.value = withTiming(0, { duration: 180, easing: TIMING_EASE });
+        },
+      }),
+    [onClose, translateY],
+  );
+
   const pickFromCamera = useCallback(async () => {
     if (Platform.OS === 'web') return;
     const ImagePicker = await import('expo-image-picker');
@@ -118,6 +141,10 @@ export default function AddToDiscussionSheet({
             },
           ]}
         >
+          <View style={styles.handleWrap} {...panResponder.panHandlers}>
+            <View style={styles.handle} />
+          </View>
+
           <View style={styles.header}>
             <Text style={styles.title}>Ajouter à la discussion</Text>
             <Pressable onPress={onClose} style={({ pressed }) => [styles.closeBtn, pressed && { opacity: 0.7 }]}>
@@ -172,7 +199,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: 6,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -188,6 +215,17 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
     }),
+  },
+  handleWrap: {
+    alignItems: 'center',
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(15,23,42,0.18)',
   },
   header: {
     flexDirection: 'row',
