@@ -195,7 +195,7 @@ export default function MessagerieParentsScreen() {
   // ─── Chat view ────────────────────────────
   if (selectedConv) {
     return (
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#E8EDF5' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#E8EDF5' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={90}>
         {/* Chat header */}
         <HStack className="items-center gap-3 px-4 py-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderBottomWidth: 1, borderBottomColor: '#EEF0F5' }}>
           <Pressable onPress={() => setSelectedConv(null)} className="p-1">

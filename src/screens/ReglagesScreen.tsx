@@ -321,7 +321,9 @@ const styles = StyleSheet.create({
   },
   sheet: {
     marginHorizontal: 12,
-    height: '88%',
+    // flex:1 fills the overlay's safe-area-padded space, avoiding the overflow
+    // that `height: '88%'` caused when combined with `marginBottom`.
+    flex: 1,
     borderRadius: 28,
     backgroundColor: '#EEF2F7',
     borderWidth: 1,

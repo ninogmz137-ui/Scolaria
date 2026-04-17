@@ -903,12 +903,6 @@ const styles = StyleSheet.create({
     right: 16,
     /** Above ScrollView (0), below searchDismissLayer (40) so dismiss still covers the FAB when search is open. */
     zIndex: 30,
-    ...Platform.select({
-      android: {
-        elevation: 12,
-      },
-      default: {},
-    }),
   },
 
   // Scroll
@@ -935,7 +929,7 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
       android: {
-        elevation: 6,
+        elevation: 12,
       },
       default: {
         shadowColor: '#000',

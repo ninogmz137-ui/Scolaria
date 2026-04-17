@@ -95,7 +95,9 @@ const INACTIVE_ICON_COLOR = '#94A3B8';
 const NEUTRAL_BORDER = '#E2E8F0';
 
 // Glass style shared by avatar, pill, and Aria circles
-const GLASS_BG = 'rgba(255,255,255,0.80)';
+// 0.95: near-opaque so page content can't bleed through on light bg (Android);
+// still a touch of translucency to keep the glass feel.
+const GLASS_BG = 'rgba(255,255,255,0.95)';
 const GLASS_BORDER = 'rgba(255,255,255,0.70)';
 
 const GLASS_SHADOW = Platform.select({

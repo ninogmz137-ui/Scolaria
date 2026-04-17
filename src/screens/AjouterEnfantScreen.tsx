@@ -198,7 +198,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-blue-night"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_SCROLL_PADDING }}

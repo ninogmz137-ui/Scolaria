@@ -849,7 +849,7 @@ export default function AgendaScreen() {
             style={StyleSheet.absoluteFill}
             onPress={() => { Keyboard.dismiss(); setAddModalVisible(false); }}
           />
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View style={st.modalContent}>
               <View style={st.modalHandle} />
               <Text style={st.modalTitle}>Nouvel événement</Text>

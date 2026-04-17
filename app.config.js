@@ -34,9 +34,10 @@ module.exports = {
     splash: {
       /* Image required: expo-splash-screen references @drawable/splashscreen_logo in generated styles,
          so omitting the image breaks `:app:processReleaseResources` (aapt linking).
-         LoginScreen takes over as soon as JS boots. */
-      image: './assets/splash-icon.png',
-      backgroundColor: '#FAFAF8',
+         Using icon.png (1024×1024, white bg matching splash color) eliminates the visible seam
+         that the smaller/off-color splash-icon.png produced on Android. */
+      image: './assets/icon.png',
+      backgroundColor: '#FFFFFF',
       resizeMode: 'contain',
     },
     ios: {

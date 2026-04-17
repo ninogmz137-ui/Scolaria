@@ -184,7 +184,7 @@ export default function ConversationDetailScreen({
       {/* ── Chat area (messages + input) ── */}
       <KeyboardAvoidingView
         style={styles.chatArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
         {/* Messages */}

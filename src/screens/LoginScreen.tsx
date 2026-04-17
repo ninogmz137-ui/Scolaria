@@ -194,7 +194,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
     <View style={s.root}>
       <KeyboardAvoidingView
         style={s.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         enabled={Platform.OS === 'ios'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
