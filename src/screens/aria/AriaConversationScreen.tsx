@@ -126,7 +126,7 @@ export default function AriaConversationScreen() {
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
 
-  const childId = selectedChild?.id ?? '1';
+  const childId = selectedChild?.id ?? 'demo-lea';
   const childFirstName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
   const { conversationId, title, initialMessage } = (route.params ?? {}) as RouteParams;
 
@@ -404,6 +404,35 @@ export default function AriaConversationScreen() {
     return list;
   }, [conversations, selectedCategory, searchQuery]);
 
+  // ─── Group recents into Claude-style time buckets ───────────
+  const groupedConversations = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfYesterday = startOfToday - 24 * 60 * 60 * 1000;
+    const sevenDaysAgo = startOfToday - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = startOfToday - 30 * 24 * 60 * 60 * 1000;
+
+    const buckets: { key: string; label: string; items: typeof filteredConversations }[] = [
+      { key: 'today',     label: "Aujourd'hui",         items: [] },
+      { key: 'yesterday', label: 'Hier',                items: [] },
+      { key: 'week',      label: '7 jours précédents',  items: [] },
+      { key: 'month',     label: '30 jours précédents', items: [] },
+      { key: 'older',     label: 'Plus anciens',        items: [] },
+    ];
+
+    for (const c of filteredConversations) {
+      const t = new Date(c.updatedAt).getTime();
+      if (!Number.isFinite(t)) { buckets[4].items.push(c); continue; }
+      if (t >= startOfToday) buckets[0].items.push(c);
+      else if (t >= startOfYesterday) buckets[1].items.push(c);
+      else if (t >= sevenDaysAgo) buckets[2].items.push(c);
+      else if (t >= thirtyDaysAgo) buckets[3].items.push(c);
+      else buckets[4].items.push(c);
+    }
+
+    return buckets.filter((b) => b.items.length > 0);
+  }, [filteredConversations]);
+
   const topPad = insets.top + 10;
 
   return (
@@ -592,39 +621,41 @@ export default function AriaConversationScreen() {
         {/* Divider */}
         <View style={styles.drawerDivider} />
 
-        {/* Recents label */}
-        <Text style={styles.recentsLabel}>RÉCENTS</Text>
-
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING, paddingTop: 4 }}
             style={styles.drawerRecentsScroll}
           >
-            {filteredConversations.length === 0 ? (
+            {groupedConversations.length === 0 ? (
               <Text style={styles.emptyListText}>Aucune conversation</Text>
             ) : (
-              filteredConversations.map((c) => {
-                const isActiveConv = c.id === conversationId;
-                return (
-                  <Pressable
-                    key={c.id}
-                    onPress={() => {
-                      closeDrawer();
-                      navigation.navigate('AriaConversation', { conversationId: c.id, title: c.title });
-                    }}
-                    style={({ pressed }) => [
-                      styles.recentRow,
-                      isActiveConv && styles.recentRowActive,
-                      pressed && !isActiveConv && styles.recentRowPressed,
-                    ]}
-                  >
-                    <Text style={styles.recentTitle} numberOfLines={1}>
-                      {ariaSidebarTitle(c, conversations)}
-                    </Text>
-                  </Pressable>
-                );
-              })
+              groupedConversations.map((bucket) => (
+                <View key={bucket.key} style={styles.recentsSection}>
+                  <Text style={styles.recentsSectionLabel}>{bucket.label}</Text>
+                  {bucket.items.map((c) => {
+                    const isActiveConv = c.id === conversationId;
+                    return (
+                      <Pressable
+                        key={c.id}
+                        onPress={() => {
+                          closeDrawer();
+                          navigation.navigate('AriaConversation', { conversationId: c.id, title: c.title });
+                        }}
+                        style={({ pressed }) => [
+                          styles.recentRow,
+                          isActiveConv && styles.recentRowActive,
+                          pressed && !isActiveConv && styles.recentRowPressed,
+                        ]}
+                      >
+                        <Text style={styles.recentRowTitle} numberOfLines={1}>
+                          {ariaSidebarTitle(c, conversations)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ))
             )}
           </ScrollView>
 
@@ -794,8 +825,8 @@ const styles = StyleSheet.create({
   drawerTitleARIA: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26, letterSpacing: 1 },
   drawerOrbWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   drawerHeaderSpacer: { width: 100 },
-  drawerBody: { flex: 1, minHeight: 120, justifyContent: 'flex-end' },
-  drawerRecentsScroll: { flexGrow: 1, flexShrink: 1 },
+  drawerBody: { flex: 1 },
+  drawerRecentsScroll: { flex: 1 },
   drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 
   // Categories — row layout (explicit for older Android; no gap)
@@ -848,20 +879,30 @@ const styles = StyleSheet.create({
   // Divider
   drawerDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.07)', marginHorizontal: 20, marginVertical: 4 },
 
-  // Recents
-  recentsLabel: {
-    fontFamily: FontFamily.sansMedium, fontSize: 12, color: '#9ca3af',
-    letterSpacing: 0.84, textTransform: 'uppercase',
-    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4,
+  // Recents — Claude-style time-bucket sections
+  recentsSection: {
+    marginTop: 14,
+  },
+  recentsSectionLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    color: '#9ca3af',
+    letterSpacing: 0.6,
+    paddingHorizontal: 12,
+    paddingBottom: 4,
   },
   recentRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
   },
   recentRowActive: { backgroundColor: 'rgba(124,58,237,0.10)' },
-  recentRowPressed: { backgroundColor: 'rgba(124,58,237,0.05)' },
-  recentTitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#374151' },
+  recentRowPressed: { backgroundColor: 'rgba(15,27,45,0.06)' },
+  recentRowTitle: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: '#0F1B2D',
+  },
   emptyListText: {
     fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#9ca3af',
     paddingHorizontal: 20, paddingTop: 16,

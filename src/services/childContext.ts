@@ -50,10 +50,10 @@ export interface ChildContext {
 // ─── Mock data (will be replaced by real data store) ─────
 
 export const MOCK_CHILDREN: ChildContext[] = [
-  // ── Léa (id '1') — Maternelle ──
+  // ── Léa (id 'demo-lea') — Maternelle ──
   {
     profile: {
-      id: '1',
+      id: 'demo-lea',
       scolariaId: 'SCA-2026-FR-048720',
       name: 'Léa Moreau',
       age: 4,
@@ -79,10 +79,10 @@ export const MOCK_CHILDREN: ChildContext[] = [
       'Sortie au parc — lundi 31 mars',
     ],
   },
-  // ── Lucas (id '2') — Primaire ──
+  // ── Lucas (id 'demo-lucas') — Primaire ──
   {
     profile: {
-      id: '2',
+      id: 'demo-lucas',
       scolariaId: 'SCA-2026-FR-048721',
       name: 'Lucas Moreau',
       age: 10,
@@ -170,15 +170,15 @@ export const MOCK_CHILDREN: ChildContext[] = [
       'Réunion parents — jeudi 3 avril 18h',
     ],
   },
-  // ── Emma (id '3') — Collège ──
+  // ── Emma (id 'demo-emma') — Collège ──
   {
     profile: {
-      id: '3',
+      id: 'demo-emma',
       scolariaId: 'SCA-2026-FR-048722',
       name: 'Emma Moreau',
       age: 13,
       classe: '3ème',
-      school: 'Collège Victor Hugo',
+      school: 'Collège Hugo',
       superPower: 'Créativité',
     },
     grades: [
@@ -301,6 +301,6 @@ ${eventsStr}
 
 // ─── Get active child context ───────────────────────────
 
-export function getChildContext(childId: string = '1'): ChildContext {
+export function getChildContext(childId: string = 'demo-lea'): ChildContext {
   return MOCK_CHILDREN.find((c) => c.profile.id === childId) ?? MOCK_CHILDREN[0];
 }

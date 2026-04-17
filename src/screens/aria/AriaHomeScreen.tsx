@@ -136,7 +136,7 @@ export default function AriaHomeScreen() {
   const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
-  const childId = selectedChild?.id ?? '1';
+  const childId = selectedChild?.id ?? 'demo-lea';
   const childName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -677,7 +677,6 @@ const styles = StyleSheet.create({
   },
   drawerBody: {
     flex: 1,
-    minHeight: 120,
     paddingHorizontal: 8,
   },
   drawerRecentsScroll: {

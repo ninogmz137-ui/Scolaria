@@ -92,7 +92,7 @@ export default function AriaScreen() {
 
   const childName = selectedChild?.name ?? 'votre enfant';
   const firstName = childName.split(' ')[0];
-  const childId = selectedChild?.id ?? '1';
+  const childId = selectedChild?.id ?? 'demo-lea';
 
   const [messages, setMessages] = useState<Message[]>([makeWelcomeMessage(firstName)]);
   const [input, setInput] = useState('');

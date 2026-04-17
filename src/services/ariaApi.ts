@@ -104,7 +104,7 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 export async function sendToAria(
   userMessage: string,
   conversationHistory: ClaudeMessage[],
-  childId: string = '1',
+  childId: string = 'demo-lea',
   options?: { isDemo?: boolean },
 ): Promise<string> {
   const apiKey = ENV.ANTHROPIC_API_KEY;
