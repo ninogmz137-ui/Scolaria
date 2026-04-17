@@ -56,10 +56,8 @@ module.exports = {
       package: 'com.scolaria.app',
       versionCode: 1,
       adaptiveIcon: {
-        backgroundColor: '#0B0F2A',
-        foregroundImage: './assets/android-icon-foreground.png',
-        backgroundImage: './assets/android-icon-background.png',
-        monochromeImage: './assets/android-icon-monochrome.png',
+        foregroundImage: './assets/icon.png',
+        backgroundColor: '#FFFFFF',
       },
       permissions: ['CAMERA', 'READ_EXTERNAL_STORAGE'],
       predictiveBackGestureEnabled: false,

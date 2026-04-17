@@ -15,6 +15,17 @@ Tagline : "Le copilote éducatif des familles"
 
 ---
 
+## Icône Application
+
+**Direction 01** — fond blanc `#FFFFFF`, lettre `S` Rufina Bold 700 noire, `✦` gradient violet→cyan en position de point de ponctuation (baseline alignée avec le S).
+
+- `assets/icon.png` — 1024×1024, fond blanc, utilisé pour iOS + notifications
+- Android adaptive icon : `foregroundImage: ./assets/icon.png`, `backgroundColor: "#FFFFFF"`
+- Composant in-app : `<ScolariaAppIcon>` (`src/components/ScolariaAppIcon.tsx`) — SVG React Native, props `size` et `withBackground`
+- Ne jamais régénérer l'icône via le composant — utiliser le PNG officiel pour les stores
+
+---
+
 ## DESIGN LANGUAGE v2.0 — Direction "Premium Modern"
 
 ### Philosophie
