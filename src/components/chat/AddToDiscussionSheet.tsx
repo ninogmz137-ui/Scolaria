@@ -136,7 +136,7 @@ export default function AddToDiscussionSheet({
             styles.sheet,
             sheetAnimatedStyle,
             {
-              paddingBottom: Math.max(insets.bottom, 12) + 16,
+              paddingBottom: insets.bottom + 16,
               zIndex: 100,
             },
           ]}
@@ -152,26 +152,34 @@ export default function AddToDiscussionSheet({
             </Pressable>
           </View>
 
-          <View style={styles.optionsRow}>
+          <View style={styles.optionsList}>
             <Pressable
               onPress={pickFromCamera}
-              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [styles.optionRow, pressed && { opacity: 0.85 }]}
             >
-              <Camera size={22} color="#0F172A" strokeWidth={2} />
+              <View style={styles.iconCircle}>
+                <Camera size={22} color="#0F172A" strokeWidth={2} />
+              </View>
               <Text style={styles.optionLabel}>Caméra</Text>
             </Pressable>
+            <View style={styles.separator} />
             <Pressable
               onPress={pickFromPhotos}
-              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [styles.optionRow, pressed && { opacity: 0.85 }]}
             >
-              <ImageIcon size={22} color="#0F172A" strokeWidth={2} />
+              <View style={styles.iconCircle}>
+                <ImageIcon size={22} color="#0F172A" strokeWidth={2} />
+              </View>
               <Text style={styles.optionLabel}>Photos</Text>
             </Pressable>
+            <View style={styles.separator} />
             <Pressable
               onPress={pickFile}
-              style={({ pressed }) => [styles.option, pressed && { opacity: 0.85 }]}
+              style={({ pressed }) => [styles.optionRow, pressed && { opacity: 0.85 }]}
             >
-              <FileUp size={22} color="#0F172A" strokeWidth={2} />
+              <View style={styles.iconCircle}>
+                <FileUp size={22} color="#0F172A" strokeWidth={2} />
+              </View>
               <Text style={styles.optionLabel}>Fichiers</Text>
             </Pressable>
           </View>
@@ -196,10 +204,10 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     paddingHorizontal: 16,
-    paddingTop: 6,
+    paddingTop: 0,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -232,41 +240,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginBottom: 14,
+    marginBottom: 4,
   },
   title: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
+    fontSize: 16,
     color: '#0F172A',
   },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
+  optionsList: {
+    marginTop: 4,
   },
-  option: {
-    flex: 1,
-    minWidth: 0,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 14,
-    padding: 14,
+  optionRow: {
+    height: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 0,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'column',
-    gap: 10,
   },
   optionLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
+    fontSize: 15,
     color: '#0F172A',
-    textAlign: 'center',
+    marginLeft: 14,
+  },
+  separator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#F0F0F5',
   },
 });

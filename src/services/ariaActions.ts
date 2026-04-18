@@ -143,6 +143,21 @@ export function parseAriaResponse(rawText: string): ParseResult {
 // ─── 2. Execute ──────────────────────────────────────────
 
 /**
+ * Optional context injected from the Aria screen so absences reference the
+ * real selected child (name + avatar) instead of hardcoded placeholders.
+ *
+ * Fixes the "Emma → Léa" bug where absences signaled via Aria always
+ * appeared as "Élève" / 👧 regardless of which child the parent had selected.
+ */
+export interface AriaActionContext {
+  /** Fallback student_id if Aria omits it in the tag */
+  studentId?: string;
+  studentName?: string;
+  studentAvatar?: string;
+  parentName?: string;
+}
+
+/**
  * Execute a confirmed AriaAction.
  *
  * For ABSENCE: calls createAbsence with minimal context (Aria-initiated).
@@ -150,11 +165,12 @@ export function parseAriaResponse(rawText: string): ParseResult {
  */
 export async function executeAriaAction(
   action: AriaAction,
+  context?: AriaActionContext,
 ): Promise<{ success: boolean; message: string }> {
   switch (action.type) {
     case 'ABSENCE': {
       const payload: CreateAbsencePayload = {
-        student_id: action.student_id,
+        student_id: action.student_id || context?.studentId || '',
         date_debut: action.date,
         date_fin: null,
         demi_journee: action.demi_journee,
@@ -163,7 +179,12 @@ export async function executeAriaAction(
       };
 
       try {
-        await createAbsence(payload, 'Parent', 'Élève', '👧');
+        await createAbsence(
+          payload,
+          context?.parentName ?? 'Parent',
+          context?.studentName ?? 'Élève',
+          context?.studentAvatar ?? '👧',
+        );
         const dateFr = formatDateFrLong(action.date);
         return {
           success: true,

@@ -243,6 +243,7 @@ export default function AriaConversationScreen() {
     try {
       const response = await sendToAria(trimmed, historyRef.current, childId, {
         isDemo,
+        childName: selectedChild?.name,
       });
 
       // Parse action tag from Aria's response
@@ -288,7 +289,11 @@ export default function AriaConversationScreen() {
   const handleConfirmAction = useCallback(async () => {
     if (!pendingAction) return;
     setActionStatus('loading');
-    const result = await executeAriaAction(pendingAction);
+    const result = await executeAriaAction(pendingAction, {
+      studentId: childId,
+      studentName: selectedChild?.name,
+      studentAvatar: selectedChild?.avatar || selectedChild?.avatarEmoji || '👧',
+    });
     setActionStatus(result.success ? 'success' : 'error');
     setActionResult(result.message);
 
@@ -310,7 +315,7 @@ export default function AriaConversationScreen() {
       setPendingAction(null);
       scrollToEnd();
     }, 2000);
-  }, [pendingAction, persist, scrollToEnd]);
+  }, [pendingAction, persist, scrollToEnd, childId, selectedChild?.name, selectedChild?.avatar, selectedChild?.avatarEmoji]);
 
   const handleCancelAction = useCallback(() => {
     setPendingAction(null);
@@ -496,7 +501,15 @@ export default function AriaConversationScreen() {
                 <Text style={styles.emptyText}>
                   Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
                 </Text>
-                <View style={styles.suggestionWrap}>
+                {/* Horizontal ScrollView — on Android, a flex-wrap row with
+                    fixed-percent chips can collapse under Yoga's strict sizing;
+                    a horizontal scroller guarantees chips keep their natural height. */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.suggestionScroll}
+                  contentContainerStyle={styles.suggestionWrap}
+                >
                   {suggestions.map((item) => (
                     <Pressable
                       key={item}
@@ -508,12 +521,12 @@ export default function AriaConversationScreen() {
                         isTyping && { opacity: 0.5 },
                       ]}
                     >
-                      <Text style={styles.suggestionText}>
+                      <Text style={styles.suggestionText} numberOfLines={2}>
                         {item}
                       </Text>
                     </Pressable>
                   ))}
-                </View>
+                </ScrollView>
               </View>
             ) : null
           }
@@ -624,7 +637,10 @@ export default function AriaConversationScreen() {
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING, paddingTop: 4 }}
+            /* Drawer has its own search bar below — no need for floating tab bar clearance.
+               The previous `paddingBottom: TAB_BAR_SCROLL_PADDING` (120) pushed the last
+               rows under the search bar and looked "écrasé en bas" on Android. */
+            contentContainerStyle={{ paddingBottom: 24, paddingTop: 4, paddingHorizontal: 16 }}
             style={styles.drawerRecentsScroll}
           >
             {groupedConversations.length === 0 ? (
@@ -650,6 +666,11 @@ export default function AriaConversationScreen() {
                       >
                         <Text style={styles.recentRowTitle} numberOfLines={1}>
                           {ariaSidebarTitle(c, conversations)}
+                        </Text>
+                        <Text style={styles.recentRowSubtitle} numberOfLines={1}>
+                          {c.updatedAt
+                            ? new Date(c.updatedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                            : ''}
                         </Text>
                       </Pressable>
                     );
@@ -702,16 +723,17 @@ export default function AriaConversationScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
 
-  // Top bar — align buttons to top so they sit visually aligned with the header edge,
-  // not vertically centered against the tall AriaOrb block.
+  // Top bar — buttons vertically centered with the title block.
   topbar: {
     paddingHorizontal: 16,
     paddingBottom: 10,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     columnGap: 10,
   },
   // Liquid Glass — aligned with Aria home top bar (40px circle, visible shadow on Android)
+  // Android: `elevation: 4` gives a native drop shadow. Safe here because
+  // `backgroundColor: '#FFFFFF'` + `borderRadius: 20` + no `borderWidth` → no grey frame.
   topBtn: {
     width: 40,
     height: 40,
@@ -719,6 +741,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
+    zIndex: 2,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -727,9 +750,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
       },
       android: {
-        elevation: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(15,23,42,0.08)',
+        elevation: 4,
       },
       default: {},
     }),
@@ -766,24 +787,27 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
+  suggestionScroll: {
+    alignSelf: 'stretch',
+    marginTop: 12,
+  },
   suggestionWrap: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    alignContent: 'flex-start',
-    alignSelf: 'stretch',
-    width: '100%',
+    alignItems: 'stretch',
     paddingHorizontal: 4,
-    paddingTop: 12,
+    paddingVertical: 4,
   },
   suggestionChip: {
-    width: '48%',
-    minWidth: 0,
+    minWidth: 160,
+    maxWidth: 240,
+    minHeight: 56,
     backgroundColor: '#FFFFFF',
     borderWidth: 0,
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderRadius: 12,
-    marginBottom: 8,
+    marginRight: 8,
+    justifyContent: 'center',
     ...nativeAriaSuggestionShadow,
   },
   suggestionText: {
@@ -881,27 +905,36 @@ const styles = StyleSheet.create({
 
   // Recents — Claude-style time-bucket sections
   recentsSection: {
-    marginTop: 14,
+    marginTop: 4,
   },
   recentsSectionLabel: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 11,
-    color: '#9ca3af',
-    letterSpacing: 0.6,
+    color: 'rgba(15,23,42,0.5)',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
     paddingHorizontal: 12,
-    paddingBottom: 4,
+    paddingTop: 16,
+    paddingBottom: 6,
   },
   recentRow: {
-    paddingVertical: 8,
+    paddingVertical: 14,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 12,
+    marginBottom: 4,
   },
   recentRowActive: { backgroundColor: 'rgba(124,58,237,0.10)' },
-  recentRowPressed: { backgroundColor: 'rgba(15,27,45,0.06)' },
+  recentRowPressed: { opacity: 0.7 },
   recentRowTitle: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    color: '#0F172A',
+  },
+  recentRowSubtitle: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#0F1B2D',
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
   },
   emptyListText: {
     fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#9ca3af',

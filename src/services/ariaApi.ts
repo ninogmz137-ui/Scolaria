@@ -32,8 +32,8 @@ console.log(`[Aria] API key status: ${ENV.ANTHROPIC_API_KEY ? `present (${ENV.AN
 
 // ─── System prompt builder ───────────────────────────────
 
-function buildSystemPrompt(childId: string): string {
-  const child = getChildContext(childId);
+function buildSystemPrompt(childId: string, childName?: string): string {
+  const child = getChildContext(childId, childName);
   const contextStr = buildChildContextString(child);
 
   const conversations = CONVERSATIONS_BY_CHILD[childId] ?? [];
@@ -105,16 +105,16 @@ export async function sendToAria(
   userMessage: string,
   conversationHistory: ClaudeMessage[],
   childId: string = 'demo-lea',
-  options?: { isDemo?: boolean },
+  options?: { isDemo?: boolean; childName?: string },
 ): Promise<string> {
   const apiKey = ENV.ANTHROPIC_API_KEY;
 
   if (!apiKey || apiKey === 'your-api-key-here') {
     console.warn('[Aria] No API key configured — using fallback response');
-    return getFallbackResponse(userMessage, childId, options?.isDemo === true);
+    return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
   }
 
-  const systemPrompt = buildSystemPrompt(childId);
+  const systemPrompt = buildSystemPrompt(childId, options?.childName);
 
   // Build messages array: conversation history + new message
   const messages: ClaudeMessage[] = [
@@ -150,7 +150,7 @@ export async function sendToAria(
         return '⏳ Trop de requêtes envoyées. Attends quelques secondes et réessaie.';
       }
 
-      return getFallbackResponse(userMessage, childId, options?.isDemo === true);
+      return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
     }
 
     const data: ClaudeResponse = await response.json();
@@ -160,7 +160,7 @@ export async function sendToAria(
       return textContent.text;
     }
 
-    return getFallbackResponse(userMessage, childId, options?.isDemo === true);
+    return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
   } catch (error) {
     console.error('[Aria] Network error:', error);
     return '📡 Impossible de contacter Aria pour le moment. Vérifie ta connexion internet et réessaie.';
@@ -169,8 +169,8 @@ export async function sendToAria(
 
 // ─── Fallback responses (when no API key) ───────────────
 
-function buildFallbackResponses(childId: string, isDemoApp: boolean): string[] {
-  const child = getChildContext(childId);
+function buildFallbackResponses(childId: string, isDemoApp: boolean, childName?: string): string[] {
+  const child = getChildContext(childId, childName);
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
@@ -216,8 +216,13 @@ function buildFallbackResponses(childId: string, isDemoApp: boolean): string[] {
 
 let fallbackIndex = 0;
 
-function getFallbackResponse(userMessage: string, childId: string, isDemoApp = false): string {
-  const responses = buildFallbackResponses(childId, isDemoApp);
+function getFallbackResponse(
+  userMessage: string,
+  childId: string,
+  isDemoApp = false,
+  childName?: string,
+): string {
+  const responses = buildFallbackResponses(childId, isDemoApp, childName);
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('note') || msg.includes('résultat') || msg.includes('moyenne')) {

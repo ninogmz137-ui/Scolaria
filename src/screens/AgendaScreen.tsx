@@ -38,7 +38,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_ROW_HEIGHT, TAB_BAR_SCROLL_PADDING, getFloatingTabBottomOffset } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // Enable LayoutAnimation on Android
@@ -819,18 +819,25 @@ export default function AgendaScreen() {
         ]}
       />
 
-      {/* 7. FAB — single Pressable; no wrapper View (nested elevation = grey-outline bug, lesson 2026-04-02) */}
+      {/* 7. FAB — LinearGradient inside Pressable (no outer View wrapper to avoid Android grey-outline bug) */}
       <Pressable
         onPress={openAddModal}
         style={({ pressed }) => [
           st.fab,
-          { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
-          pressed && { opacity: 0.85 },
+          { bottom: getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT + 16 },
+          { transform: [{ scale: pressed ? 0.96 : 1 }] },
         ]}
         accessibilityRole="button"
-        accessibilityLabel="Ajouter un événement"
+        accessibilityLabel="Nouvel événement"
       >
-        <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+        <LinearGradient
+          colors={['#6366F1', '#7C3AED']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={st.fabGradient}
+        >
+          <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
+        </LinearGradient>
       </Pressable>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
@@ -1185,7 +1192,17 @@ const st = StyleSheet.create({
     marginTop: 4,
   },
 
+  /** Fills the FAB Pressable — LinearGradient needs explicit dimensions inside flex. */
+  fabGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
+  // Android needs BOTH zIndex AND elevation when siblings carry their own
+  // elevation (cards + gradient in the list).
   fab: {
     position: 'absolute',
     right: 16,
@@ -1195,7 +1212,7 @@ const st = StyleSheet.create({
     backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 30,
+    zIndex: 99,
     ...Platform.select({
       ios: {
         shadowColor: '#000',

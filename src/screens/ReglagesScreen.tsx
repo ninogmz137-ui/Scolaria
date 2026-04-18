@@ -59,26 +59,30 @@ type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
 type WallpaperGroup = { id: 'nature' | 'abstract'; label: string; items: WallpaperDef[] };
 
-/** Preset wallpaper tile — image presets use the same asset as the full wallpaper; gradients use swatches. */
+/** Preset wallpaper tile — image presets use the same asset as the full wallpaper; gradients use swatches.
+ *  `marginRight` is applied on the Pressable root itself (no wrapper View) to avoid Android
+ *  Yoga collapsing a dimensionless wrapper inside an `alignItems:'center'` horizontal list. */
 function WallpaperPresetTile({
   wp,
   tileWidth,
   tileHeight,
   isActive,
   onSelect,
+  marginRight,
 }: {
   wp: WallpaperDef;
   tileWidth: number;
   tileHeight?: number;
   isActive: boolean;
   onSelect: () => void;
+  marginRight?: number;
 }) {
   return (
     <RNPressable
       onPress={onSelect}
       style={({ pressed }) => [
         styles.wallpaperGridTile,
-        { width: tileWidth, height: tileHeight ?? 80 },
+        { width: tileWidth, height: tileHeight ?? 80, marginRight: marginRight ?? 0 },
         isActive && styles.wallpaperTileActive,
         pressed && { opacity: 0.9 },
       ]}
@@ -291,15 +295,14 @@ export default function ReglagesScreen() {
                     const wp = item as WallpaperDef;
                     const isActive = !customUri && wallpaper.id === wp.id;
                     return (
-                      <View style={{ marginRight: 12 }}>
-                        <WallpaperPresetTile
-                          wp={wp}
-                          tileWidth={WALLPAPER_THUMB_W}
-                          tileHeight={WALLPAPER_THUMB_H}
-                          isActive={isActive}
-                          onSelect={() => setWallpaperId(wp.id)}
-                        />
-                      </View>
+                      <WallpaperPresetTile
+                        wp={wp}
+                        tileWidth={WALLPAPER_THUMB_W}
+                        tileHeight={WALLPAPER_THUMB_H}
+                        isActive={isActive}
+                        onSelect={() => setWallpaperId(wp.id)}
+                        marginRight={12}
+                      />
                     );
                   }}
                 />

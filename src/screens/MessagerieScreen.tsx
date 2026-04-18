@@ -19,6 +19,7 @@ import {
   Platform,
   Modal,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -31,9 +32,15 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, MessageSquarePlus, ChevronDown } from 'lucide-react-native';
+import { School, CalendarX, Search, Pencil, ChevronDown } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  FLOATING_TAB_BAR_ROW_HEIGHT,
+  TAB_BAR_SCROLL_PADDING,
+  getFloatingTabBottomOffset,
+} from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -612,19 +619,28 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/* FAB — single Pressable; bottom-right above tab bar (same placement as Agenda).
-          Wrapper View was causing nested-elevation grey frame on Android (lesson 2026-04-02). */}
+      {/* FAB — LinearGradient inside Pressable avoids nested elevation grey frame on Android. */}
       <Pressable
-        onPress={() => navigation.navigate('MessagesListScreen', { openCompose: true })}
+        onPress={() => Alert.alert('Nouveau message', 'À venir')}
         style={({ pressed }) => [
           styles.fab,
-          { bottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + 16 },
-          pressed && { opacity: 0.85 },
+          {
+            bottom:
+              getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT + 16,
+          },
+          pressed && { transform: [{ scale: 0.96 }] },
         ]}
         accessibilityRole="button"
         accessibilityLabel="Nouveau message"
       >
-        <MessageSquarePlus size={24} color="#FFFFFF" strokeWidth={2} />
+        <LinearGradient
+          colors={['#6366F1', '#7C3AED']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.fabGradient}
+        >
+          <Pencil size={22} color="#FFFFFF" strokeWidth={2.2} />
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -743,11 +759,13 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     alignSelf: 'flex-start',
   },
+  /* Android: `gap` in a row with flex-sizing siblings is unreliable on older
+     versions — fell back to `marginRight: 6` on the Text (see `filterSelectorPillText`)
+     + `marginLeft` isn't needed because Text is the first child. */
   filterPillPressableNoBg: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'nowrap',
-    gap: 4,
   },
   filterPillShadowWrap: {
     borderRadius: 18,
@@ -765,7 +783,6 @@ const styles = StyleSheet.create({
   filterPillInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -798,6 +815,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
     color: NAVY,
+    marginRight: 6,
   },
   filterSelectorPillTextOnNavy: {
     color: '#FFFFFF',
@@ -898,6 +916,8 @@ const styles = StyleSheet.create({
   },
 
   // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
+  // Android requires BOTH `zIndex` AND `elevation` to stay above a sibling ScrollView
+  // with nested elevation children (list items have shadows of their own).
   fab: {
     position: 'absolute',
     right: 16,
@@ -907,8 +927,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A2340',
     alignItems: 'center',
     justifyContent: 'center',
-    /** Above ScrollView (0), below searchDismissLayer (40) so dismiss still covers the FAB when search is open. */
-    zIndex: 30,
+    /** Above ScrollView (0); searchDismissLayer bumps its own elevation to 32 when active. */
+    zIndex: 99,
     ...Platform.select<any>({
       web: {
         boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
@@ -929,6 +949,15 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
       },
     }),
+  },
+  /** Fills the FAB Pressable — must carry its own dimensions on Android
+   *  since LinearGradient inside a flex parent doesn't auto-size. */
+  fabGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Section

@@ -42,11 +42,14 @@ const ChildThemeContext = createContext<ChildThemeContextValue | null>(null);
 
 const FORCE_MOCK = true;
 
-// In-memory store for child → themeId mapping
+// In-memory store for child → themeId mapping.
+// Keys match the demo IDs in ActiveChildContext (MOCK_CHILDREN) so lookups
+// resolve correctly — previously '1'/'2'/'3' keys never matched, which
+// silently kept every child on DEFAULT_THEME_ID.
 const initialThemeMap: Record<string, string> = {
-  '1': 'ambre',    // Léa → warm amber (matches maternelle feel)
-  '2': 'ocean',    // Lucas → ocean blue (default)
-  '3': 'lavande',  // Emma → lavender
+  'demo-lea':   'ambre',    // Léa → warm amber (matches maternelle feel)
+  'demo-lucas': 'ocean',    // Lucas → ocean blue (default)
+  'demo-emma':  'lavande',  // Emma → lavender
 };
 
 // ─── Provider ──────────────────────────────────────────

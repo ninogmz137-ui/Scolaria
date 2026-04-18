@@ -269,6 +269,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   ]?.name ?? '';
   const isOnAria = accueilRoute?.name === 'Accueil' && nestedRouteName.startsWith('Aria');
 
+  // Hide the floating tab bar when a full-screen modal-style route is active.
+  // ReglagesScreen uses `presentation: 'transparentModal'` inside AccueilStack,
+  // which renders BELOW the tab bar (Tab.Navigator is the parent). Only a
+  // route-based hide can cover the tab bar.
+  const ROUTES_HIDE_TAB_BAR = new Set(['ReglagesScreen']);
+  if (ROUTES_HIDE_TAB_BAR.has(nestedRouteName)) return null;
+
   // Avatar content
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;

@@ -301,6 +301,37 @@ ${eventsStr}
 
 // ─── Get active child context ───────────────────────────
 
-export function getChildContext(childId: string = 'demo-lea'): ChildContext {
-  return MOCK_CHILDREN.find((c) => c.profile.id === childId) ?? MOCK_CHILDREN[0];
+/**
+ * Resolve a child's Aria context by id or, as a fallback, by first name.
+ *
+ * Why the fallback: Supabase-loaded children have real UUIDs that don't
+ * match any of the demo IDs ('demo-lea', 'demo-lucas', 'demo-emma'), so
+ * matching by id alone silently returns MOCK_CHILDREN[0] (Léa) — this is
+ * the "Emma → Léa" bug where selecting Emma would surface Léa's context.
+ *
+ * First-name matching is case-insensitive and unaccented where possible
+ * (fine-grained unicode folding is not required: demo names differ enough
+ * on their first 3 letters).
+ */
+export function getChildContext(
+  childId: string = 'demo-lea',
+  childName?: string,
+): ChildContext {
+  // 1) Exact id match (covers demo IDs and any pre-seeded real IDs)
+  const byId = MOCK_CHILDREN.find((c) => c.profile.id === childId);
+  if (byId) return byId;
+
+  // 2) First-name fallback (covers Supabase UUIDs)
+  if (childName) {
+    const first = childName.trim().split(/\s+/)[0]?.toLowerCase() ?? '';
+    if (first) {
+      const byName = MOCK_CHILDREN.find((c) =>
+        c.profile.name.toLowerCase().startsWith(first),
+      );
+      if (byName) return byName;
+    }
+  }
+
+  // 3) Last-resort default
+  return MOCK_CHILDREN[0];
 }
