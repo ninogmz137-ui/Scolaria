@@ -248,6 +248,7 @@ export default function AriaScreen() {
               showsHorizontalScrollIndicator={false}
               data={suggestions}
               keyExtractor={(item) => item}
+              style={{ height: 56 }}
               contentContainerStyle={styles.suggestionsContainer}
               renderItem={({ item }) => (
                 <Pressable

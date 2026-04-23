@@ -6,15 +6,18 @@ import {
   View,
   Platform,
   Pressable as RNPressable,
+  TouchableOpacity,
   FlatList,
   Image,
+  useWindowDimensions,
+  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import {
   X,
-  Info,
   User,
   SlidersHorizontal,
   Plug,
@@ -28,12 +31,36 @@ import {
 } from 'lucide-react-native';
 import { Box, Text } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
-import { nativeWhiteInteractiveShadow } from '../constants/theme';
+import ScolariaAppIcon from '../components/ScolariaAppIcon';
+import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
 
-const WALLPAPER_THUMB_W = 120;
-const WALLPAPER_THUMB_H = 180;
+/**
+ * Feuille réglages = même palette que l’app (fond clair). Interaction type Claude : ligne
+ * **sans** carte permanente, fond qui se fonce au tap sur toute la ligne.
+ */
+const SHEET_BG = SCREEN_BACKGROUND;
+const SHEET_TEXT = Colors.textPrimary;
+const SHEET_MUTED = Colors.textSecondary;
+const SHEET_SECTION = 'rgba(100, 116, 139, 0.9)';
+/** Surlignage appuyé (équivalent « carte » Claude, fond légèrement assombri). */
+const ROW_PRESS_BG = 'rgba(15, 23, 42, 0.11)';
+const ROW_DIVIDER = 'rgba(15, 23, 42, 0.1)';
+const HEADER_BTN_BG = 'rgba(15, 23, 42, 0.06)';
+
+/**
+ * Même retrait vertical que l’écran Accueil au-dessus de la feuille de contenu
+ * (topbar + marge) — le sheet de réglages remplace visuellement la « carte » accueil.
+ */
+const ACCUEIL_TOPBAR_RESERVE = 56;
+const ACCUEIL_TOP_SPACER = 40;
+
+/** Vignettes compactes, format paysage, scroll horizontal (moins de hauteur dans Réglages). */
+const WALLPAPER_THUMB_W = 88;
+const WALLPAPER_THUMB_H = 50;
+const WALLPAPER_THUMB_GAP = 8;
 
 /** Papillon-style collections — grouped by source/theme, each shown as a horizontal scroll row. */
 const WALLPAPER_COLLECTIONS: { id: 'nature' | 'abstract'; label: string }[] = [
@@ -59,38 +86,43 @@ type WallpaperGridRow = WallpaperDef | { id: '__custom__'; __custom: true };
 
 type WallpaperGroup = { id: 'nature' | 'abstract'; label: string; items: WallpaperDef[] };
 
-/** Preset wallpaper tile — image presets use the same asset as the full wallpaper; gradients use swatches.
- *  `marginRight` is applied on the Pressable root itself (no wrapper View) to avoid Android
- *  Yoga collapsing a dimensionless wrapper inside an `alignItems:'center'` horizontal list. */
+/** Preset — taille explicite sur le root (FlatList horizontale Android : pas de marge de gap sur l’item). */
 function WallpaperPresetTile({
   wp,
   tileWidth,
   tileHeight,
   isActive,
   onSelect,
-  marginRight,
 }: {
   wp: WallpaperDef;
   tileWidth: number;
   tileHeight?: number;
   isActive: boolean;
   onSelect: () => void;
-  marginRight?: number;
 }) {
+  const h = tileHeight ?? WALLPAPER_THUMB_H;
   return (
     <RNPressable
       onPress={onSelect}
       style={({ pressed }) => [
         styles.wallpaperGridTile,
-        { width: tileWidth, height: tileHeight ?? 80, marginRight: marginRight ?? 0 },
+        { width: tileWidth, height: h },
         isActive && styles.wallpaperTileActive,
-        pressed && { opacity: 0.9 },
+        pressed && { opacity: 0.88 },
       ]}
       accessibilityRole="radio"
       accessibilityState={{ checked: isActive }}
       accessibilityLabel={wp.label}
     >
-      <Image source={wp.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      <Image
+        source={wp.source}
+        style={{
+          width: tileWidth,
+          height: h,
+          borderRadius: 9,
+        }}
+        resizeMode="cover"
+      />
     </RNPressable>
   );
 }
@@ -99,44 +131,77 @@ function SectionLabel({ label }: { label: string }) {
   return <Text style={styles.sectionLabel}>{label}</Text>;
 }
 
+const CHEVRON_MUTED = 'rgba(100, 116, 139, 0.85)';
+
 function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
+  const [menuPressed, setMenuPressed] = useState(false);
+  const iconColor = row.danger ? '#F87171' : SHEET_TEXT;
+
+  if (row.type === 'toggle') {
+    return (
+      <View>
+        <View style={styles.rowToggleRow}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPressIn={() => setMenuPressed(true)}
+            onPressOut={() => setMenuPressed(false)}
+            onPress={() => row.onToggle?.(!row.toggleValue)}
+            style={[styles.rowToggleHit, menuPressed && styles.rowPressed]}
+            accessibilityRole="button"
+            accessibilityLabel={row.label}
+          >
+            <View style={styles.rowInner}>
+              <row.Icon size={22} color={iconColor} strokeWidth={2} />
+              <Text
+                style={[styles.rowLabel, row.danger && { color: '#F87171' }]}
+                numberOfLines={2}
+              >
+                {row.label}
+              </Text>
+              <View style={{ flex: 1 }} />
+            </View>
+          </TouchableOpacity>
+          <Switch
+            style={styles.rowSwitch}
+            value={!!row.toggleValue}
+            onValueChange={row.onToggle}
+            trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        {!isLast ? <View style={styles.rowDivider} /> : null}
+      </View>
+    );
+  }
+
   return (
     <View>
-      <RNPressable
-        onPress={row.type === 'navigate' ? row.onPress : undefined}
-        style={({ pressed }) => [
-          styles.row,
-          pressed && row.type === 'navigate' ? { opacity: 0.7 } : null,
-        ]}
-        accessibilityRole={row.type === 'toggle' ? 'switch' : 'button'}
+      <TouchableOpacity
+        activeOpacity={1}
+        onPressIn={() => setMenuPressed(true)}
+        onPressOut={() => setMenuPressed(false)}
+        onPress={row.onPress}
+        style={[styles.row, menuPressed && styles.rowPressed]}
+        accessibilityRole="button"
         accessibilityLabel={row.label}
       >
         <View style={styles.rowInner}>
-          <row.Icon
-            size={20}
-            color={row.danger ? '#EF4444' : '#0F172A'}
-            strokeWidth={2}
-          />
-          <Text style={[styles.rowLabel, row.danger && { color: '#EF4444' }]}>
+          <row.Icon size={22} color={iconColor} strokeWidth={2} />
+          <Text
+            style={[styles.rowLabel, row.danger && { color: '#F87171' }]}
+            numberOfLines={2}
+          >
             {row.label}
           </Text>
-          <View style={{ flex: 1 }} />
           {row.valueText ? (
-            <Text style={styles.rowValue}>{row.valueText}</Text>
+            <Text style={styles.rowValue} numberOfLines={1}>
+              {row.valueText}
+            </Text>
           ) : null}
-          {row.type === 'navigate' ? (
-            <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} />
-          ) : (
-            <Switch
-              value={!!row.toggleValue}
-              onValueChange={row.onToggle}
-              trackColor={{ false: '#E2E8F0', true: '#6366F1' }}
-              thumbColor="#FFFFFF"
-            />
-          )}
+          <ChevronRight size={20} color={CHEVRON_MUTED} strokeWidth={2.2} />
         </View>
-      </RNPressable>
-      {!isLast ? <View style={styles.rowHairline} /> : null}
+      </TouchableOpacity>
+      {!isLast ? <View style={styles.rowDivider} /> : null}
     </View>
   );
 }
@@ -144,6 +209,18 @@ function Row({ row, isLast }: { row: RowDef; isLast?: boolean }) {
 export default function ReglagesScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const windowDims = useWindowDimensions();
+  const topReserve = insets.top + ACCUEIL_TOPBAR_RESERVE + ACCUEIL_TOP_SPACER;
+  /** Android: window vs screen diffèrent souvent en modal ; on prend le max pour caler la feuille comme sur le web. */
+  const fullViewportHeight = useMemo(() => {
+    if (Platform.OS === 'android') {
+      const w = Dimensions.get('window');
+      const s = Dimensions.get('screen');
+      return Math.max(windowDims.height, w.height, s.height);
+    }
+    return windowDims.height;
+  }, [windowDims.height]);
+  const sheetMaxHeight = Math.max(120, fullViewportHeight - topReserve);
   const { signOut, isDemo } = useAuth();
   const { wallpaper, wallpapers, setWallpaperId, customUri } = useWallpaper();
 
@@ -201,15 +278,27 @@ export default function ReglagesScreen() {
   }, [hapticsEnabled, isDemo, nav, signOut]);
 
   return (
-    /* Bottom sheet Claude-style : s'ancre en bas, pleine largeur, coins arrondis
-       uniquement en haut. Le paddingTop de l'overlay laisse voir le backdrop au-dessus. */
-    <View style={[styles.overlay, { paddingTop: insets.top + 24 }]}>
-      {/* Tap outside to close */}
+    <View
+      style={[
+        styles.overlayRoot,
+        { minHeight: fullViewportHeight },
+        Platform.OS === 'android' && { height: fullViewportHeight },
+      ]}
+    >
+      <StatusBar style="dark" />
       <RNPressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
       <View style={[StyleSheet.absoluteFill, styles.backdropFallback]} pointerEvents="none" />
 
-      {/* Bottom sheet */}
-      <View style={styles.sheet}>
+      <View
+        style={[
+          styles.sheet,
+          {
+            maxHeight: sheetMaxHeight,
+            height: sheetMaxHeight,
+            paddingTop: 6,
+          },
+        ]}
+      >
         {/* Drag handle */}
         <View style={styles.handleWrap} pointerEvents="none">
           <View style={styles.handle} />
@@ -223,7 +312,7 @@ export default function ReglagesScreen() {
             accessibilityRole="button"
             accessibilityLabel="Fermer"
           >
-            <X size={18} color="#0F172A" strokeWidth={2.2} />
+            <X size={20} color={SHEET_TEXT} strokeWidth={2.2} />
           </RNPressable>
 
           <Text style={styles.headerTitle}>Réglages</Text>
@@ -234,7 +323,11 @@ export default function ReglagesScreen() {
             accessibilityRole="button"
             accessibilityLabel="À propos"
           >
-            <Info size={18} color="#0F172A" strokeWidth={2.2} />
+            <ScolariaAppIcon
+              size={28}
+              withBackground={false}
+              color="rgba(248, 250, 252, 0.9)"
+            />
           </RNPressable>
         </View>
 
@@ -242,9 +335,9 @@ export default function ReglagesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: insets.bottom + 32,
+            paddingBottom: insets.bottom + 32 + FLOATING_TAB_BAR_HEIGHT,
           }}
-          style={{ flex: 1 }}
+          style={{ flex: 1, backgroundColor: SHEET_BG }}
         >
           {isDemo ? (
             <View style={styles.demoNotice}>
@@ -255,7 +348,7 @@ export default function ReglagesScreen() {
           ) : null}
 
           <SectionLabel label="COMPTE" />
-          <View style={styles.group}>
+          <View style={styles.menuGroup}>
             {groups.account.map((r, idx) => (
               <Row key={r.key} row={r} isLast={idx === groups.account.length - 1} />
             ))}
@@ -278,6 +371,10 @@ export default function ReglagesScreen() {
                   }
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.wallpaperListContent}
+                  removeClippedSubviews={false}
+                  style={styles.wallpaperRowList}
+                  /** Android: marginRight sur les cellules est souvent ignoré — espacement via séparateur dédié. */
+                  ItemSeparatorComponent={() => <View style={styles.wallpaperItemSeparator} />}
                   renderItem={({ item }) => {
                     if ('__custom' in item && item.__custom) {
                       return (
@@ -285,10 +382,10 @@ export default function ReglagesScreen() {
                           style={[
                             styles.wallpaperGridTile,
                             styles.wallpaperCustomTile,
-                            { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H, marginRight: 12 },
+                            { width: WALLPAPER_THUMB_W, height: WALLPAPER_THUMB_H },
                           ]}
                         >
-                          <ImageIcon size={22} color="#64748B" strokeWidth={2} />
+                          <ImageIcon size={18} color={SHEET_MUTED} strokeWidth={2} />
                         </View>
                       );
                     }
@@ -301,7 +398,6 @@ export default function ReglagesScreen() {
                         tileHeight={WALLPAPER_THUMB_H}
                         isActive={isActive}
                         onSelect={() => setWallpaperId(wp.id)}
-                        marginRight={12}
                       />
                     );
                   }}
@@ -311,21 +407,21 @@ export default function ReglagesScreen() {
           })}
 
           <SectionLabel label="PRÉFÉRENCES" />
-          <View style={styles.group}>
+          <View style={styles.menuGroup}>
             {groups.preferences.map((r, idx) => (
               <Row key={r.key} row={r} isLast={idx === groups.preferences.length - 1} />
             ))}
           </View>
 
           <SectionLabel label="CONFIDENTIALITÉ" />
-          <View style={styles.group}>
+          <View style={styles.menuGroup}>
             {groups.privacy.map((r, idx) => (
               <Row key={r.key} row={r} isLast={idx === groups.privacy.length - 1} />
             ))}
           </View>
 
           <SectionLabel label="SYSTÈME" />
-          <View style={styles.group}>
+          <View style={styles.menuGroup}>
             {groups.system.map((r, idx) => (
               <Row key={r.key} row={r} isLast={idx === groups.system.length - 1} />
             ))}
@@ -342,155 +438,200 @@ export default function ReglagesScreen() {
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  /** Plein écran — requis sur Android pour que la feuille `absolute` + hauteur soit correcte. */
+  overlayRoot: {
     flex: 1,
+    width: '100%',
     backgroundColor: 'transparent',
-    justifyContent: 'flex-end',
+    position: 'relative',
   },
   backdropFallback: {
-    backgroundColor: 'rgba(15,23,42,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  /* Bottom sheet pleine largeur, ancré en bas. Coins arrondis uniquement en haut,
-     comme l'écran Paramètres de Claude. */
   sheet: {
-    flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     width: '100%',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    backgroundColor: '#EEF2F7',
+    backgroundColor: SHEET_BG,
     overflow: 'hidden',
+    alignSelf: 'stretch',
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.16, shadowRadius: 24 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.3, shadowRadius: 24 },
       android: { elevation: 12 },
-      default: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.16, shadowRadius: 24 },
+      default: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.3, shadowRadius: 24 },
     }),
   },
   handleWrap: {
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: 6,
   },
   handle: {
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(15,23,42,0.18)',
+    backgroundColor: 'rgba(15, 23, 42, 0.15)',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    paddingTop: 6,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    paddingTop: 0,
   },
   headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    minWidth: 44,
+    minHeight: 44,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: HEADER_BTN_BG,
     borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    ...nativeWhiteInteractiveShadow,
   },
   headerTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 16,
-    color: '#0F172A',
+    fontFamily: FontFamily.sansBold,
+    fontSize: 17,
+    color: SHEET_TEXT,
   },
   sectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 10,
     letterSpacing: 1.5,
-    color: 'rgba(15,23,42,0.45)',
+    color: SHEET_SECTION,
     textTransform: 'uppercase',
-    paddingHorizontal: 20,
-    marginTop: 28,
-    marginBottom: 6,
+    paddingHorizontal: 0,
+    paddingLeft: 4,
+    marginTop: 20,
+    marginBottom: 8,
   },
-  group: {
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-    overflow: 'hidden',
-    marginBottom: 16,
-    ...nativeWhiteInteractiveShadow,
+  /** Groupe = espacement, pas de carte blanche (style Claude : fond au tap seulement). */
+  menuGroup: {
+    marginBottom: 8,
   },
   // Papillon-style: each collection is its own row. No outer card — thumbnails
   // carry their own shadow, and avoiding a wrapper avoids Android's elevation
   // grey-frame on parent views (lesson 2026-04-02).
   wallpaperCollection: {
-    marginBottom: 18,
+    marginBottom: 12,
   },
   wallpaperCollectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#0F172A',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    fontSize: 12,
+    color: Colors.textMuted,
+    paddingHorizontal: 0,
+    paddingLeft: 4,
+    marginBottom: 6,
   },
+  /** Liste horizontale : pas de double padding (déjà le ScrollView). */
   wallpaperListContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    alignItems: 'center',
+    paddingVertical: 2,
+    paddingRight: 0,
+    alignItems: 'stretch',
+    flexGrow: 0,
+  },
+  /** Hauteur de ligne = vignette seule, sans bande inutile. */
+  wallpaperRowList: {
+    minHeight: WALLPAPER_THUMB_H + 4,
+    marginBottom: 4,
+  },
+  /** Espace explicite entre cellules (fiable sur Android, voir ItemSeparatorComponent). */
+  wallpaperItemSeparator: {
+    width: WALLPAPER_THUMB_GAP,
+    height: WALLPAPER_THUMB_H,
+    alignSelf: 'center' as const,
   },
   wallpaperGridTile: {
-    borderRadius: 18,
+    borderRadius: 10,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.06)',
-    backgroundColor: '#F1F5F9',
+    borderColor: 'rgba(15, 23, 42, 0.1)',
+    backgroundColor: 'rgba(255,255,255,0.7)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.14,
-        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 5,
       },
-      android: { elevation: 5 },
+      android: { elevation: 2 },
       default: {},
     }),
   },
   wallpaperTileActive: {
-    borderWidth: 3,
-    borderColor: '#7C3AED',
+    borderWidth: 2,
+    borderColor: '#6366F1',
   },
   wallpaperCustomTile: {
     borderStyle: 'dashed',
     borderWidth: 2,
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: 'rgba(15, 23, 42, 0.15)',
+    backgroundColor: 'rgba(15, 23, 42, 0.04)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   row: {
-    paddingHorizontal: 20,
-    paddingVertical: 18,
-    minHeight: 56,
+    marginHorizontal: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 64,
     justifyContent: 'center',
+    borderRadius: 12,
+  },
+  rowToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 0,
+    minHeight: 64,
+    paddingRight: 8,
+  },
+  rowToggleHit: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingLeft: 16,
+    borderRadius: 12,
+  },
+  rowPressed: {
+    backgroundColor: ROW_PRESS_BG,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    gap: 12,
+    minHeight: 44,
+    gap: 14,
   },
-  rowHairline: {
-    height: 1,
-    backgroundColor: '#F0F0F5',
-    marginHorizontal: 16,
+  rowSwitch: Platform.select({
+    ios: { transform: [{ scaleX: 1.05 }, { scaleY: 1.05 }] } as any,
+    default: {},
+  }),
+  rowDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: ROW_DIVIDER,
+    marginLeft: 58,
+    marginRight: 12,
   },
   rowLabel: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 15,
-    color: '#0F172A',
+    fontFamily: FontFamily.sansBold,
+    fontSize: 16,
+    lineHeight: 22,
+    color: SHEET_TEXT,
+    flex: 1,
+    minWidth: 0,
   },
   rowValue: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#94A3B8',
-    marginRight: 8,
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 15,
+    color: SHEET_MUTED,
+    marginLeft: 8,
+    marginRight: 4,
+    flexShrink: 0,
   },
   footerBrand: {
     fontFamily: FontFamily.displayBold,
@@ -501,16 +642,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,
-    color: '#94A3B8',
+    color: Colors.textMuted,
   },
   demoNotice: {
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    backgroundColor: 'rgba(245, 158, 11, 0.14)',
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.22)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
   },
   demoNoticeText: {
     fontFamily: FontFamily.sansRegular,

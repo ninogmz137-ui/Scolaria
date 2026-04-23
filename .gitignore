@@ -68,3 +68,9 @@ Desktop.ini
 /ios
 /android
 .aidesigner/*
+
+# Analyse / captures locales (générés, non versionnés)
+graphify-out/
+.graphify_python
+temp_screenshots/
+.graphifyignore

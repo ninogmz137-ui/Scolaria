@@ -17,11 +17,14 @@ Tagline : "Le copilote éducatif des familles"
 
 ## Icône Application
 
-**Direction 01** — fond blanc `#FFFFFF`, lettre `S` Rufina Bold 700 noire, `✦` gradient violet→cyan en position de point de ponctuation (baseline alignée avec le S).
+**Identité visuelle** — le pictogramme officiel est le **symbole couronne** (8 ellipses, **#4338CA** sur fond blanc pour l’icône système). Le mot-symbole texte reste `<ScolariaLogo>` (Rufina + ✦) ; ne pas confondre avec le pictogramme seul.
 
-- `assets/icon.png` — 1024×1024, fond blanc, utilisé pour iOS + notifications
-- Android adaptive icon : `foregroundImage: ./assets/icon.png`, `backgroundColor: "#FFFFFF"`
-- Composant in-app : `<ScolariaAppIcon>` (`src/components/ScolariaAppIcon.tsx`) — SVG React Native, props `size` et `withBackground`
+- `assets/icon.png` — 1024×1024 : symbole centré, fond `#FFFFFF` (à régénérer depuis le design si besoin) ; iOS + notifications
+- Android adaptive : `foregroundImage` + `backgroundColor: "#FFFFFF"`
+- **In-app :** `<ScolariaAppIcon>` (`src/components/ScolariaAppIcon.tsx`) — compose `<ScolariaSymbol>` dans un carré (fond blanc optionnel via `withBackground`), props `size`, `color`, `withBackground`
+- **Marque texte in-app (Rufina · Scolar + ı + a + ✦) :** `<ScolariaLogo>` (`src/components/ScolariaLogo.tsx`) — props `fontSize`, `primaryColor`, `sparkleColor` (défaut `#4338CA`), **pas** de dégradé sur le ✦
+- **Symbole seul (ellipses) :** `<ScolariaSymbol>` (`src/components/ScolariaSymbol.tsx`) — couleur **#4338CA** par défaut ; indigo = accent, blanc & noir dominent dans l’UI
+- **Dégradé violet / cyan (tokens Aria #6366F1 → #22D3EE) :** réservé aux halos / interactions Aria — **pas** sur le symbole ellipses (icône app) ni sur le ✦ du mot-symbole
 - Ne jamais régénérer l'icône via le composant — utiliser le PNG officiel pour les stores
 
 ---
@@ -178,7 +181,7 @@ Notifications, RGPD, A propos / Charte Ethique
 
 ## Ecran selecteur de profil (ouverture app)
 - Fond sombre #0A0A14 avec halos de lumiere violet/cyan (LuminousOrbs)
-- Logo "Scolar" + "ia" en degrade violet->cyan
+- Logo « Scolar » + « ia » (ia en couleur distincte) + ✦ en **#4338CA** (indigo) — utiliser `<ScolariaLogo>` (pas de dégradé sur le ✦)
 - Avatars carres arrondis (border-radius 14px) par enfant
 - Bouton "Continuer avec [Prenom] ->" en bas
 - Badge Famille + PREMIUM

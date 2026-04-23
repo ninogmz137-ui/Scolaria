@@ -34,6 +34,7 @@ import {
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import LogoScolaria from '../components/LogoScolaria';
+import ScolariaAppIcon from '../components/ScolariaAppIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -160,7 +161,10 @@ export default function AProposScreen() {
         {/* Logo / Hero */}
         <View style={[styles.card, styles.heroCard]}>
           <View style={styles.heroInner}>
-            <LogoScolaria size={72} variant="dark" />
+            <View style={styles.heroIconRow}>
+              <ScolariaAppIcon size={88} withBackground />
+            </View>
+            <LogoScolaria size={72} variant="light" />
             <Text style={styles.heroSubtitle}>Pour les familles françaises</Text>
             <View style={styles.versionPill}>
               <Text style={styles.versionText}>Version 1.0.0</Text>
@@ -297,6 +301,9 @@ const styles = StyleSheet.create({
   heroInner: {
     alignItems: 'center',
     paddingVertical: 8,
+  },
+  heroIconRow: {
+    marginBottom: 14,
   },
   heroSubtitle: {
     fontFamily: FontFamily.sansRegular,

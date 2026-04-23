@@ -208,7 +208,9 @@ function AccueilStackScreen() {
           headerShown: false,
           presentation: 'transparentModal',
           animation: 'slide_from_bottom',
-          contentStyle: { backgroundColor: 'transparent' },
+          // Android: le contenu doit occuper toute la hauteur pour que le bottom sheet se positionne
+          // comme sur le web (overlay plein écran + feuille ancrée en bas).
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
         }}
       />
       <AccueilStack.Screen
@@ -600,27 +602,34 @@ export default function TabNavigator() {
     transform: [{ translateY: topbarTranslateY.value }],
   }));
 
-  // Called by AccueilScreen on scroll
+  const showBackRef = useRef(showBack);
+  showBackRef.current = showBack;
+  /** Assez grand pour cacher "Bonjour, Prénom" + insets (voir AppTopbar). */
+  const TOPBAR_HIDE_OFFSET = 130;
+
+  // Called by AccueilScreen on scroll — masque la topbar en descendant, réaffiche en remontant
   const handleAccueilScroll = useCallback((y: number) => {
-    // Only animate when on Accueil home tab (not stacked screens)
-    if (showBack) return;
-    const delta = y - lastScrollY.current;
-    lastScrollY.current = y;
-    if (delta > 4 && y > 60) {
-      // Scrolling down — hide topbar
-      topbarTranslateY.value = withTiming(-100, { duration: 200 });
-    } else if (delta < -4) {
-      // Scrolling up — show topbar
+    if (showBackRef.current) return;
+    if (y < 6) {
+      lastScrollY.current = 0;
       topbarTranslateY.value = withTiming(0, { duration: 200 });
+      return;
     }
-  }, [showBack, topbarTranslateY]);
+    const prev = lastScrollY.current;
+    lastScrollY.current = y;
+    const goingDown = y > prev + 1.5;
+    const goingUp = y < prev - 1.5;
+    if (goingDown && y > 8) {
+      topbarTranslateY.value = withTiming(-TOPBAR_HIDE_OFFSET, { duration: 220 });
+    } else if (goingUp) {
+      topbarTranslateY.value = withTiming(0, { duration: 220 });
+    }
+  }, [topbarTranslateY]);
 
   const topbarScrollContextValue = { onScroll: handleAccueilScroll };
 
   // ── Swipe gestures (swipe-back + burger open) ────────
   // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
-  const showBackRef = useRef(showBack);
-  showBackRef.current = showBack;
   const burgerVisibleRef = useRef(burgerVisible);
   burgerVisibleRef.current = burgerVisible;
   const activeTabRef2 = useRef(activeTab);

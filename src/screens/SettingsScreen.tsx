@@ -26,7 +26,6 @@ import {
   FileText,
   Package,
   Trash2,
-  Info,
   FileCheck,
   Mail,
   ChevronRight,
@@ -38,6 +37,7 @@ import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import ScolariaAppIcon from '../components/ScolariaAppIcon';
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -68,6 +68,8 @@ function Separator() {
 
 interface RowProps {
   emoji?: string;
+  /** Si défini, remplace icône Lucide (ex. app icon) */
+  leading?: React.ReactNode;
   icon?: React.ElementType;
   label: string;
   sublabel?: string;
@@ -82,6 +84,7 @@ interface RowProps {
 
 function Row({
   emoji,
+  leading,
   icon: IconComponent,
   label,
   sublabel,
@@ -103,7 +106,9 @@ function Row({
         onPress={type !== 'toggle' ? onPress : undefined}
       >
         <View style={styles.rowInner}>
-          {IconComponent ? (
+          {leading ? (
+            <View style={styles.rowLeadingSlot}>{leading}</View>
+          ) : IconComponent ? (
             <IconComponent size={28} color="#64748B" strokeWidth={1.5} style={{ marginRight: 16 }} />
           ) : emoji ? (
             <Text style={styles.rowEmoji}>{emoji}</Text>
@@ -288,7 +293,7 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
         <SectionTitle label="À PROPOS" />
 
         <Row
-          icon={Info}
+          leading={<ScolariaAppIcon size={40} withBackground />}
           label="Version"
           sublabel="Scolaria 1.0.0"
           type="value"
@@ -400,6 +405,9 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: 16,
     paddingHorizontal: 0,
+  },
+  rowLeadingSlot: {
+    marginRight: 12,
   },
   rowInner: {
     flexDirection: 'row',

@@ -13,6 +13,7 @@
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/dm-serif-display": "^0.4.2",
     "@expo-google-fonts/lora": "^0.4.2",
+    "@expo-google-fonts/rufina": "^0.4.1",
     "@expo/ngrok": "^4.1.3",
     "@expo/vector-icons": "^15.0.2",
     "@getpapillon/papicons": "^0.2.0",

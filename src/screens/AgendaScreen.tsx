@@ -29,8 +29,8 @@ import {
   LayoutAnimation,
   UIManager,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -47,6 +47,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const FAB_SIZE = 56;
+const FAB_GUTTER = 16;
+const FAB_GAP_ABOVE_TAB_ROW = 12;
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -216,6 +219,11 @@ export default function AgendaScreen() {
   const getDemoAgendaRef = useRef(getDemoAgenda);
   getDemoAgendaRef.current = getDemoAgenda;
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  const fabRowBottom = Math.max(
+    tabBarHeight,
+    getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT,
+  ) + FAB_GAP_ABOVE_TAB_ROW;
 
   const today = useMemo(() => {
     const d = new Date();
@@ -587,7 +595,7 @@ export default function AgendaScreen() {
     const dayEventCount = dayEvents.length;
 
     return (
-      <View style={{ width: SCREEN_WIDTH }}>
+      <View style={{ width: SCREEN_WIDTH, flex: 1 }}>
         {/* Day title row */}
         <View style={st.dayTitleRow}>
           <Text style={st.dayTitleText}>
@@ -599,6 +607,7 @@ export default function AgendaScreen() {
         </View>
 
         <ScrollView
+          style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 16,
@@ -819,26 +828,24 @@ export default function AgendaScreen() {
         ]}
       />
 
-      {/* 7. FAB — LinearGradient inside Pressable (no outer View wrapper to avoid Android grey-outline bug) */}
-      <Pressable
-        onPress={openAddModal}
-        style={({ pressed }) => [
-          st.fab,
-          { bottom: getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT + 16 },
-          { transform: [{ scale: pressed ? 0.96 : 1 }] },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel="Nouvel événement"
+      <View
+        style={[st.fabSlot, { bottom: fabRowBottom }]}
+        pointerEvents="box-none"
       >
-        <LinearGradient
-          colors={['#6366F1', '#7C3AED']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={st.fabGradient}
+        <Pressable
+          onPress={openAddModal}
+          style={({ pressed }) => [
+            st.fabPress,
+            { transform: [{ scale: pressed ? 0.96 : 1 }] },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Nouvel événement"
         >
-          <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
-        </LinearGradient>
-      </Pressable>
+          <View style={st.fabInner}>
+            <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
+        </Pressable>
+      </View>
 
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal
@@ -1192,27 +1199,26 @@ const st = StyleSheet.create({
     marginTop: 4,
   },
 
-  /** Fills the FAB Pressable — LinearGradient needs explicit dimensions inside flex. */
-  fabGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
-  // Android needs BOTH zIndex AND elevation when siblings carry their own
-  // elevation (cards + gradient in the list).
-  fab: {
+  fabSlot: {
     position: 'absolute',
-    right: 16,
-    width: 56,
-    height: 56,
+    left: 0,
+    right: 0,
+    minHeight: FAB_SIZE,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: FAB_GUTTER,
+    zIndex: 99,
+    direction: 'ltr',
+  } as any,
+  fabPress: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
     borderRadius: 28,
-    backgroundColor: '#1A2340',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 99,
+    overflow: 'visible',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -1228,6 +1234,15 @@ const st = StyleSheet.create({
         shadowRadius: 12,
       },
     }),
+  },
+  fabInner: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: 28,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F172A',
   },
 
   // Modal

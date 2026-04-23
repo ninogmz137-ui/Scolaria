@@ -283,9 +283,11 @@ export default function AriaHomeScreen() {
   return (
     <View style={styles.root}>
       <WallpaperBackground />
+      {/* Android: `behavior="height"` often leaves a large empty band between scroll and input. */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={Platform.OS === 'ios'}
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: insets.top + 10 }]}>
@@ -323,11 +325,16 @@ export default function AriaHomeScreen() {
 
         {/* ─── Hero ─────────────────────────────────────────── */}
         <ScrollView
+          style={Platform.select({
+            android: { flexGrow: 0, alignSelf: 'stretch' as const },
+            default: undefined,
+          })}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingTop: 44,
             paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
             paddingHorizontal: 18,
+            flexGrow: 0,
           }}
         >
           <View style={{ alignItems: 'center' }}>
@@ -589,6 +596,7 @@ const styles = StyleSheet.create({
   suggestionCardOuter: {
     width: '47%',
     minWidth: 0,
+    minHeight: 80,
     marginBottom: 10,
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -599,6 +607,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    justifyContent: 'center',
   },
   suggestionPressable: {
     flex: 1,
@@ -678,6 +687,8 @@ const styles = StyleSheet.create({
   drawerBody: {
     flex: 1,
     paddingHorizontal: 8,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
   },
   drawerRecentsScroll: {
     flex: 1,

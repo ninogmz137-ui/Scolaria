@@ -20,7 +20,7 @@
  *   - TAP → AriaScreen
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -161,16 +161,21 @@ function ChildPopover({ visible, onClose, bottomOffset }: ChildPopoverProps) {
   const translateY = useSharedValue(8);
   const scale = useSharedValue(0.96);
 
-  // Drive animation based on visible prop
-  if (visible) {
-    opacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
-    translateY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.ease) });
-    scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
-  } else {
-    opacity.value = withTiming(0, { duration: 150, easing: Easing.in(Easing.ease) });
-    translateY.value = withTiming(8, { duration: 150, easing: Easing.in(Easing.ease) });
-    scale.value = withTiming(0.96, { duration: 150, easing: Easing.in(Easing.ease) });
-  }
+  // Drive animation based on `visible` prop.
+  // MUST be inside useEffect — mutating sharedValue during render throws
+  // `[Reanimated] Writing to value during component render` under Fabric
+  // and can cause stale-frame render bugs across the tree.
+  useEffect(() => {
+    if (visible) {
+      opacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+      translateY.value = withTiming(0, { duration: 200, easing: Easing.out(Easing.ease) });
+      scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+    } else {
+      opacity.value = withTiming(0, { duration: 150, easing: Easing.in(Easing.ease) });
+      translateY.value = withTiming(8, { duration: 150, easing: Easing.in(Easing.ease) });
+      scale.value = withTiming(0.96, { duration: 150, easing: Easing.in(Easing.ease) });
+    }
+  }, [visible, opacity, translateY, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

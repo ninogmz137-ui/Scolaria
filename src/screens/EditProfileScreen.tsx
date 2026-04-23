@@ -59,36 +59,39 @@ export default function EditProfileScreen() {
   return (
     <View style={styles.root}>
       <ScrollView
+        style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: TAB_BAR_SCROLL_PADDING },
+          { paddingTop: insets.top + 60, paddingBottom: TAB_BAR_SCROLL_PADDING, flexGrow: 1 },
         ]}
       >
         {/* ── Avatar ── */}
         <View style={styles.avatarSection}>
-          {Platform.OS === 'web' ? (
-            <View
-              style={[
-                styles.avatar,
-                { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any,
-              ]}
-            >
-              <Text style={styles.avatarInitials}>{parentInitials}</Text>
-            </View>
-          ) : (
-            <LinearGradient
-              colors={['#7C3AED', '#06B6D4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.avatar}
-            >
-              <Text style={styles.avatarInitials}>{parentInitials}</Text>
-            </LinearGradient>
-          )}
-          <Pressable style={styles.cameraBtn}>
-            <Camera size={16} color="#FFFFFF" strokeWidth={2} />
-          </Pressable>
+          <View style={styles.avatarWithCamWrap}>
+            {Platform.OS === 'web' ? (
+              <View
+                style={[
+                  styles.avatar,
+                  { backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)' } as any,
+                ]}
+              >
+                <Text style={styles.avatarInitials}>{parentInitials}</Text>
+              </View>
+            ) : (
+              <LinearGradient
+                colors={['#7C3AED', '#06B6D4']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.avatar}
+              >
+                <Text style={styles.avatarInitials}>{parentInitials}</Text>
+              </LinearGradient>
+            )}
+            <Pressable style={styles.cameraBtn} accessibilityLabel="Changer la photo de profil">
+              <Camera size={16} color="#FFFFFF" strokeWidth={2} />
+            </Pressable>
+          </View>
         </View>
 
         {/* ── Fields ── */}
@@ -131,6 +134,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: SCREEN_BACKGROUND,
   },
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: 20,
   },
@@ -139,6 +145,14 @@ const styles = StyleSheet.create({
   avatarSection: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  /** Sized box so the camera control uses corner positioning (Yoga + %/right:50% is fragile on Android). */
+  avatarWithCamWrap: {
+    width: 88,
+    height: 88,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatar: {
     width: 88,
@@ -154,9 +168,8 @@ const styles = StyleSheet.create({
   },
   cameraBtn: {
     position: 'absolute',
-    bottom: 0,
-    right: '50%',
-    marginRight: -52,
+    right: -2,
+    bottom: -2,
     backgroundColor: '#7C3AED',
     width: 32,
     height: 32,

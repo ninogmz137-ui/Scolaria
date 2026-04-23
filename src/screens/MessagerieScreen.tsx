@@ -20,7 +20,9 @@ import {
   Modal,
   Dimensions,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,9 +33,9 @@ import Animated, {
   withDelay,
   runOnJS,
   Easing,
+  cancelAnimation,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, Pencil, ChevronDown } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { School, CalendarX, Search, MessageCircle, Plus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import {
   FLOATING_TAB_BAR_HEIGHT,
@@ -72,6 +74,11 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
 const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
 const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.4);
+
+const MESS_FAB_SIZE = 56;
+const MESS_FAB_GUTTER = 16;
+/** Marge entre le bord haut de la barre d’onglets flottante et le bas du FAB. */
+const FAB_GAP_ABOVE_TAB_ROW = 12;
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -239,14 +246,15 @@ export default function MessagerieScreen() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
+  /** Avec barre flottante, h parfois 0 : on se cale sur la même règle que FloatingTabBar. */
+  const fabRowBottom = Math.max(
+    tabBarHeight,
+    getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT,
+  ) + FAB_GAP_ABOVE_TAB_ROW;
 
   // ── Focus refresh ────────────────────────────────────────
   const [tick, setTick] = useState(0);
-  useFocusEffect(
-    useCallback(() => {
-      setTick((t) => t + 1);
-    }, []),
-  );
 
   // ── Search: one white pill expands in-place (width + input opacity); filter always visible ──
   const [searchOpen, setSearchOpen] = useState(false);
@@ -254,13 +262,29 @@ export default function MessagerieScreen() {
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const [headerBlockH, setHeaderBlockH] = useState(72);
   const [dropdownWin, setDropdownWin] = useState<{ left: number; top: number; width: number } | null>(null);
+  const { width: windowW } = useWindowDimensions();
+  /**
+   * Android : marge écran (safe area) + marge 20 comme le ressenti web : évite le panneau collé
+   * au bord (Modal plein écran, repères = mesure `measureInWindow` sur la pill).
+   */
+  const dropdownLayout = useMemo(() => {
+    if (!dropdownWin) return null;
+    const m = Platform.OS === 'android' ? 20 : 16;
+    const innerW = windowW - insets.left - insets.right;
+    const cardW = Math.min(280, Math.max(0, innerW - 2 * m));
+    const pillRight = dropdownWin.left + dropdownWin.width;
+    const minL = insets.left + m;
+    const maxL = windowW - insets.right - m - cardW;
+    let left = pillRight - cardW;
+    left = Math.max(minL, Math.min(left, maxL));
+    return { left, top: dropdownWin.top, width: cardW };
+  }, [dropdownWin, windowW, insets.left, insets.right]);
 
   const searchInputRef = useRef<any>(null);
   const filterPillRef = useRef<View | null>(null);
   const searchWidthSV = useSharedValue(SEARCH_PILL_MIN_W);
   const inputOpacitySV = useSharedValue(0);
   const isSearchOpenSV = useSharedValue(0);
-  const ddOpacitySV = useSharedValue(0);
   const ddTranslateYSV = useSharedValue(-4);
 
   const SEARCH_TIMING_MS = 220;
@@ -276,6 +300,7 @@ export default function MessagerieScreen() {
 
   const openSearch = useCallback(() => {
     setFilterDropdownVisible(false);
+    setDropdownWin(null);
     setSearchOpen(true);
     isSearchOpenSV.value = 1;
     inputOpacitySV.value = 0;
@@ -321,24 +346,29 @@ export default function MessagerieScreen() {
     opacity: inputOpacitySV.value,
   }));
 
+  // Android: never animate `opacity` on the whole card — the white background becomes
+  // translucent and list text shows through. Only translate; menu stays 100% opaque.
   const dropdownEnterStyle = useAnimatedStyle(() => ({
-    opacity: ddOpacitySV.value,
     transform: [{ translateY: ddTranslateYSV.value }],
   }));
 
   useEffect(() => {
     if (filterDropdownVisible) {
-      ddOpacitySV.value = withTiming(1, { duration: 150, easing: Easing.out(Easing.cubic) });
       ddTranslateYSV.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.cubic) });
     } else {
-      ddOpacitySV.value = withTiming(0, { duration: 150, easing: Easing.in(Easing.cubic) });
       ddTranslateYSV.value = withTiming(-4, { duration: 150, easing: Easing.in(Easing.cubic) });
     }
-  }, [filterDropdownVisible, ddOpacitySV, ddTranslateYSV]);
+  }, [filterDropdownVisible, ddTranslateYSV]);
 
+  /**
+   * Toutes plateformes : `Modal` plein écran + mesure de la pill dans la fenêtre (mêmes repères).
+   * L’overlay in-tree Android cassait le layout au retour sur l’onglet (stack / focus).
+   */
   const openFilterDropdown = useCallback(() => {
-    filterPillRef.current?.measureInWindow((x, y, width, height) => {
-      setDropdownWin({ left: x, top: y + height + 4, width });
+    const pill = filterPillRef.current;
+    if (!pill) return;
+    pill.measureInWindow((x, y, w, h) => {
+      setDropdownWin({ left: x, top: y + h + 4, width: w });
       setFilterDropdownVisible(true);
     });
   }, []);
@@ -348,8 +378,37 @@ export default function MessagerieScreen() {
     setDropdownWin(null);
   }, []);
 
+  /**
+   * Interrompt les withTiming (recherche / filtre) puis remet l’UI dans un état cohérent.
+   * Sans `cancelAnimation`, un reset concurrent peut laisser la largeur de pill ou le layout
+   * dans un état corrompu au retour (stack / onglet / web).
+   */
+  const resetMessagerieTransientState = useCallback(() => {
+    setFilterDropdownVisible(false);
+    setDropdownWin(null);
+    setSearchOpen(false);
+    setSearchQuery('');
+    searchInputRef.current?.blur();
+    cancelAnimation(searchWidthSV);
+    cancelAnimation(inputOpacitySV);
+    cancelAnimation(ddTranslateYSV);
+    searchWidthSV.value = SEARCH_PILL_MIN_W;
+    inputOpacitySV.value = 0;
+    isSearchOpenSV.value = 0;
+    ddTranslateYSV.value = -4;
+  }, [searchWidthSV, inputOpacitySV, isSearchOpenSV, ddTranslateYSV]);
+
   // ── Filter state ─────────────────────────────────────────
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
+
+  useFocusEffect(
+    useCallback(() => {
+      setTick((t) => t + 1);
+      return () => {
+        resetMessagerieTransientState();
+      };
+    }, [resetMessagerieTransientState]),
+  );
 
   // ── Data ─────────────────────────────────────────────────
   const conversations = getConversations(selectedChild.id);
@@ -388,8 +447,76 @@ export default function MessagerieScreen() {
     [navigation],
   );
 
+  const filterPillLabel = (tint: 'navy' | 'white') => {
+    const label = FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout';
+    const textEl = (
+      <Text
+        style={[
+          styles.filterSelectorPillText,
+          tint === 'white' && styles.filterSelectorPillTextOnNavy,
+          Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
+        ]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        {...(Platform.OS === 'android'
+          ? {
+              includeFontPadding: false,
+              adjustsFontSizeToFit: true,
+              minimumFontScale: 0.78,
+            }
+          : {})}
+      >
+        {label}
+      </Text>
+    );
+    if (Platform.OS === 'android') {
+      return <View style={styles.filterPillTextShrink}>{textEl}</View>;
+    }
+    return textEl;
+  };
+
+  const filterMenuCard = (sheetStyle: object) => (
+    <Animated.View
+      style={[styles.filterDropdownCard, dropdownEnterStyle, { position: 'absolute' as const }, sheetStyle]}
+    >
+      <Text style={styles.filterModalTitle}>AFFICHER</Text>
+      {FILTER_OPTIONS.map((opt) => {
+        const active = opt.id === activeFilter;
+        return (
+          <Pressable
+            key={opt.id}
+            onPress={() => {
+              setActiveFilter(opt.id);
+              closeFilterDropdown();
+            }}
+            style={({ pressed }) => [styles.filterModalRow, pressed && { opacity: 0.88 }]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+          >
+            <Text
+              style={[
+                styles.filterModalCheck,
+                active ? styles.filterModalCheckOn : styles.filterModalCheckOff,
+              ]}
+            >
+              {active ? '✓' : ' '}
+            </Text>
+            <Text
+              style={[styles.filterModalRowText, active && styles.filterModalRowTextActive]}
+            >
+              {opt.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </Animated.View>
+  );
+
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.screenShell}>
+    <View
+      style={[styles.root, { paddingTop: insets.top }]}
+    >
       <View
         style={[styles.headerWrap, styles.screenHorizontalPad]}
         onLayout={(e) => setHeaderBlockH(e.nativeEvent.layout.height)}
@@ -462,32 +589,34 @@ export default function MessagerieScreen() {
                       onPress={openFilterDropdown}
                       style={({ pressed }) => [
                         styles.filterPillPressableNoBg,
+                        Platform.OS === 'android' && styles.filterPillRowAndroid,
                         pressed && { opacity: 0.92 },
                       ]}
                       accessibilityRole="button"
                       accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                     >
-                      <Text style={styles.filterSelectorPillText} numberOfLines={1}>
-                        {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
-                      </Text>
-                      <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                      {filterPillLabel('navy')}
+                      <View style={styles.filterPillChevronWrap} pointerEvents="none">
+                        <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                      </View>
                     </Pressable>
                   </View>
                 ) : (
                   <View style={[styles.filterPillShadowWrap, styles.filterPillShadowWrapNavy]}>
                     <Pressable
                       onPress={openFilterDropdown}
-                      style={({ pressed }) => [styles.filterPillInner, pressed && { opacity: 0.92 }]}
+                      style={({ pressed }) => [
+                        styles.filterPillInner,
+                        Platform.OS === 'android' && styles.filterPillRowAndroid,
+                        pressed && { opacity: 0.92 },
+                      ]}
                       accessibilityRole="button"
                       accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
                     >
-                      <Text
-                        style={[styles.filterSelectorPillText, styles.filterSelectorPillTextOnNavy]}
-                        numberOfLines={1}
-                      >
-                        {FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout'}
-                      </Text>
-                      <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
+                      {filterPillLabel('white')}
+                      <View style={styles.filterPillChevronWrap} pointerEvents="none">
+                        <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
+                      </View>
                     </Pressable>
                   </View>
                 )}
@@ -504,72 +633,6 @@ export default function MessagerieScreen() {
           accessibilityLabel="Fermer la recherche"
         />
       ) : null}
-
-      <Modal
-        visible={filterDropdownVisible && dropdownWin != null}
-        transparent
-        animationType="none"
-        onRequestClose={closeFilterDropdown}
-      >
-        <View style={styles.filterDropdownModalRoot} pointerEvents="box-none">
-          <Pressable style={StyleSheet.absoluteFill} onPress={closeFilterDropdown} />
-          {dropdownWin ? (
-            <Animated.View
-              style={[
-                styles.filterDropdownCard,
-                dropdownEnterStyle,
-                {
-                  position: 'absolute',
-                  /* Right-align dropdown to pill's right edge so it never overflows the screen. */
-                  right: Math.max(
-                    16,
-                    Dimensions.get('window').width - (dropdownWin.left + dropdownWin.width),
-                  ),
-                  top: dropdownWin.top,
-                  minWidth: 180,
-                },
-              ]}
-            >
-              <Text style={styles.filterModalTitle}>AFFICHER</Text>
-              {FILTER_OPTIONS.map((opt) => {
-                const active = opt.id === activeFilter;
-                return (
-                  <Pressable
-                    key={opt.id}
-                    onPress={() => {
-                      setActiveFilter(opt.id);
-                      closeFilterDropdown();
-                    }}
-                    style={({ pressed }) => [
-                      styles.filterModalRow,
-                      pressed && { opacity: 0.88 },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                  >
-                    <Text
-                      style={[
-                        styles.filterModalCheck,
-                        active ? styles.filterModalCheckOn : styles.filterModalCheckOff,
-                      ]}
-                    >
-                      {active ? '✓' : ' '}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.filterModalRowText,
-                        active && styles.filterModalRowTextActive,
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </Animated.View>
-          ) : null}
-        </View>
-      </Modal>
 
       {/* ── Conversation list ── */}
       <ScrollView
@@ -619,29 +682,54 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/* FAB — LinearGradient inside Pressable avoids nested elevation grey frame on Android. */}
-      <Pressable
-        onPress={() => Alert.alert('Nouveau message', 'À venir')}
-        style={({ pressed }) => [
-          styles.fab,
-          {
-            bottom:
-              getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT + 16,
-          },
-          pressed && { transform: [{ scale: 0.96 }] },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel="Nouveau message"
+      {/*
+        Bandeau bas pleine largeur + flex-end : évite left = width-72 quand width vaut 0
+        (FAB coincé en bas-gauche) et aligne à droite même en RTL.
+      */}
+      <View
+        style={[styles.fabSlot, { bottom: fabRowBottom }]}
+        pointerEvents="box-none"
       >
-        <LinearGradient
-          colors={['#6366F1', '#7C3AED']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.fabGradient}
+        <Pressable
+          onPress={() => Alert.alert('Nouveau message', 'À venir')}
+          style={({ pressed }) => [styles.fabPress, pressed && { transform: [{ scale: 0.96 }] }]}
+          accessibilityRole="button"
+          accessibilityLabel="Nouveau message"
         >
-          <Pencil size={22} color="#FFFFFF" strokeWidth={2.2} />
-        </LinearGradient>
-      </Pressable>
+          <View style={styles.fabInner}>
+            <View style={styles.fabMessIconWrap} pointerEvents="none">
+              <MessageCircle size={24} color="#FFFFFF" strokeWidth={2.2} />
+              <View style={styles.fabPlusCentered}>
+                <Plus size={11} color="#FFFFFF" strokeWidth={3.2} />
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </View>
+    </View>
+
+    <Modal
+      visible={!!(filterDropdownVisible && dropdownLayout)}
+      transparent
+      animationType="none"
+      onRequestClose={closeFilterDropdown}
+      statusBarTranslucent={Platform.OS === 'android'}
+    >
+      <View style={styles.filterDropdownModalRoot} pointerEvents="box-none">
+        <Pressable
+          onPress={closeFilterDropdown}
+          style={[StyleSheet.absoluteFill, styles.filterDropdownScrim]}
+          accessibilityLabel="Fermer le filtre"
+        />
+        {dropdownLayout
+          ? filterMenuCard({
+              left: dropdownLayout.left,
+              top: dropdownLayout.top,
+              width: dropdownLayout.width,
+            })
+          : null}
+      </View>
+    </Modal>
     </View>
   );
 }
@@ -649,13 +737,31 @@ export default function MessagerieScreen() {
 // ─── Styles ──────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  /**
+   * Un seul hôte natif (pas de Fragment) : évite des mesures de largeur 0 / flex cassés sur Android
+   * quand l’écran n’est pas le composant direct du navigateur.
+   */
+  screenShell: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: { width: '100%' as const, minWidth: 0 },
+      android: { alignSelf: 'stretch' },
+      default: {},
+    }),
+  },
   root: {
     flex: 1,
     backgroundColor: BG,
     ...Platform.select({
-      /** Lets absolute children stack correctly vs ScrollView on Android. */
-      android: { overflow: 'visible' as const },
-      default: {},
+      /**
+       * Web : `minHeight`/`minWidth`/`width` aident le flex au retour d’onglet.
+       * Android : pas de `width: '100%'` sur l’hôte (souvent largeur 0% si le parent n’a pas de base explicite) ;
+       * `overflow: visible` casse fréquemment le moteur de layout (Yoga) sur vues `flex:1` + `ScrollView`.
+       */
+      web: { minHeight: 0, minWidth: 0, width: '100%' as const },
+      android: { minHeight: 0, overflow: 'hidden' as const },
+      default: { minHeight: 0 },
     }),
   },
   /** Shared horizontal inset for header + conversation list (Android overflow). */
@@ -687,23 +793,38 @@ const styles = StyleSheet.create({
   },
   searchPillShadowWrap: {
     height: 40,
+    minHeight: 40,
+    maxHeight: 40,
+    alignSelf: 'center',
     borderRadius: 20,
     ...nativeWhiteInteractiveShadow,
   },
   /** Single expanding pill — width 40 → 220; inner clips content */
   searchPillShell: {
     height: 40,
+    minHeight: 40,
+    maxHeight: 40,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
     maxWidth: SEARCH_PILL_MAX_W,
     width: '100%',
   },
+  /**
+   * Android : `flex:1` sur la rangée interne (parent en colonne) peut absorber toute la
+   * hauteur disponible dès qu’un enchaînement flex est ambigu — hauteur fixe obligatoire.
+   */
   searchPillInnerRow: {
-    flex: 1,
+    height: 40,
+    minHeight: 40,
+    maxHeight: 40,
+    width: '100%' as const,
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 40,
+    ...Platform.select({
+      android: { flex: 0, flexBasis: 40, flexGrow: 0, flexShrink: 0 },
+      default: { flex: 1, minHeight: 40 },
+    }),
   },
   /** Champ visible — padding horizontal symétrique */
   searchPillInnerRowOpen: {
@@ -744,7 +865,10 @@ const styles = StyleSheet.create({
   },
   filterPillSlot: {
     zIndex: 2,
-    flexShrink: 0,
+    /** Permet au texte d’ellipsiser sur une seule ligne quand l’en-tête manque d’espace. */
+    flexShrink: 1,
+    minWidth: 72,
+    maxWidth: 200,
   },
   filterToutOuterWrap: {
     backgroundColor: '#FFFFFF',
@@ -756,20 +880,47 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 1 },
-    flexShrink: 0,
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: '100%',
     alignSelf: 'flex-start',
   },
-  /* Android: `gap` in a row with flex-sizing siblings is unreliable on older
-     versions — fell back to `marginRight: 6` on the Text (see `filterSelectorPillText`)
-     + `marginLeft` isn't needed because Text is the first child. */
+  /* Ligne texte + chevron — minWidth:0 + flexShrink sur le texte, chevron en wrap flexShrink:0. */
   filterPillPressableNoBg: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'nowrap',
+    minWidth: 0,
+    minHeight: 32,
+    maxHeight: 40,
+  },
+  /**
+   * Ellipsis sur le libellé : uniquement `flexShrink` (pas de flexGrow/flexBasis) — avec
+   * `flexGrow:1` + `flexBasis:0` sur Android, Yoga peut étirer la vue en hauteur sur tout
+   * l’écran (cross-axis / héritage flex).
+   */
+  filterPillTextShrink: {
+    minWidth: 0,
+    maxWidth: '100%' as any,
+    maxHeight: 24,
+    flexGrow: 0,
+    flexShrink: 1,
+    justifyContent: 'center',
+    overflow: 'hidden' as const,
+  },
+  filterPillRowAndroid: {
+    alignItems: 'center' as const,
+  },
+  filterPillChevronWrap: {
+    flexShrink: 0,
+    justifyContent: 'center',
+    marginLeft: 0,
   },
   filterPillShadowWrap: {
     borderRadius: 18,
-    flexShrink: 0,
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: '100%',
     alignSelf: 'flex-start',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -783,6 +934,9 @@ const styles = StyleSheet.create({
   filterPillInner: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'nowrap',
+    minWidth: 0,
+    maxHeight: 40,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
@@ -802,20 +956,30 @@ const styles = StyleSheet.create({
   filterDropdownModalRoot: {
     flex: 1,
   },
+  /** Dims the screen so list text is not visually merged with the menu. */
+  filterDropdownScrim: {
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+  },
   headerTextArea: {
     flex: 1,
     minWidth: 0,
-    flexShrink: 0,
+    flexShrink: 1,
     paddingLeft: 4,
     paddingRight: 8,
     marginRight: 8,
   },
   filterSelectorPillText: {
     flexShrink: 1,
+    minWidth: 0,
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
     color: NAVY,
-    marginRight: 6,
+    marginRight: 4,
+  },
+  /** Forcer une seule « ligne visuelle » sur Android (évite 2ᵉ ligne / padding). */
+  filterSelectorPillTextAndroid: {
+    lineHeight: 20,
+    maxHeight: 20,
   },
   filterSelectorPillTextOnNavy: {
     color: '#FFFFFF',
@@ -838,9 +1002,14 @@ const styles = StyleSheet.create({
   },
 
   filterDropdownCard: {
+    zIndex: 2,
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
     paddingVertical: 6,
+    overflow: 'hidden',
+    ...Platform.select({
+      android: { elevation: 10 },
+    }),
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -848,7 +1017,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 12,
       },
-      android: { elevation: 6 },
+      android: {
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(15, 23, 42, 0.08)',
+      },
       default: {
         ...(Platform.OS === 'web'
           ? ({ boxShadow: '0 4px 16px rgba(0,0,0,0.12)' } as object)
@@ -902,6 +1074,11 @@ const styles = StyleSheet.create({
 
   conversationScroll: {
     flex: 1,
+    ...Platform.select({
+      web: { minHeight: 0, minWidth: 0 },
+      android: { minHeight: 0 },
+      default: { minHeight: 0 },
+    }),
   },
   /** Keep list layer under the FAB on Android (stacking + elevation interop). */
   conversationScrollAndroid: {
@@ -918,17 +1095,52 @@ const styles = StyleSheet.create({
   // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
   // Android requires BOTH `zIndex` AND `elevation` to stay above a sibling ScrollView
   // with nested elevation children (list items have shadows of their own).
-  fab: {
-    position: 'absolute',
-    right: 16,
-    width: 56,
-    height: 56,
+  fabInner: {
+    width: MESS_FAB_SIZE,
+    height: MESS_FAB_SIZE,
     borderRadius: 28,
-    backgroundColor: '#1A2340',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    /** Above ScrollView (0); searchDismissLayer bumps its own elevation to 32 when active. */
+    backgroundColor: '#0F172A',
+  },
+  /** Bulle de conversation + au centre. */
+  fabMessIconWrap: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabPlusCentered: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  /** `direction: ltr` : bas-droite visuel quelle que soit la langue RTL. */
+  fabSlot: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    minHeight: MESS_FAB_SIZE,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: MESS_FAB_GUTTER,
     zIndex: 99,
+    direction: 'ltr',
+  } as any,
+  fabPress: {
+    width: MESS_FAB_SIZE,
+    height: MESS_FAB_SIZE,
+    borderRadius: 28,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
     ...Platform.select<any>({
       web: {
         boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
@@ -950,16 +1162,6 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  /** Fills the FAB Pressable — must carry its own dimensions on Android
-   *  since LinearGradient inside a flex parent doesn't auto-size. */
-  fabGradient: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   // Section
   section: {
     marginBottom: 16,

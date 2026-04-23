@@ -1,13 +1,13 @@
 /**
  * LoginScreen — Épure totale v3.
  *
- * Fond #FAFAF8. Flex top vide. 3 sparkles animés au-dessus du wordmark.
- * Wordmark : Scolar (navy) + ia (violet plein) en Text, ✦ au-dessus (sparkles).
+ * Fond #FAFAF8. Bloc d’entête : symbole (8 ellipses, entrée animée) + wordmark
+ * `<ScolariaLogo />` (Rufina, ✦ #4338CA) — légère translation pour centrage visuel.
  * CTA pill navy "Se connecter" (toggle formulaire email),
  * CTA pill outline "Créer un compte", lien démo, mention légale.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,131 +21,20 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-  withDelay,
-  interpolate,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, {
-  Defs,
-  LinearGradient as SvgLinearGradient,
-  Stop,
-  Text as SvgText,
-} from 'react-native-svg';
-import { useFonts, DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import ScolariaLogo from '../components/ScolariaLogo';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 // ─── Tokens ─────────────────────────────────────────────
 
 const BG = '#FAFAF8';
 const NAVY = '#0F172A';
-const VIOLET = '#7C3AED';
-const CYAN = '#06B6D4';
+const SYMBOL_INDIGO = '#4338CA';
 
 const WEB_INPUT_FIX = Platform.OS === 'web'
   ? ({ backgroundColor: 'transparent', outlineStyle: 'none' } as any)
   : undefined;
-
-// ─── Wordmark ─────────────────────────────────────────────
-
-/** Pas de gradient/mask/SVG sur « ia » (Android affichait un carré) — Text plein partout. */
-function Wordmark({ height = 46 }: { height?: number }) {
-  const fontSize = Math.round(height * 0.88);
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center' }}>
-      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: NAVY }}>Scolar</Text>
-      <Text style={{ fontFamily: 'DMSerifDisplay_400Regular', fontSize, color: VIOLET }}>ia</Text>
-    </View>
-  );
-}
-
-// ─── Floating sparkle ───────────────────────────────────
-
-function Sparkle({
-  size,
-  left,
-  top,
-  delay,
-}: { size: number; left: number; top: number; delay: number }) {
-  const t = useSharedValue(0);
-
-  useEffect(() => {
-    t.value = withDelay(
-      delay,
-      withRepeat(
-        withSequence(
-          withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-          withTiming(0, { duration: 2000, easing: Easing.inOut(Easing.quad) }),
-        ),
-        -1,
-        false,
-      ),
-    );
-  }, [delay, t]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(t.value, [0, 1], [0, -6]),
-      },
-    ],
-    opacity: interpolate(t.value, [0, 1], [0.65, 1]),
-  }));
-
-  if (Platform.OS === 'android') {
-    return (
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            left,
-            top,
-          },
-          animatedStyle,
-        ]}
-      >
-        <Text style={{ fontFamily: FontFamily.displayBold, fontSize: size * 0.65, color: '#7C3AED' }}>✦</Text>
-      </Animated.View>
-    );
-  }
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          left,
-          top,
-        },
-        animatedStyle,
-      ]}
-    >
-      <Svg width={size} height={size} viewBox="0 0 24 24">
-        <Defs>
-          <SvgLinearGradient id={`sparkleG-${size}-${left}`} x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={VIOLET} />
-            <Stop offset="1" stopColor={CYAN} />
-          </SvgLinearGradient>
-        </Defs>
-        <SvgText
-          x="12"
-          y="19"
-          textAnchor="middle"
-          fontSize="22"
-          fill={`url(#sparkleG-${size}-${left})`}
-        >
-          ✦
-        </SvgText>
-      </Svg>
-    </Animated.View>
-  );
-}
 
 // ─── Component ──────────────────────────────────────────
 
@@ -158,7 +47,6 @@ export default function LoginScreen({ onNavigatePin }: Props) {
   const insets = useSafeAreaInsets();
   const { height: winH } = Dimensions.get('window');
   const bottomPad = Math.max(insets.bottom, 48);
-  const [serifLoaded] = useFonts({ DMSerifDisplay_400Regular });
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -211,15 +99,18 @@ export default function LoginScreen({ onNavigatePin }: Props) {
             },
           ]}
         >
-          <View style={s.column}>
-            <View style={s.logoBlock}>
-              <View style={s.logoWrap}>
-                <View style={s.sparkleLayer} pointerEvents="none">
-                  <Sparkle size={22} left={4} top={2} delay={0} />
-                  <Sparkle size={13} left={52} top={-10} delay={600} />
-                  <Sparkle size={10} left={92} top={8} delay={1200} />
+          <View
+            style={[
+              s.column,
+              { marginBottom: Math.max(40, Math.round(winH * 0.06)) },
+            ]}
+          >
+            <View style={s.logoBlock} accessibilityLabel="Scolaria">
+              <View style={s.brandRow}>
+                <View style={s.symbolCell}>
+                  <ScolariaSymbol size={56} color={SYMBOL_INDIGO} entrance="assemble" />
                 </View>
-                {serifLoaded ? <Wordmark height={46} /> : <View style={{ height: 46 }} />}
+                <ScolariaLogo fontSize={40} primaryColor={NAVY} sparkleColor={SYMBOL_INDIGO} />
               </View>
             </View>
 
@@ -230,7 +121,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                     <TouchableOpacity
                       activeOpacity={0.9}
                       accessibilityRole="button"
-                      style={[s.btnPrimary, s.actionAfterPrimary]}
+                      style={[s.btnPrimary, s.pillAuthIntro, s.actionAfterPrimary]}
                       onPress={() => setShowEmail(true)}
                     >
                       <Text style={s.btnPrimaryText}>Se connecter</Text>
@@ -240,6 +131,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                       android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
                       style={({ pressed }) => [
                         s.btnPrimary,
+                        s.pillAuthIntro,
                         s.actionAfterPrimary,
                         pressed && { opacity: 0.9 },
                       ]}
@@ -253,7 +145,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                     <TouchableOpacity
                       activeOpacity={0.85}
                       accessibilityRole="button"
-                      style={[s.btnSecondary, s.actionAfterSecondary]}
+                      style={[s.btnSecondary, s.pillAuthIntro, s.actionAfterSecondary]}
                       onPress={onNavigatePin}
                     >
                       <Text style={s.btnSecondaryText}>Créer un compte</Text>
@@ -262,6 +154,7 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                     <Pressable
                       style={({ pressed }) => [
                         s.btnSecondary,
+                        s.pillAuthIntro,
                         s.actionAfterSecondary,
                         pressed && { opacity: 0.7 },
                       ]}
@@ -308,7 +201,12 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                     <TouchableOpacity
                       activeOpacity={0.9}
                       accessibilityRole="button"
-                      style={[s.btnPrimary, s.actionAfterPrimary, loading && { opacity: 0.7 }]}
+                      style={[
+                        s.btnPrimary,
+                        s.pillFormFull,
+                        s.actionAfterPrimary,
+                        loading && { opacity: 0.7 },
+                      ]}
                       onPress={handleSubmit}
                       disabled={loading}
                     >
@@ -321,7 +219,12 @@ export default function LoginScreen({ onNavigatePin }: Props) {
                   ) : (
                     <Pressable
                       android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
-                      style={({ pressed }) => [s.btnPrimary, s.actionAfterPrimary, pressed && { opacity: 0.9 }]}
+                      style={({ pressed }) => [
+                        s.btnPrimary,
+                        s.pillFormFull,
+                        s.actionAfterPrimary,
+                        pressed && { opacity: 0.9 },
+                      ]}
                       onPress={handleSubmit}
                       disabled={loading}
                     >
@@ -367,7 +270,11 @@ const s = StyleSheet.create({
     justifyContent: 'flex-end',
     width: '100%',
   },
-  column: { width: '100%', flexShrink: 0 },
+  /** largeur + shrink ; marge bas en inline (~6 % hauteur écran, min 40) */
+  column: {
+    width: '100%',
+    flexShrink: 0,
+  },
 
   logoBlock: {
     width: '100%',
@@ -375,21 +282,19 @@ const s = StyleSheet.create({
     marginBottom: 48,
   },
 
-  // Logo + sparkles
-  logoWrap: {
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
-    overflow: 'visible',
+    flexWrap: 'wrap',
+    maxWidth: '100%',
+    gap: 14,
+    /** Recentre le bloc (symbole + mot) légèrement vers la gauche (alignement visuel) */
+    transform: [{ translateX: -16 }],
   },
-  sparkleLayer: {
-    position: 'absolute',
-    top: -4,
-    alignSelf: 'center',
-    width: 130,
-    height: 44,
-    zIndex: 1,
-    overflow: 'visible',
+  symbolCell: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Actions block (no `gap` — unreliable on some Android flex layouts)
@@ -404,13 +309,25 @@ const s = StyleSheet.create({
   actionAfterSecondary: {
     marginBottom: 12,
   },
+  /** Même largeur, centrées, ~ la moitié d’écran (un peu plus que le texte) */
+  pillAuthIntro: {
+    alignSelf: 'center',
+    width: '48%',
+    minWidth: 200,
+    maxWidth: 240,
+    paddingHorizontal: 20,
+  },
+  /** Champs + Connexion : pleine largeur */
+  pillFormFull: {
+    width: '100%',
+    alignSelf: 'stretch',
+  },
   btnPrimary: {
     height: 52,
     borderRadius: 26,
     backgroundColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
     zIndex: 2,
     elevation: 0,
   },
@@ -428,7 +345,6 @@ const s = StyleSheet.create({
     borderColor: NAVY,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
   },
   btnSecondaryText: {
     color: NAVY,

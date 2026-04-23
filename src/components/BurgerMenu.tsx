@@ -24,6 +24,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
+import ScolariaAppIcon from './ScolariaAppIcon';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -179,7 +180,14 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
 
         {/* ── Footer ── */}
         <View style={styles.footer}>
-          <Text style={styles.footerVersion}>Scolaria · Version 1.0.0</Text>
+          <View style={styles.footerBrandRow}>
+            <ScolariaAppIcon
+              size={22}
+              withBackground={false}
+              color="rgba(248, 250, 252, 0.5)"
+            />
+            <Text style={styles.footerVersion}>Scolaria · Version 1.0.0</Text>
+          </View>
           <Text style={styles.footerCopyright}>
             © 2026 Scolaria · Passeport scolaire numérique
           </Text>
@@ -297,17 +305,23 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     marginTop: 'auto',
   },
+  footerBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
   footerVersion: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 10,
     color: 'rgba(255,255,255,0.25)',
-    textAlign: 'center',
   },
   footerCopyright: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 10,
     color: 'rgba(255,255,255,0.25)',
     textAlign: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
 });

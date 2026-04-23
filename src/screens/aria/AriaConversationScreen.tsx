@@ -446,7 +446,8 @@ export default function AriaConversationScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        enabled={Platform.OS === 'ios'}
         keyboardVerticalOffset={0}
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
@@ -507,6 +508,7 @@ export default function AriaConversationScreen() {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
+                  nestedScrollEnabled
                   style={styles.suggestionScroll}
                   contentContainerStyle={styles.suggestionWrap}
                 >
@@ -789,13 +791,18 @@ const styles = StyleSheet.create({
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
   suggestionScroll: {
     alignSelf: 'stretch',
+    width: '100%',
+    maxWidth: '100%',
     marginTop: 12,
+    minHeight: 72,
   },
   suggestionWrap: {
     flexDirection: 'row',
     alignItems: 'stretch',
     paddingHorizontal: 4,
+    paddingRight: 20,
     paddingVertical: 4,
+    flexGrow: 1,
   },
   suggestionChip: {
     minWidth: 160,
@@ -849,7 +856,7 @@ const styles = StyleSheet.create({
   drawerTitleARIA: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26, letterSpacing: 1 },
   drawerOrbWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   drawerHeaderSpacer: { width: 100 },
-  drawerBody: { flex: 1 },
+  drawerBody: { flex: 1, flexDirection: 'column', justifyContent: 'flex-start' },
   drawerRecentsScroll: { flex: 1 },
   drawerSearchBar: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4, alignItems: 'flex-start' },
 

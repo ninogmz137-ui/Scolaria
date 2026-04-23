@@ -10,6 +10,7 @@ import {
   DMSans_600SemiBold,
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
+import { Rufina_400Regular, Rufina_700Bold } from '@expo-google-fonts/rufina';
 
 export const FontFamily = {
   // Display / impact — BarlowCondensed
@@ -21,6 +22,9 @@ export const FontFamily = {
   sansMedium: 'DMSans_500Medium',
   sansSemiBold: 'DMSans_600SemiBold',
   sansBold: 'DMSans_700Bold',
+  // Marque — Rufina (wordmark, S + ✦ icône)
+  rufinaRegular: 'Rufina_400Regular',
+  rufinaBold: 'Rufina_700Bold',
   // Legacy aliases (keep for backward compat during migration)
   loraRegular: 'BarlowCondensed_600SemiBold',
   loraBold: 'BarlowCondensed_700Bold',
@@ -37,6 +41,8 @@ export function useSolariaFonts() {
     DMSans_500Medium,
     DMSans_600SemiBold,
     DMSans_700Bold,
+    Rufina_400Regular,
+    Rufina_700Bold,
   });
 
   return fontsLoaded;
