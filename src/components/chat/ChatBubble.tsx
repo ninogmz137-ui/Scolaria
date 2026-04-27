@@ -4,6 +4,11 @@ import { Box, Text, HStack } from '../ui';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useChildTheme } from '../../contexts/ChildThemeContext';
+import {
+  ARIA_INDIGO,
+  ARIA_GRADIENT_VIOLET,
+  ARIA_GRADIENT_CYAN,
+} from '../../constants/theme';
 import AriaOrb from '../AriaOrb';
 import TypingIndicator from './TypingIndicator';
 import SimpleMarkdown from './SimpleMarkdown';
@@ -77,7 +82,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
         }}
       >
         {isAria && (
-          <Text className="text-xs font-bold mb-1" style={{ color: '#7C3AED' }}>
+          <Text className="text-xs font-bold mb-1" style={{ color: ARIA_INDIGO }}>
             Aria ✦
           </Text>
         )}
@@ -105,7 +110,7 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
                 style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1, marginTop: 8 })}
               >
                 <LinearGradient
-                  colors={['#7C3AED', '#06B6D4']}
+                  colors={[ARIA_GRADIENT_VIOLET, ARIA_GRADIENT_CYAN]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{

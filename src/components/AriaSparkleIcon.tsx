@@ -7,6 +7,11 @@
 
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import {
+  ARIA_INDIGO,
+  ARIA_GRADIENT_VIOLET,
+  ARIA_GRADIENT_CYAN,
+} from '../constants/theme';
 
 // ─── Shared gradient wrapper (web fallback) ─────────────
 
@@ -34,7 +39,7 @@ function GradientCircle({
         style={{
           ...base,
           // @ts-ignore — web-only CSS property
-          backgroundImage: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+          backgroundImage: `linear-gradient(135deg, ${ARIA_GRADIENT_VIOLET}, ${ARIA_GRADIENT_CYAN})`,
         }}
       >
         {children}
@@ -44,7 +49,7 @@ function GradientCircle({
 
   return (
     <LinearGradient
-      colors={['#7C3AED', '#06B6D4']}
+      colors={[ARIA_GRADIENT_VIOLET, ARIA_GRADIENT_CYAN]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={base}
@@ -119,7 +124,7 @@ const styles = StyleSheet.create({
   },
   sparkleGradient: {
     position: 'absolute',
-    color: '#7C3AED',
+    color: ARIA_INDIGO,
     lineHeight: undefined,
   },
 });

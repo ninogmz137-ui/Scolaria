@@ -85,7 +85,8 @@ const UNIFIED_BASE = {
   accentDark: '#6D28D9',
   tabActive: '#7C3AED',
   headerGradient: ['#7C3AED10', '#F2F2F7'] as [string, string],
-  ariaColor: '#7C3AED',
+  /** Couleur statique Aria (texte/icônes) — indigo, séparé du violet thème. */
+  ariaColor: '#4338CA',
   // Unified background + header
   backgroundColor: '#F2F2F7',
   headerGradientFull: ['#1E3A5F', '#3B7DD8', '#89B4E8'],

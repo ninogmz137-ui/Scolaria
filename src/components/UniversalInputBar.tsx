@@ -11,6 +11,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Mic, Send, ArrowUp } from 'lucide-react-native';
+import {
+  androidFloatingWhitePill,
+  ARIA_GRADIENT_VIOLET,
+  ARIA_GRADIENT_CYAN,
+} from '../constants/theme';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
 
@@ -83,21 +88,27 @@ export default function UniversalInputBar({
 
   return (
     <View style={[styles.outer, containerStyle]}>
-      <View style={[styles.bubble, BUBBLE_SHADOW]}>
+      <View
+        style={[
+          styles.bubble,
+          BUBBLE_SHADOW,
+          variant === 'aria' && styles.bubbleAria,
+        ]}
+      >
         <TextInput
           placeholder={placeholder}
           placeholderTextColor="#94A3B8"
           value={value}
           onChangeText={onChangeText}
           multiline
-          style={styles.input}
+          style={[styles.input, variant === 'aria' && styles.inputAria]}
           editable={editable}
           maxLength={maxLength}
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}
         />
 
-        <View style={styles.actionsRow}>
+        <View style={[styles.actionsRow, variant === 'aria' && styles.actionsRowAria]}>
           <TouchableOpacity
             onPress={openSheet}
             style={styles.plusBtn}
@@ -140,7 +151,7 @@ export default function UniversalInputBar({
                   accessibilityLabel="Envoyer"
                 >
                   <LinearGradient
-                    colors={['#7C3AED', '#06B6D4']}
+                    colors={[ARIA_GRADIENT_VIOLET, ARIA_GRADIENT_CYAN]}
                     start={{ x: 0, y: 1 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.sendAriaGradient}
@@ -197,6 +208,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     maxWidth: '100%',
   },
+  /** Aria: moins de hauteur « vide » sous le placeholder (screenshots Android). */
+  bubbleAria: {
+    paddingTop: 8,
+    paddingBottom: 6,
+    ...androidFloatingWhitePill,
+  },
   input: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 15,
@@ -206,11 +223,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     textAlignVertical: 'top',
   },
+  inputAria: {
+    minHeight: 36,
+    maxHeight: 100,
+    paddingVertical: 2,
+  },
   actionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 8,
+  },
+  actionsRowAria: {
+    marginTop: 4,
   },
   plusBtn: {
     width: 30,
@@ -242,14 +267,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...Platform.select({
       ios: {
-        shadowColor: '#7C3AED',
+        shadowColor: ARIA_GRADIENT_VIOLET,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.45,
         shadowRadius: 6,
       },
       android: { elevation: 4 },
       default: {
-        shadowColor: '#7C3AED',
+        shadowColor: ARIA_GRADIENT_VIOLET,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.45,
         shadowRadius: 6,

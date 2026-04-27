@@ -19,7 +19,6 @@ import {
   Platform,
   Modal,
   Dimensions,
-  Alert,
   useWindowDimensions,
 } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -50,7 +49,7 @@ import {
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
 import { SCREEN_BACKGROUND } from '../constants/colors';
-import { nativeWhiteInteractiveShadow } from '../constants/theme';
+import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -269,14 +268,26 @@ export default function MessagerieScreen() {
    */
   const dropdownLayout = useMemo(() => {
     if (!dropdownWin) return null;
-    const m = Platform.OS === 'android' ? 20 : 16;
-    const innerW = windowW - insets.left - insets.right;
-    const cardW = Math.min(280, Math.max(0, innerW - 2 * m));
+    /** Même ressenti que `screenHorizontalPad` (16) + un peu d’air sur Android (aligné web). */
+    const gutter = Platform.OS === 'android' ? 20 : 16;
+    const minLeft = Math.max(insets.left, 0) + gutter;
+    const maxRight = windowW - Math.max(insets.right, 0) - gutter;
+    const availableW = maxRight - minLeft;
+    if (availableW < 1) return null;
     const pillRight = dropdownWin.left + dropdownWin.width;
-    const minL = insets.left + m;
-    const maxL = windowW - insets.right - m - cardW;
+    /**
+     * Sur Android étroit, `Math.min(280, availableW)` donnait un cardW plus large
+     * que `pillRight - minLeft`, forçant `left = minLeft` (collé au bord gauche).
+     * On plafonne cardW par la distance disponible à gauche de la pill pour que
+     * l’alignement droit (sous la pill) reste respecté. Min 200 sinon la liste
+     * devient illisible sur écrans très étroits.
+     */
+    const maxCardW = Math.max(200, pillRight - minLeft);
+    const cardW = Math.min(280, availableW, maxCardW);
     let left = pillRight - cardW;
-    left = Math.max(minL, Math.min(left, maxL));
+    if (left < minLeft) left = minLeft;
+    if (left + cardW > maxRight) left = maxRight - cardW;
+    if (left < minLeft) left = minLeft;
     return { left, top: dropdownWin.top, width: cardW };
   }, [dropdownWin, windowW, insets.left, insets.right]);
 
@@ -400,6 +411,10 @@ export default function MessagerieScreen() {
 
   // ── Filter state ─────────────────────────────────────────
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
+  const filterLabel = useMemo(
+    () => FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout',
+    [activeFilter],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -446,34 +461,6 @@ export default function MessagerieScreen() {
     },
     [navigation],
   );
-
-  const filterPillLabel = (tint: 'navy' | 'white') => {
-    const label = FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout';
-    const textEl = (
-      <Text
-        style={[
-          styles.filterSelectorPillText,
-          tint === 'white' && styles.filterSelectorPillTextOnNavy,
-          Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
-        ]}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-        {...(Platform.OS === 'android'
-          ? {
-              includeFontPadding: false,
-              adjustsFontSizeToFit: true,
-              minimumFontScale: 0.78,
-            }
-          : {})}
-      >
-        {label}
-      </Text>
-    );
-    if (Platform.OS === 'android') {
-      return <View style={styles.filterPillTextShrink}>{textEl}</View>;
-    }
-    return textEl;
-  };
 
   const filterMenuCard = (sheetStyle: object) => (
     <Animated.View
@@ -554,6 +541,7 @@ export default function MessagerieScreen() {
                       searchInputOpacityStyle,
                       !searchOpen && styles.searchInputOpaqueWrapCollapsed,
                     ]}
+                    pointerEvents={searchOpen ? 'auto' : 'none'}
                   >
                     <TextInput
                       ref={searchInputRef}
@@ -566,12 +554,13 @@ export default function MessagerieScreen() {
                       onSubmitEditing={() => searchInputRef.current?.blur()}
                       autoCorrect={false}
                       editable={searchOpen}
+                      pointerEvents={searchOpen ? 'auto' : 'none'}
                     />
                   </Animated.View>
                   <Pressable
                     onPress={onSearchIconPress}
                     style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
-                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     accessibilityRole="button"
                     accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
                   >
@@ -589,15 +578,26 @@ export default function MessagerieScreen() {
                       onPress={openFilterDropdown}
                       style={({ pressed }) => [
                         styles.filterPillPressableNoBg,
-                        Platform.OS === 'android' && styles.filterPillRowAndroid,
                         pressed && { opacity: 0.92 },
                       ]}
                       accessibilityRole="button"
-                      accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
+                      accessibilityLabel={`Filtrer : ${filterLabel}`}
                     >
-                      {filterPillLabel('navy')}
-                      <View style={styles.filterPillChevronWrap} pointerEvents="none">
-                        <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                      <View style={styles.filterPillContentRow}>
+                        <Text
+                          style={[
+                            styles.filterSelectorPillText,
+                            Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
+                          ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
+                        >
+                          {filterLabel}
+                        </Text>
+                        <View style={styles.filterPillChevronWrap} pointerEvents="none">
+                          <ChevronDown size={14} color={NAVY} strokeWidth={2} />
+                        </View>
                       </View>
                     </Pressable>
                   </View>
@@ -607,15 +607,27 @@ export default function MessagerieScreen() {
                       onPress={openFilterDropdown}
                       style={({ pressed }) => [
                         styles.filterPillInner,
-                        Platform.OS === 'android' && styles.filterPillRowAndroid,
                         pressed && { opacity: 0.92 },
                       ]}
                       accessibilityRole="button"
-                      accessibilityLabel={`Filtrer : ${FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? ''}`}
+                      accessibilityLabel={`Filtrer : ${filterLabel}`}
                     >
-                      {filterPillLabel('white')}
-                      <View style={styles.filterPillChevronWrap} pointerEvents="none">
-                        <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
+                      <View style={styles.filterPillContentRow}>
+                        <Text
+                          style={[
+                            styles.filterSelectorPillText,
+                            styles.filterSelectorPillTextOnNavy,
+                            Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
+                          ]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
+                        >
+                          {filterLabel}
+                        </Text>
+                        <View style={styles.filterPillChevronWrap} pointerEvents="none">
+                          <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
+                        </View>
                       </View>
                     </Pressable>
                   </View>
@@ -691,7 +703,9 @@ export default function MessagerieScreen() {
         pointerEvents="box-none"
       >
         <Pressable
-          onPress={() => Alert.alert('Nouveau message', 'À venir')}
+          onPress={() => {
+            /* New-message flow TBD — silent no-op for now. */
+          }}
           style={({ pressed }) => [styles.fabPress, pressed && { transform: [{ scale: 0.96 }] }]}
           accessibilityRole="button"
           accessibilityLabel="Nouveau message"
@@ -790,6 +804,11 @@ const styles = StyleSheet.create({
     gap: HEADER_ACTION_GAP,
     flexShrink: 0,
     minHeight: 40,
+    zIndex: 6,
+    ...Platform.select({
+      android: { elevation: 4 },
+      default: {},
+    }),
   },
   searchPillShadowWrap: {
     height: 40,
@@ -798,6 +817,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     borderRadius: 20,
     ...nativeWhiteInteractiveShadow,
+    ...androidFloatingWhitePill,
   },
   /** Single expanding pill — width 40 → 220; inner clips content */
   searchPillShell: {
@@ -865,7 +885,6 @@ const styles = StyleSheet.create({
   },
   filterPillSlot: {
     zIndex: 2,
-    /** Permet au texte d’ellipsiser sur une seule ligne quand l’en-tête manque d’espace. */
     flexShrink: 1,
     minWidth: 72,
     maxWidth: 200,
@@ -884,32 +903,30 @@ const styles = StyleSheet.create({
     minWidth: 0,
     maxWidth: '100%',
     alignSelf: 'flex-start',
+    ...androidFloatingWhitePill,
+    ...Platform.select({
+      web: { minWidth: 120, width: '100%' as any },
+    }),
   },
-  /* Ligne texte + chevron — minWidth:0 + flexShrink sur le texte, chevron en wrap flexShrink:0. */
+  /* Ligne texte + chevron — ne pas inverser en RTL (chevron seule à gauche). */
+  filterPillContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    ...Platform.select({
+      /** Web: sans largeur, flex shrink peut réduire le Text à 0. */
+      web: { alignSelf: 'stretch' as const, width: '100%' as any },
+      default: {},
+    }),
+  },
   filterPillPressableNoBg: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'nowrap',
     minWidth: 0,
-    minHeight: 32,
-    maxHeight: 40,
-  },
-  /**
-   * Ellipsis sur le libellé : uniquement `flexShrink` (pas de flexGrow/flexBasis) — avec
-   * `flexGrow:1` + `flexBasis:0` sur Android, Yoga peut étirer la vue en hauteur sur tout
-   * l’écran (cross-axis / héritage flex).
-   */
-  filterPillTextShrink: {
-    minWidth: 0,
-    maxWidth: '100%' as any,
-    maxHeight: 24,
-    flexGrow: 0,
-    flexShrink: 1,
-    justifyContent: 'center',
-    overflow: 'hidden' as const,
-  },
-  filterPillRowAndroid: {
-    alignItems: 'center' as const,
+    ...Platform.select({
+      web: { width: '100%' as any },
+    }),
   },
   filterPillChevronWrap: {
     flexShrink: 0,
@@ -927,6 +944,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
+    ...androidFloatingWhitePill,
+    ...Platform.select({
+      web: { minWidth: 120, width: '100%' as any },
+    }),
   },
   filterPillShadowWrapNavy: {
     backgroundColor: '#0F1B2D',
@@ -939,6 +960,9 @@ const styles = StyleSheet.create({
     maxHeight: 40,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    ...Platform.select({
+      web: { width: '100%' as any },
+    }),
   },
   searchDismissLayer: {
     position: 'absolute',
@@ -969,30 +993,42 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterSelectorPillText: {
-    flexShrink: 1,
-    minWidth: 0,
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
     color: NAVY,
     marginRight: 4,
+    ...Platform.select({
+      web: {
+        maxWidth: 200,
+        flexGrow: 1,
+        flexShrink: 0,
+        minWidth: 40,
+        overflow: 'visible' as const,
+      } as any,
+      default: {
+        flex: 0,
+        flexGrow: 0,
+        flexShrink: 1,
+        minWidth: 0,
+        maxWidth: 148,
+      },
+    }),
   },
-  /** Forcer une seule « ligne visuelle » sur Android (évite 2ᵉ ligne / padding). */
   filterSelectorPillTextAndroid: {
     lineHeight: 20,
-    maxHeight: 20,
   },
   filterSelectorPillTextOnNavy: {
     color: '#FFFFFF',
   },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 30,
+    fontSize: 34,
     color: NAVY,
     letterSpacing: -0.6,
   },
   /** Shrink title when search pill is expanded so it never gets truncated. */
   headerTitleCompact: {
-    fontSize: 20,
+    fontSize: 22,
   },
   headerSub: {
     marginTop: 2,
@@ -1039,16 +1075,22 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 6,
+    ...Platform.select({
+      android: { paddingHorizontal: 20 },
+      default: { paddingHorizontal: 16 },
+    }),
   },
   filterModalRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 16,
     gap: 8,
+    ...Platform.select({
+      android: { paddingHorizontal: 20 },
+      default: { paddingHorizontal: 16 },
+    }),
   },
   filterModalCheck: {
     width: 22,
@@ -1168,13 +1210,13 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
+    fontSize: 12,
     color: '#94A3B8',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
     paddingHorizontal: 0,
     marginTop: 24,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionCard: {
     backgroundColor: 'transparent',

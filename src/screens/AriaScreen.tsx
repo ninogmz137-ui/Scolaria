@@ -216,10 +216,10 @@ export default function AriaScreen() {
     timestamp: '',
   };
 
-  const rgb = hexToRgb('#7C3AED');
+  const rgb = hexToRgb('#4338CA');
   const accentBorder = rgb
     ? `rgba(${rgb.r},${rgb.g},${rgb.b},0.35)`
-    : 'rgba(124,58,237,0.35)';
+    : 'rgba(67,56,202,0.35)';
 
   return (
     <View style={styles.root}>

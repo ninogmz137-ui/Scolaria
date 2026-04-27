@@ -1,11 +1,12 @@
 import { View, Platform } from 'react-native';
 import { Sparkles } from '@getpapillon/papicons';
+import { ARIA_INDIGO } from '../../constants/theme';
 
 interface Props {
   size?: number;
 }
 
-/** Aria avatar — white glass circle with violet Papicons Sparkles icon. */
+/** Aria avatar — white glass circle with indigo Papicons Sparkles icon. */
 export default function AriaAvatar({ size = 32 }: Props) {
   const half = size / 2;
   const iconSize = Math.round(size * 0.52);
@@ -27,7 +28,7 @@ export default function AriaAvatar({ size = 32 }: Props) {
         }),
       }}
     >
-      <Sparkles size={iconSize} color="#7C3AED" />
+      <Sparkles size={iconSize} color={ARIA_INDIGO} />
     </View>
   );
 }

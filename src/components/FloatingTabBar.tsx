@@ -342,6 +342,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
             const hasUnread = isMessagerieTab && MESSAGERIE_UNREAD > 0;
 
             const onPress = () => {
+              // Onglet Accueil : toujours naviguer vers AccueilHome pour
+              // resetter le stack (évite que AriaHome ou n'importe quel écran
+              // stacké reste en mémoire quand on revient d'un autre tab).
+              if (route.name === 'Accueil') {
+                navigation.navigate('Accueil', { screen: 'AccueilHome' } as any);
+                return;
+              }
               const event = navigation.emit({
                 type: 'tabPress',
                 target: route.key,
