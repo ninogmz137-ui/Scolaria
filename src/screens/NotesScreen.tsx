@@ -29,6 +29,12 @@ import Svg, {
   RadialGradient as SvgRadialGradient,
   Stop,
 } from 'react-native-svg';
+import Reanimated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import {
   ScanLine,
   Check,
@@ -340,12 +346,14 @@ const LE_OBSERVATION =
 
 const LE_ANNEE_COMPARE = 'T1 : 8 acquis → T2 : 9 → T3 : 10';
 
-const GRAPH_MONTHS = ['Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'];
-const GRAPH_MONTHS_YEAR = ['Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
-
 function parseGradeDateLoose(d: string): number {
   if (/^\d{4}-\d{2}-\d{2}/.test(d)) return new Date(d).getTime();
   return 0;
+}
+
+function clamp(v: number, min: number, max: number): number {
+  'worklet';
+  return Math.min(max, Math.max(min, v));
 }
 
 function gradeSortTime(g: Grade): number {
@@ -566,84 +574,213 @@ function GlassPanel({
 
 // ─── Graph ────────────────────────────────────────────────
 
-function ProgressionGraph({
-  data,
+type NotesGraphPoint = { x: number; y: number; label: string };
+
+function buildSmoothCubicPath(points: NotesGraphPoint[]): string {
+  if (points.length === 0) return '';
+  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  if (points.length === 2) {
+    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+  }
+
+  // Catmull-Rom → cubic Bezier conversion for smooth segments.
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] ?? p2;
+
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+}
+
+function approxPathLength(points: NotesGraphPoint[]): number {
+  if (points.length < 2) return 1;
+  let len = 0;
+  for (let i = 1; i < points.length; i++) {
+    const dx = points[i].x - points[i - 1].x;
+    const dy = points[i].y - points[i - 1].y;
+    len += Math.sqrt(dx * dx + dy * dy);
+  }
+  return Math.max(1, len);
+}
+
+const AnimatedSvgPath = Reanimated.createAnimatedComponent(Path);
+
+function NotesProgressGraph({
+  grades,
   width,
   height,
   gradKey,
 }: {
-  data: number[];
+  grades: Grade[];
   width: number;
   height: number;
   gradKey: string;
 }) {
-  const padTop = 6;
-  const padBottom = 4;
-  const padLeft = 4;
-  const padRight = 4;
+  const contentPadTop = 12;
+  const contentPadRight = 14;
+  const contentPadBottom = 26;
+  const contentPadLeft = 34; // Y labels column
 
-  const innerW = width - padLeft - padRight;
-  const innerH = height - padTop - padBottom;
+  const innerW = width - contentPadLeft - contentPadRight;
+  const innerH = height - contentPadTop - contentPadBottom;
 
-  const minVal = Math.min(...data) - 1;
-  const maxVal = Math.max(...data) + 1;
-  const range = maxVal - minVal || 1;
+  const sortedAsc = useMemo(() => {
+    const s = [...grades].sort((a, b) => gradeSortTime(a) - gradeSortTime(b));
+    if (s.length <= 8) return s;
+    return s.slice(s.length - 8);
+  }, [grades]);
 
-  const n = data.length;
-  const points = data.map((v, i) => ({
-    x: padLeft + (n <= 1 ? 0 : i / (n - 1)) * innerW,
-    y: padTop + (1 - (v - minVal) / range) * innerH,
-  }));
+  const points: NotesGraphPoint[] = useMemo(() => {
+    if (sortedAsc.length === 0) return [];
+    const n = sortedAsc.length;
+    return sortedAsc.map((g, i) => {
+      const v20 = (g.value / (g.maxValue || 20)) * 20;
+      const x = contentPadLeft + (n === 1 ? 0 : (i / (n - 1)) * innerW);
+      const y = contentPadTop + (1 - clamp(v20 / 20, 0, 1)) * innerH;
+      return { x, y, label: g.date };
+    });
+  }, [sortedAsc, innerW, innerH]);
 
-  function buildPath(): string {
-    if (points.length < 2) return points.length === 1 ? `M ${points[0].x} ${points[0].y}` : '';
-    let d = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      const cpx = (prev.x + curr.x) / 2;
-      d += ` C ${cpx} ${prev.y}, ${cpx} ${curr.y}, ${curr.x} ${curr.y}`;
-    }
-    return d;
-  }
+  const d = useMemo(() => buildSmoothCubicPath(points), [points]);
+  const progress = useSharedValue(0);
+  const [pathLen, setPathLen] = useState<number>(() => approxPathLength(points));
+  const pathRef = useRef<any>(null);
 
-  function buildFillPath(): string {
-    const linePath = buildPath();
-    if (!linePath) return '';
-    const last = points[points.length - 1];
-    const first = points[0];
-    return `${linePath} L ${last.x} ${height - padBottom} L ${first.x} ${height - padBottom} Z`;
-  }
+  useEffect(() => {
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) });
+  }, [d, progress]);
 
-  const lastPt = points[points.length - 1];
+  useEffect(() => {
+    const approx = approxPathLength(points);
+    setPathLen(approx);
+
+    const t = setTimeout(() => {
+      const maybe = pathRef.current?.getTotalLength?.();
+      if (typeof maybe === 'number' && Number.isFinite(maybe) && maybe > 0) {
+        setPathLen(maybe);
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [d, points]);
+
+  const animatedProps = useAnimatedProps(() => {
+    return {
+      strokeDashoffset: pathLen * (1 - progress.value),
+    } as any;
+  }, [pathLen]);
+
   const safeKey = gradKey.replace(/[^a-zA-Z0-9_-]/g, '');
-  const fillId = `notesFill-${safeKey}`;
-  const lineId = `notesLine-${safeKey}`;
+  const lineId = `notesLine-v7-${safeKey}`;
+
+  const hasEnough = points.length >= 2;
 
   return (
-    <Svg width={width} height={height}>
-      <Defs>
-        <SvgLinearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={C.violet} stopOpacity={0.12} />
-          <Stop offset="1" stopColor={C.violet} stopOpacity={0} />
-        </SvgLinearGradient>
-        <SvgLinearGradient id={lineId} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-          <Stop offset="0" stopColor={C.violet} />
-          <Stop offset="1" stopColor={C.cyan} />
-        </SvgLinearGradient>
-      </Defs>
-      <Path d={buildFillPath()} fill={`url(#${fillId})`} />
-      <Path
-        d={buildPath()}
-        fill="none"
-        stroke={`url(#${lineId})`}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx={lastPt.x} cy={lastPt.y} r={4.5} fill={C.cyan} fillOpacity={0.4} />
-      <Circle cx={lastPt.x} cy={lastPt.y} r={2} fill={C.cyan} />
-    </Svg>
+    <View style={{ width, height, position: 'relative' }}>
+      {/* Y axis labels */}
+      <View style={{ position: 'absolute', left: 0, top: contentPadTop, bottom: contentPadBottom, width: contentPadLeft }}>
+        {([20, 10, 0] as const).map((v) => {
+          const y = ((20 - v) / 20) * innerH;
+          return (
+            <Text
+              key={`y-${v}`}
+              style={[
+                styles.graphAxisLabel,
+                {
+                  position: 'absolute',
+                  left: 0,
+                  top: y - 7,
+                  width: contentPadLeft - 6,
+                  textAlign: 'right',
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {v}
+            </Text>
+          );
+        })}
+      </View>
+
+      {/* Chart */}
+      <View style={{ position: 'absolute', left: contentPadLeft, right: 0, top: 0, bottom: 0 }}>
+        {!hasEnough ? (
+          <View style={styles.graphEmpty}>
+            <Text style={styles.graphEmptyText}>Pas assez de données</Text>
+          </View>
+        ) : (
+          <>
+            <Svg width={width} height={height}>
+              <Defs>
+                <SvgLinearGradient id={lineId} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+                  <Stop offset="0" stopColor={C.violet} />
+                  <Stop offset="1" stopColor={C.cyan} />
+                </SvgLinearGradient>
+              </Defs>
+
+              <AnimatedSvgPath
+                ref={pathRef}
+                d={d}
+                fill="none"
+                stroke={`url(#${lineId})`}
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray={`${pathLen} ${pathLen}`}
+                animatedProps={animatedProps}
+              />
+
+              {points.map((p, idx) => (
+                <Circle
+                  key={`pt-${idx}`}
+                  cx={p.x}
+                  cy={p.y}
+                  r={6}
+                  fill="#FFFFFF"
+                  stroke={`url(#${lineId})`}
+                  strokeWidth={2}
+                />
+              ))}
+            </Svg>
+
+            {/* X axis labels */}
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: contentPadBottom }}>
+              {points.map((p, idx) => {
+                const labelW = 44;
+                const x = clamp(p.x - contentPadLeft - labelW / 2, 0, innerW - labelW);
+                return (
+                  <Text
+                    key={`x-${idx}`}
+                    style={[
+                      styles.graphAxisLabel,
+                      {
+                        position: 'absolute',
+                        left: x,
+                        bottom: 2,
+                        width: labelW,
+                        textAlign: 'center',
+                      },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {p.label}
+                  </Text>
+                );
+              })}
+            </View>
+          </>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -765,7 +902,7 @@ export default function NotesScreen() {
 
   const screenW = Dimensions.get('window').width;
   const graphW = screenW - 36;
-  const GRAPH_H = 70;
+  const GRAPH_H = 160;
 
   const schoolMode = selectedChild?.birthDate
     ? getSchoolModeFromBirthDate(selectedChild.birthDate)
@@ -1002,24 +1139,12 @@ export default function NotesScreen() {
     return 0.3;
   }, [demoProfile, isDemoMode, selectedTrimester, isAnnee, yearMeta]);
 
-  const graphData = useMemo(() => {
-    if (isAnnee && demoProfile && isDemoMode) {
-      const [a, b, c] = demoProfile.trimAverages;
-      return buildYearCurveFromTrims(a, b, c);
-    }
-    if (isAnnee && !isDemoMode && yearMeta) {
-      const [a, b, c] = yearMeta.trimAvgs;
-      return buildYearCurveFromTrims(a, b, c);
-    }
-    if (demoProfile && isDemoMode) {
-      return demoProfile.graph.map((v) => Math.round((v + trimesterDelta * 0.5) * 10) / 10);
-    }
-    return [12.5, 13.2, 12.8, 14.1, 14.5, 14.8].map(
-      (v) => Math.round((v + trimesterDelta * 0.3) * 10) / 10,
-    );
-  }, [demoProfile, isDemoMode, trimesterDelta, isAnnee, yearMeta]);
+  const activeSubject = subjects[Math.min(selectedSubjectIdx, subjects.length - 1)] ?? null;
 
-  const graphMonthLabels = isAnnee && graphData.length >= 8 ? GRAPH_MONTHS_YEAR : GRAPH_MONTHS;
+  const graphGradesForSelectedSubject = useMemo(() => {
+    if (!activeSubject) return [];
+    return activeSubject.grades;
+  }, [activeSubject]);
 
   const lastGradeDisplay = useMemo(() => {
     if (demoProfile && isDemoMode && isAnnee) {
@@ -1062,8 +1187,6 @@ export default function NotesScreen() {
           : null,
     };
   }, [subjects, demoProfile, isDemoMode, isAnnee]);
-
-  const activeSubject = subjects[Math.min(selectedSubjectIdx, subjects.length - 1)] ?? null;
 
   const gradesGroupedForSubject = useMemo(() => {
     if (!activeSubject) return [];
@@ -1443,18 +1566,13 @@ export default function NotesScreen() {
               <Text style={styles.avgBig}>{overallAvg.toFixed(1)}</Text>
               <Text style={styles.avgSlash}>/20</Text>
             </View>
-            <ProgressionGraph
-              data={graphData}
-              width={graphW - 8}
-              height={GRAPH_H}
-              gradKey={`${selectedChild?.id ?? 'x'}-${selectedTrimester}`}
-            />
-            <View style={styles.monthRow}>
-              {graphMonthLabels.map((m) => (
-                <Text key={m} style={[styles.monthLbl, { flex: 1 }]}>
-                  {m}
-                </Text>
-              ))}
+            <View style={styles.graphZone}>
+              <NotesProgressGraph
+                grades={graphGradesForSelectedSubject}
+                width={graphW - 8}
+                height={GRAPH_H}
+                gradKey={`${selectedChild?.id ?? 'x'}-${selectedTrimester}-${activeSubject?.id ?? 'none'}`}
+              />
             </View>
           </GlassPanel>
         </GraphCardHalo>
@@ -1918,6 +2036,31 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#c4b5fd',
     textAlign: 'center',
+  },
+
+  graphZone: {
+    height: 160,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    overflow: 'hidden',
+    ...nativeGlassCardShadow,
+  },
+  graphAxisLabel: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#94A3B8',
+  },
+  graphEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  graphEmptyText: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: '#94A3B8',
   },
 
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },

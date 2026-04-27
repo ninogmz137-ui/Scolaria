@@ -33,10 +33,6 @@ import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import {
   androidFloatingWhitePill,
-  ariaTopBarIconSlot,
-  ariaTopBarStackFrame,
-  ariaTopBarStackPress,
-  ariaTopBarStackShadow,
   ARIA_INDIGO,
   nativeAriaSuggestionShadow,
   nativeWhiteInteractiveShadow,
@@ -50,6 +46,7 @@ import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
+import RoundGlassIconButton from '../../components/shared/RoundGlassIconButton';
 import { ariaSidebarTitle, defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -460,21 +457,18 @@ export default function AriaConversationScreen() {
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: topPad }]}>
-          <View style={styles.topBtnFrame} collapsable={false}>
-            <View style={styles.topBtnShadow} />
-            <Pressable
-              onPress={() => setDrawerOpen(true)}
-              style={({ pressed }) => [ariaTopBarStackPress, { opacity: pressed ? 0.75 : 1 }]}
-              hitSlop={10}
-              android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
-              accessibilityRole="button"
-              accessibilityLabel="Historique"
-            >
-              <View style={ariaTopBarIconSlot}>
-                <MessagesSquare size={20} color="#0F172A" strokeWidth={2} />
-              </View>
-            </Pressable>
-          </View>
+          <RoundGlassIconButton
+            onPress={() => setDrawerOpen(true)}
+            size={44}
+            backgroundColor="rgba(255,255,255,0.96)"
+            borderColor="rgba(15,23,42,0.18)"
+            accessibilityLabel="Historique"
+            hitSlop={10}
+            androidIconNudgeX={-0.5}
+            androidIconNudgeY={-0.5}
+          >
+            <MessagesSquare size={20} color="#0F172A" strokeWidth={2} />
+          </RoundGlassIconButton>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
             {!drawerOpen && (
@@ -488,20 +482,18 @@ export default function AriaConversationScreen() {
             </Text>
           </View>
 
-          <View style={styles.topBtnFrame} collapsable={false}>
-            <View style={styles.topBtnShadow} />
-            <Pressable
-              onPress={createConversationAndNavigate}
-              style={({ pressed }) => [ariaTopBarStackPress, pressed && { opacity: 0.85 }]}
-              android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
-              accessibilityRole="button"
-              accessibilityLabel="Nouvelle discussion"
-            >
-              <View style={ariaTopBarIconSlot}>
-                <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2} />
-              </View>
-            </Pressable>
-          </View>
+          <RoundGlassIconButton
+            onPress={createConversationAndNavigate}
+            size={44}
+            backgroundColor="rgba(255,255,255,0.96)"
+            borderColor="rgba(15,23,42,0.18)"
+            accessibilityLabel="Nouvelle discussion"
+            hitSlop={10}
+            androidIconNudgeX={-0.5}
+            androidIconNudgeY={-0.5}
+          >
+            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2} />
+          </RoundGlassIconButton>
         </View>
 
         {/* ─── Messages + empty overlay ─────────────────────────
@@ -750,12 +742,7 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  topBtnFrame: {
-    ...ariaTopBarStackFrame,
-  },
-  topBtnShadow: {
-    ...ariaTopBarStackShadow,
-  },
+  // top buttons now use shared RoundGlassIconButton
   /** Fits natural `size={80}` AriaOrb (idle + thinking); no transform scale on parent */
   headerOrbSlot: {
     width: HEADER_ORB_SIZE,

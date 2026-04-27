@@ -142,9 +142,18 @@ function AccueilStackScreen() {
           const isReglagesModal = routeName === 'ReglagesScreen';
           const hasScreenHeaderBack =
             routeName === 'ProfilEnfant' || routeName === 'BienEtreScreen';
-          backArrowRef.current?.setShowBack(
-            index > 0 && !isReglagesModal && !hasScreenHeaderBack,
-          );
+          // IMPORTANT: never show the "stacked" topbar on AccueilHome.
+          // Some Android nav transitions can skip `focus` for the root route, so we
+          // hard-force the root state here (index=0) to avoid phantom back arrows/titles.
+          if (index === 0) {
+            backArrowRef.current?.setShowBack(false);
+            stackTitleRef.current?.setTitle('');
+            currentAccueilRouteRef.current?.setRouteName('AccueilHome');
+          } else {
+            backArrowRef.current?.setShowBack(
+              index > 0 && !isReglagesModal && !hasScreenHeaderBack,
+            );
+          }
           if (routeName) {
             currentAccueilRouteRef.current?.setRouteName(routeName);
           }
@@ -431,6 +440,7 @@ function TabContent() {
       screenListeners={{
         tabPress: (e) => {
           backArrowRef.current?.setShowBack(false);
+          stackTitleRef.current?.setTitle('');
           const tabName = e.target?.split('-')[0] ?? '';
           activeTabRef.current?.setActiveTab(tabName);
         },
@@ -440,6 +450,11 @@ function TabContent() {
           const routes = data?.state?.routes;
           const index = data?.state?.index ?? 0;
           if (routes?.[index]) {
+            // When switching tabs programmatically, we may not receive `tabPress`.
+            // If we were previously on a stacked screen, the back arrow can "stick"
+            // and incorrectly force AppTopbar into stacked mode on AccueilHome.
+            backArrowRef.current?.setShowBack(false);
+            stackTitleRef.current?.setTitle('');
             activeTabRef.current?.setActiveTab(routes[index].name);
           }
         },

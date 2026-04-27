@@ -49,13 +49,10 @@ import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb, { type AriaOrbState } from '../../components/AriaOrb';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import AriaActionCard from '../../components/aria/AriaActionCard';
+import RoundGlassIconButton from '../../components/shared/RoundGlassIconButton';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import {
   androidFloatingWhitePill,
-  ariaTopBarIconSlot,
-  ariaTopBarStackFrame,
-  ariaTopBarStackPress,
-  ariaTopBarStackShadow,
   ARIA_INDIGO,
   nativeWhiteInteractiveShadow,
 } from '../../constants/theme';
@@ -491,21 +488,19 @@ export default function AriaHomeScreen() {
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: topPad }]}>
-          <View style={styles.topBtnFrame} collapsable={false}>
-            <View style={styles.topBtnShadow} />
-            <Pressable
-              onPress={() => setDrawerOpen(true)}
-              style={({ pressed }) => [ariaTopBarStackPress, { opacity: pressed ? 0.75 : 1 }]}
-              hitSlop={10}
-              android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
-              accessibilityRole="button"
-              accessibilityLabel="Historique"
-            >
-              <View style={ariaTopBarIconSlot}>
-                <MessagesSquare size={20} color="#0F172A" strokeWidth={2} />
-              </View>
-            </Pressable>
-          </View>
+          <RoundGlassIconButton
+            onPress={() => setDrawerOpen(true)}
+            size={44}
+            backgroundColor="rgba(255,255,255,0.96)"
+            borderColor="rgba(15,23,42,0.18)"
+            accessibilityLabel="Historique"
+            hitSlop={10}
+            style={styles.topBtn}
+            androidIconNudgeX={-0.5}
+            androidIconNudgeY={-0.5}
+          >
+            <MessagesSquare size={20} color="#0F172A" strokeWidth={2} />
+          </RoundGlassIconButton>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
             {!drawerOpen && (
@@ -519,25 +514,20 @@ export default function AriaHomeScreen() {
             </Text>
           </View>
 
-          <View style={styles.topBtnFrame} collapsable={false}>
-            <View style={styles.topBtnShadow} />
-            <Pressable
-              onPress={isConversationMode ? resetToHome : undefined}
-              disabled={!isConversationMode}
-              style={({ pressed }) => [
-                ariaTopBarStackPress,
-                isConversationMode && pressed && { opacity: 0.85 },
-                !isConversationMode && { opacity: 0.35 },
-              ]}
-              android_ripple={isConversationMode ? { color: 'rgba(0,0,0,0.08)' } : undefined}
-              accessibilityRole="button"
-              accessibilityLabel="Nouvelle conversation"
-            >
-              <View style={ariaTopBarIconSlot}>
-                <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2} />
-              </View>
-            </Pressable>
-          </View>
+          <RoundGlassIconButton
+            onPress={isConversationMode ? resetToHome : undefined}
+            disabled={!isConversationMode}
+            size={44}
+            backgroundColor="rgba(255,255,255,0.96)"
+            borderColor="rgba(15,23,42,0.18)"
+            accessibilityLabel="Nouvelle conversation"
+            hitSlop={10}
+            style={styles.topBtn}
+            androidIconNudgeX={-0.5}
+            androidIconNudgeY={-0.5}
+          >
+            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2} />
+          </RoundGlassIconButton>
         </View>
 
         {/* ─── Mode accueil : hero + suggestion cards ───────── */}
@@ -773,8 +763,7 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  topBtnFrame: { ...ariaTopBarStackFrame },
-  topBtnShadow: { ...ariaTopBarStackShadow },
+  topBtn: {},
 
   headerOrbSlot: {
     width: HEADER_ORB_SIZE,
