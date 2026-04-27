@@ -36,7 +36,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Pressable } from './ui';
-import { Home, Grades, Calendar, TextBubble, Sparkles as AriaIcon } from '@getpapillon/papicons';
+import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
+import AriaOrb from './AriaOrb';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -388,7 +389,12 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
           accessibilityLabel="Aria"
         >
           <View style={[styles.iconWrapper, isOnAria && styles.iconWrapperActive]}>
-            <AriaIcon size={24} color={isOnAria ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR} />
+            <AriaOrb
+              variant="bubble"
+              state="idle"
+              size={26}
+              color={isOnAria ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
+            />
           </View>
         </Pressable>
       </View>

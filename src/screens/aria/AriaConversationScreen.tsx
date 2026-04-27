@@ -31,6 +31,16 @@ import {
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import {
+  androidFloatingWhitePill,
+  ariaTopBarIconSlot,
+  ariaTopBarStackFrame,
+  ariaTopBarStackPress,
+  ariaTopBarStackShadow,
+  ARIA_INDIGO,
+  nativeAriaSuggestionShadow,
+  nativeWhiteInteractiveShadow,
+} from '../../constants/theme';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import AriaActionCard from '../../components/aria/AriaActionCard';
@@ -41,8 +51,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
 import { ariaSidebarTitle, defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
-import { nativeAriaSuggestionShadow, nativeWhiteInteractiveShadow } from '../../constants/theme';
-
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;
@@ -50,7 +58,7 @@ const SEARCH_PILL_W = DRAWER_WIDTH - 32;
 const ARIA_ALERTS_UNREAD = 2;
 
 /** Header orb: natural `size` on AriaOrb (no parent scale transform); ≥80px so rings aren’t clipped */
-const HEADER_ORB_SIZE = 80;
+const HEADER_ORB_SIZE = 64;
 
 // ─── Category keyword filters for real conversations ────────
 type ConvCategory = 'all' | 'discussions' | 'syntheses' | 'alertes';
@@ -452,15 +460,21 @@ export default function AriaConversationScreen() {
       >
         {/* ─── Top bar ──────────────────────────────────────── */}
         <View style={[styles.topbar, { paddingTop: topPad }]}>
-          <Pressable
-            onPress={() => setDrawerOpen(true)}
-            style={({ pressed }) => [styles.topBtn, { opacity: pressed ? 0.75 : 1 }]}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Historique"
-          >
-            <MessagesSquare size={20} color="#0F172A" strokeWidth={2.2} />
-          </Pressable>
+          <View style={styles.topBtnFrame} collapsable={false}>
+            <View style={styles.topBtnShadow} />
+            <Pressable
+              onPress={() => setDrawerOpen(true)}
+              style={({ pressed }) => [ariaTopBarStackPress, { opacity: pressed ? 0.75 : 1 }]}
+              hitSlop={10}
+              android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+              accessibilityRole="button"
+              accessibilityLabel="Historique"
+            >
+              <View style={ariaTopBarIconSlot}>
+                <MessagesSquare size={20} color="#0F172A" strokeWidth={2} />
+              </View>
+            </Pressable>
+          </View>
 
           <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
             {!drawerOpen && (
@@ -468,89 +482,93 @@ export default function AriaConversationScreen() {
                 <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : 'idle'} />
               </View>
             )}
-            <Text style={styles.topTitle}>
-              Ar<Text style={styles.topTitleIA}>ia</Text>
-            </Text>
+            <Text style={styles.topTitle}>Aria</Text>
             <Text style={styles.topSubtitle} numberOfLines={1}>
               {title || `Conversation · ${childFirstName}`}
             </Text>
           </View>
 
-          <Pressable
-            onPress={createConversationAndNavigate}
-            style={({ pressed }) => [styles.topBtn, pressed && { opacity: 0.85 }]}
-            accessibilityRole="button"
-            accessibilityLabel="Nouvelle discussion"
-          >
-            <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2.2} />
-          </Pressable>
+          <View style={styles.topBtnFrame} collapsable={false}>
+            <View style={styles.topBtnShadow} />
+            <Pressable
+              onPress={createConversationAndNavigate}
+              style={({ pressed }) => [ariaTopBarStackPress, pressed && { opacity: 0.85 }]}
+              android_ripple={{ color: 'rgba(0,0,0,0.08)' }}
+              accessibilityRole="button"
+              accessibilityLabel="Nouvelle discussion"
+            >
+              <View style={ariaTopBarIconSlot}>
+                <MessageCirclePlus size={20} color="#0F172A" strokeWidth={2} />
+              </View>
+            </Pressable>
+          </View>
         </View>
 
-        {/* ─── Messages ─────────────────────────────────────── */}
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(m) => m.id}
-          renderItem={({ item }) => <ChatBubble message={item} />}
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_SCROLL_PADDING }}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            messages.length === 0 ? (
-              <View style={styles.empty}>
-                <Text style={styles.emptyTitle}>Bonjour !</Text>
-                <Text style={styles.emptyText}>
-                  Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
-                </Text>
-                {/* Horizontal ScrollView — on Android, a flex-wrap row with
-                    fixed-percent chips can collapse under Yoga's strict sizing;
-                    a horizontal scroller guarantees chips keep their natural height. */}
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled
-                  style={styles.suggestionScroll}
-                  contentContainerStyle={styles.suggestionWrap}
-                >
-                  {suggestions.map((item) => (
-                    <Pressable
-                      key={item}
-                      onPress={() => sendMessage(item)}
-                      disabled={isTyping}
-                      style={({ pressed }) => [
-                        styles.suggestionChip,
-                        { opacity: pressed ? 0.86 : 1 },
-                        isTyping && { opacity: 0.5 },
-                      ]}
-                    >
-                      <Text style={styles.suggestionText} numberOfLines={2}>
-                        {item}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+        {/* ─── Messages + empty overlay ─────────────────────────
+              FlatList always holds flex:1 — its container size never
+              changes, eliminating the layout jump on first message.
+              The empty state sits as an absoluteFill overlay so
+              mounting/unmounting it is invisible to the flex engine. */}
+        <View style={{ flex: 1 }}>
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={(m) => m.id}
+            renderItem={({ item }) => <ChatBubble message={item} />}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            showsVerticalScrollIndicator={false}
+            ListFooterComponent={
+              <>
+                {isTyping ? <ChatBubble message={typingMessage} isTyping /> : null}
+                {pendingAction && !isTyping ? (
+                  <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
+                    <AriaActionCard
+                      action={pendingAction}
+                      onConfirm={handleConfirmAction}
+                      onCancel={handleCancelAction}
+                      status={actionStatus}
+                      resultMessage={actionResult}
+                    />
+                  </View>
+                ) : null}
+                <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+              </>
+            }
+          />
+
+          {/* Empty state overlay — absoluteFill so it covers the FlatList
+              without affecting its layout. box-none lets suggestion
+              Pressables receive touches while background passes through. */}
+          {messages.length === 0 && (
+            <View pointerEvents="box-none" style={styles.emptyOverlay}>
+              <Text style={styles.emptyTitle}>Bonjour !</Text>
+              <Text style={styles.emptyText}>
+                Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
+              </Text>
+              {/* Explicit pixel widths for Android — Yoga collapses % widths
+                  in nested flex-wrap rows, so we compute card size from SCREEN_WIDTH. */}
+              <View style={styles.suggestionWrap}>
+                {suggestions.map((item) => (
+                  <Pressable
+                    key={item}
+                    onPress={() => sendMessage(item)}
+                    disabled={isTyping}
+                    style={({ pressed }) => [
+                      styles.suggestionCard,
+                      { opacity: pressed ? 0.82 : 1 },
+                      isTyping && { opacity: 0.5 },
+                    ]}
+                  >
+                    <Text style={styles.suggestionText} numberOfLines={3}>
+                      {item}
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
-            ) : null
-          }
-          ListFooterComponent={
-            <>
-              {isTyping ? <ChatBubble message={typingMessage} isTyping /> : null}
-              {pendingAction && !isTyping ? (
-                <View style={{ paddingHorizontal: 12, paddingTop: 8 }}>
-                  <AriaActionCard
-                    action={pendingAction}
-                    onConfirm={handleConfirmAction}
-                    onCancel={handleCancelAction}
-                    status={actionStatus}
-                    resultMessage={actionResult}
-                  />
-                </View>
-              ) : null}
-              <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
-            </>
-          }
-          onContentSizeChange={() => scrollToEnd()}
-        />
+            </View>
+          )}
+        </View>
 
         <UniversalInputBar
           placeholder="Demandez à Aria…"
@@ -591,7 +609,7 @@ export default function AriaConversationScreen() {
         <View style={styles.drawerHeader}>
           <Text style={styles.drawerBrand}>
             <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
-            <Text style={styles.drawerTitleARIA}>{'ARIA'}</Text>
+            <Text style={styles.drawerTitleARIA}>{'Aria'}</Text>
           </Text>
           <View style={styles.drawerOrbWrap} pointerEvents="none">
             <AriaOrb state={isTyping ? 'thinking' : 'idle'} size={52} />
@@ -620,7 +638,7 @@ export default function AriaConversationScreen() {
                 ]}
               >
                 <View style={styles.categoryCell}>
-                  <Icon size={20} color={isActive ? '#7C3AED' : '#374151'} strokeWidth={2} />
+                  <Icon size={20} color={isActive ? ARIA_INDIGO : '#374151'} strokeWidth={2} />
                   <View style={styles.categoryLabelRow}>
                     <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
                       {label}
@@ -665,6 +683,7 @@ export default function AriaConversationScreen() {
                           isActiveConv && styles.recentRowActive,
                           pressed && !isActiveConv && styles.recentRowPressed,
                         ]}
+                        android_ripple={{ color: 'rgba(15, 23, 42, 0.1)' }}
                       >
                         <Text style={styles.recentRowTitle} numberOfLines={1}>
                           {ariaSidebarTitle(c, conversations)}
@@ -683,13 +702,7 @@ export default function AriaConversationScreen() {
           </ScrollView>
 
           <View style={styles.drawerSearchBar}>
-            <Animated.View
-              style={[
-                styles.liquidGlass,
-                { width: searchWidthAnim },
-                nativeWhiteInteractiveShadow,
-              ]}
-            >
+            <Animated.View style={[styles.liquidGlass, { width: searchWidthAnim }]}>
               <Pressable
                 onPress={isSearchExpanded ? collapseSearch : expandSearch}
                 style={styles.liquidGlassInner}
@@ -732,30 +745,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     columnGap: 10,
-  },
-  // Liquid Glass — aligned with Aria home top bar (40px circle, visible shadow on Android)
-  // Android: `elevation: 4` gives a native drop shadow. Safe here because
-  // `backgroundColor: '#FFFFFF'` + `borderRadius: 20` + no `borderWidth` → no grey frame.
-  topBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    zIndex: 2,
     ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.18,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
+      android: { overflow: 'visible' as const },
       default: {},
     }),
+  },
+  topBtnFrame: {
+    ...ariaTopBarStackFrame,
+  },
+  topBtnShadow: {
+    ...ariaTopBarStackShadow,
   },
   /** Fits natural `size={80}` AriaOrb (idle + thinking); no transform scale on parent */
   headerOrbSlot: {
@@ -772,16 +771,15 @@ const styles = StyleSheet.create({
   topTitle: {
     marginTop: 2,
     fontFamily: FontFamily.sansBold,
-    fontSize: 16,
+    fontSize: 20,
     color: '#0F172A',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
-  topTitleIA: { color: '#7C3AED' },
   topSubtitle: { marginTop: 1, fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8' },
 
-  // Empty state
-  empty: {
-    width: '100%',
+  // Empty state — absoluteFill overlay (no flex impact on FlatList behind it)
+  emptyOverlay: {
+    ...StyleSheet.absoluteFillObject,
     paddingHorizontal: 16,
     paddingTop: 22,
     paddingBottom: 10,
@@ -789,38 +787,31 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#0F172A' },
   emptyText: { marginTop: 8, fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 19, color: '#64748B', textAlign: 'center' },
-  suggestionScroll: {
-    alignSelf: 'stretch',
-    width: '100%',
-    maxWidth: '100%',
-    marginTop: 12,
-    minHeight: 72,
-  },
+  // 2-column card grid — mirrors AriaHomeScreen.suggestionCardOuter
+  // Explicit pixel width instead of '47%' — Android Yoga collapses % in nested flex-wrap
   suggestionWrap: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    paddingHorizontal: 4,
-    paddingRight: 20,
-    paddingVertical: 4,
-    flexGrow: 1,
+    flexWrap: 'wrap',
+    width: SCREEN_WIDTH - 32,
+    marginTop: 14,
   },
-  suggestionChip: {
-    minWidth: 160,
-    maxWidth: 240,
-    minHeight: 56,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+  suggestionCard: {
+    width: Math.floor((SCREEN_WIDTH - 32 - 8) / 2),
+    minHeight: 80,
+    marginBottom: 10,
     marginRight: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     justifyContent: 'center',
     ...nativeAriaSuggestionShadow,
   },
   suggestionText: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#475569',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#0F1B2D',
   },
 
   // Overlay
@@ -852,8 +843,8 @@ const styles = StyleSheet.create({
     fontSize: 26,
     letterSpacing: 1,
   },
-  drawerTitleSparkle: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26 },
-  drawerTitleARIA: { color: '#7C3AED', fontFamily: FontFamily.displayBold, fontSize: 26, letterSpacing: 1 },
+  drawerTitleSparkle: { color: ARIA_INDIGO, fontFamily: FontFamily.displayBold, fontSize: 26 },
+  drawerTitleARIA: { color: ARIA_INDIGO, fontFamily: FontFamily.displayBold, fontSize: 26, letterSpacing: 1 },
   drawerOrbWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   drawerHeaderSpacer: { width: 100 },
   drawerBody: { flex: 1, flexDirection: 'column', justifyContent: 'flex-start' },
@@ -876,6 +867,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: 'center',
     marginHorizontal: 4,
+    backgroundColor: 'transparent',
   },
   categoryCell: {
     flexDirection: 'column',
@@ -890,20 +882,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 4,
   },
-  categoryRowActive: { backgroundColor: 'rgba(124,58,237,0.08)' },
-  categoryRowPressed: { backgroundColor: 'rgba(124,58,237,0.04)' },
+  categoryRowActive: { backgroundColor: 'rgba(67, 56, 202, 0.08)' },
+  categoryRowPressed: { backgroundColor: 'rgba(15, 23, 42, 0.05)' },
   categoryLabel: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,
     color: '#1A2340',
     textAlign: 'center',
   },
-  categoryLabelActive: { color: '#7C3AED', fontFamily: FontFamily.sansSemiBold },
+  categoryLabelActive: { color: ARIA_INDIGO, fontFamily: FontFamily.sansSemiBold },
   alertDot: {
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#7C3AED',
+    backgroundColor: ARIA_INDIGO,
     marginLeft: 6,
   },
 
@@ -924,14 +916,25 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 6,
   },
+  /**
+   * Sidebar Claude-style : pas de bord ni séparateur, juste un fond gris au tap.
+   * Android : `borderWidth: 1, borderColor: '#EEF0F5'` créait un encart sur chaque
+   * ligne qui cassait l’effet « liste plate ». On garde uniquement les transitions
+   * de background pour l’état actif / pressé.
+   */
   recentRow: {
-    paddingVertical: 14,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 12,
-    marginBottom: 4,
+    borderRadius: 10,
+    marginBottom: 2,
+    backgroundColor: 'transparent',
   },
-  recentRowActive: { backgroundColor: 'rgba(124,58,237,0.10)' },
-  recentRowPressed: { opacity: 0.7 },
+  recentRowActive: {
+    backgroundColor: 'rgba(67, 56, 202, 0.08)',
+  },
+  recentRowPressed: {
+    backgroundColor: 'rgba(15, 23, 42, 0.06)',
+  },
   recentRowTitle: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 15,
@@ -954,6 +957,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderWidth: 0,
     overflow: 'hidden',
+    ...nativeWhiteInteractiveShadow,
+    ...androidFloatingWhitePill,
   },
   liquidGlassInner: {
     flex: 1,
