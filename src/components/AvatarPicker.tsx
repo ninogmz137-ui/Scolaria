@@ -137,13 +137,13 @@ export default function AvatarPicker({
             {tabs.map((tab) => (
               <Pressable
                 key={tab.key}
-                style={[s.tab, activeTab === tab.key && { backgroundColor: accentColor }]}
+                style={[s.tab, activeTab === tab.key && { backgroundColor: '#0F172A', borderColor: 'transparent' }]}
                 onPress={() => setActiveTab(tab.key)}
               >
                 <Papicons
                   name={tab.icon}
                   size={16}
-                  color={activeTab === tab.key ? '#FFFFFF' : '#94A3B8'}
+                  color={activeTab === tab.key ? '#FFFFFF' : 'rgba(15,23,42,0.35)'}
                 />
                 <Text style={[s.tabText, activeTab === tab.key && { color: '#FFFFFF' }]}>
                   {tab.label}
@@ -173,7 +173,7 @@ export default function AvatarPicker({
 
             {activeTab === 'photo' && (
               <View style={s.photoSection}>
-                <Pressable style={[s.photoBtn, { borderColor: accentColor }]} onPress={handlePickPhoto}>
+                <Pressable style={s.photoBtn} onPress={handlePickPhoto}>
                   <Papicons name="Camera" size={28} color={accentColor} />
                   <Text style={[s.photoBtnText, { color: accentColor }]}>
                     {photoUri ? 'Changer la photo' : 'Choisir une photo'}
@@ -200,12 +200,24 @@ export default function AvatarPicker({
           </ScrollView>
 
           {/* Actions */}
-          <View style={s.actions}>
-            <Pressable style={s.cancelBtn} onPress={onClose}>
-              <Text style={s.cancelText}>Annuler</Text>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingVertical: 14,
+            borderTopWidth: 1,
+            borderTopColor: 'rgba(15,23,42,0.06)',
+          }}>
+            <Pressable onPress={onClose}>
+              <Text style={{ fontFamily: FontFamily.sansMedium, fontSize: 14, color: 'rgba(15,23,42,0.35)' }}>
+                Annuler
+              </Text>
             </Pressable>
-            <Pressable style={[s.confirmBtn, { backgroundColor: accentColor }]} onPress={handleConfirm}>
-              <Text style={s.confirmText}>Confirmer</Text>
+            <Pressable onPress={handleConfirm}>
+              <Text style={{ fontFamily: FontFamily.sansBold, fontSize: 14, color: '#0F172A' }}>
+                Confirmer
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -256,10 +268,11 @@ const s = StyleSheet.create({
   tab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, paddingVertical: 10, borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'rgba(15,23,42,0.04)',
+    borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)',
   },
   tabText: {
-    fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: '#94A3B8',
+    fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: 'rgba(15,23,42,0.35)',
   },
   content: {
     maxHeight: 240,
@@ -277,14 +290,15 @@ const s = StyleSheet.create({
   },
   photoBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 24, paddingVertical: 16, borderRadius: 16,
-    borderWidth: 2, borderStyle: 'dashed',
+    paddingHorizontal: 24, paddingVertical: 16, borderRadius: 12,
+    backgroundColor: 'rgba(15,23,42,0.04)',
+    borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)',
   },
   photoBtnText: {
     fontFamily: FontFamily.sansBold, fontSize: 15,
   },
   photoHint: {
-    fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#10B981',
+    fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(15,23,42,0.35)',
   },
   initialsSection: {
     alignItems: 'center', paddingVertical: 20, gap: 12,
