@@ -1,31 +1,63 @@
 # CLAUDE.md — Design System & Règles Scolaria
+*Version 2.1 · Avril 2026*
+
+---
 
 ## Nom de l'application
-**Scolaria** — jamais "ScolarIA" avec majuscules.
-Le "ia" est discret, en couleur ou police légèrement différente.
+**Scolaria** — jamais "ScolarIA" avec majuscules, jamais "Scholaris".
+Police uniforme sur tout le mot — pas de traitement spécial sur "ia".
 Tagline : "Le copilote éducatif des familles"
 
 ---
 
+## Vision stratégique (résumé)
+Scolaria est le **carnet de scolarité numérique** qui manque aux familles françaises.
+Comme le carnet de santé, il appartient à la famille — pas à l'institution.
+Il suit l'enfant de la maternelle au bac, indépendamment des établissements.
+**Scolaria remplace les ENTs (Pronote, EcoleDirecte) — il ne s'y connecte jamais.**
+→ Document complet : VISION.md
+
+---
+
 ## Stack technique
-- React Native / Expo
-- Supabase (BDD + Auth + Storage)
+- React Native / Expo + EAS (Starter plan)
+- Supabase (BDD + Auth + Storage + RLS)
+- TypeScript
 - NativeWind (Tailwind CSS pour React Native)
 - Gluestack UI v3
+
+### Librairies clés
+- `lucide-react-native` — icônes utilitaires (size 28, strokeWidth 1.5)
+- `@getpapillon/papicons` — icônes navigation filled/solid (MIT license)
+- `expo-linear-gradient` — dégradés natifs (obligatoire, backgroundColor ne supporte pas les dégradés sur native)
+- `react-native-reanimated` — animations
+- `expo-speech` — voice input Aria (à venir)
 
 ---
 
 ## Icône Application
 
-**Identité visuelle** — le pictogramme officiel est le **symbole couronne** (8 ellipses, **#4338CA** sur fond blanc pour l’icône système). Le mot-symbole texte reste `<ScolariaLogo>` (Rufina + ✦) ; ne pas confondre avec le pictogramme seul.
+**Identité visuelle** — le pictogramme officiel est le **symbole couronne** (8 ellipses, **#4338CA** sur fond blanc pour l'icône système). Le mot-symbole texte reste `<ScolariaLogo>` (Rufina + ✦) ; ne pas confondre avec le pictogramme seul.
 
-- `assets/icon.png` — 1024×1024 : symbole centré, fond `#FFFFFF` (à régénérer depuis le design si besoin) ; iOS + notifications
+### Système identitaire — règle absolue
+| Élément | Valeur |
+|---------|--------|
+| Wordmark | Rufina Bold 700, noir |
+| ✦ sparkle | Indigo `#4338CA` solide |
+| Symbole (8 ellipses) | Indigo `#4338CA` |
+| Icône app | Fond blanc `#FFFFFF` + symbole indigo |
+| Règle couleur | Blanc/noir dominent, indigo = unique touche accent |
+
+**Une seule couleur accent. Partout. Toujours.**
+Le dégradé violet→cyan est réservé exclusivement à Aria — jamais sur l'identité de marque.
+
+- `assets/icon.png` — 1024×1024 : symbole centré, fond `#FFFFFF` ; iOS + notifications
 - Android adaptive : `foregroundImage` + `backgroundColor: "#FFFFFF"`
-- **In-app :** `<ScolariaAppIcon>` (`src/components/ScolariaAppIcon.tsx`) — compose `<ScolariaSymbol>` dans un carré (fond blanc optionnel via `withBackground`), props `size`, `color`, `withBackground`
-- **Marque texte in-app (Rufina · Scolar + ı + a + ✦) :** `<ScolariaLogo>` (`src/components/ScolariaLogo.tsx`) — props `fontSize`, `primaryColor`, `sparkleColor` (défaut `#4338CA`), **pas** de dégradé sur le ✦
-- **Symbole seul (ellipses) :** `<ScolariaSymbol>` (`src/components/ScolariaSymbol.tsx`) — couleur **#4338CA** par défaut ; indigo = accent, blanc & noir dominent dans l’UI
-- **Dégradé violet / cyan (tokens Aria #6366F1 → #22D3EE) :** réservé aux halos / interactions Aria — **pas** sur le symbole ellipses (icône app) ni sur le ✦ du mot-symbole
-- Ne jamais régénérer l'icône via le composant — utiliser le PNG officiel pour les stores
+- **In-app :** `<ScolariaAppIcon>` (`src/components/ScolariaAppIcon.tsx`)
+- **Marque texte in-app :** `<ScolariaLogo>` (`src/components/ScolariaLogo.tsx`) — font **Rufina** (wordmark uniquement, exception à Figtree), props `fontSize`, `primaryColor`, `sparkleColor` (défaut `#4338CA`), **pas** de dégradé sur le ✦
+- **Symbole seul (ellipses) :** `<ScolariaSymbol>` (`src/components/ScolariaSymbol.tsx`) — couleur **#4338CA** par défaut
+- **Dégradé violet / cyan (tokens Aria #6366F1 → #22D3EE) :** réservé aux halos / interactions Aria — **pas** sur le symbole ellipses ni sur le ✦
+- Ne jamais régénérer l'icône via le composant — utiliser le PNG officiel
 
 ---
 
@@ -33,14 +65,12 @@ Tagline : "Le copilote éducatif des familles"
 
 ### Philosophie
 Scolaria doit avoir le niveau visuel de Papillon ou supérieur.
-Mots-clés : glass morphism, profondeur, typographie forte,
-animations fluides, premium. JAMAIS plat, JAMAIS générique.
-
----
+Mots-clés : glass morphism, profondeur, typographie forte, animations fluides, premium.
+JAMAIS plat, JAMAIS générique.
 
 ### Headers
 - Occupent 30-35% de l'écran sur chaque onglet principal
-- Fond : dégradé depuis couleur accent thème -> transparent
+- Fond : dégradé depuis couleur accent thème → transparent
 - Border-radius en bas : 28px
 - Le contenu scrolle SOUS le header (overlap)
 - Composant : `<ScreenHeader>` (src/components/ScreenHeader.tsx)
@@ -48,174 +78,281 @@ animations fluides, premium. JAMAIS plat, JAMAIS générique.
 ### Cartes (Glass Cards)
 - TOUJOURS en glass morphism, jamais de View blanc simple
 - Sur fond sombre : rgba(255,255,255,0.08), border rgba(255,255,255,0.12)
-- Sur fond clair : rgba(255,255,255,0.75), border rgba(255,255,255,0.9),
-  shadow forte (shadowOpacity 0.06, shadowRadius 24)
+- Sur fond clair : rgba(255,255,255,0.75), border rgba(255,255,255,0.9), shadow forte (shadowOpacity 0.06, shadowRadius 24)
 - borderRadius : 20 partout
 - Composant : `<GlassCard>` (src/components/GlassCard.tsx)
 
 ### Tab bar
-- Pill flottante detachee du bas (bottom: 20, left: 20, right: 20)
+- Pill flottante détachée du bas (bottom: 20, left: 20, right: 20)
 - borderRadius: 28
 - Fond semi-transparent + blur si possible
-- L'onglet actif a un fond pill avec couleur accent (opacite 15%)
+- L'onglet actif a un fond pill avec couleur accent (opacité 15%)
 - Label visible uniquement sur l'onglet actif
 - Tous les ScrollView ont paddingBottom: 100
 - Composant : `<FloatingTabBar>` (src/components/FloatingTabBar.tsx)
 
-### Typographie
-- Chiffres et titres display : BarlowCondensed_700Bold / 800ExtraBold
-- Corps et UI : DMSans_400Regular / 500Medium / 600SemiBold
-- Titres de section : BarlowCondensed_700Bold, 13px, uppercase, letterSpacing 2
-- JAMAIS de font systeme (Arial, Inter, Roboto, System)
+### Typographie — Figtree (unique font family)
+- `Figtree_900Black` — data large (moyennes, grands chiffres)
+- `Figtree_800ExtraBold` — display, titres principaux
+- `Figtree_700Bold` — subtitles, labels importants
+- `Figtree_600SemiBold` — body medium, section labels
+- `Figtree_500Medium` — UI secondaire
+- `Figtree_400Regular` — body courant
+- `Figtree_300Light` — meta, mentions légères
 
-### Icones
+**Tokens typographiques :**
+- `display` : ExtraBold 26px, letterSpacing -0.9, lineHeight 26
+- `dataLarge` : Black 40px, letterSpacing -1.8, lineHeight 40
+- `dataInline` : ExtraBold 18px, letterSpacing -0.6, lineHeight 22
+- `subtitle` : Bold 13px, letterSpacing -0.13, lineHeight 16
+- `body` : Regular 14px, letterSpacing 0, lineHeight 21
+- `bodyMedium` : SemiBold 13px, letterSpacing -0.13, lineHeight 18
+- `sectionLabel` : SemiBold 8.5px, letterSpacing 1.2, uppercase, color #0F172A opacity 0.28
+- `meta` : Light 8px, letterSpacing 0.08, color rgba(15,23,42,0.30)
+
+**Line-height règle :**
+- Display / grands chiffres : lineHeight = fontSize × 1.0
+- Subtitles : lineHeight = fontSize × 1.2
+- Body : lineHeight = fontSize × 1.5
+- Meta : lineHeight = fontSize × 1.4
+
+JAMAIS de font système. JAMAIS Barlow, JAMAIS DM Sans.
+**Exception unique : Rufina** — exclusivement pour le wordmark dans `<ScolariaLogo>`. Nulle part ailleurs.
+
+### Icônes
 - lucide-react-native pour toute la navigation et l'UI
-- Emoji autorisés ailleurs dans le contenu (messages, badges, etc.) — **jamais** sur les noms de matières (voir règle ci-dessous)
 - Taille : 20px listes, 24px tab bar
 - strokeWidth: 2
+- Emoji autorisés dans le contenu (messages, badges) — jamais sur les noms de matières
 
-### Noms de matières (sujets) — texte brut uniquement
+### Noms de matières — texte brut uniquement
+Les noms de matières (Mathématiques, Français, Anglais, etc.) ne doivent **jamais** comporter d'emoji ni de préfixe/suffixe d'icône, nulle part dans l'app. Texte seul, toujours.
 
-**RULE — No emoji on subject/matière names :**  
-Les noms de matières (Mathématiques, Français, Anglais, Physique-Chimie, SVT, etc.) ne doivent **jamais** comporter d’emoji ni de préfixe/suffixe d’icône, nulle part dans l’app.  
-S’applique notamment à : écran Notes, tuiles du dashboard Accueil, cartes Point fort / À renforcer, pills de matière, et tout autre écran où un nom de matière apparaît. **Texte seul, toujours.**
+### Wallpaper system (Accueil uniquement)
+Bibliothèque curatée (dégradés, nature/espace, Apple-style) au choix de la famille.
+Le wallpaper apparaît **uniquement** dans la zone header Accueil.
+Tous les autres écrans = fond uni selon le mode.
 
-### Fonds par mode scolaire
-- Maternelle : #FFF8F0 + header orange/ambre (#FF9F43 -> #FFECD2) + motif SVG subtil 3-5%
-- Primaire : #0F1923 + header cyan profond (#0B1628 -> #164E63) + micro-etoiles 5%
-- College-Lycee : #F8F7FF + header violet raffine (#4C1D95 -> #7C3AED) + fond clean
-- Proprietes theme : backgroundColor, headerGradientFull[], isDarkBg, textOnBg, textOnBgSecondary
+### Fond global
+- Background unique pour tous les niveaux : **#F8F7F5** (off-white warm)
+- Pas de distinction visuelle par niveau scolaire sur le fond
+- La personnalisation se fait via le wallpaper header uniquement
 
 ### Animations (react-native-reanimated)
 - FadeInUp staggered (60ms delay) sur les listes de cartes
 - Spring animation sur tab bar indicator
 - Scale 0.97 sur press des cartes
-- Fade transition au switch d'enfant
 
 ---
 
 ### Palette de couleurs
 
-#### Accent global Scolaria
-- Violet primaire : #6366F1
-- Cyan secondaire : #22D3EE
-- Degrade Aria : linear-gradient(135deg, #6366F1, #22D3EE)
+### Palette de couleurs
 
-#### Themes par enfant (personnalisables)
-- Ocean (defaut) : accent #4A90D9, light #93C5FD
-- Glacier : accent #0EA5E9, light #BAE6FD
-- Ambre : accent #FBBF24, light #FCD34D
-- Corail : accent #EF4444, light #FCA5A5
-- Rose : accent #EC4899, light #F9A8D4
-- Teal : accent #14B8A6, light #5EEAD4
-- Lavande : accent #A78BFA, light #C4B5FD
-- Foret : accent #4CAF50, light #A5D6A7
-- Violet : accent #7C3AED, light #A78BFA
+#### Couleurs principales
+- Fond global : **#F8F7F5** (off-white warm)
+- Texte principal : **#0F172A**
+- Texte secondaire : rgba(15,23,42,0.55)
+- Texte muted / meta : rgba(15,23,42,0.30)
+- Séparateurs / borders : rgba(15,23,42,0.06)
 
-Couleurs enfant = accents UNIQUEMENT (header, tab bar, badges), jamais sur le texte general.
+#### Accent Scolaria
+- Indigo principal : **#4338CA**
+- Dégradé Aria : linear-gradient(135deg, #6366F1, #22D3EE)
+- Réservé Aria uniquement — jamais sur données ou UI générale
 
-#### Couleurs semantiques
-- Succes / positif : #10B981
-- Alerte / urgent : #EF4444
-- Attention : #F59E0B
-- Score de Joie : #F59E0B
+#### Règles couleur données
+- Grades, moyennes, compteurs : **toujours #0F172A** — jamais de couleur
+- Pills actives : backgroundColor #0F172A, color #FFFFFF
+- Pills inactives : backgroundColor rgba(15,23,42,0.04), color rgba(15,23,42,0.35)
+- Section labels : color #0F172A, opacity 0.28 — pas de violet
+- Trend badges : backgroundColor rgba(15,23,42,0.06), color rgba(15,23,42,0.55)
+- uppercase : section labels et badges de statut uniquement — jamais sur noms ou titres
 
 #### Texte
 - Sur fond clair : #0F172A (principal), #64748B (secondaire), #94A3B8 (muted)
 - Sur fond sombre : #FFFFFF (principal), rgba(255,255,255,0.7) (secondaire)
-- Sur header colore : TOUJOURS blanc
-- JAMAIS de texte blanc sur fond clair
+- Sur header coloré : TOUJOURS blanc
 
 ---
 
-### Regles absolues design
+### Règles absolues design
 - ZERO texte blanc sur fond clair
-- ZERO emoji comme icone de navigation
-- ZERO emoji ni préfixe/suffixe d’icône sur les noms de matières (texte seul partout — voir section « Noms de matières »)
+- ZERO emoji comme icône de navigation
+- ZERO emoji sur les noms de matières
 - ZERO carte plate sans glass effect
-- ZERO font systeme
+- ZERO font système
 - ZERO fond blanc pur (#FFFFFF) comme background de page
+- ZERO bouton full-width
+- Violet #7C3AED réservé au gradient — jamais en couleur solide isolée
 
 ---
 
-## Structure de navigation
+## Structure de navigation (interface parent)
 
-### Topbar (fixe, tous les ecrans)
-- Gauche : avatar enfant (ouvre burger menu)
-- Centre : greeting (accueil) / titre (stacked)
-- Droite : boutons glass contextuels
-- Composant : `<AppTopbar>` (src/components/AppTopbar.tsx)
+### Topbar
+- Accueil : [Avatar ☰] — "Bonjour, Prénom 👋" — [✦ Aria] (scroll-to-hide)
+- Autres tabs : avatar/burger gauche + titre section centre + bouton Aria droite
 
 ### Bottom bar (4 onglets permanents)
-1. Accueil (icone lucide: Home)
-2. Notes (icone lucide: GraduationCap)
-3. Aria (icone: Sparkles)
-4. Agenda (icone lucide: Calendar)
-
-### Menu burger (tiroir gauche)
-Sections : MON ENFANT -> FAMILLE -> PARAMETRES
-Items : Notes & Resultats, Cahier de liaison (badge), Bien-etre,
-Profil & Badges, Archives, Changer d'enfant, Permissions d'acces,
-Notifications, RGPD, A propos / Charte Ethique
+1. Accueil (Papicons filled)
+2. Notes (Papicons filled)
+3. Agenda (Papicons filled)
+4. Messages (Papicons filled + badge rouge si non lu)
++ Aria (cercle gradient violet→cyan, icône = symbole couronne 8 ellipses Scolaria) — détaché à droite, hors pill
 
 ---
 
-## Ecran d'accueil
+## Écrans validés (MVP Avril 2026)
 
-### Structure
-1. ScreenHeader gradient (30-35% ecran, couleur theme enfant)
-2. Topbar par-dessus le header
-3. Section "Aujourd'hui" — grille 2x2 de GlassCard tuiles
-4. Cours du jour (GlassCard noPadding)
-5. Carte Aria synthese (GlassCard)
-6. Bandeau Score de Joie
-7. FloatingTabBar
-
-### Tuiles dynamiques
-- Cahier de liaison : nb mots + badge rouge si non signe
-- Devoirs : nb a rendre + date prochain
-- Notes : moyenne generale + tendance
-- Agenda : nb evenements + prochain
+- **Agenda v5** : titre mois large + calendrier mensuel pull-down, strip mois scrollable horizontal, sélecteur jour = lettre grise + cercle noir sur chiffre, cartes événements colorées (fond teinté + barre accent gauche) extensibles au tap, swipe pour changer de jour, FAB carré arrondi noir
+- **Notes v7** : épuré blanc/noir/gris, couleur sur data uniquement, courbe progression lissée en haut, dernière note + forces/faiblesses en cartes blanches, pills matières scrollables (noir=actif, blanc=inactif), cartes notes extensibles, sélecteur trimestre + bouton scanner top-right
+- **Messagerie** : hub unifié remplaçant notifications + cahier de liaison
+- **Aria chat + sidebar discussions**
 
 ---
 
-## Ecran selecteur de profil (ouverture app)
-- Fond sombre #0A0A14 avec halos de lumiere violet/cyan (LuminousOrbs)
-- Logo « Scolar » + « ia » (ia en couleur distincte) + ✦ en **#4338CA** (indigo) — utiliser `<ScolariaLogo>` (pas de dégradé sur le ✦)
-- Avatars carres arrondis (border-radius 14px) par enfant
-- Bouton "Continuer avec [Prenom] ->" en bas
-- Badge Famille + PREMIUM
+## Écran d'ouverture app (Splash / Login)
+- Fond clair, logo Scolaria centré (symbole + wordmark)
+- Bouton primaire : "Se connecter" (fond noir, texte blanc)
+- Bouton secondaire : "Créer un compte" (contour noir, fond transparent)
+- Lien discret : "Essayer en mode démo"
+- Mention légale bas de page : conditions + politique de confidentialité
+- Pas de sélecteur de profil, pas de PIN, pas d'avatars enfants
+
+### Flux après connexion
+Email + mot de passe → Supabase Auth identifie le rôle →
+- Rôle "parent" → interface parent (sélecteur d'enfants)
+- Rôle "enseignant" → dashboard enseignant
+- Rôle "élève" (collège/lycée) → espace élève
+Aucune saisie de rôle à la connexion — tout est géré par le compte.
 
 ---
 
-## Badges / Pills
-- Border-radius : 20px
-- Padding : 4px 12px
-- Font : DMSans_600SemiBold, 11px
+## Système d'authentification & 3 profils
 
-## Boutons primaires
-- Background : degrade #6366F1 -> #22D3EE
-- Couleur texte : #FFFFFF
-- Border-radius : 14px
-- Font : DMSans_700Bold, 13px
+### À la connexion : redirection selon l'email de l'utilisateur
+- Email professionnel reconnu → dashboard enseignant
+- Email parent → sélecteur d'enfants
+- Email élève collège/lycée → espace élève
+
+### ENSEIGNANT
+- Email professionnel + mot de passe
+- Compte totalement séparé du compte famille
+- Accès direct au dashboard enseignant après connexion
+- Un parent qui est aussi enseignant = deux comptes séparés
+
+### PARENT
+- Email + mot de passe → sélecteur d'enfant style Netflix
+- Gère tous les profils de ses enfants
+- Seul à pouvoir signer les mots du cahier de liaison
+
+### ENFANT MATERNELLE / PRIMAIRE (3-10 ans)
+- Pas de compte, pas d'accès autonome — aucun PIN
+- Le Score de Joie est rempli directement dans l'interface parent
+- Le parent tend le téléphone, l'enfant tape sur son emoji, c'est tout
+- Aucune interface enfant à développer pour ce niveau
+
+### ENFANT COLLÈGE / LYCÉE (11-18 ans)
+- Compte autonome : email + mot de passe
+- App installée sur son propre téléphone
+- Invité par le parent depuis le compte famille
+- Voit uniquement ses propres données
+
+### À 18 ans
+- Le profil est transféré à l'enfant qui devient propriétaire de ses données
+- Toute la scolarité de la maternelle au bac reste accessible
 
 ---
 
-## Aria — règles d'affichage
-- Toujours identifier avec l'icône ✦ et le label "Aria · [contexte]"
+## Interface Enseignant — Specs
+
+### Philosophie
+- Enseignant pense en **classe**, pas en élève individuel
+- Interface aussi simple qu'envoyer un SMS
+- Zéro double saisie — Scolaria remplace Pronote, ne coexiste pas avec lui
+
+### Personas enseignant
+- **Enseignant** : ses élèves uniquement, ses matières uniquement
+- **Enseignant principal** : toutes les matières de sa classe
+- **Directeur** : toutes les classes, gestion accès (Phase 2)
+
+### MVP V1 (prochain sprint)
+- Connexion rôle enseignant
+- Vue liste de classe
+- Envoi message collectif (toute la classe) ou individuel (un parent)
+- Saisie note ou observation par élève
+- Signalement absence
+
+### Phase 2
+- Saisie notes en masse — grille de classe (tableau, pas élève par élève)
+- Cahier de liaison numérique complet
+- Photos / activités de classe
+- Générateur d'appréciations Aria :
+  → Enseignant coche 3 compétences observées
+  → Aria propose 2 formulations en 2 secondes
+  → Enseignant modifie librement et valide
+  → Aucune appréciation envoyée sans validation explicite
+- Vue profil élève (forces, ressenti Score de Joie si autorisé par parent)
+- Indicateur professeur absent
+
+### Phase 3
+- Interface directeur (gestion classes, enseignants, accès, remplaçants)
+- Dashboard bien-être anonymisé par classe
+
+### Testeurs identifiés
+- Prof d'histoire, collège (ami)
+- Prof d'EPS
+→ Stratégie : session découverte informelle d'abord (côté parent), puis sprint basé sur leurs retours
+→ Guide d'entretien prêt : scolaria-guide-entretien-enseignants.pdf
+
+---
+
+## Aria — Règles d'affichage
+
+- Représentée par le **symbole couronne Scolaria (8 ellipses)** — plus de ✦ ni Sparkles icon
 - Fond carte Aria : dégradé très léger #EEF2FF → #F0FDFA
-- Border : 1px solid #E0E7FF
+- Border : 1px solid rgba(15,23,42,0.06)
 - Aria ne diagnostique JAMAIS — elle suggère et informe
 - En mode archive : lecture seule, pas d'alertes Score de Joie
+- Toujours citer ses sources pour chaque alerte
+- Protocole urgence : mots-clés critiques → numéros d'aide (3020, 3114, 119) + alerte parent + aucune réponse IA seule
 
 ---
 
 ## Score de Joie
+
 - Fenêtre glissante 5 jours
-- Seuil d'alerte : -30% déclenche 3 niveaux (Attention / Vigilance / Urgence)
-- Couleur : #F59E0B
-- Emoji : 💛
+- 3 niveaux : Attention (baisse 15-30%) / Vigilance (baisse >30%) / Urgence (mots-clés critiques)
+- Présenté comme tendance ("énergie en baisse") — jamais chiffre brut
+- Révisable par le parent (contexte : maladie, événement familial)
+- Couleur : #F59E0B · Emoji : 💛
 - Ne jamais afficher de diagnostic médical
+
+---
+
+## Architecture BDD (Supabase)
+
+### Tables principales
+- users (parents, enseignants, élèves — rôle défini à l'inscription)
+- students (profil enfant + theme_id)
+- academic_years (millésimes — lien student)
+- grades (notes saisies par enseignant)
+- bulletins (lié à academic_year_id)
+- mots_liaison (cahier de liaison)
+- signatures (signature des mots — parent uniquement)
+- absences (signalement absence)
+- messages (messagerie hub)
+- classe (liste élèves par enseignant)
+
+### Règles RGPD
+- Chiffrement AES-256 at-rest
+- Hébergement OVH France — aucun transit hors UE
+- Export JSON complet disponible
+- Droit à l'effacement en cascade sous 30 jours
+- Journal d'accès consultable par le parent
+- URLs signées 24h pour les pièces jointes
+- Zéro revente de données — zéro profilage publicitaire
 
 ---
 
@@ -224,155 +361,57 @@ Notifications, RGPD, A propos / Charte Ethique
 ### À toujours faire
 - Utiliser les variables CSS/thème définies ci-dessus
 - Appliquer le thème de l'enfant sélectionné globalement via ThemeContext
-- Changer d'enfant dans la topbar met à jour toute l'app instantanément
-- Toutes les données sont liées à un academic_year_id (millésime)
+- Toutes les données liées à un academic_year_id
+- Vérifier (grep -r) avant de modifier des fichiers
+- Appliquer tous les changements en un seul bloc compilé
 
 ### À ne jamais faire
-- Ne jamais écrire "ScolarIA" avec IA en majuscules
-- Ne jamais utiliser de fond blanc pur (#FFFFFF) comme background de page
-- Ne jamais mettre le Score de Joie en mode alerte sur des données archivées
-- Ne jamais afficher les données d'un parent à un autre (garde partagée)
-- Ne jamais comparer automatiquement des données inter-années (Phase 3)
-
----
-
-## Architecture BDD (Supabase)
-
-### Tables principales
-- users (parents, enseignants, élèves)
-- students (profil enfant + theme_id)
-- academic_years (millésimes — lien student)
-- bulletins (lié à academic_year_id)
-- mots_liaison (cahier de liaison)
-- signatures (signature des mots)
-- absences (signalement absence)
-
-### Règles RGPD
-- Chiffrement AES-256 at-rest
-- Export JSON complet disponible
-- Droit à l'effacement en cascade
-- Journal d'accès consultable par le parent
-- URLs signées 24h pour les pièces jointes
-
----
-
-## Personas utilisateurs
-- **Parent principal** : accès complet
-- **Parent secondaire** : accès configurable par le parent principal
-- **Enseignant** : ses élèves uniquement, ses matières uniquement
-- **Enseignant principal** : toutes les matières de sa classe
-- **Accompagnant** (nounou, grands-parents) : accès minimal défini par le parent
-
----
-
-## Système d'authentification
-
-### Comptes et rôles
-
-ENSEIGNANT
-- Email professionnel + mot de passe
-- Compte totalement séparé du compte famille
-- Accès direct au dashboard enseignant après connexion
-
-PARENT
-- Email + mot de passe → compte famille principal
-- Après connexion : sélecteur d'enfant style Netflix
-- Gère les profils de tous ses enfants
-- Seul le parent peut signer les mots du cahier de liaison
-
-ENFANT MATERNELLE / PRIMAIRE (3-10 ans)
-- Pas de compte autonome
-- Accès via PIN 4 chiffres défini par le parent
-- Uniquement sur le téléphone du parent
-- Bac à sable complet : espace élève uniquement
-- Ne peut PAS accéder à l'espace parent
-- Ne peut PAS signer les mots du cahier de liaison
-- Retour à l'espace parent = ressaisie du MDP parent obligatoire
-
-ENFANT COLLÈGE / LYCÉE (11-18 ans)
-- Compte autonome : email + mot de passe
-- App installée sur son propre téléphone
-- Invité par le parent depuis le compte famille
-- Espace élève indépendant sur son téléphone
-- Voit ses propres données (notes, agenda, bien-être)
-- Ne peut PAS signer les mots du cahier de liaison
-- Ne voit PAS les données des autres enfants de la famille
-
-### Flux de connexion
-
-Écran d'ouverture de l'app :
-1. Email + mot de passe → Parent ou Enseignant
-2. Bouton "Accès enfant" → Saisie PIN → Espace élève primaire
-
-### Règles de sécurité
-- Un enfant avec PIN ne peut jamais accéder à l'espace parent
-- Un enfant collégien/lycéen ne voit que ses propres données
-- La signature des mots du cahier de liaison est réservée au parent
-- Un parent qui est aussi enseignant a deux comptes séparés
-  (email perso pour parent, email pro pour enseignant)
+- Écrire "ScolarIA" avec IA en majuscules
+- Utiliser fond blanc pur (#FFFFFF) comme background de page
+- Mettre le Score de Joie en mode alerte sur des données archivées
+- Afficher les données d'un parent à un autre (garde partagée)
+- Comparer automatiquement des données inter-années (Phase 3)
+- Créer des boutons full-width
+- Utiliser violet #7C3AED comme couleur solide isolée
 
 ---
 
 ## Ce qui est en Phase 2-3 (ne pas implémenter maintenant)
 - Comparaisons automatiques inter-années
 - Memories de fin d'année
-- Messagerie bidirectionnelle parent → enseignant
 - Timeline longitudinale graphique
 - Prédictions de performance Aria
 - Mode sombre
 - Signature électronique légale eIDAS
+- ÉduConnect (optionnel V2, jamais obligatoire)
+- Internationalisation (après France-first)
+- Aria voice responses (V2 — V1 = input seulement)
 
 ---
 
-## DÉMARRAGE DE SESSION
+## WORKFLOW Claude Code
+
+### Démarrage de session
 1. Lire tasks/lessons.md — appliquer toutes les leçons avant de toucher quoi que ce soit
 2. Lire tasks/todo.md — comprendre l'état actuel
 3. Si aucun des deux n'existe, les créer avant de commencer
 
-## WORKFLOW
+### Règles de développement
+- Diagnostic d'abord : grep -r avant toute modification
+- Vérifier TypeScript errors avant commit
+- Grouper tous les changements en un seul bloc compilé — une modification = un build
+- Jamais de build pendant que des phases restent à chaîner
+- Vérification localhost obligatoire avant tout build EAS
+- Mode plan pour toute tâche non triviale (3+ étapes) → tasks/todo.md
+- Après correction : mettre à jour tasks/lessons.md
 
-### 1. Planifier d'abord
-- Passer en mode plan pour toute tâche non triviale (3+ étapes)
-- Écrire le plan dans tasks/todo.md avant d'implémenter
-- Si quelque chose ne va pas, STOP et re-planifier — ne jamais forcer
-
-### 2. Stratégie sous-agents
-- Utiliser des sous-agents pour garder le contexte principal propre
-- Une tâche par sous-agent
-- Investir plus de compute sur les problèmes difficiles
-
-### 3. Boucle d'auto-amélioration
-- Après toute correction : mettre à jour tasks/lessons.md
-- Format : [date] | ce qui a mal tourné | règle pour l'éviter
-- Relire les leçons à chaque démarrage de session
-
-### 4. Standard de vérification
-- Ne jamais marquer comme terminé sans preuve que ça fonctionne
-- Lancer les tests, vérifier les logs, comparer le comportement
-- Se demander : « Est-ce qu'un staff engineer validerait ça ? »
-
-### 5. Exiger l'élégance
-- Pour les changements non triviaux : existe-t-il une solution plus élégante ?
-- Si un fix semble bricolé : le reconstruire proprement
-- Ne pas sur-ingénieriser les choses simples
-
-### 6. Correction de bugs autonome
-- Quand on reçoit un bug : le corriger directement
-- Aller dans les logs, trouver la cause racine, résoudre
-- Pas besoin d'être guidé étape par étape
-
-## PRINCIPES FONDAMENTAUX
+### Principes fondamentaux
 - Simplicité d'abord — toucher un minimum de code
-- Pas de paresse — causes racines uniquement, pas de fixes temporaires
+- Causes racines uniquement — pas de fixes temporaires
 - Ne jamais supposer — vérifier chemins, APIs, variables avant utilisation
-- Demander une seule fois — une question en amont si nécessaire, ne jamais interrompre en cours de tâche
+- Une question en amont si nécessaire, ne jamais interrompre en cours de tâche
 
-## GESTION DES TÂCHES
-1. Planifier → tasks/todo.md
-2. Vérifier → confirmer avant d'implémenter
-3. Suivre → marquer comme terminé au fur et à mesure
-4. Expliquer → résumé de haut niveau à chaque étape
-5. Apprendre → tasks/lessons.md après corrections
+---
 
 ## APPRENTISSAGES
-(Claude remplit cette section au fil du temps)
+(Claude Code remplit cette section au fil du temps)
