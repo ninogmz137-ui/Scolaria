@@ -18,11 +18,16 @@ import {
   ArrowRight,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { useChildTheme } from '../../contexts/ChildThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getExportHistory, createExport } from '../../services/rgpdService';
+import GlassCard from '../../components/GlassCard';
+import RgpdHero from '../../components/rgpd/RgpdHero';
+import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
+import { ARIA_INDIGO } from '../../constants/theme';
+import GradientButton from '../../components/shared/GradientButton';
+import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -48,21 +53,18 @@ interface ExportHistory {
 // ─── Component ────────────────────────────────────────────
 
 export default function ExportDonneesScreen() {
-  const { theme } = useChildTheme();
-  const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
   const [exportFormat, setExportFormat] = useState<'json' | 'pdf' | 'both'>('both');
   const [modules, setModules] = useState<DataModule[]>([
-    { key: 'profil', name: 'Profil & identité', Icon: User, color: Colors.violet, size: '12 Ko', count: '2 profils', selected: true },
-    { key: 'notes', name: 'Notes & bulletins', Icon: Check, color: Colors.cyan, size: '145 Ko', count: '47 notes', selected: true },
-    { key: 'agenda', name: 'Agenda & événements', Icon: Calendar, color: Colors.violet, size: '89 Ko', count: '156 événements', selected: true },
-    { key: 'ressenti', name: 'Ressenti & bien-être', Icon: Heart, color: Colors.pink, size: '67 Ko', count: '89 check-ins', selected: true },
-    { key: 'competences', name: 'Compétences & radar', Icon: PieChart, color: Colors.green, size: '8 Ko', count: '5 compétences', selected: true },
-    { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: Colors.orange, size: '15 Ko', count: '5 activités', selected: true },
-    { key: 'photos', name: 'Photos & médias', Icon: Camera, color: Colors.orange, size: '4.2 Mo', count: '24 photos', selected: false },
-    { key: 'conversations', name: 'Conversations Aria', Icon: Sparkles, color: Colors.violetLight, size: '234 Ko', count: '34 conversations', selected: true },
-    { key: 'journal', name: 'Journal d\'accès', Icon: List, color: Colors.cyan, size: '56 Ko', count: '210 entrées', selected: true },
-    { key: 'permissions', name: 'Permissions', Icon: Lock, color: Colors.green, size: '3 Ko', count: '5 personnes', selected: true },
+    { key: 'profil', name: 'Profil & identité', Icon: User, color: ARIA_INDIGO, size: '12 Ko', count: '2 profils', selected: true },
+    { key: 'notes', name: 'Notes & bulletins', Icon: Check, color: ARIA_INDIGO, size: '145 Ko', count: '47 notes', selected: true },
+    { key: 'agenda', name: 'Agenda & événements', Icon: Calendar, color: ARIA_INDIGO, size: '89 Ko', count: '156 événements', selected: true },
+    { key: 'ressenti', name: 'Ressenti & bien-être', Icon: Heart, color: ARIA_INDIGO, size: '67 Ko', count: '89 check-ins', selected: true },
+    { key: 'competences', name: 'Compétences & radar', Icon: PieChart, color: ARIA_INDIGO, size: '8 Ko', count: '5 compétences', selected: true },
+    { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: ARIA_INDIGO, size: '15 Ko', count: '5 activités', selected: true },
+    { key: 'photos', name: 'Photos & médias', Icon: Camera, color: ARIA_INDIGO, size: '4.2 Mo', count: '24 photos', selected: false },
+    { key: 'conversations', name: 'Conversations Aria', Icon: Sparkles, color: ARIA_INDIGO, size: '234 Ko', count: '34 conversations', selected: true },
+    { key: 'journal', name: "Journal d'accès", Icon: List, color: ARIA_INDIGO, size: '56 Ko', count: '210 entrées', selected: true },
+    { key: 'permissions', name: 'Permissions', Icon: Lock, color: ARIA_INDIGO, size: '3 Ko', count: '5 personnes', selected: true },
   ]);
   const [exporting, setExporting] = useState(false);
   const [exportDone, setExportDone] = useState(false);
@@ -161,31 +163,23 @@ export default function ExportDonneesScreen() {
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: TOPBAR_H + 12,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
-            paddingHorizontal: 18,
-          }}
-        >
-          {/* Info header */}
-          <View style={[styles.card, { borderColor: Colors.orange + '60', marginBottom: 14 }]}>
-            <View style={styles.infoRow}>
-              <View style={[styles.infoIcon, { backgroundColor: Colors.orange + '20' }]}>
-                <ArrowDown size={24} color={Colors.orange} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.infoTitle}>Export intégral RGPD</Text>
-                <Text style={styles.infoSubtitle}>
-                  Article 20 du RGPD — Droit à la portabilité. Téléchargez toutes vos données en JSON lisible par machine + PDF lisible par humain.
-                </Text>
-              </View>
-            </View>
-          </View>
+        <RgpdBottomSheet>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingTop: 56,
+              paddingBottom: TAB_BAR_SCROLL_PADDING,
+              paddingHorizontal: 18,
+            }}
+          >
+          <RgpdHero
+            Icon={ArrowDown}
+            title="Export intégral"
+            subtitle="Article 20 (portabilité). Téléchargez vos données en JSON (machine) et/ou PDF (humain)."
+          />
 
           {/* Format selector label */}
-          <Text style={styles.sectionLabel}>FORMAT D'EXPORT</Text>
+          <RgpdSectionLabel style={{ marginTop: 14, marginBottom: 10 }}>Format d’export</RgpdSectionLabel>
 
           <View style={styles.formatRow}>
             {FORMAT_OPTIONS.map((fmt) => {
@@ -195,16 +189,16 @@ export default function ExportDonneesScreen() {
                   <View
                     style={[
                       styles.formatCard,
-                      isSelected && { borderColor: Colors.orange + '80', backgroundColor: Colors.orange + '08' },
+                      isSelected && { borderColor: 'rgba(67,56,202,0.25)', backgroundColor: 'rgba(67,56,202,0.06)' },
                     ]}
                   >
                     {isSelected && (
-                      <View style={[styles.formatCheck, { backgroundColor: Colors.orange }]}>
+                      <View style={[styles.formatCheck, { backgroundColor: ARIA_INDIGO }]}>
                         <Check size={12} color="#fff" />
                       </View>
                     )}
-                    <fmt.Icon size={24} color={isSelected ? Colors.orange : '#CBD5E1'} />
-                    <Text style={[styles.formatLabel, isSelected && { color: Colors.orange }]}>{fmt.label}</Text>
+                    <fmt.Icon size={24} color={isSelected ? ARIA_INDIGO : Colors.textMuted} />
+                    <Text style={[styles.formatLabel, isSelected && { color: Colors.textPrimary }]}>{fmt.label}</Text>
                     <Text style={styles.formatDesc}>{fmt.desc}</Text>
                   </View>
                 </Pressable>
@@ -214,15 +208,15 @@ export default function ExportDonneesScreen() {
 
           {/* Module selection label */}
           <View style={[styles.sectionHeaderRow, { justifyContent: 'space-between' }]}>
-            <Text style={styles.sectionLabel}>DONNÉES À EXPORTER</Text>
+            <RgpdSectionLabel>Données à exporter</RgpdSectionLabel>
             <Pressable onPress={selectAll}>
-              <Text style={[styles.sectionLabel, { color: Colors.cyan, textTransform: 'none', letterSpacing: 0 }]}>
+              <Text style={[styles.sectionLabel, { color: ARIA_INDIGO, textTransform: 'none', letterSpacing: 0 }]}>
                 {modules.every((m) => m.selected) ? 'Tout désélectionner' : 'Tout sélectionner'}
               </Text>
             </Pressable>
           </View>
 
-          <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
+          <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 14 }]}>
             {modules.map((mod, i) => (
               <View
                 key={mod.key}
@@ -238,67 +232,60 @@ export default function ExportDonneesScreen() {
                 <Switch
                   value={mod.selected}
                   onValueChange={() => toggleModule(mod.key)}
-                  trackColor={{ false: '#E2E8F0', true: mod.color + '60' }}
-                  thumbColor={mod.selected ? mod.color : '#CBD5E1'}
+                  trackColor={{ false: '#E2E8F0', true: 'rgba(67,56,202,0.35)' }}
+                  thumbColor={mod.selected ? ARIA_INDIGO : '#CBD5E1'}
                 />
               </View>
             ))}
-          </View>
+          </GlassCard>
 
           {/* Summary */}
-          <View style={[styles.card, { marginBottom: 14 }]}>
+          <GlassCard style={[styles.cardBorder, { marginBottom: 14 }]}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Modules sélectionnés</Text>
               <Text style={styles.summaryValue}>{selectedModules.length}/{modules.length}</Text>
             </View>
             <View style={[styles.summaryRow, { marginTop: 8 }]}>
               <Text style={styles.summaryLabel}>Taille estimée</Text>
-              <Text style={[styles.summaryValue, { color: Colors.cyan }]}>{totalSizeStr}</Text>
+              <Text style={[styles.summaryValue, { color: Colors.textPrimary }]}>{totalSizeStr}</Text>
             </View>
             <View style={[styles.summaryRow, { marginTop: 8 }]}>
               <Text style={styles.summaryLabel}>Format</Text>
-              <Text style={[styles.summaryValue, { color: Colors.orange }]}>
+              <Text style={[styles.summaryValue, { color: Colors.textPrimary }]}>
                 {exportFormat === 'both' ? 'JSON + PDF' : exportFormat.toUpperCase()}
               </Text>
             </View>
-          </View>
+          </GlassCard>
 
           {/* Export button */}
           {exporting ? (
-            <View style={[styles.card, { alignItems: 'center', gap: 10, marginBottom: 14 }]}>
-              <ActivityIndicator color={Colors.orange} size="small" />
+            <GlassCard style={[styles.cardBorder, { alignItems: 'center', gap: 10, marginBottom: 14 }]}>
+              <ActivityIndicator color={ARIA_INDIGO} size="small" />
               <Text style={styles.personName}>Export en cours...</Text>
               <View style={styles.progressBg}>
-                <Animated.View style={[styles.progressFill, { width: progressWidth, backgroundColor: Colors.orange }]} />
+                <Animated.View style={[styles.progressFill, { width: progressWidth, backgroundColor: ARIA_INDIGO }]} />
               </View>
-            </View>
+            </GlassCard>
           ) : (
-            <Pressable
-              style={[
-                styles.exportBtn,
-                { opacity: selectedModules.length > 0 ? 1 : 0.5 },
-              ]}
+            <GradientButton
+              label={`Exporter (${totalSizeStr})`}
               onPress={handleExport}
               disabled={selectedModules.length === 0}
-            >
-              <ArrowDown size={20} color="#7C3AED" strokeWidth={1.5} />
-              <Text style={styles.exportBtnText}>
-                Exporter mes données ({totalSizeStr})
-              </Text>
-            </Pressable>
+              leftIcon={<ArrowDown size={18} color="#FFFFFF" strokeWidth={2} />}
+            />
           )}
 
           {/* Export history label */}
-          <Text style={[styles.sectionLabel, { marginTop: 14 }]}>HISTORIQUE DES EXPORTS</Text>
+          <RgpdSectionLabel style={{ marginTop: 16, marginBottom: 10 }}>Historique des exports</RgpdSectionLabel>
 
-          <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
+          <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 14 }]}>
             {history.map((exp, i) => (
               <View
                 key={exp.id}
                 style={[styles.historyRow, i < history.length - 1 && styles.rowBorder]}
               >
-                <View style={[styles.moduleIcon, { backgroundColor: Colors.green + '20' }]}>
-                  <Check size={18} color={Colors.green} />
+                <View style={[styles.moduleIcon, { backgroundColor: 'rgba(67,56,202,0.10)' }]}>
+                  <Check size={18} color={ARIA_INDIGO} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.personName}>{exp.date}</Text>
@@ -307,16 +294,16 @@ export default function ExportDonneesScreen() {
                   </Text>
                 </View>
                 <Pressable>
-                  <ArrowRight size={18} color={Colors.cyan} />
+                  <ArrowRight size={18} color={Colors.textMuted} />
                 </Pressable>
               </View>
             ))}
-          </View>
+          </GlassCard>
 
           {/* JSON preview label */}
-          <Text style={[styles.sectionLabel, { marginTop: 4 }]}>APERÇU JSON</Text>
+          <RgpdSectionLabel style={{ marginTop: 4, marginBottom: 10 }}>Aperçu JSON</RgpdSectionLabel>
 
-          <View style={[styles.card, { marginBottom: 14 }]}>
+          <GlassCard style={[styles.cardBorder, { marginBottom: 14 }]}>
             <Text style={styles.jsonPreview}>{`{
   "scolaria_export": {
     "version": "1.0",
@@ -338,36 +325,33 @@ export default function ExportDonneesScreen() {
     }
   }
 }`}</Text>
-          </View>
+          </GlassCard>
 
           {/* RGPD notice */}
-          <View style={styles.card}>
+          <GlassCard style={[styles.cardBorder, { marginBottom: 8 }]}>
             <View style={styles.noticeRow}>
-              <Info size={16} color={Colors.cyan} />
+              <View style={styles.miniIconWrap}>
+                <Info size={16} color={ARIA_INDIGO} />
+              </View>
               <Text style={styles.noticeText}>
-                Conformément à l'article 20 du RGPD, vos données sont fournies dans un format structuré, couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
+                Conformément à l’article 20 du RGPD, vos données sont fournies dans un format structuré,
+                couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
               </Text>
             </View>
-          </View>
-        </ScrollView>
+          </GlassCard>
+          </ScrollView>
+        </RgpdBottomSheet>
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 16,
+  cardBorder: {
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 16,
-    marginBottom: 12,
+    borderColor: Colors.cardBorder,
   },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
   sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 10, marginTop: 2 },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   formatRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
@@ -394,15 +378,24 @@ const styles = StyleSheet.create({
   summaryValue: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
   progressBg: { width: '100%', height: 6, borderRadius: 3, backgroundColor: '#F1F5F9', overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 3 },
-  exportBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, marginBottom: 8 },
-  exportBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, fontWeight: '600', color: '#7C3AED' },
   historyRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   jsonPreview: {
     fontSize: 11,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    color: Colors.green,
+    color: Colors.textSecondary,
     lineHeight: 17,
   },
+  miniIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(67,56,202,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(67,56,202,0.14)',
+    marginTop: 1,
+  },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8', flex: 1 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary, flex: 1 },
 });

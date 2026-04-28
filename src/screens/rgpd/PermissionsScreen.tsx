@@ -16,10 +16,13 @@ import {
   Plus,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { useChildTheme } from '../../contexts/ChildThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import GlassCard from '../../components/GlassCard';
+import RgpdHero from '../../components/rgpd/RgpdHero';
+import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
+import { ARIA_INDIGO } from '../../constants/theme';
+import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import {
   getPermissions,
   updatePermission,
@@ -34,7 +37,6 @@ type AccessLevel = 'tuteur' | 'famille_proche' | 'accompagnant' | 'minimal';
 interface AccessLevelConfig {
   key: AccessLevel;
   label: string;
-  emoji: string;
   color: string;
   description: string;
   permissions: string[];
@@ -64,31 +66,27 @@ const ACCESS_LEVELS: AccessLevelConfig[] = [
   {
     key: 'tuteur',
     label: 'Tuteur légal',
-    emoji: '👑',
-    color: Colors.violet,
+    color: ARIA_INDIGO,
     description: 'Accès complet à toutes les données et paramètres du compte',
     permissions: ['Notes', 'Agenda', 'Ressenti', 'Profil complet', 'Photos', 'Aria', 'Export', 'Suppression'],
   },
   {
     key: 'famille_proche',
     label: 'Famille proche',
-    emoji: '👨‍👩‍👧',
-    color: Colors.cyan,
+    color: ARIA_INDIGO,
     description: 'Accès aux résultats scolaires et au suivi général',
     permissions: ['Notes', 'Agenda', 'Profil (résumé)', 'Photos'],
   },
   {
     key: 'accompagnant',
     label: 'Accompagnant',
-    emoji: '🤝',
-    color: Colors.orange,
+    color: ARIA_INDIGO,
     description: 'Accès limité pour le suivi périscolaire',
     permissions: ['Agenda', 'Photos (lecture)', 'Profil (résumé)'],
   },
   {
     key: 'minimal',
     label: 'Accès minimal',
-    emoji: '👁️',
     color: Colors.gray,
     description: 'Consultation du profil de base uniquement',
     permissions: ['Profil (nom, classe)'],
@@ -101,7 +99,7 @@ const INITIAL_PEOPLE: Person[] = [
   {
     id: '1',
     name: 'Sophie Moreau',
-    avatar: '👩',
+    avatar: '',
     role: 'Mère (Tuteur légal)',
     email: 'sophie.moreau@email.fr',
     level: 'tuteur',
@@ -111,7 +109,7 @@ const INITIAL_PEOPLE: Person[] = [
   {
     id: '2',
     name: 'Marc Moreau',
-    avatar: '👨',
+    avatar: '',
     role: 'Père (Tuteur légal)',
     email: 'marc.moreau@email.fr',
     level: 'tuteur',
@@ -121,7 +119,7 @@ const INITIAL_PEOPLE: Person[] = [
   {
     id: '3',
     name: 'Marie-Claire Moreau',
-    avatar: '👵',
+    avatar: '',
     role: 'Grand-mère',
     email: 'mc.moreau@email.fr',
     level: 'famille_proche',
@@ -131,7 +129,7 @@ const INITIAL_PEOPLE: Person[] = [
   {
     id: '4',
     name: 'Assistante maternelle',
-    avatar: '👩‍🏫',
+    avatar: '',
     role: 'Périscolaire',
     email: 'nourrice@email.fr',
     level: 'accompagnant',
@@ -141,7 +139,7 @@ const INITIAL_PEOPLE: Person[] = [
   {
     id: '5',
     name: 'Dr. Martin',
-    avatar: '👩‍⚕️',
+    avatar: '',
     role: 'Médecin scolaire',
     email: 'dr.martin@sante.fr',
     level: 'minimal',
@@ -153,20 +151,17 @@ const INITIAL_PEOPLE: Person[] = [
 // ─── Module toggle config ─────────────────────────────────
 
 const MODULE_CONFIG = [
-  { key: 'notes' as const, label: 'Notes & bulletins', Icon: Check, color: Colors.cyan },
-  { key: 'agenda' as const, label: 'Agenda', Icon: Calendar, color: Colors.violet },
-  { key: 'ressenti' as const, label: 'Ressenti', Icon: Heart, color: Colors.pink },
-  { key: 'profil' as const, label: 'Profil élève', Icon: User, color: Colors.green },
-  { key: 'photos' as const, label: 'Photos', Icon: Camera, color: Colors.orange },
-  { key: 'aria' as const, label: 'Aria IA', Icon: Sparkles, color: Colors.violetLight },
+  { key: 'notes' as const, label: 'Notes & bulletins', Icon: Check, color: ARIA_INDIGO },
+  { key: 'agenda' as const, label: 'Agenda', Icon: Calendar, color: ARIA_INDIGO },
+  { key: 'ressenti' as const, label: 'Ressenti', Icon: Heart, color: ARIA_INDIGO },
+  { key: 'profil' as const, label: 'Profil élève', Icon: User, color: ARIA_INDIGO },
+  { key: 'photos' as const, label: 'Photos', Icon: Camera, color: ARIA_INDIGO },
+  { key: 'aria' as const, label: 'Aria', Icon: Sparkles, color: ARIA_INDIGO },
 ];
 
 // ─── Component ────────────────────────────────────────────
 
 export default function PermissionsScreen() {
-  const { theme } = useChildTheme();
-  const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
   const [people, setPeople] = useState(INITIAL_PEOPLE);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -196,6 +191,13 @@ export default function PermissionsScreen() {
 
   const getLevelConfig = (level: AccessLevel) =>
     ACCESS_LEVELS.find((l) => l.key === level) || ACCESS_LEVELS[3];
+
+  const initials = (fullName: string) => {
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] ?? '';
+    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
+    return (first + last).toUpperCase();
+  };
 
   const handleSelectPerson = (person: Person) => {
     setSelectedPerson(person);
@@ -254,47 +256,41 @@ export default function PermissionsScreen() {
   };
 
   return (
-    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-      <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
+    <RgpdBottomSheet>
+      <Animated.View style={{ opacity: fadeAnim }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingTop: TOPBAR_H + 12,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+            paddingTop: 56,
+            paddingBottom: TAB_BAR_SCROLL_PADDING,
             paddingHorizontal: 18,
           }}
         >
-          {/* Header info */}
-          <View style={[styles.card, { borderColor: Colors.green + '60', marginBottom: 14 }]}>
-            <View style={styles.infoRow}>
-              <View style={[styles.infoIcon, { backgroundColor: Colors.green + '20' }]}>
-                <Lock size={24} color={Colors.green} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.infoTitle}>RGPD — Contrôle d'accès</Text>
-                <Text style={styles.infoSubtitle}>
-                  Définissez précisément qui peut voir quoi. Chaque modification est journalisée.
-                </Text>
-              </View>
-            </View>
-          </View>
+          <RgpdHero
+            Icon={Lock}
+            title="Contrôle d’accès"
+            subtitle="Définissez précisément qui peut voir quoi. Chaque modification est journalisée."
+          />
 
           {/* Access levels legend */}
           <Pressable onPress={() => setShowLevelInfo(!showLevelInfo)}>
-            <View style={[styles.card, { marginBottom: 8 }]}>
+            <GlassCard style={[styles.cardBorder, { marginTop: 12, marginBottom: 8 }]}>
               <View style={styles.infoRow}>
-                <Info size={20} color={Colors.cyan} />
-                <Text style={[styles.infoTitle, { flex: 1, marginLeft: 10 }]}>4 niveaux d'accès</Text>
-                {showLevelInfo
-                  ? <ChevronUp size={18} color="#94A3B8" />
-                  : <ChevronDown size={18} color="#94A3B8" />
-                }
+                <View style={styles.miniIconWrap}>
+                  <Info size={18} color={ARIA_INDIGO} />
+                </View>
+                <Text style={[styles.infoTitle, { flex: 1 }]}>4 niveaux d’accès</Text>
+                {showLevelInfo ? (
+                  <ChevronUp size={18} color={Colors.textMuted} />
+                ) : (
+                  <ChevronDown size={18} color={Colors.textMuted} />
+                )}
               </View>
-            </View>
+            </GlassCard>
           </Pressable>
 
           {showLevelInfo && (
-            <View style={[styles.card, { marginBottom: 14, padding: 0 }]}>
+            <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 14 }]}>
               {ACCESS_LEVELS.map((level, i) => (
                 <View
                   key={level.key}
@@ -303,30 +299,30 @@ export default function PermissionsScreen() {
                     i < ACCESS_LEVELS.length - 1 && styles.rowBorder,
                   ]}
                 >
-                  <View style={[styles.levelIcon, { backgroundColor: level.color + '20' }]}>
-                    <Text style={styles.levelEmoji}>{level.emoji}</Text>
+                  <View style={[styles.levelIcon, { backgroundColor: 'rgba(67,56,202,0.08)', borderColor: 'rgba(67,56,202,0.14)' }]}>
+                    <Lock size={18} color={level.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.levelLabel}>{level.label}</Text>
                     <Text style={styles.levelDesc}>{level.description}</Text>
                     <View style={styles.pillRow}>
                       {level.permissions.map((p) => (
-                        <View key={p} style={[styles.pill, { backgroundColor: level.color + '20' }]}>
-                          <Text style={[styles.pillText, { color: level.color }]}>{p}</Text>
+                        <View key={p} style={[styles.pill, { backgroundColor: 'rgba(67,56,202,0.08)', borderColor: 'rgba(67,56,202,0.12)' }]}>
+                          <Text style={[styles.pillText, { color: Colors.textSecondary }]}>{p}</Text>
                         </View>
                       ))}
                     </View>
                   </View>
                 </View>
               ))}
-            </View>
+            </GlassCard>
           )}
 
           {/* Section label */}
-          <Text style={styles.sectionLabel}>PERSONNES AUTORISÉES</Text>
+          <RgpdSectionLabel style={{ marginTop: 8, marginBottom: 8 }}>Personnes autorisées</RgpdSectionLabel>
 
           {/* People list */}
-          <View style={[styles.card, { marginBottom: 12, padding: 0 }]}>
+          <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 12 }]}>
             {people.map((person, i) => {
               const levelCfg = getLevelConfig(person.level);
               return (
@@ -335,183 +331,189 @@ export default function PermissionsScreen() {
                   style={[styles.personRow, i < people.length - 1 && styles.rowBorder]}
                   onPress={() => handleSelectPerson(person)}
                 >
-                  <View style={[styles.avatarCircle, { borderColor: levelCfg.color }]}>
-                    <Text style={styles.avatarText}>{person.avatar}</Text>
+                  <View style={[styles.avatarCircle, { borderColor: 'rgba(67,56,202,0.18)' }]}>
+                    <Text style={styles.avatarText}>{initials(person.name)}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.personName}>{person.name}</Text>
                     <Text style={styles.personRole}>{person.role}</Text>
                   </View>
-                  <View style={[styles.levelBadge, { backgroundColor: levelCfg.color + '25' }]}>
+                  <View style={[styles.levelBadge, { backgroundColor: 'rgba(67,56,202,0.08)', borderColor: 'rgba(67,56,202,0.14)' }]}>
                     <Text style={[styles.levelBadgeText, { color: levelCfg.color }]}>{levelCfg.label}</Text>
                   </View>
-                  <ChevronRight size={16} color="#CBD5E1" />
+                  <ChevronRight size={18} color={Colors.textMuted} />
                 </Pressable>
               );
             })}
-          </View>
+          </GlassCard>
 
           {/* Add person */}
-          <View style={[styles.card, { borderStyle: 'dashed', borderColor: Colors.cyan + '60' }]}>
+          <GlassCard style={[styles.cardBorder, { borderStyle: 'dashed', borderColor: 'rgba(67,56,202,0.28)' }]}>
             <View style={styles.addRow}>
-              <Plus size={20} color={Colors.cyan} />
-              <Text style={[styles.levelLabel, { color: Colors.cyan, marginLeft: 10 }]}>Inviter une personne</Text>
+              <Plus size={20} color={ARIA_INDIGO} />
+              <Text style={[styles.levelLabel, { color: Colors.textPrimary, marginLeft: 10 }]}>Inviter une personne</Text>
             </View>
-          </View>
+          </GlassCard>
 
           {/* Stats */}
           <View style={styles.statsRow}>
-            <View style={[styles.statCard, styles.card]}>
-              <Text style={[styles.statValue, { color: Colors.cyan }]}>{people.length}</Text>
+            <GlassCard style={[styles.cardBorder, styles.statCard]}>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>{people.length}</Text>
               <Text style={styles.statLabel}>Personnes</Text>
-            </View>
-            <View style={[styles.statCard, styles.card]}>
-              <Text style={[styles.statValue, { color: Colors.violet }]}>
+            </GlassCard>
+            <GlassCard style={[styles.cardBorder, styles.statCard]}>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>
                 {people.filter((p) => p.level === 'tuteur').length}
               </Text>
               <Text style={styles.statLabel}>Tuteurs</Text>
-            </View>
-            <View style={[styles.statCard, styles.card]}>
-              <Text style={[styles.statValue, { color: Colors.green }]}>6</Text>
+            </GlassCard>
+            <GlassCard style={[styles.cardBorder, styles.statCard]}>
+              <Text style={[styles.statValue, { color: Colors.textPrimary }]}>6</Text>
               <Text style={styles.statLabel}>Modules</Text>
-            </View>
+            </GlassCard>
           </View>
         </ScrollView>
+      </Animated.View>
 
-        {/* Detail Modal */}
-        <Modal visible={showModal} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalSheet}>
-              <View style={styles.modalHandle} />
+      {/* Detail Modal */}
+      <Modal visible={showModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
 
-              {selectedPerson && (
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
-                >
-                  {/* Person header */}
-                  <View style={styles.personHeader}>
-                    <View style={[styles.avatarCircleLg, { borderColor: getLevelConfig(selectedPerson.level).color }]}>
-                      <Text style={styles.avatarTextLg}>{selectedPerson.avatar}</Text>
-                    </View>
-                    <Text style={styles.modalName}>{selectedPerson.name}</Text>
-                    <Text style={styles.modalRole}>{selectedPerson.role}</Text>
-                    <Text style={[styles.modalEmail, { color: Colors.cyan }]}>{selectedPerson.email}</Text>
-                    {selectedPerson.lastAccess && (
-                      <Text style={styles.modalLastAccess}>Dernier accès : {selectedPerson.lastAccess}</Text>
-                    )}
+            {selectedPerson && (
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+              >
+                {/* Person header */}
+                <View style={styles.personHeader}>
+                  <View style={[styles.avatarCircleLg, { borderColor: 'rgba(67,56,202,0.18)' }]}>
+                    <Text style={styles.avatarTextLg}>{initials(selectedPerson.name)}</Text>
                   </View>
+                  <Text style={styles.modalName}>{selectedPerson.name}</Text>
+                  <Text style={styles.modalRole}>{selectedPerson.role}</Text>
+                  <Text style={[styles.modalEmail, { color: Colors.textSecondary }]}>{selectedPerson.email}</Text>
+                  {selectedPerson.lastAccess && (
+                    <Text style={styles.modalLastAccess}>Dernier accès : {selectedPerson.lastAccess}</Text>
+                  )}
+                </View>
 
-                  {/* Level selector */}
-                  <Text style={[styles.sectionLabel, { marginBottom: 8 }]}>NIVEAU D'ACCÈS</Text>
-                  <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
-                    {ACCESS_LEVELS.map((level, i) => {
-                      const isSelected = selectedPerson.level === level.key;
-                      return (
-                        <Pressable
-                          key={level.key}
-                          style={[
-                            styles.levelSelectRow,
-                            i < ACCESS_LEVELS.length - 1 && styles.rowBorder,
-                            isSelected && { backgroundColor: level.color + '10' },
-                          ]}
-                          onPress={() => handleChangeLevel(selectedPerson.id, level.key)}
-                        >
-                          <Text style={styles.levelEmoji}>{level.emoji}</Text>
-                          <View style={{ flex: 1, marginLeft: 12 }}>
-                            <Text style={styles.personName}>{level.label}</Text>
-                            <Text style={styles.personRole} numberOfLines={1}>{level.description}</Text>
-                          </View>
-                          {isSelected && <Check size={22} color={level.color} />}
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  {/* Module toggles */}
-                  <Text style={[styles.sectionLabel, { marginBottom: 8 }]}>MODULES AUTORISÉS</Text>
-                  <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
-                    {MODULE_CONFIG.map((mod, i) => (
-                      <View
-                        key={mod.key}
-                        style={[styles.moduleRow, i < MODULE_CONFIG.length - 1 && styles.rowBorder]}
+                {/* Level selector */}
+                <RgpdSectionLabel style={{ marginBottom: 8 }}>Niveau d’accès</RgpdSectionLabel>
+                <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 16 }]}>
+                  {ACCESS_LEVELS.map((level, i) => {
+                    const isSelected = selectedPerson.level === level.key;
+                    return (
+                      <Pressable
+                        key={level.key}
+                        style={[
+                          styles.levelSelectRow,
+                          i < ACCESS_LEVELS.length - 1 && styles.rowBorder,
+                          isSelected && { backgroundColor: 'rgba(67,56,202,0.06)' },
+                        ]}
+                        onPress={() => handleChangeLevel(selectedPerson.id, level.key)}
                       >
-                        <View style={[styles.moduleIcon, { backgroundColor: mod.color + '20' }]}>
-                          <mod.Icon size={16} color={mod.color} />
+                        <View style={[styles.miniIconWrap, { backgroundColor: 'rgba(67,56,202,0.08)', borderColor: 'rgba(67,56,202,0.14)' }]}>
+                          <Lock size={16} color={level.color} />
                         </View>
-                        <Text style={[styles.personName, { flex: 1, marginLeft: 12 }]}>{mod.label}</Text>
-                        <Switch
-                          value={selectedPerson.modules[mod.key]}
-                          onValueChange={() => handleToggleModule(selectedPerson.id, mod.key)}
-                          trackColor={{ false: '#E2E8F0', true: mod.color + '60' }}
-                          thumbColor={selectedPerson.modules[mod.key] ? mod.color : '#CBD5E1'}
-                        />
-                      </View>
-                    ))}
-                  </View>
+                        <View style={{ flex: 1, marginLeft: 12 }}>
+                          <Text style={styles.personName}>{level.label}</Text>
+                          <Text style={styles.personRole} numberOfLines={1}>{level.description}</Text>
+                        </View>
+                        {isSelected && <Check size={22} color={level.color} />}
+                      </Pressable>
+                    );
+                  })}
+                </GlassCard>
 
-                  {/* Actions */}
-                  <View style={{ gap: 10, marginBottom: 24 }}>
-                    <Pressable
-                      style={[styles.actionBtn, { backgroundColor: Colors.red + '15', borderWidth: 1, borderColor: Colors.red + '30' }]}
-                      onPress={() => handleRevokeAccess(selectedPerson.id)}
+                {/* Module toggles */}
+                <RgpdSectionLabel style={{ marginBottom: 8 }}>Modules autorisés</RgpdSectionLabel>
+                <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 16 }]}>
+                  {MODULE_CONFIG.map((mod, i) => (
+                    <View
+                      key={mod.key}
+                      style={[styles.moduleRow, i < MODULE_CONFIG.length - 1 && styles.rowBorder]}
                     >
-                      <X size={20} color={Colors.red} />
-                      <Text style={[styles.actionText, { color: Colors.red }]}>Révoquer l'accès</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.actionBtn, { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }]}
-                      onPress={() => setShowModal(false)}
-                    >
-                      <Text style={[styles.actionText, { color: '#1A2340' }]}>Fermer</Text>
-                    </Pressable>
-                  </View>
-                </ScrollView>
-              )}
-            </View>
+                      <View style={[styles.moduleIcon, { backgroundColor: mod.color + '20' }]}>
+                        <mod.Icon size={16} color={mod.color} />
+                      </View>
+                      <Text style={[styles.personName, { flex: 1, marginLeft: 12 }]}>{mod.label}</Text>
+                      <Switch
+                        value={selectedPerson.modules[mod.key]}
+                        onValueChange={() => handleToggleModule(selectedPerson.id, mod.key)}
+                        trackColor={{ false: '#E2E8F0', true: 'rgba(67,56,202,0.35)' }}
+                        thumbColor={selectedPerson.modules[mod.key] ? ARIA_INDIGO : '#CBD5E1'}
+                      />
+                    </View>
+                  ))}
+                </GlassCard>
+
+                {/* Actions */}
+                <View style={{ gap: 10, marginBottom: 24 }}>
+                  <Pressable
+                    style={[styles.actionBtn, { backgroundColor: Colors.red + '15', borderWidth: 1, borderColor: Colors.red + '30' }]}
+                    onPress={() => handleRevokeAccess(selectedPerson.id)}
+                  >
+                    <X size={20} color={Colors.red} />
+                    <Text style={[styles.actionText, { color: Colors.red }]}>Révoquer l'accès</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.actionBtn, { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' }]}
+                    onPress={() => setShowModal(false)}
+                  >
+                    <Text style={[styles.actionText, { color: '#1A2340' }]}>Fermer</Text>
+                  </Pressable>
+                </View>
+              </ScrollView>
+            )}
           </View>
-        </Modal>
-      </View>
-    </Animated.View>
+        </View>
+      </Modal>
+    </RgpdBottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 16,
+  cardBorder: {
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 16,
-    marginBottom: 12,
+    borderColor: Colors.cardBorder,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
-  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8, marginTop: 6 },
+  miniIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(67,56,202,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(67,56,202,0.14)',
+  },
+  infoTitle: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: Colors.textPrimary },
+  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 17 },
   levelRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, gap: 12 },
   levelSelectRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  levelIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  levelEmoji: { fontSize: 22 },
-  levelLabel: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
-  levelDesc: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2 },
+  levelIcon: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  levelLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: Colors.textPrimary },
+  levelDesc: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   pillRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
-  pill: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  pill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
   pillText: { fontFamily: FontFamily.sansSemiBold, fontSize: 10 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   personRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  avatarCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 2, backgroundColor: '#F8FAFC' },
-  avatarText: { fontSize: 22 },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 1 },
-  levelBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  avatarCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 1, backgroundColor: 'rgba(255,255,255,0.92)' },
+  avatarText: { fontFamily: FontFamily.sansBold, fontSize: 14, color: Colors.textPrimary },
+  personName: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: Colors.textPrimary },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
+  levelBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
   levelBadgeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
   addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   statsRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  statCard: { flex: 1, alignItems: 'center', paddingVertical: 14 },
+  statCard: { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 20 },
   statValue: { fontFamily: FontFamily.sansBold, fontSize: 24 },
-  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: '#94A3B8', marginTop: 4 },
+  statLabel: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: Colors.textSecondary, marginTop: 4 },
   moduleRow: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   moduleIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   // Modal
@@ -520,7 +522,7 @@ const styles = StyleSheet.create({
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: '#E2E8F0', alignSelf: 'center', marginBottom: 16 },
   personHeader: { alignItems: 'center', marginBottom: 20 },
   avatarCircleLg: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 3, backgroundColor: '#F8FAFC', marginBottom: 10 },
-  avatarTextLg: { fontSize: 32 },
+  avatarTextLg: { fontFamily: FontFamily.sansBold, fontSize: 20, color: Colors.textPrimary },
   modalName: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#1A2340' },
   modalRole: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginTop: 2 },
   modalEmail: { fontFamily: FontFamily.sansRegular, fontSize: 12, marginTop: 4 },

@@ -8,13 +8,19 @@ import {
   Lock,
   Key,
   Info,
+  Bell,
+  School,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { useChildTheme } from '../../contexts/ChildThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getTransferCodes, createTransferCode, revokeTransferCode, type TransferCode as SupabaseTransferCode } from '../../services/rgpdService';
+import GlassCard from '../../components/GlassCard';
+import RgpdHero from '../../components/rgpd/RgpdHero';
+import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
+import { ARIA_INDIGO } from '../../constants/theme';
+import GradientButton from '../../components/shared/GradientButton';
+import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -40,7 +46,7 @@ const EXISTING_CODES: TransferCode[] = [
     id: '1',
     code: 'SCA-TRANSFER-2031-A7F3K2',
     child: 'Lucas Moreau',
-    childAvatar: '👦',
+    childAvatar: '',
     fromSchool: 'École Voltaire',
     toSchool: 'Collège Victor Hugo',
     createdAt: '15 mars 2026',
@@ -52,7 +58,7 @@ const EXISTING_CODES: TransferCode[] = [
     id: '2',
     code: 'SCA-TRANSFER-2031-B9D4E1',
     child: 'Emma Moreau',
-    childAvatar: '👧',
+    childAvatar: '',
     fromSchool: 'Collège Hugo',
     toSchool: 'Lycée Montaigne',
     createdAt: '2 février 2026',
@@ -64,7 +70,7 @@ const EXISTING_CODES: TransferCode[] = [
     id: '3',
     code: 'SCA-TRANSFER-2031-X2M8P5',
     child: 'Lucas Moreau',
-    childAvatar: '👦',
+    childAvatar: '',
     fromSchool: 'École Pasteur',
     toSchool: 'École Voltaire',
     createdAt: '10 sept 2025',
@@ -77,16 +83,13 @@ const EXISTING_CODES: TransferCode[] = [
 ];
 
 const CHILDREN = [
-  { id: '1', name: 'Lucas Moreau', avatar: '👦', classe: 'CM2 — École Voltaire' },
-  { id: '2', name: 'Emma Moreau', avatar: '👧', classe: '6ème — Collège Hugo' },
+  { id: '1', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire' },
+  { id: '2', name: 'Emma Moreau', avatar: '', classe: '6ème — Collège Hugo' },
 ];
 
 // ─── Component ────────────────────────────────────────────
 
 export default function TransfertCodeScreen() {
-  const { theme } = useChildTheme();
-  const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
   const [codes, setCodes] = useState(EXISTING_CODES);
   const [showNewCode, setShowNewCode] = useState(false);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
@@ -215,61 +218,60 @@ export default function TransfertCodeScreen() {
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'active': return { label: 'Actif', color: Colors.green, Icon: Check };
-      case 'used': return { label: 'Utilisé', color: Colors.cyan, Icon: Check };
+      case 'active': return { label: 'Actif', color: ARIA_INDIGO, Icon: Check };
+      case 'used': return { label: 'Utilisé', color: Colors.textSecondary, Icon: Check };
       case 'expired': return { label: 'Expiré', color: Colors.red, Icon: X };
       default: return { label: status, color: Colors.gray, Icon: Info };
     }
   };
 
+  const initials = (fullName: string) => {
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+    const first = parts[0]?.[0] ?? '';
+    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
+    return (first + last).toUpperCase();
+  };
+
   return (
     <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
       <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: TOPBAR_H + 12,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
-            paddingHorizontal: 18,
-          }}
-        >
-          {/* Info header */}
-          <View style={[styles.card, { borderColor: Colors.violet + '60', marginBottom: 14 }]}>
-            <View style={styles.infoRow}>
-              <View style={[styles.infoIcon, { backgroundColor: Colors.violet + '20' }]}>
-                <ArrowRight size={24} color={Colors.violet} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.infoTitle}>Code de transfert</Text>
-                <Text style={styles.infoSubtitle}>
-                  Générez un code sécurisé pour transférer le dossier scolaire vers un nouvel établissement. Valable 90 jours.
-                </Text>
-              </View>
-            </View>
-          </View>
+        <RgpdBottomSheet>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingTop: 56,
+              paddingBottom: TAB_BAR_SCROLL_PADDING,
+              paddingHorizontal: 18,
+            }}
+          >
+          <RgpdHero
+            Icon={ArrowRight}
+            title="Code de transfert"
+            subtitle="Générez un code sécurisé pour transférer le dossier scolaire vers un nouvel établissement. Valable 90 jours."
+          />
 
           {/* How it works */}
-          <View style={[styles.card, { marginBottom: 18 }]}>
+          <GlassCard style={[styles.cardBorder, { marginTop: 14, marginBottom: 18 }]}>
             <Text style={styles.sectionTitle}>Comment ça marche ?</Text>
             {[
-              { step: '1', text: 'Générez un code unique pour votre enfant', icon: '🔑' },
-              { step: '2', text: 'Communiquez le code au nouvel établissement', icon: '📩' },
-              { step: '3', text: 'L\'école saisit le code pour recevoir le dossier', icon: '🏫' },
-              { step: '4', text: 'Vous êtes notifié de l\'utilisation du code', icon: '🔔' },
+              { text: 'Générez un code unique pour votre enfant', Icon: Key },
+              { text: 'Communiquez le code au nouvel établissement', Icon: ExternalLink },
+              { text: "L’établissement saisit le code pour recevoir le dossier", Icon: School },
+              { text: 'Vous êtes notifié de son utilisation', Icon: Bell },
             ].map((s, i) => (
               <View key={i} style={styles.howRow}>
-                <View style={[styles.howIcon, { backgroundColor: Colors.violet + '15' }]}>
-                  <Text style={{ fontSize: 18 }}>{s.icon}</Text>
+                <View style={styles.howIcon}>
+                  <s.Icon size={18} color={ARIA_INDIGO} />
                 </View>
                 <Text style={styles.howText}>{s.text}</Text>
               </View>
             ))}
-          </View>
+          </GlassCard>
 
           {/* Generate section label */}
-          <Text style={styles.sectionLabel}>GÉNÉRER UN NOUVEAU CODE</Text>
+          <RgpdSectionLabel style={{ marginBottom: 10 }}>Générer un nouveau code</RgpdSectionLabel>
 
-          <View style={[styles.card, { marginBottom: 16, padding: 0 }]}>
+          <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 16 }]}>
             {CHILDREN.map((child, i) => (
               <Pressable
                 key={child.id}
@@ -278,61 +280,65 @@ export default function TransfertCodeScreen() {
                 disabled={generatingFor === child.id}
               >
                 <View style={styles.childAvatar}>
-                  <Text style={{ fontSize: 22 }}>{child.avatar}</Text>
+                  <Text style={styles.childAvatarText}>{initials(child.name)}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.personName}>{child.name}</Text>
                   <Text style={styles.personRole}>{child.classe}</Text>
                 </View>
                 {generatingFor === child.id ? (
-                  <Text style={[styles.genText, { color: Colors.violet }]}>Génération...</Text>
+                  <Text style={[styles.genText, { color: Colors.textSecondary }]}>Génération…</Text>
                 ) : (
-                  <View style={[styles.genBtn, { backgroundColor: Colors.violet + '15' }]}>
-                    <Key size={16} color={Colors.violet} />
-                    <Text style={[styles.genText, { color: Colors.violet }]}>Générer</Text>
+                  <View style={[styles.genBtn, { backgroundColor: 'rgba(67,56,202,0.08)', borderColor: 'rgba(67,56,202,0.14)' }]}>
+                    <Key size={16} color={ARIA_INDIGO} />
+                    <Text style={[styles.genText, { color: Colors.textPrimary }]}>Générer</Text>
                   </View>
                 )}
               </Pressable>
             ))}
-          </View>
+          </GlassCard>
 
           {/* New code display */}
           {newCode && (
             <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: 20 }}>
-              <View style={[styles.card, { borderColor: Colors.violet + '60', alignItems: 'center' }]}>
+              <GlassCard style={[styles.cardBorder, { alignItems: 'center' }]}>
                 <View style={{ alignItems: 'center' }}>
-                  <Check size={32} color={Colors.green} />
+                  <Check size={32} color={ARIA_INDIGO} />
                   <Text style={styles.newCodeSuccess}>Code généré avec succès !</Text>
                   <Text style={styles.newCodeValue}>{newCode}</Text>
                   <Text style={styles.newCodeExpiry}>Expire dans 90 jours</Text>
                   <View style={styles.newCodeActions}>
-                    <Pressable
-                      style={[styles.newCodeBtn, { backgroundColor: Colors.violet + '15' }]}
+                    <GradientButton
+                      label="Copier"
                       onPress={() => handleCopy(newCode)}
-                    >
-                      <ArrowRight size={18} color={Colors.violet} />
-                      <Text style={[styles.newCodeBtnText, { color: Colors.violet }]}>Copier</Text>
-                    </Pressable>
-                    <Pressable style={[styles.newCodeBtn, { backgroundColor: '#F1F5F9' }]}>
-                      <ExternalLink size={18} color="#94A3B8" />
-                      <Text style={[styles.newCodeBtnText, { color: '#94A3B8' }]}>Partager</Text>
-                    </Pressable>
+                      leftIcon={<ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />}
+                      style={{ flex: 1 }}
+                    />
+                    <GradientButton
+                      label="Partager"
+                      variant="outline"
+                      onPress={() => handleCopy(newCode)}
+                      leftIcon={<ExternalLink size={18} color={ARIA_INDIGO} strokeWidth={2} />}
+                      style={{ flex: 1 }}
+                    />
                   </View>
                 </View>
-              </View>
+              </GlassCard>
             </Animated.View>
           )}
 
           {/* Existing codes label */}
-          <Text style={styles.sectionLabel}>CODES EXISTANTS</Text>
+          <RgpdSectionLabel style={{ marginBottom: 10 }}>Codes existants</RgpdSectionLabel>
 
           {codes.map((tc) => {
             const statusCfg = getStatusConfig(tc.status);
             return (
-              <View key={tc.id} style={[styles.card, { marginBottom: 12 }]}>
+              <GlassCard key={tc.id} style={[styles.cardBorder, { marginBottom: 12 }]}>
                 {/* Header */}
                 <View style={styles.codeHeader}>
-                  <Text style={{ fontSize: 28 }}>{tc.childAvatar}</Text>
+                  <View style={styles.childAvatar}>
+                    <Text style={styles.childAvatarText}>{initials(tc.child)}</Text>
+                  </View>
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text style={styles.personName}>{tc.child}</Text>
                     <Text style={styles.personRole}>{tc.fromSchool} → {tc.toSchool}</Text>
@@ -351,7 +357,7 @@ export default function TransfertCodeScreen() {
                   <Text
                     style={[
                       styles.codeText,
-                      { color: tc.status === 'active' ? Colors.violet : '#CBD5E1' },
+                      { color: tc.status === 'active' ? ARIA_INDIGO : Colors.textMuted },
                     ]}
                   >
                     {tc.code}
@@ -361,16 +367,16 @@ export default function TransfertCodeScreen() {
 
                 {/* Meta */}
                 <View style={styles.codeMeta}>
-                  <Text style={styles.metaText}>📅 Créé le {tc.createdAt}</Text>
-                  <Text style={styles.metaText}>⏳ Expire le {tc.expiresAt}</Text>
+                  <Text style={styles.metaText}>Créé le {tc.createdAt}</Text>
+                  <Text style={styles.metaText}>Expire le {tc.expiresAt}</Text>
                   {tc.status === 'active' && (
-                    <Text style={[styles.metaText, { fontFamily: FontFamily.sansBold, color: tc.daysLeft > 30 ? Colors.green : Colors.orange }]}>
+                    <Text style={[styles.metaText, { fontFamily: FontFamily.sansBold, color: Colors.textPrimary }]}>
                       {tc.daysLeft} jours restants
                     </Text>
                   )}
                   {tc.usedBy && (
-                    <Text style={[styles.metaText, { color: Colors.cyan }]}>
-                      ✅ Utilisé par {tc.usedBy} le {tc.usedAt}
+                    <Text style={[styles.metaText, { color: Colors.textSecondary }]}>
+                      Utilisé par {tc.usedBy} le {tc.usedAt}
                     </Text>
                   )}
                 </View>
@@ -386,84 +392,76 @@ export default function TransfertCodeScreen() {
                       <Text style={[styles.codeActionText, { color: Colors.red }]}>Révoquer</Text>
                     </Pressable>
                     <Pressable
-                      style={[styles.codeActionBtn, { backgroundColor: Colors.cyan + '10' }]}
+                      style={[styles.codeActionBtn, { backgroundColor: 'rgba(67,56,202,0.08)' }]}
                       onPress={() => handleCopy(tc.code)}
                     >
-                      <ExternalLink size={16} color={Colors.cyan} />
-                      <Text style={[styles.codeActionText, { color: Colors.cyan }]}>Partager</Text>
+                      <ExternalLink size={16} color={ARIA_INDIGO} />
+                      <Text style={[styles.codeActionText, { color: Colors.textPrimary }]}>Partager</Text>
                     </Pressable>
                   </View>
                 )}
-              </View>
+              </GlassCard>
             );
           })}
 
           {/* Security notice */}
-          <View style={styles.card}>
+          <GlassCard style={[styles.cardBorder, { marginBottom: 8 }]}>
             <View style={styles.noticeRow}>
-              <Lock size={16} color={Colors.green} />
+              <Lock size={16} color={ARIA_INDIGO} />
               <Text style={styles.noticeText}>
                 Les codes de transfert sont chiffrés de bout en bout. Seul l'établissement destinataire peut lire les données transmises. Le transfert est journalisé et visible dans le journal d'accès.
               </Text>
             </View>
-          </View>
-        </ScrollView>
+          </GlassCard>
+          </ScrollView>
+        </RgpdBottomSheet>
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 16,
+  cardBorder: {
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 16,
-    marginBottom: 12,
+    borderColor: Colors.cardBorder,
   },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  infoTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340' },
-  infoSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 2, lineHeight: 17 },
   sectionTitle: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340', marginBottom: 14 },
   howRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
-  howIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  howText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', flex: 1, lineHeight: 18 },
-  sectionLabel: { fontFamily: FontFamily.sansBold, fontSize: 11, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8, marginTop: 2 },
+  howIcon: { width: 36, height: 36, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(67,56,202,0.08)', borderWidth: 1, borderColor: 'rgba(67,56,202,0.14)' },
+  howText: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: Colors.textSecondary, flex: 1, lineHeight: 18 },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
   childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  childAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.violet + '10' },
-  personName: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#1A2340' },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8', marginTop: 1 },
-  genBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12 },
+  childAvatar: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.92)', borderWidth: 1, borderColor: 'rgba(67,56,202,0.14)' },
+  childAvatarText: { fontFamily: FontFamily.sansBold, fontSize: 14, color: Colors.textPrimary },
+  personName: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: Colors.textPrimary },
+  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
+  genBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
   genText: { fontFamily: FontFamily.sansBold, fontSize: 13 },
   newCodeSuccess: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#1A2340', marginTop: 8 },
   newCodeValue: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 16,
-    color: Colors.violet,
+    color: ARIA_INDIGO,
     letterSpacing: 2,
     marginTop: 12,
-    backgroundColor: Colors.violet + '08',
+    backgroundColor: 'rgba(67,56,202,0.08)',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
   },
-  newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginTop: 8 },
+  newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: Colors.textSecondary, marginTop: 8 },
   newCodeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  newCodeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
-  newCodeBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 14 },
   codeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
   codeDisplay: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, backgroundColor: '#F8FAFC', marginBottom: 10, borderWidth: 1, borderColor: '#F1F5F9' },
   codeText: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace', fontSize: 13, letterSpacing: 1 },
   codeMeta: { gap: 4, marginBottom: 10 },
-  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: '#94A3B8' },
+  metaText: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary },
   codeActions: { flexDirection: 'row', gap: 10, borderTopWidth: 1, paddingTop: 12, marginTop: 2 },
   codeActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: 12 },
   codeActionText: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: '#94A3B8', flex: 1 },
+  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary, flex: 1 },
 });

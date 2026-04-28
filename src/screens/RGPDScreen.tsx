@@ -1,166 +1,138 @@
 import React from 'react';
-import { View, ScrollView, Text, StyleSheet } from 'react-native';
-import { Pressable } from '../components/ui';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { FontFamily } from '../hooks/useSolariaFonts';
+import {
+  Shield,
+  ListChecks,
+  ArrowRightLeft,
+  Download,
+  Trash2,
+  ShieldCheck,
+} from 'lucide-react-native';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
-import { SCREEN_BACKGROUND } from '../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
+import WallpaperBackground from '../components/WallpaperBackground';
+import GlassCard from '../components/GlassCard';
+import RgpdHero from '../components/rgpd/RgpdHero';
+import RgpdRow from '../components/rgpd/RgpdRow';
+import { FontFamily } from '../hooks/useSolariaFonts';
 
 const RGPD_ITEMS = [
   {
-    icon: 'people' as const,
+    Icon: Shield,
     label: "Permissions d'accès",
-    sublabel: '4 niveaux : tuteur, famille, accompagnant, minimal',
-    color: '#10B981',
+    sublabel: 'Niveaux et modules autorisés',
     screen: 'PermissionsRGPD',
   },
   {
-    icon: 'list' as const,
+    Icon: ListChecks,
     label: "Journal d'accès",
-    sublabel: 'Qui a consulté quoi et quand',
-    color: '#22D3EE',
+    sublabel: 'Consultations, modifications et exports',
     screen: 'JournalAcces',
   },
   {
-    icon: 'swap-horizontal' as const,
+    Icon: ArrowRightLeft,
     label: 'Code de transfert',
-    sublabel: 'SCA-TRANSFER entre établissements (90 jours)',
-    color: '#7C3AED',
+    sublabel: 'Transférer un dossier scolaire (90 jours)',
     screen: 'TransfertCode',
   },
   {
-    icon: 'download' as const,
+    Icon: Download,
     label: 'Export intégral',
-    sublabel: 'Télécharger toutes vos données en JSON + PDF',
-    color: '#F59E0B',
+    sublabel: 'Portabilité JSON + PDF',
     screen: 'ExportDonnees',
   },
   {
-    icon: 'trash' as const,
+    Icon: Trash2,
     label: "Droit à l'effacement",
-    sublabel: 'Suppression définitive du profil (Art. 17)',
-    color: '#EF4444',
+    sublabel: 'Suppression définitive (Art. 17)',
     screen: 'Effacement',
   },
-];
+] as const;
 
 export default function RGPDScreen({ navigation }: { navigation: any }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView
-      style={[styles.root, { paddingTop: insets.top + 56 + 12 }]}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
-    >
-      {/* Title */}
-      <Text style={styles.title}>RGPD & Confidentialité</Text>
-      <Text style={styles.subtitle}>
-        Gérez vos données personnelles et celles de votre famille
-      </Text>
+    <View style={styles.root}>
+      <WallpaperBackground />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: insets.top + 56 + 12,
+          paddingBottom: TAB_BAR_SCROLL_PADDING,
+          paddingHorizontal: 18,
+        }}
+      >
+        <RgpdHero
+          Icon={ShieldCheck}
+          title="RGPD & confidentialité"
+          subtitle="Gérez vos données personnelles et celles de votre famille."
+        />
 
-      {/* Items card */}
-      <View style={styles.card}>
-        {RGPD_ITEMS.map((item, index) => (
-          <Pressable
-            key={item.screen}
-            style={[styles.row, index < RGPD_ITEMS.length - 1 && styles.rowBorder]}
-            onPress={() => navigation.navigate(item.screen)}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: item.color + '20' }]}>
-              <Ionicons name={item.icon} size={18} color={item.color} />
+        <GlassCard noPadding style={{ marginTop: 14, borderWidth: 1, borderColor: Colors.cardBorder }}>
+          {RGPD_ITEMS.map((item, idx) => (
+            <RgpdRow
+              key={item.screen}
+              Icon={item.Icon}
+              title={item.label}
+              subtitle={item.sublabel}
+              onPress={() => navigation.navigate(item.screen)}
+              isLast={idx === RGPD_ITEMS.length - 1}
+            />
+          ))}
+        </GlassCard>
+
+        <GlassCard style={styles.noticeCard}>
+          <View style={styles.noticeRow}>
+            <View style={styles.noticeIconWrap}>
+              <ShieldCheck size={18} color={Colors.textPrimary} strokeWidth={2} />
             </View>
-            <View style={styles.textCol}>
-              <Text style={styles.label}>{item.label}</Text>
-              <Text style={styles.sublabel}>{item.sublabel}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.noticeTitle}>Sécurité & transparence</Text>
+              <Text style={styles.noticeText}>
+                Vos données sont chiffrées (AES-256) et hébergées en France. Chaque consultation,
+                modification et export est journalisé et visible dans le journal d’accès.
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
-          </Pressable>
-        ))}
-      </View>
+          </View>
+        </GlassCard>
 
-      {/* Info box */}
-      <View style={styles.infoBox}>
-        <Ionicons name="shield-checkmark" size={18} color="#7C3AED" />
-        <Text style={styles.infoText}>
-          Vos données sont chiffrées AES-256 et hébergées en France conformément au RGPD.
-        </Text>
-      </View>
-
-      <View style={{ height: 120 }} />
-    </ScrollView>
+        <View style={{ height: 120 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: SCREEN_BACKGROUND,
-    paddingHorizontal: 20,
+  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
+  noticeCard: {
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
   },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 24,
-    color: '#0F172A',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#64748B',
-    marginBottom: 20,
-  },
-  card: {
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 0,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    gap: 12,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+  noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  noticeIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(67,56,202,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(67,56,202,0.14)',
+    marginTop: 1,
   },
-  textCol: {
-    flex: 1,
-  },
-  label: {
+  noticeTitle: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 15,
-    color: '#0F172A',
+    fontSize: 14,
+    color: Colors.textPrimary,
   },
-  sublabel: {
+  noticeText: {
+    marginTop: 4,
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  infoBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 16,
-  },
-  infoText: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#7C3AED',
+    fontSize: 12.5,
+    lineHeight: 17,
+    color: Colors.textSecondary,
   },
 });

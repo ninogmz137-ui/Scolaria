@@ -139,7 +139,13 @@ function AccueilStackScreen() {
           const routes = data?.state?.routes;
           const index = data?.state?.index ?? 0;
           const routeName = routes?.[index]?.name as string | undefined;
-          const isReglagesModal = routeName === 'ReglagesScreen';
+          const isReglagesModal =
+            routeName === 'ReglagesScreen' ||
+            routeName === 'PermissionsRGPD' ||
+            routeName === 'JournalAcces' ||
+            routeName === 'TransfertCode' ||
+            routeName === 'ExportDonnees' ||
+            routeName === 'Effacement';
           const hasScreenHeaderBack =
             routeName === 'ProfilEnfant' || routeName === 'BienEtreScreen';
           // IMPORTANT: never show the "stacked" topbar on AccueilHome.
@@ -230,27 +236,57 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="PermissionsRGPD"
         component={PermissionsScreen}
-        options={{ title: 'Permissions' }}
+        options={{
+          title: 'Permissions',
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
+        }}
       />
       <AccueilStack.Screen
         name="JournalAcces"
         component={JournalAccesScreen}
-        options={{ title: "Journal d'accès" }}
+        options={{
+          title: "Journal d'accès",
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
+        }}
       />
       <AccueilStack.Screen
         name="TransfertCode"
         component={TransfertCodeScreen}
-        options={{ title: 'Code de transfert' }}
+        options={{
+          title: 'Code de transfert',
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
+        }}
       />
       <AccueilStack.Screen
         name="Effacement"
         component={EffacementScreen}
-        options={{ title: 'Effacement' }}
+        options={{
+          title: 'Effacement',
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
+        }}
       />
       <AccueilStack.Screen
         name="ExportDonnees"
         component={ExportDonneesScreen}
-        options={{ title: 'Export de données' }}
+        options={{
+          title: 'Export de données',
+          headerShown: false,
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent', flex: 1 },
+        }}
       />
       <AccueilStack.Screen
         name="APropos"
