@@ -57,8 +57,9 @@ module.exports = {
       package: 'com.scolaria.app',
       versionCode: 1,
       adaptiveIcon: {
-        foregroundImage: './assets/icon.png',
+        foregroundImage: './assets/android-icon-foreground.png',
         backgroundColor: '#FFFFFF',
+        monochromeImage: './assets/android-icon-monochrome.png',
       },
       /* Explicit Android splash — same image + bg as the top-level splash
          block, belt-and-suspenders against any Expo platform override. */
