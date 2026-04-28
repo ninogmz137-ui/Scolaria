@@ -27,6 +27,8 @@ export interface ScolariaSymbolProps {
   size?: number;
   /** Couleur du symbole. @default '#4338CA' */
   color?: string;
+  /** Compat: certaines vues passent encore `entrance`. */
+  entrance?: 'none' | 'assemble';
 }
 
 const LARGE_ANGLES = [8, 98, 188, 278] as const;

@@ -9,7 +9,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import React, { useId } from 'react';
+import React from 'react';
 import Svg, { Text as SvgText } from 'react-native-svg';
 
 // ── Calibration Rufina Bold ──────────────────────────────────────────────────
@@ -35,9 +35,6 @@ export default function ScolariaLogo({
   sparkleColor = '#4338CA',
   debugMode = false,
 }: ScolariaLogoProps) {
-  const uid = useId().replace(/:/g, '');
-  void uid;
-
   const scolarW = SCOLAR_RATIO * fontSize;
   const iW = DOTLESS_I_RATIO * fontSize;
   const aW = A_RATIO * fontSize;
@@ -50,7 +47,7 @@ export default function ScolariaLogo({
   const sparkY = baseline - SPARK_Y_RATIO * fontSize;
 
   return (
-    <Svg width={totalW} height={height} viewBox={`0 0 ${totalW} ${height}`} overflow="visible">
+    <Svg width={totalW} height={height} viewBox={`0 0 ${totalW} ${height}`}>
       <SvgText
         x={0}
         y={baseline}
