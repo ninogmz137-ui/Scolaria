@@ -43,7 +43,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.scolaria.app',
-      buildNumber: '1',
+      buildNumber: '2',
       infoPlist: {
         UIBackgroundModes: ['fetch', 'remote-notification'],
         NSCameraUsageDescription:
@@ -55,7 +55,7 @@ module.exports = {
     },
     android: {
       package: 'com.scolaria.app',
-      versionCode: 1,
+      versionCode: 2,
       adaptiveIcon: {
         foregroundImage: './assets/android-icon-foreground.png',
         backgroundColor: '#FFFFFF',
