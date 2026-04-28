@@ -19,7 +19,6 @@ import GlassCard from '../../components/GlassCard';
 import RgpdHero from '../../components/rgpd/RgpdHero';
 import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
-import GradientButton from '../../components/shared/GradientButton';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 
 // ─── Types ────────────────────────────────────────────────
@@ -308,19 +307,19 @@ export default function TransfertCodeScreen() {
                   <Text style={styles.newCodeValue}>{newCode}</Text>
                   <Text style={styles.newCodeExpiry}>Expire dans 90 jours</Text>
                   <View style={styles.newCodeActions}>
-                    <GradientButton
-                      label="Copier"
+                    <Pressable
                       onPress={() => handleCopy(newCode)}
-                      leftIcon={<ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />}
-                      style={{ flex: 1 }}
-                    />
-                    <GradientButton
-                      label="Partager"
-                      variant="outline"
+                      style={({ pressed }) => [styles.darkBtn, pressed && { opacity: 0.9 }, { flex: 1 }]}
+                    >
+                      <Text style={styles.darkBtnText}>Copier</Text>
+                    </Pressable>
+                    <Pressable
                       onPress={() => handleCopy(newCode)}
-                      leftIcon={<ExternalLink size={18} color={ARIA_INDIGO} strokeWidth={2} />}
-                      style={{ flex: 1 }}
-                    />
+                      style={({ pressed }) => [styles.outlineBtn, pressed && { opacity: 0.9 }, { flex: 1 }]}
+                    >
+                      <ExternalLink size={18} color={ARIA_INDIGO} strokeWidth={2} />
+                      <Text style={styles.outlineBtnText}>Partager</Text>
+                    </Pressable>
                   </View>
                 </View>
               </GlassCard>
@@ -452,6 +451,34 @@ const styles = StyleSheet.create({
   },
   newCodeExpiry: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: Colors.textSecondary, marginTop: 8 },
   newCodeActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  darkBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F172A',
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  darkBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
+  outlineBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: 'transparent',
+    paddingVertical: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.18)',
+  },
+  outlineBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: Colors.textPrimary,
+  },
   codeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   statusText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },

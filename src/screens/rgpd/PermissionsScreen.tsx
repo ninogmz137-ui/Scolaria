@@ -348,11 +348,11 @@ export default function PermissionsScreen() {
           </GlassCard>
 
           {/* Add person */}
-          <GlassCard style={[styles.cardBorder, { borderStyle: 'dashed', borderColor: 'rgba(67,56,202,0.28)' }]}>
-            <View style={styles.addRow}>
-              <Plus size={20} color={ARIA_INDIGO} />
-              <Text style={[styles.levelLabel, { color: Colors.textPrimary, marginLeft: 10 }]}>Inviter une personne</Text>
-            </View>
+          <GlassCard style={[styles.cardBorder, { borderStyle: 'dashed', borderColor: 'rgba(15,23,42,0.18)' }]}>
+            <Pressable style={({ pressed }) => [styles.invitePressable, pressed && { opacity: 0.9 }]} onPress={() => {}}>
+              <Plus size={20} color={Colors.textPrimary} />
+              <Text style={styles.inviteText}>Inviter une personne</Text>
+            </Pressable>
           </GlassCard>
 
           {/* Stats */}
@@ -509,7 +509,18 @@ const styles = StyleSheet.create({
   personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
   levelBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
   levelBadgeText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11 },
-  addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  invitePressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+  },
+  inviteText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
   statsRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   statCard: { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 20 },
   statValue: { fontFamily: FontFamily.sansBold, fontSize: 24 },

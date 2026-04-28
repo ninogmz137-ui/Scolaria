@@ -26,7 +26,6 @@ import GlassCard from '../../components/GlassCard';
 import RgpdHero from '../../components/rgpd/RgpdHero';
 import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
-import GradientButton from '../../components/shared/GradientButton';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 
 // ─── Types ────────────────────────────────────────────────
@@ -267,12 +266,17 @@ export default function ExportDonneesScreen() {
               </View>
             </GlassCard>
           ) : (
-            <GradientButton
-              label={`Exporter (${totalSizeStr})`}
+            <Pressable
               onPress={handleExport}
               disabled={selectedModules.length === 0}
-              leftIcon={<ArrowDown size={18} color="#FFFFFF" strokeWidth={2} />}
-            />
+              style={({ pressed }) => [
+                styles.darkBtn,
+                (pressed || selectedModules.length === 0) && { opacity: selectedModules.length === 0 ? 0.45 : 0.9 },
+              ]}
+            >
+              <ArrowDown size={18} color="#FFFFFF" strokeWidth={2} />
+              <Text style={styles.darkBtnText}>{`Exporter (${totalSizeStr})`}</Text>
+            </Pressable>
           )}
 
           {/* Export history label */}
@@ -398,4 +402,18 @@ const styles = StyleSheet.create({
   },
   noticeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary, flex: 1 },
+  darkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#0F172A',
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  darkBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
 });

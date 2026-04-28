@@ -23,24 +23,26 @@ export default function RgpdRow({
   rightSlot,
 }: Props) {
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      style={({ pressed }) => [
-        styles.row,
-        !isLast && styles.rowBorder,
-        pressed && onPress ? styles.pressed : undefined,
-      ]}
-    >
-      <View style={styles.iconWrap}>
-        <Icon size={18} color={ARIA_INDIGO} strokeWidth={2} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{title}</Text>
-        {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-      </View>
-      {rightSlot ?? <ChevronRight size={18} color={Colors.textMuted} strokeWidth={2} />}
-    </Pressable>
+    <View>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        style={({ pressed }) => [
+          styles.row,
+          pressed && onPress ? styles.pressed : undefined,
+        ]}
+      >
+        <View style={styles.iconWrap}>
+          <Icon size={18} color={ARIA_INDIGO} strokeWidth={2} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>{title}</Text>
+          {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        </View>
+        {rightSlot ?? <ChevronRight size={18} color={Colors.textMuted} strokeWidth={2} />}
+      </Pressable>
+      {!isLast && <View style={styles.separatorInset} />}
+    </View>
   );
 }
 
@@ -48,27 +50,28 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.cardBorder,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   pressed: {
     opacity: 0.82,
     transform: [{ scale: 0.995 }],
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 14,
     backgroundColor: 'rgba(67,56,202,0.08)',
     borderWidth: 1,
     borderColor: 'rgba(67,56,202,0.14)',
+  },
+  separatorInset: {
+    height: 1,
+    backgroundColor: Colors.cardBorder,
+    marginLeft: 74,
   },
   title: {
     fontFamily: FontFamily.sansSemiBold,

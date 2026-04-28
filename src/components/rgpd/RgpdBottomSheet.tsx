@@ -19,7 +19,13 @@ export default function RgpdBottomSheet({ children, contentStyle }: Props) {
   return (
     <View style={styles.root}>
       <Pressable style={StyleSheet.absoluteFill} onPress={() => nav.goBack()} />
-      <View style={[styles.sheet, { paddingBottom: Math.max(14, insets.bottom + 10) }, contentStyle]}>
+      <View
+        style={[
+          styles.sheet,
+          { paddingBottom: Math.max(14, insets.bottom + 10) },
+          contentStyle,
+        ]}
+      >
         <View style={styles.handle} />
         <View style={styles.closeRow}>
           <RoundGlassIconButton
@@ -41,7 +47,7 @@ export default function RgpdBottomSheet({ children, contentStyle }: Props) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.35)',
+    backgroundColor: 'rgba(15,23,42,0.40)',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -53,12 +59,13 @@ const styles = StyleSheet.create({
     ...nativeWhiteInteractiveShadow,
     overflow: 'hidden',
     paddingTop: 8,
+    maxHeight: '92%',
   },
   handle: {
-    width: 42,
+    width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(15,23,42,0.12)',
+    backgroundColor: 'rgba(15,23,42,0.20)',
     alignSelf: 'center',
     marginTop: 6,
     marginBottom: 4,

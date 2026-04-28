@@ -231,12 +231,17 @@ export default function EffacementScreen() {
                   </Pressable>
                 ))}
               </GlassCard>
-              <GradientButton
-                label="Suivant"
+              <Pressable
                 onPress={() => selectedChild && setCurrentStep(1)}
                 disabled={!selectedChild}
-                rightIcon={<ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />}
-              />
+                style={({ pressed }) => [
+                  styles.darkBtn,
+                  (!selectedChild || pressed) && { opacity: !selectedChild ? 0.45 : 0.9 },
+                ]}
+              >
+                <Text style={styles.darkBtnText}>Suivant</Text>
+                <ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />
+              </Pressable>
             </View>
           )}
 
@@ -282,11 +287,13 @@ export default function EffacementScreen() {
                   <Text style={styles.backBtnText}>Retour</Text>
                 </Pressable>
                 <View style={{ flex: 1 }}>
-                  <GradientButton
-                    label="Continuer"
+                  <Pressable
                     onPress={() => setCurrentStep(2)}
-                    rightIcon={<ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />}
-                  />
+                    style={({ pressed }) => [styles.darkBtn, pressed && { opacity: 0.9 }]}
+                  >
+                    <Text style={styles.darkBtnText}>Continuer</Text>
+                    <ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -467,4 +474,18 @@ const styles = StyleSheet.create({
   timelineLine: { marginLeft: 5, height: 24, borderLeftWidth: 2 },
   cancelBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5 },
   cancelBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15 },
+  darkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#0F172A',
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  darkBtnText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+  },
 });
