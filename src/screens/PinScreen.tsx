@@ -18,12 +18,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, LockKeyhole, AlertCircle } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 const VIOLET = '#6366F1';
@@ -42,6 +43,7 @@ function normalizePin(raw: string) {
 
 export default function PinScreen({ onBack }: Props) {
   const { enterChildMode } = useAuth();
+  const navigation = useNavigation<any>();
 
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -90,7 +92,11 @@ export default function PinScreen({ onBack }: Props) {
               { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
             ]}
           >
-            <Pressable onPress={onBack} style={s.backBtn} hitSlop={10}>
+            <Pressable
+              onPress={() => (onBack ? onBack() : navigation.goBack())}
+              style={s.backBtn}
+              hitSlop={10}
+            >
               <ArrowLeft size={20} color="rgba(255,255,255,0.7)" strokeWidth={2} />
               <Text style={s.backText}>Retour</Text>
             </Pressable>
