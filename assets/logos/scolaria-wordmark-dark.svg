@@ -1,0 +1,15 @@
+<svg viewBox="0 0 280 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ia-g" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="spark-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <text x="140" y="50" text-anchor="middle" font-family="DM Serif Display, Georgia, serif" font-size="52" letter-spacing="-0.5" fill="white">Scolar<tspan fill="url(#ia-g)">ia</tspan></text>
+  <rect x="196" y="9" width="16" height="15" fill="#0F1628"/>
+  <text x="191" y="22" font-size="15" fill="url(#spark-g)">✦</text>
+</svg>

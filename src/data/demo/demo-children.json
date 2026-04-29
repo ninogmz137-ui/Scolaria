@@ -1,0 +1,32 @@
+[
+  {
+    "id": "demo-lea",
+    "firstName": "Léa",
+    "lastName": "Moreau",
+    "class": "Grande section",
+    "school": "Maternelle Pasteur",
+    "level": "maternelle",
+    "avatarEmoji": "🦁",
+    "birthDate": "2020-03-15"
+  },
+  {
+    "id": "demo-lucas",
+    "firstName": "Lucas",
+    "lastName": "Moreau",
+    "class": "CM2",
+    "school": "École Voltaire",
+    "level": "primaire",
+    "avatarEmoji": "🐻",
+    "birthDate": "2015-07-22"
+  },
+  {
+    "id": "demo-emma",
+    "firstName": "Emma",
+    "lastName": "Moreau",
+    "class": "3ème",
+    "school": "Collège Hugo",
+    "level": "college",
+    "avatarEmoji": "🦊",
+    "birthDate": "2012-11-08"
+  }
+]

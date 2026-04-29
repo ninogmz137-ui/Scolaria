@@ -1,0 +1,36 @@
+# EAS Build ignore file
+# Based on .gitignore but WITHOUT excluding .env
+# (EAS needs .env for EXPO_PUBLIC_ variables to be inlined by Metro)
+
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# local env overrides (but NOT .env itself)
+.env*.local
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+*.pem
+
+# Testing
+coverage/
+
+# Non-essential folders
+scolaria-design-workspace/
+.claude/
+.claude-plugin/
+.superpowers/
+supabase/.temp/

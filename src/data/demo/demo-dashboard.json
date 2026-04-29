@@ -1,0 +1,57 @@
+[
+  {
+    "childId": "demo-lucas",
+    "motsRecus": 3,
+    "motsToutSigne": false,
+    "devoirs": 2,
+    "moyenne": 15.1,
+    "meilleure": { "note": 17, "matiere": "Anglais" },
+    "totalNotes": 13,
+    "courseDuJour": [
+      { "time": "8h30", "subject": "Français", "room": "Salle 12", "color": "#7C3AED" },
+      { "time": "9h30", "subject": "Mathématiques", "room": "Salle 8", "color": "#4F46E5" },
+      { "time": "10h30", "subject": "Histoire", "room": "Salle 3", "color": "#F59E0B" },
+      { "time": "13h30", "subject": "SVT", "room": "Labo B", "color": "#10B981" },
+      { "time": "14h30", "subject": "Anglais", "room": "Salle 5", "color": "#06B6D4" }
+    ],
+    "eventsSemaine": 4,
+    "prochainEvent": "Contrôle Maths · vendredi"
+  },
+  {
+    "childId": "demo-lea",
+    "motsRecus": 2,
+    "motsToutSigne": true,
+    "devoirs": 0,
+    "competencesAcquis": 10,
+    "competencesEnCours": 5,
+    "competencesTotal": 17,
+    "courseDuJour": [
+      { "time": "8h30", "subject": "Langage oral", "room": "Salle des grands", "color": "#7C3AED" },
+      { "time": "9h30", "subject": "Motricité", "room": "Gymnase", "color": "#06B6D4" },
+      { "time": "10h30", "subject": "Explorer le monde", "room": "Salle des grands", "color": "#10B981" },
+      { "time": "14h00", "subject": "Arts visuels", "room": "Atelier", "color": "#EC4899" },
+      { "time": "15h00", "subject": "Structurer sa pensée", "room": "Salle des grands", "color": "#F59E0B" }
+    ],
+    "eventsSemaine": 3,
+    "prochainEvent": "Sortie au musée · samedi"
+  },
+  {
+    "childId": "demo-emma",
+    "motsRecus": 1,
+    "motsToutSigne": false,
+    "devoirs": 3,
+    "moyenne": 14.2,
+    "meilleure": { "note": 16, "matiere": "EPS" },
+    "totalNotes": 18,
+    "courseDuJour": [
+      { "time": "8h00", "subject": "Mathématiques", "room": "Salle 201", "color": "#4F46E5" },
+      { "time": "9h00", "subject": "Français", "room": "Salle 105", "color": "#7C3AED" },
+      { "time": "10h00", "subject": "Anglais", "room": "Salle 302", "color": "#10B981" },
+      { "time": "13h00", "subject": "SVT", "room": "Labo A", "color": "#EC4899" },
+      { "time": "14h00", "subject": "Physique-Chimie", "room": "Labo C", "color": "#06B6D4" },
+      { "time": "15h00", "subject": "Musique", "room": "Salle musique", "color": "#A855F7" }
+    ],
+    "eventsSemaine": 5,
+    "prochainEvent": "Contrôle SVT · vendredi"
+  }
+]

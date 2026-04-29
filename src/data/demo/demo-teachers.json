@@ -1,0 +1,31 @@
+[
+  {
+    "childId": "demo-lea",
+    "teachers": [
+      { "id": "t-lea-1", "name": "Mme Laurent", "role": "Maîtresse", "class": "GS" },
+      { "id": "t-lea-2", "name": "Mme Petit", "role": "ATSEM", "class": "GS" },
+      { "id": "t-lea-3", "name": "M. Renaud", "role": "Directeur", "class": "Maternelle Pasteur" }
+    ]
+  },
+  {
+    "childId": "demo-lucas",
+    "teachers": [
+      { "id": "t-lucas-1", "name": "Mme Dupont", "role": "Professeur principal", "class": "CM2 B" },
+      { "id": "t-lucas-2", "name": "Mme Lambert", "role": "Français", "class": "CM2 B" },
+      { "id": "t-lucas-3", "name": "M. Garcia", "role": "EPS", "class": "CM2 B" },
+      { "id": "t-lucas-4", "name": "M. Faure", "role": "Directeur", "class": "École Voltaire" }
+    ]
+  },
+  {
+    "childId": "demo-emma",
+    "teachers": [
+      { "id": "t-emma-1", "name": "Mme Rousseau", "role": "Professeur principal", "class": "3e B" },
+      { "id": "t-emma-2", "name": "M. Martin", "role": "SVT", "class": "3e B" },
+      { "id": "t-emma-3", "name": "M. Petit", "role": "Mathématiques", "class": "3e B" },
+      { "id": "t-emma-4", "name": "Mme Bernard", "role": "Anglais", "class": "3e B" },
+      { "id": "t-emma-5", "name": "Mme Lambert", "role": "Français", "class": "3e B" },
+      { "id": "t-emma-6", "name": "M. Leclerc", "role": "Physique-Chimie", "class": "3e B" },
+      { "id": "t-emma-7", "name": "M. Durand", "role": "Histoire-Géo", "class": "3e B" }
+    ]
+  }
+]

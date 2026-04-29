@@ -31,7 +31,35 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+.env*.txt
+.env.txt
+
+# Local tooling / AI artifacts (keep repo clean)
+.claude/
+.agents/
+.superpowers/
+scolaria-design-workspace/
+cloudflared.exe
+.mcp.json
+.claude-plugin/
+
+# Local exports / scratch
+scolaria_website.html
+
+# OS/Tool generated build json exports
+*build*.json
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Windows noise
+Thumbs.db
+Desktop.ini
+
+# Cursor / editor
+.cursor/
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +67,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+.aidesigner/*
+
+# Analyse / captures locales (générés, non versionnés)
+graphify-out/
+.graphify_python
+temp_screenshots/
+.graphifyignore
