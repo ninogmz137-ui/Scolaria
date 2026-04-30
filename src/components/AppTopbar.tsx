@@ -20,6 +20,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import RoundGlassIconButton from './shared/RoundGlassIconButton';
+// (kept import slot for future topbar theming; no SCREEN_BACKGROUND needed yet)
 
 // ─── Helpers ────────────────────────────────────────────
 
@@ -65,9 +66,9 @@ function BurgerButton({
   isHomeTab: boolean;
 }) {
   // On Android, very low alpha can disappear over busy wallpapers.
-  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.92)';
+  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(15,23,42,0.08)';
   const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
-  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.12)';
+  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.07)';
 
   return (
     <RoundGlassIconButton
@@ -94,9 +95,9 @@ function SettingsButton({
   onPress?: () => void;
   isHomeTab: boolean;
 }) {
-  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.92)';
+  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(15,23,42,0.08)';
   const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
-  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.12)';
+  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.07)';
 
   return (
     <RoundGlassIconButton
@@ -130,9 +131,9 @@ function BackButton({
   onPress?: () => void;
   isHomeTab: boolean;
 }) {
-  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.92)';
+  const bg = isHomeTab ? 'rgba(255,255,255,0.28)' : 'rgba(15,23,42,0.08)';
   const iconColor = isHomeTab ? '#FFFFFF' : '#0F172A';
-  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.12)';
+  const borderColor = isHomeTab ? 'rgba(255,255,255,0.35)' : 'rgba(15,23,42,0.07)';
 
   return (
     <RoundGlassIconButton

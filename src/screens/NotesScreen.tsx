@@ -3,6 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScanLine } from 'lucide-react-native';
 import NotesGraph from '../components/notes/NotesGraph';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 type Trimestre = 'T1' | 'T2' | 'T3';
 type MatiereId = 'maths' | 'francais' | 'anglais' | 'histoire' | 'svt';
@@ -119,7 +120,7 @@ export default function NotesScreen() {
   }, [activeTrimestre]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F1EE' }}>
+    <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
       <View
         style={{
           paddingHorizontal: 14,
@@ -203,13 +204,9 @@ export default function NotesScreen() {
             flex: 1,
             borderRadius: 14,
             padding: 10,
-            backgroundColor: 'rgba(255,255,255,0.88)',
+            backgroundColor: SCREEN_BACKGROUND,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.90)',
-            shadowColor: '#0F172A',
-            shadowOpacity: 0.05,
-            shadowRadius: 10,
-            elevation: 2,
+            borderColor: 'rgba(15,23,42,0.05)',
           }}
         >
           <Text
@@ -240,13 +237,9 @@ export default function NotesScreen() {
             flex: 1,
             borderRadius: 14,
             padding: 10,
-            backgroundColor: 'rgba(255,255,255,0.88)',
+            backgroundColor: SCREEN_BACKGROUND,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.90)',
-            shadowColor: '#0F172A',
-            shadowOpacity: 0.05,
-            shadowRadius: 10,
-            elevation: 2,
+            borderColor: 'rgba(15,23,42,0.05)',
           }}
         >
           <Text

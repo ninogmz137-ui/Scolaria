@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box, Text } from '../components/ui';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 
@@ -93,7 +94,7 @@ export default function NotificationsSettingsScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#EEF2F7' }}
+      style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}
       contentContainerStyle={{
         paddingTop: insets.top + 14,
         paddingHorizontal: 16,

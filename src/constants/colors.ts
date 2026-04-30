@@ -1,5 +1,5 @@
-/** Unified light screen / page background (all main screens). */
-export const SCREEN_BACKGROUND = '#F8F7F5' as const;
+/** Unified light screen / page background (COMPONENTS.md). */
+export const SCREEN_BACKGROUND = '#F2F1EE' as const;
 
 export const Colors = {
   // ── Light design system (primary palette) ──────────

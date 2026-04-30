@@ -26,6 +26,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
+import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // Components
 import AppTopbar, { type TopbarMode } from '../components/AppTopbar';
@@ -790,7 +791,7 @@ export default function TabNavigator() {
 
         {/* ── Main content — animated scale/translate ── */}
         <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
-          <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+          <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
             {/* Topbar: only on Accueil root and stacked screens */}
             {showTopbar && (
               <Animated.View style={[

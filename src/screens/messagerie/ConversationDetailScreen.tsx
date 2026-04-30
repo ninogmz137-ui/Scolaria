@@ -281,7 +281,7 @@ export default function ConversationDetailScreen({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#EEF2F7',
+    backgroundColor: SCREEN_BACKGROUND,
     maxWidth: '100%',
     overflow: 'hidden',
   },

@@ -93,13 +93,15 @@ export const FLAT_LIST_TAB_BAR_FOOTER_SPACER = 100;
 const MESSAGERIE_UNREAD = 3;
 const ACTIVE_ICON_COLOR = '#0F172A';
 const INACTIVE_ICON_COLOR = '#94A3B8';
-const NEUTRAL_BORDER = '#E2E8F0';
+const NEUTRAL_BORDER = 'rgba(15,23,42,0.07)';
 
 // Glass style shared by avatar, pill, and Aria circles
 // 0.95: near-opaque so page content can't bleed through on light bg (Android);
 // still a touch of translucency to keep the glass feel.
-const GLASS_BG = 'rgba(255,255,255,0.95)';
-const GLASS_BORDER = 'rgba(255,255,255,0.70)';
+// On the main app we use the single page background token to avoid
+// per-screen tint drift (warm vs cool whites).
+const GLASS_BG = SCREEN_BACKGROUND;
+const GLASS_BORDER = 'rgba(15,23,42,0.07)';
 
 const GLASS_SHADOW = Platform.select({
   ios: {
@@ -483,7 +485,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   iconWrapperActive: {
-    backgroundColor: '#F0F0F2',
+    backgroundColor: 'rgba(15,23,42,0.08)',
   },
 
   // Unread dot badge (8px red dot, top-right of icon)

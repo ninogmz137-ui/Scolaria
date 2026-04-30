@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     maxHeight: 40,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     maxWidth: SEARCH_PILL_MAX_W,
     width: '100%',
   },
@@ -890,7 +890,7 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   filterToutOuterWrap: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     borderRadius: 18,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -1040,7 +1040,7 @@ const styles = StyleSheet.create({
   filterDropdownCard: {
     zIndex: 2,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: SCREEN_BACKGROUND,
     paddingVertical: 6,
     overflow: 'hidden',
     ...Platform.select({
