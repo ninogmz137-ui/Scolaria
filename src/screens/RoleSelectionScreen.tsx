@@ -28,7 +28,7 @@ const ROLES: RoleConfig[] = [
     subtitle: 'Suivez la scolarité de vos enfants',
     icon: 'people',
     emoji: '👨‍👩‍👧‍👦',
-    gradient: [Colors.violet, Colors.violetDark],
+    gradient: [Colors.violet, "#5B21B6"],
     color: Colors.violet,
     features: ['Profils enfants', 'Notes & bulletins', 'Score de Joie', 'Agenda'],
   },

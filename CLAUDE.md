@@ -6,7 +6,7 @@
 ## Nom de l'application
 **Scolaria** — jamais "ScolarIA" avec majuscules, jamais "Scholaris".
 Police uniforme sur tout le mot — pas de traitement spécial sur "ia".
-Tagline : "Le copilote éducatif des familles"
+Tagline : "Le carnet de scolarité numérique"
 
 ---
 
@@ -64,7 +64,7 @@ Le dégradé violet→cyan est réservé exclusivement à Aria — jamais sur l'
 ## DESIGN LANGUAGE v2.0 — Direction "Premium Modern"
 
 ### Philosophie
-Scolaria doit avoir le niveau visuel de Papillon ou supérieur.
+Scolaria doit avoir le niveau visuel de Papillon, Notion ou supérieur.
 Mots-clés : glass morphism, profondeur, typographie forte, animations fluides, premium.
 JAMAIS plat, JAMAIS générique.
 

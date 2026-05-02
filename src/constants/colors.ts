@@ -13,16 +13,13 @@ export const Colors = {
   // ── Legacy dark aliases (kept for splash/onboarding only) ──
   blueNight: '#0B0F2A',
   blueNightLight: '#131836',
-  blueNightCard: '#1A1F3D',
-
   // ── Brand accents ──────────────────────────────────
-  violet: '#6D28D9',
-  violetLight: '#7C3AED',
-  violetDark: '#5B21B6',
+  violet: '#4338CA',  // Indigo Scolaria — unique accent (COMPONENTS.md)
   cyan: '#22D3EE',
   cyanDark: '#0891B2',
+  // Violet gradient (Aria only): #4338CA → #22D3EE
 
-  // ── Neutral ────────────────────────────────────────
+  // ── Neutral (not page bg) ──────────────────────────
   white: '#FFFFFF',
   gray: '#9CA3AF',
   lightGray: '#E5E7EB',

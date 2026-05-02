@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Check, ChevronDown } from 'lucide-react-native';
 import { tokens } from '../../tokens/colors';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 interface SortOption {
   label: string;
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
     borderColor: tokens.border,
   },
   triggerText: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: tokens.textSecondary,
   },
@@ -112,13 +113,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionText: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: FontFamily.sansRegular,
     fontSize: 15,
     color: tokens.textPrimary,
     flex: 1,
   },
   optionTextActive: {
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: FontFamily.sansSemiBold,
     color: tokens.accent,
   },
 });

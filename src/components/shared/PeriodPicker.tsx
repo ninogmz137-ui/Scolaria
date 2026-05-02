@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import { Calendar, Check, ChevronDown } from 'lucide-react-native';
 import { tokens } from '../../tokens/colors';
+import { FontFamily } from '../../hooks/useSolariaFonts';
 
 interface PeriodOption {
   label: string;
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
     borderColor: tokens.border,
   },
   triggerText: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: FontFamily.sansMedium,
     fontSize: 13,
     color: tokens.textPrimary,
   },
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   dropdownTitle: {
-    fontFamily: 'BarlowCondensed_700Bold',
+    fontFamily: FontFamily.displayBold,
     fontSize: 13,
     color: tokens.textMuted,
     letterSpacing: 2,
@@ -130,21 +131,21 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.accent,
   },
   calNumber: {
-    fontFamily: 'DMSans_700Bold',
+    fontFamily: FontFamily.sansBold,
     fontSize: 14,
     color: tokens.textSecondary,
   },
   optionLabel: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: FontFamily.sansMedium,
     fontSize: 14,
     color: tokens.textPrimary,
   },
   optionLabelActive: {
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: FontFamily.sansSemiBold,
     color: tokens.accent,
   },
   optionDates: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: FontFamily.sansRegular,
     fontSize: 12,
     color: tokens.textMuted,
     marginTop: 1,

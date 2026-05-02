@@ -1,93 +1,82 @@
 /**
  * Typography constants and reusable text style presets.
  *
- * Fonts loaded via @expo-google-fonts in useSolariaFonts.ts:
- *   BarlowCondensed_600SemiBold / _700Bold / _800ExtraBold
- *   DMSans_400Regular / _500Medium / _600SemiBold / _700Bold
+ * Font family: Figtree (unique) — COMPONENTS.md §15
+ * Fonts loaded in useSolariaFonts.ts via @expo-google-fonts/figtree
  *
  * RULE: never combine fontFamily + fontWeight — the weight is baked
  * into the font name. Mixing the two causes fallback on some platforms.
+ *
+ * Rufina: brand wordmark ONLY (ScolariaLogo)
  */
 
-// ─── Font family names ──────────────────────────────────
+// ─── Font family names (via FontFamily from useSolariaFonts) ─
 
-export const fonts = {
-  // Barlow Condensed — display, data, section titles
-  barlowSemiBold: 'BarlowCondensed_600SemiBold',
-  barlowBold: 'BarlowCondensed_700Bold',
-  barlowExtraBold: 'BarlowCondensed_800ExtraBold',
-  // DM Sans — body, UI, buttons
-  dmRegular: 'DMSans_400Regular',
-  dmMedium: 'DMSans_500Medium',
-  dmSemiBold: 'DMSans_600SemiBold',
-  dmBold: 'DMSans_700Bold',
-} as const;
-
-// ─── Reusable text style presets ────────────────────────
+// ─── Reusable text style presets (Figtree-based) ─────────
 
 export const textStyles = {
-  // ── Barlow — display / data ──
+  // ── Display / impact — Figtree Black/ExtraBold ──
   sectionTitle: {
-    fontFamily: fonts.barlowBold,
+    fontFamily: 'Figtree_700Bold',
     textTransform: 'uppercase' as const,
-    letterSpacing: 1.5,
+    letterSpacing: 1.1,
     fontSize: 12,
   },
   dataNumber: {
-    fontFamily: fonts.barlowBold,
+    fontFamily: 'Figtree_700Bold',
     fontSize: 28,
   },
   dataLabel: {
-    fontFamily: fonts.barlowSemiBold,
+    fontFamily: 'Figtree_600SemiBold',
     textTransform: 'uppercase' as const,
     fontSize: 10,
     letterSpacing: 0.8,
   },
   badge: {
-    fontFamily: fonts.barlowSemiBold,
+    fontFamily: 'Figtree_600SemiBold',
     fontSize: 10,
   },
   calendarDay: {
-    fontFamily: fonts.barlowSemiBold,
+    fontFamily: 'Figtree_600SemiBold',
     textTransform: 'uppercase' as const,
     fontSize: 11,
   },
   calendarNumber: {
-    fontFamily: fonts.barlowBold,
+    fontFamily: 'Figtree_700Bold',
     fontSize: 16,
   },
 
-  // ── DM Sans — body / UI ──
+  // ── Body / UI — Figtree Regular/Medium/SemiBold ──
   screenTitle: {
-    fontFamily: fonts.dmBold,
+    fontFamily: 'Figtree_700Bold',
     fontSize: 22,
   },
   topbarGreeting: {
-    fontFamily: fonts.dmSemiBold,
+    fontFamily: 'Figtree_600SemiBold',
     fontSize: 18,
   },
   personName: {
-    fontFamily: fonts.dmSemiBold,
+    fontFamily: 'Figtree_600SemiBold',
     fontSize: 15,
   },
   body: {
-    fontFamily: fonts.dmRegular,
+    fontFamily: 'Figtree_400Regular',
     fontSize: 14,
   },
   bodySmall: {
-    fontFamily: fonts.dmRegular,
+    fontFamily: 'Figtree_400Regular',
     fontSize: 12,
   },
   button: {
-    fontFamily: fonts.dmBold,
+    fontFamily: 'Figtree_700Bold',
     fontSize: 16,
   },
   link: {
-    fontFamily: fonts.dmMedium,
+    fontFamily: 'Figtree_500Medium',
     fontSize: 14,
   },
   logo: {
-    fontFamily: fonts.dmBold,
+    fontFamily: 'Rufina_700Bold',  // Exception: Rufina for logo only
     fontSize: 44,
   },
 } as const;

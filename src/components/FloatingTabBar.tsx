@@ -130,7 +130,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-const CHILD_COLORS = ['#6366F1', '#06B6D4', '#F59E0B', '#10B981', '#EC4899', '#7C3AED'];
+const CHILD_COLORS = ['#4338CA', '#06B6D4', '#F59E0B', '#10B981', '#EC4899'];
 function getChildColor(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);

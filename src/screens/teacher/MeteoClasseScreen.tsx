@@ -16,7 +16,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { getClassMeteo } from '../../services/teacherService';
 
@@ -198,7 +198,7 @@ export default function MeteoClasseScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
+      style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >

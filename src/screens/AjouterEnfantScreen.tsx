@@ -253,7 +253,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                   key={emoji}
                   className="w-[52px] h-[52px] rounded-[26px] justify-center items-center"
                   style={{
-                    backgroundColor: selectedAvatar === emoji ? Colors.cyan + '15' : Colors.blueNightCard,
+                    backgroundColor: selectedAvatar === emoji ? Colors.cyan + '15' : '#1A1F3D',
                     borderWidth: 2,
                     borderColor: selectedAvatar === emoji ? Colors.cyan : 'transparent',
                   }}
@@ -433,7 +433,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           {isFormValid && (
             <View className="mb-5 rounded-[18px] overflow-hidden">
               <LinearGradient
-                colors={[Colors.blueNightCard, Colors.blueNightLight]}
+                colors={["#1A1F3D", "#131836"]}
                 style={{ padding: 18, borderRadius: 18, borderWidth: 1, borderColor: Colors.violet + '25' }}
               >
                 <Text className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3.5">Aperçu du profil</Text>
@@ -465,7 +465,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             <LinearGradient
               colors={
                 isFormValid
-                  ? [Colors.violet, Colors.violetDark]
+                  ? [Colors.violet, "#5B21B6"]
                   : ['#333', '#222']
               }
               start={{ x: 0, y: 0 }}

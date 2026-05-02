@@ -252,7 +252,7 @@ export default function AppreciationsScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
+      style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >

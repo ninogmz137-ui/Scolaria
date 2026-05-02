@@ -1,49 +1,61 @@
 import { useFonts } from 'expo-font';
 import {
-  BarlowCondensed_600SemiBold,
-  BarlowCondensed_700Bold,
-  BarlowCondensed_800ExtraBold,
-} from '@expo-google-fonts/barlow-condensed';
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from '@expo-google-fonts/dm-sans';
+  Figtree_300Light,
+  Figtree_400Regular,
+  Figtree_500Medium,
+  Figtree_600SemiBold,
+  Figtree_700Bold,
+  Figtree_800ExtraBold,
+  Figtree_900Black,
+} from '@expo-google-fonts/figtree';
 import { Rufina_400Regular, Rufina_700Bold } from '@expo-google-fonts/rufina';
 
+// ── Figure mapping (CLAUDE.md § Typography tokens) ─────────
+// displaySemiBold  → Figtree_900Black   (dataLarge, Black)
+// displayBold      → Figtree_800ExtraBold (display, ExtraBold)
+// displayExtraBold → Figtree_800ExtraBold (display, ExtraBold)
+// sansRegular      → Figtree_400Regular  (body)
+// sansMedium       → Figtree_500Medium   (bodySecondary)
+// sansSemiBold     → Figtree_600SemiBold (sectionLabel, subtitle)
+// sansBold         → Figtree_700Bold     (subtitle, bold text)
+// Legacy aliases kept for backward compat — they now resolve to Figtree
+
 export const FontFamily = {
-  // Display / impact — BarlowCondensed
-  displaySemiBold: 'BarlowCondensed_600SemiBold',
-  displayBold: 'BarlowCondensed_700Bold',
-  displayExtraBold: 'BarlowCondensed_800ExtraBold',
-  // Corps / UI — DM Sans
-  sansRegular: 'DMSans_400Regular',
-  sansMedium: 'DMSans_500Medium',
-  sansSemiBold: 'DMSans_600SemiBold',
-  sansBold: 'DMSans_700Bold',
+  // Display / impact — Figtree ExtraBold / Black
+  displaySemiBold: 'Figtree_900Black',
+  displayBold: 'Figtree_800ExtraBold',
+  displayExtraBold: 'Figtree_800ExtraBold',
+  // Corps / UI — Figtree
+  sansRegular: 'Figtree_400Regular',
+  sansMedium: 'Figtree_500Medium',
+  sansSemiBold: 'Figtree_600SemiBold',
+  sansBold: 'Figtree_700Bold',
   // Marque — Rufina (wordmark, S + ✦ icône)
   rufinaRegular: 'Rufina_400Regular',
   rufinaBold: 'Rufina_700Bold',
-  // Legacy aliases (keep for backward compat during migration)
-  loraRegular: 'BarlowCondensed_600SemiBold',
-  loraBold: 'BarlowCondensed_700Bold',
-  loraItalic: 'BarlowCondensed_600SemiBold',
-  loraBoldItalic: 'BarlowCondensed_700Bold',
+  // Legacy aliases (now resolve to Figtree equivalents)
+  loraRegular: 'Figtree_400Regular',
+  loraItalic: 'Figtree_400Regular',
+  loraBold: 'Figtree_700Bold',
+  loraBoldItalic: 'Figtree_700Bold',
 } as const;
 
 export function useSolariaFonts() {
-  const [fontsLoaded] = useFonts({
-    BarlowCondensed_600SemiBold,
-    BarlowCondensed_700Bold,
-    BarlowCondensed_800ExtraBold,
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
-    DMSans_700Bold,
+  const [fontsLoaded, error] = useFonts({
+    Figtree_300Light,
+    Figtree_400Regular,
+    Figtree_500Medium,
+    Figtree_600SemiBold,
+    Figtree_700Bold,
+    Figtree_800ExtraBold,
+    Figtree_900Black,
     Rufina_400Regular,
     Rufina_700Bold,
   });
+
+  if (error) {
+    console.error('Font loading error:', error);
+  }
 
   return fontsLoaded;
 }
