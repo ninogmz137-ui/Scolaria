@@ -8,7 +8,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { getClassWellbeing, type StudentWellbeing } from '../../services/teacherService';
 
@@ -140,7 +140,7 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
   const displayed = showAll ? sorted : sorted.slice(0, 10);
 
   return (
-    <Animated.View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND, opacity: fadeAnim }}>
+    <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
@@ -314,7 +314,7 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
                   style={i < displayed.length - 1 ? { borderBottomWidth: 1, borderBottomColor: Colors.cardBorder } : undefined}
                 >
                   {/* Avatar */}
-                  <Box className="w-[34px] h-[34px] rounded-[17px] justify-center items-center" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: getMoodColor(student.joyScore) + '60' }}>
+                  <Box className="w-[34px] h-[34px] rounded-[17px] justify-center items-center" style={{ backgroundColor: '#E8EDF5', borderWidth: 1.5, borderColor: getMoodColor(student.joyScore) + '60' }}>
                     <Text className="text-base">{student.avatar}</Text>
                   </Box>
 

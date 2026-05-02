@@ -185,7 +185,7 @@ export default function AuthScreen() {
             className="rounded-full overflow-hidden mt-2"
           >
             <LinearGradient
-              colors={[Colors.violet, "#5B21B6"]}
+              colors={[Colors.violet, Colors.violetDark]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={{

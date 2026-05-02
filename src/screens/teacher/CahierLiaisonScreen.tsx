@@ -163,7 +163,7 @@ export default function CahierLiaisonScreen() {
       : 0;
 
     return (
-      <Box className="flex-1" style={{ backgroundColor: SCREEN_BACKGROUND }}>
+      <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
@@ -404,7 +404,7 @@ export default function CahierLiaisonScreen() {
 
   // ─── List view ─────────────────────────────
   return (
-    <Animated.View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND, opacity: fadeAnim }}>
+    <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
       {createModal}
       <ScrollView
         showsVerticalScrollIndicator={false}

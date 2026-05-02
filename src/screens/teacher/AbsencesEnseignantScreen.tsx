@@ -174,7 +174,7 @@ export default function AbsencesEnseignantScreen() {
   };
 
   return (
-    <Box className="flex-1" style={{ backgroundColor: SCREEN_BACKGROUND }}>
+    <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
       {/* Header */}
       <LinearGradient
         colors={['#0B1628', TEACHER_ORANGE + 'DD']}

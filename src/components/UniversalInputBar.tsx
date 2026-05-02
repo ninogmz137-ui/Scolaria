@@ -16,7 +16,6 @@ import {
   ARIA_GRADIENT_VIOLET,
   ARIA_GRADIENT_CYAN,
 } from '../constants/theme';
-import { SCREEN_BACKGROUND } from '../constants/colors';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
 
@@ -242,7 +241,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -255,7 +254,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },

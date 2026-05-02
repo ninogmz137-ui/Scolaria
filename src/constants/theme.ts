@@ -98,6 +98,7 @@ export const nativeAriaSuggestionShadow: ViewStyle = Platform.select({
 }) as ViewStyle;
 
 /** Screen backgrounds referenced in native polish pass */
+export const PAGE_BG_OFF_WHITE = '#F7F7F9' as const;
 export const PILL_ACTIVE_NAVY = '#0F1B2D' as const;
 
 /**

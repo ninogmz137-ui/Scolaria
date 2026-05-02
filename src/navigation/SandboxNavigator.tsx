@@ -330,7 +330,7 @@ export default function SandboxNavigator() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontFamily: FontFamily.sansSemiBold,
+          fontFamily: 'DMSans_600SemiBold',
         },
         headerShown: false,
       })}

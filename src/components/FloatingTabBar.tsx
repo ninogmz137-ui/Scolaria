@@ -46,11 +46,11 @@ import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Tab bar height export ───────────────────────────────
 
-/** Total height the floating tab bar occupies (bar 64 + bottom margin + safe area) */
-export const FLOATING_TAB_BAR_HEIGHT = 100;
+/** Total height the floating tab bar occupies (row + bottom margin + safe area). */
+export const FLOATING_TAB_BAR_HEIGHT = 112;
 
 /** Height of the floating tab row (pill + side circles). Matches `styles.container.height`. */
-export const FLOATING_TAB_BAR_ROW_HEIGHT = 50;
+export const FLOATING_TAB_BAR_ROW_HEIGHT = 59;
 
 /**
  * Gap between the bottom of the input bar bubble and the top of the floating tab bar.
@@ -93,15 +93,13 @@ export const FLAT_LIST_TAB_BAR_FOOTER_SPACER = 100;
 const MESSAGERIE_UNREAD = 3;
 const ACTIVE_ICON_COLOR = '#0F172A';
 const INACTIVE_ICON_COLOR = '#94A3B8';
-const NEUTRAL_BORDER = 'rgba(15,23,42,0.07)';
+const NEUTRAL_BORDER = '#E2E8F0';
 
 // Glass style shared by avatar, pill, and Aria circles
 // 0.95: near-opaque so page content can't bleed through on light bg (Android);
 // still a touch of translucency to keep the glass feel.
-// On the main app we use the single page background token to avoid
-// per-screen tint drift (warm vs cool whites).
-const GLASS_BG = SCREEN_BACKGROUND;
-const GLASS_BORDER = 'rgba(15,23,42,0.07)';
+const GLASS_BG = 'rgba(255,255,255,0.95)';
+const GLASS_BORDER = 'rgba(255,255,255,0.70)';
 
 const GLASS_SHADOW = Platform.select({
   ios: {
@@ -130,7 +128,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-const CHILD_COLORS = ['#4338CA', '#06B6D4', '#F59E0B', '#10B981', '#EC4899'];
+const CHILD_COLORS = ['#6366F1', '#06B6D4', '#F59E0B', '#10B981', '#EC4899', '#7C3AED'];
 function getChildColor(id: string): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
@@ -325,7 +323,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
               style={styles.circleImage}
             />
           ) : isEmoji && selectedChild.avatarEmoji ? (
-            <Text style={{ fontSize: 22 }}>{selectedChild.avatarEmoji}</Text>
+            <Text style={{ fontSize: 25 }}>{selectedChild.avatarEmoji}</Text>
           ) : (
             <Text style={styles.circleInitials}>
               {getInitials(selectedChild.name)}
@@ -380,7 +378,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
               >
                 <View style={[styles.iconWrapper, isFocused && styles.iconWrapperActive]}>
                   <IconComponent
-                    size={24}
+                    size={27}
                     color={isFocused ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
                   />
                   {hasUnread && <View style={styles.badgeDot} />}
@@ -401,7 +399,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
             <AriaOrb
               variant="bubble"
               state="idle"
-              size={26}
+              size={29}
               color={isOnAria ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
             />
           </View>
@@ -418,7 +416,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     right: 12,
-    height: 50,
+    height: 59,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -429,9 +427,9 @@ const styles = StyleSheet.create({
 
   // Shared glass circle (avatar + Aria)
   circle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 59,
+    height: 59,
+    borderRadius: 29.5,
     backgroundColor: GLASS_BG,
     borderWidth: 1,
     borderColor: NEUTRAL_BORDER,
@@ -444,48 +442,48 @@ const styles = StyleSheet.create({
   circleLeft: { marginRight: 8 },
   circleRight: { marginLeft: 8 },
   circleImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 59,
+    height: 59,
+    borderRadius: 29.5,
   },
   circleInitials: {
     color: '#0F172A',
-    fontSize: 15,
+    fontSize: 17,
     fontFamily: FontFamily.sansBold,
   },
 
   // Central pill
   pill: {
     flex: 1,
-    height: 50,
-    borderRadius: 25,
+    height: 59,
+    borderRadius: 29.5,
     backgroundColor: GLASS_BG,
     borderWidth: 1,
     borderColor: NEUTRAL_BORDER,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    paddingHorizontal: 4,
+    paddingHorizontal: 7,
     ...GLASS_SHADOW,
   },
   pillTab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50,
+    height: 59,
   },
 
   // Icon wrapper — active gets light grey circular bg
   iconWrapper: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   iconWrapperActive: {
-    backgroundColor: 'rgba(15,23,42,0.08)',
+    backgroundColor: '#F0F0F2',
   },
 
   // Unread dot badge (8px red dot, top-right of icon)

@@ -20,7 +20,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
+import { Colors } from '../../constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
 import { getClassPosts, createClassPost, getClassEvents, addReaction, type ClassEvent } from '../../services/teacherService';
 
@@ -347,7 +347,7 @@ export default function VieDeClasseScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}
+      style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
     >

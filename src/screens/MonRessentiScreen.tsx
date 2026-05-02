@@ -27,7 +27,7 @@ import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 
-const PAGE_BG = SCREEN_BACKGROUND;
+const PAGE_BG = '#F2F4F8';
 const NAVY = '#1A2340';
 
 const VALUE_JOY: Record<string, number> = {

@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Pressable, Dimensions, PanResponder } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,19 +22,19 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
+import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, CommonActions } from '@react-navigation/native';
-import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
-import { SCREEN_BACKGROUND } from '../constants/colors';
 
-// Components
-import AppTopbar, { type TopbarMode } from '../components/AppTopbar';
+// Navigation chrome
+import TopBar, { type ActiveTab } from '../components/navigation/TopBar';
+import BottomBar from '../components/navigation/BottomBar';
 import { BurgerMenuContent } from '../components/BurgerMenu';
-import FloatingTabBar from '../components/FloatingTabBar';
 
-// Topbar scroll context
+// Topbar scroll context (conservé pour AccueilScreen — no-op scroll-to-hide)
 import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
 
 // Main tab screens
@@ -468,12 +469,11 @@ function MessagerieStackScreen() {
 
 // ─── Tab navigator (4 tabs) ──────────────────────────────
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 function TabContent() {
   return (
     <Tab.Navigator
-      tabBar={(props) => <FloatingTabBar {...props} />}
       screenListeners={{
         tabPress: (e) => {
           backArrowRef.current?.setShowBack(false);
@@ -497,7 +497,8 @@ function TabContent() {
         },
       }}
       screenOptions={{
-        headerShown: false,
+        swipeEnabled: true,
+        tabBarStyle: { display: 'none' },
       }}
     >
       <Tab.Screen
@@ -574,48 +575,45 @@ function TabContentWithNav({
 // ─── Main navigator with topbar + burger ─────────────────
 
 export default function TabNavigator() {
-  const { selectedChild } = useActiveChild();
   const { signOut } = useAuth();
+  const insets = useSafeAreaInsets();
   const [burgerVisible, setBurgerVisible] = useState(false);
   const [showBack, setShowBack] = useState(false);
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
 
-  // ── Topbar scroll-to-hide ─────────────────────────────
-  const topbarTranslateY = useSharedValue(0);
+  // ── Scroll context → drives TopBar blur ─────────────────────────────
   const lastScrollY = useRef(0);
+  const topBlurOpacity = useSharedValue(0);
 
   // Register refs
   backArrowRef.current = { setShowBack };
-  activeTabRef.current = { setActiveTab: (tab: string) => {
-    setActiveTab(tab);
-    // Reset topbar when returning to Accueil tab
-    if (tab === 'Accueil') {
-      topbarTranslateY.value = withTiming(0, { duration: 200 });
-    }
-  }};
+  activeTabRef.current = { setActiveTab };
   stackTitleRef.current = { setTitle: setStackTitle };
   currentAccueilRouteRef.current = { setRouteName: setCurrentAccueilRoute };
 
-  // Topbar visibility logic:
-  //   - Accueil tab root → 'home' mode
-  //   - Any stacked screen → 'stacked' mode
-  //   - Notes / Agenda / Messagerie roots → hidden
-  const isStackedScreen = showBack;
-  const isAccueilRoot = activeTab === 'Accueil' && !isStackedScreen;
-  /** Accueil stack: own header / no AppTopbar (Aria, profil élève, mon ressenti). */
-  const accueilNoAppTopbarRoutes = new Set([
-    'AriaHome',
-    'AriaConversation',
-    'AriaScreen',
-    'ProfilEnfant',
-    'BienEtreScreen',
+  // ── Onglet actif → type ActiveTab ────────────────────
+  function toActiveTab(routeName: string, accueilRoute: string): ActiveTab {
+    if (routeName === 'Accueil' && accueilRoute.startsWith('Aria')) return 'aria';
+    switch (routeName) {
+      case 'Notes':        return 'notes';
+      case 'Agenda':       return 'agenda';
+      case 'MessagerieTab': return 'messages';
+      default:             return 'accueil';
+    }
+  }
+  const navActiveTab = toActiveTab(activeTab, currentAccueilRoute);
+
+  // ── Masquage du chrome : écrans plein-écran avec leur propre header ──
+  const ROUTES_HIDE_NAV = new Set([
+    'AriaHome', 'AriaConversation', 'AriaScreen',
+    'ProfilEnfant', 'BienEtreScreen',
+    'ReglagesScreen', 'PermissionsRGPD', 'JournalAcces',
+    'TransfertCode', 'Effacement', 'ExportDonnees',
   ]);
-  const hideTopbarForThisScreen =
-    activeTab === 'Accueil' && accueilNoAppTopbarRoutes.has(currentAccueilRoute);
-  const showTopbar = (isAccueilRoot || isStackedScreen) && !hideTopbarForThisScreen;
-  const topbarMode: TopbarMode = isStackedScreen ? 'stacked' : 'home';
+  const hideNavChrome = activeTab === 'Accueil' && ROUTES_HIDE_NAV.has(currentAccueilRoute);
+  const showNavChrome = !hideNavChrome;
 
   // ── Burger slide & scale ──────────────────────────────
   const progress = useSharedValue(0);
@@ -650,35 +648,23 @@ export default function TabNavigator() {
     return { opacity };
   });
 
-  const topbarAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: topbarTranslateY.value }],
-  }));
-
   const showBackRef = useRef(showBack);
   showBackRef.current = showBack;
-  /** Assez grand pour cacher "Bonjour, Prénom" + insets (voir AppTopbar). */
-  const TOPBAR_HIDE_OFFSET = 130;
 
-  // Called by AccueilScreen on scroll — masque la topbar en descendant, réaffiche en remontant
+  // TopBar fixe — pas de scroll-to-hide. Contexte conservé pour AccueilScreen (no-op).
   const handleAccueilScroll = useCallback((y: number) => {
-    if (showBackRef.current) return;
-    if (y < 6) {
-      lastScrollY.current = 0;
-      topbarTranslateY.value = withTiming(0, { duration: 200 });
-      return;
-    }
-    const prev = lastScrollY.current;
     lastScrollY.current = y;
-    const goingDown = y > prev + 1.5;
-    const goingUp = y < prev - 1.5;
-    if (goingDown && y > 8) {
-      topbarTranslateY.value = withTiming(-TOPBAR_HIDE_OFFSET, { duration: 220 });
-    } else if (goingUp) {
-      topbarTranslateY.value = withTiming(0, { duration: 220 });
-    }
-  }, [topbarTranslateY]);
+    // Notion-like: blur appears once content scrolls under the pills
+    const next = y > 12 ? 1 : 0;
+    topBlurOpacity.value = withTiming(next, { duration: 180 });
+  }, [topBlurOpacity]);
 
   const topbarScrollContextValue = { onScroll: handleAccueilScroll };
+
+  const topBlurStyle = useAnimatedStyle(() => ({
+    opacity: topBlurOpacity.value,
+  }));
+  const bottomBlurStyle = topBlurStyle;
 
   // ── Swipe gestures (swipe-back + burger open) ────────
   // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
@@ -791,34 +777,39 @@ export default function TabNavigator() {
 
         {/* ── Main content — animated scale/translate ── */}
         <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
-          <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
-            {/* Topbar: only on Accueil root and stacked screens */}
-            {showTopbar && (
-              <Animated.View style={[
-                { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 },
-                // Only apply scroll-to-hide on Accueil home (not stacked screens)
-                isAccueilRoot ? topbarAnimatedStyle : undefined,
-              ]}>
-                <AppTopbar
-                  mode={topbarMode}
-                  onBurgerPress={() => setBurgerVisible(true)}
-                  onBackPress={() => {
-                    goBackRef.current?.();
-                    setShowBack(false);
-                  }}
-                  title={stackTitle}
-                  childName={selectedChild.name}
-                  childPhotoUrl={
-                    selectedChild.avatarType === 'emoji' && selectedChild.avatarEmoji
-                      ? `emoji:${selectedChild.avatarEmoji}`
-                      : selectedChild.avatarPhotoUri ?? null
-                  }
-                  isHomeTab={isAccueilRoot}
-                  onSettingsPress={() => {
-                    burgerNavRef.current?.('ReglagesScreen');
-                  }}
+          <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+            {/* Top blur veil (appears on scroll) */}
+            {showNavChrome && (
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  {
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: insets.top + 86,
+                    zIndex: 15,
+                  },
+                  topBlurStyle,
+                ]}
+              >
+                <BlurView
+                  tint="light"
+                  intensity={35}
+                  style={{ flex: 1 }}
                 />
               </Animated.View>
+            )}
+            {/* TopBar — toujours en haut sauf écrans plein-écran */}
+            {showNavChrome && (
+              <TopBar
+                activeTab={navActiveTab}
+                onAvatarPress={() => {
+                  /* Sélecteur enfant — sprint suivant */
+                }}
+                hasUnreadMessages={false}
+              />
             )}
 
             {/* Tab content */}
@@ -832,6 +823,39 @@ export default function TabNavigator() {
                 signOut();
               }}
             />
+
+            {/* Bottom blur veil (appears on scroll, behind pills) */}
+            {showNavChrome && (
+              <Animated.View
+                pointerEvents="none"
+                style={[
+                  {
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: (insets.bottom > 0 ? insets.bottom + 8 : 12) + BOTTOM_BAR_HEIGHT + 28,
+                    zIndex: 15,
+                  },
+                  bottomBlurStyle,
+                ]}
+              >
+                <BlurView tint="light" intensity={35} style={{ flex: 1 }} />
+              </Animated.View>
+            )}
+
+            {/* BottomBar — ancrée en bas sauf écrans plein-écran */}
+            {showNavChrome && (
+              <BottomBar
+                activeTab={navActiveTab}
+                onSearchPress={() => {
+                  /* Recherche — sprint suivant */
+                }}
+                onActionPress={() => {
+                  /* Action contextuelle — sprint suivant */
+                }}
+              />
+            )}
           </View>
 
           {/* Subtle dim overlay when burger is open (keeps page visible) */}

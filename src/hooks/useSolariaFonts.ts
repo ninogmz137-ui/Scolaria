@@ -10,7 +10,7 @@ import {
 } from '@expo-google-fonts/figtree';
 import { Rufina_400Regular, Rufina_700Bold } from '@expo-google-fonts/rufina';
 
-// ── Figure mapping (CLAUDE.md § Typography tokens) ─────────
+// ── Figtree mapping (CLAUDE.md § Typography tokens) ─────────
 // displaySemiBold  → Figtree_900Black   (dataLarge, Black)
 // displayBold      → Figtree_800ExtraBold (display, ExtraBold)
 // displayExtraBold → Figtree_800ExtraBold (display, ExtraBold)

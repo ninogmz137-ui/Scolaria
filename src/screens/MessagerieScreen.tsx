@@ -21,7 +21,6 @@ import {
   Dimensions,
   useWindowDimensions,
 } from 'react-native';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -36,12 +35,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { School, CalendarX, Search, MessageCircle, Plus, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import {
   FLOATING_TAB_BAR_HEIGHT,
   FLOATING_TAB_BAR_ROW_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
   getFloatingTabBottomOffset,
 } from '../components/FloatingTabBar';
+import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -245,7 +246,8 @@ export default function MessagerieScreen() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
+  const { onScroll: reportScroll } = useTopbarScroll();
+  const tabBarHeight = BOTTOM_BAR_HEIGHT + insets.bottom;
   /** Avec barre flottante, h parfois 0 : on se cale sur la même règle que FloatingTabBar. */
   const fabRowBottom = Math.max(
     tabBarHeight,
@@ -501,9 +503,7 @@ export default function MessagerieScreen() {
 
   return (
     <View style={styles.screenShell}>
-    <View
-      style={[styles.root, { paddingTop: insets.top }]}
-    >
+    <View style={[styles.root, { paddingTop: insets.top + 64 }]}>
       <View
         style={[styles.headerWrap, styles.screenHorizontalPad]}
         onLayout={(e) => setHeaderBlockH(e.nativeEvent.layout.height)}
@@ -653,6 +653,8 @@ export default function MessagerieScreen() {
           Platform.OS === 'android' && styles.conversationScrollAndroid,
         ]}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
         contentContainerStyle={[
           styles.scrollContent,
           styles.screenHorizontalPad,
@@ -826,7 +828,7 @@ const styles = StyleSheet.create({
     maxHeight: 40,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#FFFFFF',
     maxWidth: SEARCH_PILL_MAX_W,
     width: '100%',
   },
@@ -890,7 +892,7 @@ const styles = StyleSheet.create({
     maxWidth: 200,
   },
   filterToutOuterWrap: {
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#FFFFFF',
     borderRadius: 18,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -1040,7 +1042,7 @@ const styles = StyleSheet.create({
   filterDropdownCard: {
     zIndex: 2,
     borderRadius: 12,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#FFFFFF',
     paddingVertical: 6,
     overflow: 'hidden',
     ...Platform.select({
