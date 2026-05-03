@@ -2075,9 +2075,9 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.displayExtraBold,
     fontSize: 32,
     color: C.ink,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    // No textTransform — CLAUDE.md: uppercase reserved for section labels only
   },
+
   titleActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconCircle: { width: 34, height: 34 },
   iconCircleInner: {

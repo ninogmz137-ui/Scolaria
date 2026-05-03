@@ -99,10 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes — but never override demo users
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, s) => {
         setSession(s);
+        if (isDemoMode) return; // never wipe demo user on Supabase events
         setUser(s?.user ?? null);
       },
     );

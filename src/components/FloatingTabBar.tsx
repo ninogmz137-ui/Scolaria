@@ -293,7 +293,13 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
 
   // Aria tap → navigate to AriaHome
   const handleAriaPress = () => {
-    navigation.navigate('Accueil', { screen: 'AriaHome' } as any);
+    // Aria tap → navigate to Aria in Accueil tab
+    if (currentTab !== 'Accueil') {
+      navigation.navigate('Accueil');
+    }
+    requestAnimationFrame(() => {
+      (navigation as any).navigate('Accueil', { screen: 'AriaHome' });
+    });
   };
 
   // Bottom offset: safe area + spacing

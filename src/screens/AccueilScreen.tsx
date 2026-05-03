@@ -162,8 +162,8 @@ export default function AccueilScreen() {
               accessibilityRole="button"
               onPress={() => {
                 if (item.id === '1') nav.navigate('AriaHome');
-                if (item.id === '2') nav.getParent()?.navigate('Agenda');
-                if (item.id === '3') nav.getParent()?.navigate('Notes');
+                if (item.id === '2') nav.getParent()?.getParent()?.navigate('Agenda');
+                if (item.id === '3') nav.getParent()?.getParent()?.navigate('Notes');
               }}
             >
               <View style={{ height: 44, backgroundColor: item.color }} />
@@ -185,7 +185,7 @@ export default function AccueilScreen() {
               meta={it.meta}
               onPress={() => {
                 if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
-                if (it.id === 'agenda') nav.getParent()?.navigate('Agenda');
+                if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
                 if (it.id === 'joy') nav.navigate('BienEtreScreen');
               }}
             />

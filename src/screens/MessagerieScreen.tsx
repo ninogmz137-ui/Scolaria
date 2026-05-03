@@ -510,21 +510,12 @@ export default function MessagerieScreen() {
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextArea}>
-            <Text
-              style={[styles.headerTitle, searchOpen && styles.headerTitleCompact]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              adjustsFontSizeToFit
-              minimumFontScale={0.6}
-            >
-              Messagerie
-            </Text>
-            <Text style={styles.headerSub}>
-              {unreadCount > 0
-                ? `${unreadCount} non lu${unreadCount > 1 ? 's' : ''}`
-                : 'Tout est à jour'}
-            </Text>
-          </View>
+            {/* Title is in TopBar pill — no repetition in body (CLAUDE.md) */}
+            {unreadCount > 0 ? (
+              <Text style={styles.headerSub}>
+                {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
+              </Text>
+            ) : null}
 
           <View style={styles.headerActionsCluster}>
             <Animated.View style={[styles.searchPillShadowWrap, searchPillWidthStyle]}>
@@ -760,6 +751,7 @@ const styles = StyleSheet.create({
   screenShell: {
     flex: 1,
     minHeight: 0,
+    backgroundColor: SCREEN_BACKGROUND,
     ...Platform.select({
       web: { width: '100%' as const, minWidth: 0 },
       android: { alignSelf: 'stretch' },

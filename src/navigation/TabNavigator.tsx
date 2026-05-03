@@ -32,6 +32,7 @@ import { useAuth } from '../contexts/AuthContext';
 // Navigation chrome
 import TopBar, { type ActiveTab } from '../components/navigation/TopBar';
 import BottomBar from '../components/navigation/BottomBar';
+import { ChildSwitcherModal } from '../components/GlobalChildSwitcher';
 import { BurgerMenuContent } from '../components/BurgerMenu';
 
 // Topbar scroll context (conservé pour AccueilScreen — no-op scroll-to-hide)
@@ -582,6 +583,7 @@ export default function TabNavigator() {
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
+  const [childSwitcherVisible, setChildSwitcherVisible] = useState(false);
 
   // ── Scroll context → drives TopBar blur ─────────────────────────────
   const lastScrollY = useRef(0);
@@ -806,7 +808,7 @@ export default function TabNavigator() {
               <TopBar
                 activeTab={navActiveTab}
                 onAvatarPress={() => {
-                  /* Sélecteur enfant — sprint suivant */
+                  setChildSwitcherVisible(true);
                 }}
                 hasUnreadMessages={false}
               />
@@ -856,6 +858,12 @@ export default function TabNavigator() {
                 }}
               />
             )}
+
+            {/* Child switcher modal */}
+            <ChildSwitcherModal
+              visible={childSwitcherVisible}
+              onClose={() => setChildSwitcherVisible(false)}
+            />
           </View>
 
           {/* Subtle dim overlay when burger is open (keeps page visible) */}
