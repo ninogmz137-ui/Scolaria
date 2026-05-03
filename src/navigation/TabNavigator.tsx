@@ -500,6 +500,9 @@ function TabContent() {
       screenOptions={{
         swipeEnabled: true,
         tabBarStyle: { display: 'none' },
+        // Fix Android: MaterialTopTabViewPager intercepte tous les taps
+        tabBarPressColor: 'transparent',
+        swipeMinDistance: 50,
       }}
     >
       <Tab.Screen
@@ -687,27 +690,8 @@ export default function TabNavigator() {
 
   const swipePan = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: (evt) => {
-        if (evt.nativeEvent.pageX >= 40) return false;
-        // Swipe-back : écran stacké
-        if (showBackRef.current) return true;
-        // Profil / Mon ressenti : retour (topbar masquée, pas de showBack)
-        if (
-          activeTabRef2.current === 'Accueil' &&
-          (currentRouteRef.current === 'ProfilEnfant' ||
-            currentRouteRef.current === 'BienEtreScreen')
-        )
-          return true;
-        // Fermer la feuille Réglages (modal transparent)
-        if (currentRouteRef.current === 'ReglagesScreen') return true;
-        // Ouvrir burger : accueil racine, burger fermé, pas sur écrans plein
-        if (
-          activeTabRef2.current === 'Accueil' &&
-          !burgerVisibleRef.current &&
-          !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
-        ) return true;
-        return false;
-      },
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, g) => {
         if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
         if (showBackRef.current) return true;

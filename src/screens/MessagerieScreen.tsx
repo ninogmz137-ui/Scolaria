@@ -516,6 +516,7 @@ export default function MessagerieScreen() {
                 {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
               </Text>
             ) : null}
+          </View>
 
           <View style={styles.headerActionsCluster}>
             <Animated.View style={[styles.searchPillShadowWrap, searchPillWidthStyle]}>
