@@ -75,11 +75,15 @@ export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: 
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
 
   const handleTabPress = (tab: TabConfig) => {
+    // useNavigation() ici = RootStack. Il faut passer par 'MainPager' pour
+    // atteindre les onglets du Tab.Navigator imbriqué.
     if (tab.id === 'accueil') {
-      // Toujours reset le stack Accueil vers AccueilHome
-      navigation.navigate('Accueil', { screen: 'AccueilHome' });
+      (navigation as any).navigate('MainPager', {
+        screen: 'Accueil',
+        params: { screen: 'AccueilHome' },
+      });
     } else {
-      navigation.navigate(tab.routeName);
+      (navigation as any).navigate('MainPager', { screen: tab.routeName });
     }
   };
 

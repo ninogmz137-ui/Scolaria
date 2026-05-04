@@ -245,19 +245,19 @@ export default function NotificationsScreen() {
     markRead(notif.id);
     switch (notif.type) {
       case 'liaison':
-        navigation.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
+        (navigation as any).navigate('MainPager', { screen: 'MessagerieTab', params: { screen: 'MessagesListScreen' } });
         break;
       case 'note':
-        navigation.navigate('Notes');
+        (navigation as any).navigate('MainPager', { screen: 'Notes' });
         break;
       case 'agenda':
-        navigation.navigate('Agenda');
+        (navigation as any).navigate('MainPager', { screen: 'Agenda' });
         break;
       case 'absence':
-        navigation.navigate('Accueil', { screen: 'SignalerAbsenceScreen' });
+        (navigation as any).navigate('MainPager', { screen: 'Accueil', params: { screen: 'SignalerAbsenceScreen' } });
         break;
       case 'aria':
-        navigation.navigate('Accueil', { screen: 'AriaHome' });
+        (navigation as any).navigate('MainPager', { screen: 'Accueil', params: { screen: 'AriaHome' } });
         break;
     }
   }, [markRead, navigation]);

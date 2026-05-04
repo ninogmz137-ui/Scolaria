@@ -194,9 +194,9 @@ export default function AriaScreen() {
   const handleAriaAction = useCallback(
     (route: string) => {
       if (route === 'Notes' || route === 'Agenda') {
-        navigation.navigate(route);
+        (navigation as any).navigate('MainPager', { screen: route });
       } else {
-        navigation.navigate('Accueil', { screen: route });
+        (navigation as any).navigate('MainPager', { screen: 'Accueil', params: { screen: route } });
       }
     },
     [navigation],

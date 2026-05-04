@@ -71,7 +71,11 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
   const ActionIcon = getActionIcon(activeTab);
 
   const handleAriaPress = () => {
-    navigation.navigate('Accueil', { screen: 'AriaHome' } as any);
+    // useNavigation() ici = RootStack → passer par MainPager
+    (navigation as any).navigate('MainPager', {
+      screen: 'Accueil',
+      params: { screen: 'AriaHome' },
+    });
   };
 
   return (

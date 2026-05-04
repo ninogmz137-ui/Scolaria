@@ -534,6 +534,7 @@ function TabContent() {
 const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
+const profileNavRef: { current: (() => void) | null } = { current: null };
 
 // ─── TabContentWithNav ───────────────────────────────────
 
@@ -551,26 +552,39 @@ function TabContentWithNav({
     navigation.dispatch(CommonActions.goBack());
   };
 
+  // useNavigation() ici = RootStack (TabNavigator est le screen 'MainPager').
+  // Pour atteindre un onglet ou un écran imbriqué, passer par 'MainPager'.
   ariaNavRef.current = () => {
-    navigation.navigate('Accueil', { screen: 'AriaHome' });
+    navigation.navigate('MainPager', {
+      screen: 'Accueil',
+      params: { screen: 'AriaHome' },
+    } as any);
+  };
+
+  profileNavRef.current = () => {
+    navigation.navigate('MainPager', {
+      screen: 'Accueil',
+      params: { screen: 'EditProfile' },
+    } as any);
   };
 
   burgerNavRef.current = (screen: string) => {
-    const routeMap: Record<string, { tab?: string; screen?: string }> = {
-      ProfilEnfant: { tab: 'Accueil', screen: 'ProfilEnfant' },
-      MonParcours: { tab: 'Accueil', screen: 'MonParcours' },
+    const routeMap: Record<string, { tab: string; screen: string }> = {
+      ProfilEnfant:   { tab: 'Accueil', screen: 'ProfilEnfant' },
+      MonParcours:    { tab: 'Accueil', screen: 'MonParcours' },
       BienEtreScreen: { tab: 'Accueil', screen: 'BienEtreScreen' },
-      WallpaperPicker: { tab: 'Accueil', screen: 'WallpaperPicker' },
+      WallpaperPicker:{ tab: 'Accueil', screen: 'WallpaperPicker' },
       ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
-      RGPDScreen: { tab: 'Accueil', screen: 'RGPDScreen' },
+      RGPDScreen:     { tab: 'Accueil', screen: 'RGPDScreen' },
     };
 
     const target = routeMap[screen];
     if (!target) return;
 
-    if (target.screen) {
-      navigation.navigate(target.tab ?? 'Accueil', { screen: target.screen });
-    }
+    navigation.navigate('MainPager', {
+      screen: target.tab,
+      params: { screen: target.screen },
+    } as any);
   };
 
   return <TabContent />;
@@ -792,7 +806,7 @@ export default function TabNavigator() {
               <TopBar
                 activeTab={navActiveTab}
                 onAvatarPress={() => {
-                  setChildSwitcherVisible(true);
+                  profileNavRef.current?.();
                 }}
                 hasUnreadMessages={false}
               />
