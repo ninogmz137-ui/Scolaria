@@ -28,6 +28,9 @@ export interface Message {
   date: string;
 }
 
+export type ConvTag = 'sortie' | 'devoir' | 'vie' | 'cantine' | 'admin' | 'controle' | 'rdv';
+export type ConvUrgency = 'signer' | 'repondre';
+
 export interface Conversation {
   id: string;
   childId: string;
@@ -36,6 +39,8 @@ export interface Conversation {
   avatarType: AvatarType;
   /** Two-letter initials for avatarType === 'initials' */
   initials?: string;
+  /** Hex color for initials avatar background */
+  avatarColor?: string;
   lastMessage: string;
   /** YYYY-MM-DD */
   lastDate: string;
@@ -43,6 +48,12 @@ export interface Conversation {
   lastTime: string;
   unread: boolean;
   messages: Message[];
+  /** Category tag for filtering/display */
+  tag?: ConvTag;
+  /** Action required */
+  urgency?: ConvUrgency;
+  /** Short Aria-generated summary */
+  ariaSummary?: string;
 }
 
 // ─── Léa — Maternelle Pasteur ───────────────────────────
@@ -105,6 +116,10 @@ const leaConversations: Conversation[] = [
 
 const lucasConversations: Conversation[] = [
   {
+    tag: 'sortie' as const,
+    urgency: 'signer' as const,
+    ariaSummary: 'Autorisation sortie médiathèque à signer avant vendredi.',
+    avatarColor: '#059669',
     id: 'lucas-moreau',
     childId: 'demo-lucas',
     name: 'Mme Moreau',
@@ -166,6 +181,9 @@ const emmaConversations: Conversation[] = [
     role: 'Professeure de Français',
     avatarType: 'initials',
     initials: 'MD',
+    avatarColor: '#DB2777',
+    tag: 'controle',
+    ariaSummary: 'Brevet blanc le 2 mai. Révisions prioritaires.',
     lastMessage: 'Le brevet blanc de français est fixé au 2 mai, révisions à prévoir.',
     lastDate: '2026-04-09',
     lastTime: '11:00',
@@ -183,6 +201,9 @@ const emmaConversations: Conversation[] = [
     role: 'Professeur de Mathématiques',
     avatarType: 'initials',
     initials: 'MG',
+    avatarColor: '#4338CA',
+    tag: 'devoir',
+    ariaSummary: 'Note 8/20. Fiche de révisions à venir cette semaine.',
     lastMessage: 'Je vous envoie une fiche par cahier de liaison cette semaine.',
     lastDate: '2026-04-09',
     lastTime: '15:00',
@@ -202,6 +223,9 @@ const emmaConversations: Conversation[] = [
     role: 'Professeur de SVT',
     avatarType: 'initials',
     initials: 'MT',
+    avatarColor: '#059669',
+    tag: 'controle',
+    ariaSummary: 'Note 13/20. Chapitre écosystèmes — résultat encourageant.',
     lastMessage: 'Emma a eu 13/20, résultat encourageant !',
     lastDate: '2026-04-10',
     lastTime: '16:30',
@@ -218,6 +242,8 @@ const emmaConversations: Conversation[] = [
     name: 'Collège Jean Moulin',
     role: 'Direction',
     avatarType: 'school',
+    tag: 'admin',
+    ariaSummary: 'Réunion parents-profs 15 mai 17h–19h. Brevet 23–25 juin.',
     lastMessage: "Rappel : règlement intérieur disponible sur l'ENT.",
     lastDate: '2026-04-09',
     lastTime: '14:00',
@@ -234,6 +260,8 @@ const emmaConversations: Conversation[] = [
     name: 'Absences Emma',
     role: 'Suivi des absences',
     avatarType: 'absence',
+    tag: 'vie',
+    ariaSummary: '2 absences justifiées ce trimestre. RAS.',
     lastMessage: 'Bien noté, merci.',
     lastDate: '2026-04-09',
     lastTime: '09:00',

@@ -54,9 +54,26 @@ import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../const
 
 // ─── Constants ────────────────────────────────────────────
 
-const NAVY = '#1A2340';
-const UNREAD_DOT = '#3B82F6';
-const BG = SCREEN_BACKGROUND;
+const NAVY = '#0F172A';
+const INDIGO = '#4338CA';
+const BORDER_L = 'rgba(15,23,42,0.06)';
+const TEXT55 = 'rgba(15,23,42,0.55)';
+const TEXT35 = 'rgba(15,23,42,0.35)';
+
+const TAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  sortie:   { bg: '#CFFAFE', text: '#155E75', label: 'Sortie' },
+  devoir:   { bg: '#FEF3C7', text: '#92400E', label: 'Devoir' },
+  vie:      { bg: '#EDE9FE', text: '#5B21B6', label: 'Vie scolaire' },
+  cantine:  { bg: '#D1FAE5', text: '#065F46', label: 'Cantine' },
+  admin:    { bg: '#E2E8F0', text: '#334155', label: 'Administratif' },
+  controle: { bg: '#FCE7F3', text: '#9D174D', label: 'Contrôle' },
+  rdv:      { bg: '#FFEDD5', text: '#9A3412', label: 'Rendez-vous' },
+};
+
+const URGENCY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
+  signer:   { bg: '#FCE7F3', text: '#9D174D', label: 'À SIGNER' },
+  repondre: { bg: '#FEF3C7', text: '#92400E', label: 'À RÉPONDRE' },
+};
 
 // ─── Filter types ─────────────────────────────────────────
 
@@ -129,8 +146,9 @@ function ConvAvatar({ conv }: { conv: Conversation }) {
   }
   // initials
   const initials = conv.initials ?? conv.name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
+  const color = conv.avatarColor ?? NAVY;
   return (
-    <View style={[styles.avatar, { backgroundColor: NAVY }]}>
+    <View style={[styles.avatar, { backgroundColor: color }]}>
       <Text style={styles.avatarInitials}>{initials}</Text>
     </View>
   );
@@ -147,6 +165,9 @@ function ConvRow({
   onPress: () => void;
   isLast: boolean;
 }) {
+  const tagStyle = conv.tag ? TAG_STYLES[conv.tag] : null;
+  const urgStyle = conv.urgency ? URGENCY_STYLES[conv.urgency] : null;
+
   return (
     <Pressable
       onPress={onPress}
@@ -158,40 +179,51 @@ function ConvRow({
       accessibilityRole="button"
     >
       <View style={styles.rowInner}>
-      <ConvAvatar conv={conv} />
+        <ConvAvatar conv={conv} />
 
-      <View style={styles.rowBody}>
-        {/* Name + timestamp */}
-        <View style={styles.rowTop}>
-          <Text
-            style={[
-              styles.rowName,
-              {
-                fontFamily: conv.unread
-                  ? FontFamily.sansBold
-                  : FontFamily.sansSemiBold,
-              },
-            ]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {conv.name}
-          </Text>
-          <Text style={styles.rowTime} numberOfLines={1} ellipsizeMode="tail">
-            {formatLastDate(conv.lastDate)}
-          </Text>
-        </View>
+        <View style={styles.rowBody}>
+          {/* Name + role + timestamp */}
+          <View style={styles.rowTop}>
+            <Text
+              style={[
+                styles.rowName,
+                { fontFamily: conv.unread ? FontFamily.sansBold : FontFamily.sansSemiBold },
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {conv.name}
+            </Text>
+            <Text style={styles.rowRole} numberOfLines={1}>· {conv.role}</Text>
+            <View style={{ flex: 1 }} />
+            <Text style={[styles.rowTime, conv.unread && styles.rowTimeUnread]} numberOfLines={1}>
+              {formatLastDate(conv.lastDate)}
+            </Text>
+          </View>
 
-        {/* Preview + unread dot */}
-        <View style={styles.rowBottom}>
+          {/* Tags row */}
+          {(tagStyle || urgStyle) && (
+            <View style={styles.tagsRow}>
+              {tagStyle && (
+                <View style={[styles.tagPill, { backgroundColor: tagStyle.bg }]}>
+                  <Text style={[styles.tagPillText, { color: tagStyle.text }]}>{tagStyle.label}</Text>
+                </View>
+              )}
+              {urgStyle && (
+                <View style={[styles.tagPill, { backgroundColor: urgStyle.bg }]}>
+                  <Text style={[styles.urgencyPillText, { color: urgStyle.text }]}>{urgStyle.label}</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Last message */}
           <Text
             style={[
               styles.rowPreview,
               {
-                fontFamily: conv.unread
-                  ? FontFamily.sansMedium
-                  : FontFamily.sansRegular,
-                color: conv.unread ? NAVY : '#64748B',
+                fontFamily: conv.unread ? FontFamily.sansSemiBold : FontFamily.sansMedium,
+                color: conv.unread ? NAVY : TEXT55,
               },
             ]}
             numberOfLines={1}
@@ -199,15 +231,19 @@ function ConvRow({
           >
             {conv.lastMessage}
           </Text>
-          {conv.unread && <View style={styles.unreadDot} />}
+
+          {/* Aria summary */}
+          {!!conv.ariaSummary && (
+            <Text style={styles.ariaSummary} numberOfLines={2}>
+              {conv.ariaSummary}
+            </Text>
+          )}
         </View>
-      </View>
+
+        {conv.unread && <View style={styles.unreadDot} />}
       </View>
 
-      {/* Hairline separator — between rows, not after last */}
-      {!isLast && (
-        <View style={styles.separator} />
-      )}
+      {!isLast && <View style={styles.separator} />}
     </Pressable>
   );
 }
@@ -761,7 +797,7 @@ const styles = StyleSheet.create({
   },
   root: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: SCREEN_BACKGROUND,
     ...Platform.select({
       /**
        * Web : `minHeight`/`minWidth`/`width` aident le flex au retour d’onglet.
@@ -1017,7 +1053,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 34,
+    fontSize: 26,
     color: NAVY,
     letterSpacing: -0.6,
   },
@@ -1205,46 +1241,50 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: '#94A3B8',
-    letterSpacing: 0.6,
+    fontSize: 8.5,
+    color: NAVY,
+    opacity: 0.28,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
     paddingHorizontal: 0,
     marginTop: 24,
     marginBottom: 10,
   },
   sectionCard: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: BORDER_L,
     maxWidth: '100%',
     overflow: 'hidden',
   },
 
   // Row
   row: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    backgroundColor: SCREEN_BACKGROUND,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: 'transparent',
     position: 'relative',
     maxWidth: '100%',
     overflow: 'hidden',
   },
   rowInner: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     width: '100%',
   },
   rowUnread: {
-    backgroundColor: '#F0F4FF',
+    backgroundColor: 'rgba(67,56,202,0.025)',
   },
   rowPressed: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(15,23,42,0.04)',
   },
 
   // Avatar
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -1252,7 +1292,7 @@ const styles = StyleSheet.create({
   },
   avatarInitials: {
     fontFamily: FontFamily.sansBold,
-    fontSize: 16,
+    fontSize: 15,
     color: '#FFFFFF',
   },
 
@@ -1260,30 +1300,57 @@ const styles = StyleSheet.create({
   rowBody: {
     flex: 1,
     minWidth: 0,
-    maxWidth: '100%',
-    overflow: 'hidden',
   },
   rowTop: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    justifyContent: 'space-between',
-    gap: 8,
-    marginBottom: 6,
+    gap: 4,
+    marginBottom: 4,
     minWidth: 0,
-    maxWidth: '100%',
   },
   rowName: {
-    flex: 1,
-    minWidth: 0,
-    fontSize: 16,
+    fontSize: 14.5,
     color: NAVY,
+    letterSpacing: -0.2,
+    flexShrink: 0,
+  },
+  rowRole: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: TEXT35,
+    letterSpacing: -0.05,
+    flexShrink: 1,
+    minWidth: 0,
   },
   rowTime: {
-    fontFamily: FontFamily.sansRegular,
+    fontFamily: FontFamily.sansMedium,
     fontSize: 12,
-    color: '#94A3B8',
+    color: TEXT35,
     flexShrink: 0,
-    maxWidth: '42%',
+  },
+  rowTimeUnread: {
+    color: INDIGO,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: 5,
+    flexWrap: 'wrap',
+  },
+  tagPill: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+  },
+  tagPillText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    letterSpacing: -0.05,
+  },
+  urgencyPillText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 11,
+    letterSpacing: 0.2,
   },
   rowBottom: {
     flexDirection: 'row',
@@ -1293,26 +1360,39 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   rowPreview: {
-    flex: 1,
     minWidth: 0,
-    fontSize: 14,
+    fontSize: 13.5,
+    lineHeight: 18,
+    letterSpacing: -0.15,
+  },
+  ariaSummary: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12.5,
+    color: INDIGO,
+    fontStyle: 'italic',
+    letterSpacing: -0.1,
+    lineHeight: 17,
+    marginTop: 3,
+    opacity: 0.85,
   },
   unreadDot: {
-    width: 10,
-    height: 10,
+    width: 9,
+    height: 9,
     borderRadius: 5,
-    backgroundColor: UNREAD_DOT,
+    backgroundColor: INDIGO,
     flexShrink: 0,
+    marginTop: 4,
+    marginLeft: 6,
   },
 
   // Hairline separator between rows
   separator: {
     position: 'absolute',
     bottom: 0,
-    left: 0,
+    left: 16,
     right: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: BORDER_L,
   },
 
   // Empty

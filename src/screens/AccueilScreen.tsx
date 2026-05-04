@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MessageCircle, Calendar, Heart } from 'lucide-react-native';
+import { MessageCircle, Calendar, Heart, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,44 +18,68 @@ import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
 
-const BG = '#F2F1EE';
+const BG = '#F7F7F5';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
+const BORDER_L = 'rgba(15,23,42,0.05)';
 
 const demoRecents = [
-  { id: '1', label: 'Bilan Emma · Aria', color: '#1A2340' },
-  { id: '2', label: 'Agenda avril', color: '#0F766E' },
-  { id: '3', label: 'Notes T2 · Emma', color: '#1E3A5F' },
+  {
+    id: '1',
+    label: 'Bilan Emma · Aria',
+    color: '#13183B',
+    accent: 'rgba(99,102,241,0.30)',
+  },
+  {
+    id: '2',
+    label: 'Agenda avril',
+    color: '#1F6E5C',
+    accent: 'rgba(34,211,238,0.25)',
+  },
+  {
+    id: '3',
+    label: 'Notes T2 · Emma',
+    color: '#1B2A4E',
+    accent: 'rgba(99,102,241,0.22)',
+  },
+  {
+    id: '4',
+    label: 'Cahier · Lucas',
+    color: '#3A2F1F',
+    accent: 'rgba(245,158,11,0.20)',
+  },
 ];
 
 const demoAujourdhui = [
   {
     id: 'msg',
-    icon: <MessageCircle size={20} color="rgba(239,68,68,0.95)" strokeWidth={2} />,
-    iconBg: 'rgba(239,68,68,0.10)',
+    icon: <MessageCircle size={16} color="#BE123C" strokeWidth={2} />,
+    iconBg: '#FFE4E6',
     title: 'Message de Mme Dupont',
     subtitle: 'Français · À lire',
     meta: '09:12',
   },
   {
     id: 'agenda',
-    icon: <Calendar size={20} color="rgba(99,102,241,0.95)" strokeWidth={2} />,
-    iconBg: 'rgba(99,102,241,0.10)',
+    icon: <Calendar size={16} color={INDIGO} strokeWidth={2} />,
+    iconBg: '#E0E7FF',
     title: 'Contrôle maths demain',
     subtitle: 'Emma · Salle 204',
     meta: 'rappel',
   },
   {
     id: 'joy',
-    icon: <Heart size={20} color="rgba(245,158,11,0.95)" strokeWidth={2} />,
-    iconBg: 'rgba(245,158,11,0.10)',
+    icon: <Heart size={16} color="#D97706" strokeWidth={2} />,
+    iconBg: '#FEF3C7',
     title: 'Score de Joie de Léa',
     subtitle: 'Pas encore saisi',
-    meta: '→',
+    meta: '',
+    chevron: true,
   },
 ];
 
-const demoAriaMessage = 'Emma progresse en maths ce trimestre. Sa moyenne a augmenté de 1,2 point.';
+const demoAriaMessage =
+  'Emma progresse en maths ce trimestre. Sa moyenne a augmenté de 1,2 point.';
 
 function HomeListItem({
   icon,
@@ -63,6 +87,7 @@ function HomeListItem({
   title,
   subtitle,
   meta,
+  chevron,
   onPress,
 }: {
   icon: ReactNode;
@@ -70,6 +95,7 @@ function HomeListItem({
   title: string;
   subtitle?: string;
   meta: string;
+  chevron?: boolean;
   onPress?: () => void;
 }) {
   return (
@@ -79,12 +105,25 @@ function HomeListItem({
       activeOpacity={0.85}
       accessibilityRole="button"
     >
-      <View style={[styles.listIconWrap, { backgroundColor: iconBg }]}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.listTitle}>{title}</Text>
-        {!!subtitle && <Text style={styles.listSubtitle}>{subtitle}</Text>}
+      <View style={[styles.listIconWrap, { backgroundColor: iconBg }]}>
+        {icon}
       </View>
-      <Text style={styles.listMeta}>{meta}</Text>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.listTitle} numberOfLines={1}>
+          {title}
+        </Text>
+        {!!subtitle && (
+          <Text style={styles.listSubtitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      <View style={styles.listTrail}>
+        {!!meta && <Text style={styles.listMeta}>{meta}</Text>}
+        {chevron && (
+          <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
+        )}
+      </View>
     </TouchableOpacity>
   );
 }
@@ -94,8 +133,8 @@ export default function AccueilScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { children } = useActiveChild();
-  const { onScroll: reportScroll } = useTopbarScroll();
   const { wallpaper, wallpaperSource, customUri } = useWallpaper();
+  const { onScroll: reportScroll } = useTopbarScroll();
 
   const prenom = useMemo(() => {
     const raw =
@@ -107,112 +146,155 @@ export default function AccueilScreen() {
   }, [user]);
 
   const familyName = useMemo(() => {
-    const raw = (user as any)?.user_metadata?.family_name || (user as any)?.user_metadata?.nom_famille;
+    const raw =
+      (user as any)?.user_metadata?.family_name ||
+      (user as any)?.user_metadata?.nom_famille;
     return String(raw || 'Moreau').trim() || 'Moreau';
   }, [user]);
 
   const nbEnfants = children.length || 1;
-
   const showImageWallpaper = !!customUri || wallpaper.type === 'image';
 
   return (
     <View style={styles.root}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 98 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
       >
-        {/* TopBar est un overlay (position absolute) */}
-        <View style={{ height: insets.top + 60 }} />
+        {/* Espace pour la TopBar overlay */}
+        <View style={{ height: insets.top + 64 }} />
 
-        {/* Header wallpaper */}
+        {/* ── Header wallpaper ── */}
         <View style={styles.headerWrap}>
           {!showImageWallpaper ? (
             <LinearGradient
-              colors={wallpaper.colors ?? ['#2D1B69', INDIGO, 'rgba(34,211,238,0.6)']}
+              colors={
+                (wallpaper.colors as [string, string, ...string[]]) ??
+                (['#2D1B69', INDIGO, 'rgba(34,211,238,0.6)'] as [
+                  string,
+                  string,
+                  string,
+                ])
+              }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
           ) : (
-            <Image source={wallpaperSource.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
+            <Image
+              source={wallpaperSource.source}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
           )}
+          {/* Overlay dégradé bas */}
           <LinearGradient
-            colors={['transparent', 'rgba(15,23,42,0.25)']}
+            colors={['transparent', 'rgba(15,23,42,0.20)']}
             style={[StyleSheet.absoluteFill, { top: '40%' }]}
           />
           <View style={styles.headerInner}>
-            <Text style={styles.headerHello}>Bonjour, {prenom} 👋</Text>
+            <Text style={styles.headerHello}>
+              Bonjour, {prenom}{' '}
+              <Text style={styles.headerWave}>👋</Text>
+            </Text>
             <Text style={styles.headerMeta}>
-              Famille {familyName} · {nbEnfants} enfant{nbEnfants > 1 ? 's' : ''}
+              Famille {familyName} · {nbEnfants} enfant
+              {nbEnfants > 1 ? 's' : ''}
             </Text>
           </View>
         </View>
 
-        {/* Récents */}
-        <SectionLabel text="Récents" style={{ paddingTop: 10 }} />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentsRow}>
+        {/* ── Récents ── */}
+        <SectionLabel text="Récents" style={{ paddingTop: 12 }} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.recentsRow}
+        >
           {demoRecents.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.recentCard}
               activeOpacity={0.88}
               accessibilityRole="button"
               onPress={() => {
                 if (item.id === '1') nav.navigate('AriaHome');
-                if (item.id === '2') nav.getParent()?.getParent()?.navigate('Agenda');
-                if (item.id === '3') nav.getParent()?.getParent()?.navigate('Notes');
+                if (item.id === '2')
+                  nav.getParent()?.getParent()?.navigate('Agenda');
+                if (item.id === '3')
+                  nav.getParent()?.getParent()?.navigate('Notes');
               }}
             >
-              <View style={{ height: 44, backgroundColor: item.color }} />
-              <Text style={styles.recentLabel}>{item.label}</Text>
+              {/* Tuile colorée 130×88 */}
+              <View style={[styles.recentTile, { backgroundColor: item.color }]}>
+                {/* Accent radial simulé avec un LinearGradient diagonal */}
+                <LinearGradient
+                  colors={[item.accent, 'transparent']}
+                  start={{ x: 0.7, y: 0.3 }}
+                  end={{ x: 0.0, y: 1.0 }}
+                  style={StyleSheet.absoluteFill}
+                />
+              </View>
+              {/* Label sous la tuile */}
+              <Text style={styles.recentLabel} numberOfLines={1}>
+                {item.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Aujourd'hui */}
+        {/* ── Aujourd'hui ── */}
         <SectionLabel text="Aujourd'hui" />
-        <View style={styles.todayListWrap}>
-          {demoAujourdhui.map((it) => (
-            <HomeListItem
-              key={it.id}
-              icon={it.icon}
-              iconBg={it.iconBg}
-              title={it.title}
-              subtitle={it.subtitle}
-              meta={it.meta}
-              onPress={() => {
-                if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
-                if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
-                if (it.id === 'joy') nav.navigate('BienEtreScreen');
-              }}
-            />
+        <View style={styles.todayCard}>
+          {demoAujourdhui.map((it, i) => (
+            <React.Fragment key={it.id}>
+              <HomeListItem
+                icon={it.icon}
+                iconBg={it.iconBg}
+                title={it.title}
+                subtitle={it.subtitle}
+                meta={it.meta}
+                chevron={it.chevron}
+                onPress={() => {
+                  if (it.id === 'msg')
+                    nav.navigate('MessagerieTab', {
+                      screen: 'MessagesListScreen',
+                    });
+                  if (it.id === 'agenda')
+                    nav.getParent()?.getParent()?.navigate('Agenda');
+                  if (it.id === 'joy') nav.navigate('BienEtreScreen');
+                }}
+              />
+              {i < demoAujourdhui.length - 1 && (
+                <View style={styles.divider} />
+              )}
+            </React.Fragment>
           ))}
         </View>
 
-        {/* Widget Aria */}
-        <View style={{ paddingHorizontal: 14, marginTop: 4 }}>
-          <TouchableOpacity
-            style={styles.ariaCard}
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            onPress={() => nav.navigate('AriaHome')}
-          >
-            <LinearGradient
-              colors={['#EEF2FF', '#F0FDFA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
-            />
-            <ScolariaSymbol size={18} color={INDIGO} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.ariaLabel}>ARIA</Text>
-              <Text style={styles.ariaMessage}>{demoAriaMessage}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        {/* ── Card Aria ── */}
+        <TouchableOpacity
+          style={styles.ariaCard}
+          activeOpacity={0.9}
+          accessibilityRole="button"
+          onPress={() => nav.navigate('AriaHome')}
+        >
+          <LinearGradient
+            colors={['#EEF2FF', '#F0FDFA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: 18 }]}
+          />
+          <View style={styles.ariaSymbol}>
+            <ScolariaSymbol size={20} color={INDIGO} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.ariaLabel}>ARIA</Text>
+            <Text style={styles.ariaMessage}>{demoAriaMessage}</Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -221,101 +303,157 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
 
+  // ── Header ─────────────────────────────────────────────
   headerWrap: {
-    marginHorizontal: 12,
-    height: 164,
-    borderRadius: 20,
+    marginHorizontal: 16,
+    height: 170,
+    borderRadius: 24,
     overflow: 'hidden',
-    marginBottom: 10,
+    shadowColor: NAVY,
+    shadowOpacity: 0.10,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  headerInner: { flex: 1, padding: 16, justifyContent: 'space-between' },
+  headerInner: {
+    flex: 1,
+    padding: 22,
+    justifyContent: 'space-between',
+  },
   headerHello: {
-    fontFamily: 'Figtree_700Bold',
-    fontSize: 21,
+    fontFamily: 'Figtree_800ExtraBold',
+    fontSize: 24,
     color: '#fff',
-    letterSpacing: -0.3,
+    letterSpacing: -0.7,
+    textShadowColor: 'rgba(0,0,0,0.20)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  headerWave: {
+    fontFamily: 'Figtree_800ExtraBold',
   },
   headerMeta: {
-    fontFamily: 'Figtree_400Regular',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.65)',
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.78)',
+    letterSpacing: -0.05,
   },
 
-  recentsRow: { paddingHorizontal: 14, gap: 8 },
-  recentCard: {
-    width: 144,
-    borderRadius: 14,
+  // ── Récents ────────────────────────────────────────────
+  recentsRow: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  recentTile: {
+    width: 130,
+    height: 88,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.90)',
     shadowColor: NAVY,
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
     elevation: 2,
   },
   recentLabel: {
-    padding: 8,
     fontFamily: 'Figtree_600SemiBold',
-    fontSize: 11,
+    fontSize: 13,
     color: NAVY,
-    lineHeight: 16,
+    marginTop: 8,
+    letterSpacing: -0.15,
+    maxWidth: 130,
   },
 
-  todayListWrap: {
-    marginHorizontal: 14,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.75)',
+  // ── Today list ─────────────────────────────────────────
+  todayCard: {
+    marginHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.90)',
+    borderColor: BORDER_L,
+    overflow: 'hidden',
+    shadowColor: NAVY,
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15,23,42,0.04)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 14,
   },
   listIconWrap: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  listTitle: { fontFamily: 'Figtree_500Medium', fontSize: 14, color: NAVY },
+  listTitle: {
+    fontFamily: 'Figtree_600SemiBold',
+    fontSize: 16,
+    color: NAVY,
+    letterSpacing: -0.2,
+  },
   listSubtitle: {
     fontFamily: 'Figtree_400Regular',
-    fontSize: 10.5,
+    fontSize: 13,
     color: 'rgba(15,23,42,0.55)',
-    marginTop: 1,
+    marginTop: 2,
+    letterSpacing: -0.05,
   },
-  listMeta: { fontFamily: 'Figtree_400Regular', fontSize: 12, color: 'rgba(15,23,42,0.35)' },
-
-  ariaCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(67,56,202,0.10)',
-    borderRadius: 16,
-    padding: 12,
+  listTrail: {
     flexDirection: 'row',
-    gap: 10,
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 0,
+  },
+  listMeta: {
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.55)',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: BORDER_L,
+    marginLeft: 68, // aligne après l'icône
+  },
+
+  // ── Aria card ──────────────────────────────────────────
+  ariaCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.06)',
+    borderRadius: 18,
+    padding: 16,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    gap: 13,
     overflow: 'hidden',
+  },
+  ariaSymbol: {
+    marginTop: 3,
+    flexShrink: 0,
   },
   ariaLabel: {
     fontFamily: 'Figtree_700Bold',
     fontSize: 11,
-    letterSpacing: 0.3,
+    letterSpacing: 1.3,
     color: INDIGO,
-    marginBottom: 3,
+    opacity: 0.85,
+    marginBottom: 6,
     textTransform: 'uppercase',
   },
   ariaMessage: {
-    fontFamily: 'Figtree_400Regular',
-    fontSize: 12.5,
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 15,
     color: NAVY,
-    lineHeight: 18,
+    lineHeight: 22,
+    letterSpacing: -0.15,
   },
 });

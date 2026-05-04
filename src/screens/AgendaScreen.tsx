@@ -240,14 +240,9 @@ function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
     <Pressable onPress={onPress} hitSlop={8}>
       <Animated.View style={[st.checkboxWrap, animatedStyle]}>
         {done ? (
-          <LinearGradient
-            colors={['#7C3AED', '#06B6D4']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={st.checkboxGradient}
-          >
+          <View style={[st.checkboxGradient, { backgroundColor: '#0F172A' }]}>
             <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
-          </LinearGradient>
+          </View>
         ) : (
           <View style={st.checkboxEmpty} />
         )}
@@ -527,7 +522,7 @@ export default function AgendaScreen() {
           time: `${hh}h00`,
           type: typeMap[newEventType],
           emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
-          color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#7C3AED',
+          color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#4338CA',
         };
         setEventsByDay((prev) => ({
           ...prev,
@@ -715,7 +710,7 @@ export default function AgendaScreen() {
                     }}
                     style={[
                       st.monthPill,
-                      isActive && { backgroundColor: '#1A1A1A' },
+                      isActive && { backgroundColor: '#0F172A' },
                     ]}
                   >
                     <Text style={[
@@ -766,12 +761,12 @@ export default function AgendaScreen() {
                       >
                         <View style={[
                           st.calendarDayCircle,
-                          isSelected && { backgroundColor: '#1A1A1A' },
+                          isSelected && { backgroundColor: '#0F172A' },
                         ]}>
                           <Text style={[
                             st.calendarDayText,
                             !cell.isCurrentMonth && st.calendarDayOtherMonth,
-                            isToday && !isSelected && { color: '#7C3AED', fontFamily: FontFamily.displayBold },
+                            isToday && !isSelected && { color: '#4338CA', fontFamily: FontFamily.displayBold },
                             isSelected && { color: '#FFFFFF', fontFamily: FontFamily.displayBold },
                           ]}>
                             {cell.day}
@@ -806,13 +801,13 @@ export default function AgendaScreen() {
                 <Text style={st.weekStripLetter}>{day.day[0]}</Text>
                 <View style={[
                   st.weekStripCircle,
-                  isSelected && { backgroundColor: '#1A1A1A' },
+                  isSelected && { backgroundColor: '#0F172A' },
                 ]}>
                   <Text style={[
                     st.weekStripNumber,
                     isSelected && { color: '#FFFFFF', fontFamily: FontFamily.displayBold },
-                    isToday && { color: '#7C3AED' },
-                    !isSelected && !isToday && { color: '#1A1A1A' },
+                    isToday && { color: '#4338CA' },
+                    !isSelected && !isToday && { color: '#0F172A' },
                   ]}>
                     {day.date}
                   </Text>
@@ -990,7 +985,7 @@ const st = StyleSheet.create({
   monthName: {
     fontFamily: FontFamily.displayExtraBold,
     fontSize: 32,
-    color: '#1A1A1A',
+    color: '#0F172A',
   },
   yearText: {
     fontFamily: FontFamily.displayBold,
@@ -1067,7 +1062,7 @@ const st = StyleSheet.create({
   calendarDayText: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 14,
-    color: '#1A1A1A',
+    color: '#0F172A',
   },
   calendarDayOtherMonth: {
     color: '#D1D5DB',
@@ -1076,7 +1071,7 @@ const st = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
     marginTop: 1,
   },
 
@@ -1107,18 +1102,18 @@ const st = StyleSheet.create({
   weekStripNumber: {
     fontFamily: FontFamily.displayBold,
     fontSize: 16,
-    color: '#1A1A1A',
+    color: '#0F172A',
   },
   weekStripDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
   },
 
   // Today button
   todayBtn: {
-    backgroundColor: '#1A1A1A',
+    backgroundColor: '#0F172A',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
@@ -1185,7 +1180,7 @@ const st = StyleSheet.create({
   eventTitle: {
     fontFamily: FontFamily.sansBold,
     fontSize: 15,
-    color: '#1A1A1A',
+    color: '#0F172A',
   },
   eventMeta: {
     fontFamily: FontFamily.sansRegular,
@@ -1240,7 +1235,7 @@ const st = StyleSheet.create({
   emptyTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: 18,
-    color: '#1A1A1A',
+    color: '#0F172A',
   },
   emptySubtitle: {
     fontFamily: FontFamily.sansRegular,
@@ -1325,7 +1320,7 @@ const st = StyleSheet.create({
   modalTitle: {
     fontFamily: FontFamily.displayBold,
     fontSize: 20,
-    color: '#1A2340',
+    color: '#0F172A',
     marginBottom: 20,
   },
   modalDateRow: {
@@ -1341,7 +1336,7 @@ const st = StyleSheet.create({
   modalDateText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#1A2340',
+    color: '#0F172A',
   },
   modalInput: {
     backgroundColor: SCREEN_BACKGROUND,
@@ -1350,7 +1345,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#1A2340',
+    color: '#0F172A',
     marginBottom: 20,
     fontFamily: FontFamily.sansRegular,
   },
@@ -1368,7 +1363,7 @@ const st = StyleSheet.create({
     backgroundColor: SCREEN_BACKGROUND,
   },
   modalTypePillActive: {
-    backgroundColor: '#1A2340',
+    backgroundColor: '#0F172A',
   },
   modalTypeText: {
     fontFamily: FontFamily.sansSemiBold,
@@ -1400,6 +1395,6 @@ const st = StyleSheet.create({
   createText: {
     fontFamily: FontFamily.sansBold,
     fontSize: 16,
-    color: '#1A2340',
+    color: '#0F172A',
   },
 });
