@@ -299,7 +299,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="EditProfile"
         component={EditProfileScreen}
-        options={{ title: 'Mon profil' }}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
       {/* Backward-compat route: keep name but render new Aria home */}
       <AccueilStack.Screen
