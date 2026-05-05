@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MessageCircle, Calendar, Heart } from 'lucide-react-native';
@@ -18,10 +19,7 @@ import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
 import { supabase } from '../services/supabase';
-
-const BG = '#F2F1EE';
-const NAVY = '#0F172A';
-const INDIGO = '#4338CA';
+import { C } from '../constants/design';
 
 const demoRecents = [
   { id: '1', label: 'Bilan Emma · Aria', color: '#1A2340' },
@@ -80,7 +78,8 @@ function HomeListItem({
       activeOpacity={0.85}
       accessibilityRole="button"
     >
-      <View style={[styles.listIconWrap, { backgroundColor: iconBg }]}>{icon}</View>
+      {/* marginRight remplace gap: 10 (Android-unsafe) */}
+      <View style={[styles.listIconWrap, { backgroundColor: iconBg, marginRight: 10 }]}>{icon}</View>
       <View style={{ flex: 1 }}>
         <Text style={styles.listTitle}>{title}</Text>
         {!!subtitle && <Text style={styles.listSubtitle}>{subtitle}</Text>}
@@ -155,7 +154,7 @@ export default function AccueilScreen() {
         <View style={styles.headerWrap}>
           {!showImageWallpaper ? (
             <LinearGradient
-              colors={wallpaper.colors ?? ['#2D1B69', INDIGO, 'rgba(34,211,238,0.6)']}
+              colors={wallpaper.colors ?? ['#2D1B69', C.indigo, 'rgba(34,211,238,0.6)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
@@ -181,7 +180,7 @@ export default function AccueilScreen() {
           {recents.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.recentCard}
+              style={styles.recentCardOuter}
               activeOpacity={0.88}
               accessibilityRole="button"
               onPress={() => {
@@ -190,30 +189,37 @@ export default function AccueilScreen() {
                 else nav.getParent()?.getParent()?.navigate('Notes');
               }}
             >
-              <View style={{ height: 44, backgroundColor: item.color }} />
-              <Text style={styles.recentLabel}>{item.label}</Text>
+              {/* Inner: overflow hidden */}
+              <View style={styles.recentCardInner}>
+                <View style={{ height: 44, backgroundColor: item.color }} />
+                <Text style={styles.recentLabel}>{item.label}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Aujourd'hui */}
         <SectionLabel text="Aujourd'hui" />
-        <View style={styles.todayListWrap}>
-          {demoAujourdhui.map((it) => (
-            <HomeListItem
-              key={it.id}
-              icon={it.icon}
-              iconBg={it.iconBg}
-              title={it.title}
-              subtitle={it.subtitle}
-              meta={it.meta}
-              onPress={() => {
-                if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
-                if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
-                if (it.id === 'joy') nav.navigate('BienEtreScreen');
-              }}
-            />
-          ))}
+        {/* Outer: shadow + bg */}
+        <View style={styles.todayOuter}>
+          {/* Inner: overflow hidden */}
+          <View style={styles.todayInner}>
+            {demoAujourdhui.map((it) => (
+              <HomeListItem
+                key={it.id}
+                icon={it.icon}
+                iconBg={it.iconBg}
+                title={it.title}
+                subtitle={it.subtitle}
+                meta={it.meta}
+                onPress={() => {
+                  if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
+                  if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
+                  if (it.id === 'joy') nav.navigate('BienEtreScreen');
+                }}
+              />
+            ))}
+          </View>
         </View>
 
         {/* Widget Aria */}
@@ -230,7 +236,10 @@ export default function AccueilScreen() {
               end={{ x: 1, y: 1 }}
               style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
             />
-            <ScolariaSymbol size={18} color={INDIGO} />
+            {/* marginRight remplace gap: 10 (Android-unsafe) */}
+            <View style={{ marginRight: 10 }}>
+              <ScolariaSymbol size={18} color={C.indigo} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.ariaLabel}>ARIA</Text>
               <Text style={styles.ariaMessage}>{demoAriaMessage}</Text>
@@ -243,7 +252,7 @@ export default function AccueilScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
+  root: { flex: 1, backgroundColor: C.bg },
 
   headerWrap: {
     marginHorizontal: 12,
@@ -265,39 +274,66 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.65)',
   },
 
-  recentsRow: { paddingHorizontal: 14, gap: 8 },
-  recentCard: {
+  // Récents — gap: 8 remplacé par paddingRight sur chaque card (via recentCardOuter)
+  recentsRow: { paddingHorizontal: 14 },
+
+  // Outer: background + shadow — PAS d'overflow hidden
+  recentCardOuter: {
     width: 144,
     borderRadius: 14,
-    overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.75)',
+    marginRight: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: C.text,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: { elevation: 0 },
+    }),
+  },
+  // Inner: overflow hidden pour clips les coins
+  recentCardInner: {
+    borderRadius: 14,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.90)',
-    shadowColor: NAVY,
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
   recentLabel: {
     padding: 8,
     fontFamily: 'Figtree_600SemiBold',
     fontSize: 11,
-    color: NAVY,
+    color: C.text,
     lineHeight: 16,
   },
 
-  todayListWrap: {
+  // Aujourd'hui — pattern 2-Views: outer shadow, inner overflow hidden
+  todayOuter: {
     marginHorizontal: 14,
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.90)',
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: {
+        shadowColor: C.text,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: { elevation: 0 },
+    }),
   },
+  todayInner: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.05)',
+  },
+
+  // listItem — gap: 10 remplacé par marginRight sur listIconWrap (dans le composant)
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
     paddingHorizontal: 14,
     paddingVertical: 9,
     borderBottomWidth: 1,
@@ -309,37 +345,38 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
+    // marginRight appliqué inline dans HomeListItem
   },
-  listTitle: { fontFamily: 'Figtree_500Medium', fontSize: 14, color: NAVY },
+  listTitle: { fontFamily: 'Figtree_500Medium', fontSize: 14, color: C.text },
   listSubtitle: {
     fontFamily: 'Figtree_400Regular',
     fontSize: 10.5,
-    color: 'rgba(15,23,42,0.55)',
+    color: C.text55,
     marginTop: 1,
   },
-  listMeta: { fontFamily: 'Figtree_400Regular', fontSize: 12, color: 'rgba(15,23,42,0.35)' },
+  listMeta: { fontFamily: 'Figtree_400Regular', fontSize: 12, color: C.text35 },
 
+  // ariaCard — gap: 10 remplacé par marginRight sur wrapper ScolariaSymbol (inline)
   ariaCard: {
     borderWidth: 1,
     borderColor: 'rgba(67,56,202,0.10)',
     borderRadius: 16,
     padding: 12,
     flexDirection: 'row',
-    gap: 10,
     overflow: 'hidden',
   },
   ariaLabel: {
     fontFamily: 'Figtree_700Bold',
     fontSize: 11,
     letterSpacing: 0.3,
-    color: INDIGO,
+    color: C.indigo,
     marginBottom: 3,
     textTransform: 'uppercase',
   },
   ariaMessage: {
     fontFamily: 'Figtree_400Regular',
     fontSize: 12.5,
-    color: NAVY,
+    color: C.text,
     lineHeight: 18,
   },
 });

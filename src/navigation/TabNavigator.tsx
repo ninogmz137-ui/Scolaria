@@ -86,6 +86,14 @@ import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
+// v3.0 — nouveaux écrans
+import HomeworkScreen from '../screens/HomeworkScreen';
+import TimetableScreen from '../screens/TimetableScreen';
+import EventDetailScreen from '../screens/EventDetailScreen';
+import GradeDetailScreen from '../screens/GradeDetailScreen';
+import SignDocScreen from '../screens/SignDocScreen';
+import SignSuccessScreen from '../screens/SignSuccessScreen';
+
 // ─── Screen dimensions ───────────────────────────────────
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -337,6 +345,17 @@ function AccueilStackScreen() {
         component={ArchivedYearDetailScreen}
         options={{ headerShown: false }}
       />
+      {/* v3.0 */}
+      <AccueilStack.Screen
+        name="Homework"
+        component={HomeworkScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
+        name="Timetable"
+        component={TimetableScreen}
+        options={{ headerShown: false }}
+      />
     </AccueilStack.Navigator>
   );
 }
@@ -379,6 +398,12 @@ function NotesStackScreen() {
         component={SubjectDetailScreen}
         options={{ headerShown: false }}
       />
+      {/* v3.0 */}
+      <NotesStack.Screen
+        name="GradeDetail"
+        component={GradeDetailScreen}
+        options={{ headerShown: false }}
+      />
     </NotesStack.Navigator>
   );
 }
@@ -390,6 +415,12 @@ function AgendaStackScreen() {
       <AgendaStack.Screen
         name="AgendaHome"
         component={AgendaScreen}
+        options={{ headerShown: false }}
+      />
+      {/* v3.0 */}
+      <AgendaStack.Screen
+        name="EventDetail"
+        component={EventDetailScreen}
         options={{ headerShown: false }}
       />
     </AgendaStack.Navigator>
@@ -462,6 +493,17 @@ function MessagerieStackScreen() {
       <MessagerieStack.Screen
         name="MotDetailScreen"
         component={MotDetailScreen}
+        options={{ headerShown: false }}
+      />
+      {/* v3.0 */}
+      <MessagerieStack.Screen
+        name="SignDoc"
+        component={SignDocScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="SignSuccess"
+        component={SignSuccessScreen}
         options={{ headerShown: false }}
       />
     </MessagerieStack.Navigator>

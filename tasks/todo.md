@@ -1,29 +1,37 @@
-# TODO — Scolaria
+# TODO — Scolaria · UI Sprint v3.0
 
-## Phase 2A : Bottom Tab Bar Premium
-- [x] FloatingTabBar — mode-aware bg (dark/light from theme.isDarkBg)
-- [x] Active tab: accent at 15% opacity + accent text label
-- [x] Icon size 24px, Aria always gradient (MaskedView + LinearGradient)
-- [x] Height 64, padding h8 v8, borderRadius 20 on pills
-- [x] Tab label: 11px DM Sans 600 (FontFamily.sansSemiBold)
-- [x] Shadow only on light mode, hairline border
-- [x] Install @react-native-masked-view/masked-view
+## Sprint v3.0 — COMPLÉTÉ (5 mai 2026)
 
-## Phase 2B : Typographie Premium
-- [x] Install @expo-google-fonts/barlow-condensed
-- [x] Update useSolariaFonts: replace Lora with BarlowCondensed (600/700/800)
-- [x] Legacy aliases for backward compat
-- [x] FloatingTabBar tab label → FontFamily.sansSemiBold
-- [x] AriaScreen headerTitle → FontFamily.displayBold
-- [x] SettingsScreen sectionTitle → FontFamily.displayBold 13px uppercase ls:2
-- [x] DashboardTile value → FontFamily.displayBold 32px
-- [x] DashboardTile label → FontFamily.displayBold 11px uppercase ls:2
-- [x] AriaCard label → FontFamily.displayBold 13px uppercase ls:2
-- [ ] AccueilScreen — agent running (sectionLabel + tileValue)
-- [ ] NotesScreen — agent running (summaryValue, subjectName, subjectAvg)
-- [ ] AgendaScreen — agent running (weekTitle, dayNumber, badgeText)
-- [ ] ProfilEnfantScreen + SignalerAbsenceScreen — agent fixing fontWeight leaks
+### Fondations
+- [x] `src/constants/design.ts` — tokens C, RADIUS, SHADOW, BOTTOM_BAR_HEIGHT
+- [x] `src/components/WhiteCard.tsx` — carte blanche Android-safe (2 Views)
+- [x] `src/components/DeepScreenHeader.tsx` — header écrans profonds
+- [x] `src/components/AriaInlineCard.tsx` — card Aria gradient EEF2FF→F0FDFA
 
-## Pending
-- EAS build in progress (commit 0edce61 — gradient fade-to-bg)
-- Phase 2 commit pending after all agents complete
+### Écrans mis à jour
+- [x] `AccueilScreen.tsx` — fix gap Android, pattern 2-Views todayListWrap/recentCard, tokens C
+
+### Nouveaux écrans deep
+- [x] `HomeworkScreen.tsx` — cahier de texte Emma 4ᵉB
+- [x] `TimetableScreen.tsx` — emploi du temps
+- [x] `EventDetailScreen.tsx` — détail événement agenda
+- [x] `GradeDetailScreen.tsx` — détail note + sparkline SVG
+- [x] `SignDocScreen.tsx` — signature autorisation
+- [x] `SignSuccessScreen.tsx` — confirmation signature
+
+### Onboarding
+- [x] `src/screens/onboarding/OnboardingSplashScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingSignupScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingSchoolCodeScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingLinkChildScreen.tsx`
+
+### Navigation
+- [x] `TabNavigator.tsx` — 6 nouveaux écrans enregistrés dans leurs stacks
+
+## Pending — Sprint v3.1
+- [ ] NotesScreen v3 redesign (sparkline Figtree, pills matières, cartes extensibles)
+- [ ] AgendaScreen v3 (FAB cercle, event cards sans emoji)
+- [ ] MessagerieScreen v3 (search toolbar, conversation rows avec tags)
+- [ ] AriaScreen v3 (topbar spécifique, suggestions centré, input Aria)
+- [ ] `npx expo run:android` — test visuel des nouveaux écrans
+- [ ] EAS build quand tout est validé localhost
