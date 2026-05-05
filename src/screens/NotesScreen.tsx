@@ -67,28 +67,22 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// ─── Palette (design system v2 — CLAUDE.md) ───────────────
-
-const NAVY = '#0F172A';
-const INDIGO = '#4338CA';
-const BORDER_L = 'rgba(15,23,42,0.06)';
-const TEXT55 = 'rgba(15,23,42,0.55)';
-const TEXT35 = 'rgba(15,23,42,0.35)';
+// ─── Palette (mockup + violet polish) ─────────────────────
 
 const C = {
-  ink: NAVY,
-  violet: INDIGO,
-  cyan: '#22D3EE',
-  violetDeep: '#3730A3',
-  label: TEXT55,
-  labelUpper: 'rgba(15,23,42,0.32)',
-  meta: TEXT35,
-  body: NAVY,
-  glassBg: '#FFFFFF',
-  glassBorder: BORDER_L,
-  liquidBtn: 'rgba(255,255,255,0.92)',
-  liquidBorder: BORDER_L,
-  rowSep: BORDER_L,
+  ink: '#1A2340',
+  violet: '#7C3AED',
+  cyan: '#06B6D4',
+  violetDeep: '#5B21B6',
+  label: '#9ca3af',
+  labelUpper: '#6b7280',
+  meta: '#c4b5fd',
+  body: '#374151',
+  glassBg: 'rgba(255,255,255,0.7)',
+  glassBorder: 'rgba(255,255,255,0.9)',
+  liquidBtn: 'rgba(255,255,255,0.6)',
+  liquidBorder: 'rgba(255,255,255,0.8)',
+  rowSep: 'rgba(124,58,237,0.06)',
   track: 'rgba(0,0,0,0.06)',
 };
 
@@ -579,10 +573,9 @@ function GlassPanel({
       style={[
         {
           borderRadius: r,
-          backgroundColor: '#FFFFFF',
-          borderWidth: 1,
-          borderColor: BORDER_L,
+          backgroundColor: 'rgba(255,255,255,0.92)',
           overflow: 'hidden',
+          ...nativeGlassCardShadow,
         },
         style,
       ]}
@@ -742,8 +735,8 @@ function NotesProgressGraph({
             <Svg width={width} height={height}>
               <Defs>
                 <SvgLinearGradient id={lineId} x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
-                  <Stop offset="0" stopColor={NAVY} />
-                  <Stop offset="1" stopColor={NAVY} />
+                  <Stop offset="0" stopColor={C.violet} />
+                  <Stop offset="1" stopColor={C.cyan} />
                 </SvgLinearGradient>
               </Defs>
 
@@ -826,167 +819,6 @@ function GraphCardHalo({ children }: { children: React.ReactNode }) {
     </View>
   );
 }
-
-// ─── AverageCard — clean sparkline (new design) ──────────
-
-const AVG_MONTHS = ['sep', 'oct', 'nov', 'déc', 'jan', 'fév', 'mar', 'avr'];
-
-function AverageCard({
-  average,
-  trend,
-  graphData,
-  trimesterLabel,
-}: {
-  average: number;
-  trend: number;
-  graphData: number[];
-  trimesterLabel: string;
-}) {
-  const W = Dimensions.get('window').width - 32 - 36; // card width - margin - padding
-  const H = 80;
-  const padX = 8;
-  const padY = 10;
-  const pts = graphData.length >= 2 ? graphData : [average];
-
-  const minV = Math.min(...pts) - 0.5;
-  const maxV = Math.max(...pts) + 0.5;
-  const range = maxV - minV || 1;
-  const n = pts.length;
-
-  const xs = pts.map((_, i) => padX + (i / (n - 1)) * (W - padX * 2));
-  const ys = pts.map((v) => H - padY - ((v - minV) / range) * (H - padY * 2));
-
-  let linePath = n >= 2 ? `M ${xs[0]} ${ys[0]}` : '';
-  for (let i = 1; i < n; i++) {
-    const cx1 = xs[i - 1] + (xs[i] - xs[i - 1]) / 2;
-    const cx2 = xs[i - 1] + (xs[i] - xs[i - 1]) / 2;
-    linePath += ` C ${cx1} ${ys[i - 1]}, ${cx2} ${ys[i]}, ${xs[i]} ${ys[i]}`;
-  }
-  const areaPath =
-    n >= 2
-      ? `${linePath} L ${xs[n - 1]} ${H} L ${xs[0]} ${H} Z`
-      : '';
-
-  const lastX = xs[n - 1] ?? padX;
-  const lastY = ys[n - 1] ?? H / 2;
-
-  const trendPositive = trend >= 0;
-  const trendStr = `${trendPositive ? '+' : ''}${trend.toFixed(1)}`;
-
-  const monthLabels = AVG_MONTHS.slice(0, n);
-
-  return (
-    <View style={avgCardStyles.card}>
-      {/* Header row */}
-      <View style={avgCardStyles.headerRow}>
-        <Text style={avgCardStyles.eyebrow}>MOYENNE {trimesterLabel}</Text>
-        <View style={avgCardStyles.trendBadge}>
-          <Text style={avgCardStyles.trendText}>{trendStr}</Text>
-        </View>
-      </View>
-
-      {/* Big number */}
-      <View style={avgCardStyles.numRow}>
-        <Text style={avgCardStyles.bigNum}>{average.toFixed(1)}</Text>
-        <Text style={avgCardStyles.slash}>/20</Text>
-      </View>
-
-      {/* Sparkline */}
-      {n >= 2 && (
-        <>
-          <Svg width={W} height={H} style={{ marginTop: 8 }}>
-            <Defs>
-              <SvgLinearGradient id="avgAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={NAVY} stopOpacity={0.10} />
-                <Stop offset="1" stopColor={NAVY} stopOpacity={0} />
-              </SvgLinearGradient>
-            </Defs>
-            <Path d={areaPath} fill="url(#avgAreaGrad)" />
-            <Path d={linePath} fill="none" stroke={NAVY} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            <Circle cx={lastX} cy={lastY} r={4.5} fill="#FFFFFF" stroke={NAVY} strokeWidth={2} />
-          </Svg>
-
-          {/* Month labels */}
-          <View style={avgCardStyles.monthRow}>
-            {monthLabels.map((m, i) => (
-              <Text key={i} style={avgCardStyles.monthLabel}>{m}</Text>
-            ))}
-          </View>
-        </>
-      )}
-    </View>
-  );
-}
-
-const avgCardStyles = StyleSheet.create({
-  card: {
-    marginHorizontal: 16,
-    marginBottom: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    paddingTop: 18,
-    paddingBottom: 14,
-    paddingHorizontal: 18,
-    borderWidth: 1,
-    borderColor: BORDER_L,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  eyebrow: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: NAVY,
-    opacity: 0.32,
-  },
-  trendBadge: {
-    height: 26,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: 'rgba(15,23,42,0.06)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  trendText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: TEXT55,
-  },
-  numRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 3,
-    marginTop: 2,
-  },
-  bigNum: {
-    fontFamily: FontFamily.displaySemiBold,
-    fontSize: 44,
-    color: NAVY,
-    letterSpacing: -2,
-    lineHeight: 48,
-  },
-  slash: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 16,
-    color: TEXT35,
-  },
-  monthRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  monthLabel: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 10,
-    color: TEXT35,
-    textAlign: 'center',
-  },
-});
 
 // ─── Subject grade progression graph ─────────────────────
 
@@ -1093,8 +925,8 @@ function SubjectGradeGraph({
       <Svg width={width} height={SGH}>
         <Defs>
           <SvgLinearGradient id={areaGId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={NAVY} stopOpacity={0.10} />
-            <Stop offset="1" stopColor={NAVY} stopOpacity={0} />
+            <Stop offset="0" stopColor="#7C3AED" stopOpacity={0.14} />
+            <Stop offset="1" stopColor="#7C3AED" stopOpacity={0} />
           </SvgLinearGradient>
           <SvgLinearGradient
             id={lineGId}
@@ -1104,8 +936,8 @@ function SubjectGradeGraph({
             y2="0"
             gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor={NAVY} />
-            <Stop offset="1" stopColor={NAVY} />
+            <Stop offset="0" stopColor="#7C3AED" />
+            <Stop offset="1" stopColor="#06B6D4" />
           </SvgLinearGradient>
           <ClipPath id={clipId}>
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -1197,8 +1029,13 @@ function GradientTrack({
 }) {
   const w = Math.min(100, Math.max(0, pct));
   return (
-    <View style={{ height, borderRadius: radius, backgroundColor: BORDER_L, overflow: 'hidden', marginBottom: 14 }}>
-      <View style={{ height, width: `${w}%` as const, borderRadius: radius, backgroundColor: NAVY }} />
+    <View style={{ height, borderRadius: radius, backgroundColor: C.track, overflow: 'hidden' }}>
+      <LinearGradient
+        colors={[C.violet, C.cyan]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{ height, width: `${w}%` as const, borderRadius: radius }}
+      />
     </View>
   );
 }
@@ -1209,16 +1046,44 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
   const size = 12;
   if (level === 'acquis') {
     return (
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: NAVY }} />
+      <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
+        <LinearGradient
+          colors={[C.violet, C.violetDeep]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </View>
     );
   }
   if (level === 'en_cours') {
     return (
-      <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: TEXT55 }} />
+      <View
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          overflow: 'hidden',
+        }}
+      >
+        <LinearGradient
+          colors={[C.violet, 'rgba(124,58,237,0.15)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={{ width: '100%', height: '100%' }}
+        />
+      </View>
     );
   }
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: BORDER_L }} />
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: 'rgba(124,58,237,0.18)',
+      }}
+    />
   );
 }
 
@@ -1561,8 +1426,6 @@ export default function NotesScreen() {
     return `« ${selectedChild?.name?.split(' ')[0] ?? 'Votre enfant'} progresse régulièrement. »`;
   }, [selectedChild, demoProfile, isDemoMode, isAnnee, isMaternelle]);
 
-  const screenTitle = isMaternelle ? 'Compétences' : 'Notes';
-
   // ─── MATERNELLE (Léa / GS) ───────────────────────────────
 
   if (isMaternelle) {
@@ -1598,7 +1461,6 @@ export default function NotesScreen() {
           ]}
         >
           <View style={styles.titleRow}>
-            <Text style={styles.screenTitle}>{screenTitle}</Text>
             <View style={styles.titleActions}>
               <Pressable
                 onPress={() => setShowBulletinImport(true)}
@@ -1709,13 +1571,26 @@ export default function NotesScreen() {
                 <Pressable
                   key={domain.id}
                   onPress={() => setSelectedDomainIdx(idx)}
-                  style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+                  style={({ pressed }) => [pressed && { opacity: 0.92 }]}
                 >
-                  <View style={[styles.pill, isActive ? styles.pillActive : styles.pillInactive]}>
-                    <Text style={[styles.pillTxt, isActive ? styles.pillTxtOn : styles.pillTxtOff]} numberOfLines={1}>
-                      {domain.name}
-                    </Text>
-                  </View>
+                  {isActive ? (
+                    <LinearGradient
+                      colors={[C.violet, C.violetDeep]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.pillActiveGrad}
+                    >
+                      <Text style={[styles.pillTxt, styles.pillTxtOn]} numberOfLines={1}>
+                        {domain.name}
+                      </Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={[styles.pill, styles.pillGlass]}>
+                      <Text style={styles.pillTxt} numberOfLines={1}>
+                        {domain.name}
+                      </Text>
+                    </View>
+                  )}
                 </Pressable>
               );
             })}
@@ -1771,10 +1646,15 @@ export default function NotesScreen() {
             ))}
           </GlassPanel>
 
-          <View style={styles.obsCardGrad}>
+          <LinearGradient
+            colors={['rgba(124,58,237,0.05)', 'rgba(6,182,212,0.03)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.obsCardGrad}
+          >
             <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
             <Text style={styles.obsQuote}>{observationText}</Text>
-          </View>
+          </LinearGradient>
         </ScrollView>
         <BulletinImportSheet
           visible={showBulletinImport}
@@ -1811,7 +1691,6 @@ export default function NotesScreen() {
         ]}
       >
         <View style={styles.titleRow}>
-          <Text style={styles.screenTitle}>{screenTitle}</Text>
           <View style={styles.titleActions}>
             <Pressable
               onPress={() => setShowBulletinImport(true)}
@@ -1881,18 +1760,37 @@ export default function NotesScreen() {
           </View>
         </Modal>
 
-        {/* AverageCard */}
-        <AverageCard
-          average={overallAvg}
-          trend={overallTrendNum}
-          graphData={demoProfile?.graph ?? [overallAvg]}
-          trimesterLabel={isAnnee ? 'ANNÉE' : selectedTrimester}
-        />
+        {/* Graph card */}
+        <GraphCardHalo>
+          <GlassPanel style={{ padding: 18, paddingHorizontal: 20, marginBottom: 10 }}>
+            <View style={styles.avgCardHeader}>
+              <Text style={styles.cardSectionLabelViolet}>MOYENNE GÉNÉRALE</Text>
+              <View style={styles.trendPill}>
+                <Text style={styles.trendPillTxt}>
+                  {overallTrendNum >= 0 ? '↗' : '↘'} {overallTrendNum >= 0 ? '+' : ''}
+                  {overallTrendNum.toFixed(1)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.avgNumRow}>
+              <Text style={styles.avgBig}>{overallAvg.toFixed(1)}</Text>
+              <Text style={styles.avgSlash}>/20</Text>
+            </View>
+            <View style={styles.graphZone}>
+              <NotesProgressGraph
+                grades={graphGradesForSelectedSubject}
+                width={graphW - 8}
+                height={GRAPH_H}
+                gradKey={`${selectedChild?.id ?? 'x'}-${selectedTrimester}-${activeSubject?.id ?? 'none'}`}
+              />
+            </View>
+          </GlassPanel>
+        </GraphCardHalo>
 
         {/* Stats row */}
         <View style={styles.statsRow}>
           <GlassPanel style={styles.statCard}>
-            <Text style={styles.statLabel}>DERNIÈRE NOTE</Text>
+            <Text style={styles.statLabelViolet}>DERNIÈRE NOTE</Text>
             {lastGradeDisplay ? (
               <>
                 <View style={styles.inlineScore}>
@@ -1909,7 +1807,7 @@ export default function NotesScreen() {
             )}
           </GlassPanel>
           <GlassPanel style={styles.statCard}>
-            <Text style={styles.statLabel}>POINT FORT</Text>
+            <Text style={styles.statLabelViolet}>POINT FORT</Text>
             {bestWorst.best ? (
               <>
                 <Text style={styles.statStrong} numberOfLines={2}>
@@ -1923,7 +1821,7 @@ export default function NotesScreen() {
             ) : (
               <Text style={styles.statSub}>—</Text>
             )}
-            <Text style={[styles.statLabel, { marginTop: 10 }]}>À RENFORCER</Text>
+            <Text style={[styles.statLabelViolet, { marginTop: 10, color: '#7C3AED' }]}>À RENFORCER</Text>
             {bestWorst.worst ? (
               <>
                 <Text style={styles.statStrong} numberOfLines={2}>
@@ -1954,13 +1852,26 @@ export default function NotesScreen() {
                 <Pressable
                   key={subject.id}
                   onPress={() => setSelectedSubjectIdx(idx)}
-                  style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+                  style={({ pressed }) => [pressed && { opacity: 0.92 }]}
                 >
-                  <View style={[styles.pill, isActive ? styles.pillActive : styles.pillInactive]}>
-                    <Text style={[styles.pillTxt, isActive ? styles.pillTxtOn : styles.pillTxtOff]} numberOfLines={1}>
-                      {subject.name}
-                    </Text>
-                  </View>
+                  {isActive ? (
+                    <LinearGradient
+                      colors={[C.violet, C.violetDeep]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.pillActiveGrad}
+                    >
+                      <Text style={[styles.pillTxt, styles.pillTxtOn]} numberOfLines={1}>
+                        {subject.name}
+                      </Text>
+                    </LinearGradient>
+                  ) : (
+                    <View style={[styles.pill, styles.pillGlass]}>
+                      <Text style={styles.pillTxt} numberOfLines={1}>
+                        {subject.name}
+                      </Text>
+                    </View>
+                  )}
                 </Pressable>
               );
             })}
@@ -2107,10 +2018,15 @@ export default function NotesScreen() {
           </GlassPanel>
         )}
 
-        <View style={styles.obsCardGrad}>
+        <LinearGradient
+          colors={['rgba(124,58,237,0.05)', 'rgba(6,182,212,0.03)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.obsCardGrad}
+        >
           <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
           <Text style={styles.obsQuote}>{observationText}</Text>
-        </View>
+        </LinearGradient>
       </ScrollView>
       <BulletinImportSheet
         visible={showBulletinImport}
@@ -2148,14 +2064,8 @@ const styles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginBottom: 18,
-  },
-  screenTitle: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 32,
-    color: C.ink,
-    // No textTransform — CLAUDE.md: uppercase reserved for section labels only
   },
 
   titleActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -2270,7 +2180,7 @@ const styles = StyleSheet.create({
     ...nativeGlassCardShadow,
   },
   trimesterOption: { paddingHorizontal: 16, paddingVertical: 12 },
-  trimesterOptionActive: { backgroundColor: 'rgba(15,23,42,0.05)' },
+  trimesterOptionActive: { backgroundColor: 'rgba(124,58,237,0.06)' },
   trimesterOptionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2284,8 +2194,8 @@ const styles = StyleSheet.create({
     gap: 8,
     minWidth: 0,
   },
-  trimesterOptionText: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: TEXT55 },
-  trimesterOptionTextActive: { fontFamily: FontFamily.sansSemiBold, color: NAVY },
+  trimesterOptionText: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: C.label },
+  trimesterOptionTextActive: { fontFamily: FontFamily.sansSemiBold, color: C.violet },
 
   cardSectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
@@ -2294,10 +2204,68 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
+  cardSectionLabelViolet: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: C.violet,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  avgCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  trendPill: {
+    backgroundColor: 'rgba(124,58,237,0.08)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  trendPillTxt: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: C.violet,
+  },
+  avgNumRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 8 },
+  avgBig: {
+    fontFamily: FontFamily.displayBold,
+    fontSize: 52,
+    color: C.ink,
+    letterSpacing: -1,
+  },
+  avgSlash: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 18,
+    color: C.label,
+  },
+  monthRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 2,
+  },
+  monthLbl: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: '#c4b5fd',
+    textAlign: 'center',
+  },
+
+  graphZone: {
+    height: 160,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.9)',
+    overflow: 'hidden',
+    ...nativeGlassCardShadow,
+  },
   graphAxisLabel: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: TEXT35,
+    color: '#94A3B8',
   },
   graphEmpty: {
     flex: 1,
@@ -2307,16 +2275,23 @@ const styles = StyleSheet.create({
   graphEmptyText: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
-    color: TEXT55,
+    color: '#94A3B8',
   },
 
-  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14, marginHorizontal: 16 },
-  statCard: { flex: 1, paddingVertical: 14, paddingHorizontal: 16 },
-  statLabel: {
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+  statCard: { flex: 1, paddingVertical: 12, paddingHorizontal: 22 },
+  statLabelSm: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 10,
-    color: NAVY,
-    opacity: 0.32,
+    color: C.label,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  statLabelViolet: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 10,
+    color: C.violet,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: 6,
@@ -2325,34 +2300,49 @@ const styles = StyleSheet.create({
   score26: {
     fontFamily: FontFamily.displayBold,
     fontSize: 26,
-    color: NAVY,
+    color: C.ink,
   },
   scoreSlash: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: TEXT55,
+    color: C.label,
   },
-  statSub: { fontFamily: FontFamily.sansMedium, fontSize: 11, color: TEXT55, marginTop: 4 },
-  statDate: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: TEXT35, marginTop: 4 },
-  statStrong: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: NAVY, marginTop: 4 },
+  statSub: { fontFamily: FontFamily.sansMedium, fontSize: 11, color: C.label, marginTop: 4 },
+  statDate: { fontFamily: FontFamily.sansRegular, fontSize: 11, color: C.label, marginTop: 4 },
+  statStrong: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: C.ink, marginTop: 4 },
 
-  pillRow: { gap: 8, paddingVertical: 4, paddingHorizontal: 16 },
+  pillRow: { gap: 10, paddingVertical: 4, paddingHorizontal: 22 },
   pill: {
-    height: 34,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
+    marginRight: 8,
+  },
+  pillActive: { backgroundColor: C.ink },
+  pillActiveGrad: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginRight: 8,
+    minHeight: 36,
     justifyContent: 'center',
-    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: C.violet,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+      },
+      android: { elevation: 5 },
+      default: {},
+    }),
   },
-  pillActive: { backgroundColor: NAVY },
-  pillInactive: {
-    backgroundColor: 'rgba(15,23,42,0.04)',
-    borderWidth: 1,
-    borderColor: BORDER_L,
+  pillGlass: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    ...nativeGlassCardShadow,
   },
-  pillTxt: { fontFamily: FontFamily.sansSemiBold, fontSize: 13 },
-  pillTxtOn: { color: '#FFFFFF' },
-  pillTxtOff: { color: TEXT35 },
+  pillTxt: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#374151' },
+  pillTxtOn: { color: '#fff', fontWeight: '500' },
 
   subjHead: {
     flexDirection: 'row',
@@ -2362,15 +2352,15 @@ const styles = StyleSheet.create({
   },
   subjTitle: {
     fontFamily: FontFamily.displayBold,
-    fontSize: 16,
-    color: NAVY,
+    fontSize: 20,
+    color: C.ink,
     flex: 1,
-    letterSpacing: -0.2,
+    textTransform: 'uppercase',
   },
   subjRight: {
-    fontFamily: FontFamily.sansMedium,
+    fontFamily: FontFamily.sansRegular,
     fontSize: 14,
-    color: TEXT55,
+    color: C.label,
   },
   track3: {
     height: 3,
@@ -2436,25 +2426,22 @@ const styles = StyleSheet.create({
   obsLabelViolet: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 10,
-    color: NAVY,
-    opacity: 0.32,
+    color: C.violet,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   obsCardGrad: {
-    borderRadius: 18,
-    padding: 16,
-    paddingHorizontal: 18,
+    borderRadius: 16,
+    padding: 14,
+    paddingHorizontal: 16,
     marginTop: 4,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: BORDER_L,
   },
   obsQuote: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 14,
-    color: NAVY,
-    lineHeight: 22,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: C.body,
+    fontStyle: 'italic',
+    lineHeight: 20,
     marginTop: 8,
   },
 

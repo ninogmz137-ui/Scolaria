@@ -317,31 +317,6 @@ export default function EditProfileScreen() {
             </Pressable>
           </View>
 
-          {/* Scolaria Plus banner */}
-          <Pressable style={st.subBannerWrap}>
-            <LinearGradient
-              colors={['#1F1B4B', '#4338CA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={st.subBanner}
-            >
-              <View style={st.subBannerOrb} />
-              <View style={st.subBannerIcon}>
-                <ScolariaSymbol size={22} color="#FFFFFF" />
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={st.subBannerTitle}>Scolaria Plus</Text>
-                  <View style={st.subBannerBadge}>
-                    <Text style={st.subBannerBadgeText}>14 J GRATUITS</Text>
-                  </View>
-                </View>
-                <Text style={st.subBannerSub}>Aria illimité, soutien personnalisé, multi-écoles</Text>
-              </View>
-              <Text style={st.subBannerChevron}>›</Text>
-            </LinearGradient>
-          </Pressable>
-
           {/* Apparence */}
           <SettingsGroup title="Apparence">
             <WallpaperPicker />
@@ -687,69 +662,6 @@ const st = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-  },
-
-  // Sub banner
-  subBannerWrap: {
-    marginHorizontal: 14,
-    marginBottom: 14,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  subBanner: {
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    overflow: 'hidden',
-  },
-  subBannerOrb: {
-    position: 'absolute',
-    right: -20,
-    top: -20,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-  },
-  subBannerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  subBannerTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    color: CARD_BG,
-    letterSpacing: -0.2,
-  },
-  subBannerBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 999,
-    backgroundColor: '#FCE7F3',
-  },
-  subBannerBadgeText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 9,
-    color: '#9D174D',
-    letterSpacing: 0.4,
-  },
-  subBannerSub: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    letterSpacing: -0.05,
-    marginTop: 2,
-  },
-  subBannerChevron: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.6)',
   },
 
   // Settings group
