@@ -67,7 +67,7 @@ export default function MainLayout({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F2F1EE',
+    backgroundColor: '#F7F7F5',
   },
   content: {
     flex: 1,

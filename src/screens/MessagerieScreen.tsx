@@ -49,7 +49,7 @@ import {
   markConversationRead,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
-import { SCREEN_BACKGROUND } from '../constants/colors';
+import { C } from '../constants/design';
 import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
 
 // ─── Constants ────────────────────────────────────────────
@@ -493,9 +493,11 @@ export default function MessagerieScreen() {
     (conv: Conversation) => {
       markConversationRead(conv.id);
       setTick((t) => t + 1);
-      navigation.navigate('ConversationDetailScreen', {
-        conversationId: conv.id,
-      });
+      if (conv.urgency === 'signer') {
+        navigation.navigate('SignDoc', { conversationId: conv.id, docTitle: conv.name });
+      } else {
+        navigation.navigate('ConversationDetailScreen', { conversationId: conv.id });
+      }
     },
     [navigation],
   );
@@ -788,7 +790,7 @@ const styles = StyleSheet.create({
   screenShell: {
     flex: 1,
     minHeight: 0,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     ...Platform.select({
       web: { width: '100%' as const, minWidth: 0 },
       android: { alignSelf: 'stretch' },
@@ -797,7 +799,7 @@ const styles = StyleSheet.create({
   },
   root: {
     flex: 1,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     ...Platform.select({
       /**
        * Web : `minHeight`/`minWidth`/`width` aident le flex au retour d’onglet.

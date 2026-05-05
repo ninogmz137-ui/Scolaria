@@ -58,7 +58,7 @@ import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
-import { SCREEN_BACKGROUND } from '../constants/colors';
+import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
 
 const AnimatedRect = createAnimatedComponent(Rect);
@@ -163,7 +163,7 @@ function getCurrentTrimester(): string {
 
 const COLOR_PALETTE = ['#4A90D9', '#7C3AED', '#F59E0B', '#10B981', '#EC4899', '#EF4444'];
 
-/** Wallpaper visible only behind the top area — clipped; scroll body uses SCREEN_BACKGROUND. */
+/** Wallpaper visible only behind the top area — clipped; scroll body uses C.bg. */
 const NOTES_WALLPAPER_HEADER_HEIGHT = Math.min(Dimensions.get('window').height * 0.42, 380);
 
 const FRENCH_MONTHS: Record<string, string> = {
@@ -1909,24 +1909,12 @@ export default function NotesScreen() {
                         <Pressable
                           key={grade.id}
                           onPress={() =>
-                            navigation.navigate('SubjectDetail', {
-                              subjectId: activeSubject.id,
-                              subjectName: activeSubject.name,
-                              subjectEmoji: activeSubject.emoji,
-                              subjectColor: activeSubject.color,
-                              average: activeSubject.average,
-                              classAvg: activeSubject.classAvg,
-                              trend: activeSubject.trend,
-                              grades: JSON.stringify(
-                                activeSubject.grades.map((g) => ({
-                                  id: g.id,
-                                  value: g.value,
-                                  maxValue: g.maxValue,
-                                  date: g.date,
-                                  type: g.type,
-                                  comment: g.comment,
-                                })),
-                              ),
+                            navigation.navigate('GradeDetail', {
+                              subject: activeSubject.name,
+                              grade: grade.value,
+                              maxGrade: grade.maxValue,
+                              coeff: grade.coefficient,
+                              date: grade.date,
                             })
                           }
                           style={({ pressed }) => [
@@ -1966,24 +1954,12 @@ export default function NotesScreen() {
                     <Pressable
                       key={grade.id}
                       onPress={() =>
-                        navigation.navigate('SubjectDetail', {
-                          subjectId: activeSubject.id,
-                          subjectName: activeSubject.name,
-                          subjectEmoji: activeSubject.emoji,
-                          subjectColor: activeSubject.color,
-                          average: activeSubject.average,
-                          classAvg: activeSubject.classAvg,
-                          trend: activeSubject.trend,
-                          grades: JSON.stringify(
-                            activeSubject.grades.map((g) => ({
-                              id: g.id,
-                              value: g.value,
-                              maxValue: g.maxValue,
-                              date: g.date,
-                              type: g.type,
-                              comment: g.comment,
-                            })),
-                          ),
+                        navigation.navigate('GradeDetail', {
+                          subject: activeSubject.name,
+                          grade: grade.value,
+                          maxGrade: grade.maxValue,
+                          coeff: grade.coefficient,
+                          date: grade.date,
                         })
                       }
                       style={({ pressed }) => [
@@ -2038,7 +2014,7 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: SCREEN_BACKGROUND },
+  root: { flex: 1, backgroundColor: '#F7F7F5' },
   wallpaperClip: {
     position: 'absolute',
     top: 0,
@@ -2058,7 +2034,7 @@ const styles = StyleSheet.create({
   mainScroll: {
     flex: 1,
     zIndex: 1,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: '#F7F7F5',
   },
   scroll: { paddingHorizontal: 18 },
   titleRow: {

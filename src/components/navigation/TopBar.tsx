@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.10)',
-    backgroundColor: '#F2F1EE',
+    backgroundColor: '#F7F7F5',
     alignItems: 'center',
     justifyContent: 'center',
     // Remplace gap: 5 — marginRight explicite (Android-safe)
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F2F1EE',
+    backgroundColor: '#F7F7F5',
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.07)',
     // position relative nécessaire pour le badge absolu

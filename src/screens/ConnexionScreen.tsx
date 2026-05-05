@@ -15,7 +15,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../services/supabase';
 import { useAuth, type UserRole } from '../contexts/AuthContext';
 
-const BG = '#F2F1EE';
+const BG = '#F7F7F5';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

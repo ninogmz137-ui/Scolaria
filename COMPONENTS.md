@@ -22,7 +22,7 @@ TOP BAR (toujours visible, toutes les pages)
 BOTTOM BAR (toujours visible, toutes les pages)
   [🔍] [◉ Demander à Aria…] [action contextuelle]
   - Height barre : padding 8px 12px 18px
-  - Background : #F2F1EE, border-top 1px rgba(15,23,42,0.07)
+  - Background : #F7F7F5, border-top 1px rgba(15,23,42,0.07)
   - Icônes gauche/droite : 34×34px cercle, background rgba(15,23,42,0.08)
   - Pill Aria centrale : flex:1, height 34px, borderRadius 999px
     background rgba(15,23,42,0.08), symbole Scolaria 14px + texte placeholder
@@ -45,7 +45,7 @@ Seul le contenu va dans le body, jamais un H1 répété.
 
 ```
 COULEURS
-  Background page     #F2F1EE
+  Background page     #F7F7F5
   Texte principal     #0F172A
   Texte secondaire    rgba(15,23,42,0.55)
   Texte muted         rgba(15,23,42,0.35)
@@ -435,7 +435,7 @@ section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
 ✗ Jamais violet #7C3AED en couleur solide → #4338CA uniquement
 ✗ Jamais emoji dans les cards Agenda → barre couleur + texte seul
 ✗ Jamais titre répété dans body si déjà dans la pill de la top nav
-✗ Jamais fond blanc pur #FFFFFF comme background de page → #F2F1EE
+✗ Jamais fond blanc pur #FFFFFF comme background de page → #F7F7F5
 ✗ Jamais font système → Figtree partout
 ✗ Jamais height:'100%' → flex:1
 ✗ Jamais box-shadow CSS → shadow* + elevation Android

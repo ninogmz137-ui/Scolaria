@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MessageCircle, Calendar, Heart } from 'lucide-react-native';
+import { MessageCircle, Calendar, Heart, BookOpen, LayoutGrid } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -50,6 +50,22 @@ const demoAujourdhui = [
     iconBg: 'rgba(245,158,11,0.10)',
     title: 'Score de Joie de Léa',
     subtitle: 'Pas encore saisi',
+    meta: '→',
+  },
+  {
+    id: 'homework',
+    icon: <BookOpen size={20} color="rgba(5,150,105,0.95)" strokeWidth={2} />,
+    iconBg: 'rgba(5,150,105,0.10)',
+    title: 'Cahier de texte',
+    subtitle: 'Emma · 4ᵉB',
+    meta: '→',
+  },
+  {
+    id: 'timetable',
+    icon: <LayoutGrid size={20} color="rgba(67,56,202,0.95)" strokeWidth={2} />,
+    iconBg: 'rgba(67,56,202,0.10)',
+    title: 'Emploi du temps',
+    subtitle: 'Semaine en cours',
     meta: '→',
   },
 ];
@@ -216,6 +232,8 @@ export default function AccueilScreen() {
                   if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
                   if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
                   if (it.id === 'joy') nav.navigate('BienEtreScreen');
+                  if (it.id === 'homework') nav.navigate('Homework');
+                  if (it.id === 'timetable') nav.navigate('Timetable');
                 }}
               />
             ))}

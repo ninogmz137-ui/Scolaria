@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import ScolariaLogo from '../components/ScolariaLogo';
 
-const BG = '#F2F1EE';
+const BG = '#F7F7F5';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

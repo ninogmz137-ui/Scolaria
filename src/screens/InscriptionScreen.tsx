@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 
-const BG = '#F2F1EE';
+const BG = '#F7F7F5';
 const NAVY = '#0F172A';
 
 export default function InscriptionScreen() {

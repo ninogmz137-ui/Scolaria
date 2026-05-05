@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   ScrollView,
@@ -38,7 +39,8 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
+import { Colors } from '../constants/colors';
+import { C } from '../constants/design';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -255,6 +257,7 @@ function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
 
 export default function AgendaScreen() {
   useChildTheme();
+  const navigation = useNavigation<any>();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
   const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
@@ -574,12 +577,14 @@ export default function AgendaScreen() {
     const isDevoir = event.type === 'devoir';
 
     return (
-      <View
+      <Pressable
         key={event.id}
-        style={[
+        onPress={() => navigation.navigate('EventDetail', { eventId: event.id, eventTitle: event.title, eventCategory: event.type })}
+        style={({ pressed }) => [
           st.eventCard,
           { backgroundColor: event.color + '12' },
           isDevoir && event.done && { opacity: 0.55 },
+          pressed && { opacity: 0.80 },
         ]}
       >
         {/* Left accent bar */}
@@ -619,7 +624,7 @@ export default function AgendaScreen() {
             />
           )}
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -965,7 +970,7 @@ export default function AgendaScreen() {
 const st = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F8F7FF',
+    backgroundColor: C.bg,
     position: 'relative',
     ...Platform.select({
       /** Lets absolute children stack correctly vs FlatList on Android. */
@@ -1021,7 +1026,7 @@ const st = StyleSheet.create({
   },
   calendarGridCard: {
     marginHorizontal: 16,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     borderRadius: 20,
     padding: 16,
     ...Platform.select({
@@ -1168,7 +1173,7 @@ const st = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
@@ -1297,7 +1302,7 @@ const st = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -1327,7 +1332,7 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -1339,7 +1344,7 @@ const st = StyleSheet.create({
     color: '#0F172A',
   },
   modalInput: {
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
     borderWidth: 0,
     borderRadius: 14,
     paddingHorizontal: 16,
@@ -1360,7 +1365,7 @@ const st = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 0,
-    backgroundColor: SCREEN_BACKGROUND,
+    backgroundColor: C.bg,
   },
   modalTypePillActive: {
     backgroundColor: '#0F172A',

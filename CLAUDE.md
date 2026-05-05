@@ -134,7 +134,7 @@ Le wallpaper apparaît **uniquement** dans la zone header Accueil.
 Tous les autres écrans = fond uni selon le mode.
 
 ### Fond global
-- Background unique pour tous les niveaux : **#F8F7F5** (off-white warm)
+- Background unique pour tous les niveaux : **#F7F7F5** (off-white warm)
 - Pas de distinction visuelle par niveau scolaire sur le fond
 - La personnalisation se fait via le wallpaper header uniquement
 
@@ -150,7 +150,7 @@ Tous les autres écrans = fond uni selon le mode.
 ### Palette de couleurs
 
 #### Couleurs principales
-- Fond global : **#F8F7F5** (off-white warm)
+- Fond global : **#F7F7F5** (off-white warm)
 - Texte principal : **#0F172A**
 - Texte secondaire : rgba(15,23,42,0.55)
 - Texte muted / meta : rgba(15,23,42,0.30)
