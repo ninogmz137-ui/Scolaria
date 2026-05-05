@@ -74,3 +74,5 @@ graphify-out/
 .graphify_python
 temp_screenshots/
 .graphifyignore
+
+nul/
