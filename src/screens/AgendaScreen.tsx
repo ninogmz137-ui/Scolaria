@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   View,
   ScrollView,
@@ -258,6 +258,7 @@ function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
 export default function AgendaScreen() {
   useChildTheme();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
   const { user } = useAuth();
   const { isDemoMode, getAgenda: getDemoAgenda, toggleAgendaDone: demoToggleDone } = useDemoData();
@@ -376,6 +377,13 @@ export default function AgendaScreen() {
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventType, setNewEventType] = useState<NewEventType>('devoir');
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.openAddModal) {
+      setAddModalVisible(true);
+      navigation.setParams({ openAddModal: false } as any);
+    }
+  }, [route.params?.openAddModal]);
 
   const selectedDayLabel = weekDays.find((d) => d.date === selectedDay);
 

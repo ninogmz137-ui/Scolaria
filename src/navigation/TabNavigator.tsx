@@ -76,6 +76,10 @@ import EditProfileScreen from '../screens/EditProfileScreen';
 // About
 import AProposScreen from '../screens/AProposScreen';
 
+// Quick overlays (BottomBar)
+import QuickSearchScreen from '../screens/QuickSearchScreen';
+import QuickActionsSheet from '../components/QuickActionsSheet';
+
 // RGPD hub
 import RGPDScreen from '../screens/RGPDScreen';
 
@@ -620,12 +624,10 @@ function TabContentWithNav({
   };
 
   actionNavRef.current = () => {
-    if (navActiveTabRef.current === 'messages') {
-      navigation.navigate('MainPager', {
-        screen: 'MessagerieTab',
-        params: { screen: 'MessagerieHome' },
-      } as any);
-    }
+    navigation.navigate('MainPager', {
+      screen: 'MessagerieTab',
+      params: { screen: 'MessagerieAriaScreen' },
+    } as any);
   };
 
   burgerNavRef.current = (screen: string) => {
@@ -661,6 +663,8 @@ export default function TabNavigator() {
   const [stackTitle, setStackTitle] = useState('');
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
   const [childSwitcherVisible, setChildSwitcherVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [quickActionsVisible, setQuickActionsVisible] = useState(false);
 
   // ── Scroll context → drives TopBar blur ─────────────────────────────
   const lastScrollY = useRef(0);
@@ -909,10 +913,25 @@ export default function TabNavigator() {
             {showNavChrome && (
               <BottomBar
                 activeTab={navActiveTab}
-                onSearchPress={() => searchNavRef.current?.()}
-                onActionPress={() => actionNavRef.current?.()}
+                onSearchPress={() => setSearchVisible(true)}
+                onActionPress={() => {
+                  if (navActiveTab === 'messages') {
+                    actionNavRef.current?.();
+                  } else if (navActiveTab !== 'notes') {
+                    setQuickActionsVisible(true);
+                  }
+                }}
               />
             )}
+
+            <QuickSearchScreen
+              visible={searchVisible}
+              onClose={() => setSearchVisible(false)}
+            />
+            <QuickActionsSheet
+              visible={quickActionsVisible}
+              onClose={() => setQuickActionsVisible(false)}
+            />
 
             {/* Child switcher modal */}
             <ChildSwitcherModal

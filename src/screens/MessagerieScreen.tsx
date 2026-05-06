@@ -736,9 +736,7 @@ export default function MessagerieScreen() {
       >
         <Pressable
           onPress={() => {
-            // Pour l'instant : ouvre AriaHome pour composer via Aria
-            // (interface nouveau message dédiée = Phase 2)
-            navigation.navigate('MessagerieAriaScreen');
+            navigation.navigate('MessagesListScreen');
           }}
           style={({ pressed }) => [styles.fabPress, pressed && { transform: [{ scale: 0.96 }] }]}
           accessibilityRole="button"
