@@ -544,7 +544,6 @@ function TabContent() {
         tabBarStyle: { display: 'none' },
         // Fix Android: MaterialTopTabViewPager intercepte tous les taps
         tabBarPressColor: 'transparent',
-        swipeMinDistance: 50,
       }}
     >
       <Tab.Screen
@@ -577,6 +576,9 @@ const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
 const profileNavRef: { current: (() => void) | null } = { current: null };
+const searchNavRef: { current: (() => void) | null } = { current: null };
+const actionNavRef: { current: (() => void) | null } = { current: null };
+const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
 // ─── TabContentWithNav ───────────────────────────────────
 
@@ -608,6 +610,22 @@ function TabContentWithNav({
       screen: 'Accueil',
       params: { screen: 'EditProfile' },
     } as any);
+  };
+
+  searchNavRef.current = () => {
+    navigation.navigate('MainPager', {
+      screen: 'Accueil',
+      params: { screen: 'AriaHome' },
+    } as any);
+  };
+
+  actionNavRef.current = () => {
+    if (navActiveTabRef.current === 'messages') {
+      navigation.navigate('MainPager', {
+        screen: 'MessagerieTab',
+        params: { screen: 'MessagerieHome' },
+      } as any);
+    }
   };
 
   burgerNavRef.current = (screen: string) => {
@@ -665,6 +683,7 @@ export default function TabNavigator() {
     }
   }
   const navActiveTab = toActiveTab(activeTab, currentAccueilRoute);
+  navActiveTabRef.current = navActiveTab;
 
   // ── Masquage du chrome : écrans plein-écran avec leur propre header ──
   const ROUTES_HIDE_NAV = new Set([
@@ -890,12 +909,8 @@ export default function TabNavigator() {
             {showNavChrome && (
               <BottomBar
                 activeTab={navActiveTab}
-                onSearchPress={() => {
-                  /* Recherche — sprint suivant */
-                }}
-                onActionPress={() => {
-                  /* Action contextuelle — sprint suivant */
-                }}
+                onSearchPress={() => searchNavRef.current?.()}
+                onActionPress={() => actionNavRef.current?.()}
               />
             )}
 

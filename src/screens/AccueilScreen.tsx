@@ -201,8 +201,8 @@ export default function AccueilScreen() {
               accessibilityRole="button"
               onPress={() => {
                 if (item.id === '1') nav.navigate('AriaHome');
-                else if (item.id === '2') nav.getParent()?.getParent()?.navigate('Agenda');
-                else nav.getParent()?.getParent()?.navigate('Notes');
+                else if (item.id === '2') nav.getParent()?.navigate('Agenda');
+                else nav.getParent()?.navigate('Notes');
               }}
             >
               {/* Inner: overflow hidden */}
@@ -229,8 +229,8 @@ export default function AccueilScreen() {
                 subtitle={it.subtitle}
                 meta={it.meta}
                 onPress={() => {
-                  if (it.id === 'msg') nav.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
-                  if (it.id === 'agenda') nav.getParent()?.getParent()?.navigate('Agenda');
+                  if (it.id === 'msg') nav.getParent()?.navigate('MessagerieTab', { screen: 'MessagesListScreen' });
+                  if (it.id === 'agenda') nav.getParent()?.navigate('Agenda');
                   if (it.id === 'joy') nav.navigate('BienEtreScreen');
                   if (it.id === 'homework') nav.navigate('Homework');
                   if (it.id === 'timetable') nav.navigate('Timetable');

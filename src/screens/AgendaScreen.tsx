@@ -972,11 +972,6 @@ const st = StyleSheet.create({
     flex: 1,
     backgroundColor: C.bg,
     position: 'relative',
-    ...Platform.select({
-      /** Lets absolute children stack correctly vs FlatList on Android. */
-      android: { overflow: 'visible' as const },
-      default: {},
-    }),
   },
 
   // Month title

@@ -294,7 +294,7 @@ export default function FloatingTabBar({ state, descriptors, navigation }: Botto
   // Aria tap → navigate to AriaHome
   const handleAriaPress = () => {
     // Aria tap → navigate to Aria in Accueil tab
-    if (currentTab !== 'Accueil') {
+    if (state.routes[state.index].name !== 'Accueil') {
       navigation.navigate('Accueil');
     }
     requestAnimationFrame(() => {
