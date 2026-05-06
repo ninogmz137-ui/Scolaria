@@ -25,6 +25,7 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Pressable } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Edit, ScanLine } from 'lucide-react-native';
+import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';

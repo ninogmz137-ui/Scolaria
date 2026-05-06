@@ -17,7 +17,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, BookOpen, Calendar, MessageCircle } from 'lucide-react-native';
+import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
@@ -48,9 +48,9 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   { id: 'accueil',  label: 'Accueil',   routeName: 'Accueil',       icon: Home },
-  { id: 'notes',    label: 'Notes',     routeName: 'Notes',         icon: BookOpen },
+  { id: 'notes',    label: 'Notes',     routeName: 'Notes',         icon: Grades },
   { id: 'agenda',   label: 'Agenda',    routeName: 'Agenda',        icon: Calendar },
-  { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: MessageCircle },
+  { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: TextBubble },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -128,7 +128,6 @@ export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: 
           >
             <Icon
               size={21}
-              strokeWidth={2}
               color={isActive ? '#0F172A' : 'rgba(15,23,42,0.38)'}
             />
             {isActive && (
