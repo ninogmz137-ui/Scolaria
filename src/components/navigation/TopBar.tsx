@@ -21,7 +21,6 @@ import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
-import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../../constants/theme';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -163,27 +162,24 @@ const styles = StyleSheet.create({
 
   // ── Avatar ──────────────────────────────────────────
   avatar: {
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
     borderRadius: 999,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.10)',
+    borderWidth: 2,
+    borderColor: 'rgba(15,23,42,0.15)',
     backgroundColor: '#F7F7F5',
     alignItems: 'center',
     justifyContent: 'center',
-    // Remplace gap: 5 — marginRight explicite (Android-safe)
-    marginRight: 11,
-    ...nativeWhiteInteractiveShadow,
-    ...androidFloatingWhitePill,
+    marginRight: 8,
   },
   avatarImage: {
-    width: 44,
-    height: 44,
+    width: 34,
+    height: 34,
   },
   avatarEmoji: {
-    fontSize: 23,
-    lineHeight: 27,
+    fontSize: 17,
+    lineHeight: 21,
   },
   avatarInitials: {
     color: '#0F172A',
@@ -193,43 +189,35 @@ const styles = StyleSheet.create({
 
   // ── Pills ────────────────────────────────────────────
   pill: {
-    height: 42,
+    height: 30,
     borderRadius: 999,
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F7F7F5',
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.07)',
-    // position relative nécessaire pour le badge absolu
+    backgroundColor: 'transparent',
     position: 'relative',
-    ...nativeWhiteInteractiveShadow,
-    ...androidFloatingWhitePill,
   },
   pillActive: {
-    backgroundColor: '#E8E7E4',
-    borderColor: 'rgba(15,23,42,0.06)',
+    backgroundColor: 'rgba(15,23,42,0.08)',
   },
-  /** Espacement entre pills (remplace gap: 5 sur le container) */
   pillMargin: {
-    marginRight: 10,
+    marginRight: 5,
   },
   pillLabel: {
-    // marginLeft remplace gap: 4 à l'intérieur de la pill (Android-safe)
-    marginLeft: 7,
+    marginLeft: 6,
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
+    fontSize: 13,
     color: '#0F172A',
-    lineHeight: Platform.OS === 'android' ? 20 : undefined,
+    lineHeight: Platform.OS === 'android' ? 18 : undefined,
   },
 
   // ── Badge ────────────────────────────────────────────
   badge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 9,
-    height: 9,
+    top: -3,
+    right: -1,
+    width: 6,
+    height: 6,
     borderRadius: 999,
     backgroundColor: '#EF4444',
   },

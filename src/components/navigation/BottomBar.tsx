@@ -25,12 +25,10 @@ import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Pressable } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Edit, ScanLine } from 'lucide-react-native';
-import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';
 import type { ActiveTab } from './TopBar';
-import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../../constants/theme';
 
 // ─── Constantes exportées ────────────────────────────────
 
@@ -99,7 +97,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
         accessibilityRole="button"
         accessibilityLabel="Demander à Aria"
       >
-        <ScolariaSymbol size={15} color="#6366F1" />
+        <ScolariaSymbol size={14} color="#6366F1" />
         <Text style={styles.ariaText} numberOfLines={1}>
           Demander à Aria…
         </Text>
@@ -144,46 +142,34 @@ const styles = StyleSheet.create({
 
   // ── Bouton rond (Recherche / Action) ────────────────
   roundBtn: {
-    width: 42,
-    height: 42,
+    width: 34,
+    height: 34,
     borderRadius: 999,
-    backgroundColor: '#F7F7F5',
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.07)',
+    backgroundColor: 'rgba(15,23,42,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...nativeWhiteInteractiveShadow,
-    ...androidFloatingWhitePill,
   },
 
   /** Espace réservé transparent (Agenda / Aria) */
   roundBtnPlaceholder: {
-    width: 42,
-    height: 42,
+    width: 34,
+    height: 34,
   },
 
   // ── Pill Aria ────────────────────────────────────────
   ariaPill: {
     flex: 1,
-    height: 42,
+    height: 34,
     borderRadius: 999,
-    backgroundColor: '#F7F7F5',
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.07)',
+    backgroundColor: 'rgba(15,23,42,0.08)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    // marginRight/Left remplacent gap: 7 (Android-safe)
-    marginLeft: 13,
-    marginRight: 13,
-    // Notion-like: pill a bit less wide but thicker
-    maxWidth: 276,
-    ...nativeWhiteInteractiveShadow,
-    ...androidFloatingWhitePill,
+    paddingHorizontal: 14,
+    marginLeft: 8,
+    marginRight: 8,
   },
   ariaText: {
-    // marginLeft remplace gap: 7 dans la pill (Android-safe)
-    marginLeft: 9,
+    marginLeft: 8,
     flex: 1,
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
