@@ -99,6 +99,26 @@ interface AgendaEvent {
 }
 
 type NewEventType = 'devoir' | 'controle' | 'sortie' | 'autre';
+type FilterTab = 'Tout' | 'Devoirs' | 'Événements' | 'Rappels';
+const FILTER_TABS: FilterTab[] = ['Tout', 'Devoirs', 'Événements', 'Rappels'];
+
+interface DevoirItem {
+  id: string;
+  subject: string;
+  title: string;
+  time: string;
+  attachment?: string;
+  isDemain?: boolean;
+  done: boolean;
+  detail?: string;
+}
+
+interface DevoirGroup {
+  label: string;
+  sublabel: string;
+  isRendus?: boolean;
+  devoirs: DevoirItem[];
+}
 
 const NEW_EVENT_TYPE_LABELS: Record<NewEventType, string> = {
   devoir: 'Devoir', controle: 'Contrôle', sortie: 'Sortie', autre: 'Autre',
@@ -253,6 +273,38 @@ function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
   );
 }
 
+// ─── Homework checkbox (18px) ─────────────────────────────
+
+function HomeworkCheckbox({ done, onPress }: { done: boolean; onPress: () => void }) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (done) {
+      scale.value = withSequence(
+        withSpring(0.75, { damping: 15, stiffness: 350 }),
+        withSpring(1.15, { damping: 10, stiffness: 300 }),
+        withSpring(1.0, { damping: 15, stiffness: 300 }),
+      );
+    }
+  }, [done]);
+
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  return (
+    <Pressable onPress={onPress} hitSlop={10}>
+      <Animated.View style={animStyle}>
+        {done ? (
+          <View style={st.hwCheckFilled}>
+            <Check size={10} color="#FFFFFF" strokeWidth={3} />
+          </View>
+        ) : (
+          <View style={st.hwCheckEmpty} />
+        )}
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
@@ -299,6 +351,9 @@ export default function AgendaScreen() {
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('Tout');
+  const [expandedDevoir, setExpandedDevoir] = useState<string | null>(null);
+  const [devoirDoneMap, setDevoirDoneMap] = useState<Record<string, boolean>>({});
 
   const isSelectedToday = useMemo(
     () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
@@ -371,6 +426,52 @@ export default function AgendaScreen() {
       return updated;
     });
   }, [isDemoMode, demoToggleDone]);
+
+  // ─── Demo devoirs data ─────────────────────────────────
+  const demoDevoirs = useMemo((): DevoirGroup[] => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(t); tomorrow.setDate(t.getDate() + 1);
+    const inThreeDays = new Date(t); inThreeDays.setDate(t.getDate() + 3);
+    const fourDaysAgo = new Date(t); fourDaysAgo.setDate(t.getDate() - 4);
+    const DAY_SHORT = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
+    const DAY_FULL = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const MONTH = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const fmt = (d: Date) => `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
+    const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    return [
+      {
+        label: fmt(tomorrow),
+        sublabel: 'Demain',
+        devoirs: [
+          { id: 'hw1', subject: 'MATHS', title: 'Exercices p.84 n°12 à 18', time: '8h00', attachment: '1 PDF', isDemain: true, done: false },
+          { id: 'hw2', subject: 'ANGLAIS', title: 'Apprendre vocabulaire unit 6', time: '10h00', done: false },
+          { id: 'hw3', subject: 'HISTOIRE', title: 'Lire chapitre 7', time: '14h00', detail: 'Manuel p.142', isDemain: true, done: false },
+        ],
+      },
+      {
+        label: fmt(inThreeDays),
+        sublabel: cap(DAY_FULL[inThreeDays.getDay()]),
+        devoirs: [
+          { id: 'hw4', subject: 'FRANÇAIS', title: 'Rédaction 200 mots', time: '9h00', attachment: 'Sujet PDF', done: false },
+          { id: 'hw5', subject: 'SVT', title: 'Compléter fiche révision', time: '11h00', done: false },
+        ],
+      },
+      {
+        label: fmt(fourDaysAgo),
+        sublabel: `${cap(DAY_FULL[fourDaysAgo.getDay()])} dernier`,
+        isRendus: true,
+        devoirs: [
+          { id: 'hw6', subject: 'ESPAGNOL', title: 'Conjugaison pretérito', time: '', done: true },
+          { id: 'hw7', subject: 'MATHS', title: 'DM n°3', time: '', done: true },
+        ],
+      },
+    ];
+  }, []);
+
+  const toggleDevoirDone = useCallback((id: string) => {
+    setDevoirDoneMap((prev) => ({ ...prev, [id]: !(prev[id] ?? false) }));
+  }, []);
 
   // ─── Add event modal ───────────────────────────────────
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -578,6 +679,89 @@ export default function AgendaScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCalendarOpen(false);
   }, []);
+
+  // ─── Render homework (Cahier de texte) view ───────────
+  const renderHomeworkView = () => {
+    const pendingCount = demoDevoirs.reduce(
+      (acc, g) => !g.isRendus ? acc + g.devoirs.filter((d) => !(devoirDoneMap[d.id] ?? d.done)).length : acc, 0,
+    );
+    const thisWeekCount = 2;
+    const rendusCount = demoDevoirs.find((g) => g.isRendus)?.devoirs.length ?? 0;
+
+    const renderDevoirRow = (devoir: DevoirItem, isRendu: boolean) => {
+      const isDone = devoirDoneMap[devoir.id] ?? devoir.done;
+      const isExpanded = expandedDevoir === devoir.id;
+      const metaParts: string[] = [];
+      if (devoir.time) metaParts.push(`Pour ${devoir.time}`);
+      if (devoir.attachment) metaParts.push(devoir.attachment);
+      if (devoir.detail) metaParts.push(devoir.detail);
+      return (
+        <Pressable
+          key={devoir.id}
+          onPress={() => setExpandedDevoir(isExpanded ? null : devoir.id)}
+          style={({ pressed }) => [pressed && { opacity: 0.75 }]}
+        >
+          <View style={[st.hwRow, isRendu && st.hwRowRendu]}>
+            <HomeworkCheckbox done={isDone} onPress={() => toggleDevoirDone(devoir.id)} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <View style={st.hwPillRow}>
+                <View style={st.hwSubjectPill}>
+                  <Text style={st.hwSubjectText}>{devoir.subject}</Text>
+                </View>
+                {devoir.isDemain && !isRendu && (
+                  <View style={st.hwDemainBadge}>
+                    <Text style={st.hwDemainText}>DEMAIN</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={[st.hwTitle, isDone && { textDecorationLine: 'line-through', opacity: 0.45 }]}>
+                {devoir.title}
+              </Text>
+              {metaParts.length > 0 && (
+                <Text style={st.hwMeta}>{metaParts.join(' · ')}</Text>
+              )}
+            </View>
+          </View>
+        </Pressable>
+      );
+    };
+
+    return (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 4,
+          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+        }}
+      >
+        <View style={st.hwStats}>
+          <Text style={st.hwStatNum}>{pendingCount}</Text>
+          <Text style={st.hwStatLabel}> à faire</Text>
+          <Text style={st.hwStatSep}> · </Text>
+          <Text style={st.hwStatNum}>{thisWeekCount}</Text>
+          <Text style={st.hwStatLabel}> cette semaine</Text>
+          <Text style={st.hwStatSep}> · </Text>
+          <Text style={st.hwStatNum}>{rendusCount}</Text>
+          <Text style={st.hwStatLabel}> rendus</Text>
+        </View>
+        {demoDevoirs.map((group) => (
+          <View key={group.label} style={{ marginBottom: 8 }}>
+            <View style={st.hwSectionRow}>
+              <Text style={st.hwSectionLabel}>
+                {`${group.label} · ${group.sublabel}`.toUpperCase()}
+              </Text>
+              <Text style={st.hwSectionCount}>{group.devoirs.length}</Text>
+            </View>
+            <View style={group.isRendus ? st.hwRendusGroup : undefined}>
+              {group.devoirs.map((d) => renderDevoirRow(d, group.isRendus ?? false))}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    );
+  };
 
   // ─── Render event card ─────────────────────────────────
   const renderEventCard = (event: AgendaEvent) => {
@@ -847,9 +1031,33 @@ export default function AgendaScreen() {
             <Text style={st.todayBtnText}>Aujourd'hui</Text>
           </TouchableOpacity>
         )}
+
+        {/* Filter pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={st.filterPillsContent}
+          style={st.filterPillsRow}
+        >
+          {FILTER_TABS.map((tab) => {
+            const isActive = activeFilter === tab;
+            return (
+              <Pressable
+                key={tab}
+                onPress={() => setActiveFilter(tab)}
+                style={[st.filterPill, isActive && st.filterPillActive]}
+              >
+                <Text style={[st.filterPillText, isActive && st.filterPillTextActive]}>
+                  {tab}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      {/* 5. Swipeable day pages */}
+      {/* 5. Devoirs view OR swipeable day pages */}
+      {activeFilter === 'Devoirs' ? renderHomeworkView() : (
       <FlatList
         ref={flatListRef}
         horizontal
@@ -885,6 +1093,7 @@ export default function AgendaScreen() {
           Platform.OS === 'android' && { zIndex: 0, elevation: 0 },
         ]}
       />
+      )}
 
       <View
         style={[st.fabSlot, { bottom: fabRowBottom }]}
@@ -1432,5 +1641,161 @@ const st = StyleSheet.create({
     fontFamily: FontFamily.sansBold,
     fontSize: 16,
     color: '#0F172A',
+  },
+
+  // Filter pills
+  filterPillsRow: {
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  filterPillsContent: {
+    paddingHorizontal: 16,
+    gap: 6,
+    paddingVertical: 4,
+  },
+  filterPill: {
+    height: 30,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterPillActive: {
+    backgroundColor: '#0F172A',
+  },
+  filterPillText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: 'rgba(15,23,42,0.45)',
+  },
+  filterPillTextActive: {
+    fontFamily: FontFamily.sansSemiBold,
+    color: '#FFFFFF',
+  },
+
+  // Homework view
+  hwStats: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    paddingVertical: 12,
+    paddingBottom: 14,
+  },
+  hwStatNum: {
+    fontFamily: FontFamily.displayExtraBold,
+    fontSize: 18,
+    color: '#0F172A',
+    letterSpacing: -0.6,
+  },
+  hwStatLabel: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.55)',
+  },
+  hwStatSep: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.28)',
+  },
+  hwSectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+    marginTop: 8,
+  },
+  hwSectionLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 8.5,
+    color: 'rgba(15,23,42,0.28)',
+    letterSpacing: 1.2,
+  },
+  hwSectionCount: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 8,
+    color: 'rgba(15,23,42,0.30)',
+    letterSpacing: 0.08,
+  },
+  hwRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255,255,255,0.75)',
+    borderRadius: 14,
+    marginBottom: 6,
+    ...Platform.select({
+      ios: { shadowColor: '#0F172A', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 } },
+      android: { elevation: 0 },
+      default: {},
+    }),
+  },
+  hwRowRendu: {
+    backgroundColor: 'rgba(15,23,42,0.03)',
+  },
+  hwRendusGroup: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  hwPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 3,
+    flexWrap: 'wrap',
+  },
+  hwSubjectPill: {
+    backgroundColor: 'rgba(67,56,202,0.10)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  hwSubjectText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 9,
+    color: '#4338CA',
+    letterSpacing: 0.4,
+  },
+  hwDemainBadge: {
+    backgroundColor: 'rgba(245,158,11,0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 999,
+  },
+  hwDemainText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 9,
+    color: '#D97706',
+    letterSpacing: 0.4,
+  },
+  hwTitle: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: '#0F172A',
+    lineHeight: 18,
+  },
+  hwMeta: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.45)',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  hwCheckEmpty: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.25)',
+    marginTop: 1,
+  },
+  hwCheckFilled: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
 });
