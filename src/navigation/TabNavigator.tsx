@@ -95,6 +95,7 @@ import HomeworkScreen from '../screens/HomeworkScreen';
 import TimetableScreen from '../screens/TimetableScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import GradeDetailScreen from '../screens/GradeDetailScreen';
+import BulletinScreen from '../screens/BulletinScreen';
 import SignDocScreen from '../screens/SignDocScreen';
 import SignSuccessScreen from '../screens/SignSuccessScreen';
 
@@ -139,6 +140,7 @@ const SCREEN_TITLES: Record<string, string> = {
   MotDetailScreen: 'Mot à signer',
   ArchivedYearDetail: 'Année archivée',
   SubjectDetail: 'Détail matière',
+  BulletinScreen: 'Bulletin trimestriel',
 };
 
 // ─── Stack navigators ────────────────────────────────────
@@ -406,6 +408,11 @@ function NotesStackScreen() {
       <NotesStack.Screen
         name="GradeDetail"
         component={GradeDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <NotesStack.Screen
+        name="BulletinScreen"
+        component={BulletinScreen}
         options={{ headerShown: false }}
       />
     </NotesStack.Navigator>

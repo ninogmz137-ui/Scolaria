@@ -1838,6 +1838,18 @@ export default function NotesScreen() {
           </GlassPanel>
         </View>
 
+        {/* Lien bulletin trimestriel */}
+        {selectedTrimester !== 'ANNEE' && (
+          <Pressable
+            onPress={() => navigation.navigate('BulletinScreen', { childName: (selectedChild?.name ?? 'Enfant').split(' ')[0] })}
+            style={({ pressed }) => [styles.bulletinLink, pressed && { opacity: 0.65 }]}
+          >
+            <Text style={styles.bulletinLinkTxt}>
+              Voir le bulletin {selectedTrimester === 'T1' ? 'T1' : selectedTrimester === 'T2' ? 'T2' : 'T3'} complet →
+            </Text>
+          </Pressable>
+        )}
+
         {/* Subject pills */}
         {subjects.length > 0 && (
           <ScrollView
@@ -2068,6 +2080,18 @@ const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  bulletinLink: {
+    alignSelf: 'center',
+    marginBottom: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  bulletinLinkTxt: {
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 12,
+    color: 'rgba(15,23,42,0.45)',
+    letterSpacing: -0.1,
   },
   bulletinModalRoot: {
     flex: 1,
