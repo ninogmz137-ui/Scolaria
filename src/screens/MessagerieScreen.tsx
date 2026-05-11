@@ -33,16 +33,13 @@ import Animated, {
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, MessageCircle, Plus, ChevronDown } from 'lucide-react-native';
+import { School, CalendarX, Search, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import {
   FLOATING_TAB_BAR_HEIGHT,
-  FLOATING_TAB_BAR_ROW_HEIGHT,
   TAB_BAR_SCROLL_PADDING,
-  getFloatingTabBottomOffset,
 } from '../components/FloatingTabBar';
-import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -91,11 +88,6 @@ const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
 const HEADER_ACTION_GAP = 8;
 const SEARCH_PILL_MIN_W = 40;
 const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.4);
-
-const MESS_FAB_SIZE = 56;
-const MESS_FAB_GUTTER = 16;
-/** Marge entre le bord haut de la barre d’onglets flottante et le bas du FAB. */
-const FAB_GAP_ABOVE_TAB_ROW = 12;
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -242,8 +234,6 @@ function ConvRow({
 
         {conv.unread && <View style={styles.unreadDot} />}
       </View>
-
-      {!isLast && <View style={styles.separator} />}
     </Pressable>
   );
 }
@@ -283,13 +273,6 @@ export default function MessagerieScreen() {
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
   const { onScroll: reportScroll } = useTopbarScroll();
-  const tabBarHeight = BOTTOM_BAR_HEIGHT + insets.bottom;
-  /** Avec barre flottante, h parfois 0 : on se cale sur la même règle que FloatingTabBar. */
-  const fabRowBottom = Math.max(
-    tabBarHeight,
-    getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT,
-  ) + FAB_GAP_ABOVE_TAB_ROW;
-
   // ── Focus refresh ────────────────────────────────────────
   const [tick, setTick] = useState(0);
 
@@ -726,32 +709,6 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
-      {/*
-        Bandeau bas pleine largeur + flex-end : évite left = width-72 quand width vaut 0
-        (FAB coincé en bas-gauche) et aligne à droite même en RTL.
-      */}
-      <View
-        style={[styles.fabSlot, { bottom: fabRowBottom }]}
-        pointerEvents="box-none"
-      >
-        <Pressable
-          onPress={() => {
-            navigation.navigate('MessagesListScreen');
-          }}
-          style={({ pressed }) => [styles.fabPress, pressed && { transform: [{ scale: 0.96 }] }]}
-          accessibilityRole="button"
-          accessibilityLabel="Nouveau message"
-        >
-          <View style={styles.fabInner}>
-            <View style={styles.fabMessIconWrap} pointerEvents="none">
-              <MessageCircle size={24} color="#FFFFFF" strokeWidth={2.2} />
-              <View style={styles.fabPlusCentered}>
-                <Plus size={11} color="#FFFFFF" strokeWidth={3.2} />
-              </View>
-            </View>
-          </View>
-        </Pressable>
-      </View>
     </View>
 
     <Modal
@@ -1167,76 +1124,6 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
 
-  // FAB — single Pressable owns position + shadow + elevation (no outer wrapper).
-  // Android requires BOTH `zIndex` AND `elevation` to stay above a sibling ScrollView
-  // with nested elevation children (list items have shadows of their own).
-  fabInner: {
-    width: MESS_FAB_SIZE,
-    height: MESS_FAB_SIZE,
-    borderRadius: 28,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0F172A',
-  },
-  /** Bulle de conversation + au centre. */
-  fabMessIconWrap: {
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabPlusCentered: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  /** `direction: ltr` : bas-droite visuel quelle que soit la langue RTL. */
-  fabSlot: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    minHeight: MESS_FAB_SIZE,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: MESS_FAB_GUTTER,
-    zIndex: 99,
-    direction: 'ltr',
-  } as any,
-  fabPress: {
-    width: MESS_FAB_SIZE,
-    height: MESS_FAB_SIZE,
-    borderRadius: 28,
-    backgroundColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'visible',
-    ...Platform.select<any>({
-      web: {
-        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-      },
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 12,
-      },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      },
-    }),
-  },
   // Section
   section: {
     marginBottom: 16,
@@ -1253,22 +1140,28 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: BORDER_L,
+    backgroundColor: 'transparent',
     maxWidth: '100%',
-    overflow: 'hidden',
   },
 
   // Row
   row: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: 'transparent',
-    position: 'relative',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 6,
     maxWidth: '100%',
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+      },
+      android: { elevation: 2 },
+    }),
   },
   rowInner: {
     flexDirection: 'row',

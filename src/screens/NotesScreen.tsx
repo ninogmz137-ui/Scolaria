@@ -41,7 +41,6 @@ import Reanimated, {
   createAnimatedComponent,
 } from 'react-native-reanimated';
 import {
-  ScanLine,
   Check,
   Camera,
   Image as LucideImage,
@@ -1462,17 +1461,6 @@ export default function NotesScreen() {
         >
           <View style={styles.titleRow}>
             <View style={styles.titleActions}>
-              <Pressable
-                onPress={() => setShowBulletinImport(true)}
-                accessibilityRole="button"
-                accessibilityLabel="Scanner un bulletin"
-              >
-                <LiquidGlass circle style={styles.iconCircle}>
-                  <View style={styles.iconCircleInner}>
-                    <ScanLine size={18} color="#1A2340" strokeWidth={1.8} />
-                  </View>
-                </LiquidGlass>
-              </Pressable>
               <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
                 <LiquidGlass style={styles.trimPill}>
                   <View style={styles.trimPillInner}>
@@ -1692,17 +1680,6 @@ export default function NotesScreen() {
       >
         <View style={styles.titleRow}>
           <View style={styles.titleActions}>
-            <Pressable
-              onPress={() => setShowBulletinImport(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Scanner un bulletin"
-            >
-              <LiquidGlass circle style={styles.iconCircle}>
-                <View style={styles.iconCircleInner}>
-                  <ScanLine size={18} color="#1A2340" strokeWidth={1.8} />
-                </View>
-              </LiquidGlass>
-            </Pressable>
             <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
               <LiquidGlass style={styles.trimPill}>
                 <View style={styles.trimPillInner}>

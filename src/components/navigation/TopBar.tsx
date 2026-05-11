@@ -126,7 +126,7 @@ export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: 
             accessibilityLabel={tab.label}
           >
             <Icon
-              size={21}
+              size={22}
               color={isActive ? '#0F172A' : 'rgba(15,23,42,0.38)'}
             />
             {isActive && (
@@ -189,9 +189,9 @@ const styles = StyleSheet.create({
 
   // ── Pills ────────────────────────────────────────────
   pill: {
-    height: 30,
+    height: 34,
     borderRadius: 999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'transparent',

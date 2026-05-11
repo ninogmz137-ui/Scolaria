@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
+    paddingTop: 4,
     paddingVertical: 0,
     backgroundColor: 'transparent',
     ...Platform.select({
@@ -142,8 +143,8 @@ const styles = StyleSheet.create({
 
   // ── Bouton rond (Recherche / Action) ────────────────
   roundBtn: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.08)',
     alignItems: 'center',
@@ -152,14 +153,14 @@ const styles = StyleSheet.create({
 
   /** Espace réservé transparent (Agenda / Aria) */
   roundBtnPlaceholder: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
   },
 
   // ── Pill Aria ────────────────────────────────────────
   ariaPill: {
     flex: 1,
-    height: 34,
+    height: 36,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.08)',
     flexDirection: 'row',

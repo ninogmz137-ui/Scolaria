@@ -37,7 +37,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronDown, Plus } from 'lucide-react-native';
+import { Check, ChevronDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { C } from '../constants/design';
@@ -47,8 +47,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
-import { FLOATING_TAB_BAR_HEIGHT, FLOATING_TAB_BAR_ROW_HEIGHT, TAB_BAR_SCROLL_PADDING, getFloatingTabBottomOffset } from '../components/FloatingTabBar';
-import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
+import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // Enable LayoutAnimation on Android
@@ -57,9 +56,6 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const FAB_SIZE = 56;
-const FAB_GUTTER = 16;
-const FAB_GAP_ABOVE_TAB_ROW = 12;
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -318,12 +314,6 @@ export default function AgendaScreen() {
   getDemoAgendaRef.current = getDemoAgenda;
   const insets = useSafeAreaInsets();
   const { onScroll: reportScroll } = useTopbarScroll();
-  const tabBarHeight = BOTTOM_BAR_HEIGHT + insets.bottom;
-  const fabRowBottom = Math.max(
-    tabBarHeight,
-    getFloatingTabBottomOffset(insets.bottom) + FLOATING_TAB_BAR_ROW_HEIGHT,
-  ) + FAB_GAP_ABOVE_TAB_ROW;
-
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -1095,25 +1085,6 @@ export default function AgendaScreen() {
       />
       )}
 
-      <View
-        style={[st.fabSlot, { bottom: fabRowBottom }]}
-        pointerEvents="box-none"
-      >
-        <Pressable
-          onPress={openAddModal}
-          style={({ pressed }) => [
-            st.fabPress,
-            { transform: [{ scale: pressed ? 0.96 : 1 }] },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Nouvel événement"
-        >
-          <View style={st.fabInner}>
-            <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
-          </View>
-        </Pressable>
-      </View>
-
       {/* ─── Add Event Modal ─────────────────────────────── */}
       <Modal
         visible={addModalVisible}
@@ -1487,52 +1458,6 @@ const st = StyleSheet.create({
     fontSize: 13,
     color: '#94A3B8',
     marginTop: 4,
-  },
-
-  fabSlot: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    minHeight: FAB_SIZE,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingRight: FAB_GUTTER,
-    zIndex: 99,
-    direction: 'ltr',
-  } as any,
-  fabPress: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: 28,
-    backgroundColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'visible',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      },
-      android: { elevation: 12 },
-      default: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-      },
-    }),
-  },
-  fabInner: {
-    width: FAB_SIZE,
-    height: FAB_SIZE,
-    borderRadius: 28,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0F172A',
   },
 
   // Modal
