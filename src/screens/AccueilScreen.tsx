@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -18,6 +18,7 @@ import { useWallpaper } from '../contexts/WallpaperContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
+import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
 
 // ─── Data démo ────────────────────────────────────────────
@@ -49,14 +50,15 @@ const demoAriaMessage = 'Emma a un contrôle maths demain — veux-tu un résum�
 // ─── Sous-composants ──────────────────────────────────────
 
 function ActionRow({
-  kind, title, deadline, last,
-}: { kind: string; title: string; deadline: string; last?: boolean }) {
+  kind, title, deadline, last, onPress,
+}: { kind: string; title: string; deadline: string; last?: boolean; onPress?: () => void }) {
   const p = ACTION_PILLS[kind];
   return (
     <TouchableOpacity
       style={[styles.row, !last && styles.rowBorder]}
       activeOpacity={0.85}
       accessibilityRole="button"
+      onPress={onPress}
     >
       <View style={[styles.actionBadge, { backgroundColor: p.bg }]}>
         <Text style={[styles.actionBadgeText, { color: p.color }]}>{p.label}</Text>
@@ -106,6 +108,8 @@ export default function AccueilScreen() {
   const { children, selectedChild } = useActiveChild();
   const { onScroll: reportScroll } = useTopbarScroll();
   const { wallpaper, wallpaperSource, customUri } = useWallpaper();
+
+  const [justifierVisible, setJustifierVisible] = useState(false);
 
   const prenom = selectedChild?.name?.split(' ')[0] ?? 'Camille';
 
@@ -160,7 +164,12 @@ export default function AccueilScreen() {
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
                 {demoTodo.map((it, i) => (
-                  <ActionRow key={i} {...it} last={i === demoTodo.length - 1} />
+                  <ActionRow
+                    key={i}
+                    {...it}
+                    last={i === demoTodo.length - 1}
+                    onPress={it.kind === 'justifier' ? () => setJustifierVisible(true) : undefined}
+                  />
                 ))}
               </View>
             </View>
@@ -235,6 +244,11 @@ export default function AccueilScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <JustifierAbsenceSheet
+        visible={justifierVisible}
+        onClose={() => setJustifierVisible(false)}
+      />
     </View>
   );
 }
