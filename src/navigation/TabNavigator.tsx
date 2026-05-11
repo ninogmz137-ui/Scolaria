@@ -434,6 +434,11 @@ function AgendaStackScreen() {
         component={EventDetailScreen}
         options={{ headerShown: false }}
       />
+      <AgendaStack.Screen
+        name="Timetable"
+        component={TimetableScreen}
+        options={{ headerShown: false }}
+      />
     </AgendaStack.Navigator>
   );
 }

@@ -689,19 +689,28 @@ export default function AgendaScreen() {
       {/* Content starts at safe area top */}
       <View style={{ paddingTop: insets.top + 64 + 12 }}>
 
-        {/* 1. Month title (tappable) */}
-        <Pressable
-          onPress={toggleCalendar}
-          style={st.monthTitleRow}
-        >
-          <Text style={st.monthName}>{FRENCH_MONTH_NAMES_FULL[currentMonth]}</Text>
-          <Text style={st.yearText}>{currentYear}</Text>
-          <ChevronDown
-            size={18}
-            color="#94A3B8"
-            style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
-          />
-        </Pressable>
+        {/* 1. Month title (tappable) + bouton Emploi du temps */}
+        <View style={st.monthTitleWrapper}>
+          <Pressable
+            onPress={toggleCalendar}
+            style={st.monthTitleRow}
+          >
+            <Text style={st.monthName}>{FRENCH_MONTH_NAMES_FULL[currentMonth]}</Text>
+            <Text style={st.yearText}>{currentYear}</Text>
+            <ChevronDown
+              size={18}
+              color="#94A3B8"
+              style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
+            />
+          </Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('Timetable')}
+            hitSlop={8}
+            style={({ pressed }) => [st.timetableBtn, pressed && { opacity: 0.6 }]}
+          >
+            <Text style={st.timetableBtnText}>Emploi du temps</Text>
+          </Pressable>
+        </View>
 
         {/* 2. Collapsible calendar panel */}
         {calendarOpen && (
@@ -982,13 +991,32 @@ const st = StyleSheet.create({
     position: 'relative',
   },
 
-  // Month title
+  // Month title wrapper (titre + bouton EDT)
+  monthTitleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: 20,
+  },
   monthTitleRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
     paddingHorizontal: 20,
     paddingBottom: 12,
+    flex: 1,
+  },
+  timetableBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(67,56,202,0.08)',
+  },
+  timetableBtnText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: '#4338CA',
+    letterSpacing: -0.1,
   },
   monthName: {
     fontFamily: FontFamily.displayExtraBold,

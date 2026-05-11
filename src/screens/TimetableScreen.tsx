@@ -1,13 +1,15 @@
 /**
- * TimetableScreen — Emploi du temps
- * Semaine 18 · Emma 4ᵉB — vue journée avec créneaux et AriaInlineCard.
+ * TimetableScreen — Emploi du temps (page profonde depuis Agenda)
  *
- * Android rules applied:
- * - No `gap` → marginRight/marginBottom explicit
- * - CourseCard: outer View (shadow) + inner View (overflow:hidden) pattern
- * - No `height: '100%'` on left bar → flex:1 on content, bar auto-stretches
- * - No backdropFilter → semi-opaque colors only
- * - useSafeAreaInsets unused here (SafeAreaView handles it)
+ * Header : ‹ Agenda | "Emploi du temps" centré | "Aujourd'hui" ghost
+ * Sélecteur semaine + strip 7 jours L M M J V S D
+ * Timeline du jour : colonne horaire gauche + blocs cours indigo
+ * Fond #F2F1EE · paddingBottom 32
+ *
+ * Android rules:
+ * - No `gap` → marginRight / marginBottom explicit
+ * - No height:'100%' → flex:1
+ * - No backdropFilter → semi-opaque colors
  */
 import React, { useState } from 'react';
 import {
@@ -21,24 +23,34 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { C, SHADOW } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { DeepScreenHeader } from '../components/DeepScreenHeader';
-import { AriaInlineCard } from '../components/AriaInlineCard';
+
+// ─── Tokens locaux ────────────────────────────────────────────────────────────
+
+const BG         = '#F2F1EE';
+const INDIGO     = '#4338CA';
+const INDIGO_BG  = 'rgba(67,56,202,0.06)';
+const AMBER      = '#F59E0B';
+const AMBER_BG   = 'rgba(245,158,11,0.10)';
+const TEXT       = '#0F172A';
+const TEXT55     = 'rgba(15,23,42,0.55)';
+const TEXT35     = 'rgba(15,23,42,0.35)';
+const TEXT38     = 'rgba(15,23,42,0.38)';
+const BORDER     = 'rgba(15,23,42,0.08)';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type AlertKind = 'SALLE CHANGÉE' | 'PROF ABSENT';
+
 type CourseItem = {
   id: string;
-  type?: never;
+  type?: undefined;
   start: string;
   end: string;
   subject: string;
   teacher: string;
   room: string;
-  color: string;
-  colorBg: string;
-  alert?: string;
+  alert?: AlertKind;
 };
 
 type BreakItem = {
@@ -49,7 +61,13 @@ type BreakItem = {
 
 type ScheduleItem = CourseItem | BreakItem;
 
-// ─── Demo data ────────────────────────────────────────────────────────────────
+type DayInfo = {
+  letter: string;
+  num: number;
+  modified?: boolean;
+};
+
+// ─── Données démo — Mardi 5 mai, Emma 4ème ───────────────────────────────────
 
 const SCHEDULE: ScheduleItem[] = [
   {
@@ -57,83 +75,59 @@ const SCHEDULE: ScheduleItem[] = [
     start: '08:00',
     end: '09:00',
     subject: 'Mathématiques',
-    teacher: 'M. Dupont',
-    room: 'Salle 204',
-    color: '#4338CA',
-    colorBg: 'rgba(67,56,202,0.08)',
+    teacher: 'M. Bernard',
+    room: 'Salle A112',
   },
   {
     id: '2',
     start: '09:00',
     end: '10:00',
-    subject: 'Français',
-    teacher: 'Mme Laurent',
-    room: 'Salle 102',
-    color: '#059669',
-    colorBg: 'rgba(5,150,105,0.08)',
+    subject: 'Anglais',
+    teacher: 'Mme Larson',
+    room: 'Salle C301',
   },
-  {
-    id: 'break1',
-    type: 'break',
-    label: 'Récréation · 10 min',
-  },
+  { id: 'b1', type: 'break', label: 'Récréation · 15 min' },
   {
     id: '3',
     start: '10:15',
     end: '11:15',
-    subject: 'Histoire-Géo',
-    teacher: 'M. Martin',
-    room: 'Salle 110',
-    color: '#D97706',
-    colorBg: 'rgba(217,119,6,0.08)',
+    subject: 'Histoire',
+    teacher: 'M. Renault',
+    room: 'Salle B105',
   },
   {
     id: '4',
     start: '11:15',
     end: '12:15',
-    subject: 'Anglais',
-    teacher: 'Mme Petit',
-    room: 'Salle 201',
-    color: '#0891B2',
-    colorBg: 'rgba(8,145,178,0.08)',
+    subject: 'Français',
+    teacher: 'Mme Dupont',
+    room: 'Salle A210',
   },
-  {
-    id: 'break2',
-    type: 'break',
-    label: 'Déjeuner · 1h30',
-  },
+  { id: 'b2', type: 'break', label: 'Pause déjeuner · cantine' },
   {
     id: '5',
-    start: '13:45',
-    end: '14:45',
+    start: '13:30',
+    end: '14:30',
     subject: 'SVT',
-    teacher: 'M. Rousseau',
-    room: 'Labo B204',
-    color: '#7C3AED',
-    colorBg: 'rgba(124,58,237,0.08)',
-    alert: 'Salle changée',
+    teacher: 'Mme Pichon',
+    room: 'Salle B204',
+    alert: 'SALLE CHANGÉE',
   },
   {
     id: '6',
-    start: '14:45',
-    end: '15:45',
+    start: '14:30',
+    end: '15:30',
     subject: 'EPS',
-    teacher: 'M. Leblanc',
+    teacher: 'M. Olivier',
     room: 'Gymnase',
-    color: '#DB2777',
-    colorBg: 'rgba(219,39,119,0.08)',
   },
 ];
 
-type DayInfo = {
-  letter: string;
-  num: number;
-  active?: boolean;
-};
-
+// Semaine 18 · 4–10 mai 2026
+// Point rouge sur Mardi (SVT salle changée)
 const DAYS: DayInfo[] = [
   { letter: 'L', num: 4 },
-  { letter: 'M', num: 5, active: true },
+  { letter: 'M', num: 5, modified: true },
   { letter: 'M', num: 6 },
   { letter: 'J', num: 7 },
   { letter: 'V', num: 8 },
@@ -141,42 +135,13 @@ const DAYS: DayInfo[] = [
   { letter: 'D', num: 10 },
 ];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Composants ───────────────────────────────────────────────────────────────
 
-const WeekHeader: React.FC = () => (
-  <View style={styles.weekHeader}>
-    <TouchableOpacity
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      activeOpacity={0.7}
-    >
-      <ChevronLeft size={20} color={C.text55} strokeWidth={2} />
-    </TouchableOpacity>
-    <Text style={styles.weekLabel}>Semaine 18 · 4-10 mai 2026</Text>
-    <TouchableOpacity
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      activeOpacity={0.7}
-    >
-      <ChevronRight size={20} color={C.text55} strokeWidth={2} />
-    </TouchableOpacity>
+const AlertBadge: React.FC<{ label: AlertKind }> = ({ label }) => (
+  <View style={styles.alertBadge}>
+    <Text style={styles.alertBadgeText}>{label}</Text>
   </View>
 );
-
-const DayPill: React.FC<DayInfo> = ({ letter, num, active }) => {
-  if (active) {
-    return (
-      <View style={[styles.dayPill, styles.dayPillActive]}>
-        <Text style={[styles.dayLetter, styles.dayLetterActive]}>{letter}</Text>
-        <Text style={[styles.dayNum, styles.dayNumActive]}>{num}</Text>
-      </View>
-    );
-  }
-  return (
-    <View style={styles.dayPill}>
-      <Text style={styles.dayLetter}>{letter}</Text>
-      <Text style={styles.dayNum}>{num}</Text>
-    </View>
-  );
-};
 
 const BreakRow: React.FC<{ label: string }> = ({ label }) => (
   <View style={styles.breakRow}>
@@ -184,106 +149,137 @@ const BreakRow: React.FC<{ label: string }> = ({ label }) => (
   </View>
 );
 
-const AlertBadge: React.FC<{ label: string }> = ({ label }) => (
-  <View style={styles.alertBadge}>
-    <Text style={styles.alertBadgeText}>{label.toUpperCase()}</Text>
-  </View>
-);
-
-const CourseCard: React.FC<{ item: CourseItem }> = ({ item }) => (
+const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
   <View style={styles.courseRow}>
-    {/* Time column */}
+    {/* Colonne horaire */}
     <View style={styles.timeCol}>
       <Text style={styles.timeStart}>{item.start}</Text>
       <Text style={styles.timeEnd}>{item.end}</Text>
     </View>
 
-    {/* Card — Android shadow pattern: outer = bg+shadow, inner = overflow:hidden */}
-    <View style={styles.courseCardOuter}>
-      <View style={styles.courseCardInner}>
-        {/* Left accent bar */}
-        <View style={[styles.courseBar, { backgroundColor: item.color }]} />
+    {/* Bloc cours */}
+    <View style={styles.courseCard}>
+      {/* Barre accent gauche */}
+      <View style={styles.courseBar} />
 
-        {/* Content */}
-        <View style={styles.courseContent}>
-          {/* Subject badge row */}
-          <View style={styles.courseTopRow}>
-            <View style={[styles.subjectBadge, { backgroundColor: item.colorBg }]}>
-              <Text style={[styles.subjectBadgeText, { color: item.color }]}>
-                {item.subject.toUpperCase()}
-              </Text>
-            </View>
-            {item.alert && <AlertBadge label={item.alert} />}
-          </View>
-
-          {/* Teacher */}
-          <Text style={styles.teacherName} numberOfLines={1}>
-            {item.teacher}
+      {/* Contenu */}
+      <View style={styles.courseContent}>
+        <View style={styles.courseTopRow}>
+          <Text style={styles.courseSubject} numberOfLines={1}>
+            {item.subject}
           </Text>
-
-          {/* Room */}
-          <Text style={styles.roomText} numberOfLines={1}>
-            {item.room}
-          </Text>
+          {item.alert ? <AlertBadge label={item.alert} /> : null}
         </View>
+        <Text style={styles.courseMeta} numberOfLines={1}>
+          {item.teacher} · {item.room}
+        </Text>
       </View>
     </View>
   </View>
 );
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
+// ─── Écran principal ──────────────────────────────────────────────────────────
 
 export default function TimetableScreen() {
   const navigation = useNavigation<any>();
+  const [selectedDayIdx, setSelectedDayIdx] = useState(1); // Mardi par défaut
 
   return (
-    <SafeAreaView style={styles.root}>
-      <DeepScreenHeader
-        onBack={() => navigation.goBack()}
-        title="Emploi du temps"
-        subtitle="Emma · 4ᵉB"
-        rightElement={
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.todayBtn}>Aujourd'hui</Text>
-          </TouchableOpacity>
-        }
-      />
+    <SafeAreaView style={styles.root} edges={['top']}>
 
-      {/* Week navigation */}
-      <WeekHeader />
+      {/* ── Header page profonde ── */}
+      <View style={styles.header}>
+        {/* Titre absolument centré */}
+        <Text style={styles.headerTitle} pointerEvents="none">
+          Emploi du temps
+        </Text>
 
-      {/* Day strip */}
+        {/* Gauche : ‹ Agenda */}
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={18} color={TEXT55} strokeWidth={2} />
+          <Text style={styles.backLabel}>Agenda</Text>
+        </TouchableOpacity>
+
+        {/* Droite : Aujourd'hui */}
+        <TouchableOpacity
+          style={styles.todayBtnWrap}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.todayBtnText}>Aujourd'hui</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Sélecteur semaine ── */}
+      <View style={styles.weekNav}>
+        <TouchableOpacity
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={18} color={TEXT55} strokeWidth={2} />
+        </TouchableOpacity>
+        <Text style={styles.weekLabel}>Semaine 18 · 4–10 mai 2026</Text>
+        <TouchableOpacity
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+        >
+          <ChevronRight size={18} color={TEXT55} strokeWidth={2} />
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Strip 7 jours ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.dayStripContainer}
+        contentContainerStyle={styles.dayStripContent}
         style={styles.dayStrip}
       >
-        {DAYS.map((d, i) => (
-          <View key={i} style={i < DAYS.length - 1 ? styles.dayPillSpacing : undefined}>
-            <DayPill {...d} />
-          </View>
-        ))}
+        {DAYS.map((d, i) => {
+          const isActive = i === selectedDayIdx;
+          return (
+            <TouchableOpacity
+              key={i}
+              onPress={() => setSelectedDayIdx(i)}
+              activeOpacity={0.75}
+              style={[
+                styles.dayItem,
+                i < DAYS.length - 1 && styles.dayItemSpacing,
+              ]}
+            >
+              <Text style={[styles.dayLetter, isActive && styles.dayLetterActive]}>
+                {d.letter}
+              </Text>
+              <View style={[styles.dayCircle, isActive && styles.dayCircleActive]}>
+                <Text style={[styles.dayNum, isActive && styles.dayNumActive]}>
+                  {d.num}
+                </Text>
+              </View>
+              {d.modified && !isActive ? (
+                <View style={styles.modifiedDot} />
+              ) : (
+                <View style={styles.modifiedDotPlaceholder} />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
-      {/* Schedule list */}
+      {/* ── Timeline du jour ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scheduleContent}
+        contentContainerStyle={styles.timelineContent}
       >
         {SCHEDULE.map((item) => {
           if (item.type === 'break') {
             return <BreakRow key={item.id} label={item.label} />;
           }
-          return <CourseCard key={item.id} item={item as CourseItem} />;
+          return <CourseRow key={item.id} item={item as CourseItem} />;
         })}
-
-        {/* Aria alert card */}
-        <AriaInlineCard>
-          <Text style={styles.ariaText}>
-            Salle SVT déplacée en B204 demain.
-          </Text>
-        </AriaInlineCard>
       </ScrollView>
     </SafeAreaView>
   );
@@ -291,208 +287,229 @@ export default function TimetableScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const iosShadow = Platform.select({
-  ios: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-  },
-  android: {},
-  default: {},
-});
-
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: C.bg,
+    backgroundColor: BG,
   },
 
-  // ── Today button ──
-  todayBtn: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: C.indigo,
-    letterSpacing: -0.1,
-  },
-
-  // ── Week header ──
-  weekHeader: {
+  // ── Header ──
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER,
+    position: 'relative',
+    backgroundColor: BG,
+  },
+  headerTitle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: TEXT,
+    letterSpacing: -0.2,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  backLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: TEXT55,
+    marginLeft: 2,
+  },
+  todayBtnWrap: {
+    zIndex: 1,
+  },
+  todayBtnText: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: INDIGO,
+  },
+
+  // ── Semaine nav ──
+  weekNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
     paddingVertical: 10,
   },
   weekLabel: {
-    flex: 1,
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    color: C.text,
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: TEXT,
     letterSpacing: -0.2,
+    flex: 1,
     textAlign: 'center',
   },
 
   // ── Day strip ──
   dayStrip: {
-    marginBottom: 12,
+    marginBottom: 4,
   },
-  dayStripContainer: {
-    paddingHorizontal: 14,
+  dayStripContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
-  dayPill: {
-    width: 42,
+  dayItem: {
     alignItems: 'center',
-    paddingVertical: 6,
-    borderRadius: 10,
+    minWidth: 38,
   },
-  dayPillActive: {
-    backgroundColor: C.text,
-  },
-  dayPillSpacing: {
-    marginRight: 8,
+  dayItemSpacing: {
+    marginRight: 10,
   },
   dayLetter: {
-    fontFamily: FontFamily.sansSemiBold,
+    fontFamily: FontFamily.sansMedium,
     fontSize: 11,
-    color: C.text35,
+    color: TEXT38,
+    letterSpacing: 0.2,
+    marginBottom: 4,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    marginBottom: 2,
   },
   dayLetterActive: {
-    color: C.white,
+    fontFamily: FontFamily.sansBold,
+    color: TEXT,
+  },
+  dayCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayCircleActive: {
+    backgroundColor: TEXT,
   },
   dayNum: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 16,
-    color: C.text,
-    letterSpacing: -0.3,
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: TEXT38,
+    letterSpacing: -0.2,
   },
   dayNumActive: {
-    color: C.white,
+    fontFamily: FontFamily.sansBold,
+    color: '#FFFFFF',
+  },
+  modifiedDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#EF4444',
+    marginTop: 3,
+  },
+  modifiedDotPlaceholder: {
+    width: 4,
+    height: 4,
+    marginTop: 3,
   },
 
-  // ── Schedule scroll ──
-  scheduleContent: {
-    paddingBottom: 100,
-    paddingTop: 4,
+  // ── Timeline ──
+  timelineContent: {
+    paddingTop: 8,
+    paddingBottom: 32,
   },
 
-  // ── Break row ──
-  breakRow: {
-    height: 32,
-    marginHorizontal: 14,
+  // ── Bloc cours ──
+  courseRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 14,
     marginBottom: 8,
+    alignItems: 'stretch',
+  },
+  timeCol: {
+    width: 44,
+    alignItems: 'flex-end',
+    marginRight: 10,
+    paddingTop: 9,
+  },
+  timeStart: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 11,
+    color: TEXT35,
+    letterSpacing: -0.1,
+  },
+  timeEnd: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 10,
+    color: TEXT35,
+    marginTop: 2,
+    opacity: 0.8,
+  },
+  courseCard: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: INDIGO_BG,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  courseBar: {
+    width: 3,
+    backgroundColor: INDIGO,
+  },
+  courseContent: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  courseTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  courseSubject: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: TEXT,
+    letterSpacing: -0.1,
+    flex: 1,
+    marginRight: 6,
+  },
+  courseMeta: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: TEXT55,
+    letterSpacing: -0.05,
+  },
+
+  // ── Badge alerte ──
+  alertBadge: {
+    backgroundColor: AMBER_BG,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    flexShrink: 0,
+  },
+  alertBadgeText: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 9,
+    color: AMBER,
+    letterSpacing: 0.3,
+  },
+
+  // ── Pause / récréation ──
+  breakRow: {
+    marginHorizontal: 14,
+    marginLeft: 68, // aligné avec les blocs cours (44 timeCol + 10 margin + 14 padding = 68)
+    marginBottom: 8,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   breakText: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: C.text28,
-    textAlign: 'center',
-    letterSpacing: 0.1,
-  },
-
-  // ── Course row ──
-  courseRow: {
-    flexDirection: 'row',
-    marginHorizontal: 14,
-    marginBottom: 8,
-    alignItems: 'stretch',
-  },
-
-  // ── Time column ──
-  timeCol: {
-    width: 48,
-    alignItems: 'flex-end',
-    marginRight: 12,
-    paddingTop: 10,
-  },
-  timeStart: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: C.text35,
-    letterSpacing: -0.1,
-  },
-  timeEnd: {
-    fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: C.text28,
-    marginTop: 2,
-  },
-
-  // ── Course card ──
-  // outer: bg + shadow (Android elevation 0, iOS shadow)
-  courseCardOuter: {
-    flex: 1,
-    borderRadius: 14,
-    backgroundColor: C.white,
-    ...iosShadow,
-  },
-  // inner: overflow:hidden for left bar clip
-  courseCardInner: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    flexDirection: 'row',
-  },
-  courseBar: {
-    width: 3,
-  },
-  courseContent: {
-    flex: 1,
-    padding: 10,
-    paddingLeft: 12,
-  },
-  courseTopRow: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  subjectBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    marginRight: 6,
-  },
-  subjectBadgeText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  teacherName: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13.5,
-    color: C.text,
-    letterSpacing: -0.2,
-    marginBottom: 2,
-  },
-  roomText: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11.5,
-    color: C.text55,
-    letterSpacing: -0.1,
-  },
-
-  // ── Alert badge ──
-  alertBadge: {
-    backgroundColor: 'rgba(245,158,11,0.12)',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  alertBadgeText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 10,
-    color: C.amber,
-    letterSpacing: 0.4,
-  },
-
-  // ── Aria text ──
-  ariaText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13.5,
-    color: C.text,
-    lineHeight: 20,
-    letterSpacing: -0.1,
+    color: TEXT35,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
