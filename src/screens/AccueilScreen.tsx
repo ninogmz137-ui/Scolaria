@@ -71,31 +71,39 @@ function ActionRow({
 }
 
 function TodayRow({
-  icon, title, meta, time, last,
-}: { icon: React.ReactNode; title: string; meta: string; time?: string; last?: boolean }) {
+  icon, title, meta, time, last, onPress,
+}: { icon: React.ReactNode; title: string; meta: string; time?: string; last?: boolean; onPress?: () => void }) {
   return (
-    <View style={[styles.row, !last && styles.rowBorder]}>
+    <TouchableOpacity
+      style={[styles.row, !last && styles.rowBorder]}
+      activeOpacity={0.75}
+      onPress={onPress}
+    >
       <View style={styles.todayIconTile}>{icon}</View>
       <View style={styles.todayTexts}>
         <Text style={styles.rowTitle}>{title}</Text>
         <Text style={styles.metaText}>{meta}</Text>
       </View>
       {!!time && <Text style={styles.timeText}>{time}</Text>}
-    </View>
+    </TouchableOpacity>
   );
 }
 
 function GradeRow({
-  subject, grade, scale, date, last,
-}: { subject: string; grade: string; scale: string; date: string; last?: boolean }) {
+  subject, grade, scale, date, last, onPress,
+}: { subject: string; grade: string; scale: string; date: string; last?: boolean; onPress?: () => void }) {
   return (
-    <View style={[styles.gradeRow, !last && styles.rowBorder]}>
+    <TouchableOpacity
+      style={[styles.gradeRow, !last && styles.rowBorder]}
+      activeOpacity={0.75}
+      onPress={onPress}
+    >
       <Text style={styles.gradeSubject}>{subject}</Text>
       <Text style={styles.gradeNumber}>
         {grade}<Text style={styles.gradeScale}>/{scale}</Text>
       </Text>
       <Text style={styles.gradeDate}>{date}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -168,7 +176,11 @@ export default function AccueilScreen() {
                     key={i}
                     {...it}
                     last={i === demoTodo.length - 1}
-                    onPress={it.kind === 'justifier' ? () => setJustifierVisible(true) : undefined}
+                    onPress={
+                      it.kind === 'justifier' ? () => setJustifierVisible(true) :
+                      it.kind === 'signer' ? () => nav.navigate('SignDoc') :
+                      undefined
+                    }
                   />
                 ))}
               </View>
@@ -193,6 +205,11 @@ export default function AccueilScreen() {
                   meta={it.meta}
                   time={it.time}
                   last={i === demoAujourdhui.length - 1}
+                  onPress={
+                    it.id === 'controle'
+                      ? () => nav.getParent()?.navigate('Agenda')
+                      : () => nav.getParent()?.navigate('Messagerie')
+                  }
                 />
               ))}
             </View>
@@ -206,7 +223,7 @@ export default function AccueilScreen() {
         <View style={styles.cardOuter}>
           <View style={styles.cardInner}>
             {demoGrades.map((it, i) => (
-              <GradeRow key={i} {...it} last={i === demoGrades.length - 1} />
+              <GradeRow key={i} {...it} last={i === demoGrades.length - 1} onPress={() => nav.getParent()?.navigate('Notes')} />
             ))}
           </View>
         </View>
