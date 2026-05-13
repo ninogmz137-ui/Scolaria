@@ -161,80 +161,82 @@ function ConvRow({
   const urgStyle = conv.urgency ? URGENCY_STYLES[conv.urgency] : null;
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        conv.unread && styles.rowUnread,
-        pressed && styles.rowPressed,
-      ]}
-      accessibilityRole="button"
-    >
-      <View style={styles.rowInner}>
-        <ConvAvatar conv={conv} />
+    <View style={styles.rowShadowWrap}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.row,
+          conv.unread && styles.rowUnread,
+          pressed && styles.rowPressed,
+        ]}
+        accessibilityRole="button"
+      >
+        <View style={styles.rowInner}>
+          <ConvAvatar conv={conv} />
 
-        <View style={styles.rowBody}>
-          {/* Name + role + timestamp */}
-          <View style={styles.rowTop}>
+          <View style={styles.rowBody}>
+            {/* Name + role + timestamp */}
+            <View style={styles.rowTop}>
+              <Text
+                style={[
+                  styles.rowName,
+                  { fontFamily: conv.unread ? FontFamily.sansBold : FontFamily.sansSemiBold },
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {conv.name}
+              </Text>
+              <Text style={styles.rowRole} numberOfLines={1}>· {conv.role}</Text>
+              <View style={{ flex: 1 }} />
+              <Text style={[styles.rowTime, conv.unread && styles.rowTimeUnread]} numberOfLines={1}>
+                {formatLastDate(conv.lastDate)}
+              </Text>
+            </View>
+
+            {/* Tags row */}
+            {(tagStyle || urgStyle) && (
+              <View style={styles.tagsRow}>
+                {tagStyle && (
+                  <View style={[styles.tagPill, { backgroundColor: tagStyle.bg }]}>
+                    <Text style={[styles.tagPillText, { color: tagStyle.text }]}>{tagStyle.label}</Text>
+                  </View>
+                )}
+                {urgStyle && (
+                  <View style={[styles.tagPill, { backgroundColor: urgStyle.bg }]}>
+                    <Text style={[styles.urgencyPillText, { color: urgStyle.text }]}>{urgStyle.label}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Last message */}
             <Text
               style={[
-                styles.rowName,
-                { fontFamily: conv.unread ? FontFamily.sansBold : FontFamily.sansSemiBold },
+                styles.rowPreview,
+                {
+                  fontFamily: conv.unread ? FontFamily.sansSemiBold : FontFamily.sansMedium,
+                  color: conv.unread ? NAVY : TEXT55,
+                },
               ]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {conv.name}
+              {conv.lastMessage}
             </Text>
-            <Text style={styles.rowRole} numberOfLines={1}>· {conv.role}</Text>
-            <View style={{ flex: 1 }} />
-            <Text style={[styles.rowTime, conv.unread && styles.rowTimeUnread]} numberOfLines={1}>
-              {formatLastDate(conv.lastDate)}
-            </Text>
+
+            {/* Aria summary */}
+            {!!conv.ariaSummary && (
+              <Text style={styles.ariaSummary} numberOfLines={2}>
+                {conv.ariaSummary}
+              </Text>
+            )}
           </View>
 
-          {/* Tags row */}
-          {(tagStyle || urgStyle) && (
-            <View style={styles.tagsRow}>
-              {tagStyle && (
-                <View style={[styles.tagPill, { backgroundColor: tagStyle.bg }]}>
-                  <Text style={[styles.tagPillText, { color: tagStyle.text }]}>{tagStyle.label}</Text>
-                </View>
-              )}
-              {urgStyle && (
-                <View style={[styles.tagPill, { backgroundColor: urgStyle.bg }]}>
-                  <Text style={[styles.urgencyPillText, { color: urgStyle.text }]}>{urgStyle.label}</Text>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Last message */}
-          <Text
-            style={[
-              styles.rowPreview,
-              {
-                fontFamily: conv.unread ? FontFamily.sansSemiBold : FontFamily.sansMedium,
-                color: conv.unread ? NAVY : TEXT55,
-              },
-            ]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {conv.lastMessage}
-          </Text>
-
-          {/* Aria summary */}
-          {!!conv.ariaSummary && (
-            <Text style={styles.ariaSummary} numberOfLines={2}>
-              {conv.ariaSummary}
-            </Text>
-          )}
+          {conv.unread && <View style={styles.unreadDot} />}
         </View>
-
-        {conv.unread && <View style={styles.unreadDot} />}
-      </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }
 
@@ -1145,16 +1147,12 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
 
-  // Row
-  row: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+  // Row — outer View carries shadow (overflow:visible), inner Pressable clips content
+  rowShadowWrap: {
     marginHorizontal: 14,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
     marginBottom: 6,
-    maxWidth: '100%',
-    overflow: 'hidden',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     ...Platform.select({
       ios: {
         shadowColor: '#0F172A',
@@ -1164,6 +1162,13 @@ const styles = StyleSheet.create({
       },
       android: { elevation: 2 },
     }),
+  },
+  row: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    overflow: 'hidden',
+    maxWidth: '100%',
   },
   rowInner: {
     flexDirection: 'row',

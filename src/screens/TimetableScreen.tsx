@@ -20,7 +20,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -182,10 +182,11 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
 
 export default function TimetableScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [selectedDayIdx, setSelectedDayIdx] = useState(1); // Mardi par défaut
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
+    <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
 
       {/* ── Header page profonde ── */}
       <View style={styles.header}>
@@ -281,7 +282,7 @@ export default function TimetableScreen() {
           return <CourseRow key={item.id} item={item as CourseItem} />;
         })}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
