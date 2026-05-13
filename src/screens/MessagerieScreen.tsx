@@ -1120,6 +1120,7 @@ const styles = StyleSheet.create({
 
   // Scroll
   scrollContent: {
+    paddingTop: 8,
     paddingBottom: TAB_BAR_SCROLL_PADDING,
     maxWidth: '100%',
   },
@@ -1148,6 +1149,7 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: 12,
     paddingHorizontal: 14,
+    marginHorizontal: 14,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginBottom: 6,
@@ -1156,9 +1158,9 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
-        shadowRadius: 12,
+        shadowRadius: 8,
       },
       android: { elevation: 2 },
     }),

@@ -8,7 +8,7 @@
  * - Bouton action droite (contextuel) :
  *     Accueil  → Edit
  *     Notes    → ScanLine
- *     Agenda   → invisible (espace gardé)
+ *     Agenda   → Plus (ouvre formulaire ajout événement)
  *     Messages → Edit
  *     Aria     → invisible (espace gardé)
  *
@@ -24,7 +24,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Pressable } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Edit, ScanLine } from 'lucide-react-native';
+import { Search, Edit, ScanLine, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';
@@ -55,7 +55,7 @@ type LucideIcon = typeof Edit;
 function getActionIcon(activeTab: ActiveTab): LucideIcon | null {
   switch (activeTab) {
     case 'notes':    return ScanLine;
-    case 'agenda':   return null;
+    case 'agenda':   return Plus;
     case 'aria':     return null;
     default:         return Edit; // accueil + messages
   }
@@ -87,7 +87,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
         accessibilityRole="button"
         accessibilityLabel="Rechercher"
       >
-        <Search size={21} strokeWidth={2} color="rgba(15,23,42,0.55)" />
+        <Search size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
       </Pressable>
 
       {/* ── Pill Aria (centre) ── */}
@@ -97,7 +97,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
         accessibilityRole="button"
         accessibilityLabel="Demander à Aria"
       >
-        <ScolariaSymbol size={14} color="#6366F1" />
+        <ScolariaSymbol size={15} color="#6366F1" />
         <Text style={styles.ariaText} numberOfLines={1}>
           Demander à Aria…
         </Text>
@@ -111,7 +111,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
           accessibilityRole="button"
           accessibilityLabel="Action"
         >
-          <ActionIcon size={21} strokeWidth={2} color="rgba(15,23,42,0.55)" />
+          <ActionIcon size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
         </Pressable>
       ) : (
         /* Espace gardé mais invisible (Agenda / Aria) */

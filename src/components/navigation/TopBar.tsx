@@ -162,9 +162,9 @@ const styles = StyleSheet.create({
 
   // ── Avatar ──────────────────────────────────────────
   avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'rgba(15,23,42,0.15)',
@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   avatarImage: {
-    width: 34,
-    height: 34,
+    width: 36,
+    height: 36,
   },
   avatarEmoji: {
     fontSize: 17,

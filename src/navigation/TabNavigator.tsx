@@ -594,6 +594,7 @@ const burgerNavRef: { current: ((screen: string) => void) | null } = { current: 
 const profileNavRef: { current: (() => void) | null } = { current: null };
 const searchNavRef: { current: (() => void) | null } = { current: null };
 const actionNavRef: { current: (() => void) | null } = { current: null };
+const agendaActionRef: { current: (() => void) | null } = { current: null };
 const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
 // ─── TabContentWithNav ───────────────────────────────────
@@ -639,6 +640,13 @@ function TabContentWithNav({
     navigation.navigate('MainPager', {
       screen: 'MessagerieTab',
       params: { screen: 'MessagerieAriaScreen' },
+    } as any);
+  };
+
+  agendaActionRef.current = () => {
+    navigation.navigate('MainPager', {
+      screen: 'Agenda',
+      params: { screen: 'AgendaHome', params: { openAddModal: true } },
     } as any);
   };
 
@@ -929,6 +937,8 @@ export default function TabNavigator() {
                 onActionPress={() => {
                   if (navActiveTab === 'messages') {
                     actionNavRef.current?.();
+                  } else if (navActiveTab === 'agenda') {
+                    agendaActionRef.current?.();
                   } else if (navActiveTab !== 'notes') {
                     setQuickActionsVisible(true);
                   }
