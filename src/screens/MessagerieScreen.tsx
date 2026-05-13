@@ -19,7 +19,6 @@ import {
   Platform,
   Modal,
   Dimensions,
-  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -284,35 +283,18 @@ export default function MessagerieScreen() {
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const [headerBlockH, setHeaderBlockH] = useState(72);
   const [dropdownWin, setDropdownWin] = useState<{ left: number; top: number; width: number } | null>(null);
-  const { width: windowW } = useWindowDimensions();
   /**
    * Android : marge écran (safe area) + marge 20 comme le ressenti web : évite le panneau collé
    * au bord (Modal plein écran, repères = mesure `measureInWindow` sur la pill).
    */
   const dropdownLayout = useMemo(() => {
     if (!dropdownWin) return null;
-    /** Même ressenti que `screenHorizontalPad` (16) + un peu d’air sur Android (aligné web). */
-    const gutter = Platform.OS === 'android' ? 20 : 16;
-    const minLeft = Math.max(insets.left, 0) + gutter;
-    const maxRight = windowW - Math.max(insets.right, 0) - gutter;
-    const availableW = maxRight - minLeft;
-    if (availableW < 1) return null;
-    const pillRight = dropdownWin.left + dropdownWin.width;
-    /**
-     * Sur Android étroit, `Math.min(280, availableW)` donnait un cardW plus large
-     * que `pillRight - minLeft`, forçant `left = minLeft` (collé au bord gauche).
-     * On plafonne cardW par la distance disponible à gauche de la pill pour que
-     * l’alignement droit (sous la pill) reste respecté. Min 200 sinon la liste
-     * devient illisible sur écrans très étroits.
-     */
-    const maxCardW = Math.max(200, pillRight - minLeft);
-    const cardW = Math.min(280, availableW, maxCardW);
-    let left = pillRight - cardW;
-    if (left < minLeft) left = minLeft;
-    if (left + cardW > maxRight) left = maxRight - cardW;
-    if (left < minLeft) left = minLeft;
-    return { left, top: dropdownWin.top, width: cardW };
-  }, [dropdownWin, windowW, insets.left, insets.right]);
+    return {
+      left: dropdownWin.left,
+      top: dropdownWin.top,
+      width: dropdownWin.width,
+    };
+  }, [dropdownWin]);
 
   const searchInputRef = useRef<any>(null);
   const filterPillRef = useRef<View | null>(null);
@@ -402,7 +384,14 @@ export default function MessagerieScreen() {
     const pill = filterPillRef.current;
     if (!pill) return;
     pill.measureInWindow((x, y, w, h) => {
-      setDropdownWin({ left: x, top: y + h + 4, width: w });
+      // Aligner le bord droit du dropdown avec le bord droit de la pill
+      const dropW = Math.min(220, x + w - 16);
+      const dropLeft = x + w - dropW;
+      setDropdownWin({
+        left: Math.max(16, dropLeft),
+        top: y + h + 4,
+        width: dropW,
+      });
       setFilterDropdownVisible(true);
     });
   }, []);
@@ -1164,8 +1153,8 @@ const styles = StyleSheet.create({
     }),
   },
   row: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     borderRadius: 16,
     overflow: 'hidden',
     maxWidth: '100%',
