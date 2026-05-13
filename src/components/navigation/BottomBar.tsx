@@ -77,6 +77,19 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
     });
   };
 
+  const handleActionPress = () => {
+    switch (activeTab) {
+      case 'messages':
+        (navigation as any).navigate('MainPager', {
+          screen: 'MessagerieTab',
+          params: { openNewMessage: true },
+        });
+        break;
+      default:
+        onActionPress?.();
+    }
+  };
+
   return (
     <View style={[styles.container, { bottom: insets.bottom > 0 ? insets.bottom + 8 : 12 }]}>
 
@@ -106,7 +119,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
       {/* ── Bouton action droite (contextuel) ── */}
       {ActionIcon ? (
         <Pressable
-          onPress={onActionPress}
+          onPress={handleActionPress}
           style={styles.roundBtn}
           accessibilityRole="button"
           accessibilityLabel="Action"
@@ -143,8 +156,8 @@ const styles = StyleSheet.create({
 
   // ── Bouton rond (Recherche / Action) ────────────────
   roundBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.08)',
     alignItems: 'center',
@@ -153,14 +166,14 @@ const styles = StyleSheet.create({
 
   /** Espace réservé transparent (Agenda / Aria) */
   roundBtnPlaceholder: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
   },
 
   // ── Pill Aria ────────────────────────────────────────
   ariaPill: {
     flex: 1,
-    height: 36,
+    height: 40,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.08)',
     flexDirection: 'row',

@@ -1274,6 +1274,7 @@ const st = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   calendarDayText: {
     fontFamily: FontFamily.sansRegular,
@@ -1314,6 +1315,7 @@ const st = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   weekStripNumber: {
     fontFamily: FontFamily.displayBold,

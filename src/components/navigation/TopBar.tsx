@@ -126,7 +126,7 @@ export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: 
             accessibilityLabel={tab.label}
           >
             <Icon
-              size={22}
+              size={24}
               color={isActive ? '#0F172A' : 'rgba(15,23,42,0.38)'}
             />
             {isActive && (
@@ -156,15 +156,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingBottom: 10,
+    paddingBottom: 12,
     backgroundColor: 'transparent',
   },
 
   // ── Avatar ──────────────────────────────────────────
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: 'rgba(15,23,42,0.15)',
@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   avatarImage: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
   },
   avatarEmoji: {
     fontSize: 17,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
 
   // ── Pills ────────────────────────────────────────────
   pill: {
-    height: 34,
+    height: 36,
     borderRadius: 999,
     paddingHorizontal: 12,
     flexDirection: 'row',
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
     color: '#0F172A',
-    lineHeight: Platform.OS === 'android' ? 18 : undefined,
+    lineHeight: Platform.OS === 'android' ? 20 : undefined,
   },
 
   // ── Badge ────────────────────────────────────────────
