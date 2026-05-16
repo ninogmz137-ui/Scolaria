@@ -5,6 +5,7 @@ import {
   Image,
   Modal,
   Pressable,
+  TouchableOpacity,
   StyleSheet,
   Platform,
   Alert,
@@ -79,12 +80,10 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
             const firstName = child.name.split(' ')[0];
 
             return (
-              <Pressable
+              <TouchableOpacity
                 key={child.id}
-                style={({ pressed }) => [
-                  styles.childRow,
-                  pressed && styles.childRowPressed,
-                ]}
+                activeOpacity={0.75}
+                style={styles.childRow}
                 onPress={() => {
                   selectChild(child.id);
                   onClose();
@@ -120,33 +119,29 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
                 {isActive && (
                   <Check size={18} color="#4338CA" strokeWidth={2.5} />
                 )}
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
 
           {/* Gérer les enfants */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.settingsRow,
-              pressed && styles.childRowPressed,
-            ]}
+          <TouchableOpacity
+            activeOpacity={0.75}
+            style={styles.settingsRow}
             onPress={handleSettings}
           >
             <Text style={styles.settingsLabel}>Gérer les enfants</Text>
             <Settings2 size={16} color="#4338CA" strokeWidth={2} />
-          </Pressable>
+          </TouchableOpacity>
 
           {/* Se déconnecter */}
-          <Pressable
-            style={({ pressed }) => [
-              styles.signOutRow,
-              pressed && styles.signOutRowPressed,
-            ]}
+          <TouchableOpacity
+            activeOpacity={0.75}
+            style={styles.signOutRow}
             onPress={handleSignOut}
           >
-            <LogOut size={16} color="#EF4444" strokeWidth={2} style={{ marginRight: 10 }} />
+            <LogOut size={16} color="#EF4444" strokeWidth={2} style={{ marginRight: 8 }} />
             <Text style={styles.signOutLabel}>Se déconnecter</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -218,8 +213,9 @@ const styles = StyleSheet.create({
     height: 36,
   },
   childAvatarEmoji: {
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: 20,
+    lineHeight: 24,
+    textAlign: 'center',
   },
   childAvatarInitials: {
     fontFamily: 'Figtree_700Bold',
@@ -240,25 +236,22 @@ const styles = StyleSheet.create({
   settingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 13,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(15,23,42,0.05)',
+    borderTopColor: 'rgba(15,23,42,0.06)',
   },
   settingsLabel: {
     fontFamily: 'Figtree_600SemiBold',
     fontSize: 13,
     color: '#4338CA',
-    flex: 1,
   },
   signOutRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-  },
-  signOutRowPressed: {
-    backgroundColor: 'rgba(239,68,68,0.04)',
   },
   signOutLabel: {
     fontFamily: 'Figtree_600SemiBold',

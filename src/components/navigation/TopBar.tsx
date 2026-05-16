@@ -57,6 +57,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
+  const isHome = activeTab === 'accueil';
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -108,7 +109,9 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               onPress={() => handleTabPress(tab)}
               style={[
                 styles.pill,
-                isActive ? styles.pillActive : styles.pillInactive,
+                isActive
+                  ? (isHome ? styles.pillActiveHome : styles.pillActiveOther)
+                  : (isHome ? styles.pillInactiveHome : styles.pillInactiveOther),
                 !isLast && styles.pillMargin,
               ]}
               accessibilityRole="button"
@@ -117,7 +120,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
             >
               <Icon
                 size={22}
-                color={isActive ? '#0F172A' : 'rgba(15,23,42,0.40)'}
+                color={isActive ? '#0F172A' : (isHome ? 'rgba(15,23,42,0.45)' : 'rgba(15,23,42,0.50)')}
               />
               {isActive && (
                 <Text style={styles.pillLabel}>{tab.label}</Text>
@@ -220,7 +223,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  pillActive: {
+  // Active sur Accueil (hero gradient derrière) — fond blanc semi-transparent
+  pillActiveHome: {
     height: 34,
     paddingLeft: 11,
     paddingRight: 14,
@@ -228,10 +232,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.58)',
   },
-  pillInactive: {
+  // Active sur autres onglets (fond page uni) — fond sombre discret
+  pillActiveOther: {
+    height: 34,
+    paddingLeft: 11,
+    paddingRight: 14,
+    backgroundColor: 'rgba(15,23,42,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.10)',
+  },
+  // Inactive sur Accueil — transparent (gradient visible)
+  pillInactiveHome: {
     height: 32,
     padding: 8,
     backgroundColor: 'transparent',
+  },
+  // Inactive sur autres onglets — fond discret pour rester lisible
+  pillInactiveOther: {
+    width: 36,
+    height: 32,
+    backgroundColor: 'rgba(15,23,42,0.08)',
+    justifyContent: 'center',
   },
   pillMargin: {
     marginRight: 5,

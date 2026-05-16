@@ -70,18 +70,18 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 const C = {
   ink: '#1A2340',
-  violet: '#7C3AED',
+  violet: '#4338CA',
   cyan: '#06B6D4',
-  violetDeep: '#5B21B6',
+  violetDeep: '#3730A3',
   label: '#9ca3af',
   labelUpper: '#6b7280',
-  meta: '#c4b5fd',
+  meta: 'rgba(15,23,42,0.45)',
   body: '#374151',
   glassBg: 'rgba(255,255,255,0.7)',
   glassBorder: 'rgba(255,255,255,0.9)',
   liquidBtn: 'rgba(255,255,255,0.6)',
   liquidBorder: 'rgba(255,255,255,0.8)',
-  rowSep: 'rgba(124,58,237,0.06)',
+  rowSep: 'rgba(15,23,42,0.06)',
   track: 'rgba(0,0,0,0.06)',
 };
 
@@ -160,7 +160,7 @@ function getCurrentTrimester(): string {
   return 'T3';
 }
 
-const COLOR_PALETTE = ['#4A90D9', '#7C3AED', '#F59E0B', '#10B981', '#EC4899', '#EF4444'];
+const COLOR_PALETTE = ['#4A90D9', '#4338CA', '#F59E0B', '#10B981', '#EC4899', '#EF4444'];
 
 /** Wallpaper visible only behind the top area — clipped; scroll body uses C.bg. */
 const NOTES_WALLPAPER_HEADER_HEIGHT = Math.min(Dimensions.get('window').height * 0.42, 380);
@@ -187,7 +187,7 @@ const MOCK_SUBJECTS: Subject[] = [
     ],
   },
   {
-    id: '2', name: 'Français', emoji: '📖', color: '#7C3AED',
+    id: '2', name: 'Français', emoji: '📖', color: '#4338CA',
     average: 14.0, classAvg: 13.1, trend: 'stable',
     grades: [
       { id: 'g5', value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction', coefficient: 1 },
@@ -478,8 +478,8 @@ function BulletinImportSheet({
               Alert.alert('Démo', 'Prendre en photo');
             }}
           >
-            <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(124,58,237,0.08)' }]}>
-              <Camera size={22} color="#7C3AED" strokeWidth={1.8} />
+            <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(67,56,202,0.08)' }]}>
+              <Camera size={22} color="#4338CA" strokeWidth={1.8} />
             </View>
             <View style={styles.bulletinRowText}>
               <Text style={styles.bulletinRowTitle}>Prendre en photo</Text>
@@ -924,8 +924,8 @@ function SubjectGradeGraph({
       <Svg width={width} height={SGH}>
         <Defs>
           <SvgLinearGradient id={areaGId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#7C3AED" stopOpacity={0.14} />
-            <Stop offset="1" stopColor="#7C3AED" stopOpacity={0} />
+            <Stop offset="0" stopColor="#4338CA" stopOpacity={0.14} />
+            <Stop offset="1" stopColor="#4338CA" stopOpacity={0} />
           </SvgLinearGradient>
           <SvgLinearGradient
             id={lineGId}
@@ -935,7 +935,7 @@ function SubjectGradeGraph({
             y2="0"
             gradientUnits="userSpaceOnUse"
           >
-            <Stop offset="0" stopColor="#7C3AED" />
+            <Stop offset="0" stopColor="#4338CA" />
             <Stop offset="1" stopColor="#06B6D4" />
           </SvgLinearGradient>
           <ClipPath id={clipId}>
@@ -1066,7 +1066,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
         }}
       >
         <LinearGradient
-          colors={[C.violet, 'rgba(124,58,237,0.15)']}
+          colors={[C.violet, 'rgba(67,56,202,0.15)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ width: '100%', height: '100%' }}
@@ -1080,7 +1080,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: 'rgba(124,58,237,0.18)',
+        backgroundColor: 'rgba(67,56,202,0.18)',
       }}
     />
   );
@@ -1562,16 +1562,11 @@ export default function NotesScreen() {
                   style={({ pressed }) => [pressed && { opacity: 0.92 }]}
                 >
                   {isActive ? (
-                    <LinearGradient
-                      colors={[C.violet, C.violetDeep]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.pillActiveGrad}
-                    >
+                    <View style={[styles.pill, styles.pillActive]}>
                       <Text style={[styles.pillTxt, styles.pillTxtOn]} numberOfLines={1}>
                         {domain.name}
                       </Text>
-                    </LinearGradient>
+                    </View>
                   ) : (
                     <View style={[styles.pill, styles.pillGlass]}>
                       <Text style={styles.pillTxt} numberOfLines={1}>
@@ -1635,7 +1630,7 @@ export default function NotesScreen() {
           </GlassPanel>
 
           <LinearGradient
-            colors={['rgba(124,58,237,0.05)', 'rgba(6,182,212,0.03)']}
+            colors={['rgba(67,56,202,0.05)', 'rgba(6,182,212,0.03)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.obsCardGrad}
@@ -1798,7 +1793,7 @@ export default function NotesScreen() {
             ) : (
               <Text style={styles.statSub}>—</Text>
             )}
-            <Text style={[styles.statLabelViolet, { marginTop: 10, color: '#7C3AED' }]}>À RENFORCER</Text>
+            <Text style={[styles.statLabelViolet, { marginTop: 10, color: '#4338CA' }]}>À RENFORCER</Text>
             {bestWorst.worst ? (
               <>
                 <Text style={styles.statStrong} numberOfLines={2}>
@@ -1844,16 +1839,11 @@ export default function NotesScreen() {
                   style={({ pressed }) => [pressed && { opacity: 0.92 }]}
                 >
                   {isActive ? (
-                    <LinearGradient
-                      colors={[C.violet, C.violetDeep]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.pillActiveGrad}
-                    >
+                    <View style={[styles.pill, styles.pillActive]}>
                       <Text style={[styles.pillTxt, styles.pillTxtOn]} numberOfLines={1}>
                         {subject.name}
                       </Text>
-                    </LinearGradient>
+                    </View>
                   ) : (
                     <View style={[styles.pill, styles.pillGlass]}>
                       <Text style={styles.pillTxt} numberOfLines={1}>
@@ -1984,7 +1974,7 @@ export default function NotesScreen() {
         )}
 
         <LinearGradient
-          colors={['rgba(124,58,237,0.05)', 'rgba(6,182,212,0.03)']}
+          colors={['rgba(67,56,202,0.05)', 'rgba(6,182,212,0.03)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.obsCardGrad}
@@ -2157,7 +2147,7 @@ const styles = StyleSheet.create({
     ...nativeGlassCardShadow,
   },
   trimesterOption: { paddingHorizontal: 16, paddingVertical: 12 },
-  trimesterOptionActive: { backgroundColor: 'rgba(124,58,237,0.06)' },
+  trimesterOptionActive: { backgroundColor: 'rgba(67,56,202,0.06)' },
   trimesterOptionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2195,7 +2185,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   trendPill: {
-    backgroundColor: 'rgba(124,58,237,0.08)',
+    backgroundColor: 'rgba(67,56,202,0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
@@ -2295,31 +2285,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 8,
   },
-  pillActive: { backgroundColor: C.ink },
-  pillActiveGrad: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 8,
-    minHeight: 36,
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: C.violet,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-      },
-      android: { elevation: 5 },
-      default: {},
-    }),
-  },
+  pillActive: { backgroundColor: '#0F172A' },
   pillGlass: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    ...nativeGlassCardShadow,
+    backgroundColor: 'rgba(15,23,42,0.07)',
   },
-  pillTxt: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#374151' },
-  pillTxtOn: { color: '#fff', fontWeight: '500' },
+  pillTxt: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: 'rgba(15,23,42,0.55)' },
+  pillTxtOn: { color: '#FFFFFF', fontWeight: '500' },
 
   subjHead: {
     flexDirection: 'row',
@@ -2368,7 +2339,7 @@ const styles = StyleSheet.create({
   },
   noteRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(124,58,237,0.06)',
+    borderBottomColor: 'rgba(67,56,202,0.06)',
   },
   trimSectionLbl: {
     fontFamily: FontFamily.sansSemiBold,
