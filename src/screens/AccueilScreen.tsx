@@ -1,20 +1,17 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  Image,
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MessageCircle, Calendar, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useWallpaper } from '../contexts/WallpaperContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
@@ -112,63 +109,54 @@ function GradeRow({
 export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const { children, selectedChild } = useActiveChild();
+  const { selectedChild } = useActiveChild();
   const { onScroll: reportScroll } = useTopbarScroll();
-  const { wallpaper, wallpaperSource, customUri } = useWallpaper();
 
   const [justifierVisible, setJustifierVisible] = useState(false);
 
   const prenom = selectedChild?.name?.split(' ')[0] ?? 'Camille';
 
-  const familyName = useMemo(() => {
-    const raw = (user as any)?.user_metadata?.family_name || (user as any)?.user_metadata?.nom_famille;
-    return String(raw || 'Moreau').trim() || 'Moreau';
-  }, [user]);
-
-  const nbEnfants = children.length || 1;
-  const showImageWallpaper = !!customUri || wallpaper.type === 'image';
-
   return (
     <View style={styles.root}>
+      {/* Hero gradient — position absolute, derrière le ScrollView */}
+      <LinearGradient
+        colors={[
+          '#b8b5f5',
+          '#c4b5fd',
+          '#f9a8d4',
+          '#fdba74',
+          'rgba(242,241,238,0.9)',
+          'rgba(242,241,238,0)',
+        ]}
+        locations={[0, 0.20, 0.40, 0.65, 0.88, 1.0]}
+        start={{ x: 0.15, y: 0 }}
+        end={{ x: 0.85, y: 1 }}
+        style={styles.heroGradient}
+      />
+
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 98 }}
+        style={styles.scroll}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
       >
-        {/* Espace réservé pour la TopBar (position: absolute) */}
+        {/* Espace TopBar (position: absolute) */}
         <View style={{ height: insets.top + 60 }} />
 
-        {/* Header wallpaper */}
-        <View style={styles.headerWrap}>
-          {!showImageWallpaper ? (
-            <LinearGradient
-              colors={wallpaper.colors ?? ['#2D1B69', C.indigo, 'rgba(34,211,238,0.6)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : (
-            <Image source={wallpaperSource.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          )}
-          <LinearGradient
-            colors={['transparent', 'rgba(15,23,42,0.25)']}
-            style={[StyleSheet.absoluteFill, { top: '40%' }]}
-          />
-          <View style={styles.headerInner}>
-            <Text style={styles.headerHello}>Bonjour, {prenom} 👋</Text>
-            <Text style={styles.headerMeta}>
-              Famille {familyName} · {nbEnfants} enfant{nbEnfants > 1 ? 's' : ''}
-            </Text>
-          </View>
+        {/* Contenu hero */}
+        <View style={styles.heroContent}>
+          <Text style={styles.heroHello}>Bonjour 👋</Text>
+          <Text style={styles.heroPrenom}>{prenom}</Text>
         </View>
 
         {/* À faire */}
         {demoTodo.length > 0 && (
           <>
-            <SectionLabel text="À faire" style={{ paddingTop: 10 }} />
+            <SectionLabel
+              text="À faire"
+              style={styles.sectionLabel}
+            />
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
                 {demoTodo.map((it, i) => (
@@ -189,7 +177,7 @@ export default function AccueilScreen() {
         )}
 
         {/* Aujourd'hui */}
-        <SectionLabel text="Aujourd'hui" />
+        <SectionLabel text="Aujourd'hui" style={styles.sectionLabel} />
         {demoAujourdhui.length > 0 ? (
           <View style={styles.cardOuter}>
             <View style={styles.cardInner}>
@@ -219,11 +207,16 @@ export default function AccueilScreen() {
         )}
 
         {/* Dernières notes */}
-        <SectionLabel text="Dernières notes" />
+        <SectionLabel text="Dernières notes" style={styles.sectionLabel} />
         <View style={styles.cardOuter}>
           <View style={styles.cardInner}>
             {demoGrades.map((it, i) => (
-              <GradeRow key={i} {...it} last={i === demoGrades.length - 1} onPress={() => nav.getParent()?.navigate('Notes')} />
+              <GradeRow
+                key={i}
+                {...it}
+                last={i === demoGrades.length - 1}
+                onPress={() => nav.getParent()?.navigate('Notes')}
+              />
             ))}
           </View>
         </View>
@@ -273,47 +266,75 @@ export default function AccueilScreen() {
 // ─── Styles ──────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
+  root: {
+    flex: 1,
+    backgroundColor: C.bg,
+  },
 
-  // ── Header wallpaper ────────────────────────────────
-  headerWrap: {
-    marginHorizontal: 12,
-    height: 130,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 4,
+  // ── Hero gradient (absolu, derrière tout) ────────────
+  heroGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 440,
+    zIndex: 0,
   },
-  headerInner: { flex: 1, padding: 18, justifyContent: 'space-between' },
-  headerHello: {
-    fontFamily: 'Figtree_800ExtraBold',
-    fontSize: 24,
-    color: '#fff',
-    letterSpacing: -0.7,
+
+  // ── ScrollView transparent ───────────────────────────
+  scroll: {
+    flex: 1,
+    backgroundColor: 'transparent',
   },
-  headerMeta: {
+
+  // ── Contenu hero ─────────────────────────────────────
+  heroContent: {
+    paddingTop: 2,
+    paddingHorizontal: 18,
+    paddingBottom: 24,
+    zIndex: 10,
+  },
+  heroHello: {
     fontFamily: 'Figtree_500Medium',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.82)',
-    letterSpacing: -0.05,
+    fontWeight: '500',
+    color: 'rgba(15,23,42,0.48)',
+    marginBottom: 1,
+  },
+  heroPrenom: {
+    fontFamily: 'Figtree_900Black',
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -1.2,
+    lineHeight: 36,
+  },
+
+  // ── Section label override ───────────────────────────
+  sectionLabel: {
+    paddingTop: 8,
+    paddingBottom: 2,
+    color: 'rgba(15,23,42,0.38)',
+    opacity: 1,
   },
 
   // ── Card wrapper (outer shadow + inner clip) ─────────
   cardOuter: {
     marginHorizontal: 14,
-    borderRadius: 16,
+    borderRadius: 20,
     backgroundColor: '#FFFFFF',
     ...Platform.select({
       ios: {
         shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
       },
       android: { elevation: 0 },
     }),
   },
   cardInner: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.05)',

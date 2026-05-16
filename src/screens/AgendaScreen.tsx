@@ -29,6 +29,7 @@ import {
   Dimensions,
   LayoutAnimation,
   UIManager,
+  PanResponder,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -857,6 +858,52 @@ export default function AgendaScreen() {
   // ─── Derived: selected day event count ────────────────
   const dayEventCount = (eventsByDay[selectedDay] ?? []).length;
 
+  // ─── Week strip swipe handler ──────────────────────────
+  const stripSwipeStartX = useRef(0);
+  const stripSwipeDayStart = useRef(0);
+
+  const stripPan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (_, g) =>
+        Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy) * 1.2,
+      onMoveShouldSetPanResponderCapture: (_, g) =>
+        Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy) * 1.2,
+      onPanResponderGrant: (_, g) => {
+        stripSwipeStartX.current = g.x0;
+      },
+      onPanResponderRelease: (_, g) => {
+        const threshold = 30;
+        if (g.dx < -threshold) {
+          setSelectedDay((prev) => {
+            const idx = weekDays.findIndex((d) => d.date === prev);
+            if (idx < weekDays.length - 1) {
+              const next = weekDays[idx + 1];
+              setSelectedFullDate(next.fullDate);
+              setCurrentMonth(next.fullDate.getMonth());
+              setCurrentYear(next.fullDate.getFullYear());
+              return next.date;
+            }
+            return prev;
+          });
+        } else if (g.dx > threshold) {
+          setSelectedDay((prev) => {
+            const idx = weekDays.findIndex((d) => d.date === prev);
+            if (idx > 0) {
+              const prev2 = weekDays[idx - 1];
+              setSelectedFullDate(prev2.fullDate);
+              setCurrentMonth(prev2.fullDate.getMonth());
+              setCurrentYear(prev2.fullDate.getFullYear());
+              return prev2.date;
+            }
+            return prev;
+          });
+        }
+      },
+    })
+  ).current;
+
   // ─── Render ────────────────────────────────────────────
   return (
     <View style={st.root}>
@@ -981,7 +1028,7 @@ export default function AgendaScreen() {
         )}
 
         {/* 3. Week day strip */}
-        <View style={st.weekStrip}>
+        <View style={st.weekStrip} {...stripPan.panHandlers}>
           {weekDays.map((day) => {
             const isSelected = day.date === selectedDay &&
               day.fullDate.getMonth() === selectedFullDate.getMonth();

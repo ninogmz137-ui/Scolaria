@@ -1,26 +1,25 @@
 /**
  * TopBar — Barre de navigation supérieure Scolaria (pattern Notion)
  *
- * Structure : [Avatar] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages]
+ * Structure : [Burger ☰] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages] [Avatar enfant]
  *
- * - Avatar 34px : photo/emoji/initiales de l'enfant actif → onAvatarPress
- * - Pill active : icône + label + fond rgba(15,23,42,0.08)
- * - Pill inactive : icône seule, fond transparent
+ * - Burger 34px gauche → navigation Réglages
+ * - Pill active : icône + label, fond rgba(255,255,255,0.42), border blanc
+ * - Pill inactive : icône seule, transparent
+ * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
  * - Badge rouge 6px sur Messages si hasUnreadMessages
- *
- * Notes Android :
- *   - Pas de `gap` sur le container → marginRight explicite
- *   - Pas de `gap` dans les pills → marginLeft sur le label
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
+import ChildSelectorSheet from '../ChildSelectorSheet';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -28,7 +27,7 @@ export type ActiveTab = 'accueil' | 'notes' | 'agenda' | 'messages' | 'aria';
 
 export interface TopBarProps {
   activeTab: ActiveTab;
-  /** Ouvre le dropdown de sélection d'enfant (sprint suivant) */
+  /** Conservé pour compatibilité — non utilisé (burger gère la nav Réglages en interne) */
   onAvatarPress: () => void;
   hasUnreadMessages?: boolean;
 }
@@ -40,7 +39,6 @@ type LucideIcon = typeof Home;
 interface TabConfig {
   id: ActiveTab;
   label: string;
-  /** Nom de la route React Navigation */
   routeName: string;
   icon: LucideIcon;
 }
@@ -52,30 +50,18 @@ const TABS: TabConfig[] = [
   { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: TextBubble },
 ];
 
-// ─── Helpers ─────────────────────────────────────────────
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 // ─── Composant ───────────────────────────────────────────
 
-export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: TopBarProps) {
+export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
+  const [showChildSelector, setShowChildSelector] = useState(false);
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
 
   const handleTabPress = (tab: TabConfig) => {
-    // useNavigation() ici = RootStack. Il faut passer par 'MainPager' pour
-    // atteindre les onglets du Tab.Navigator imbriqué.
     if (tab.id === 'accueil') {
       (navigation as any).navigate('MainPager', {
         screen: 'Accueil',
@@ -86,67 +72,113 @@ export default function TopBar({ activeTab, onAvatarPress, hasUnreadMessages }: 
     }
   };
 
+  const handleBurgerPress = () => {
+    (navigation as any).navigate('MainPager', {
+      screen: 'Accueil',
+      params: { screen: 'ReglagesScreen' },
+    });
+  };
+
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+    <>
+      <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
 
-      {/* Avatar enfant actif */}
-      <Pressable
-        onPress={onAvatarPress}
-        style={styles.avatar}
-        accessibilityRole="button"
-        accessibilityLabel="Mon compte"
-      >
-        {hasPhoto ? (
-          <Image source={{ uri: selectedChild.avatarPhotoUri! }} style={styles.avatarImage} />
-        ) : isEmoji && selectedChild.avatarEmoji ? (
-          <Text style={styles.avatarEmoji}>{selectedChild.avatarEmoji}</Text>
-        ) : (
-          <Text style={styles.avatarInitials}>{getInitials(selectedChild.name)}</Text>
-        )}
-      </Pressable>
+        {/* Burger — gauche */}
+        <Pressable
+          onPress={handleBurgerPress}
+          style={styles.burger}
+          accessibilityRole="button"
+          accessibilityLabel="Réglages"
+        >
+          <View style={styles.burgerLine} />
+          <View style={styles.burgerLine} />
+          <View style={styles.burgerLine} />
+        </Pressable>
 
-      {/* Pills de navigation (chacune flottante, séparée) */}
-      {TABS.map((tab, index) => {
-        const isActive = activeTab === tab.id;
-        const isMessages = tab.id === 'messages';
-        const isLast = index === TABS.length - 1;
-        const Icon = tab.icon;
+        {/* Pills de navigation */}
+        {TABS.map((tab, index) => {
+          const isActive = activeTab === tab.id;
+          const isMessages = tab.id === 'messages';
+          const isLast = index === TABS.length - 1;
+          const Icon = tab.icon;
 
-        return (
-          <Pressable
-            key={tab.id}
-            onPress={() => handleTabPress(tab)}
-            style={[
-              styles.pill,
-              isActive && styles.pillActive,
-              !isLast && styles.pillMargin,
-            ]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: isActive }}
-            accessibilityLabel={tab.label}
-          >
-            <Icon
-              size={24}
-              color={isActive ? '#0F172A' : 'rgba(15,23,42,0.38)'}
-            />
-            {isActive && (
-              <Text style={styles.pillLabel}>{tab.label}</Text>
-            )}
-            {/* Badge non-lu (Messages) */}
-            {isMessages && hasUnreadMessages && (
-              <View style={styles.badge} />
-            )}
-          </Pressable>
-        );
-      })}
-    </View>
+          return (
+            <Pressable
+              key={tab.id}
+              onPress={() => handleTabPress(tab)}
+              style={[
+                styles.pill,
+                isActive ? styles.pillActive : styles.pillInactive,
+                !isLast && styles.pillMargin,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}
+            >
+              <Icon
+                size={22}
+                color={isActive ? '#0F172A' : 'rgba(15,23,42,0.40)'}
+              />
+              {isActive && (
+                <Text style={styles.pillLabel}>{tab.label}</Text>
+              )}
+              {isMessages && hasUnreadMessages && (
+                <View style={styles.badge} />
+              )}
+            </Pressable>
+          );
+        })}
+
+        {/* Avatar enfant actif — droite */}
+        <Pressable
+          onPress={() => setShowChildSelector(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Changer d'enfant"
+          style={styles.childAvatarBtn}
+        >
+          {/* Outer: shadow */}
+          <View style={styles.childAvatarOuter}>
+            {/* Inner: clip + border */}
+            <View style={styles.childAvatarClip}>
+              <LinearGradient
+                colors={['#818cf8', '#6366f1']}
+                start={{ x: 0.1, y: 0 }}
+                end={{ x: 0.9, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              {hasPhoto ? (
+                <Image
+                  source={{ uri: selectedChild.avatarPhotoUri! }}
+                  style={styles.childAvatarImage}
+                />
+              ) : isEmoji && selectedChild.avatarEmoji ? (
+                <Text style={styles.childAvatarEmoji}>{selectedChild.avatarEmoji}</Text>
+              ) : (
+                <Text style={styles.childAvatarInitials}>
+                  {selectedChild.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)}
+                </Text>
+              )}
+            </View>
+          </View>
+        </Pressable>
+      </View>
+
+      <ChildSelectorSheet
+        visible={showChildSelector}
+        onClose={() => setShowChildSelector(false)}
+      />
+    </>
   );
 }
 
 // ─── Styles ─────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  /** Floating overlay row (Notion-like): pills are separate items */
   container: {
     position: 'absolute',
     top: 0,
@@ -160,53 +192,56 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // ── Avatar ──────────────────────────────────────────
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(15,23,42,0.15)',
-    backgroundColor: '#F7F7F5',
+  // ── Burger ───────────────────────────────────────────
+  burger: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.38)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
+    flexShrink: 0,
   },
-  avatarImage: {
-    width: 38,
-    height: 38,
-  },
-  avatarEmoji: {
-    fontSize: 17,
-    lineHeight: 21,
-  },
-  avatarInitials: {
-    color: '#0F172A',
-    fontSize: 14,
-    fontFamily: FontFamily.sansBold,
+  burgerLine: {
+    width: 13,
+    height: 1.5,
+    borderRadius: 2,
+    backgroundColor: 'rgba(15,23,42,0.75)',
+    marginVertical: 1.5,
   },
 
   // ── Pills ────────────────────────────────────────────
   pill: {
-    height: 36,
     borderRadius: 999,
-    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent',
     position: 'relative',
   },
   pillActive: {
-    backgroundColor: 'rgba(15,23,42,0.08)',
+    height: 34,
+    paddingLeft: 11,
+    paddingRight: 14,
+    backgroundColor: 'rgba(255,255,255,0.42)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.58)',
+  },
+  pillInactive: {
+    height: 32,
+    padding: 8,
+    backgroundColor: 'transparent',
   },
   pillMargin: {
     marginRight: 5,
   },
   pillLabel: {
     marginLeft: 6,
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
     color: '#0F172A',
     lineHeight: Platform.OS === 'android' ? 20 : undefined,
   },
@@ -220,5 +255,48 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 999,
     backgroundColor: '#EF4444',
+  },
+
+  // ── Avatar enfant ────────────────────────────────────
+  childAvatarBtn: {
+    marginLeft: 'auto',
+    flexShrink: 0,
+  },
+  childAvatarOuter: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366F1',
+        shadowOpacity: 0.30,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 2 },
+      },
+      android: { elevation: 4 },
+    }),
+  },
+  childAvatarClip: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.65)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  childAvatarImage: {
+    width: 34,
+    height: 34,
+  },
+  childAvatarEmoji: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  childAvatarInitials: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#FFFFFF',
   },
 });
