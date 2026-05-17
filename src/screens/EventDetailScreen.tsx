@@ -15,6 +15,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -24,13 +25,14 @@ import {
   MoreHorizontal,
   Calendar,
   Clock,
-  MapPin,
-  User,
+  Check,
+  Users,
 } from 'lucide-react-native';
 import { C, RADIUS } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 
 // ─── Route params ────────────────────────────────────────────────────────────
 type EventDetailParams = {
@@ -43,12 +45,12 @@ type EventDetailParams = {
 
 // ─── Category colours ────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, { main: string; bg: string }> = {
-  'Contrôle': { main: '#DB2777', bg: '#FCE7F3' },
+  'Contrôle': { main: '#EF4444', bg: 'rgba(239,68,68,0.08)' },
   'Sortie':   { main: '#0891B2', bg: '#CFFAFE' },
   'Cours':    { main: '#4338CA', bg: '#EEF2FF' },
   'Devoir':   { main: '#D97706', bg: '#FEF3C7' },
   'Activité': { main: '#0891B2', bg: '#CFFAFE' },
-  'Réunion':  { main: '#7C3AED', bg: '#EDE9FE' },
+  'Réunion':  { main: '#4338CA', bg: '#EEF2FF' },
 };
 
 const DEFAULT_CATEGORY_COLOR = { main: '#4338CA', bg: '#EEF2FF' };
@@ -57,7 +59,7 @@ const DEFAULT_CATEGORY_COLOR = { main: '#4338CA', bg: '#EEF2FF' };
 const EVENT_DEMO = {
   title: "Sortie Musée d'Orsay",
   category: 'Sortie',
-  date: 'Vendredi 9 mai 2026',
+  date: 'Ven. 9 mai',
   time: '08:30 – 17:00',
   location: "Musée d'Orsay, Paris 7e",
   teacher: 'Mme Dupont (Français)',
@@ -73,21 +75,6 @@ const EVENT_DEMO = {
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-interface InfoRowProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  isLast?: boolean;
-}
-
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, isLast }) => (
-  <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
-    <View style={styles.infoRowIcon}>{icon}</View>
-    <Text style={styles.infoRowLabel}>{label}</Text>
-    <Text style={styles.infoRowValue} numberOfLines={1}>{value}</Text>
-  </View>
-);
 
 interface CheckItemProps {
   label: string;
@@ -186,30 +173,35 @@ const EventDetailScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Info card — overlaps header with negative marginTop */}
-        <WhiteCard style={styles.infoCard} noPadding>
-          <InfoRow
-            icon={<Calendar size={16} color={C.text35} strokeWidth={1.8} />}
-            label="Date"
-            value={event.date}
-          />
-          <InfoRow
-            icon={<Clock size={16} color={C.text35} strokeWidth={1.8} />}
-            label="Horaire"
-            value={event.time}
-          />
-          <InfoRow
-            icon={<MapPin size={16} color={C.text35} strokeWidth={1.8} />}
-            label="Lieu"
-            value={event.location}
-          />
-          <InfoRow
-            icon={<User size={16} color={C.text35} strokeWidth={1.8} />}
-            label="Enseignant"
-            value={event.teacher}
-            isLast
-          />
-        </WhiteCard>
+        {/* QuickInfoGrid — 2×2 overlaps header */}
+        <View style={styles.quickGridOuter}>
+          <View style={styles.quickGridInner}>
+            {/* Row 1 */}
+            <View style={styles.quickRow}>
+              <View style={[styles.quickCell, styles.quickCellBorderRight, styles.quickCellBorderBottom]}>
+                <Calendar size={14} color={C.text35} strokeWidth={1.8} />
+                <Text style={styles.quickLabel} numberOfLines={1}>{event.date}</Text>
+              </View>
+              <View style={[styles.quickCell, styles.quickCellBorderBottom]}>
+                <Clock size={14} color={C.text35} strokeWidth={1.8} />
+                <Text style={styles.quickLabel} numberOfLines={1}>{event.time}</Text>
+              </View>
+            </View>
+            {/* Row 2 */}
+            <View style={styles.quickRow}>
+              <View style={[styles.quickCell, styles.quickCellBorderRight]}>
+                <Users size={14} color={C.text35} strokeWidth={1.8} />
+                <Text style={styles.quickLabel}>{event.participants}</Text>
+              </View>
+              <View style={[styles.quickCell, styles.quickCellInscrite]}>
+                <View style={styles.inscriteBadge}>
+                  <Check size={12} color={C.indigo} strokeWidth={2.5} />
+                </View>
+                <Text style={styles.quickLabelInscrite}>Inscrite</Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
         {/* Description */}
         <Text style={styles.sectionLabel}>DESCRIPTION</Text>
@@ -237,7 +229,22 @@ const EventDetailScreen: React.FC = () => {
             {"Rappel : prévoir 8€ en espèces. Départ à 08:15 — arrive 15 min avant."}
           </AriaInlineCard>
         </View>
+
+        {/* Spacer pour bottom bar */}
+        <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* Bottom bar */}
+      <View style={[styles.eventBottomBar, { bottom: insets.bottom + 12 }]}>
+        <TouchableOpacity style={styles.evBtnOutline} activeOpacity={0.8}>
+          <Text style={styles.evBtnOutlineText}>Voir le message</Text>
+        </TouchableOpacity>
+        <View style={{ width: 10 }} />
+        <TouchableOpacity style={styles.evBtnDark} activeOpacity={0.85}>
+          <ScolariaSymbol size={13} color={C.white} />
+          <Text style={[styles.evBtnDarkText, { marginLeft: 7 }]}>Demander à Aria</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -299,40 +306,107 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 
-  // Info card overlapping header
-  infoCard: {
+  // QuickInfoGrid — 2×2, overlaps header
+  quickGridOuter: {
+    marginHorizontal: 14,
     marginTop: -16,
+    borderRadius: 18,
+    backgroundColor: C.white,
     zIndex: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+      },
+      android: { elevation: 0 },
+      default: {},
+    }),
   },
-  infoRow: {
+  quickGridInner: {
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  quickRow: {
+    flexDirection: 'row',
+  },
+  quickCell: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    padding: 12,
   },
-  infoRowBorder: {
+  quickCellBorderRight: {
+    borderRightWidth: 1,
+    borderRightColor: C.border,
+  },
+  quickCellBorderBottom: {
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
-  infoRowIcon: {
-    width: 24,
-    alignItems: 'center',
-    marginRight: 10,
+  quickCellInscrite: {
+    backgroundColor: 'rgba(67,56,202,0.04)',
   },
-  infoRowLabel: {
+  quickLabel: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: C.text55,
-    width: 80,
-  },
-  infoRowValue: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
+    fontSize: 12,
     color: C.text,
+    marginLeft: 6,
     flex: 1,
-    textAlign: 'right',
+  },
+  inscriteBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(67,56,202,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickLabelInscrite: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: C.indigo,
+    marginLeft: 6,
   },
 
+  // Bottom bar
+  eventBottomBar: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    flexDirection: 'row',
+  },
+  evBtnOutline: {
+    flex: 1,
+    height: 48,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  evBtnOutlineText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: C.text,
+  },
+  evBtnDark: {
+    flex: 1,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: C.text,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  evBtnDarkText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: C.white,
+  },
   // Section labels
   sectionLabel: {
     fontFamily: FontFamily.sansSemiBold,

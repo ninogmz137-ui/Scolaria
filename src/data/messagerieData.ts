@@ -181,7 +181,7 @@ const emmaConversations: Conversation[] = [
     role: 'Professeure de Français',
     avatarType: 'initials',
     initials: 'MD',
-    avatarColor: '#DB2777',
+    avatarColor: '#EF4444',
     tag: 'controle',
     ariaSummary: 'Brevet blanc le 2 mai. Révisions prioritaires.',
     lastMessage: 'Le brevet blanc de français est fixé au 2 mai, révisions à prévoir.',

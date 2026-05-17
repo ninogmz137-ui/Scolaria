@@ -304,8 +304,8 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     flex: 1,
-    height: 50,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 999,
     borderWidth: 1.5,
     borderColor: C.text,
     alignItems: 'center',
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     flex: 2,
-    height: 50,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 999,
     backgroundColor: C.text,
     alignItems: 'center',
     justifyContent: 'center',

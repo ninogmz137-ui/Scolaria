@@ -4,7 +4,7 @@
  * Pattern Android 2-Views sur toutes les cartes.
  */
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { TrendingUp, Target, FileText } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -21,6 +21,7 @@ import { C, BOTTOM_BAR_HEIGHT } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 
 // ─── Demo data ───────────────────────────────────────────
 
@@ -89,6 +90,22 @@ function SectionLbl({ children, top = 20 }: { children: string; top?: number }) 
   );
 }
 
+// ─── SkillBar ─────────────────────────────────────────────
+
+function SkillBar({ label, pct }: { label: string; pct: number }) {
+  return (
+    <View style={styles.skillBarWrap}>
+      <View style={styles.skillBarHeader}>
+        <Text style={styles.skillBarLabel}>{label}</Text>
+        <Text style={styles.skillBarPct}>{pct}%</Text>
+      </View>
+      <View style={styles.skillBarBg}>
+        <View style={[styles.skillBarFill, { width: `${pct}%` as any }]} />
+      </View>
+    </View>
+  );
+}
+
 // ─── Row pour les stats ──────────────────────────────────
 
 function StatCol({ label, value }: { label: string; value: string }) {
@@ -105,6 +122,7 @@ function StatCol({ label, value }: { label: string; value: string }) {
 export default function GradeDetailScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
 
   const subject = route.params?.subject ?? DEMO.subject;
   const grade = route.params?.grade ?? DEMO.grade;
@@ -132,6 +150,10 @@ export default function GradeDetailScreen() {
               </View>
               <View style={styles.coeffPill}>
                 <Text style={styles.coeffText}>Coeff {coeff}</Text>
+              </View>
+              <View style={styles.trendPill}>
+                <TrendingUp size={12} color={C.text55} strokeWidth={2} />
+                <Text style={[styles.trendText, { marginLeft: 4 }]}>+2.8</Text>
               </View>
               <Text style={styles.heroMeta}>{date} · {teacher}</Text>
             </View>
@@ -164,8 +186,8 @@ export default function GradeDetailScreen() {
           <View style={[styles.cardOuter, { flex: 1, marginRight: 6 }]}>
             <View style={[styles.cardInner, { padding: 12 }]}>
               <View style={styles.forceHeader}>
-                <TrendingUp size={15} color={C.green} strokeWidth={2} />
-                <Text style={[styles.forceTitle, { marginLeft: 6, color: C.green }]}>Forces</Text>
+                <TrendingUp size={15} color={C.indigo} strokeWidth={2} />
+                <Text style={[styles.forceTitle, { marginLeft: 6, color: C.indigo }]}>Forces</Text>
               </View>
               {DEMO.strengths.map((s) => (
                 <Text key={s} style={styles.forceItem}>· {s}</Text>
@@ -209,13 +231,31 @@ export default function GradeDetailScreen() {
           </View>
         </View>
 
-        {/* Aria */}
-        <View style={{ marginTop: 8 }}>
+        {/* Aria — compétences identifiées */}
+        <View style={{ marginTop: 8, marginBottom: 8 }}>
           <AriaInlineCard>
-            Les fonctions, c'est ton point fort. Ce résultat confirme la progression du trimestre.
+            <Text style={styles.ariaSubtext}>Compétences identifiées sur ce chapitre :</Text>
+            <SkillBar label="Calcul de volume" pct={100} />
+            <SkillBar label="Th. de Pythagore" pct={90} />
+            <SkillBar label="Vision dans l'espace" pct={60} />
           </AriaInlineCard>
         </View>
+
+        {/* Spacer pour la bottom bar */}
+        <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* Bottom bar */}
+      <View style={[styles.bottomBar, { bottom: insets.bottom + 12 }]}>
+        <TouchableOpacity style={styles.btnOutline} activeOpacity={0.8}>
+          <Text style={styles.btnOutlineText}>Féliciter Emma</Text>
+        </TouchableOpacity>
+        <View style={{ width: 10 }} />
+        <TouchableOpacity style={styles.btnDark} activeOpacity={0.85}>
+          <ScolariaSymbol size={13} color={C.white} />
+          <Text style={[styles.btnDarkText, { marginLeft: 7 }]}>Demander à Aria</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -357,6 +397,95 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: C.text35,
     marginTop: 2,
+  },
+
+  // Trend pill (hero)
+  trendPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.06)',
+  },
+  trendText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: C.text55,
+  },
+
+  // Skill bars (Aria card)
+  ariaSubtext: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: C.text55,
+    marginBottom: 10,
+  },
+  skillBarWrap: {
+    marginBottom: 10,
+  },
+  skillBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  skillBarLabel: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 12,
+    color: C.text,
+  },
+  skillBarPct: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    color: C.indigo,
+  },
+  skillBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(15,23,42,0.07)',
+    overflow: 'hidden',
+  },
+  skillBarFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: C.indigo,
+  },
+
+  // Bottom bar
+  bottomBar: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    flexDirection: 'row',
+  },
+  btnOutline: {
+    flex: 1,
+    height: 48,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnOutlineText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: C.text,
+  },
+  btnDark: {
+    flex: 1,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: C.text,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnDarkText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 14,
+    color: C.white,
   },
 
   // Appréciation

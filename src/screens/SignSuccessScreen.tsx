@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   ariaPillMain: {
     paddingHorizontal: 16,
-    height: 34,
+    height: 44,
     borderRadius: 999,
     backgroundColor: C.indigo,
     alignItems: 'center',
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   },
   ariaPillSecond: {
     paddingHorizontal: 14,
-    height: 34,
+    height: 44,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.06)',
     alignItems: 'center',
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 14,
     right: 14,
-    height: 50,
-    borderRadius: 14,
+    height: 52,
+    borderRadius: 999,
     backgroundColor: C.text,
     alignItems: 'center',
     justifyContent: 'center',

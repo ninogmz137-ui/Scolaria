@@ -32,7 +32,7 @@ import Animated, {
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, ChevronDown } from 'lucide-react-native';
+import { School, CalendarX, Search, ChevronDown, Plus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import {
@@ -67,8 +67,8 @@ const TAG_STYLES: Record<string, { bg: string; text: string; label: string }> = 
 };
 
 const URGENCY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  signer:   { bg: '#FCE7F3', text: '#9D174D', label: 'À SIGNER' },
-  repondre: { bg: '#FEF3C7', text: '#92400E', label: 'À RÉPONDRE' },
+  signer:   { bg: 'rgba(239,68,68,0.10)', text: '#EF4444', label: 'À SIGNER' },
+  repondre: { bg: 'rgba(15,23,42,0.07)',  text: 'rgba(15,23,42,0.55)', label: 'À RÉPONDRE' },
 };
 
 // ─── Filter types ─────────────────────────────────────────
@@ -235,6 +235,41 @@ function ConvRow({
           {conv.unread && <View style={styles.unreadDot} />}
         </View>
       </Pressable>
+    </View>
+  );
+}
+
+// ─── UrgentBanner ────────────────────────────────────────
+
+function UrgentBanner({
+  signerCount,
+  repondreCount,
+}: {
+  signerCount: number;
+  repondreCount: number;
+}) {
+  if (signerCount === 0 && repondreCount === 0) return null;
+  const total = signerCount + repondreCount;
+  return (
+    <View style={styles.urgentOuter}>
+      <View style={styles.urgentInner}>
+        <View style={styles.urgentIconBox}>
+          <Text style={styles.urgentCount}>{total}</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          {signerCount > 0 && (
+            <Text style={styles.urgentLineRed}>
+              {signerCount} mot{signerCount > 1 ? 's' : ''} à signer
+            </Text>
+          )}
+          {repondreCount > 0 && (
+            <Text style={styles.urgentLineDark}>
+              {repondreCount} RDV à confirmer
+            </Text>
+          )}
+          <Text style={styles.urgentAria}>Aria peut vous aider à répondre rapidement.</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -440,6 +475,8 @@ export default function MessagerieScreen() {
   // ── Data ─────────────────────────────────────────────────
   const conversations = getConversations(selectedChild.id);
   const unreadCount = conversations.filter((c) => c.unread).length;
+  const signerCount = conversations.filter((c) => c.urgency === 'signer').length;
+  const repondreCount = conversations.filter((c) => c.urgency === 'repondre').length;
 
   const filtered = useMemo(() => {
     let result = conversations;
@@ -665,6 +702,7 @@ export default function MessagerieScreen() {
           { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING },
         ]}
       >
+        <UrgentBanner signerCount={signerCount} repondreCount={repondreCount} />
         {filtered.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>
@@ -700,6 +738,21 @@ export default function MessagerieScreen() {
         <View style={{ height: 24 }} />
       </ScrollView>
 
+    </View>
+
+    {/* FAB — nouveau message */}
+    <View pointerEvents="box-none" style={styles.fabWrap}>
+      <View style={styles.fabShadowOuter}>
+        <Pressable
+          style={styles.fab}
+          onPress={() => {}}
+          accessibilityRole="button"
+          accessibilityLabel="Nouveau message"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Plus size={22} color="#FFFFFF" strokeWidth={2} />
+        </Pressable>
+      </View>
     </View>
 
     <Modal
@@ -1286,12 +1339,42 @@ const styles = StyleSheet.create({
     backgroundColor: BORDER_L,
   },
 
+  // FAB
+  fabWrap: {
+    position: 'absolute',
+    bottom: 72,
+    right: 14,
+    zIndex: 15,
+  },
+  fabShadowOuter: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: '#0F172A',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.22,
+        shadowRadius: 20,
+      },
+      android: { elevation: 10 },
+      default: {},
+    }),
+  },
+  fab: {
+    width: 48,
+    height: 48,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   // Empty
   empty: {
     paddingVertical: 60,
     paddingHorizontal: 32,
     alignItems: 'center',
-    gap: 8,
   },
   emptyTitle: {
     fontFamily: FontFamily.sansBold,
@@ -1303,5 +1386,62 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#94A3B8',
     textAlign: 'center',
+  },
+
+  // UrgentBanner
+  urgentOuter: {
+    marginBottom: 12,
+    borderRadius: 14,
+    backgroundColor: C.white,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 8,
+      },
+      android: { elevation: 0 },
+      default: {},
+    }),
+  },
+  urgentInner: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.12)',
+  },
+  urgentIconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239,68,68,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  urgentCount: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 14,
+    color: '#EF4444',
+  },
+  urgentLineRed: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: '#EF4444',
+  },
+  urgentLineDark: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.70)',
+    marginTop: 2,
+  },
+  urgentAria: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    color: TEXT55,
+    marginTop: 3,
   },
 });
