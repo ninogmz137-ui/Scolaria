@@ -133,7 +133,7 @@ export default function App() {
                 <WallpaperProvider>
                 <DemoProvider>
                   <NavigationContainer ref={navigationRef}>
-                    <StatusBar style="light" />
+                    <StatusBar style="dark" />
                     <ErrorBoundary>
                       <AppContent navigationRef={navigationRef} />
                     </ErrorBoundary>

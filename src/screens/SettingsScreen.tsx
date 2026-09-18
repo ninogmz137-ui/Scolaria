@@ -4,23 +4,19 @@
  * Sections: Mes Enfants, Apparence, Confidentialité, À propos
  */
 
-import { useState, useEffect } from 'react';
 import {
   View,
   Text,
   Pressable,
   ScrollView,
-  Switch,
   StyleSheet,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import {
   Image as ImageIcon,
-  Moon,
   Type,
   Key,
   FileText,
@@ -74,10 +70,8 @@ interface RowProps {
   label: string;
   sublabel?: string;
   labelColor?: string;
-  type: 'navigate' | 'toggle' | 'value';
+  type: 'navigate' | 'value';
   value?: string;
-  toggleValue?: boolean;
-  onToggle?: (v: boolean) => void;
   onPress?: () => void;
   showSeparator?: boolean;
 }
@@ -91,8 +85,6 @@ function Row({
   labelColor,
   type,
   value,
-  toggleValue,
-  onToggle,
   onPress,
   showSeparator = true,
 }: RowProps) {
@@ -101,9 +93,9 @@ function Row({
       <Pressable
         style={({ pressed }) => [
           styles.row,
-          pressed && type !== 'toggle' && { opacity: 0.6 },
+          pressed && { opacity: 0.6 },
         ]}
-        onPress={type !== 'toggle' ? onPress : undefined}
+        onPress={onPress}
       >
         <View style={styles.rowInner}>
           {leading ? (
@@ -127,14 +119,6 @@ function Row({
           {type === 'value' && (
             <Text style={styles.rowValueText}>{value}</Text>
           )}
-          {type === 'toggle' && (
-            <Switch
-              value={toggleValue}
-              onValueChange={onToggle}
-              trackColor={{ false: '#E2E8F0', true: '#1A2340' }}
-              thumbColor="#FFFFFF"
-            />
-          )}
         </View>
       </Pressable>
       {showSeparator && <Separator />}
@@ -150,19 +134,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   const { children } = useActiveChild();
   const { user } = useAuth();
   const { wallpaper } = useWallpaper();
-
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem('darkModeEnabled').then((v) => {
-      if (v === 'true') setDarkMode(true);
-    });
-  }, []);
-
-  const handleDarkModeToggle = (v: boolean) => {
-    setDarkMode(v);
-    AsyncStorage.setItem('darkModeEnabled', v ? 'true' : 'false');
-  };
 
   // Parent name and email from auth context
   const parentName =
@@ -241,13 +212,6 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           sublabel={wallpaper.label}
           type="navigate"
           onPress={() => nav.navigate('WallpaperPicker')}
-        />
-        <Row
-          icon={Moon}
-          label="Mode sombre"
-          type="toggle"
-          toggleValue={darkMode}
-          onToggle={handleDarkModeToggle}
         />
         <Row
           icon={Type}
