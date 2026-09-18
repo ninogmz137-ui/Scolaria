@@ -54,3 +54,5 @@
 
 [2026-09-18] | Le web (react-native-web) utilise le moteur CSS du navigateur, PAS Yoga. Un écran OK sur le web ne prouve rien pour Android. | Toute vérification visuelle se fait sur le dev client Android (`npm run dev:android`). Build EAS preview uniquement en fin de sprint.
 [2026-09-18] | Un export web (`expo export`) embarque le bundle JS complet, donc toute clé EXPO_PUBLIC_* dedans. | Ne jamais commiter un export web. Aucune clé dans le bundle : tout secret vit côté serveur, dans une Edge Function Supabase.
+[2026-09-18] | Archive EAS de 532 Mo faute de .easignore complet. | Toujours un .easignore qui exclut node_modules, les dossiers de build natifs et .git.
+[2026-09-18] | Le projet est en bare workflow (dossier android/ versionné), donc app.config.js est partiellement ignoré (android.package, thème, edge-to-edge). | Vérifier AndroidManifest.xml et res/ avant de chercher un bug de config dans app.config.js.

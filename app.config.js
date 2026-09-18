@@ -97,9 +97,7 @@ userInterfaceStyle: 'light',
       },
     },
     owner: 'nino137',
-    runtimeVersion: {
-      policy: 'appVersion',
-    },
+    runtimeVersion: '1.0.0',
     updates: {
       url: 'https://u.expo.dev/bf7dc734-6f3f-4481-80d7-84fd2c818404',
     },

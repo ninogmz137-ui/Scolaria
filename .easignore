@@ -34,3 +34,16 @@ scolaria-design-workspace/
 .claude-plugin/
 .superpowers/
 supabase/.temp/
+
+# Build outputs and native build caches
+nul/
+android/build/
+android/app/build/
+android/.gradle/
+ios/build/
+ios/Pods/
+*.apk
+*.aab
+
+# VCS
+.git/
