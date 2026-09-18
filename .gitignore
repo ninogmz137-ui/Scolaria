@@ -68,6 +68,8 @@ Desktop.ini
 /ios
 /android
 .aidesigner/*
+.aidesigner/
+*.exe
 
 # Analyse / captures locales (générés, non versionnés)
 graphify-out/

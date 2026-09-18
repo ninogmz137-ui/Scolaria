@@ -47,3 +47,11 @@ ios/Pods/
 
 # VCS
 .git/
+
+# Local tooling, binaries and scratch files
+.aidesigner/
+graphify-out/
+cloudflared.exe
+scolaria_website.html
+*.exe
+.env.txt
