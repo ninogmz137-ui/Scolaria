@@ -76,3 +76,11 @@ temp_screenshots/
 .graphifyignore
 
 nul/
+
+nul/
+dist/
+web-build/
+.expo/
+*.apk
+.env
+.env.*
