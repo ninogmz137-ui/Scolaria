@@ -51,3 +51,6 @@
 [2026-05-17] | `gap` dans un participant strip (flexDirection:'row') sur Android provoque un spacing cassé — même constat que la règle globale `gap` sur row. | Remplacer tout `gap` dans les strips/rows par `marginRight` sur le premier enfant. S'applique aussi à `dateSep` avec lignes latérales.
 
 [2026-05-17] | Les styles dead code (InfoRow/InfoRowProps après suppression du composant) ne causent pas d'erreur TypeScript mais accumulent de la dette. | Quand un composant sub est supprimé du JSX, supprimer immédiatement son interface, sa définition et ses styles associés dans la même passe.
+
+[2026-09-18] | Le web (react-native-web) utilise le moteur CSS du navigateur, PAS Yoga. Un écran OK sur le web ne prouve rien pour Android. | Toute vérification visuelle se fait sur le dev client Android (`npm run dev:android`). Build EAS preview uniquement en fin de sprint.
+[2026-09-18] | Un export web (`expo export`) embarque le bundle JS complet, donc toute clé EXPO_PUBLIC_* dedans. | Ne jamais commiter un export web. Aucune clé dans le bundle : tout secret vit côté serveur, dans une Edge Function Supabase.
