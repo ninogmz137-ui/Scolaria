@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { School, CalendarX } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import UniversalInputBar from '../../components/UniversalInputBar';
 import ScolariaSymbol from '../../components/ScolariaSymbol';
@@ -241,7 +241,10 @@ export default function ConversationDetailScreen({
         <ScrollView
           ref={scrollRef}
           style={styles.messageList}
-          contentContainerStyle={styles.messageListContent}
+          contentContainerStyle={[
+            styles.messageListContent,
+            { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+          ]}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => {
             // Only auto-scroll if near bottom (avoid interrupting user scrolling up)
@@ -401,7 +404,6 @@ const styles = StyleSheet.create({
   messageListContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: TAB_BAR_SCROLL_PADDING,
     maxWidth: '100%',
   },
 

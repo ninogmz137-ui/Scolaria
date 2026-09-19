@@ -17,7 +17,8 @@ import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { createAcademicYear, type Niveau } from '../services/database';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ const PAST_YEARS = generatePastYears(10);
 // ─── Component ────────────────────────────────────────────
 
 export default function AjouterAnneScreen() {
+  const insets = useSafeAreaInsets();
   const { theme } = useSchoolMode();
   const { selectedChild } = useActiveChild();
   const navigation = useNavigation<any>();
@@ -315,7 +317,7 @@ export default function AjouterAnneScreen() {
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}

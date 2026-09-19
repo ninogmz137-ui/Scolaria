@@ -12,7 +12,8 @@ import {
   School,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getTransferCodes, createTransferCode, revokeTransferCode, type TransferCode as SupabaseTransferCode } from '../../services/rgpdService';
 import GlassCard from '../../components/GlassCard';
@@ -89,6 +90,7 @@ const CHILDREN = [
 // ─── Component ────────────────────────────────────────────
 
 export default function TransfertCodeScreen() {
+  const insets = useSafeAreaInsets();
   const [codes, setCodes] = useState(EXISTING_CODES);
   const [showNewCode, setShowNewCode] = useState(false);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
@@ -239,7 +241,7 @@ export default function TransfertCodeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingTop: 56,
-              paddingBottom: TAB_BAR_SCROLL_PADDING,
+              paddingBottom: getBottomBarScrollPadding(insets.bottom),
               paddingHorizontal: 18,
             }}
           >

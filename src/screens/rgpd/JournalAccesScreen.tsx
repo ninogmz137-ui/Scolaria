@@ -16,7 +16,7 @@ import {
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getAccessJournal } from '../../services/rgpdService';
 import GlassCard from '../../components/GlassCard';
@@ -200,7 +200,7 @@ export default function JournalAccesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingTop: 56,
-            paddingBottom: TAB_BAR_SCROLL_PADDING,
+            paddingBottom: getBottomBarScrollPadding(insets.bottom),
             paddingHorizontal: 18,
           }}
         >

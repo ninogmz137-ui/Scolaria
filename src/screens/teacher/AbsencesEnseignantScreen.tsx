@@ -7,7 +7,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import {
   getClassAbsences,
   markAbsencePriseEnCompte,
@@ -36,6 +37,7 @@ const FILTER_OPTIONS: { key: FilterType; label: string }[] = [
 ];
 
 export default function AbsencesEnseignantScreen() {
+  const insets = useSafeAreaInsets();
   const [absences, setAbsences] = useState<Absence[]>([]);
   const [filter, setFilter] = useState<FilterType>('toutes');
   const [loading, setLoading] = useState(true);
@@ -214,7 +216,7 @@ export default function AbsencesEnseignantScreen() {
       ) : (
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_SCROLL_PADDING }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -36,11 +36,7 @@ import {
 } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import WallpaperBackground from '../../components/WallpaperBackground';
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  TAB_BAR_SCROLL_PADDING,
-  FLAT_LIST_TAB_BAR_FOOTER_SPACER,
-} from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
@@ -537,7 +533,7 @@ export default function AriaHomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingTop: 44,
-              paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+              paddingBottom: getBottomBarScrollPadding(insets.bottom),
               paddingHorizontal: 18,
             }}
           >
@@ -568,7 +564,7 @@ export default function AriaHomeScreen() {
             keyExtractor={(m) => m.id}
             renderItem={({ item }) => <ChatBubble message={item} />}
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            contentContainerStyle={{ paddingTop: 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
             showsVerticalScrollIndicator={false}
             ListFooterComponent={
               <>
@@ -584,7 +580,7 @@ export default function AriaHomeScreen() {
                     />
                   </View>
                 ) : null}
-                <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+                <View style={{ height: getBottomBarScrollPadding(insets.bottom) }} />
               </>
             }
           />
@@ -679,7 +675,7 @@ export default function AriaHomeScreen() {
         <View style={styles.drawerBody}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING, paddingTop: 4 }}
+            contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom), paddingTop: 4 }}
             style={styles.drawerRecentsScroll}
           >
             {groupedConversations.length > 0 ? (

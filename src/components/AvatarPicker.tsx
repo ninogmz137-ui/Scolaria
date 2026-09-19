@@ -25,7 +25,8 @@ import { Papicons } from '@getpapillon/papicons';
 import ChildAvatar from './ChildAvatar';
 import GlassCard from './GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from './navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 
 // ─── Types ──────────────────────────────────────────────
@@ -71,6 +72,7 @@ export default function AvatarPicker({
   currentEmoji,
   currentPhotoUri,
 }: AvatarPickerProps) {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>('emoji');
   const [selectedEmoji, setSelectedEmoji] = useState(currentEmoji || '👧');
   const [photoUri, setPhotoUri] = useState(currentPhotoUri);
@@ -153,7 +155,7 @@ export default function AvatarPicker({
           </View>
 
           {/* Tab content */}
-          <ScrollView style={s.content} contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}>
+          <ScrollView style={s.content} contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}>
             {activeTab === 'emoji' && (
               <View style={s.emojiGrid}>
                 {EMOJI_OPTIONS.map((emoji) => (

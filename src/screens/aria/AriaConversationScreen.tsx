@@ -24,10 +24,7 @@ import {
   Search,
 } from 'lucide-react-native';
 import WallpaperBackground from '../../components/WallpaperBackground';
-import {
-  TAB_BAR_SCROLL_PADDING,
-  FLAT_LIST_TAB_BAR_FOOTER_SPACER,
-} from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
@@ -508,7 +505,7 @@ export default function AriaConversationScreen() {
             keyExtractor={(m) => m.id}
             renderItem={({ item }) => <ChatBubble message={item} />}
             style={{ flex: 1 }}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            contentContainerStyle={{ paddingTop: 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
             showsVerticalScrollIndicator={false}
             ListFooterComponent={
               <>
@@ -524,7 +521,7 @@ export default function AriaConversationScreen() {
                     />
                   </View>
                 ) : null}
-                <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+                <View style={{ height: getBottomBarScrollPadding(insets.bottom) }} />
               </>
             }
           />
@@ -650,7 +647,7 @@ export default function AriaConversationScreen() {
           <ScrollView
             showsVerticalScrollIndicator={false}
             /* Drawer has its own search bar below — no need for floating tab bar clearance.
-               The previous `paddingBottom: TAB_BAR_SCROLL_PADDING` (120) pushed the last
+               The previous floating-tab-bar padding (120) pushed the last
                rows under the search bar and looked "écrasé en bas" on Android. */
             contentContainerStyle={{ paddingBottom: 24, paddingTop: 4, paddingHorizontal: 16 }}
             style={styles.drawerRecentsScroll}

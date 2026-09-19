@@ -21,7 +21,8 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { getClassPosts, createClassPost, getClassEvents, addReaction, type ClassEvent } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
@@ -194,6 +195,7 @@ const POST_TYPE_CONFIG: Record<PostType, { color: string; label: string }> = {
 // ─── Component ───────────────────────────────────────────
 
 export default function VieDeClasseScreen() {
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<PostType | 'all'>('all');
   const [showComposer, setShowComposer] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -349,7 +351,7 @@ export default function VieDeClasseScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
     >
       {/* Header */}
       <LinearGradient

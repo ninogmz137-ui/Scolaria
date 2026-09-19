@@ -3,6 +3,8 @@
 *Généré le 2026-09-18 · lecture seule de `src/` + `App.tsx` · aucun fichier de code modifié.*
 *Périmètre : `src/`, `App.tsx`, `app.config.js`, `eas.json`. Ignorés : `node_modules`, `.expo`, `dist`, `build`, `android`, `ios`.*
 
+> **Mise à jour 2026-09-19 (session 0)** : les 39 fichiers morts du §5 et `FloatingTabBar` sont supprimés ; les 55 usages de ses constantes utilisent maintenant `getBottomBarScrollPadding(insets.bottom)`. Les numéros de ligne ci-dessous datent d'avant ce nettoyage ; les passages sur les fichiers morts ou la barre flottante sont historiques.
+
 ## Comment lire ce document
 
 - **Gravité** — `bloquant` : flux inutilisable ou donnée fausse montrée à un testeur · `visible` : défaut d'affichage ou de cohérence qu'un testeur remarque · `mineur` : dette, non visible seul.

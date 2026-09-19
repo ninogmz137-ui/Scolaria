@@ -13,7 +13,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';
-import { TAB_BAR_SCROLL_PADDING, getTeacherInputBarPaddingBottom } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import UniversalInputBar from '../../components/UniversalInputBar';
 
 const TEACHER_ORANGE = '#FF8C42';
@@ -214,7 +214,7 @@ export default function MessagerieParentsScreen() {
         {/* Messages */}
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[{ padding: 16, gap: 8 }, { paddingBottom: TAB_BAR_SCROLL_PADDING }]}
+          contentContainerStyle={[{ padding: 16, gap: 8 }, { paddingBottom: getBottomBarScrollPadding(insets.bottom) }]}
           showsVerticalScrollIndicator={false}
         >
           {/* Date separator */}
@@ -262,7 +262,7 @@ export default function MessagerieParentsScreen() {
             variant="human"
             containerStyle={{
               paddingHorizontal: 8,
-              paddingBottom: getTeacherInputBarPaddingBottom(insets.bottom),
+              paddingBottom: getBottomBarScrollPadding(insets.bottom),
             }}
           />
         </View>
@@ -306,7 +306,7 @@ export default function MessagerieParentsScreen() {
     <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
         {/* Header info */}
         <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>

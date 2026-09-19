@@ -17,7 +17,8 @@ import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { saveAppreciation } from '../../services/teacherService';
 
 const TEACHER_ORANGE = '#FF8C42';
@@ -126,6 +127,7 @@ function generateAppreciation(
 // ─── Component ───────────────────────────────────────────
 
 export default function AppreciationsScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [selectedComps, setSelectedComps] = useState<string[]>([]);
@@ -254,7 +256,7 @@ export default function AppreciationsScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
     >
       {/* Header */}
       <LinearGradient

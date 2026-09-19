@@ -48,7 +48,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 // Enable LayoutAnimation on Android
@@ -724,7 +724,7 @@ export default function AgendaScreen() {
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 4,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
         }}
       >
         <View style={st.hwStats}>
@@ -835,7 +835,7 @@ export default function AgendaScreen() {
           onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING,
+            paddingBottom: getBottomBarScrollPadding(insets.bottom),
           }}
           nestedScrollEnabled
         >

@@ -17,7 +17,8 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { getClassMeteo } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
@@ -145,6 +146,7 @@ function getWeeklyTrend(data: DayWeather[]): { label: string; icon: string; colo
 // ─── Component ───────────────────────────────────────────
 
 export default function MeteoClasseScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedDay, setSelectedDay] = useState(4);
   const [weekData, setWeekData] = useState(WEEK_DATA);
   const [emotionDist, setEmotionDist] = useState(EMOTION_DISTRIBUTION);
@@ -200,7 +202,7 @@ export default function MeteoClasseScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: '#E8EDF5' }}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+      contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
     >
       {/* ── 1. Header with big weather ── */}
       <LinearGradient

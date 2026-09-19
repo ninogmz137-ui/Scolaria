@@ -16,7 +16,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { AcademicYearStatut } from '../services/database';
 import { getAcademicYears } from '../services/database';
 import { useDemoData } from '../contexts/DemoContext';
@@ -148,7 +148,7 @@ export default function MonParcoursScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: TOPBAR_H + 12,
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
           paddingHorizontal: 18,
           gap: 12,
         }}

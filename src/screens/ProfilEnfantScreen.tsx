@@ -43,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
 import JoyHistory from '../components/profile/JoyHistory';
@@ -477,7 +477,7 @@ export default function ProfilEnfantScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
         }}
       >
         <View style={[styles.whiteHeader, { paddingTop: insets.top + 12 }]}>

@@ -16,7 +16,8 @@ import {
   Plus,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import GlassCard from '../../components/GlassCard';
 import RgpdHero from '../../components/rgpd/RgpdHero';
@@ -162,6 +163,7 @@ const MODULE_CONFIG = [
 // ─── Component ────────────────────────────────────────────
 
 export default function PermissionsScreen() {
+  const insets = useSafeAreaInsets();
   const [people, setPeople] = useState(INITIAL_PEOPLE);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -262,7 +264,7 @@ export default function PermissionsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingTop: 56,
-            paddingBottom: TAB_BAR_SCROLL_PADDING,
+            paddingBottom: getBottomBarScrollPadding(insets.bottom),
             paddingHorizontal: 18,
           }}
         >
@@ -384,7 +386,7 @@ export default function PermissionsScreen() {
             {selectedPerson && (
               <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+                contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
               >
                 {/* Person header */}
                 <View style={styles.personHeader}>

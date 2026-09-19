@@ -322,7 +322,7 @@ position:       absolute · bottom: 72px · right: 14px · z-index: 15
 ## 10. SECTION LABELS
 
 ```
-fontSize: 7.5px · fontWeight: 600 · letterSpacing: 1.1px
+fontSize: 11px · fontWeight: 600 · letterSpacing: 1.1px
 textTransform: uppercase · color: #0F172A · opacity: 0.28
 padding: 14px 14px 6px
 Première section: paddingTop: 10px
@@ -394,7 +394,7 @@ TOP BAR (propre, remplace la top nav habituelle):
   Gauche: icône historique · 32×32px cercle · bg rgba(15,23,42,0.08)
   Centre: symbole Scolaria 22px dans cercle 38px bg #F0F0F8
           + "Aria" fontSize 11px · fontWeight 700
-          + mode fontSize 9px · color rgba(15,23,42,0.55)
+          + mode fontSize 11px · color rgba(15,23,42,0.55)
   Droite: icône nouveau · 32×32px cercle
 
 BODY centré verticalement:
@@ -413,15 +413,19 @@ INPUT bas (remplace la bottom bar):
 Figtree uniquement — JAMAIS de font système
 Exception Rufina Bold: ScolariaLogo uniquement
 
-data-large    Figtree 900  40px  letterSpacing -2px     grands chiffres, moyennes
-data-medium   Figtree 900  20px  letterSpacing -1px
-display       Figtree 800  19-22px letterSpacing -0.8px  questions Aria, titres forts
+PLANCHERS (règle absolue, remplacent les valeurs des maquettes HTML) :
+  fontSize   minimum 11px, partout
+  lineHeight minimum fontSize × 1.2, partout (jamais ×1.0)
+
+data-large    Figtree 900  40px  letterSpacing -2px     lineHeight 48   grands chiffres, moyennes
+data-medium   Figtree 900  20px  letterSpacing -1px     lineHeight 24
+display       Figtree 800  19-22px letterSpacing -0.8px  lineHeight ×1.2  questions Aria, titres forts
 title         Figtree 700  14-16px letterSpacing -0.3px
 subtitle      Figtree 700  13px   letterSpacing -0.1px   noms, headers cartes
 label         Figtree 600  12-13px letterSpacing -0.1px  labels UI
 body          Figtree 400  12-13px lineHeight 1.5
-meta          Figtree 400  10-11px color rgba(n,0.35-55)  dates, sources
-section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
+meta          Figtree 400  11px color rgba(n,0.35-55)  dates, sources
+section-label Figtree 600  11px  letterSpacing 1.1px    uppercase
 ```
 
 ---

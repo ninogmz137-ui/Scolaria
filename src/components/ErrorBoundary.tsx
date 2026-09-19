@@ -1,7 +1,8 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from './FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from './navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 
 type ErrorBoundaryState = { error: Error | null; info: React.ErrorInfo | null };
@@ -31,18 +32,26 @@ export default class ErrorBoundary extends React.Component<
       <View style={styles.root}>
         <Text style={styles.title}>Erreur de rendu</Text>
         <Text style={styles.subtitle}>Copie-colle ce message ici.</Text>
-        <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}>
-          <Text style={styles.mono}>{String(error.stack || error.message)}</Text>
-          {info?.componentStack ? (
-            <>
-              <Text style={styles.section}>Component stack</Text>
-              <Text style={styles.mono}>{info.componentStack}</Text>
-            </>
-          ) : null}
-        </ScrollView>
+        <ErrorDetails error={error} info={info} />
       </View>
     );
   }
+}
+
+/** Composant fonction : un hook (insets) ne peut pas vivre dans la classe ErrorBoundary. */
+function ErrorDetails({ error, info }: { error: Error; info: React.ErrorInfo | null }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}>
+      <Text style={styles.mono}>{String(error.stack || error.message)}</Text>
+      {info?.componentStack ? (
+        <>
+          <Text style={styles.section}>Component stack</Text>
+          <Text style={styles.mono}>{info.componentStack}</Text>
+        </>
+      ) : null}
+    </ScrollView>
+  );
 }
 
 const styles = StyleSheet.create({

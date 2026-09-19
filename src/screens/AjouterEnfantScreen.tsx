@@ -23,7 +23,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -58,6 +59,7 @@ function generateScolariaId(): string {
 // ─── Component ──────────────────────────────────────────
 
 export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props) {
+  const insets = useSafeAreaInsets();
   const { user, isDemo } = useAuth();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -201,7 +203,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

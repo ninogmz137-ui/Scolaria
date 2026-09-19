@@ -9,7 +9,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 
 // ─── Types ────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export default function AbsencesListScreen({ navigation }: { navigation: any }) 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: TAB_BAR_SCROLL_PADDING },
+          { paddingTop: insets.top + 60, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
         {/* ── Section header ── */}

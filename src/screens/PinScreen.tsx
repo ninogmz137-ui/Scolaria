@@ -20,7 +20,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, LockKeyhole, AlertCircle } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useAuth } from '../contexts/AuthContext';
 
 interface Props {
@@ -42,6 +43,7 @@ function normalizePin(raw: string) {
 }
 
 export default function PinScreen({ onBack }: Props) {
+  const insets = useSafeAreaInsets();
   const { enterChildMode } = useAuth();
   const navigation = useNavigation<any>();
 
@@ -82,7 +84,7 @@ export default function PinScreen({ onBack }: Props) {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
-          contentContainerStyle={s.scrollContent}
+          contentContainerStyle={[s.scrollContent, { paddingBottom: getBottomBarScrollPadding(insets.bottom) }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -196,7 +198,6 @@ const s = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: TAB_BAR_SCROLL_PADDING,
   },
   container: {
     alignSelf: 'center',

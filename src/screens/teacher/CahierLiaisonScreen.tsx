@@ -11,7 +11,8 @@ import {
 import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import {
   getTeacherMots,
   getMotSignatures,
@@ -51,6 +52,7 @@ const STATUT_CONFIG: Record<MotLiaisonStatut, { label: string; color: string }> 
 // ─── Component ───────────────────────────────────────────
 
 export default function CahierLiaisonScreen() {
+  const insets = useSafeAreaInsets();
   const [mots, setMots] = useState<MotLiaison[]>([]);
   const [selectedMot, setSelectedMot] = useState<MotLiaison | null>(null);
   const [signatures, setSignatures] = useState<SignatureLiaison[]>([]);
@@ -166,7 +168,7 @@ export default function CahierLiaisonScreen() {
       <Box className="flex-1" style={{ backgroundColor: '#E8EDF5' }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+          contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
         >
           {/* Back + header */}
           <HStack className="items-start gap-3 p-5 pb-0">
@@ -294,7 +296,7 @@ export default function CahierLiaisonScreen() {
         <Box className="p-6 rounded-t-3xl" style={{ backgroundColor: SCREEN_BACKGROUND, maxHeight: '90%', borderWidth: 1, borderColor: '#EEF0F5' }}>
           <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+            contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
           >
             {/* Modal header */}
             <HStack className="justify-between items-center mb-5">
@@ -408,7 +410,7 @@ export default function CahierLiaisonScreen() {
       {createModal}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
         {/* Header card */}
         <HStack className="items-center gap-3.5 m-5 mb-3 p-4 rounded-2xl" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: '#EEF0F5', ...CARD_SHADOW }}>

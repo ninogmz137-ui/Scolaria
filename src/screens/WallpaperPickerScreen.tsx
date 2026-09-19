@@ -12,7 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 import { nativeInactivePillShadow, PILL_ACTIVE_NAVY } from '../constants/theme';
@@ -72,6 +73,7 @@ function WallpaperCard({
 // ─── Main screen ──────────────────────────────────────────
 
 export default function WallpaperPickerScreen() {
+  const insets = useSafeAreaInsets();
   const { wallpaper, setWallpaperId, wallpapers } = useWallpaper();
   const [activeCategory, setActiveCategory] = useState<Category>('all');
 
@@ -111,7 +113,7 @@ export default function WallpaperPickerScreen() {
       {/* ── Grid ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomBarScrollPadding(insets.bottom) }]}
       >
         <View style={styles.grid}>
           {filtered.map((wp) => (
@@ -166,7 +168,6 @@ const styles = StyleSheet.create({
   // ── Grid
   scrollContent: {
     paddingHorizontal: 16,
-    paddingBottom: TAB_BAR_SCROLL_PADDING,
   },
   grid: {
     flexDirection: 'row',

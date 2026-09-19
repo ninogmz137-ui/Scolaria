@@ -1,7 +1,7 @@
 /**
  * useKeyboardInputPadding — dynamic bottom padding for the composer input bar.
  *
- * When the keyboard is closed, we reserve space for the floating tab bar.
+ * When the keyboard is closed, we reserve space for the bottom bar.
  * When the keyboard is open, we collapse to a minimal gap so the input sits
  * just above the keyboard (Android's adjustResize + iOS KAV handle the lift).
  *
@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import { Keyboard } from 'react-native';
-import { getInputBarPaddingBottom } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 
 const KEYBOARD_OPEN_GAP = 12;
 
@@ -27,5 +27,5 @@ export function useKeyboardInputPadding(insetsBottom: number): number {
     };
   }, []);
 
-  return keyboardOpen ? KEYBOARD_OPEN_GAP : getInputBarPaddingBottom(insetsBottom);
+  return keyboardOpen ? KEYBOARD_OPEN_GAP : getBottomBarScrollPadding(insetsBottom);
 }

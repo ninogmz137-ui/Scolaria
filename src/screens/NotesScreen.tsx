@@ -56,7 +56,7 @@ import { useWallpaper } from '../contexts/WallpaperContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { FLOATING_TAB_BAR_HEIGHT, TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
 
@@ -1456,7 +1456,7 @@ export default function NotesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
-            { paddingTop: insets.top + 64 + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16 },
+            { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
           ]}
         >
           <View style={styles.titleRow}>
@@ -1670,7 +1670,7 @@ export default function NotesScreen() {
         onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 64 + 12, paddingBottom: FLOATING_TAB_BAR_HEIGHT + TAB_BAR_SCROLL_PADDING + insets.bottom + 16 },
+          { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
         <View style={styles.titleRow}>

@@ -25,7 +25,7 @@ import { getConversations } from '../../stores/messagerieStore';
 import { ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
@@ -210,7 +210,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: insets.top + 60, paddingBottom: TAB_BAR_SCROLL_PADDING },
+          { paddingTop: insets.top + 60, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
         {/* ── Section: Conversations ── */}

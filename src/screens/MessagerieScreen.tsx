@@ -35,10 +35,7 @@ import Animated, {
 import { School, CalendarX, Search, ChevronDown, Plus } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  TAB_BAR_SCROLL_PADDING,
-} from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
@@ -699,7 +696,7 @@ export default function MessagerieScreen() {
         contentContainerStyle={[
           styles.scrollContent,
           styles.screenHorizontalPad,
-          { paddingBottom: FLOATING_TAB_BAR_HEIGHT + insets.bottom + TAB_BAR_SCROLL_PADDING },
+          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
         <UrgentBanner signerCount={signerCount} repondreCount={repondreCount} />
@@ -1165,7 +1162,6 @@ const styles = StyleSheet.create({
   // Scroll
   scrollContent: {
     paddingTop: 8,
-    paddingBottom: TAB_BAR_SCROLL_PADDING,
     maxWidth: '100%',
   },
 

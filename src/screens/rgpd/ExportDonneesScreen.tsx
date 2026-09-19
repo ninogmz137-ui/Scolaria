@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getExportHistory, createExport } from '../../services/rgpdService';
 import GlassCard from '../../components/GlassCard';
@@ -52,6 +52,7 @@ interface ExportHistory {
 // ─── Component ────────────────────────────────────────────
 
 export default function ExportDonneesScreen() {
+  const insets = useSafeAreaInsets();
   const [exportFormat, setExportFormat] = useState<'json' | 'pdf' | 'both'>('both');
   const [modules, setModules] = useState<DataModule[]>([
     { key: 'profil', name: 'Profil & identité', Icon: User, color: ARIA_INDIGO, size: '12 Ko', count: '2 profils', selected: true },
@@ -167,7 +168,7 @@ export default function ExportDonneesScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{
               paddingTop: 56,
-              paddingBottom: TAB_BAR_SCROLL_PADDING,
+              paddingBottom: getBottomBarScrollPadding(insets.bottom),
               paddingHorizontal: 18,
             }}
           >

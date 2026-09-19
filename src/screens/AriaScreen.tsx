@@ -13,10 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
 import UniversalInputBar from '../components/UniversalInputBar';
-import {
-  TAB_BAR_SCROLL_PADDING,
-  FLAT_LIST_TAB_BAR_FOOTER_SPACER,
-} from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../hooks/useKeyboardInputPadding';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
@@ -238,7 +235,7 @@ export default function AriaScreen() {
           style={styles.messageList}
           contentContainerStyle={{
             paddingTop: TOPBAR_BOTTOM,
-            paddingBottom: TAB_BAR_SCROLL_PADDING,
+            paddingBottom: getBottomBarScrollPadding(insets.bottom),
           }}
           onContentSizeChange={scrollToEnd}
           ListHeaderComponent={
@@ -281,7 +278,7 @@ export default function AriaScreen() {
               {isTyping ? (
                 <ChatBubble message={typingMessage} isTyping />
               ) : null}
-              <View style={{ height: FLAT_LIST_TAB_BAR_FOOTER_SPACER }} />
+              <View style={{ height: getBottomBarScrollPadding(insets.bottom) }} />
             </>
           }
         />

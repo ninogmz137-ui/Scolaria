@@ -9,7 +9,7 @@ import {
   Trash2,
   ShieldCheck,
 } from 'lucide-react-native';
-import { TAB_BAR_SCROLL_PADDING } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
@@ -60,7 +60,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: insets.top + 56 + 12,
-          paddingBottom: TAB_BAR_SCROLL_PADDING,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
           paddingHorizontal: 18,
         }}
       >

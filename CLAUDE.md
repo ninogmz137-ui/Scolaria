@@ -101,17 +101,21 @@ JAMAIS plat, JAMAIS générique.
 - `Figtree_300Light` — meta, mentions légères
 
 **Tokens typographiques :**
-- `display` : ExtraBold 26px, letterSpacing -0.9, lineHeight 26
-- `dataLarge` : Black 40px, letterSpacing -1.8, lineHeight 40
+- `display` : ExtraBold 26px, letterSpacing -0.9, lineHeight 32
+- `dataLarge` : Black 40px, letterSpacing -1.8, lineHeight 48
 - `dataInline` : ExtraBold 18px, letterSpacing -0.6, lineHeight 22
 - `subtitle` : Bold 13px, letterSpacing -0.13, lineHeight 16
 - `body` : Regular 14px, letterSpacing 0, lineHeight 21
 - `bodyMedium` : SemiBold 13px, letterSpacing -0.13, lineHeight 18
-- `sectionLabel` : SemiBold 8.5px, letterSpacing 1.2, uppercase, color #0F172A opacity 0.28
-- `meta` : Light 8px, letterSpacing 0.08, color rgba(15,23,42,0.30)
+- `sectionLabel` : SemiBold 11px, letterSpacing 1.2, uppercase, color #0F172A opacity 0.28
+- `meta` : Light 11px, letterSpacing 0.08, color rgba(15,23,42,0.30)
+
+**Planchers (règle absolue) :**
+- `fontSize` minimum : **11px**, partout. Les anciennes valeurs 7.5 / 8 / 8.5 / 9 / 10px venaient des maquettes HTML et sont illisibles sur téléphone.
+- `lineHeight` minimum : **fontSize × 1.2**, partout. L'ancien ×1.0 des maquettes coupe les lettres sur Android.
 
 **Line-height règle :**
-- Display / grands chiffres : lineHeight = fontSize × 1.0
+- Display / grands chiffres : lineHeight = fontSize × 1.2 (minimum)
 - Subtitles : lineHeight = fontSize × 1.2
 - Body : lineHeight = fontSize × 1.5
 - Meta : lineHeight = fontSize × 1.4

@@ -9,7 +9,8 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
-import { TAB_BAR_SCROLL_PADDING } from '../../components/FloatingTabBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { getClassWellbeing, type StudentWellbeing } from '../../services/teacherService';
 
 const { width } = Dimensions.get('window');
@@ -104,6 +105,7 @@ type SortKey = 'score' | 'trend' | 'alpha';
 type ViewMode = 'list' | 'grid';
 
 export default function TeacherDashboardScreen({ navigation }: { navigation: any }) {
+  const insets = useSafeAreaInsets();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [sortBy, setSortBy] = useState<SortKey>('score');
@@ -143,7 +145,7 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
     <Animated.View style={{ flex: 1, backgroundColor: '#E8EDF5', opacity: fadeAnim }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_SCROLL_PADDING }}
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
         {/* ─── Header gradient ─── */}
         <LinearGradient

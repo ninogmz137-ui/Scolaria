@@ -35,7 +35,7 @@ import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useWallpaper, WALLPAPERS, type WallpaperDef } from '../contexts/WallpaperContext';
 import ScolariaAppIcon from '../components/ScolariaAppIcon';
-import { FLOATING_TAB_BAR_HEIGHT } from '../components/FloatingTabBar';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 
 /**
  * Feuille réglages = même palette que l’app (fond clair). Interaction type Claude : ligne
@@ -335,7 +335,7 @@ export default function ReglagesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 16,
-            paddingBottom: insets.bottom + 32 + FLOATING_TAB_BAR_HEIGHT,
+            paddingBottom: getBottomBarScrollPadding(insets.bottom),
           }}
           style={{ flex: 1, backgroundColor: SHEET_BG }}
         >
