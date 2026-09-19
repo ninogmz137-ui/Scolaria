@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { MessageCircle, Calendar, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
@@ -136,7 +137,7 @@ export default function AccueilScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}

@@ -16,7 +16,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useNavigation } from '@react-navigation/native';
 import { Check } from 'lucide-react-native';
 import { C, SHADOW } from '../constants/design';
@@ -234,6 +235,7 @@ const DayGroupSection: React.FC<{ group: DayGroup }> = ({ group }) => (
 
 export default function HomeworkScreen() {
   const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState('Tout');
 
   return (
@@ -246,7 +248,10 @@ export default function HomeworkScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+        ]}
       >
         {/* Stat strip */}
         <StatStrip />
@@ -316,7 +321,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
   scrollContent: {
-    paddingBottom: 100,
     paddingTop: 8,
   },
 

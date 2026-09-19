@@ -82,14 +82,27 @@ JAMAIS plat, JAMAIS générique.
 - borderRadius : 20 partout
 - Composant : `<GlassCard>` (src/components/GlassCard.tsx)
 
-### Tab bar
-- Pill flottante détachée du bas (bottom: 20, left: 20, right: 20)
-- borderRadius: 28
-- Fond semi-transparent + blur si possible
-- L'onglet actif a un fond pill avec couleur accent (opacité 15%)
-- Label visible uniquement sur l'onglet actif
-- Tous les ScrollView ont paddingBottom: 100
-- Composant : `<FloatingTabBar>` (src/components/FloatingTabBar.tsx)
+### Navigation (top bar Notion + BottomBar)
+*Il n'y a plus de tab bar flottante (`FloatingTabBar` supprimé le 2026-09-19). En cas de conflit, COMPONENTS.md §0 fait foi.*
+
+**Top bar** — `src/components/navigation/TopBar.tsx`
+- `[Burger ☰] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages] [Avatar enfant]`
+- Burger à gauche → Réglages ; avatar à droite → `ChildSelectorSheet`
+- Pill active : icône + label ; pills inactives : icône seule ; badge rouge 6px sur Messages si non lu
+- `position: 'absolute'`, `zIndex: 20`, `paddingTop: insets.top + 10`
+- Rendue **une seule fois** par `src/navigation/TabNavigator.tsx`, au-dessus du contenu des onglets
+
+**BottomBar** — `src/components/navigation/BottomBar.tsx`
+- `[Recherche] [pill « Demander à Aria… »] [action contextuelle]` ; action contextuelle : Accueil ✏️, Notes scanner, Agenda +, Messages ✏️, Aria aucune
+- `position: 'absolute'`, `bottom: insets.bottom > 0 ? insets.bottom + 8 : 12`, `elevation: 0`
+- Rendue par `TabNavigator.tsx`, comme la top bar
+
+**Contenu des onglets** — 4 piles (`Accueil`, `Notes`, `Agenda`, `MessagerieTab`) dans un `createMaterialTopTabNavigator` (`tabBarStyle: display none`).
+Les écrans plein écran qui ont leur propre en-tête masquent les deux barres via `ROUTES_HIDE_NAV` (`TabNavigator.tsx`).
+
+**Marge basse des `ScrollView` / `FlatList` derrière la BottomBar** (règle absolue)
+- Toujours `paddingBottom: getBottomBarScrollPadding(insets.bottom)` (`BottomBar.tsx`) — jamais une valeur en dur (`100`, `120`…)
+- Dans une modale, un drawer ou une feuille (aucune barre dessous) : petite marge intrinsèque (16–24px)
 
 ### Typographie — Figtree (unique font family)
 - `Figtree_900Black` — data large (moyennes, grands chiffres)

@@ -18,6 +18,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -170,7 +171,10 @@ const EventDetailScreen: React.FC = () => {
 
       {/* ── Scrollable body ── */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* QuickInfoGrid — 2×2 overlaps header */}
@@ -303,7 +307,6 @@ const styles = StyleSheet.create({
   // Scroll
   scrollContent: {
     paddingTop: 0,
-    paddingBottom: 100,
   },
 
   // QuickInfoGrid — 2×2, overlaps header
