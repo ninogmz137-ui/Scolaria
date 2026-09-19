@@ -5,7 +5,7 @@
  * Android rules applied:
  * - No `gap` → explicit marginRight on siblings
  * - No height:'100%' → flex:1
- * - SafeAreaView + useSafeAreaInsets for padding top in gradient header
+ * - Mode chrome 'none' (navigation/chrome.ts) : le header dégradé remplace la top bar et gère insets.top
  * - No overflow:hidden + elevation + backgroundColor on same View
  */
 import React, { useState } from 'react';
@@ -17,8 +17,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -29,7 +28,7 @@ import {
   Check,
   Users,
 } from 'lucide-react-native';
-import { C, RADIUS } from '../constants/design';
+import { C, RADIUS, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
@@ -134,7 +133,7 @@ const EventDetailScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['bottom']}>
+    <View style={styles.root}>
       {/* ── Gradient header (handles top safe area itself) ── */}
       <LinearGradient
         colors={[categoryColors.main + 'CC', categoryColors.bg]}
@@ -173,7 +172,7 @@ const EventDetailScreen: React.FC = () => {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+          { paddingBottom: getStickyCtaScrollPadding(insets.bottom) },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -239,7 +238,7 @@ const EventDetailScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom bar */}
-      <View style={[styles.eventBottomBar, { bottom: insets.bottom + 12 }]}>
+      <View style={[styles.eventBottomBar, { bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP }]}>
         <TouchableOpacity style={styles.evBtnOutline} activeOpacity={0.8}>
           <Text style={styles.evBtnOutlineText}>Voir le message</Text>
         </TouchableOpacity>
@@ -249,7 +248,7 @@ const EventDetailScreen: React.FC = () => {
           <Text style={[styles.evBtnDarkText, { marginLeft: 7 }]}>Demander à Aria</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -72,7 +72,8 @@ export default function SignalerAbsenceScreen() {
   const { selectedChild, selectedChildId } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
+  // Écran en mode chrome 'none' (chrome.ts) : son mini header remplace la top bar.
+  const TOPBAR_H = insets.top + 12;
 
   const accent = '#7C3AED';
   const { r: ar, g: ag, b: ab } = hexToRgb(accent);

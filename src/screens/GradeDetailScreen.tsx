@@ -17,7 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { TrendingUp, Target, FileText } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { C, BOTTOM_BAR_HEIGHT } from '../constants/design';
+import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
@@ -132,12 +132,12 @@ export default function GradeDetailScreen() {
   const teacher = route.params?.teacher ?? DEMO.teacher;
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <DeepScreenHeader onBack={() => navigation.goBack()} title={subject} />
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: BOTTOM_BAR_HEIGHT + 24 }}
+        contentContainerStyle={{ paddingBottom: getStickyCtaScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero note */}
@@ -246,7 +246,7 @@ export default function GradeDetailScreen() {
       </ScrollView>
 
       {/* Bottom bar */}
-      <View style={[styles.bottomBar, { bottom: insets.bottom + 12 }]}>
+      <View style={[styles.bottomBar, { bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP }]}>
         <TouchableOpacity style={styles.btnOutline} activeOpacity={0.8}>
           <Text style={styles.btnOutlineText}>Féliciter Emma</Text>
         </TouchableOpacity>

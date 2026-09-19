@@ -17,7 +17,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useNavigation } from '@react-navigation/native';
 import { Check } from 'lucide-react-native';
 import { C, SHADOW } from '../constants/design';
@@ -239,7 +238,7 @@ export default function HomeworkScreen() {
   const [activeFilter, setActiveFilter] = useState('Tout');
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <DeepScreenHeader
         onBack={() => navigation.goBack()}
         title="Cahier de texte"
@@ -250,7 +249,7 @@ export default function HomeworkScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+          { paddingBottom: insets.bottom + 24 },
         ]}
       >
         {/* Stat strip */}

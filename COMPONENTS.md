@@ -10,16 +10,30 @@
 
 ### Pattern : Notion-style (top nav + bottom bar)
 
+### Modes de chrome (navigation/chrome.ts)
+
+Règle : **un écran n'affiche jamais deux en-têtes.** Chaque route déclare un mode dans `ROUTE_CHROME`.
+
 ```
-TOP BAR (toujours visible, toutes les pages)
-  [Avatar enfant] [⌂ Accueil] [✎] [📅] [✉●]
+full  Top bar + bottom bar visibles. L'en-tête de l'écran, c'est la top bar.
+      Écrans racines (Accueil, Notes, Agenda, Messagerie) et pages profondes SANS en-tête propre.
+      L'écran réserve insets.top + 60 en haut et getBottomBarScrollPadding(insets.bottom) en bas.
+
+none  Top bar ET bottom bar masquées. La page dessine son en-tête (§6 Pages profondes,
+      composant DeepScreenHeader) qui REMPLACE la top bar.
+      L'écran gère ses insets (SafeAreaView top/left/right, insets.bottom à la main).
+```
+
+```
+TOP BAR (mode full uniquement)
+  [☰ Burger] [⌂ Accueil] [Notes] [Agenda] [✉ Messages●] [Avatar enfant]
   - Avatar : 34×34px, cercle, border 2px rgba(15,23,42,0.15)
   - Onglet actif : pill grise background rgba(15,23,42,0.08), icône + label
   - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
   - Pill height : 30px, borderRadius 999px, padding 0 10px
   - Badge non-lu : point rouge 6px, position absolute top-5px
 
-BOTTOM BAR (toujours visible, toutes les pages)
+BOTTOM BAR (mode full uniquement)
   [🔍] [◉ Demander à Aria…] [action contextuelle]
   - Height barre : padding 8px 12px 18px
   - Background : #F7F7F5, border-top 1px rgba(15,23,42,0.07)
@@ -35,7 +49,8 @@ BOTTOM BAR (toujours visible, toutes les pages)
 ```
 
 ### Règle titre — NON redondance
-Le titre de l'onglet actif est dans la pill top bar.
+En mode `full`, le titre de l'onglet actif est dans la pill top bar.
+En mode `none`, le titre est dans l'en-tête de la page profonde.
 **Ne jamais répéter le titre dans le body de la page.**
 Seul le contenu va dans le body, jamais un H1 répété.
 
@@ -70,7 +85,7 @@ OMBRES
 ESPACEMENT
   Padding page H      14-16px
   Gap entre cards     8px
-  Bottom bar          paddingBottom: 80px sur tous les ScrollView
+  Bottom bar          paddingBottom: getBottomBarScrollPadding(insets.bottom) sur les ScrollView (mode full)
 ```
 
 ---
@@ -225,8 +240,9 @@ Toolbar uniquement (recherche + filtre "Tout ⌄")
 PAS de titre — déjà dans la pill active de la top bar
 ```
 
-### Pages profondes
+### Pages profondes (mode `none` : cet en-tête REMPLACE la top bar, la bottom bar est masquée)
 ```
+Composant : DeepScreenHeader (src/components/DeepScreenHeader.tsx)
 Gauche: ‹ [Section parent] · fontSize 13px · fontWeight 500 · color rgba(15,23,42,0.55)
 Centre: Titre absolu centré · fontSize 14px · fontWeight 700
 Droite: Action optionnelle · fontSize 13px · color #4338CA
@@ -447,7 +463,7 @@ section-label Figtree 600  11px  letterSpacing 1.1px    uppercase
 ✗ Jamais card glass dans les pages profondes (paramètres, aide, etc.)
 
 ✓ Toujours zone tactile minimum 44×44px
-✓ Toujours paddingBottom: 80px sur tous les ScrollView principaux
+✓ Toujours paddingBottom: getBottomBarScrollPadding(insets.bottom) sur les ScrollView derrière la bottom bar (jamais de valeur en dur)
 ✓ Toujours flex:1 sur les View parents hauteur complète
 ✓ Toujours insets.bottom pour éléments positionnés en bas
 ✓ Toujours empty state si liste vide

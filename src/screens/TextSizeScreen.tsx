@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 
@@ -13,6 +14,7 @@ const TEXT_SIZES = [
 type TextSizeKey = typeof TEXT_SIZES[number]['key'];
 
 export default function TextSizeScreen() {
+  const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<TextSizeKey>('standard');
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function TextSizeScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top + 60 + 24 }]}>
       {TEXT_SIZES.map((size) => {
         const isActive = selected === size.key;
         return (

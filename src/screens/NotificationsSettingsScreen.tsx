@@ -95,7 +95,7 @@ export default function NotificationsSettingsScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: '#EEF2F7' }}
       contentContainerStyle={{
-        paddingTop: insets.top + 14,
+        paddingTop: insets.top + 60 + 14,
         paddingHorizontal: 16,
         paddingBottom: getBottomBarScrollPadding(insets.bottom),
       }}

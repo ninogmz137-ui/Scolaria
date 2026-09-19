@@ -92,6 +92,14 @@ export const SHADOW = {
   }),
 } as const;
 
-// Hauteur de la bottom bar (pour paddingBottom des ScrollView)
-export const BOTTOM_BAR_HEIGHT = 70;
+// Bouton fixe en bas d'un écran en mode chrome 'none' (pas de BottomBar : navigation/chrome.ts).
+// Le bouton se pose à `bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP` ; le ScrollView réserve sa place
+// avec getStickyCtaScrollPadding. L'inset du bas est compté ICI, une seule fois : l'écran ne doit
+// pas avoir de SafeAreaView avec bord bas.
+export const STICKY_CTA_HEIGHT = 52;
+export const STICKY_CTA_BOTTOM_GAP = 12;
+export function getStickyCtaScrollPadding(insetsBottom: number): number {
+  return insetsBottom + STICKY_CTA_BOTTOM_GAP + STICKY_CTA_HEIGHT + 24;
+}
+
 export const TOP_BAR_HEIGHT = 56;

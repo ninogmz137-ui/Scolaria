@@ -82,7 +82,7 @@ export default function WallpaperPickerScreen() {
     : wallpapers.filter((w) => w.category === activeCategory);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
       {/* ── Horizontal category pills ── */}
       <ScrollView
         horizontal

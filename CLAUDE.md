@@ -68,12 +68,12 @@ Scolaria doit avoir le niveau visuel de Papillon, Notion ou supérieur.
 Mots-clés : glass morphism, profondeur, typographie forte, animations fluides, premium.
 JAMAIS plat, JAMAIS générique.
 
-### Headers
-- Occupent 30-35% de l'écran sur chaque onglet principal
-- Fond : dégradé depuis couleur accent thème → transparent
-- Border-radius en bas : 28px
-- Le contenu scrolle SOUS le header (overlap)
-- Composant : `<ScreenHeader>` (src/components/ScreenHeader.tsx)
+### Headers — un seul en-tête par écran
+Règle absolue (`src/navigation/chrome.ts`) : **un écran n'affiche jamais deux en-têtes.** Chaque route a un mode dans `ROUTE_CHROME` (l'ajout d'une route sans mode fait échouer `tsc`) :
+- **Mode `full` — écrans racines** (Accueil, Notes, Agenda, Messagerie) **et pages profondes sans en-tête propre** : l'en-tête est la top bar (voir « Navigation »). Accueil ajoute un hero dégradé derrière, le contenu scrolle dessus. L'écran réserve `insets.top + 60` en haut et `getBottomBarScrollPadding(insets.bottom)` en bas.
+- **Mode `none` — pages profondes avec en-tête** : le composant `<DeepScreenHeader>` (`src/components/DeepScreenHeader.tsx`) — `[←] [Titre + sous-titre optionnel] [slot droite]`, `borderBottom` — **remplace** la top bar ; top bar et bottom bar sont masquées. L'écran gère lui-même ses insets : `SafeAreaView edges={['top','left','right']}` (ou `withTopInset`), et `insets.bottom` à la main.
+- **Bouton fixe en bas** (mode `none`) : `bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP`, marge du scroll `getStickyCtaScrollPadding(insets.bottom)` (`src/constants/design.ts`), jamais de `SafeAreaView` avec bord bas (l'inset serait compté deux fois).
+- Nouveaux écrans profonds : utiliser `DeepScreenHeader` (des en-têtes maison existent encore, à migrer).
 
 ### Cartes (Glass Cards)
 - TOUJOURS en glass morphism, jamais de View blanc simple
@@ -207,16 +207,12 @@ Tous les autres écrans = fond uni selon le mode.
 
 ## Structure de navigation (interface parent)
 
-### Topbar
-- Accueil : [Avatar ☰] — "Bonjour, Prénom 👋" — [✦ Aria] (scroll-to-hide)
-- Autres tabs : avatar/burger gauche + titre section centre + bouton Aria droite
+Le détail et les règles de marge sont dans la section « Navigation (top bar Notion + BottomBar) » du Design Language ; la visibilité des barres par écran est dans `src/navigation/chrome.ts`.
 
-### Bottom bar (4 onglets permanents)
-1. Accueil (Papicons filled)
-2. Notes (Papicons filled)
-3. Agenda (Papicons filled)
-4. Messages (Papicons filled + badge rouge si non lu)
-+ Aria (cercle gradient violet→cyan, icône = symbole couronne 8 ellipses Scolaria) — détaché à droite, hors pill
+- **4 onglets**, chacun avec sa pile : Accueil · Notes · Agenda · Messages (Papicons filled, badge rouge 6px sur Messages si non lu).
+- **Top bar** : `[Burger ☰] [4 pills] [Avatar enfant]` (avatar → `ChildSelectorSheet`, burger → Réglages). L'accueil « Bonjour, Prénom » est le hero de l'écran Accueil, pas la top bar.
+- **BottomBar** : `[Recherche] [pill « Demander à Aria… »] [action contextuelle]`. **Aria = la pill centrale** (symbole couronne 8 ellipses) : plus de cercle détaché.
+- **Pages profondes** : selon `ROUTE_CHROME`, soit la top bar reste (`full`), soit l'en-tête de page (`DeepScreenHeader`) la remplace avec la bottom bar (`none`).
 
 ---
 

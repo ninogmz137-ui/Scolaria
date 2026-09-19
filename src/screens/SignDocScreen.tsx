@@ -16,7 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native';
 import { Clock, Lock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { C, BOTTOM_BAR_HEIGHT } from '../constants/design';
+import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
@@ -64,7 +64,7 @@ export default function SignDocScreen() {
   const [signed, setSigned] = useState(false);
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <DeepScreenHeader
         onBack={() => navigation.goBack()}
         title="Autorisation"
@@ -77,7 +77,7 @@ export default function SignDocScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: BOTTOM_BAR_HEIGHT + 80 }}
+        contentContainerStyle={{ paddingBottom: getStickyCtaScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
       >
         {/* Bannière urgence */}
@@ -135,7 +135,7 @@ export default function SignDocScreen() {
       <View
         style={[
           styles.ctaContainer,
-          { bottom: insets.bottom + 12 },
+          { bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP },
         ]}
       >
         <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8}>

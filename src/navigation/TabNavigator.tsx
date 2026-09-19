@@ -3,10 +3,10 @@
  *
  * Tabs: Accueil | Notes | Agenda | Messagerie
  *
- * Topbar visibility:
- *   - Accueil root (home mode): shown — burger left, greeting center, settings right
- *   - Stacked screens (any tab): shown — back arrow left, title center, empty right
- *   - Notes / Agenda / Messagerie roots: HIDDEN
+ * Top bar + bottom bar :
+ *   affichées ou masquées selon `ROUTE_CHROME` (./chrome.ts), lu depuis la route focalisée la
+ *   plus profonde de tout l'état de navigation (toutes les piles). Un écran profond qui dessine
+ *   son propre en-tête est en mode 'none' : les deux barres disparaissent.
  *
  * Burger menu: slide & scale effect — main content scales to 0.85 and
  * translates right while the dark menu panel is revealed behind it.
@@ -26,7 +26,8 @@ import { BlurView } from 'expo-blur';
 import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
+import { getChromeMode, getFocusedLeafRouteName, type StackParams } from './chrome';
 import { useAuth } from '../contexts/AuthContext';
 
 // Navigation chrome
@@ -145,7 +146,7 @@ const SCREEN_TITLES: Record<string, string> = {
 
 // ─── Stack navigators ────────────────────────────────────
 
-const AccueilStack = createNativeStackNavigator();
+const AccueilStack = createNativeStackNavigator<StackParams>();
 function AccueilStackScreen() {
   return (
     <AccueilStack.Navigator
@@ -362,11 +363,23 @@ function AccueilStackScreen() {
         component={TimetableScreen}
         options={{ headerShown: false }}
       />
+      {/* « À faire → Signer » part d'Accueil : l'écran reste dans l'onglet Accueil
+          (enregistré aussi dans la pile Messagerie pour les mots du cahier de liaison). */}
+      <AccueilStack.Screen
+        name="SignDoc"
+        component={SignDocScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
+        name="SignSuccess"
+        component={SignSuccessScreen}
+        options={{ headerShown: false }}
+      />
     </AccueilStack.Navigator>
   );
 }
 
-const NotesStack = createNativeStackNavigator();
+const NotesStack = createNativeStackNavigator<StackParams>();
 function NotesStackScreen() {
   return (
     <NotesStack.Navigator
@@ -419,7 +432,7 @@ function NotesStackScreen() {
   );
 }
 
-const AgendaStack = createNativeStackNavigator();
+const AgendaStack = createNativeStackNavigator<StackParams>();
 function AgendaStackScreen() {
   return (
     <AgendaStack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
@@ -443,7 +456,7 @@ function AgendaStackScreen() {
   );
 }
 
-const MessagerieStack = createNativeStackNavigator();
+const MessagerieStack = createNativeStackNavigator<StackParams>();
 function MessagerieStackScreen() {
   return (
     <MessagerieStack.Navigator
@@ -709,15 +722,11 @@ export default function TabNavigator() {
   const navActiveTab = toActiveTab(activeTab, currentAccueilRoute);
   navActiveTabRef.current = navActiveTab;
 
-  // ── Masquage du chrome : écrans plein-écran avec leur propre header ──
-  const ROUTES_HIDE_NAV = new Set([
-    'AriaHome', 'AriaConversation', 'AriaScreen',
-    'ProfilEnfant', 'BienEtreScreen',
-    'ReglagesScreen', 'PermissionsRGPD', 'JournalAcces',
-    'TransfertCode', 'Effacement', 'ExportDonnees',
-  ]);
-  const hideNavChrome = activeTab === 'Accueil' && ROUTES_HIDE_NAV.has(currentAccueilRoute);
-  const showNavChrome = !hideNavChrome;
+  // ── Chrome : top bar + bottom bar selon ROUTE_CHROME (./chrome.ts) ──
+  // Route focalisée la plus profonde de TOUTES les piles (pas seulement Accueil). Une page
+  // profonde qui dessine son propre en-tête est en mode 'none' : il remplace la top bar.
+  const focusedLeafRoute = useNavigationState((state) => getFocusedLeafRouteName(state as any));
+  const showNavChrome = getChromeMode(focusedLeafRoute) === 'full';
 
   // ── Burger slide & scale ──────────────────────────────
   const progress = useSharedValue(0);

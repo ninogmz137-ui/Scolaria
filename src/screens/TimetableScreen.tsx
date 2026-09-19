@@ -186,7 +186,7 @@ export default function TimetableScreen() {
   const [selectedDayIdx, setSelectedDayIdx] = useState(1); // Mardi par défaut
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
 
       {/* ── Header page profonde ── */}
       <View style={styles.header}>

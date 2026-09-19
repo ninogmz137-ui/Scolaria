@@ -15,7 +15,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Check, Download, Calendar } from 'lucide-react-native';
-import { C, BOTTOM_BAR_HEIGHT } from '../constants/design';
+import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AriaInlineCard from '../components/AriaInlineCard';
 
@@ -37,7 +37,7 @@ export default function SignSuccessScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       {/* Back minimal */}
       <TouchableOpacity
         style={[styles.backBtn, { top: insets.top + 8 }]}
@@ -49,7 +49,7 @@ export default function SignSuccessScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: BOTTOM_BAR_HEIGHT + 80, paddingTop: 56 }}
+        contentContainerStyle={{ paddingBottom: getStickyCtaScrollPadding(insets.bottom), paddingTop: 56 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
@@ -112,7 +112,7 @@ export default function SignSuccessScreen() {
 
       {/* Bouton retour fixe */}
       <TouchableOpacity
-        style={[styles.mainCTA, { bottom: insets.bottom + 12 }]}
+        style={[styles.mainCTA, { bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP }]}
         activeOpacity={0.85}
         onPress={() => navigation.popToTop()}
       >

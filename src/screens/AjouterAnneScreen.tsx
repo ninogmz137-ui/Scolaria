@@ -317,7 +317,10 @@ export default function AjouterAnneScreen() {
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 60,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
+        }}
       >
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}

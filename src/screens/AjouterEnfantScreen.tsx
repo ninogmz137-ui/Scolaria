@@ -203,7 +203,11 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: insets.top + 60,
+          paddingBottom: getBottomBarScrollPadding(insets.bottom),
+        }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
