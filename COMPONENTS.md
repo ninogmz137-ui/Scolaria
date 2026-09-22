@@ -1,5 +1,5 @@
 # COMPONENTS.md — Référentiel UI Scolaria
-*Version 2.0 · Validé Avril 2026 · À lire avant toute ligne de code*
+*Version 2.1 · Septembre 2026 (fusion Addendum v3.4) · À lire avant toute ligne de code*
 
 > Ce document complète CLAUDE.md. En cas de conflit, COMPONENTS.md a priorité.
 > Tout changement validé doit être mis à jour ici avant le prochain sprint.
@@ -10,47 +10,34 @@
 
 ### Pattern : Notion-style (top nav + bottom bar)
 
-### Modes de chrome (navigation/chrome.ts)
-
-Règle : **un écran n'affiche jamais deux en-têtes.** Chaque route déclare un mode dans `ROUTE_CHROME`.
-
 ```
-full  Top bar + bottom bar visibles. L'en-tête de l'écran, c'est la top bar.
-      Écrans racines (Accueil, Notes, Agenda, Messagerie) et pages profondes SANS en-tête propre.
-      L'écran réserve insets.top + 60 en haut et getBottomBarScrollPadding(insets.bottom) en bas.
-
-none  Top bar ET bottom bar masquées. La page dessine son en-tête (§6 Pages profondes,
-      composant DeepScreenHeader) qui REMPLACE la top bar.
-      L'écran gère ses insets (SafeAreaView top/left/right, insets.bottom à la main).
-```
-
-```
-TOP BAR (mode full uniquement)
-  [☰ Burger] [⌂ Accueil] [Notes] [Agenda] [✉ Messages●] [Avatar enfant]
-  - Avatar : 34×34px, cercle, border 2px rgba(15,23,42,0.15)
+TOP BAR (toujours visible, toutes les pages)
+  [Avatar enfant] [⌂ Accueil] [↗ Suivi] [📅] [✉●]
+  - Avatar : 34×34px, cercle, border 2px rgba(15,23,42,0.15), couleur de l'enfant + initiale
+    tap = sélecteur d'enfant (§13)
+  - Icône Suivi : lucide trending-up
   - Onglet actif : pill grise background rgba(15,23,42,0.08), icône + label
   - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
   - Pill height : 30px, borderRadius 999px, padding 0 10px
   - Badge non-lu : point rouge 6px, position absolute top-5px
 
-BOTTOM BAR (mode full uniquement)
+BOTTOM BAR (toujours visible, toutes les pages)
   [🔍] [◉ Demander à Aria…] [action contextuelle]
   - Height barre : padding 8px 12px 18px
-  - Background : #F7F7F5, border-top 1px rgba(15,23,42,0.07)
+  - Background : #F2F1EE, border-top 1px rgba(15,23,42,0.07)
   - Icônes gauche/droite : 34×34px cercle, background rgba(15,23,42,0.08)
   - Pill Aria centrale : flex:1, height 34px, borderRadius 999px
     background rgba(15,23,42,0.08), symbole Scolaria 14px + texte placeholder
   - Action droite selon contexte :
-    Accueil → ✏️ (nouveau)
-    Notes → ⊞ (scanner)
+    Accueil → + (Ajouter au carnet)
+    Suivi → ⊞ (scanner / Ajouter au carnet)
     Agenda → rien (FAB suffit)
     Messages → ✏️ (nouveau message)
     Aria → rien
 ```
 
 ### Règle titre — NON redondance
-En mode `full`, le titre de l'onglet actif est dans la pill top bar.
-En mode `none`, le titre est dans l'en-tête de la page profonde.
+Le titre de l'onglet actif est dans la pill top bar.
 **Ne jamais répéter le titre dans le body de la page.**
 Seul le contenu va dans le body, jamais un H1 répété.
 
@@ -60,7 +47,7 @@ Seul le contenu va dans le body, jamais un H1 répété.
 
 ```
 COULEURS
-  Background page     #F7F7F5
+  Background page     #F2F1EE
   Texte principal     #0F172A
   Texte secondaire    rgba(15,23,42,0.55)
   Texte muted         rgba(15,23,42,0.35)
@@ -85,7 +72,7 @@ OMBRES
 ESPACEMENT
   Padding page H      14-16px
   Gap entre cards     8px
-  Bottom bar          paddingBottom: getBottomBarScrollPadding(insets.bottom) sur les ScrollView (mode full)
+  Bottom bar          paddingBottom: 80px sur tous les ScrollView
 ```
 
 ---
@@ -226,11 +213,12 @@ Bonjour [Prénom] 👋 : fontSize 16px · fontWeight 700 · color #fff
 Sous-titre : fontSize 11px · color rgba(255,255,255,0.65)
 ```
 
-### Notes / Agenda
+### Suivi / Agenda
 ```
 Pas de header coloré — contenu directement sous top bar
 padding: 8px 14px 10-12px · border-bottom: 1px solid rgba(15,23,42,0.05)
-Notes: moyenne + graph SVG + sélecteur trimestre
+Suivi: bouton année (§17) + segmented Apprentissages · Souvenirs · Livrets
+       collège/lycée : moyenne + graph SVG + sélecteur trimestre (Notes v7)
 Agenda: mois + année + strip 7 jours
 ```
 
@@ -240,9 +228,8 @@ Toolbar uniquement (recherche + filtre "Tout ⌄")
 PAS de titre — déjà dans la pill active de la top bar
 ```
 
-### Pages profondes (mode `none` : cet en-tête REMPLACE la top bar, la bottom bar est masquée)
+### Pages profondes
 ```
-Composant : DeepScreenHeader (src/components/DeepScreenHeader.tsx)
 Gauche: ‹ [Section parent] · fontSize 13px · fontWeight 500 · color rgba(15,23,42,0.55)
 Centre: Titre absolu centré · fontSize 14px · fontWeight 700
 Droite: Action optionnelle · fontSize 13px · color #4338CA
@@ -338,7 +325,7 @@ position:       absolute · bottom: 72px · right: 14px · z-index: 15
 ## 10. SECTION LABELS
 
 ```
-fontSize: 11px · fontWeight: 600 · letterSpacing: 1.1px
+fontSize: 7.5px · fontWeight: 600 · letterSpacing: 1.1px
 textTransform: uppercase · color: #0F172A · opacity: 0.28
 padding: 14px 14px 6px
 Première section: paddingTop: 10px
@@ -397,7 +384,10 @@ Prénom: fontSize 13px · fontWeight 600
 Niveau: fontSize 11px · color rgba(15,23,42,0.55)
 Check: fontSize 14px · color #4338CA · marginLeft auto
 
+Indicateur nouveauté: point 8px #EF4444 + meta "1 nouveau message" sous le niveau
+
 "Ajouter enfant": color #4338CA
+"Famille et paramètres": row standard
 "Déconnexion": color #EF4444
 ```
 
@@ -410,7 +400,7 @@ TOP BAR (propre, remplace la top nav habituelle):
   Gauche: icône historique · 32×32px cercle · bg rgba(15,23,42,0.08)
   Centre: symbole Scolaria 22px dans cercle 38px bg #F0F0F8
           + "Aria" fontSize 11px · fontWeight 700
-          + mode fontSize 11px · color rgba(15,23,42,0.55)
+          + mode fontSize 9px · color rgba(15,23,42,0.55)
   Droite: icône nouveau · 32×32px cercle
 
 BODY centré verticalement:
@@ -429,19 +419,15 @@ INPUT bas (remplace la bottom bar):
 Figtree uniquement — JAMAIS de font système
 Exception Rufina Bold: ScolariaLogo uniquement
 
-PLANCHERS (règle absolue, remplacent les valeurs des maquettes HTML) :
-  fontSize   minimum 11px, partout
-  lineHeight minimum fontSize × 1.2, partout (jamais ×1.0)
-
-data-large    Figtree 900  40px  letterSpacing -2px     lineHeight 48   grands chiffres, moyennes
-data-medium   Figtree 900  20px  letterSpacing -1px     lineHeight 24
-display       Figtree 800  19-22px letterSpacing -0.8px  lineHeight ×1.2  questions Aria, titres forts
+data-large    Figtree 900  40px  letterSpacing -2px     grands chiffres, moyennes
+data-medium   Figtree 900  20px  letterSpacing -1px
+display       Figtree 800  19-22px letterSpacing -0.8px  questions Aria, titres forts
 title         Figtree 700  14-16px letterSpacing -0.3px
 subtitle      Figtree 700  13px   letterSpacing -0.1px   noms, headers cartes
 label         Figtree 600  12-13px letterSpacing -0.1px  labels UI
 body          Figtree 400  12-13px lineHeight 1.5
-meta          Figtree 400  11px color rgba(n,0.35-55)  dates, sources
-section-label Figtree 600  11px  letterSpacing 1.1px    uppercase
+meta          Figtree 400  10-11px color rgba(n,0.35-55)  dates, sources
+section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
 ```
 
 ---
@@ -455,15 +441,19 @@ section-label Figtree 600  11px  letterSpacing 1.1px    uppercase
 ✗ Jamais violet #7C3AED en couleur solide → #4338CA uniquement
 ✗ Jamais emoji dans les cards Agenda → barre couleur + texte seul
 ✗ Jamais titre répété dans body si déjà dans la pill de la top nav
-✗ Jamais fond blanc pur #FFFFFF comme background de page → #F7F7F5
+✗ Jamais fond blanc pur #FFFFFF comme background de page → #F2F1EE
 ✗ Jamais font système → Figtree partout
 ✗ Jamais height:'100%' → flex:1
 ✗ Jamais box-shadow CSS → shadow* + elevation Android
 ✗ Jamais overflow:'visible' pour les ombres sur Android
 ✗ Jamais card glass dans les pages profondes (paramètres, aide, etc.)
+✗ Jamais de vue mélangeant plusieurs enfants
+✗ Jamais de module grisé visible
+✗ Jamais d'emoji sur une matière
+✗ Jamais de vert/rouge sur les données (compétences, trends)
 
 ✓ Toujours zone tactile minimum 44×44px
-✓ Toujours paddingBottom: getBottomBarScrollPadding(insets.bottom) sur les ScrollView derrière la bottom bar (jamais de valeur en dur)
+✓ Toujours paddingBottom: 80px sur tous les ScrollView principaux
 ✓ Toujours flex:1 sur les View parents hauteur complète
 ✓ Toujours insets.bottom pour éléments positionnés en bas
 ✓ Toujours empty state si liste vide
@@ -472,5 +462,49 @@ section-label Figtree 600  11px  letterSpacing 1.1px    uppercase
 
 ---
 
-*COMPONENTS.md · Scolaria · v2.0 · Avril 2026*
+## 17. SUIVI — COMPOSANTS
+
+### Bouton année
+```
+height: 34px · borderRadius: 999px · paddingH: 14px
+background: rgba(15,23,42,0.08) · fontSize 13px · fontWeight 600
+Texte: "2025–2026 · CE1 ⌄"
+Tap → Dropdown (§12): année en cours (check #4338CA) · séparateur ·
+      entête "Archives · lecture seule" · années précédentes + nom de l'école
+      → ouvre Mon parcours
+```
+
+### Segmented control
+```
+Container: padding 4px · borderRadius 999px · background rgba(15,23,42,0.06)
+Segment: flex 1 · height 32px · borderRadius 999px · fontSize 12px
+Actif: background #FFFFFF · fontWeight 700 · shadow 0 1px 4px rgba(15,23,42,0.08)
+Inactif: transparent · fontWeight 500 · color rgba(15,23,42,0.62)
+```
+
+### Niveau de compétence (4 segments)
+```
+4 barres 22×6px · borderRadius 999px · gap 3px
+Rempli: #0F172A · Vide: rgba(15,23,42,0.12)
+Libellé sous la compétence: Non atteint · Partiellement atteint · Atteint · Dépassé
+RÈGLE: jamais de vert/rouge
+```
+
+### Ligne source
+```
+fontSize 11px · color rgba(15,23,42,0.6)
+"Saisi par Mme Durand · 12 déc." / "Scanné par vous" / "Ajouté par Julien"
+Obligatoire sous toute donnée de carnet
+```
+
+### Statut de signature par parent
+```
+Pill 24px · paddingH 10px · fontSize 11px · fontWeight 600
+Signé: background rgba(67,56,202,0.10) · color #4338CA · "Julien ✓"
+En attente: background rgba(15,23,42,0.06) · color rgba(15,23,42,0.62) · "Vous"
+```
+
+---
+
+*COMPONENTS.md · Scolaria · v2.1 · Septembre 2026*
 *Claude Code lit CLAUDE.md + COMPONENTS.md avant chaque sprint — sans exception*

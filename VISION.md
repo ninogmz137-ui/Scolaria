@@ -1,5 +1,5 @@
 # VISION.md — Vision Stratégique Scolaria
-*Document de référence stratégique · Mis à jour Avril 2026*
+*Document de référence stratégique · Mis à jour Septembre 2026 (fusion Addendum v3.4)*
 *À lire par Claude au démarrage de chaque session stratégique*
 
 ---
@@ -10,7 +10,7 @@
 
 Comme le carnet de santé accompagne l'enfant de la naissance à l'âge adulte, Scolaria accompagne l'enfant de la maternelle au baccalauréat — indépendamment des établissements, des déménagements, des changements d'école.
 
-- Tagline : "Le copilote éducatif des familles"
+- Tagline : "Le carnet de scolarité numérique" (« copilote » est réservé pour décrire Aria)
 - Nom : toujours **Scolaria** — jamais ScolarIA, jamais Scholaris
 - Positionnement : **successeur des ENTs**, pas connecteur. "Là où Papillon est un parasite élégant de Pronote, Scolaria en est le successeur."
 
@@ -25,6 +25,12 @@ Comme le carnet de santé accompagne l'enfant de la naissance à l'âge adulte, 
 - **Il traverse les transitions.** CM2→6ème, 3ème→lycée : Scolaria est le seul outil qui maintient la continuité sans perdre un octet.
 - **Il a une valeur quasi-officielle.** Chaque note saisie par l'enseignant est horodatée, chaque message archivé, chaque bulletin signé numériquement.
 - **À la majorité, il est transmis à l'enfant.** À 18 ans, l'enfant devient propriétaire de son compte et de toute sa scolarité archivée.
+
+### Un enfant = un carnet
+Une école ne donne pas un carnet pour une fratrie : Scolaria non plus. Chaque enfant a son propre carnet, le parent choisit celui qu'il consulte. Aucune vue ne mélange plusieurs enfants. À 18 ans, l'enfant récupère son carnet complet, sans tri.
+
+### Le carnet se remplit même sans l'école
+Le parent peut ajouter lui-même au carnet : photo d'un dessin ou d'un cahier, capture d'un mot reçu sur une autre application, livret scanné, « première fois ». Le carnet a de la valeur dès le premier jour, même si l'école utilise encore un autre outil. L'enseignant qui rejoint Scolaria accélère le remplissage — il n'en est pas le prérequis.
 
 ### Ce que Scolaria fait de plus que le carnet de santé
 
@@ -48,9 +54,16 @@ Scolaria peut créer le standard national du carnet de scolarité numérique ava
 | Pronote / EcoleDirecte | Outil d'établissement | Appartient à l'école, pas à la famille |
 | Papillon | Connecteur Pronote | Limité collège/lycée, dépendant des ENTs |
 | Klassly | Communication école-famille | Pas de suivi longitudinal, pas d'IA |
+| Beneylu School | ENT primaire, outil de la classe (79 €/classe/an, 299 €/école/an ; 17 académies ; mécénat 500 écoles/an) | Centré élèves/enseignant, parents en dernier ; 1 compte = 1 enfant ; s'arrête au CM2 ; données enfermées dans la classe et l'année ; interface surchargée (retour terrain : seuls les messages enseignants/direction et les photos servent) |
 | **Scolaria** | **Carnet de scolarité numérique** | **Aucun équivalent** |
 
-### Stratégie d'entrée — Le Trojan Horse
+**Positionnement : les ENTs sont l'outil de la classe. Scolaria est le carnet de l'enfant.** Même terrain d'entrée, pas la même catégorie.
+
+### Stratégie d'entrée — Le carnet d'abord, le lien école ensuite
+
+Le parent a une raison d'utiliser Scolaria seul (carnet, import, souvenirs, deux parents, plusieurs enfants). C'est ce qui rend le Trojan Horse crédible : sans valeur pour le parent seul, un fil vide ne fait installer l'app à personne.
+
+### Le Trojan Horse
 
 **Étape 1 — Adoption organique (mois 1-6)**
 Les parents s'inscrivent gratuitement. Un enseignant commence à utiliser Scolaria pour sa classe. Bouche à oreille, groupes WhatsApp de parents → viralité naturelle.
@@ -66,7 +79,7 @@ Une mairie signe → les mairies voisines voient → déploiement territorial.
 
 ### Porte d'entrée prioritaire : maternelle / primaire
 
-- Pronote quasi-absent de ce segment
+- Pronote quasi-absent de ce segment — mais occupé par des ENT primaires (Beneylu, ONE, Klassly), qui sont des outils de classe, pas de famille
 - Enseignants communiquent encore par cahier de liaison papier, SMS, WhatsApp
 - Décision = directeur d'école + mairie (cycle de vente court)
 - Argument continuité : "l'app suit l'enfant du CP au bac"
@@ -96,13 +109,15 @@ Une mairie signe → les mairies voisines voient → déploiement territorial.
 
 | Source | Tarif | Phase |
 |--------|-------|-------|
-| Établissements privés | ~1 500 €/an | Phase 1 (An 1) |
+| Établissements privés | **À revoir** (ex-hypothèse ~1 500 €/an, intenable face à Beneylu 299 €/école) | Phase 1 (An 1) |
 | Modules premium B2B (analytics directeur) | ~50 €/étab/an | Phase 2 |
 | Collectivités & EN | ~25 €/élève/an | Phase 2-3 |
 | Partenariats éducatifs (Aria recommande, transparent) | 20-50k €/an | Phase 2 |
 | Premium famille optionnel (orientation avancée) | 7-10 €/mois | Phase 3 |
 
-### Projections (modèle optimisé)
+> ⚠️ Tarification et projections à recalculer (session business dédiée). Piste : gratuit pour une classe, offre école sous 299 €, revenus principaux côté collectivités et modules avancés.
+
+### Projections (modèle optimisé — à recalculer)
 
 | An | CA |
 |----|-----|
@@ -118,10 +133,11 @@ Levée recommandée : 500 000 – 800 000 €
 
 ## 5. Les 3 profils utilisateurs
 
-### Parent
-- Email + mot de passe → sélecteur d'enfants style Netflix
-- Accès complet à tous les enfants du foyer
-- Seul à pouvoir signer les mots du cahier de liaison
+### Parent / responsable légal
+- Email + mot de passe — chaque responsable a son propre compte
+- Un foyer regroupe N responsables et N enfants ; consultation d'un carnet à la fois via le sélecteur d'enfant
+- Seuls les responsables signent les mots — chacun en son nom (« signature des deux parents » gérée par parent)
+- Garde partagée : tout ce qui vient de l'école est partagé ; les échanges privés de chaque responsable restent privés
 - Interface mobile (prioritaire) + web (Phase 2)
 
 ### Élève
@@ -155,6 +171,10 @@ L'interface enseignant doit être **aussi simple qu'envoyer un SMS.** Le moindre
 - Connexion avec rôle enseignant
 - Vue liste de classe
 - Envoi message aux parents (collectif ou individuel)
+- Types de mots : information, signature (1 ou 2 parents), autorisation, appel à participation
+- Suivi lu / signé par mot + relance en un clic
+- Ajout d'un mot à l'agenda des familles (date + liste « à prévoir »)
+- Absences déclarées par les parents
 - Saisie note / observation par élève
 - Signalement absence
 
@@ -165,6 +185,8 @@ L'interface enseignant doit être **aussi simple qu'envoyer un SMS.** Le moindre
 - Générateur d'appréciations Aria (enseignant coche 3 compétences → Aria propose 2 formulations → enseignant valide et signe)
 - Vue profil élève (forces, ressenti Score de Joie si autorisé)
 - Suivi comportement
+- Registre d'appel exportable, publication programmée
+- Traduction des mots et lecture à voix haute pour les familles
 
 **Phase 3 :**
 - Interface directeur (gestion classes, enseignants, accès)
@@ -175,6 +197,7 @@ L'interface enseignant doit être **aussi simple qu'envoyer un SMS.** Le moindre
 Simple et rapide. Gain de temps avant tout. Pas de features superflues.
 
 ### Testeurs identifiés
+- **Priorité : enseignant(e)s de maternelle / primaire** (segment d'entrée)
 - Ami prof d'histoire, collège
 - Prof d'EPS
 
@@ -220,7 +243,7 @@ Document public complet : ScolarIA_Charte_Ethique_v1.pdf
 2. **Transparence Algorithmique** — Aria explique toujours pourquoi
 3. **Souveraineté des données** — hébergement OVH France, zéro revente, zéro pub
 4. **Gradation & Anti-Panique** — cinétique sur 5 jours, jamais sur signal isolé
-5. **Neutralité & Anti-Biais** — aucune comparaison entre enfants, filières pro = filières générales
+5. **Neutralité & Anti-Biais** — aucune comparaison entre enfants, filières pro = filières générales. La comparaison d'un enfant avec lui-même sur plusieurs années est autorisée (Aria stade 2+), en tendance, sources citées
 6. **Protection Hyper-Connexion** — mode sommeil 20h-7h, max 1 alerte non urgente / 48h
 7. **Protocole d'urgence** — Aria sort de son rôle, connecte l'humain à l'humain
 
@@ -246,11 +269,19 @@ Document public complet : ScolarIA_Charte_Ethique_v1.pdf
 ### MVP terminé (Avril 2026)
 Interface parent complète : Accueil, Notes, Agenda, Messagerie, Aria chat, design system v2.0, demo mode (Famille Moreau : Léa/maternelle, Lucas/primaire, Emma/collège), APK Android prêt.
 
+### Addendum v3.4 (septembre 2026) — priorité avant la queue
+1. Nettoyage des anciennes décisions (fond, emoji matières, FAB, thèmes par niveau)
+2. Foyer multi-responsables + signature par parent
+3. Notes → Suivi (compétences maternelle/primaire, Notes v7 conservé collège/lycée)
+4. Ajouter au carnet (import parent)
+5. Types de mots, suivi lu/signé, agenda alimenté par les mots
+6. Notifications : défaut activé, prénom de l'enfant, résumé 18h
+
 ### Queue immédiate (priorité décroissante)
 1. Aria voice input V1 (micro déjà dans l'UI, expo-speech)
-2. Graphe progression notes (courbe lissée, écran Notes)
-3. Personnalisation matières (emoji + couleur)
-4. Devoirs cochables manuellement dans l'agenda
+2. Graphe progression notes (courbe lissée, Suivi collège/lycée)
+3. Personnalisation matières (couleur uniquement)
+4. Devoirs et « à prévoir » cochables dans l'agenda
 5. Push notifications (iOS + Android)
 6. Indicateur professeur absent sur l'agenda
 7. **Interface enseignant MVP** (prochain sprint majeur)
@@ -275,15 +306,16 @@ Interface parent complète : Accueil, Notes, Agenda, Messagerie, Aria chat, desi
 ## 10. Principes non négociables
 
 - Scolaria est **gratuit pour les familles** — à jamais
-- Scolaria **remplace les ENTs** — ne s'y connecte pas
+- Scolaria **remplace les ENTs** — ne s'y connecte pas (l'import manuel par le parent de ses propres documents n'est pas une connexion)
+- **Un enfant = un carnet** — jamais de vue mélangeant plusieurs enfants
 - **Pas d'ads, jamais**
 - **Pas de comparaison entre enfants**
 - **Données hébergées en France** (OVH), jamais hors UE
 - **Aria propose, l'humain décide** — pour tout acte irréversible
 - **"Scolaria"** — jamais ScolarIA, jamais avec IA en majuscules
 - **Pas de full-width buttons** dans le design system
-- **Violet #7C3AED réservé au gradient Aria** — jamais en couleur solide isolée
+- **Indigo #4338CA seul accent** — dégradé #6366F1→#22D3EE réservé à Aria ; violet #7C3AED supprimé
 
 ---
 
-*VISION.md · Scolaria · Avril 2026 · Document confidentiel*
+*VISION.md · Scolaria · Septembre 2026 · Document confidentiel*
