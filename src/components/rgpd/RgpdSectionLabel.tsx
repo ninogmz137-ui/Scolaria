@@ -1,7 +1,8 @@
 import React from 'react';
-import { Text, type TextStyle } from 'react-native';
+import { type TextStyle } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Colors } from '../../constants/colors';
+import { Text } from '../ui';
 
 type Props = {
   children: string;

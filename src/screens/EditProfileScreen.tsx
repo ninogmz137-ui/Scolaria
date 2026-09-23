@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -31,6 +30,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { Text } from '../components/ui';
 
 // ─── Tokens ────────────────────────────────────────────
 const NAVY = '#0F172A';
@@ -39,10 +39,11 @@ const BORDER_L = 'rgba(15,23,42,0.05)';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';
 const CARD_BG = '#FFFFFF';
-const BG = '#F7F7F5';
+const BG = '#F2F1EE';
 
 // ─── Child avatar colors (cycling) ─────────────────────
-const CHILD_COLORS = ['#DB2777', '#0891B2', '#059669', '#D97706', '#7C3AED'];
+/** Indigo neutre en attendant la couleur personnelle de l'enfant (phase A). */
+const CHILD_AVATAR_BG = '#4338CA';
 
 function getInitials(name: string): string {
   return name
@@ -220,14 +221,7 @@ export default function EditProfileScreen() {
 
   return (
     <View style={[st.root, { paddingTop: insets.top }]}>
-      {/* Dark overlay background */}
-      <LinearGradient
-        colors={['rgba(67,56,202,0.55)', 'rgba(31,31,46,0.95)', '#1F1F2E']}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.6 }}
-      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: '#F2F1EE' }]} />
 
       {/* White sheet */}
       <View style={st.sheet}>
@@ -264,9 +258,8 @@ export default function EditProfileScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 14, gap: 10, flexDirection: 'row', paddingBottom: 4 }}
             >
-              {childList.map((child, idx) => {
+              {childList.map((child) => {
                 const selected = child.id === selectedChildId;
-                const color = CHILD_COLORS[idx % CHILD_COLORS.length];
                 const initials = getInitials(child.name);
                 return (
                   <Pressable
@@ -274,7 +267,7 @@ export default function EditProfileScreen() {
                     onPress={() => selectChild(child.id)}
                     style={[st.childCard, selected && st.childCardSelected]}
                   >
-                    <View style={[st.childAvatar, { backgroundColor: color }]}>
+                    <View style={[st.childAvatar, { backgroundColor: CHILD_AVATAR_BG }]}>
                       <Text style={st.childAvatarText}>{initials}</Text>
                     </View>
                     <Text style={st.childName}>{child.name.split(' ')[0]}</Text>
@@ -300,14 +293,9 @@ export default function EditProfileScreen() {
 
           {/* Parent row */}
           <View style={st.parentRow}>
-            <LinearGradient
-              colors={['#4338CA', '#6366F1']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={st.parentAvatar}
-            >
+            <View style={[st.parentAvatar, { backgroundColor: '#4338CA' }]}>
               <Text style={st.parentInitials}>{parentInitials}</Text>
-            </LinearGradient>
+            </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={st.parentName} numberOfLines={1}>{parentName}</Text>
               <Text style={st.parentEmail} numberOfLines={1}>{parentEmail}</Text>
@@ -450,7 +438,7 @@ export default function EditProfileScreen() {
 const st = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#1F1F2E',
+    backgroundColor: BG,
   },
   sheet: {
     flex: 1,

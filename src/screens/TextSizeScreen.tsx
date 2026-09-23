@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, Pressable, StyleSheet, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import { Text } from '../components/ui';
 
 const TEXT_SIZES = [
   { key: 'small', label: 'Petit', preview: 12, bodySize: 13 },
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     }),
   },
   cardActive: {
-    borderColor: '#7C3AED',
+    borderColor: '#4338CA',
     borderWidth: 1.5,
   },
   preview: {
@@ -113,12 +114,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioActive: {
-    borderColor: '#7C3AED',
+    borderColor: '#4338CA',
   },
   radioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
   },
 });

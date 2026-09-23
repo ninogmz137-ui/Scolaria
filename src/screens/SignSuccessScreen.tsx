@@ -6,7 +6,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -18,6 +17,7 @@ import { Check, Download, Calendar } from 'lucide-react-native';
 import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AriaInlineCard from '../components/AriaInlineCard';
+import { Text } from '../components/ui';
 
 // ─── Sous-composants ─────────────────────────────────────
 

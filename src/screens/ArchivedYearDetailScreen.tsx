@@ -9,13 +9,11 @@ import { useState } from 'react';
 import {
   View,
   ScrollView,
-  Text,
   Pressable,
   StyleSheet,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Papicons } from '@getpapillon/papicons';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -25,6 +23,7 @@ import GlassCard from '../components/GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useDemoData, type DemoArchivedBulletin } from '../contexts/DemoContext';
+import { Text } from '../components/ui';
 
 // ─── Navigation types ────────────────────────────────────
 
@@ -45,7 +44,7 @@ type Props = {
 
 // ─── Color helpers ───────────────────────────────────────
 
-const ACCENT = '#7C3AED';
+const ACCENT = '#4338CA';
 
 const COLOR_TEXT_PRIMARY = '#0F172A';
 const COLOR_TEXT_SECONDARY = '#64748B';
@@ -294,15 +293,10 @@ export default function ArchivedYearDetailScreen({ route }: any) {
             const annualAvg = vals.reduce((sum, v) => sum + v, 0) / vals.length;
             return (
               <View style={styles.annualAvgRow}>
-                <LinearGradient
-                  colors={['#7C3AED', '#06B6D4']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.annualAvgGradient}
-                >
+                <View style={[styles.annualAvgGradient, { backgroundColor: '#0F172A' }]}>
                   <Text style={styles.annualAvgLabel}>Moyenne annuelle</Text>
                   <Text style={styles.annualAvgValue}>{formatAvg(annualAvg)}</Text>
-                </LinearGradient>
+                </View>
               </View>
             );
           })()}

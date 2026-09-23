@@ -226,7 +226,7 @@ export default function CahierLiaisonScreen() {
 
               {/* Signed list */}
               {signatures.length > 0 && (
-                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.green + '20', ...CARD_SHADOW }}>
+                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
                   <Text className="text-[13px] font-bold mb-2.5" style={{ color: Colors.green }}>
                     <Ionicons name="checkmark-circle" size={14} color={Colors.green} /> Signatures reçues
                   </Text>
@@ -244,7 +244,7 @@ export default function CahierLiaisonScreen() {
 
               {/* Unsigned students */}
               {unsignedStudents.length > 0 && (
-                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.red + '30', ...CARD_SHADOW }}>
+                <Box className="p-3.5 rounded-[14px]" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
                   <Text className="text-[13px] font-bold mb-2.5" style={{ color: Colors.red }}>
                     <Ionicons name="close-circle" size={14} color={Colors.red} /> En attente ({unsignedStudents.length})
                   </Text>

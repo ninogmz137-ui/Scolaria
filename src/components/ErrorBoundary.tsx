@@ -1,9 +1,10 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from './navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from './ui';
 
 type ErrorBoundaryState = { error: Error | null; info: React.ErrorInfo | null };
 

@@ -55,17 +55,6 @@ module.exports = {
         "blue-night-light": "#131836",
         "blue-night-card":  "#1A1F3D",
 
-        // ─── Child theme accents (for reference) ──────────
-        ocean:   "#4A90D9",
-        glacier: "#0EA5E9",
-        ambre:   "#FBBF24",
-        corail:  "#EF4444",
-        rose:    "#EC4899",
-        teal:    "#14B8A6",
-        lavande: "#A78BFA",
-        foret:   "#4CAF50",
-        violet:  "#7C3AED",
-
         // ─── Teacher accent ───────────────────────────────
         "teacher-orange": "#FF6B35",
       },
@@ -73,9 +62,12 @@ module.exports = {
         "2xl": "16px",
         "3xl": "24px",
       },
+      // Figtree partout. La graisse (font-bold…) est convertie en variante Figtree
+      // par le Text de src/components/ui. Rufina = ScolariaLogo uniquement.
       fontFamily: {
-        heading: ["System"],
-        body: ["System"],
+        sans: ["Figtree_400Regular"],
+        heading: ["Figtree_800ExtraBold"],
+        body: ["Figtree_400Regular"],
       },
     },
   },

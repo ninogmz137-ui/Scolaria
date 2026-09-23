@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
-  Text,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -21,6 +20,7 @@ import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { Text } from '../components/ui';
 
 // ─── Helper: build welcome & suggestions per child ───────
 

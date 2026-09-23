@@ -11,7 +11,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -24,6 +23,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
+import { Text } from '../components/ui';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,8 +84,8 @@ const DAY_GROUPS: DayGroup[] = [
       {
         id: 'hw3',
         subject: 'SVT',
-        subjectColor: '#7C3AED',
-        subjectBg: 'rgba(124,58,237,0.08)',
+        subjectColor: '#4338CA',
+        subjectBg: 'rgba(67,56,202,0.08)',
         title: 'Exercices p.67',
         subtitle: 'À rendre lundi · sans PJ',
         done: false,

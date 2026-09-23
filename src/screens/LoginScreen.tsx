@@ -1,11 +1,12 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import ScolariaLogo from '../components/ScolariaLogo';
+import { Text } from '../components/ui';
 
-const BG = '#F7F7F5';
+const BG = '#F2F1EE';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

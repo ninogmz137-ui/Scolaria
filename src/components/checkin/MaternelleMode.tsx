@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
+import { View, Pressable, StyleSheet, Animated } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 const NAVY = '#1A2340';
 const AMBER = '#F59E0B';

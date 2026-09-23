@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   Platform,
 } from 'react-native';
@@ -18,6 +17,7 @@ import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
+import { Text } from '../components/ui';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -119,19 +119,17 @@ export default function AccueilScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Hero gradient — position absolute, derrière le ScrollView */}
+      {/* Header wallpaper — indigo neutre en attendant la couleur de l'enfant (students.color, phase A) */}
       <LinearGradient
         colors={[
-          '#b8b5f5',
-          '#c4b5fd',
-          '#f9a8d4',
-          '#fdba74',
+          '#4338CA',
+          'rgba(67,56,202,0.72)',
           'rgba(242,241,238,0.9)',
           'rgba(242,241,238,0)',
         ]}
-        locations={[0, 0.20, 0.40, 0.65, 0.88, 1.0]}
-        start={{ x: 0.15, y: 0 }}
-        end={{ x: 0.85, y: 1 }}
+        locations={[0, 0.40, 0.88, 1.0]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={styles.heroGradient}
       />
 
@@ -299,14 +297,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Figtree_500Medium',
     fontSize: 13,
     fontWeight: '500',
-    color: 'rgba(15,23,42,0.48)',
+    color: 'rgba(255,255,255,0.72)',
     marginBottom: 1,
   },
   heroPrenom: {
     fontFamily: 'Figtree_900Black',
     fontSize: 32,
     fontWeight: '900',
-    color: '#0F172A',
+    color: '#FFFFFF',
     letterSpacing: -1.2,
     lineHeight: 36,
   },

@@ -1,11 +1,9 @@
 /**
- * SchoolModeContext — Adapts the entire UI based on the child's school cycle.
+ * SchoolModeContext — Cycle scolaire de l'enfant sélectionné (maternelle,
+ * primaire, collège-lycée), déduit de sa date de naissance.
  *
- * - Maternelle (3-6 ans): warm, playful, giant emojis
- * - Primaire (6-11 ans): cosmic dark, gamification, XP/badges
- * - Lycee (11-18 ans): clean white, analytics, optional dark mode
- *
- * Auto-detects from child's birth date.
+ * Le cycle pilote le CONTENU (ex. Suivi), jamais les couleurs : tous les
+ * cycles partagent le même thème (fond #F2F1EE, accent indigo #4338CA).
  */
 
 import {
@@ -41,35 +39,18 @@ export interface SchoolModeTheme {
   tabBorder: string;
   tabActive: string;
   tabInactive: string;
-  // Special
-  headerGradient: [string, string];
+  // Aria
   ariaColor: string;
-  ariaEmoji: string;
   ariaLabel: string;
-  // ─── Phase 1: Mode-aware backgrounds & headers ───
-  /** Page background color per mode */
+  /** Page background color */
   backgroundColor: string;
-  /** Full header gradient colors (top → page bg) */
-  headerGradientFull: string[];
-  /** Gradient stop locations (0-1), must match headerGradientFull length */
-  headerGradientLocations: number[];
-  /** Is the background dark? (drives text color logic) */
-  isDarkBg: boolean;
-  /** Primary text color on this background (outside cards) */
-  textOnBg: string;
-  /** Secondary text color on this background */
-  textOnBgSecondary: string;
 }
 
 // ─── Theme definitions ─────────────────────────────────
 
-/**
- * All school modes now share the SAME visual properties.
- * Unified blue design: #F2F2F7 background, blue gradient header.
- * Mode/label differ so MonRessenti can still distinguish cycles.
- */
+/** Thème unique, commun à tous les cycles. */
 const UNIFIED_BASE = {
-  bg: '#F2F2F7',
+  bg: '#F2F1EE',
   bgLight: '#FFFFFF',
   card: '#FFFFFF',
   cardBorder: 'transparent',
@@ -79,45 +60,19 @@ const UNIFIED_BASE = {
   tabBg: '#FFFFFF',
   tabBorder: 'transparent',
   tabInactive: '#94A3B8',
-  // Unified violet accent
-  accent: '#7C3AED',
-  accentLight: '#C4B5FD',
-  accentDark: '#6D28D9',
-  tabActive: '#7C3AED',
-  headerGradient: ['#7C3AED10', '#F2F2F7'] as [string, string],
-  /** Couleur statique Aria (texte/icônes) — indigo, séparé du violet thème. */
+  accent: '#4338CA',
+  accentLight: '#C7D2FE',
+  accentDark: '#3730A3',
+  tabActive: '#4338CA',
   ariaColor: '#4338CA',
-  // Unified background + header
-  backgroundColor: '#F2F2F7',
-  headerGradientFull: ['#1E3A5F', '#3B7DD8', '#89B4E8'],
-  headerGradientLocations: [0, 0.5, 1],
-  isDarkBg: false,
-  textOnBg: '#0F172A',
-  textOnBgSecondary: '#64748B',
+  ariaLabel: 'Aria',
+  backgroundColor: '#F2F1EE',
 };
 
 export const THEMES: Record<SchoolMode, SchoolModeTheme> = {
-  maternelle: {
-    ...UNIFIED_BASE,
-    mode: 'maternelle',
-    label: 'Maternelle',
-    ariaEmoji: '🧸',
-    ariaLabel: 'Aria',
-  },
-  primaire: {
-    ...UNIFIED_BASE,
-    mode: 'primaire',
-    label: 'Primaire',
-    ariaEmoji: '✦',
-    ariaLabel: 'Aria ✦',
-  },
-  lycee: {
-    ...UNIFIED_BASE,
-    mode: 'lycee',
-    label: 'Collège-Lycée',
-    ariaEmoji: '🎯',
-    ariaLabel: 'Aria Coach',
-  },
+  maternelle: { ...UNIFIED_BASE, mode: 'maternelle', label: 'Maternelle' },
+  primaire: { ...UNIFIED_BASE, mode: 'primaire', label: 'Primaire' },
+  lycee: { ...UNIFIED_BASE, mode: 'lycee', label: 'Collège-Lycée' },
 };
 
 // ─── Age → Mode mapping ─────────────────────────────────

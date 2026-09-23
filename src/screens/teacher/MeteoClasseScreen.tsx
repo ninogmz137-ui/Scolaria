@@ -312,16 +312,11 @@ export default function MeteoClasseScreen() {
             <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
             <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Résumé Aria</Text>
           </HStack>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: '#EEF2FF', borderWidth: 1.5, borderColor: '#E0E7FF', ...CARD_SHADOW }}>
+          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
             <HStack className="items-center gap-2.5 mb-3">
-              <LinearGradient
-                colors={[Colors.violet, Colors.cyanDark]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ width: 30, height: 30, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}
-              >
+              <Box style={[{ width: 30, height: 30, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }, { backgroundColor: '#4338CA' }]}>
                 <Ionicons name="sparkles" size={16} color={Colors.white} />
-              </LinearGradient>
+              </Box>
               <Text className="text-sm font-bold" style={{ color: Colors.violet + 'CC' }}>Analyse IA de la semaine</Text>
             </HStack>
             <Text className="text-sm leading-[21px]" style={{ color: Colors.textSecondary }}>{ARIA_SUMMARY}</Text>

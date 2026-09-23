@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -14,8 +13,9 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../services/supabase';
 import { useAuth, type UserRole } from '../contexts/AuthContext';
+import { Text } from '../components/ui';
 
-const BG = '#F7F7F5';
+const BG = '#F2F1EE';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

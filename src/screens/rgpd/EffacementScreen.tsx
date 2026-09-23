@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, TextInput } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Animated, Alert, TextInput } from 'react-native';
 import {
   Trash2,
   Check,
@@ -30,6 +30,7 @@ import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import GradientButton from '../../components/shared/GradientButton';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Animated, Alert, Platform } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Animated, Alert, Platform } from 'react-native';
 import {
   ArrowRight,
   Check,
@@ -21,6 +21,7 @@ import RgpdHero from '../../components/rgpd/RgpdHero';
 import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

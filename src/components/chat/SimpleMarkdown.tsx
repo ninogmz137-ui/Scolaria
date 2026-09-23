@@ -6,8 +6,9 @@
  */
 
 import { Fragment } from 'react';
-import { Text, type TextStyle } from 'react-native';
+import { type TextStyle } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 interface Props {
   children: string;

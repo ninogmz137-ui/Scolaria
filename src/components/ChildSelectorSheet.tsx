@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   Image,
   Modal,
   Pressable,
@@ -15,6 +14,7 @@ import { Check, Settings2, LogOut } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
+import { Text } from './ui';
 
 interface Props {
   visible: boolean;
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#818cf8',
+    backgroundColor: '#4338CA',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

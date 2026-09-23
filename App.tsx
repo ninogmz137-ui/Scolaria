@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import {
+  DefaultTheme,
   NavigationContainer,
   type NavigationContainerRef,
   useNavigationContainerRef,
@@ -10,6 +11,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import TabNavigator from './src/navigation/TabNavigator';
+import { SCREEN_BACKGROUND } from './src/constants/colors';
 import TeacherTabNavigator from './src/navigation/TeacherTabNavigator';
 import EleveTabNavigator from './src/navigation/EleveTabNavigator';
 import SandboxNavigator from './src/navigation/SandboxNavigator';
@@ -113,6 +115,12 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   );
 }
 
+/** Fond des cartes de navigation (visible en transition / derrière les écrans transparents). */
+const NAV_THEME = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: SCREEN_BACKGROUND },
+};
+
 export default function App() {
   const fontsLoaded = useSolariaFonts();
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
@@ -132,7 +140,7 @@ export default function App() {
               <ChildThemeProvider>
                 <WallpaperProvider>
                 <DemoProvider>
-                  <NavigationContainer ref={navigationRef}>
+                  <NavigationContainer ref={navigationRef} theme={NAV_THEME}>
                     <StatusBar style="dark" />
                     <ErrorBoundary>
                       <AppContent navigationRef={navigationRef} />

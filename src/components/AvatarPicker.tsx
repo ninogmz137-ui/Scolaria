@@ -12,7 +12,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   Modal,
   ScrollView,
@@ -28,6 +27,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from './navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../constants/colors';
+import { Text } from './ui';
 
 // ─── Types ──────────────────────────────────────────────
 

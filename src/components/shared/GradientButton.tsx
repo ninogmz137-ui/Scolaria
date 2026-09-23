@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Pressable, StyleSheet, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ARIA_GRADIENT, ARIA_INDIGO } from '../../constants/theme';
 import { Colors } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 type Variant = 'primary' | 'outline' | 'destructive';
 

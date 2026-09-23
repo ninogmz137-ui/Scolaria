@@ -1,6 +1,7 @@
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 interface DayScore {
   day: number;
@@ -47,7 +48,7 @@ export default function JoyHistory({ data, month }: Props) {
 
         <View style={styles.statsRow}>
           <View style={styles.statCol}>
-            <Text style={[styles.statNum, { color: '#7C3AED' }]}>{avg.toFixed(1)}</Text>
+            <Text style={[styles.statNum, { color: '#4338CA' }]}>{avg.toFixed(1)}</Text>
             <Text style={styles.statMeta}>Moyenne</Text>
           </View>
           <View style={styles.statDivider} />

@@ -2,17 +2,16 @@
  * SubjectDetailScreen — All grades for a single school subject.
  *
  * Receives navigation params (serialized to avoid React Navigation object limits):
- *   subjectId, subjectName, subjectEmoji, subjectColor,
+ *   subjectId, subjectName, subjectColor,
  *   average, classAvg, trend, grades (JSON string of Grade[])
  *
- * Design: WallpaperBackground + GlassCard glass morphism, BarlowCondensed display,
+ * Design: WallpaperBackground + GlassCard glass morphism, Figtree display,
  * DM Sans body, badge/bar colors keyed to performance (green/orange/red).
  */
 
 import { useMemo } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   StyleSheet,
 } from 'react-native';
@@ -22,6 +21,7 @@ import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { Text } from '../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -37,7 +37,6 @@ interface Grade {
 interface RouteParams {
   subjectId: string;
   subjectName: string;
-  subjectEmoji: string;
   subjectColor: string;
   average: number;
   classAvg: number;
@@ -152,7 +151,7 @@ function GradeRow({ grade }: GradeRowProps) {
 
 export default function SubjectDetailScreen({ route }: any) {
   const insets = useSafeAreaInsets();
-  const { subjectName, subjectEmoji, average, classAvg, trend, grades: gradesJson } = route.params;
+  const { subjectName, average, classAvg, trend, grades: gradesJson } = route.params;
 
   // Parse grades safely
   const grades = useMemo<Grade[]>(() => {
@@ -184,7 +183,6 @@ export default function SubjectDetailScreen({ route }: any) {
 
         {/* ── A. Subject header ─────────────────────────── */}
         <View style={styles.subjectHeader}>
-          <Text style={styles.subjectEmoji}>{subjectEmoji}</Text>
           <Text style={styles.subjectName}>{subjectName}</Text>
           <TrendBadge trend={trend} />
         </View>
@@ -252,10 +250,6 @@ const styles = StyleSheet.create({
   subjectHeader: {
     alignItems: 'center',
     marginBottom: 20,
-  },
-  subjectEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
   },
   subjectName: {
     fontFamily: FontFamily.displayBold,

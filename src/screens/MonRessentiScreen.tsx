@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Alert,
   View,
-  Text,
   ScrollView,
   StyleSheet,
   Pressable,
@@ -24,10 +23,11 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
+import { Text } from '../components/ui';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 
-const PAGE_BG = '#F2F4F8';
+const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
 
 const VALUE_JOY: Record<string, number> = {
@@ -65,7 +65,7 @@ const GLOW_SHADOW: Record<AgeMode, object> = {
     elevation: 8,
   },
   lycee: {
-    shadowColor: '#7C3AED',
+    shadowColor: '#4338CA',
     shadowOpacity: 0.25,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 8 },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: 'rgba(15,23,42,0.06)',
   },
   urgencyTitle: {
     fontFamily: FontFamily.sansBold,

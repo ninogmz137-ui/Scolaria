@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Pressable, Platform, ActivityIndicator, ScrollView,
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Pressable,
+  Platform,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { Text } from '../components/ui';
 
-const BG = '#F7F7F5';
+const BG = '#F2F1EE';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

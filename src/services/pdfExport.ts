@@ -65,7 +65,7 @@ function generateHTML(data: PDFExportData): string {
       <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
       <span style="flex:1;font-weight:600;color:#37352F;font-size:13px;">${c.label}</span>
       <div style="width:120px;height:8px;background:#E8E5E0;border-radius:4px;overflow:hidden;">
-        <div style="width:${c.value * 10}%;height:100%;background:linear-gradient(to right,#6D28D9,#22D3EE);border-radius:4px;"></div>
+        <div style="width:${c.value * 10}%;height:100%;background:linear-gradient(to right,#4338CA,#22D3EE);border-radius:4px;"></div>
       </div>
       <span style="font-weight:800;color:#37352F;font-size:14px;width:30px;text-align:right;">${c.value}/10</span>
     </div>
@@ -79,7 +79,7 @@ function generateHTML(data: PDFExportData): string {
       <td style="padding:10px 12px;color:#37352F;font-weight:600;">${a.level}</td>
       <td style="padding:10px 12px;">
         <div style="width:80px;height:6px;background:#E8E5E0;border-radius:3px;overflow:hidden;">
-          <div style="width:${a.progressPercent}%;height:100%;background:#6D28D9;border-radius:3px;"></div>
+          <div style="width:${a.progressPercent}%;height:100%;background:#4338CA;border-radius:3px;"></div>
         </div>
       </td>
       <td style="padding:10px 12px;color:#787774;font-size:12px;">Depuis ${a.since}</td>
@@ -101,7 +101,7 @@ function generateHTML(data: PDFExportData): string {
   <style>
     @page { margin: 40px; size: A4; }
     body { font-family: -apple-system, 'Segoe UI', sans-serif; color: #37352F; margin: 0; padding: 0; }
-    .header { background: linear-gradient(135deg, #6D28D9 0%, #22D3EE 100%); padding: 40px; border-radius: 0 0 24px 24px; color: white; text-align: center; }
+    .header { background: linear-gradient(135deg, #4338CA 0%, #22D3EE 100%); padding: 40px; border-radius: 0 0 24px 24px; color: white; text-align: center; }
     .header h1 { font-size: 28px; margin: 0 0 4px 0; font-weight: 900; }
     .header .subtitle { opacity: 0.8; font-size: 14px; }
     .header .avatar { font-size: 56px; margin-bottom: 12px; }
@@ -111,10 +111,10 @@ function generateHTML(data: PDFExportData): string {
     .section-title { font-size: 16px; font-weight: 700; color: #37352F; margin-bottom: 14px; border-bottom: 2px solid #E8E5E0; padding-bottom: 6px; }
     .superpower { background: linear-gradient(135deg, #F3E5F7 0%, #E8F0FE 100%); border-radius: 16px; padding: 20px; display: flex; gap: 16px; align-items: center; border: 1px solid #E8E5E0; }
     .superpower .emoji { font-size: 40px; }
-    .superpower .info h3 { margin: 0 0 4px 0; font-size: 18px; color: #6D28D9; }
+    .superpower .info h3 { margin: 0 0 4px 0; font-size: 18px; color: #4338CA; }
     .superpower .info p { margin: 0; font-size: 13px; color: #787774; line-height: 1.5; }
     .stats-grid { display: flex; gap: 12px; }
-    .stat-card { flex: 1; background: #F7F7F5; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #E8E5E0; }
+    .stat-card { flex: 1; background: #F2F1EE; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #E8E5E0; }
     .stat-value { font-size: 28px; font-weight: 800; color: #37352F; }
     .stat-label { font-size: 11px; color: #787774; margin-top: 4px; }
     table { width: 100%; border-collapse: collapse; }
@@ -122,7 +122,7 @@ function generateHTML(data: PDFExportData): string {
     table tbody tr { border-bottom: 1px solid #F0EEED; }
     .joy-chart { display: flex; gap: 2px; align-items: flex-end; height: 80px; padding: 8px 0; }
     .footer { text-align: center; padding: 20px 40px; color: #B4B0AC; font-size: 11px; border-top: 1px solid #E8E5E0; margin-top: 10px; }
-    .footer .logo { font-size: 14px; font-weight: 800; color: #6D28D9; }
+    .footer .logo { font-size: 14px; font-weight: 800; color: #4338CA; }
   </style>
 </head>
 <body>
@@ -258,14 +258,14 @@ function generateMemoHTML(data: TransitionMemoData): string {
 
   const topComps = [...competences].sort((a, b) => b.value - a.value).slice(0, 3);
   const compList = topComps.map(c => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F7F7F5;border-radius:10px;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F2F1EE;border-radius:10px;margin-bottom:6px;">
       <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
       <div style="flex:1;">
         <div style="font-weight:700;color:#37352F;font-size:14px;">${c.label}</div>
         <div style="font-size:12px;color:#787774;">Niveau ${c.value}/10</div>
       </div>
       <div style="display:flex;gap:2px;">
-        ${Array.from({ length: 10 }, (_, i) => `<div style="width:8px;height:8px;border-radius:4px;background:${i < c.value ? '#6D28D9' : '#E8E5E0'};"></div>`).join('')}
+        ${Array.from({ length: 10 }, (_, i) => `<div style="width:8px;height:8px;border-radius:4px;background:${i < c.value ? '#4338CA' : '#E8E5E0'};"></div>`).join('')}
       </div>
     </div>
   `).join('');
@@ -274,7 +274,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0EEED;">
       <span style="font-size:20px;">${a.emoji}</span>
       <span style="font-weight:600;color:#37352F;flex:1;">${a.name}</span>
-      <span style="font-size:12px;color:#787774;background:#F7F7F5;padding:3px 10px;border-radius:8px;">${a.level}</span>
+      <span style="font-size:12px;color:#787774;background:#F2F1EE;padding:3px 10px;border-radius:8px;">${a.level}</span>
     </div>
   `).join('');
 
@@ -289,18 +289,18 @@ function generateMemoHTML(data: TransitionMemoData): string {
   <style>
     @page { margin: 40px; size: A4; }
     body { font-family: -apple-system, 'Segoe UI', sans-serif; color: #37352F; margin: 0; }
-    .banner { background: linear-gradient(135deg, #22D3EE 0%, #6D28D9 100%); padding: 30px 40px; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 20px 20px; }
+    .banner { background: linear-gradient(135deg, #22D3EE 0%, #4338CA 100%); padding: 30px 40px; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 20px 20px; }
     .banner-left h1 { font-size: 22px; margin: 0; font-weight: 900; }
     .banner-left p { margin: 4px 0 0 0; opacity: 0.8; font-size: 13px; }
     .banner-right { text-align: right; }
     .banner-right .avatar { font-size: 48px; }
     .banner-right .name { font-weight: 800; font-size: 18px; }
     .body { padding: 28px 40px; }
-    .intro { background: #F3E5F7; border-radius: 14px; padding: 18px; margin-bottom: 24px; border-left: 4px solid #6D28D9; }
+    .intro { background: #F3E5F7; border-radius: 14px; padding: 18px; margin-bottom: 24px; border-left: 4px solid #4338CA; }
     .intro p { margin: 0; font-size: 14px; line-height: 1.6; color: #37352F; }
     .section { margin-bottom: 24px; }
     .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #37352F; display: flex; align-items: center; gap: 8px; }
-    .joy-card { display: flex; align-items: center; gap: 16px; background: #F7F7F5; border-radius: 14px; padding: 16px 20px; border: 1px solid #E8E5E0; }
+    .joy-card { display: flex; align-items: center; gap: 16px; background: #F2F1EE; border-radius: 14px; padding: 16px 20px; border: 1px solid #E8E5E0; }
     .joy-emoji { font-size: 36px; }
     .joy-score { font-size: 32px; font-weight: 800; }
     .joy-label { font-size: 13px; color: #787774; }
@@ -376,7 +376,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
   </div>
 
   <div class="footer">
-    <div style="font-size:14px;font-weight:800;color:#6D28D9;">Scolaria</div>
+    <div style="font-size:14px;font-weight:800;color:#4338CA;">Scolaria</div>
     <div>Passeport scolaire numérique — Document de transition</div>
     <div style="margin-top:4px;">Confidentiel — Transmis avec le consentement de la famille.</div>
   </div>

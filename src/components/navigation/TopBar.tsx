@@ -11,9 +11,8 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable } from '../ui';
+import { View, Image, StyleSheet, Platform } from 'react-native';
+import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
@@ -143,12 +142,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
           <View style={styles.childAvatarOuter}>
             {/* Inner: clip + border */}
             <View style={styles.childAvatarClip}>
-              <LinearGradient
-                colors={['#818cf8', '#6366f1']}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
-                style={StyleSheet.absoluteFill}
-              />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: '#4338CA' }]} />
               {hasPhoto ? (
                 <Image
                   source={{ uri: selectedChild.avatarPhotoUri! }}

@@ -7,7 +7,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -22,6 +21,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { Text } from '../components/ui';
 
 // ─── Demo data ───────────────────────────────────────────
 

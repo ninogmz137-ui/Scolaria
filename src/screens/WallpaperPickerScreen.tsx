@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,6 +16,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 import { nativeInactivePillShadow, PILL_ACTIVE_NAVY } from '../constants/theme';
+import { Text } from '../components/ui';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 12;
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   cardActive: {
-    borderColor: '#7C3AED',
+    borderColor: '#4338CA',
   },
   cardImage: {
     width: '100%',
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
     alignItems: 'center',
     justifyContent: 'center',
   },

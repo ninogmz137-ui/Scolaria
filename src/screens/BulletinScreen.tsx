@@ -7,7 +7,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -20,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { Text } from '../components/ui';
 
 // ─── Constantes ───────────────────────────────────────────
 

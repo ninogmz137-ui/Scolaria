@@ -426,12 +426,7 @@ export default function AppreciationsScreen() {
             className="rounded-[30px] overflow-hidden mb-5"
             style={{ opacity: canGenerate ? 1 : 0.5 }}
           >
-            <LinearGradient
-              colors={canGenerate ? [Colors.violet, Colors.cyanDark] : ['#CBD5E1', '#94A3B8']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }}
-            >
+            <Box style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }, { backgroundColor: canGenerate ? '#0F172A' : '#CBD5E1' }]}>
               {generating ? (
                 <>
                   <Spinner color={Colors.white} size="small" />
@@ -443,7 +438,7 @@ export default function AppreciationsScreen() {
                   <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Générer l'appréciation</Text>
                 </>
               )}
-            </LinearGradient>
+            </Box>
           </Pressable>
         </Animated.View>
 
@@ -456,7 +451,7 @@ export default function AppreciationsScreen() {
             }}
           >
             {/* Variant A */}
-            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
               <HStack className="items-center mb-3 gap-2">
                 <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.violet + '30' }}>
                   <Text className="text-sm font-black" style={{ color: '#0F172A' }}>A</Text>
@@ -478,7 +473,7 @@ export default function AppreciationsScreen() {
             </Box>
 
             {/* Variant B */}
-            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1.5, borderColor: Colors.violet + '30', ...CARD_SHADOW }}>
+            <Box className="rounded-[20px] p-[18px] mb-3.5" style={{ backgroundColor: SCREEN_BACKGROUND, borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
               <HStack className="items-center mb-3 gap-2">
                 <Box className="w-7 h-7 rounded-[14px] justify-center items-center" style={{ backgroundColor: Colors.cyan + '20' }}>
                   <Text className="text-sm font-black" style={{ color: '#0F172A' }}>B</Text>
@@ -511,7 +506,7 @@ export default function AppreciationsScreen() {
               borderRadius: 20,
               padding: 20,
               borderWidth: 1.5,
-              borderColor: Colors.violet + '30',
+              borderColor: 'rgba(15,23,42,0.06)',
               ...CARD_SHADOW,
             }}
           >

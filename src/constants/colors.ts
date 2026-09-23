@@ -1,5 +1,5 @@
 /** Unified light screen / page background (all main screens). */
-export const SCREEN_BACKGROUND = '#F7F7F5' as const;
+export const SCREEN_BACKGROUND = '#F2F1EE' as const;
 
 export const Colors = {
   // ── Light design system (primary palette) ──────────
@@ -16,9 +16,9 @@ export const Colors = {
   blueNightCard: '#1A1F3D',
 
   // ── Brand accents ──────────────────────────────────
-  violet: '#6D28D9',
-  violetLight: '#7C3AED',
-  violetDark: '#5B21B6',
+  violet: '#4338CA',
+  violetLight: '#4338CA',
+  violetDark: '#4338CA',
   cyan: '#22D3EE',
   cyanDark: '#0891B2',
 

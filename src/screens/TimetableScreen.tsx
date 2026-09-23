@@ -14,7 +14,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -24,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from '../components/ui';
 
 // ─── Tokens locaux ────────────────────────────────────────────────────────────
 

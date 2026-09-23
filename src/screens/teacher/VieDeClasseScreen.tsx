@@ -418,17 +418,12 @@ export default function VieDeClasseScreen() {
 
         {/* ─── New Post Button ─── */}
         <Pressable onPress={toggleComposer} className="rounded-[14px] overflow-hidden mb-4">
-          <LinearGradient
-            colors={[Colors.violet, Colors.cyanDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 }}
-          >
+          <Box style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 }, { backgroundColor: '#0F172A' }]}>
             <Ionicons name={showComposer ? 'close' : 'create'} size={20} color={Colors.white} />
             <Text className="text-[15px] font-bold" style={{ color: Colors.white }}>
               {showComposer ? 'Annuler' : 'Nouvelle publication'}
             </Text>
-          </LinearGradient>
+          </Box>
         </Pressable>
 
         {/* ─── Composer ─── */}

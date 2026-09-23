@@ -871,7 +871,7 @@ export default function TabNavigator() {
 
         {/* ── Main content — animated scale/translate ── */}
         <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
-          <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+          <View style={{ flex: 1, backgroundColor: '#F2F1EE' }}>
             {/* Top blur veil (appears on scroll) */}
             {showNavChrome && (
               <Animated.View

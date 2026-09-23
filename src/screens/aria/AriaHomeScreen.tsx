@@ -12,7 +12,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   FlatList,
   Pressable,
@@ -55,6 +54,7 @@ import {
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
+import { Text } from '../../components/ui';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

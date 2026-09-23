@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   FlatList,
   TextInput,
@@ -45,6 +44,7 @@ import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
 import RoundGlassIconButton from '../../components/shared/RoundGlassIconButton';
 import { ariaSidebarTitle, defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
+import { Text } from '../../components/ui';
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;

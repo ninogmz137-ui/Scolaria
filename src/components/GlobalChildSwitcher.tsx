@@ -23,7 +23,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODE_COLORS: Record<string, string> = {
   maternelle: '#FF8C42',
   primaire: '#22D3EE',
-  lycee: '#6D28D9',
+  lycee: '#4338CA',
 };
 
 // ─── Header Avatar Button ─────────────────────────────────
@@ -33,7 +33,7 @@ export function HeaderChildAvatar() {
   const { theme } = useSchoolMode();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const modeColor = MODE_COLORS[theme.mode] || '#7C3AED';
+  const modeColor = MODE_COLORS[theme.mode] || '#4338CA';
 
   return (
     <>
@@ -145,7 +145,7 @@ export function ChildSwitcherModal({
                 ? getSchoolModeFromBirthDate(child.birthDate)
                 : 'primaire';
               const childTheme = THEMES[childMode];
-              const modeColor = MODE_COLORS[childMode] || '#7C3AED';
+              const modeColor = MODE_COLORS[childMode] || '#4338CA';
 
               return (
                 <Pressable

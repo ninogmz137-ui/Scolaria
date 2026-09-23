@@ -7,7 +7,6 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import {
   View,
-  Text,
   TextInput,
   Pressable,
   KeyboardAvoidingView,
@@ -23,6 +22,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useAuth } from '../contexts/AuthContext';
+import { Text } from '../components/ui';
 
 interface Props {
   onBack?: () => void;
@@ -150,14 +150,9 @@ export default function PinScreen({ onBack }: Props) {
               ) : null}
 
               <Pressable onPress={handleSubmit} style={{ marginTop: 18 }}>
-                <LinearGradient
-                  colors={[VIOLET, CYAN]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={s.submitBtn}
-                >
+                <View style={[s.submitBtn, { backgroundColor: '#4338CA' }]}>
                   <Text style={s.submitText}>Continuer</Text>
-                </LinearGradient>
+                </View>
               </Pressable>
 
               <Text style={s.hint}>
@@ -179,7 +174,7 @@ const s = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(139,92,246,0.12)',
+    backgroundColor: 'rgba(67,56,202,0.12)',
     top: -70,
     right: -95,
     opacity: 0.85,

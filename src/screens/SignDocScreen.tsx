@@ -6,7 +6,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -20,6 +19,7 @@ import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constant
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
+import { Text } from '../components/ui';
 
 // ─── Data demo ───────────────────────────────────────────
 

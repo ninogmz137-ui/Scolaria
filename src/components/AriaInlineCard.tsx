@@ -5,11 +5,12 @@
  * NE PAS confondre avec AriaCard (legacy Gluestack) ni dashboard/AriaCard.
  */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from './ScolariaSymbol';
+import { Text } from './ui';
 
 interface AriaInlineCardProps {
   children: React.ReactNode;

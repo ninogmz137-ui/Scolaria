@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   View,
-  Text,
   Pressable,
   StyleSheet,
   Platform,
@@ -20,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Camera, Image as ImageIcon, FileUp, X } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 export type AddAttachment = { kind: 'camera' | 'photo' | 'file'; uri: string; name?: string | null };
 

@@ -12,7 +12,6 @@ import { ScrollView, TextInput, Alert } from 'react-native';
 import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/colors';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -237,7 +236,7 @@ export default function AjouterAnneScreen() {
       {/* Scan option */}
       <Pressable
         className="p-6 rounded-[20px] items-center mb-4"
-        style={{ backgroundColor: theme.card, borderColor: theme.accent + '30', borderWidth: 1, gap: 10 }}
+        style={{ backgroundColor: theme.card, borderColor: 'rgba(15,23,42,0.06)', borderWidth: 1, gap: 10 }}
         onPress={handleScanBulletins}
       >
         <Box
@@ -356,15 +355,10 @@ export default function AjouterAnneScreen() {
             }}
             disabled={step === 1 && !canProceedStep1}
           >
-            <LinearGradient
-              colors={[theme.accent, theme.accentDark ?? theme.accent]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14 }}
-            >
+            <Box style={[{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14 }, { backgroundColor: '#0F172A' }]}>
               <Text className="text-[15px] font-bold" style={{ color: Colors.white }}>Suivant</Text>
               <Ionicons name="arrow-forward" size={18} color={Colors.white} />
-            </LinearGradient>
+            </Box>
           </Pressable>
         ) : (
           <Pressable
@@ -372,17 +366,12 @@ export default function AjouterAnneScreen() {
             onPress={handleCreate}
             disabled={creating}
           >
-            <LinearGradient
-              colors={[Colors.green, '#059669']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14 }}
-            >
+            <Box style={[{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14 }, { backgroundColor: '#0F172A' }]}>
               <Ionicons name="checkmark-circle" size={20} color={Colors.white} />
               <Text className="text-[15px] font-bold" style={{ color: Colors.white }}>
                 {creating ? 'Creation...' : 'Creer le millesime'}
               </Text>
-            </LinearGradient>
+            </Box>
           </Pressable>
         )}
       </HStack>

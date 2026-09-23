@@ -5,12 +5,13 @@
  * Status: signalée (orange) | prise_en_compte (green) | refusée (red).
  */
 
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

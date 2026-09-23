@@ -1,13 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import {
-  View, Text, TextInput, ScrollView, Pressable,
-  StyleSheet, Platform, Modal,
+  View,
+  TextInput,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  Platform,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, X, Settings, Heart, GraduationCap,
          Shield, Info, Palette, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from '../components/ui';
 
 const QUICK_LINKS = [
   { id: 'profil',    icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },

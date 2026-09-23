@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { ARIA_INDIGO } from '../../constants/theme';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import GlassCard from '../GlassCard';
+import { Text } from '../ui';
 
 type Props = {
   Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;

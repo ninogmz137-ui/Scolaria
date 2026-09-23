@@ -210,7 +210,7 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
                 badge: totalMessages > 0 ? `${totalMessages} non lu${totalMessages > 1 ? 's' : ''}` : 'Tout lu',
                 onPress: () => navigation.getParent()?.navigate('Messages') },
             ].map(a => (
-              <Pressable key={a.label} onPress={a.onPress} style={{ width: (width - 50) / 2, backgroundColor: Colors.card, borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: `rgba(${TEACHER_ORANGE_RGB},0.15)`, ...CARD_SHADOW }}>
+              <Pressable key={a.label} onPress={a.onPress} style={{ width: (width - 50) / 2, backgroundColor: Colors.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
                 <Box className="w-11 h-11 rounded-[14px] justify-center items-center mb-2.5" style={{ backgroundColor: a.color + '20' }}>
                   <Ionicons name={a.icon} size={24} color={a.color} />
                 </Box>
@@ -227,7 +227,7 @@ export default function TeacherDashboardScreen({ navigation }: { navigation: any
                 <Box style={{ width: 4, height: 20, backgroundColor: TEACHER_ORANGE, borderRadius: 2, marginRight: 8 }} />
                 <Text className="text-[17px] font-extrabold" style={{ color: Colors.textPrimary }}>⚠️ Alertes bien-être ({alertCount})</Text>
               </HStack>
-              <Box className="rounded-2xl p-1" style={{ backgroundColor: Colors.red + '08', borderWidth: 1.5, borderColor: Colors.red + '30', ...CARD_SHADOW }}>
+              <Box className="rounded-2xl p-1" style={{ backgroundColor: Colors.red + '08', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
                 {students.filter(s => s.alert).map(student => (
                   <HStack key={student.id} className="items-center p-3 gap-3">
                     <Box className="w-10 h-10 rounded-full justify-center items-center" style={{ backgroundColor: Colors.red + '10', borderWidth: 2, borderColor: Colors.red }}>

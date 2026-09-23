@@ -11,7 +11,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
-  Text,
   TextInput,
   ScrollView,
   Pressable,
@@ -44,6 +43,7 @@ import {
 import type { Conversation } from '../data/messagerieData';
 import { C } from '../constants/design';
 import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
+import { Text } from '../components/ui';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ const TEXT35 = 'rgba(15,23,42,0.35)';
 const TAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   sortie:   { bg: '#CFFAFE', text: '#155E75', label: 'Sortie' },
   devoir:   { bg: '#FEF3C7', text: '#92400E', label: 'Devoir' },
-  vie:      { bg: '#EDE9FE', text: '#5B21B6', label: 'Vie scolaire' },
+  vie:      { bg: '#EEF2FF', text: '#4338CA', label: 'Vie scolaire' },
   cantine:  { bg: '#D1FAE5', text: '#065F46', label: 'Cantine' },
   admin:    { bg: '#E2E8F0', text: '#334155', label: 'Administratif' },
   controle: { bg: '#FCE7F3', text: '#9D174D', label: 'Contrôle' },

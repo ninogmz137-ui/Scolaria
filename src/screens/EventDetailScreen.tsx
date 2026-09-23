@@ -11,7 +11,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -19,7 +18,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ChevronLeft,
   MoreHorizontal,
@@ -33,6 +31,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { Text } from '../components/ui';
 
 // ─── Route params ────────────────────────────────────────────────────────────
 type EventDetailParams = {
@@ -135,12 +134,7 @@ const EventDetailScreen: React.FC = () => {
   return (
     <View style={styles.root}>
       {/* ── Gradient header (handles top safe area itself) ── */}
-      <LinearGradient
-        colors={[categoryColors.main + 'CC', categoryColors.bg]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: insets.top + 12 }]}
-      >
+      <View style={[[styles.header, { paddingTop: insets.top + 12 }], { backgroundColor: categoryColors.bg }]}>
         {/* Action row */}
         <View style={styles.headerActions}>
           <TouchableOpacity
@@ -166,7 +160,7 @@ const EventDetailScreen: React.FC = () => {
         <Text style={styles.headerDateTime}>
           {event.date} · {event.time}
         </Text>
-      </LinearGradient>
+      </View>
 
       {/* ── Scrollable body ── */}
       <ScrollView

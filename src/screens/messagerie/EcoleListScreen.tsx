@@ -4,12 +4,13 @@
  * Shows a list of school-wide announcements: vacations, events, canteen info.
  */
 
-import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
     subtitle: 'La liste des fournitures pour la rentrée prochaine est disponible.',
     date: 'Mars 2026',
     category: 'Scolarité',
-    categoryColor: '#7C3AED',
+    categoryColor: '#4338CA',
   },
   {
     id: 'ann-5',

@@ -6,8 +6,8 @@
  * - Week day strip (always visible, 7 days, first-letter labels)
  * - Day title + event count
  * - Swipeable day pages (horizontal FlatList, pagingEnabled)
- * - New event card style with left accent bar + emoji circle
- * - FAB: black square-rounded button
+ * - Event card: left accent bar + text only (jamais d'emoji dans une card Agenda)
+ * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -19,7 +19,6 @@ import {
   Pressable,
   TouchableOpacity,
   StyleSheet,
-  Text,
   Platform,
   Modal,
   TextInput,
@@ -50,6 +49,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from '../components/ui';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -88,7 +88,6 @@ interface AgendaEvent {
   endTime?: string;
   type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie';
   subject?: string;
-  emoji: string;
   location?: string;
   description?: string;
   color: string;
@@ -119,9 +118,6 @@ interface DevoirGroup {
 
 const NEW_EVENT_TYPE_LABELS: Record<NewEventType, string> = {
   devoir: 'Devoir', controle: 'Contrôle', sortie: 'Sortie', autre: 'Autre',
-};
-const NEW_EVENT_TYPE_EMOJI: Record<NewEventType, string> = {
-  devoir: '📝', controle: '📐', sortie: '🏛️', autre: '📅',
 };
 
 // ─── Helpers ──────────────────────────────────────────────
@@ -190,9 +186,6 @@ function buildCalendarGrid(
   return grid;
 }
 
-const DEFAULT_EMOJI: Record<AgendaEvent['type'], string> = {
-  cours: '📚', devoir: '📝', examen: '📐', activite: '🎯', reunion: '👨‍👩‍👦', sortie: '🏛️',
-};
 const DEFAULT_COLOR: Record<AgendaEvent['type'], string> = {
   cours: Colors.violet, devoir: Colors.orange, examen: Colors.red,
   activite: Colors.cyan, reunion: Colors.violet, sortie: Colors.cyan,
@@ -207,31 +200,31 @@ const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
 const MOCK_WEEK_DAYS = buildWeekDays(new Date());
 const MOCK_EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
   [MOCK_WEEK_DAYS[0]?.date ?? 0]: [
-    { id: 'e1', title: 'Mathématiques', time: '08:30', endTime: '09:30', type: 'cours', emoji: '📐', subject: 'Maths', color: Colors.cyan, location: 'Salle 204' },
-    { id: 'e2', title: 'Français', time: '10:00', endTime: '11:00', type: 'cours', emoji: '📖', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
-    { id: 'e3', title: 'Devoir de géométrie', time: '17:00', type: 'devoir', emoji: '📝', subject: 'Maths', color: Colors.orange, description: 'Ex. 4, 5, 6 p.142', done: true },
+    { id: 'e1', title: 'Mathématiques', time: '08:30', endTime: '09:30', type: 'cours', subject: 'Maths', color: Colors.cyan, location: 'Salle 204' },
+    { id: 'e2', title: 'Français', time: '10:00', endTime: '11:00', type: 'cours', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
+    { id: 'e3', title: 'Devoir de géométrie', time: '17:00', type: 'devoir', subject: 'Maths', color: Colors.orange, description: 'Ex. 4, 5, 6 p.142', done: true },
   ],
   [MOCK_WEEK_DAYS[1]?.date ?? 0]: [
-    { id: 'e4', title: 'Histoire-Géo', time: '08:30', endTime: '09:30', type: 'cours', emoji: '🏛️', subject: 'Histoire', color: Colors.orange, location: 'Salle 305' },
-    { id: 'e5', title: 'Anglais', time: '10:00', endTime: '11:00', type: 'cours', emoji: '🇬🇧', subject: 'Anglais', color: Colors.green, location: 'Salle 201' },
-    { id: 'e6', title: 'Apprendre vocabulaire ch.5', time: '17:00', type: 'devoir', emoji: '📝', subject: 'Anglais', color: Colors.orange },
+    { id: 'e4', title: 'Histoire-Géo', time: '08:30', endTime: '09:30', type: 'cours', subject: 'Histoire', color: Colors.orange, location: 'Salle 305' },
+    { id: 'e5', title: 'Anglais', time: '10:00', endTime: '11:00', type: 'cours', subject: 'Anglais', color: Colors.green, location: 'Salle 201' },
+    { id: 'e6', title: 'Apprendre vocabulaire ch.5', time: '17:00', type: 'devoir', subject: 'Anglais', color: Colors.orange },
   ],
   [MOCK_WEEK_DAYS[2]?.date ?? 0]: [
-    { id: 'e7', title: 'Judo', time: '14:00', endTime: '15:30', type: 'activite', emoji: '🥋', color: Colors.warmOrange, location: 'Dojo municipal' },
-    { id: 'e8', title: 'Piano', time: '16:00', endTime: '17:00', type: 'activite', emoji: '🎹', color: Colors.violet, location: 'Conservatoire' },
+    { id: 'e7', title: 'Judo', time: '14:00', endTime: '15:30', type: 'activite', color: Colors.warmOrange, location: 'Dojo municipal' },
+    { id: 'e8', title: 'Piano', time: '16:00', endTime: '17:00', type: 'activite', color: Colors.violet, location: 'Conservatoire' },
   ],
   [MOCK_WEEK_DAYS[3]?.date ?? 0]: [
-    { id: 'e9', title: 'Sciences', time: '08:30', endTime: '10:00', type: 'cours', emoji: '🔬', subject: 'Sciences', color: Colors.pink, location: 'Labo' },
-    { id: 'e10', title: 'Réunion parents', time: '18:00', endTime: '19:00', type: 'reunion', emoji: '👨‍👩‍👦', color: Colors.violet, location: 'Salle polyvalente', description: 'Bilan du 2ème trimestre' },
+    { id: 'e9', title: 'Sciences', time: '08:30', endTime: '10:00', type: 'cours', subject: 'Sciences', color: Colors.pink, location: 'Labo' },
+    { id: 'e10', title: 'Réunion parents', time: '18:00', endTime: '19:00', type: 'reunion', color: Colors.violet, location: 'Salle polyvalente', description: 'Bilan du 2ème trimestre' },
   ],
   [MOCK_WEEK_DAYS[4]?.date ?? 0]: [
-    { id: 'e11', title: 'Contrôle de Maths', time: '08:30', endTime: '09:30', type: 'examen', emoji: '📐', subject: 'Maths', color: Colors.red, location: 'Salle 204', description: 'Chapitres 7-9 : fractions et proportionnalité' },
-    { id: 'e12', title: 'EPS', time: '10:00', endTime: '11:30', type: 'cours', emoji: '⚽', subject: 'EPS', color: Colors.warmOrange, location: 'Gymnase' },
-    { id: 'e13', title: 'Français', time: '14:00', endTime: '15:00', type: 'cours', emoji: '📖', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
-    { id: 'e14', title: 'Lire ch.8 du roman', time: '17:00', type: 'devoir', emoji: '📚', subject: 'Français', color: Colors.orange, description: 'Le Petit Prince, préparer questions' },
+    { id: 'e11', title: 'Contrôle de Maths', time: '08:30', endTime: '09:30', type: 'examen', subject: 'Maths', color: Colors.red, location: 'Salle 204', description: 'Chapitres 7-9 : fractions et proportionnalité' },
+    { id: 'e12', title: 'EPS', time: '10:00', endTime: '11:30', type: 'cours', subject: 'EPS', color: Colors.warmOrange, location: 'Gymnase' },
+    { id: 'e13', title: 'Français', time: '14:00', endTime: '15:00', type: 'cours', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
+    { id: 'e14', title: 'Lire ch.8 du roman', time: '17:00', type: 'devoir', subject: 'Français', color: Colors.orange, description: 'Le Petit Prince, préparer questions' },
   ],
   [MOCK_WEEK_DAYS[5]?.date ?? 0]: [
-    { id: 'e15', title: 'Sortie au musée', time: '10:00', endTime: '16:00', type: 'sortie', emoji: '🏛️', color: Colors.cyan, location: 'Musée d\'Orsay', description: 'Prévoir pique-nique' },
+    { id: 'e15', title: 'Sortie au musée', time: '10:00', endTime: '16:00', type: 'sortie', color: Colors.cyan, location: 'Musée d\'Orsay', description: 'Prévoir pique-nique' },
   ],
   [MOCK_WEEK_DAYS[6]?.date ?? 0]: [],
 };
@@ -518,7 +511,6 @@ export default function AgendaScreen() {
             endTime: e.endTime || undefined,
             type: (e.type || 'cours') as AgendaEvent['type'],
             subject: e.subject || undefined,
-            emoji: e.emoji || '📅',
             location: e.room || undefined,
             description: e.description || undefined,
             color: e.color || Colors.violet,
@@ -561,7 +553,6 @@ export default function AgendaScreen() {
         time: `${hh}:${mm}`,
         endTime: endHH ? `${endHH}:${endMM}` : undefined,
         type, subject: row.subject,
-        emoji: row.emoji ?? DEFAULT_EMOJI[type] ?? '📅',
         location: row.location, description: row.description,
         color: row.color ?? DEFAULT_COLOR[type] ?? Colors.violet,
         done: row.is_done ?? false,
@@ -608,7 +599,6 @@ export default function AgendaScreen() {
           parent_id: user.id,
           title: newEventTitle.trim(),
           event_type: typeMap[newEventType],
-          emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
           start_time: dayDate.toISOString(),
         });
         if (result?.error) {
@@ -624,7 +614,6 @@ export default function AgendaScreen() {
           title: newEventTitle.trim(),
           time: `${hh}h00`,
           type: typeMap[newEventType],
-          emoji: NEW_EVENT_TYPE_EMOJI[newEventType],
           color: DEFAULT_COLOR[typeMap[newEventType]] ?? '#4338CA',
         };
         setEventsByDay((prev) => ({
@@ -774,11 +763,6 @@ export default function AgendaScreen() {
         <View style={[st.eventAccentBar, { backgroundColor: event.color }]} />
 
         <View style={st.eventInner}>
-          {/* Emoji circle */}
-          <View style={st.emojiCircle}>
-            <Text style={{ fontSize: 22 }}>{event.emoji}</Text>
-          </View>
-
           {/* Title + time */}
           <View style={{ flex: 1 }}>
             <Text
@@ -1181,7 +1165,7 @@ export default function AgendaScreen() {
                       ]}
                     >
                       <Text style={[st.modalTypeText, isActive && st.modalTypeTextActive]}>
-                        {NEW_EVENT_TYPE_EMOJI[type]} {NEW_EVENT_TYPE_LABELS[type]}
+                        {NEW_EVENT_TYPE_LABELS[type]}
                       </Text>
                     </Pressable>
                   );
@@ -1428,19 +1412,6 @@ const st = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     gap: 12,
-  },
-  emojiCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: C.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
   },
   eventTitle: {
     fontFamily: FontFamily.sansBold,

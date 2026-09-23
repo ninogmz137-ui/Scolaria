@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Switch, Animated, Modal, Alert } from 'react-native';
+import { View, Pressable, ScrollView, StyleSheet, Switch, Animated, Modal, Alert } from 'react-native';
 import {
   Lock,
   Info,
@@ -30,6 +30,7 @@ import {
   deletePermission,
   type PersonPermission,
 } from '../../services/rgpdService';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

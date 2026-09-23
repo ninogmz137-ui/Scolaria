@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, ChevronRight, Check, Archive, Upload, FileText } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +20,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { AcademicYearStatut } from '../services/database';
 import { getAcademicYears } from '../services/database';
 import { useDemoData } from '../contexts/DemoContext';
+import { Text } from '../components/ui';
 
 // ─── Mock academic year data ─────────────────────────────
 
@@ -81,7 +82,7 @@ export default function MonParcoursScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const TOPBAR_H = insets.top + 56;
-  const accent = '#7C3AED';
+  const accent = '#4338CA';
 
   const [years, setYears] = useState<AcademicYearCard[]>(() => getMockYears(selectedChild.id));
 
@@ -251,7 +252,7 @@ export default function MonParcoursScreen() {
           onPress={() => navigation.navigate('AjouterAnne')}
           style={({ pressed }) => [styles.addButton, pressed && { opacity: 0.6 }]}
         >
-          <Plus size={18} color="#7C3AED" strokeWidth={1.5} />
+          <Plus size={18} color="#4338CA" strokeWidth={1.5} />
           <Text style={styles.addButtonText}>Ajouter une année passée</Text>
         </Pressable>
       </ScrollView>
@@ -375,6 +376,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 14,
-    color: '#7C3AED',
+    color: '#4338CA',
   },
 });

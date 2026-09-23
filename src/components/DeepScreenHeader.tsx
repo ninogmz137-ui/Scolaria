@@ -5,11 +5,12 @@
  * Android safe : pas de gap, borderRadius sur conteneur avec backgroundColor.
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from './ui';
 
 interface DeepScreenHeaderProps {
   onBack: () => void;

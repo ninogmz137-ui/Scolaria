@@ -5,13 +5,11 @@
  *   1. Conversations — mock teacher threads
  *   2. Mots à signer — liaison items from mock data
  *
- * FAB (+) bottom-right opens a teacher selection modal to start a new conversation.
  */
 
 import { useState, useCallback } from 'react';
 import {
   View,
-  Text,
   Pressable,
   ScrollView,
   Modal,
@@ -30,6 +28,7 @@ import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import { nativeWhiteInteractiveShadow } from '../../constants/theme';
+import { Text } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -215,7 +214,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
       >
         {/* ── Section: Conversations ── */}
         <View style={styles.sectionHeaderRow}>
-          <View style={[styles.sectionAccentBar, { backgroundColor: '#7C3AED' }]} />
+          <View style={[styles.sectionAccentBar, { backgroundColor: '#4338CA' }]} />
           <Text style={styles.sectionLabel}>Conversations</Text>
         </View>
 
@@ -482,7 +481,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
     position: 'absolute',
     top: 0,
     right: 0,

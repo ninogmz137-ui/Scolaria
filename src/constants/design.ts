@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 
 export const C = {
   // Backgrounds
-  bg: '#F7F7F5',
+  bg: '#F2F1EE',
   white: '#FFFFFF',
 
   // Texte

@@ -5,7 +5,6 @@ import {
   Share,
 } from 'react-native';
 import { Box, Text, Pressable, HStack } from '../ui';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 
@@ -38,7 +37,7 @@ export default function SuperPowerBadge({
   tags = [],
   trimesterWeeksLeft = 6,
   accentColor = '#22D3EE',
-  accentLight = '#6D28D9',
+  accentLight = '#4338CA',
 }: Props) {
   const pulse = useRef(new Animated.Value(1)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -120,7 +119,7 @@ export default function SuperPowerBadge({
         </Text>
         <HStack
           className="items-center gap-1 px-2 py-1 rounded-lg"
-          style={{ backgroundColor: accentLight + '12', borderWidth: 1, borderColor: accentLight + '20' }}
+          style={{ backgroundColor: accentLight + '12', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }}
         >
           <Ionicons name="sparkles" size={10} color={accentColor} />
           <Text className="text-[10px] font-bold" style={{ color: accentColor }}>
@@ -133,11 +132,7 @@ export default function SuperPowerBadge({
       <Box className="justify-center items-center mt-2 mb-1" style={{ width: 140, height: 140 }}>
         {/* Core badge */}
         <Animated.View style={{ transform: [{ scale: Animated.multiply(pulse, badgeScale) }] }}>
-          <LinearGradient
-            colors={[accentLight, accentColor]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
+          <Box style={[{
               width: 90,
               height: 90,
               borderRadius: 45,
@@ -148,10 +143,9 @@ export default function SuperPowerBadge({
               shadowOpacity: 0,
               shadowRadius: 0,
               elevation: 0,
-            }}
-          >
+            }, { backgroundColor: accentColor }]}>
             <Text className="text-[42px]">{emoji}</Text>
-          </LinearGradient>
+          </Box>
         </Animated.View>
       </Box>
 
@@ -206,7 +200,7 @@ export default function SuperPowerBadge({
             <HStack
               key={tag.label}
               className="items-center gap-1.5 px-3 py-1.5 rounded-full"
-              style={{ borderWidth: 1, borderColor: tag.color + '25', backgroundColor: tag.color + '08' }}
+              style={{ borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', backgroundColor: tag.color + '08' }}
             >
               <Text className="text-[13px]">{tag.emoji}</Text>
               <Text className="text-xs font-bold" style={{ color: tag.color }}>
@@ -229,22 +223,17 @@ export default function SuperPowerBadge({
       <Animated.View style={{ opacity: shareFade, width: '100%' }}>
         <Pressable
           className="rounded-2xl overflow-hidden"
-          style={{ borderWidth: 1, borderColor: accentColor + '20' }}
+          style={{ borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }}
           onPress={handleShare}
         >
-          <LinearGradient
-            colors={[accentColor + '08', accentLight + '08']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
+          <Box style={[{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
               paddingVertical: 14,
               paddingHorizontal: 20,
-            }}
-          >
+            }, { backgroundColor: accentColor + '08' }]}>
             <Ionicons name="share-outline" size={18} color={accentColor} />
             <Text className="text-sm font-bold flex-1" style={{ color: accentColor }}>
               Partager la carte Super-Pouvoir
@@ -253,7 +242,7 @@ export default function SuperPowerBadge({
               <Ionicons name="logo-whatsapp" size={14} color="#34D399" />
               <Ionicons name="mail-outline" size={14} color="#94A3B8" />
             </HStack>
-          </LinearGradient>
+          </Box>
         </Pressable>
       </Animated.View>
     </Box>

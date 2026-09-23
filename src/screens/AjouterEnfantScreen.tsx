@@ -8,7 +8,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
-  Text,
   View,
   TextInput,
   TouchableOpacity,
@@ -19,12 +18,12 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { Text } from '../components/ui';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -229,12 +228,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
           {/* Scolaria ID badge */}
           <Animated.View style={{ marginVertical: 20, borderRadius: 16, overflow: 'hidden', transform: [{ scale: idPulse }] }}>
-            <LinearGradient
-              colors={[Colors.violet + '30', Colors.cyan + '15']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1, borderColor: Colors.cyan + '25' }}
-            >
+            <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)' }, { backgroundColor: 'rgba(15,23,42,0.04)' }]}>
               <Ionicons name="finger-print" size={20} color={Colors.cyan} />
               <View>
                 <Text className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Identifiant Scolaria</Text>
@@ -243,7 +237,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
               <View className="ml-auto rounded-[10px] px-2.5 py-1" style={{ backgroundColor: Colors.green + '20' }}>
                 <Text className="text-[11px] font-bold" style={{ color: Colors.green }}>Auto</Text>
               </View>
-            </LinearGradient>
+            </View>
           </Animated.View>
 
           {/* Avatar picker */}
@@ -438,10 +432,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           {/* Summary preview */}
           {isFormValid && (
             <View className="mb-5 rounded-[18px] overflow-hidden">
-              <LinearGradient
-                colors={[Colors.blueNightCard, Colors.blueNightLight]}
-                style={{ padding: 18, borderRadius: 18, borderWidth: 1, borderColor: Colors.violet + '25' }}
-              >
+              <View style={[{ padding: 18, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }, { backgroundColor: Colors.blueNightCard }]}>
                 <Text className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3.5">Aperçu du profil</Text>
                 <View className="flex-row items-center gap-3.5">
                   <Text style={{ fontSize: 42 }}>{selectedAvatar}</Text>
@@ -456,7 +447,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                     <Text className="text-xs font-bold mt-1" style={{ color: Colors.cyan, letterSpacing: 0.5 }}>{scolariaId}</Text>
                   </View>
                 </View>
-              </LinearGradient>
+              </View>
             </View>
           )}
 
@@ -468,16 +459,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             activeOpacity={0.8}
             disabled={!isFormValid || loading}
           >
-            <LinearGradient
-              colors={
-                isFormValid
-                  ? [Colors.violet, Colors.violetDark]
-                  : ['#333', '#222']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }}
-            >
+            <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }, { backgroundColor: isFormValid ? '#0F172A' : 'rgba(15,23,42,0.25)' }]}>
               {loading ? (
                 <ActivityIndicator color={Colors.white} />
               ) : (
@@ -486,7 +468,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                   <Text className="text-[17px] font-extrabold text-white">Ajouter {firstName || 'l\'enfant'}</Text>
                 </>
               )}
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
 
           {/* Info footer */}

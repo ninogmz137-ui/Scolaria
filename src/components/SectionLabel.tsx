@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, type TextProps } from 'react-native';
+import { type TextProps } from 'react-native';
+import { Text } from './ui';
 
 export default function SectionLabel({
   text,

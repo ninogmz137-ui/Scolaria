@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Zap, AlertCircle, Clock, Users } from 'lucide-react-native';
 import RessentiSlider from './RessentiSlider';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 interface Props {
   energy: number;

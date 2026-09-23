@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Text } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Shield,
@@ -16,6 +16,7 @@ import GlassCard from '../components/GlassCard';
 import RgpdHero from '../components/rgpd/RgpdHero';
 import RgpdRow from '../components/rgpd/RgpdRow';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from '../components/ui';
 
 const RGPD_ITEMS = [
   {

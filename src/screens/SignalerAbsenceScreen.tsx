@@ -9,7 +9,6 @@
 import { useState, useCallback } from 'react';
 import {
   View,
-  Text,
   Pressable,
   ScrollView,
   TextInput,
@@ -37,6 +36,7 @@ import {
   type AbsenceMotif,
   type DemiJournee,
 } from '../services/absenceService';
+import { Text } from '../components/ui';
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -75,7 +75,7 @@ export default function SignalerAbsenceScreen() {
   // Écran en mode chrome 'none' (chrome.ts) : son mini header remplace la top bar.
   const TOPBAR_H = insets.top + 12;
 
-  const accent = '#7C3AED';
+  const accent = '#4338CA';
   const { r: ar, g: ag, b: ab } = hexToRgb(accent);
 
   // ── Step state ──

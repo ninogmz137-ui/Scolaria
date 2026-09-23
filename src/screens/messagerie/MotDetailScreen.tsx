@@ -4,11 +4,12 @@
  */
 
 import { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FileText, Check } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { Text } from '../../components/ui';
 
 export default function MotDetailScreen({ route, navigation }: { route: any; navigation: any }) {
   const insets = useSafeAreaInsets();
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   signButton: {
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#4338CA',
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 32,

@@ -98,14 +98,13 @@ export const nativeAriaSuggestionShadow: ViewStyle = Platform.select({
 }) as ViewStyle;
 
 /** Screen backgrounds referenced in native polish pass */
-export const PAGE_BG_OFF_WHITE = '#F7F7F9' as const;
+export const PAGE_BG_OFF_WHITE = '#F2F1EE' as const;
 export const PILL_ACTIVE_NAVY = '#0F1B2D' as const;
 
 /**
  * Aria brand tokens.
  * `ARIA_INDIGO` — identité statique (texte « Aria », icônes, petits badges).
  * `ARIA_GRADIENT_*` — animations, halos, boutons gradient.
- * Ne pas confondre avec le thème enfant Violet (#7C3AED) qui reste séparé.
  */
 export const ARIA_INDIGO = '#4338CA' as const;
 export const ARIA_GRADIENT_VIOLET = '#6366F1' as const;

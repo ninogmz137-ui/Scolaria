@@ -13,10 +13,9 @@ import {
   ScrollView,
   StyleSheet,
   View,
-  Text,
   Image,
 } from 'react-native';
-import { Pressable } from './ui';
+import { Pressable, Text } from './ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, GraduationHat } from '@getpapillon/papicons';
 import { Heart, Shield, ChevronRight } from 'lucide-react-native';
@@ -189,7 +188,7 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
             <Text style={styles.footerVersion}>Scolaria · Version 1.0.0</Text>
           </View>
           <Text style={styles.footerCopyright}>
-            © 2026 Scolaria · Passeport scolaire numérique
+            © 2026 Scolaria · Le carnet de scolarité numérique
           </Text>
         </View>
       </ScrollView>

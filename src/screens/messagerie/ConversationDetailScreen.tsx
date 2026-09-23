@@ -12,7 +12,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -33,6 +32,7 @@ import {
 } from '../../stores/messagerieStore';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import type { Conversation, Message } from '../../data/messagerieData';
+import { Text } from '../../components/ui';
 
 // ─── Constants ────────────────────────────────────────────
 

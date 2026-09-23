@@ -92,7 +92,7 @@ export const WALLPAPERS: WallpaperDef[] = [
     label: 'Nébuleuse',
     category: 'abstract',
     type: 'image',
-    colors: ['#0A0A14', '#1A1A3E', '#6D28D9'],
+    colors: ['#0A0A14', '#1A1A3E', '#4338CA'],
     source: require('../../assets/wallpapers/nebula.jpg'),
   },
   {

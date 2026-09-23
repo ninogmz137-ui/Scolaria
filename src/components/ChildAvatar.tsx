@@ -9,8 +9,9 @@
  * Used in: topbar, burger menu, child selector.
  */
 
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from './ui';
 
 interface ChildAvatarProps {
   /** Child's display name (used for initials fallback) */

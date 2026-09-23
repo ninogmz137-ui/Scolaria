@@ -1,5 +1,5 @@
 /**
- * NotesScreen — Single scroll, validated mockup (glass, neutral scores, Barlow + DM Sans).
+ * NotesScreen — Single scroll, validated mockup (glass, neutral scores, Figtree).
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from 'react';
@@ -8,7 +8,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  Text,
   Platform,
   UIManager,
   LayoutAnimation,
@@ -47,7 +46,6 @@ import {
   FileText,
   CalendarDays,
 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
@@ -59,6 +57,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
+import { Text } from '../components/ui';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -105,7 +104,6 @@ interface Grade {
 interface Subject {
   id: string;
   name: string;
-  emoji: string;
   grades: Grade[];
   average: number;
   classAvg: number;
@@ -179,7 +177,7 @@ function toFrenchDate(iso: string): string {
 
 const MOCK_SUBJECTS: Subject[] = [
   {
-    id: '1', name: 'Mathématiques', emoji: '📐', color: '#4A90D9',
+    id: '1', name: 'Mathématiques', color: '#4A90D9',
     average: 15.5, classAvg: 12.3, trend: 'up',
     grades: [
       { id: 'g1', value: 17, maxValue: 20, date: '15 mars', type: 'Contrôle', coefficient: 2 },
@@ -187,7 +185,7 @@ const MOCK_SUBJECTS: Subject[] = [
     ],
   },
   {
-    id: '2', name: 'Français', emoji: '📖', color: '#4338CA',
+    id: '2', name: 'Français', color: '#4338CA',
     average: 14.0, classAvg: 13.1, trend: 'stable',
     grades: [
       { id: 'g5', value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction', coefficient: 1 },
@@ -1029,12 +1027,7 @@ function GradientTrack({
   const w = Math.min(100, Math.max(0, pct));
   return (
     <View style={{ height, borderRadius: radius, backgroundColor: C.track, overflow: 'hidden' }}>
-      <LinearGradient
-        colors={[C.violet, C.cyan]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={{ height, width: `${w}%` as const, borderRadius: radius }}
-      />
+      <View style={[{ height, width: `${w}%` as const, borderRadius: radius }, { backgroundColor: C.violet }]} />
     </View>
   );
 }
@@ -1046,12 +1039,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
   if (level === 'acquis') {
     return (
       <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
-        <LinearGradient
-          colors={[C.violet, C.violetDeep]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: '100%', height: '100%' }}
-        />
+        <View style={[{ width: '100%', height: '100%' }, { backgroundColor: C.violet }]} />
       </View>
     );
   }
@@ -1065,12 +1053,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
           overflow: 'hidden',
         }}
       >
-        <LinearGradient
-          colors={[C.violet, 'rgba(67,56,202,0.15)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={{ width: '100%', height: '100%' }}
-        />
+        <View style={[{ width: '100%', height: '100%' }, { backgroundColor: 'rgba(67,56,202,0.45)' }]} />
       </View>
     );
   }
@@ -1161,7 +1144,6 @@ export default function NotesScreen() {
           return {
             id: sub.id,
             name: sub.name,
-            emoji: sub.emoji || '📚',
             color: sub.color || COLOR_PALETTE[idx % COLOR_PALETTE.length],
             grades,
             average: Math.round(avg * 10) / 10,
@@ -1291,7 +1273,6 @@ export default function NotesScreen() {
       return {
         id: sub.id,
         name: sub.name,
-        emoji: sub.emoji ?? '📚',
         color: sub.color ?? COLOR_PALETTE[idx % COLOR_PALETTE.length],
         grades,
         average: Math.round(avg * 10) / 10,
@@ -1587,12 +1568,7 @@ export default function NotesScreen() {
             </View>
             <View style={styles.legendItem}>
               <View style={{ width: 10, height: 10, borderRadius: 5, overflow: 'hidden' }}>
-                <LinearGradient
-                  colors={[C.ink, 'rgba(26,35,64,0.25)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ flex: 1 }}
-                />
+                <View style={[{ flex: 1 }, { backgroundColor: 'rgba(26,35,64,0.6)' }]} />
               </View>
               <Text style={styles.legendLabel}>En cours</Text>
             </View>
@@ -1629,15 +1605,10 @@ export default function NotesScreen() {
             ))}
           </GlassPanel>
 
-          <LinearGradient
-            colors={['rgba(67,56,202,0.05)', 'rgba(6,182,212,0.03)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.obsCardGrad}
-          >
+          <View style={[styles.obsCardGrad, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }]}>
             <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
             <Text style={styles.obsQuote}>{observationText}</Text>
-          </LinearGradient>
+          </View>
         </ScrollView>
         <BulletinImportSheet
           visible={showBulletinImport}
@@ -1973,15 +1944,10 @@ export default function NotesScreen() {
           </GlassPanel>
         )}
 
-        <LinearGradient
-          colors={['rgba(67,56,202,0.05)', 'rgba(6,182,212,0.03)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.obsCardGrad}
-        >
+        <View style={[styles.obsCardGrad, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }]}>
           <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
           <Text style={styles.obsQuote}>{observationText}</Text>
-        </LinearGradient>
+        </View>
       </ScrollView>
       <BulletinImportSheet
         visible={showBulletinImport}
@@ -1993,7 +1959,7 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F7F7F5' },
+  root: { flex: 1, backgroundColor: '#F2F1EE' },
   wallpaperClip: {
     position: 'absolute',
     top: 0,
@@ -2013,7 +1979,7 @@ const styles = StyleSheet.create({
   mainScroll: {
     flex: 1,
     zIndex: 1,
-    backgroundColor: '#F7F7F5',
+    backgroundColor: '#F2F1EE',
   },
   scroll: { paddingHorizontal: 18 },
   titleRow: {
@@ -2216,7 +2182,7 @@ const styles = StyleSheet.create({
   monthLbl: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 11,
-    color: '#c4b5fd',
+    color: '#C7D2FE',
     textAlign: 'center',
   },
 

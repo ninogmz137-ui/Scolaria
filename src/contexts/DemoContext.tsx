@@ -40,7 +40,6 @@ export interface DemoSubject {
   id: string;
   childId: string;
   name: string;
-  emoji: string;
   color: string;
   average?: number;
   classAverage?: number;
@@ -75,7 +74,6 @@ export interface DemoAgendaEvent {
   description: string;
   is_completed: boolean;
   color: string;
-  emoji: string;
 }
 
 export interface DemoMessage {

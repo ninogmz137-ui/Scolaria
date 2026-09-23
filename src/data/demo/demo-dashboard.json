@@ -8,7 +8,7 @@
     "meilleure": { "note": 17, "matiere": "Anglais" },
     "totalNotes": 13,
     "courseDuJour": [
-      { "time": "8h30", "subject": "Français", "room": "Salle 12", "color": "#7C3AED" },
+      { "time": "8h30", "subject": "Français", "room": "Salle 12", "color": "#4338CA" },
       { "time": "9h30", "subject": "Mathématiques", "room": "Salle 8", "color": "#4F46E5" },
       { "time": "10h30", "subject": "Histoire", "room": "Salle 3", "color": "#F59E0B" },
       { "time": "13h30", "subject": "SVT", "room": "Labo B", "color": "#10B981" },
@@ -26,7 +26,7 @@
     "competencesEnCours": 5,
     "competencesTotal": 17,
     "courseDuJour": [
-      { "time": "8h30", "subject": "Langage oral", "room": "Salle des grands", "color": "#7C3AED" },
+      { "time": "8h30", "subject": "Langage oral", "room": "Salle des grands", "color": "#4338CA" },
       { "time": "9h30", "subject": "Motricité", "room": "Gymnase", "color": "#06B6D4" },
       { "time": "10h30", "subject": "Explorer le monde", "room": "Salle des grands", "color": "#10B981" },
       { "time": "14h00", "subject": "Arts visuels", "room": "Atelier", "color": "#EC4899" },
@@ -45,7 +45,7 @@
     "totalNotes": 18,
     "courseDuJour": [
       { "time": "8h00", "subject": "Mathématiques", "room": "Salle 201", "color": "#4F46E5" },
-      { "time": "9h00", "subject": "Français", "room": "Salle 105", "color": "#7C3AED" },
+      { "time": "9h00", "subject": "Français", "room": "Salle 105", "color": "#4338CA" },
       { "time": "10h00", "subject": "Anglais", "room": "Salle 302", "color": "#10B981" },
       { "time": "13h00", "subject": "SVT", "room": "Labo A", "color": "#EC4899" },
       { "time": "14h00", "subject": "Physique-Chimie", "room": "Labo C", "color": "#06B6D4" },

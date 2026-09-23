@@ -21,8 +21,8 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { Pressable } from '../ui';
+import { View, StyleSheet, Platform } from 'react-native';
+import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Edit, ScanLine, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';

@@ -8,7 +8,6 @@
 import { useState } from 'react';
 import {
   View,
-  Text,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,11 +32,12 @@ import {
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { useChildTheme } from '../contexts/ChildThemeContext';
-import LogoScolaria from '../components/LogoScolaria';
+import ScolariaLogo from '../components/ScolariaLogo';
 import ScolariaAppIcon from '../components/ScolariaAppIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
+import { Text } from '../components/ui';
 
 // ─── Charter data ────────────────────────────────────────
 
@@ -94,7 +94,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
     number: 6,
     title: 'Inclusion et accessibilité',
     Icon: User,
-    color: '#A78BFA',
+    color: '#818CF8',
     content:
       'Scolaria est conçue pour tous les enfants, quelles que soient leurs capacités, leur situation familiale ou leur parcours scolaire. L\'interface s\'adapte à l\'âge (mode primaire / collège-lycée), supporte 10 langues, et respecte les normes d\'accessibilité WCAG 2.1 AA.',
   },
@@ -164,7 +164,7 @@ export default function AProposScreen() {
             <View style={styles.heroIconRow}>
               <ScolariaAppIcon size={88} withBackground />
             </View>
-            <LogoScolaria size={72} variant="light" />
+            <ScolariaLogo fontSize={34} primaryColor="#0F172A" />
             <Text style={styles.heroSubtitle}>Pour les familles françaises</Text>
             <View style={styles.versionPill}>
               <Text style={styles.versionText}>Version 1.0.0</Text>
@@ -274,7 +274,7 @@ export default function AProposScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <LogoScolaria size={28} variant="light" />
+          <ScolariaLogo fontSize={20} primaryColor="#0F172A" />
           <Text style={styles.footerCopy}>© 2026 Scolaria · Tous droits réservés</Text>
           <Text style={styles.footerQuote}>
             « Chaque enfant mérite d'être compris, pas seulement évalué. »
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.violet + '30',
+    borderColor: 'rgba(15,23,42,0.06)',
   },
   versionText: {
     fontFamily: FontFamily.sansSemiBold,

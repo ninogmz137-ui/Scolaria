@@ -7,7 +7,6 @@
 
 import {
   View,
-  Text,
   Pressable,
   ActivityIndicator,
   StyleSheet,
@@ -22,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { type AriaAction, formatAriaActionLabel } from '../../services/ariaActions';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -169,12 +169,12 @@ const styles = StyleSheet.create({
   // ── Status variants ──
   cardSuccess: {
     backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    borderColor: 'rgba(15,23,42,0.06)',
     shadowColor: '#10B981',
   },
   cardError: {
     backgroundColor: '#FFF1F2',
-    borderColor: '#FECDD3',
+    borderColor: 'rgba(15,23,42,0.06)',
     shadowColor: '#EF4444',
   },
 

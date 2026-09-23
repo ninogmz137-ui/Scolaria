@@ -1,10 +1,11 @@
 import type { ComponentType } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 const NAVY = '#1A2340';
-const VIOLET = '#7C3AED';
+const VIOLET = '#4338CA';
 /** Track rail — solid rgba only (no LinearGradient: Android SeekBar does not support gradients on tracks). */
 const TRACK_BG = 'rgba(0,0,0,0.08)';
 

@@ -1,10 +1,11 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Plus } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../ui';
 
 /** Single accent for all portfolio progress fills (no per-activity bar colors). */
-const PORTFOLIO_BAR_COLOR = '#7C3AED';
+const PORTFOLIO_BAR_COLOR = '#4338CA';
 
 interface Activity {
   id: string;
@@ -37,7 +38,7 @@ export default function Portfolio({ activities }: Props) {
             </Text>
           </View>
           <Pressable style={styles.addBtn} hitSlop={8}>
-            <Plus size={16} color="#7C3AED" strokeWidth={2} />
+            <Plus size={16} color="#4338CA" strokeWidth={2} />
           </Pressable>
         </View>
 
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: 'rgba(124,58,237,0.08)',
+    backgroundColor: 'rgba(67,56,202,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },

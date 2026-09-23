@@ -5,7 +5,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  Text,
   Image,
   Pressable,
   ScrollView,
@@ -16,7 +15,6 @@ import {
   Share,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import {
   FileText,
@@ -60,10 +58,11 @@ import {
 } from '../services/pdfExport';
 import { getChild, getCheckins } from '../services/database';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
+import { Text } from '../components/ui';
 
-const PAGE_BG = '#F2F4F8';
+const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
-const VIOLET = '#7C3AED';
+const VIOLET = '#4338CA';
 const CYAN = '#06B6D4';
 const COMPETENCE_ICON = '#6B7280';
 
@@ -207,7 +206,7 @@ function getChildProfileData(childId: string): ChildProfileData {
         tags: [
           { label: 'Créative', emoji: '🎨', color: Colors.pink },
           { label: 'Visuelle', emoji: '👁️', color: Colors.violet },
-          { label: 'Sensible', emoji: '💜', color: '#A78BFA' },
+          { label: 'Sensible', emoji: '💜', color: '#818CF8' },
           { label: 'Autonome', emoji: '🚀', color: Colors.cyan },
           { label: 'Littéraire', emoji: '📖', color: Colors.green },
         ],
@@ -245,7 +244,7 @@ function CompetenceRow({ label, value }: { label: string; value: number }) {
       </View>
       <Text style={styles.compLabel}>{label}</Text>
       <View style={styles.compTrack}>
-        <View style={[styles.compFill, { width: `${pct}%`, backgroundColor: '#7C3AED' }]} />
+        <View style={[styles.compFill, { width: `${pct}%`, backgroundColor: '#4338CA' }]} />
       </View>
       <Text style={styles.compScore}>{value}</Text>
     </View>
@@ -268,32 +267,17 @@ function SuperPouvoirCard({
   onShare: () => void;
 }) {
   return (
-    <LinearGradient
-      colors={['rgba(124,58,237,0.07)', 'rgba(6,182,212,0.05)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.spCard}
-    >
+    <View style={[styles.spCard, { backgroundColor: '#FFFFFF' }]}>
       <View style={styles.spTopRow}>
         <Text style={styles.spSectionLeft}>✦ SUPER-POUVOIR</Text>
-        <LinearGradient
-          colors={['rgba(124,58,237,0.1)', 'rgba(6,182,212,0.08)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.spAriaBadge}
-        >
+        <View style={[styles.spAriaBadge, { backgroundColor: 'rgba(67,56,202,0.08)' }]}>
           <Text style={styles.spAriaBadgeText}>✦ Observé par Aria</Text>
-        </LinearGradient>
+        </View>
       </View>
 
-      <LinearGradient
-        colors={[VIOLET, CYAN]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.spIconGrad}
-      >
+      <View style={[styles.spIconGrad, { backgroundColor: VIOLET }]}>
         <Text style={styles.spEmoji}>{emoji}</Text>
-      </LinearGradient>
+      </View>
 
       <Text style={styles.spName}>{power}</Text>
       <Text style={styles.spDesc}>{description}</Text>
@@ -317,7 +301,7 @@ function SuperPouvoirCard({
           <Text style={styles.spShareText}>Partager</Text>
         </Pressable>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -657,9 +641,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F2F4F8',
+    backgroundColor: '#F2F1EE',
     borderWidth: 2.5,
-    borderColor: 'rgba(124,58,237,0.2)',
+    borderColor: 'rgba(67,56,202,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -737,7 +721,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.14)',
+    borderColor: 'rgba(67,56,202,0.14)',
     marginBottom: 4,
   },
   spTopRow: {
@@ -757,7 +741,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.18)',
+    borderColor: 'rgba(67,56,202,0.18)',
   },
   spAriaBadgeText: {
     fontFamily: FontFamily.sansBold,
@@ -801,7 +785,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: SCREEN_BACKGROUND,
     borderWidth: 1,
-    borderColor: 'rgba(124,58,237,0.15)',
+    borderColor: 'rgba(67,56,202,0.15)',
     borderRadius: 9,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -820,7 +804,7 @@ const styles = StyleSheet.create({
     marginTop: 11,
     paddingTop: 11,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(124,58,237,0.1)',
+    borderTopColor: 'rgba(67,56,202,0.1)',
   },
   spFooterLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   spFooterGrey: {
