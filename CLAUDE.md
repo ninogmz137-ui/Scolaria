@@ -1,5 +1,5 @@
 # CLAUDE.md — Design System & Règles Scolaria
-*Version 3.1 · Septembre 2026 · v3.0 + Addendum v3.4 fusionné (un enfant = un carnet, Suivi, import, notifications, nettoyage)*
+*Version 3.2 · Septembre 2026 · v3.1 + décisions validées : navigation burger, top bar jamais opaque, protocole d'urgence, Aria via Edge Function, tables réelles, symbole compact, Pressable, garde partagée*
 
 > Ce fichier est l'unique CLAUDE.md du projet. Toute version antérieure (v2.x) est caduque.
 > En cas de conflit sur un composant UI, COMPONENTS.md a priorité.
@@ -35,7 +35,7 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 ## Principe fondateur — Un enfant = un carnet
 - Chaque enfant a son propre carnet. **Aucune vue ne mélange plusieurs enfants** (messages compris).
 - Le parent choisit le carnet via l'avatar (sélecteur d'enfant).
-- Toute donnée (mot, message, signature, photo, livret, événement) est rattachée à un `student_id` + `academic_year_id` — jamais au parent seul.
+- Toute donnée (mot, message, signature, photo, livret, événement) est rattachée à l'enfant (`child_id`, ou `student_id` selon la table) + `academic_year_id` — jamais au parent seul.
 - Un mot envoyé à une fratrie = une copie dans chaque carnet, une signature par enfant.
 - Le sélecteur d'enfant affiche un indicateur de nouveauté par enfant.
 - Chaque notification push nomme l'enfant et ouvre son carnet.
@@ -54,6 +54,10 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 - `expo-linear-gradient` — dégradés natifs (obligatoire — backgroundColor ne supporte pas les dégradés sur native)
 - `react-native-reanimated` — animations
 - `expo-speech` — voice input Aria (à venir)
+
+### Composants de base (`src/components/ui`)
+- `Text`, `TextInput`, `Pressable` s'importent **toujours** depuis `src/components/ui`, jamais depuis `react-native`.
+- `Pressable` de `components/ui` résout les styles en fonction (`style={({ pressed }) => …}`) : sur Android (NativeWind), un style fonction passé au Pressable natif est **ignoré**.
 
 ---
 
@@ -76,6 +80,7 @@ Le violet `#7C3AED` et l'ancien gradient Aria `#8B5CF6 → #1B72E8` sont supprim
 - Android adaptive : `foregroundImage` + `backgroundColor: "#FFFFFF"`
 - **Wordmark in-app :** `<ScolariaLogo>` — font Rufina (exception unique à Figtree)
 - **Symbole seul :** `<ScolariaSymbol>` — couleur #4338CA par défaut
+- **Sous 32px :** version compacte automatique (`COMPACT_BELOW = 32`) — mêmes 8 ellipses, mêmes angles, ellipses plus pleines et couronne resserrée pour rester lisibles. Ne jamais dessiner un autre symbole pour les petites tailles.
 - Ne jamais régénérer l'icône via le composant — utiliser le PNG officiel
 
 ### Couleur de l'enfant
@@ -99,9 +104,13 @@ Pages de navigation principale = glass morphism. Pages profondes = Notion ultra-
 
 **Top bar (toujours visible)**
 ```
-[Avatar enfant] [⌂ Accueil] [↗ Suivi] [📅 Agenda] [✉ Messages●]
-- Avatar : 34×34px cercle, couleur de l'enfant, initiale
-  tap = sélecteur d'enfant (bottom sheet) avec indicateur de nouveauté par enfant
+[☰] [⌂ Accueil] [↗ Suivi] [📅 Agenda] [✉ Messages●] ... [Avatar enfant]
+- ☰ burger (gauche) : tap = écran unique « Famille & paramètres »
+- Avatar (droite) : 34×34px cercle, couleur de l'enfant, initiale
+  tap = sélecteur d'enfant UNIQUEMENT (bottom sheet) avec indicateur de nouveauté par enfant
+- Aucune ouverture de menu par swipe (conflit avec le pager des onglets)
+- Fond : JAMAIS opaque. Transparente au repos ; fondu #F2F1EE lié au défilement
+  (composant ScrollVeil, le même que le voile de la bottom bar). Pas de BlurView.
 - Onglet actif : pill rgba(15,23,42,0.08), icône + label, height 30px, borderRadius 999px
 - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
 - Badge non-lu : point rouge 6px, position absolute
@@ -240,12 +249,13 @@ Scale 0.97 sur press
 - **Aria** — écran propre (topbar historique/nouveau, suggestions pills, input)
 
 ### Overlays transversaux
-- **Sélecteur d'enfant** — bottom sheet via l'avatar : liste des enfants + indicateur de nouveauté, ajouter un enfant, Famille & paramètres, déconnexion
+- **Sélecteur d'enfant** — bottom sheet via l'avatar : liste des enfants + indicateur de nouveauté + ajouter un enfant. Rien d'autre (pas de réglages, pas de déconnexion).
+- **Famille & paramètres** — écran unique via ☰ (voir Pages profondes)
 - **Ajouter au carnet** — 4 actions d'import (voir section dédiée)
 
 ### Pages profondes
 - **Mon parcours** — archives des années précédentes, lecture seule (Addendum v3.2). Accès : bouton année de Suivi + sélecteur d'enfant
-- Famille & paramètres → Foyer (responsables légaux, enfants) / Notifications / Apparence / Confidentialité / Aide
+- **Famille & paramètres** (écran unique, ouvert par ☰) → Mes enfants / Responsables légaux / Mon profil / Apparence / Notifications / Aria / Confidentialité & données / Système / Compte (aide, à propos, déconnexion)
 - Profil enfant → avatar & couleur / niveau / école / matières / suppression
 - Personnaliser matières → **couleur** par matière (pas d'emoji)
 
@@ -329,6 +339,9 @@ Email + mot de passe → Supabase Auth identifie le rôle →
 - Seuls les responsables peuvent signer les mots — **chacun signe en son nom**, statut visible par parent
 - Peut inviter un second responsable depuis Famille & paramètres
 - Un responsable peut être rattaché à un seul enfant du foyer (familles recomposées)
+- **Ajout d'un responsable : uniquement par invitation**, acceptée par l'invité dont l'email de compte est **confirmé**. Personne ne s'ajoute seul.
+- **Un responsable ne peut retirer que lui-même** (jamais un autre ; le dernier responsable ne peut pas se retirer).
+- **Un enfant ne peut être supprimé que par son unique responsable.** Dès 2 responsables, chacun peut seulement se retirer.
 
 ### Garde partagée
 - **Partagé entre responsables** : tout ce qui vient de l'école (mots, messages de classe, photos, livrets, statuts de signature)
@@ -396,7 +409,14 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Toujours citer ses sources pour chaque alerte ou résumé
 - Travaille toujours sur le carnet de l'enfant sélectionné — jamais sur plusieurs enfants à la fois
 - En mode archive : lecture seule, pas d'alertes Score de Joie
-- Protocole urgence : mots-clés critiques → numéros d'aide (3018, 3114, 119, + 112 en danger immédiat) + alerte enregistrée (catégorie, enfant, date — jamais le texte), privée à son auteur + aucune réponse IA seule
+- Protocole urgence : mots-clés critiques → message fixe avec numéros d'aide, **aucune réponse IA, aucun appel au modèle**
+  - 3114 (prévention du suicide, 24h/24) · 3018 (harcèlement et cyberharcèlement, 7j/7 9h-23h) · 119 (enfance en danger, 24h/24) · 112 (danger immédiat). **Le 3020 n'existe plus → 3018 partout.**
+  - Ordre : le numéro de la catégorie détectée d'abord, les autres ensuite, **le 112 toujours en dernier**
+  - Numéros **cliquables** (tel:)
+  - Alerte enregistrée (catégorie, enfant, date — **jamais le texte**), **privée à son auteur** : jamais partagée automatiquement avec l'autre responsable ni l'enseignant
+- **Appels au modèle : uniquement via l'Edge Function Supabase « aria »**. La clé Anthropic est un secret Supabase — jamais dans l'app, jamais dans un `.env`, jamais journalisée.
+- Modèle : `claude-sonnet-5` par défaut, via le secret `ARIA_MODEL`. Pas de modèle de repli.
+- Contexte envoyé : **prénom de l'enfant seulement** (jamais le nom, l'école ni l'identifiant)
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 
 ---
@@ -413,15 +433,17 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
 ## Architecture BDD (Supabase)
 
-**Règle : toute donnée de carnet est rattachée à `student_id` + `academic_year_id`.**
+**Règle : toute donnée de carnet est rattachée à l'enfant (`child_id` ou `student_id` selon la table) + `academic_year_id`.**
+
+> Noms de tables = noms **réels** en base (`children`, `profiles`…). On modifie les tables existantes, on ne les recrée pas sous un autre nom.
 
 ### Tables principales
-- `users` — parents, enseignants, élèves (rôle à l'inscription)
+- `profiles` — un par compte (`auth.users`) : parents, enseignants, élèves ; `role` fixé à l'inscription, non modifiable par l'utilisateur
 - `foyers` — regroupement famille
-- `responsables` — lien N responsables ↔ N enfants (user_id, student_id, foyer_id)
-- `students` — profil enfant (dont couleur personnelle)
-- `academic_years` — millésimes liés à student (école, niveau, classe)
-- `grades` — notes (collège/lycée)
+- `responsables` — lien N responsables ↔ N enfants (user_id, child_id, foyer_id) ; ajout par invitation (`invitations_responsable`) uniquement
+- `children` — profil enfant (dont `color`, couleur personnelle) ; créé par `create_child()` (enfant + responsable + année en une transaction)
+- `academic_years` — millésimes liés à l'enfant (student_id, école, niveau, classe_id) ; un enfant a toujours au moins une année
+- `grades` — notes (collège/lycée), child_id
 - `competences` — child_id, academic_year_id, domaine, competence, niveau 1-4, source (ecole|parent) fixée par le serveur, saisi_par, date ; « ecole » modifiable par le titulaire seul
 - `bulletins` — liés à academic_year_id
 - `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable, classe_id (destinataire par id)
@@ -431,7 +453,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - `carnet_items` — import parent : child_id, academic_year_id, categorie (mot|livret|souvenir|jalon), fichier, date, ajoute_par, visibilite (foyer|prive = auteur seul)
 - `alertes_urgence` — protocole d'urgence : auteur, child_id, academic_year_id, catégorie, date — JAMAIS le texte ; privée à son auteur
 - `absences` — signalement enseignant + déclaration parent
-- `messages` — messagerie hub, rattachée à student_id
+- `messages` — messagerie hub, rattachée à child_id
 - `ecoles` / `classes` — classe = école + année + nom, identifiée par son **id** (jamais par son nom) ; `enseignant_id` = titulaire ; élève rattaché via `academic_years.classe_id`
 
 ### RLS
@@ -501,7 +523,11 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ```
 ✗ Jamais "ScolarIA" avec IA en majuscules
 ✗ Jamais de vue mélangeant plusieurs enfants
-✗ Jamais de donnée de carnet rattachée au parent seul (toujours student_id)
+✗ Jamais de donnée de carnet rattachée au parent seul (toujours child_id / student_id)
+✗ Jamais de top bar opaque → voile #F2F1EE lié au défilement
+✗ Jamais de Pressable importé de react-native → `src/components/ui`
+✗ Jamais de clé API dans l'app ou un .env → secret Supabase + Edge Function
+✗ Jamais le texte d'un message de détresse stocké ou journalisé
 ✗ Jamais fond blanc pur #FFFFFF comme background de page → #F2F1EE
 ✗ Jamais font système → Figtree partout (Rufina = wordmark uniquement)
 ✗ Jamais bouton non-pill → borderRadius 999px toujours

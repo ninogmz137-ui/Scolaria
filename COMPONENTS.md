@@ -1,5 +1,5 @@
 # COMPONENTS.md — Référentiel UI Scolaria
-*Version 2.1 · Septembre 2026 (fusion Addendum v3.4) · À lire avant toute ligne de code*
+*Version 2.2 · Septembre 2026 (décisions validées après CLAUDE.md v3.1) · À lire avant toute ligne de code*
 
 > Ce document complète CLAUDE.md. En cas de conflit, COMPONENTS.md a priorité.
 > Tout changement validé doit être mis à jour ici avant le prochain sprint.
@@ -12,9 +12,14 @@
 
 ```
 TOP BAR (toujours visible, toutes les pages)
-  [Avatar enfant] [⌂ Accueil] [↗ Suivi] [📅] [✉●]
-  - Avatar : 34×34px, cercle, border 2px rgba(15,23,42,0.15), couleur de l'enfant + initiale
-    tap = sélecteur d'enfant (§13)
+  [☰] [⌂ Accueil] [↗ Suivi] [📅] [✉●] ... [Avatar enfant]
+  - ☰ burger (gauche) : 34×34px · tap = écran unique « Famille & paramètres »
+  - Avatar (droite) : 34×34px, cercle, border 2px rgba(15,23,42,0.15), couleur de l'enfant + initiale
+    tap = sélecteur d'enfant UNIQUEMENT (§13)
+  - Aucune ouverture de menu par swipe (conflit avec le pager)
+  - Fond : JAMAIS opaque, jamais BlurView. Transparente au repos ;
+    fondu #F2F1EE dont l'opacité suit le défilement (ScrollVeil, même composant
+    que le voile de la bottom bar — src/components/navigation/ScrollVeil.tsx)
   - Icône Suivi : lucide trending-up
   - Onglet actif : pill grise background rgba(15,23,42,0.08), icône + label
   - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
@@ -40,6 +45,23 @@ BOTTOM BAR (toujours visible, toutes les pages)
 Le titre de l'onglet actif est dans la pill top bar.
 **Ne jamais répéter le titre dans le body de la page.**
 Seul le contenu va dans le body, jamais un H1 répété.
+
+---
+
+### Composants de base (src/components/ui)
+```
+Text, TextInput, Pressable : TOUJOURS importés depuis src/components/ui, jamais depuis react-native
+Pressable (ui) résout style={({ pressed }) => …} en style simple :
+  sur Android (NativeWind), un style fonction sur le Pressable natif est ignoré
+```
+
+### Symbole Scolaria
+```
+<ScolariaSymbol size color="#4338CA" />
+size < 32px → version compacte automatique (COMPACT_BELOW = 32) :
+  mêmes 8 ellipses, mêmes angles, ellipses plus pleines, couronne resserrée
+Jamais d'autre dessin pour les petites tailles (bottom bar 14px, avatars Aria…)
+```
 
 ---
 
@@ -354,7 +376,7 @@ Row action: flex · alignItems center · gap 12px · padding 13px 16px
 
 ---
 
-## 12. DROPDOWN (menu avatar)
+## 12. DROPDOWN (bouton année, menus contextuels — l'avatar n'ouvre plus de menu)
 
 ```
 position: absolute · top: 44px · left: 10px (depuis avatar)
@@ -386,9 +408,9 @@ Check: fontSize 14px · color #4338CA · marginLeft auto
 
 Indicateur nouveauté: point 8px #EF4444 + meta "1 nouveau message" sous le niveau
 
-"Ajouter enfant": color #4338CA
-"Famille et paramètres": row standard
-"Déconnexion": color #EF4444
+"Ajouter un enfant": color #4338CA
+Rien d'autre : ni réglages, ni « Famille et paramètres », ni déconnexion
+(ces entrées sont dans l'écran « Famille & paramètres », ouvert par ☰)
 ```
 
 ---
@@ -451,6 +473,9 @@ section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
 ✗ Jamais de module grisé visible
 ✗ Jamais d'emoji sur une matière
 ✗ Jamais de vert/rouge sur les données (compétences, trends)
+✗ Jamais de top bar opaque ni BlurView dans les barres → voile ScrollVeil
+✗ Jamais de Pressable / Text / TextInput importés de react-native → src/components/ui
+✗ Jamais d'ouverture de menu par swipe
 
 ✓ Toujours zone tactile minimum 44×44px
 ✓ Toujours paddingBottom: 80px sur tous les ScrollView principaux
@@ -506,5 +531,5 @@ En attente: background rgba(15,23,42,0.06) · color rgba(15,23,42,0.62) · "Vous
 
 ---
 
-*COMPONENTS.md · Scolaria · v2.1 · Septembre 2026*
+*COMPONENTS.md · Scolaria · v2.2 · Septembre 2026*
 *Claude Code lit CLAUDE.md + COMPONENTS.md avant chaque sprint — sans exception*
