@@ -326,10 +326,10 @@ export async function buildExportData(familyId: string, moduleKeys: string[]): P
   };
 
   // Get children
+  // Enfants dont l'utilisateur est responsable (RLS, M2) — pas seulement ceux qu'il a créés.
   const { data: children } = await supabase
     .from('children')
-    .select('*')
-    .eq('parent_id', familyId);
+    .select('*');
 
   for (const child of children ?? []) {
     const childExport: any = {

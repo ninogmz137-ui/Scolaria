@@ -19,13 +19,17 @@ function isSupabaseConfigured(): boolean {
 // CHILDREN
 // ═══════════════════════════════════════════════════════════
 
-export async function getChildren(parentId: string) {
+/**
+ * Enfants du carnet de l'utilisateur connecté : tous ceux dont il est RESPONSABLE (RLS,
+ * migration M2), y compris ceux ajoutés par l'autre responsable. Pas de filtre parent_id
+ * (= simple créateur de la fiche).
+ */
+export async function getChildren() {
   if (!isSupabaseConfigured()) return { data: [], error: null };
 
   return supabase
     .from('children')
     .select('*')
-    .eq('parent_id', parentId)
     .order('created_at');
 }
 
@@ -51,9 +55,12 @@ export async function createChild(child: {
   school: string;
   super_power?: string;
   super_power_emoji?: string;
+  /** Couleur personnelle (#RRGGBB) — défaut en base : indigo #4338CA (M3). */
+  color?: string;
 }) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
 
+  // Le créateur devient automatiquement responsable (trigger add_child_creator_as_responsable, M2).
   return supabase
     .from('children')
     .insert(child)

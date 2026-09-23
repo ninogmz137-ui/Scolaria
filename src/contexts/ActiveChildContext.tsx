@@ -34,14 +34,19 @@ export type Child = {
   avatarType?: AvatarType;
   avatarEmoji?: string;
   avatarPhotoUri?: string;
+  /** Couleur personnelle (#RRGGBB) : avatar + header de l'Accueil uniquement (CLAUDE.md). */
+  color?: string;
 };
+
+/** Couleur neutre par défaut (identique au défaut en base, migration M3). */
+export const DEFAULT_CHILD_COLOR = '#4338CA';
 
 // ─── Fallback data (demo mode / empty Supabase result) ───
 
 export const MOCK_CHILDREN: Child[] = [
-  { id: 'demo-lea', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2020-03-15', avatarType: 'emoji', avatarEmoji: '🦁' },
-  { id: 'demo-lucas', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2015-07-22', avatarType: 'emoji', avatarEmoji: '🐻' },
-  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊' },
+  { id: 'demo-lea', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2020-03-15', avatarType: 'emoji', avatarEmoji: '🦁', color: '#0F766E' },
+  { id: 'demo-lucas', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2015-07-22', avatarType: 'emoji', avatarEmoji: '🐻', color: '#4338CA' },
+  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊', color: '#B45309' },
 ];
 
 // Backwards-compatible alias — any file importing CHILDREN keeps working
@@ -91,7 +96,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
     async function load() {
       setLoading(true);
       try {
-        const result = await getChildren(user!.id);
+        const result = await getChildren();
         if (cancelled) return;
 
         console.log('[ActiveChild] getChildren result:', JSON.stringify({
@@ -110,12 +115,14 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
             birth_date?: string;
             classe?: string;
             school?: string;
+            color?: string;
           }) => ({
             id: row.id,
             name: row.first_name,
             avatar: row.avatar_emoji || '',
             classe: [row.classe, row.school].filter(Boolean).join(' — '),
             birthDate: row.birth_date,
+            color: row.color || DEFAULT_CHILD_COLOR,
           }));
           console.log('[ActiveChild] Loaded', mapped.length, 'children:', mapped.map((c) => `${c.name}(${c.id.substring(0, 8)})`).join(', '));
           setChildList(mapped);

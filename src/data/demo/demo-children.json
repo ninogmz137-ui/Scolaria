@@ -7,6 +7,7 @@
     "school": "Maternelle Pasteur",
     "level": "maternelle",
     "avatarEmoji": "🦁",
+    "color": "#0F766E",
     "birthDate": "2020-03-15"
   },
   {
@@ -17,6 +18,7 @@
     "school": "École Voltaire",
     "level": "primaire",
     "avatarEmoji": "🐻",
+    "color": "#4338CA",
     "birthDate": "2015-07-22"
   },
   {
@@ -27,6 +29,7 @@
     "school": "Collège Hugo",
     "level": "college",
     "avatarEmoji": "🦊",
+    "color": "#B45309",
     "birthDate": "2012-11-08"
   }
 ]

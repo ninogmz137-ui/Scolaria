@@ -2,7 +2,7 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : plan M0–M12 VALIDÉ (4 opérations destructives acceptées). Lot 1 (M0 + M1) FAIT le 23 sept. Lot 2 (M2–M4) et lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
+**Statut : plan M0–M12 VALIDÉ. Lot 1 (M0 + M1) et lot 2 (M2–M4) FAITS le 23 sept. Lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
@@ -25,13 +25,31 @@
 - [x] Trigger `on_auth_user_created` vérifié après M1 (compte de test créé le 23 sept à 15:02) : profil créé automatiquement (+4 ms), rôle « parent », email renseigné.
 - [ ] Reliquat : 1 compte auth du 21 mars 2026 SANS profil (bug d’inscription de l’époque, corrigé par 5b84de3) → créer son profil ou supprimer le compte (décision utilisateur).
 
+#### Lot 2 · M2 + M3 + M4 — FAIT (23 sept)
+- [x] M2 `20260923183636_m2_foyers_responsables` : tables `foyers` + `responsables` (UNIQUE user/enfant), `is_responsable(child_id)` (SECURITY DEFINER, exécutable par authenticated uniquement — voulu, utilisée par les policies), trigger : le créateur d’un enfant devient responsable (foyer créé si besoin). Toutes les données de carnet passent par `is_responsable` ; conversations Aria / messages / conversations enseignant restent réservées à leurs participants. Signatures : statut visible par tous les responsables de l’enfant.
+- [x] M3 `20260923183731_m3_couleur_enfant` : `children.color` NOT NULL DEFAULT `#4338CA`, CHECK format `#RRGGBB` ; modifiable par un responsable de l’enfant uniquement (policy children_update).
+- [x] M4 `20260923183827_m4_rattachement_annee` : `academic_year_id` (NULL autorisé, ON DELETE SET NULL) sur grades, agenda_events, checkins, subjects, messages, signatures, teacher_conversations, appreciations ; FK `student_id → children` sur teacher_conversations et appreciations ; trigger `set_academic_year` : année ACTIVE de l’enfant par défaut, refus d’une année d’un autre enfant.
+- [x] Tests SQL (utilisateurs fictifs, transactions annulées, 0 donnée restante) :
+  - M2 : A (créateur) rattaché automatiquement ; **B (co-responsable) voit l’enfant, la matière, la note, mais 0 conversation Aria et 0 message privé de A** ; C (sans lien) : 0 enfant / 0 note / 0 foyer ; T (enseignant) : 0 enfant / 0 note, voit seulement le message qui lui est adressé.
+  - M3 : défaut #4338CA ; B modifie la couleur (1 ligne) ; C ne modifie rien (0 ligne) ; « rouge » refusé.
+  - M4 : année active posée automatiquement ; année archivée du même enfant acceptée ; année d’un autre enfant refusée ; enfant sans année → NULL accepté.
+- [x] Advisors : **0 ERROR**. WARN : GraphQL (structure), mots de passe divulgués (tableau de bord), `is_responsable` exécutable par authenticated (voulu).
+- [x] `supabase migration list` : local = distant (8/8).
+- [x] Code : `getChildren()` et l’export RGPD s’appuient sur la RLS (tous les enfants dont on est responsable, plus seulement ceux créés) ; `Child.color` + `DEFAULT_CHILD_COLOR` ; couleurs des enfants de démo Moreau (Léa #0F766E, Lucas #4338CA, Emma #B45309) dans `ActiveChildContext` et `demo-children.json`. tsc OK.
+- [ ] **Phase B** : afficher `child.color` sur l’avatar (top bar, sélecteur) et le header de l’Accueil — encore en indigo neutre (aucun écran modifié en phase A) ; écran « modifier la couleur » dans le profil de l’enfant.
+- [ ] **Phase B** : invitation d’un second responsable (écriture dans `responsables` réservée au serveur aujourd’hui → Edge Function ou RPC dédiée).
+- [ ] Plus tard : tables « famille » (access_journal, deletion_requests, export_history, person_permissions, transfer_codes) encore rattachées à `family_id = auth.uid()` → passer à `foyer_id`.
+
+#### Lot 3 · règle à appliquer (NE PAS toucher avant le feu vert)
+- **Les classes doivent être identifiées par un id (école + classe), JAMAIS par leur nom** : aujourd’hui mots_liaison, class_posts et class_events sont rattachés au texte `classe` (« CE1 ») → une CE1 d’une école voit les publications d’une autre. Au lot 3 : table des classes (id, école, niveau, nom, année), `children` / publications / mots rattachés par `class_id`, policies réécrites sur l’id.
+
 #### Impact des migrations sur le code de l’app
 | Migration | Impact | Action |
 |---|---|---|
 | M1 | `database.ts` : vues `subject_averages` (l. 215), `child_overview` (l. 527) → filtrées par la RLS (voulu). `teacherService` (météo de classe, élèves, ressentis) et `absenceService` côté enseignant → **listes vides** pour un vrai compte enseignant (voulu, démo inchangée). Aucune écriture de `profiles.role` dans l’app. | Colonne `emoji` retirée de `database.ts`. |
-| M2 | Accès enfant par `is_responsable()` au lieu de `children.parent_id` : lectures inchangées pour le parent créateur ; `createChild` doit aussi créer le foyer + la ligne responsable (ou trigger). | À traiter dans le lot 2. |
-| M3 | `children.color` : type `Child` (ActiveChildContext) + avatar / header de l’Accueil ; données de démo Moreau (couleur par enfant). | Lot 2. |
-| M4 | `academic_year_id` nullable : aucune casse ; à renseigner dans les insert (notes, agenda, ressentis…). | Lot 2. |
+| M2 | Accès enfant par `is_responsable()`. `createChild` inchangé (trigger crée foyer + responsable). `getChildren` filtrait sur parent_id → un co-responsable n’aurait rien vu. | **Fait** : `getChildren()` et export RGPD sans filtre parent_id (RLS). |
+| M3 | `children.color` : type `Child`, mapping Supabase, démo Moreau. | **Fait** (modèle + démo). Affichage : Phase B. |
+| M4 | `academic_year_id` nullable, rempli par trigger : aucune casse, aucun changement d’insert nécessaire. | **Rien à changer** ; l’app pourra le passer explicitement (vue d’une année archivée). |
 | M5–M12 | Types de mots (information/…), `mot_carnets`, signatures par responsable, nouvelles tables : services liaison, signatures, absences, carnet. | Lot 3. |
 
 
