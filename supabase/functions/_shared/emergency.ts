@@ -27,9 +27,14 @@ function normalize(text: string): string {
 const PATTERNS: Record<EmergencyCategory, RegExp[]> = {
   suicide: [
     /\bsuicid/,                              // suicide, suicider, suicidaire
-    /\b(me|te|se) (tuer|foutre en l'air)\b/,
+    // « me tuer » seulement avec une intention (« je veux me tuer »), pas l'hyperbole
+    // (« ces devoirs vont me tuer », « ce contrôle va me tuer »)
+    /\b(je vais|je veux|je voudrais|j'ai envie de|envie de) me tuer\b/,
+    /\b(veut|voudrait|va|parle de|pense a) se tuer\b/,
+    /\b(me|se|te) foutre en l'air\b/,
     /\b(envie|veux|veut|voudrais|voulais) (de )?mourir\b/,
-    /\ben finir\b/,
+    /\benvie d'en finir\b/,
+    /\ben finir avec la vie\b/,
     /\bplus (envie|goût|gout) de vivre\b/,
     /\b(me|se|te) faire du mal\b/,
     /\bscarifi/,                             // scarifier, scarification
@@ -65,7 +70,7 @@ export const EMERGENCY_MESSAGE = [
   'Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. Aria ne peut pas répondre seule à cette situation.',
   '',
   '• 3114 — prévention du suicide, 24h/24, gratuit',
-  '• 3020 — harcèlement à l’école, gratuit',
+  '• 3018 — harcèlement et cyberharcèlement, 7j/7 de 9h à 23h, gratuit',
   '• 119 — Allô Enfance en danger, 24h/24, gratuit',
   '',
   'En cas de danger immédiat, appelez le 112.',

@@ -263,11 +263,11 @@ export default function JoyAlerts({
             </Text>
           </HStack>
 
-          {/* 3020 — Harcèlement */}
+          {/* 3018 — Harcèlement et cyberharcèlement (e-Enfance) */}
           <Pressable
             className="flex-row items-center justify-between rounded-xl p-3.5 mb-2"
             style={{ backgroundColor: '#F1F5F9' }}
-            onPress={() => Linking.openURL('tel:3020')}
+            onPress={() => Linking.openURL('tel:3018')}
           >
             <HStack className="items-center gap-3 flex-1">
               <Box
@@ -277,9 +277,9 @@ export default function JoyAlerts({
                 <Text className="text-xl">📞</Text>
               </Box>
               <Box>
-                <Text className="text-xl font-black" style={{ color: '#0F172A' }}>3020</Text>
+                <Text className="text-xl font-black" style={{ color: '#0F172A' }}>3018</Text>
                 <Text className="text-[11px] mt-0.5" style={{ color: '#94A3B8', maxWidth: 200 }}>
-                  Non au Harcèlement — gratuit et anonyme
+                  Harcèlement et cyberharcèlement — 7j/7, 9h-23h, gratuit
                 </Text>
               </Box>
             </HStack>

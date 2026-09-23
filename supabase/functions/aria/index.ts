@@ -6,7 +6,7 @@
  * - Modèle et max_tokens sont fixés ici, pas par le client. Modèle changeable sans redéployer
  *   via le secret ARIA_MODEL. Pas de repli automatique : un refus = « indisponible ».
  * - Protocole d'urgence AVANT tout appel au modèle : mot-clé critique → message fixe
- *   (3114 / 3020 / 119), aucun appel Anthropic, alerte signalée (catégorie seule).
+ *   (3114 / 3018 / 119 + 112), aucun appel Anthropic, alerte signalée (catégorie seule).
  * - Réponse au client : { text } | { text, alert } | { error: 'unavailable' } — jamais de détail technique.
  *
  * TEMPORAIRE (phase A) : le prompt système est encore construit côté app, à partir des données

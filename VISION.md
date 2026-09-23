@@ -229,7 +229,7 @@ Vision long terme : *"Retrouve la photo de la sortie au zoo en CE1."*
 - Jamais de diagnostic — elle suggère et observe
 - Toujours citer ses sources pour chaque alerte
 - Gradation des alertes (Attention / Vigilance / Urgence) — jamais d'alerte rouge sur signal isolé
-- Protocole urgence : mots-clés critiques → numéros d'aide (3020, 3114, 119) + alerte parent + aucune réponse IA seule
+- Protocole urgence : mots-clés critiques → numéros d'aide (3018, 3114, 119, + 112 en danger immédiat) + alerte parent + aucune réponse IA seule
 - En mode archive : lecture seule, pas d'alertes Score de Joie
 
 ---

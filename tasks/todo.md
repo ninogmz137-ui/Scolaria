@@ -17,16 +17,16 @@
 - [x] S2 : Edge Function `supabase/functions/aria/index.ts` (SDK `npm:@anthropic-ai/sdk`) : session Supabase obligatoire (JWT + getUser), modèle / max_tokens / fallbacks fixés côté serveur, garde-fous de taille, réponse `{ text }` ou `{ error: "unavailable" }`. App : `supabase.functions.invoke("aria")` ; mode démo = réponses locales sans réseau (vérifié en web).
   - Modèle : `claude-sonnet-5` par défaut (décision : coût), surchargeable sans redéployer par le secret `ARIA_MODEL`. Repli automatique DÉSACTIVÉ : un refus du modèle → « Aria est momentanément indisponible. ». L’ancien code utilisait `claude-sonnet-4-20250514`.
   - Minimisation : le contexte envoyé à Aria ne contient que le PRÉNOM (plus de nom de famille, d’école ni d’identifiant Scolaria) — `childContext.ts`.
-  - Protocole d’urgence : `supabase/functions/_shared/emergency.ts` (module partagé). Edge Function : contrôle AVANT tout appel au modèle → message fixe 3114 / 3020 / 119 (+ 112), aucun appel Anthropic, alerte journalisée (catégorie + user id, jamais le texte). App : même contrôle, y compris en mode démo (vérifié en web). 14/14 cas de test (dont violon / violent / violette).
+  - Protocole d’urgence : `supabase/functions/_shared/emergency.ts` (module partagé). Edge Function : contrôle AVANT tout appel au modèle → message fixe 3114 / 3018 / 119 + 112, aucun appel Anthropic, alerte journalisée (catégorie + user id, jamais le texte). App : même contrôle, y compris en mode démo (vérifié en web). 22 cas de test (`npm run test:emergency`), dont les pièges violon / violent / violette / « ces devoirs vont me tuer » / « en finir avec les devoirs ».
   - TEMPORAIRE : le prompt système est encore construit côté app (données de démo locales). Quand les données seront en base, la fonction construira elle-même le contexte depuis child_id sous RLS et n’acceptera plus de `system` du client.
 - [x] S3 : clés retirées de `app.config.js` (extra), `getEnv.ts` (+ journaux qui affichaient 12 caractères de la clé), `scripts/write-env.js`, `eas-hooks/eas-build-pre-install.sh`, `.env.example`, `.env`. `.env` déjà ignoré ; `supabase/backups/` ajouté au .gitignore.
 - [x] Google Vision : la clé était embarquée mais **jamais utilisée** (aucun appel OCR dans le code) → retirée sans Edge Function. Le futur OCR suivra le même modèle (fonction dédiée + secret).
 - [x] S4 : toute panne d’Aria → « Aria est momentanément indisponible. » (plus de mention de clé, .env, eas.json).
 - [ ] S5 : poser le secret et déployer (commandes transmises à l’utilisateur), puis tester un vrai compte (non démo).
 - [ ] Protocole d’urgence — suites :
-  - Faire valider la liste de mots-clés (catégories suicide / harcèlement / maltraitance). Faux positifs probables : « en finir » (« en finir avec les devoirs »).
-  - [UNCLEAR] Vérifier que le 3020 est toujours le bon numéro « harcèlement » (possible regroupement sous le 3018) avant la mise en production.
-  - Persister l’alerte (table d’alertes, student_id + responsable) et notifier le ou les responsables — nécessite la migration (phase A).
+  - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
+  - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
+  - [ ] **Phase A** : table d’alertes (child_id + academic_year_id, catégorie, horodatage, jamais le texte du message) + notification des responsables légaux de l’enfant.
   - Ne pas ajouter la réponse « indisponible » / « urgence » à l’historique envoyé au modèle au tour suivant.
 
 ## Top bar · voile au défilement (23 sept 2026)
@@ -104,6 +104,10 @@ Périmètre : aucun changement de BDD, aucun nouvel écran.
 - Supprimer le doublon « Résumé quotidien 8h00 » d'Aria.
 - Ne pas déranger → 20h–7h.
 - « Face ID » affiché sur Android → libellé selon la plateforme.
+
+
+#### Phase 2 · protocole d’urgence en production
+- La détection par mots-clés (`supabase/functions/_shared/emergency.ts`) est une solution de DÉMO. En production : détection plus robuste (contexte, formulations indirectes, fautes, langage enfant/ado), validée par le comité éthique avant mise en service.
 
 #### AUTRES
 - Écran Aria : suggestions en cartes 2×2 avec emoji → pills horizontales (règle CLAUDE.md).

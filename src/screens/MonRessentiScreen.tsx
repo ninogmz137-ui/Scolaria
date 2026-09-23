@@ -285,9 +285,9 @@ function CriticalHelp() {
       <Text style={styles.urgencyBody}>
         Si tu traverses un moment difficile, parle à un adulte de confiance ou appelle :
       </Text>
-      <Pressable style={styles.urgencyLine} onPress={() => Linking.openURL('tel:3020')}>
-        <Text style={styles.urgencyPhone}>📞 3020</Text>
-        <Text style={styles.urgencyHint}>Non au Harcèlement</Text>
+      <Pressable style={styles.urgencyLine} onPress={() => Linking.openURL('tel:3018')}>
+        <Text style={styles.urgencyPhone}>📞 3018</Text>
+        <Text style={styles.urgencyHint}>Harcèlement et cyberharcèlement</Text>
       </Pressable>
       <Pressable style={styles.urgencyLine} onPress={() => Linking.openURL('tel:3114')}>
         <Text style={styles.urgencyPhone}>🆘 3114</Text>

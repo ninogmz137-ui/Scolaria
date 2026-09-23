@@ -396,7 +396,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Toujours citer ses sources pour chaque alerte ou résumé
 - Travaille toujours sur le carnet de l'enfant sélectionné — jamais sur plusieurs enfants à la fois
 - En mode archive : lecture seule, pas d'alertes Score de Joie
-- Protocole urgence : mots-clés critiques → numéros d'aide (3020, 3114, 119) + alerte parent + aucune réponse IA seule
+- Protocole urgence : mots-clés critiques → numéros d'aide (3018, 3114, 119, + 112 en danger immédiat) + alerte parent + aucune réponse IA seule
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 
 ---
