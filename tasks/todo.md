@@ -63,6 +63,26 @@ Périmètre : aucun changement de BDD, aucun nouvel écran.
 ### Phase B · écart à corriger (NE PAS toucher avant)
 - **FAB Agenda** : CLAUDE.md prévoit un FAB circulaire sur l'Agenda et **aucune** action dans la bottom bar (« Agenda → rien, le FAB suffit »). Le code fait l'inverse : pas de FAB, et un `+` dans la bottom bar (`BottomBar.tsx:58`, `TabNavigator.tsx:659` `agendaActionRef`). À aligner en Phase B.
 
+#### NAVIGATION (décision validée)
+- Top bar : [☰ burger] [onglets] ... [avatar enfant]. On GARDE le burger (ne pas le supprimer même si CLAUDE.md dit autre chose : la doc sera mise à jour).
+- ☰ burger → écran unique « Famille & paramètres ».
+- Avatar → sélecteur d'enfant UNIQUEMENT (liste des enfants + indicateur de nouveauté + ajouter un enfant). Plus de réglages dans ce sélecteur.
+- Supprimer l'ouverture du menu par swipe (conflit avec le pager).
+
+#### FUSION RÉGLAGES → « Famille & paramètres » (base visuelle : écran Mon compte actuel)
+- Structure : Mes enfants · Responsables légaux · Mon profil · Apparence (fond de l'Accueil PAR ENFANT : couleur de l'enfant ou photo nature, un seul système) · Notifications (3 réglages max : mots & messages / résumé 18h / silence 20h–7h) · Aria (activée, personnalité, langue saisie vocale) · Confidentialité & données (code, autorisations, export) · Système (haptique) · Compte (aide, à propos, quitter la démo / déconnexion).
+- Supprimer l'ancien écran Réglages et ses entrées hors sujet : Capacités, Connecteurs, Liens partagés, Thème Auto, fonds dégradés abstraits.
+- Supprimer le doublon « Résumé quotidien 8h00 » d'Aria.
+- Ne pas déranger → 20h–7h.
+- « Face ID » affiché sur Android → libellé selon la plateforme.
+
+#### AUTRES
+- Écran Aria : suggestions en cartes 2×2 avec emoji → pills horizontales (règle CLAUDE.md).
+- Accueil : notes /20 et carte Aria sur Emma affichées pour Léa (GS) → toutes les données liées à l'enfant actif.
+- Enfant actif incohérent entre top bar, sélecteur, Messages et Emploi du temps (codé en dur pour Emma) → une seule source (détail : section « Phase A/B · enfant actif incohérent »).
+- Agenda : FAB prévu par CLAUDE.md, action + actuellement dans la bottom bar → à aligner (détail : « FAB Agenda » ci-dessus).
+- Header de l'Accueil : carte 130px arrondie (CLAUDE.md), couleur de l'enfant.
+
 ### Contrôle préalable
 - Un seul CLAUDE.md projet (`./CLAUDE.md` v3.1). Les autres CLAUDE.md sont dans `.claude-plugin/` (plugins tiers, gitignorés), donc hors sujet.
 - Un seul addendum, `docs/archives/ADDENDUM_v3.4_Scolaria.md`, rangé au bon endroit.
