@@ -2,7 +2,7 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : plan M0–M12 VALIDÉ. Lots 1, 2 et 2-bis FAITS (23–24 sept). Lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
+**Statut : plan M0–M12 VALIDÉ. Lots 1, 2, 2-bis et 3a (M5–M8) FAITS (23–24 sept). Lot 3b (M9–M12) : ATTENDRE LE FEU VERT.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
@@ -53,8 +53,18 @@
 - [x] Code : `createChild` appelle `rpc('create_child')` (paramètres identiques, super_power non pris en charge à la création) ; démo : Emma en bleu océan `#0369A1` (l’ambre est réservé au Score de Joie).
 - [ ] Phase B : écrans « inviter un responsable » (insert invitations_responsable) et « invitations reçues » (respond_invitation) ; annulation d’une invitation par l’invitant (RPC à ajouter) ; procédure vérifiée de retrait d’un autre responsable (garde partagée, côté serveur).
 
-#### Lot 3 · règle à appliquer (NE PAS toucher avant le feu vert)
-- **Les classes doivent être identifiées par un id (école + classe), JAMAIS par leur nom** : aujourd’hui mots_liaison, class_posts et class_events sont rattachés au texte `classe` (« CE1 ») → une CE1 d’une école voit les publications d’une autre. Au lot 3 : table des classes (id, école, niveau, nom, année), `children` / publications / mots rattachés par `class_id`, policies réécrites sur l’id.
+#### Lot 3a · M2e + M5a + M5 à M8 — FAIT (24 sept)
+- [x] M2e `20260924100000_m2e_suppression_enfant` : un enfant n’est supprimé QUE par son unique responsable ; à 2 responsables ou plus, refus (chacun peut seulement se retirer).
+- [x] M5a `20260924100100_m5a_classes` : tables `ecoles` et `classes` (école + année + nom, unique ; `enseignant_id` = titulaire) ; `classe_id` sur academic_years, mots_liaison, class_posts, class_events ; lecture parent des publications / événements **par id** ; colonnes texte `classe` conservées, facultatives, dépréciées (aucune policy ne les lit).
+- [x] M5 `…100200_m5_mots_liaison` : types information | signature | autorisation | participation ; `signature_mode` none | one | both (`requires_signature` recalculé) ; `event_date`, `a_prevoir` (jsonb liste). Table `mot_carnets` (mot, enfant, année) : mot envoyé à une classe → une copie par enfant de la classe (seul le titulaire peut envoyer) ; `distribuer_mot(mot, enfants[])` → fratrie / enfants précis, une copie par enfant. Un parent ne lit un mot QUE via le carnet de son enfant (brouillons exclus).
+- [x] M6 `…100300_m6_signatures` : une ligne par (mot, enfant, responsable), FK vers le carnet, signature seulement si mot envoyé et mode ≠ none, nom / date / année fixés par le serveur, immuables. Vue `mot_carnets_statut` : one → 1 signature ; both → les 2 responsables (**choix : si l’enfant n’a qu’un responsable, sa signature suffit**). L’enseignant auteur voit carnets, signatures et réponses de SES mots.
+- [x] M7 `…100400_m7_absences` : `academic_year_id` uuid (FK, trigger) ; déclarée par un responsable en son nom, visible des autres responsables ; **modifiable par son auteur seul** (avant : tout responsable).
+- [x] M8 `…100500_m8_reponses_mot` : `reponses_mot` (autorisation oui/non, participation oui/peut_etre/non), une réponse par responsable et par carnet, cohérente avec le type du mot, modifiable par son auteur, jamais supprimée.
+- [x] Tests SQL (transaction annulée, 0 donnée restante) — 44 vérifications OK : A et B responsables → **ni A ni B ne peuvent supprimer l’enfant** ; A seul responsable de Zoé → suppression OK ; copies classe (2) / fratrie (2) / brouillon (0) ; C ne voit que le carnet de Max ; parent non titulaire ne peut pas envoyer à la classe ; **both : A seul → non signé, A + B → signé** ; one : A seul → signé ; signer au nom de B, double signature, mode none, C sur Léo → refusés ; absences : B voit celle de A, C ne voit rien, B ne modifie pas celle de A ; réponses : 2e réponse refusée, modification par l’auteur OK, B ne modifie pas celle de A, mauvais type / valeur / carnet refusés.
+- [x] Advisors : 0 ERROR. WARN voulus : `distribuer_mot`, `is_mot_teacher`, `nb_responsables_carnet` (points d’entrée contrôlés).
+- [x] Code (services seuls) : `liaisonService` → types DB ↔ types écran (info ↔ information, bon_de_sortie → autorisation ; signature → autorisation, participation → info à l’affichage), `signature_mode` à la création, compteurs enseignant via `mots_liaison_enriched`, non-signés via `mot_carnets_statut`, mots parent via `mot_carnets`, `is_signed` = signé par moi, signature sans nom client. `absenceService` : rien à changer. Démo Moreau : données locales, rien à changer.
+- [ ] Sprint enseignant : choix de la classe **par id** dans le composer (sans `classe_id`, un mot n’est distribué dans aucun carnet) ; création des écoles / classes et rattachement des enfants (`academic_years.classe_id`) ; teacherService (posts / événements) encore filtré par nom côté enseignant ; noms des élèves non lisibles par l’enseignant (RLS children).
+- [ ] Phase B : les 4 types et le mode both dans l’UI (« signé par vous · en attente de … »), réponses autorisation / participation, liste « À prévoir ».
 
 #### Impact des migrations sur le code de l’app
 | Migration | Impact | Action |
@@ -63,7 +73,8 @@
 | M2 | Accès enfant par `is_responsable()`. `createChild` inchangé (trigger crée foyer + responsable). `getChildren` filtrait sur parent_id → un co-responsable n’aurait rien vu. | **Fait** : `getChildren()` et export RGPD sans filtre parent_id (RLS). |
 | M3 | `children.color` : type `Child`, mapping Supabase, démo Moreau. | **Fait** (modèle + démo). Affichage : Phase B. |
 | M4 | `academic_year_id` nullable, rempli par trigger : aucune casse, aucun changement d’insert nécessaire. | **Rien à changer** ; l’app pourra le passer explicitement (vue d’une année archivée). |
-| M5–M12 | Types de mots (information/…), `mot_carnets`, signatures par responsable, nouvelles tables : services liaison, signatures, absences, carnet. | Lot 3. |
+| M5–M8 | Types de mots, `mot_carnets`, signatures par responsable, absences uuid, réponses. | **Fait** : `liaisonService` adapté (voir lot 3a). |
+| M9–M12 | Nouvelles tables (carnet, …). | Lot 3b. |
 
 
 ### Étape 2 bis · schéma RÉEL vs fichiers locaux (lu le 23 sept, projet réactivé)

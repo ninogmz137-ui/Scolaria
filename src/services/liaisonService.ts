@@ -20,6 +20,18 @@ function isSupabaseConfigured(): boolean {
 export type MotLiaisonType = 'info' | 'autorisation' | 'bon_de_sortie';
 export type MotLiaisonStatut = 'brouillon' | 'envoyé' | 'clos';
 
+// Types en base (M5) — l'écran enseignant garde ses 3 types jusqu'à la Phase B.
+export type MotLiaisonDbType = 'information' | 'signature' | 'autorisation' | 'participation';
+export type SignatureMode = 'none' | 'one' | 'both';
+
+function toDbType(type: MotLiaisonType): MotLiaisonDbType {
+  return type === 'info' ? 'information' : 'autorisation';
+}
+
+function fromDbType(type: MotLiaisonDbType): MotLiaisonType {
+  return type === 'information' || type === 'participation' ? 'info' : 'autorisation';
+}
+
 export interface MotLiaison {
   id: string;
   teacher_id: string;
@@ -285,30 +297,19 @@ export async function getTeacherMots(teacherId: string): Promise<{
     return { data: MOCK_MOTS, error: null };
   }
 
-  // Fetch mots with signature counts
+  // signatures_count = carnets signés, total_students = carnets destinataires (vue M5/M6).
   const { data: rawMots, error } = await supabase
-    .from('mots_liaison')
-    .select('*, signatures(count)')
+    .from('mots_liaison_enriched')
+    .select('*')
     .eq('teacher_id', teacherId)
     .order('created_at', { ascending: false });
 
   if (error) return { data: [], error: error.message };
 
-  // Get total students per classe (for progress display)
-  const classes = [...new Set((rawMots ?? []).map((m: any) => m.classe))];
-  const classCounts: Record<string, number> = {};
-  for (const cls of classes) {
-    const { count } = await supabase
-      .from('children')
-      .select('*', { count: 'exact', head: true })
-      .eq('classe', cls);
-    classCounts[cls] = count ?? 0;
-  }
-
   const data: MotLiaison[] = (rawMots ?? []).map((m: any) => ({
     ...m,
-    signatures_count: m.signatures?.[0]?.count ?? 0,
-    total_students: classCounts[m.classe] ?? 0,
+    classe: m.classe ?? '',
+    type: fromDbType(m.type),
   }));
 
   return { data, error: null };
@@ -346,35 +347,33 @@ export async function getUnsignedStudents(motId: string): Promise<{
     return { data: unsigned, error: null };
   }
 
-  // Get the mot to know the classe
-  const { data: mot } = await supabase
-    .from('mots_liaison')
-    .select('classe')
-    .eq('id', motId)
-    .single();
+  // Carnets destinataires dont la signature attendue (one / both) n'est pas complète.
+  const { data: statuts, error } = await supabase
+    .from('mot_carnets_statut')
+    .select('child_id')
+    .eq('mot_id', motId)
+    .eq('est_signe', false);
 
-  if (!mot) return { data: [], error: 'Mot non trouvé' };
+  if (error) return { data: [], error: error.message };
 
-  // Get all students in that class
-  const { data: allStudents } = await supabase
-    .from('children')
-    .select('id, first_name, last_name, avatar_emoji')
-    .eq('classe', mot.classe);
+  // Noms : lisibles seulement si la RLS l'autorise (fiche élève côté enseignant = sprint enseignant).
+  const childIds = (statuts ?? []).map((s: any) => s.child_id);
+  const names: Record<string, { name: string; avatar: string }> = {};
+  if (childIds.length > 0) {
+    const { data: kids } = await supabase
+      .from('children')
+      .select('id, first_name, last_name, avatar_emoji')
+      .in('id', childIds);
+    for (const k of kids ?? []) {
+      names[k.id] = { name: `${k.first_name} ${k.last_name}`.trim(), avatar: k.avatar_emoji ?? '👦' };
+    }
+  }
 
-  // Get signed student IDs for this mot
-  const { data: sigs } = await supabase
-    .from('signatures')
-    .select('student_id')
-    .eq('mot_id', motId);
-
-  const signedIds = new Set((sigs ?? []).map((s: any) => s.student_id));
-  const unsigned = (allStudents ?? [])
-    .filter((s: any) => !signedIds.has(s.id))
-    .map((s: any) => ({
-      id: s.id,
-      name: `${s.first_name} ${s.last_name}`.trim(),
-      avatar: s.avatar_emoji ?? '👦',
-    }));
+  const unsigned = childIds.map((id: string) => ({
+    id,
+    name: names[id]?.name ?? 'Élève',
+    avatar: names[id]?.avatar ?? '👦',
+  }));
 
   return { data: unsigned, error: null };
 }
@@ -407,17 +406,21 @@ export async function createMotLiaison(mot: {
     return { data: newMot, error: null };
   }
 
+  // requires_signature est recalculé en base depuis signature_mode (M5).
+  // Sans classe_id, le mot n'est distribué dans aucun carnet : le choix de la classe (par id)
+  // arrive avec l'interface enseignant.
   const { data, error } = await supabase
     .from('mots_liaison')
     .insert({
       ...mot,
-      requires_signature: mot.type !== 'info',
+      type: toDbType(mot.type),
+      signature_mode: (mot.type === 'info' ? 'none' : 'one') as SignatureMode,
       date_envoi: new Date().toISOString().split('T')[0],
     })
     .select()
     .single();
 
-  return { data, error: error?.message ?? null };
+  return { data: data ? { ...data, type: fromDbType(data.type), signatures_count: 0, total_students: 0 } : null, error: error?.message ?? null };
 }
 
 export async function updateMotStatut(
@@ -446,30 +449,33 @@ export async function getParentMots(childId: string): Promise<{
     return { data: getMockParentMots(childId), error: null };
   }
 
-  // Get the child's classe to filter mots
-  const { data: child } = await supabase
-    .from('children')
-    .select('classe')
-    .eq('id', childId)
-    .single();
-
-  if (!child) return { data: [], error: 'Enfant non trouvé' };
-
-  // Get mots for this class
-  const { data: mots, error } = await supabase
-    .from('mots_liaison')
-    .select('*, signatures!left(student_id, signed_at)')
-    .eq('classe', child.classe)
-    .in('statut', ['envoyé', 'clos'])
-    .order('created_at', { ascending: false });
+  // Les mots présents dans le carnet de CET enfant (M5 : une copie par enfant).
+  const { data: carnet, error } = await supabase
+    .from('mot_carnets')
+    .select('mots_liaison(*)')
+    .eq('child_id', childId);
 
   if (error) return { data: [], error: error.message };
+
+  const mots = (carnet ?? [])
+    .map((c: any) => c.mots_liaison)
+    .filter((m: any) => m && (m.statut === 'envoyé' || m.statut === 'clos'))
+    .sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
+
+  // Ma signature pour cet enfant (chaque responsable signe en son nom, M6).
+  const userId = (await supabase.auth.getUser()).data.user?.id ?? '';
+  const { data: mySigs } = await supabase
+    .from('signatures')
+    .select('mot_id, signed_at')
+    .eq('student_id', childId)
+    .eq('parent_id', userId);
+  const mySigByMot = new Map((mySigs ?? []).map((s: any) => [s.mot_id, s.signed_at as string]));
 
   // Check read receipts for this parent
   const { data: receipts } = await supabase
     .from('read_receipts')
     .select('mot_id')
-    .eq('parent_id', (await supabase.auth.getUser()).data.user?.id ?? '');
+    .eq('parent_id', userId);
 
   const readMotIds = new Set((receipts ?? []).map((r: any) => r.mot_id));
 
@@ -486,21 +492,22 @@ export async function getParentMots(childId: string): Promise<{
     }
   }
 
-  const parentMots: MotLiaisonParent[] = (mots ?? []).map((m: any) => {
-    const childSig = (m.signatures ?? []).find((s: any) => s.student_id === childId);
+  // is_signed = signé PAR MOI. Le statut du carnet (mode « both ») est dans mot_carnets_statut.
+  const parentMots: MotLiaisonParent[] = mots.map((m: any) => {
+    const mySignedAt = mySigByMot.get(m.id) ?? null;
     return {
       id: m.id,
-      type: m.type,
+      type: fromDbType(m.type),
       titre: m.titre,
       contenu: m.contenu,
       date_envoi: m.date_envoi,
       date_limite: m.date_limite,
       requires_signature: m.requires_signature,
-      is_signed: !!childSig,
-      signed_at: childSig?.signed_at ?? null,
+      is_signed: !!mySignedAt,
+      signed_at: mySignedAt,
       is_read: readMotIds.has(m.id),
       teacher_name: teacherNames[m.teacher_id] ?? 'Enseignant',
-      classe: m.classe,
+      classe: m.classe ?? '',
     };
   });
 
@@ -515,14 +522,14 @@ export async function signMotLiaison(
 ): Promise<{ error: string | null }> {
   if (!isSupabaseConfigured()) return { error: null };
 
+  // parent_name / student_name / signed_at sont fixés côté serveur (M6) : parentName n'est plus envoyé.
+  void parentName;
   const { error } = await supabase
     .from('signatures')
     .insert({
       mot_id: motId,
       parent_id: parentId,
       student_id: studentId,
-      parent_name: parentName,
-      signed_at: new Date().toISOString(),
     });
 
   return { error: error?.message ?? null };

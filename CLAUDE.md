@@ -424,13 +424,14 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - `grades` — notes (collège/lycée)
 - `competences` — student_id, academic_year_id, domaine, competence, niveau 1-4, source (ecole|parent), saisi_par, date
 - `bulletins` — liés à academic_year_id
-- `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable
-- `signatures` — une ligne par (mot_id, student_id, responsable_id, signed_at)
-- `reponses_mot` — autorisation (oui/non) et participation (oui/peut-être/non)
+- `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable, classe_id (destinataire par id)
+- `mot_carnets` — une copie du mot par enfant (mot_id, child_id, academic_year_id) : classe → chaque enfant de la classe ; fratrie → `distribuer_mot()`
+- `signatures` — une ligne par (mot_id, student_id, parent_id = responsable, signed_at) ; statut par carnet : vue `mot_carnets_statut` (both = les 2 responsables, ou l'unique)
+- `reponses_mot` — autorisation (oui/non) et participation (oui/peut_etre/non), une par responsable et par carnet
 - `carnet_items` — import parent : student_id, academic_year_id, categorie (mot|livret|souvenir|jalon), fichier, date, ajoute_par, visibilite (foyer|prive)
 - `absences` — signalement enseignant + déclaration parent
 - `messages` — messagerie hub, rattachée à student_id
-- `classe` — liste élèves par enseignant
+- `ecoles` / `classes` — classe = école + année + nom, identifiée par son **id** (jamais par son nom) ; `enseignant_id` = titulaire ; élève rattaché via `academic_years.classe_id`
 
 ### RLS
 - Un responsable ne lit que les enfants auxquels il est rattaché
