@@ -12,7 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useTopbarScroll } from '../contexts/TopbarScrollContext';
+import Animated from 'react-native-reanimated';
+import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import SectionLabel from '../components/SectionLabel';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
@@ -111,7 +112,7 @@ export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
-  const { onScroll: reportScroll } = useTopbarScroll();
+  const scrollHandler = useTopbarScrollHandler();
 
   const [justifierVisible, setJustifierVisible] = useState(false);
 
@@ -133,12 +134,12 @@ export default function AccueilScreen() {
         style={styles.heroGradient}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
+        onScroll={scrollHandler}
       >
         {/* Espace TopBar (position: absolute) */}
         <View style={{ height: insets.top + 60 }} />
@@ -252,7 +253,7 @@ export default function AccueilScreen() {
             </View>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       <JustifierAbsenceSheet
         visible={justifierVisible}

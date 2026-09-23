@@ -1,10 +1,19 @@
 # TODO — Scolaria
 
+## Top bar · voile au défilement (23 sept 2026)
+
+**Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.** Annule le fond opaque de la 0-ter (choix de design : jamais de bandeau opaque).
+- [x] `components/navigation/ScrollVeil.tsx` : un seul voile haut/bas, dégradé vertical #F2F1EE (opaque du bord jusqu’au milieu de la barre, puis fondu 24 px), opacité 0 → 1 sur 16 px de scroll. Plus de BlurView pour les barres.
+- [x] `TopbarScrollContext` : `scrollY` partagé (Reanimated) + `useTopbarScrollHandler()` (useAnimatedScrollHandler, republie le scroll de l’écran au focus)
+- [x] Branché sur Accueil, Notes (2 vues : maternelle + collège), Agenda (jour + liste Devoirs), Messages
+- [x] Top bar transparente ; pills claires sur le header indigo de l’Accueil au repos, sombres dès que le voile apparaît (inactives : icône à 60 % au lieu de 50 % pour le contraste sur #F2F1EE)
+- Reste hors périmètre : BlurView encore utilisés dans AddToDiscussionSheet, JoyAlerts, JoyHistory, Portfolio, MonRessenti (à évaluer sur Android)
+
 ## Phase 0-ter · retours du test Android de la 0-bis (23 sept 2026)
 
 **Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.**
 - [x] Symbole : login et pill Aria rendaient DÉJÀ ScolariaSymbol. Les « tirets » venaient de la géométrie de référence à petite taille (ellipses de 1,4 × 2,8 px à 14 px). Ajout d’une géométrie compacte sous 32 px (mêmes 8 ellipses et angles, plus pleines). `CrownShapes` exporté et réutilisé par AriaOrb (qui avait sa propre copie avec les <G rotation> imbriqués). Icônes « sparkles » d’Aria remplacées par ScolariaSymbol : RGPD (Effacement, Export, Permissions), À propos, Météo classe, badge « Observé par Aria », onglet Aria de l’espace élève.
-- [x] Top bar opaque #F2F1EE sur tous les écrans principaux (plus de variante transparente sur l’Accueil)
+- [x] ~~Top bar opaque #F2F1EE~~ : annulé, remplacé par le voile au défilement (section du dessus)
 - [x] « Mon compte » : lignes en ligne selon §8. Cause : `Pressable` natif + style en fonction `({ pressed }) => [...]`, ignoré sur Android (même cause que les cartes Agenda en 0-bis). Correctif global : le `Pressable` de `components/ui` résout lui-même la fonction de style, 43 fichiers redirigés. insets.bottom posé sur le conteneur de la feuille. La phase 0 n’avait remplacé aucun `gap` (seulement Pin et AjouterEnfant en 0-bis, réécrits en marges).
 - [x] Initiales : `utils/childInitials.ts`, une lettre du prénom, deux si un autre enfant du foyer a la même initiale (Léa → Lé, Lucas → Lu). Appliqué : top bar, sélecteur, menu burger, Mon compte, ChildAvatar.
 

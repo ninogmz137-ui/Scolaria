@@ -11,6 +11,8 @@
  */
 
 import React, { useState } from 'react';
+import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
+import { useTopbarScrollY } from '../../contexts/TopbarScrollContext';
 import { View, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,6 +52,13 @@ const TABS: TabConfig[] = [
   { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: TextBubble },
 ];
 
+/** Géométrie de la rangée (pour le voile ScrollVeil du haut). */
+export const TOPBAR_PADDING_TOP = 10;
+export const TOPBAR_ROW_HEIGHT = 34;
+
+/** Au-delà de ce défilement, le voile #F2F1EE est assez présent pour passer aux pills sombres. */
+const HEADER_PILLS_UNTIL_SCROLL = 8;
+
 // ─── Composant ───────────────────────────────────────────
 
 export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
@@ -57,6 +66,18 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const navigation = useNavigation<any>();
   const { selectedChild, children } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
+
+  // Accueil au repos : la barre est posée sur le header indigo → pills claires.
+  // Dès que le voile #F2F1EE apparaît (ou sur les autres onglets) → pills sombres.
+  const scrollY = useTopbarScrollY();
+  const [overContent, setOverContent] = useState(false);
+  useAnimatedReaction(
+    () => scrollY.value > HEADER_PILLS_UNTIL_SCROLL,
+    (next, prev) => {
+      if (next !== prev) runOnJS(setOverContent)(next);
+    },
+  );
+  const onHeader = activeTab === 'accueil' && !overContent;
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -81,7 +102,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
 
   return (
     <>
-      <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.container, { paddingTop: insets.top + TOPBAR_PADDING_TOP }]}>
 
         {/* Burger — gauche */}
         <Pressable
@@ -109,8 +130,8 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               style={[
                 styles.pill,
                 isActive
-                  ? styles.pillActiveOther
-                  : styles.pillInactiveOther,
+                  ? (onHeader ? styles.pillActiveOnHeader : styles.pillActiveOther)
+                  : (onHeader ? styles.pillInactiveOnHeader : styles.pillInactiveOther),
                 !isLast && styles.pillMargin,
               ]}
               accessibilityRole="button"
@@ -119,7 +140,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
             >
               <Icon
                 size={22}
-                color={isActive ? '#0F172A' : 'rgba(15,23,42,0.50)'}
+                color={isActive ? '#0F172A' : (onHeader ? '#FFFFFF' : 'rgba(15,23,42,0.60)')}
               />
               {isActive && (
                 <Text style={styles.pillLabel}>{tab.label}</Text>
@@ -181,8 +202,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingBottom: 12,
-    // Opaque : la barre couvre la zone de l'heure (insets.top) et ses onglets.
-    backgroundColor: '#F2F1EE',
+    // Jamais opaque : la lisibilité au défilement vient du voile ScrollVeil (TabNavigator).
+    backgroundColor: 'transparent',
   },
 
   // ── Burger ───────────────────────────────────────────
@@ -212,6 +233,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
+  },
+  // Sur le header indigo de l'Accueil (au repos) — contraste : #0F172A sur blanc 92 %
+  pillActiveOnHeader: {
+    height: 34,
+    paddingLeft: 11,
+    paddingRight: 14,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.92)',
+  },
+  pillInactiveOnHeader: {
+    width: 36,
+    height: 32,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    justifyContent: 'center',
   },
   // Active — fond sombre discret
   pillActiveOther: {

@@ -36,12 +36,15 @@ import type { ActiveTab } from './TopBar';
 export const BOTTOM_BAR_HEIGHT = 70;
 
 /** Padding bottom pour les ScrollView derrière la BottomBar */
+/** Hauteur visible de la rangée (paddingTop 4 + boutons 40). */
+export const BOTTOM_BAR_ROW_HEIGHT = 44;
+
 /** Distance entre le bas de l'écran et la barre (safe-area Android/iOS comprise). */
 export function getBottomBarOffset(insetsBottom: number): number {
   return insetsBottom > 0 ? insetsBottom + 8 : 12;
 }
 
-/** Hauteur du voile flou posé derrière la barre (TabNavigator) : barre + dégradé de 28 px. */
+/** Hauteur de la zone du bas réservée au défilement : barre + marge de 28 px (≥ voile ScrollVeil). */
 export function getBottomChromeHeight(insetsBottom: number): number {
   return getBottomBarOffset(insetsBottom) + BOTTOM_BAR_HEIGHT + 28;
 }

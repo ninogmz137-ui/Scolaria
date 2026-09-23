@@ -39,7 +39,7 @@ import { Check, ChevronDown } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { C } from '../constants/design';
-import { useTopbarScroll } from '../contexts/TopbarScrollContext';
+import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -314,7 +314,7 @@ export default function AgendaScreen() {
   const getDemoAgendaRef = useRef(getDemoAgenda);
   getDemoAgendaRef.current = getDemoAgenda;
   const insets = useSafeAreaInsets();
-  const { onScroll: reportScroll } = useTopbarScroll();
+  const scrollHandler = useTopbarScrollHandler();
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -714,7 +714,7 @@ export default function AgendaScreen() {
     };
 
     return (
-      <ScrollView
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -722,6 +722,8 @@ export default function AgendaScreen() {
           paddingTop: 4,
           paddingBottom: getBottomBarScrollPadding(insets.bottom),
         }}
+        scrollEventThrottle={16}
+        onScroll={scrollHandler}
       >
         <View style={st.hwStats}>
           <Text style={st.hwStatNum}>{pendingCount}</Text>
@@ -746,7 +748,7 @@ export default function AgendaScreen() {
             </View>
           </View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     );
   };
 
@@ -816,11 +818,11 @@ export default function AgendaScreen() {
           </Text>
         </View>
 
-        <ScrollView
+        <Animated.ScrollView
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
-          onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
+          onScroll={scrollHandler}
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingBottom: getBottomBarScrollPadding(insets.bottom),
@@ -838,7 +840,7 @@ export default function AgendaScreen() {
           ) : (
             dayEvents.map((event) => renderEventCard(event))
           )}
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
     );
   };

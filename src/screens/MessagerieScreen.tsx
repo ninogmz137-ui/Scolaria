@@ -31,7 +31,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { School, CalendarX, Search, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useTopbarScroll } from '../contexts/TopbarScrollContext';
+import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
@@ -303,7 +303,7 @@ export default function MessagerieScreen() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
-  const { onScroll: reportScroll } = useTopbarScroll();
+  const scrollHandler = useTopbarScrollHandler();
   // ── Focus refresh ────────────────────────────────────────
   const [tick, setTick] = useState(0);
 
@@ -683,14 +683,14 @@ export default function MessagerieScreen() {
       ) : null}
 
       {/* ── Conversation list ── */}
-      <ScrollView
+      <Animated.ScrollView
         style={[
           styles.conversationScroll,
           Platform.OS === 'android' && styles.conversationScrollAndroid,
         ]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
+        onScroll={scrollHandler}
         contentContainerStyle={[
           styles.scrollContent,
           styles.screenHorizontalPad,
@@ -731,7 +731,7 @@ export default function MessagerieScreen() {
         )}
 
         <View style={{ height: 24 }} />
-      </ScrollView>
+      </Animated.ScrollView>
 
     </View>
 

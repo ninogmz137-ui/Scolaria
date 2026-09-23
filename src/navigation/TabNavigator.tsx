@@ -12,7 +12,7 @@
  * translates right while the dark menu panel is revealed behind it.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { View, Dimensions, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
@@ -22,8 +22,9 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated';
-import { BlurView } from 'expo-blur';
-import { getBottomChromeHeight } from '../components/navigation/BottomBar';
+import ScrollVeil from '../components/navigation/ScrollVeil';
+import { TOPBAR_PADDING_TOP, TOPBAR_ROW_HEIGHT } from '../components/navigation/TopBar';
+import { getBottomBarOffset, BOTTOM_BAR_ROW_HEIGHT } from '../components/navigation/BottomBar';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
@@ -700,9 +701,8 @@ export default function TabNavigator() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [quickActionsVisible, setQuickActionsVisible] = useState(false);
 
-  // ── Scroll context → drives TopBar blur ─────────────────────────────
-  const lastScrollY = useRef(0);
-  const topBlurOpacity = useSharedValue(0);
+  // ── Défilement de l'écran visible → voiles haut/bas (ScrollVeil) ────
+  const scrollY = useSharedValue(0);
 
   // Register refs
   backArrowRef.current = { setShowBack };
@@ -765,20 +765,14 @@ export default function TabNavigator() {
   const showBackRef = useRef(showBack);
   showBackRef.current = showBack;
 
-  // TopBar fixe — pas de scroll-to-hide. Contexte conservé pour AccueilScreen (no-op).
-  const handleAccueilScroll = useCallback((y: number) => {
-    lastScrollY.current = y;
-    // Notion-like: blur appears once content scrolls under the pills
-    const next = y > 12 ? 1 : 0;
-    topBlurOpacity.value = withTiming(next, { duration: 180 });
-  }, [topBlurOpacity]);
+  const topbarScrollContextValue = useMemo(() => ({ scrollY }), [scrollY]);
 
-  const topbarScrollContextValue = { onScroll: handleAccueilScroll };
-
-  const topBlurStyle = useAnimatedStyle(() => ({
-    opacity: topBlurOpacity.value,
-  }));
-  const bottomBlurStyle = topBlurStyle;
+  // Voiles : opaques du bord d'écran jusqu'au milieu de la barre, puis fondu de 24 px au-delà.
+  const VEIL_FADE_PAST_BAR = 24;
+  const topVeilSolid = insets.top + TOPBAR_PADDING_TOP + TOPBAR_ROW_HEIGHT / 2;
+  const topVeilFade = TOPBAR_ROW_HEIGHT / 2 + VEIL_FADE_PAST_BAR;
+  const bottomVeilSolid = getBottomBarOffset(insets.bottom) + BOTTOM_BAR_ROW_HEIGHT / 2;
+  const bottomVeilFade = BOTTOM_BAR_ROW_HEIGHT / 2 + VEIL_FADE_PAST_BAR;
 
   // ── Swipe gestures (swipe-back + burger open) ────────
   // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
@@ -873,28 +867,9 @@ export default function TabNavigator() {
         {/* ── Main content — animated scale/translate ── */}
         <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
           <View style={{ flex: 1, backgroundColor: '#F2F1EE' }}>
-            {/* Top blur veil (appears on scroll) */}
+            {/* Voile haut : apparaît au défilement, jamais de bandeau opaque au repos */}
             {showNavChrome && (
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  {
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: insets.top + 86,
-                    zIndex: 15,
-                  },
-                  topBlurStyle,
-                ]}
-              >
-                <BlurView
-                  tint="light"
-                  intensity={35}
-                  style={{ flex: 1 }}
-                />
-              </Animated.View>
+              <ScrollVeil edge="top" solid={topVeilSolid} fade={topVeilFade} scrollY={scrollY} />
             )}
             {/* TopBar — toujours en haut sauf écrans plein-écran */}
             {showNavChrome && (
@@ -919,24 +894,9 @@ export default function TabNavigator() {
               }}
             />
 
-            {/* Bottom blur veil (appears on scroll, behind pills) */}
+            {/* Voile bas : même composant, miroir */}
             {showNavChrome && (
-              <Animated.View
-                pointerEvents="none"
-                style={[
-                  {
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: getBottomChromeHeight(insets.bottom),
-                    zIndex: 15,
-                  },
-                  bottomBlurStyle,
-                ]}
-              >
-                <BlurView tint="light" intensity={35} style={{ flex: 1 }} />
-              </Animated.View>
+              <ScrollVeil edge="bottom" solid={bottomVeilSolid} fade={bottomVeilFade} scrollY={scrollY} />
             )}
 
             {/* BottomBar — ancrée en bas sauf écrans plein-écran */}

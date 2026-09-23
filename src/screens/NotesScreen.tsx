@@ -50,7 +50,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
-import { useTopbarScroll } from '../contexts/TopbarScrollContext';
+import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -1078,7 +1078,7 @@ export default function NotesScreen() {
   const { isDemoMode, getSubjects: getDemoSubjects, getGrades: getDemoGrades } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { onScroll: reportScroll } = useTopbarScroll();
+  const scrollHandler = useTopbarScrollHandler();
 
   const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
   const [selectedSubjectIdx, setSelectedSubjectIdx] = useState(0);
@@ -1431,13 +1431,15 @@ export default function NotesScreen() {
           <View style={styles.wallpaperFade} />
         </View>
 
-        <ScrollView
+        <Reanimated.ScrollView
           style={styles.mainScroll}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scroll,
             { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
           ]}
+          scrollEventThrottle={16}
+          onScroll={scrollHandler}
         >
           <View style={styles.titleRow}>
             <View style={styles.titleActions}>
@@ -1608,7 +1610,7 @@ export default function NotesScreen() {
             <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
             <Text style={styles.obsQuote}>{observationText}</Text>
           </View>
-        </ScrollView>
+        </Reanimated.ScrollView>
         <BulletinImportSheet
           visible={showBulletinImport}
           onClose={() => setShowBulletinImport(false)}
@@ -1633,11 +1635,11 @@ export default function NotesScreen() {
         <View style={styles.wallpaperFade} />
       </View>
 
-      <ScrollView
+      <Reanimated.ScrollView
         style={styles.mainScroll}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
+        onScroll={scrollHandler}
         contentContainerStyle={[
           styles.scroll,
           { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
@@ -1947,7 +1949,7 @@ export default function NotesScreen() {
           <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
           <Text style={styles.obsQuote}>{observationText}</Text>
         </View>
-      </ScrollView>
+      </Reanimated.ScrollView>
       <BulletinImportSheet
         visible={showBulletinImport}
         onClose={() => setShowBulletinImport(false)}
