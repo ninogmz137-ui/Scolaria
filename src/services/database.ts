@@ -60,11 +60,22 @@ export async function createChild(child: {
 }) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
 
-  // Le créateur devient automatiquement responsable (trigger add_child_creator_as_responsable, M2).
+  // Insertion directe interdite (M2b) : create_child crée, en UNE transaction, l'enfant, le lien
+  // responsable (foyer créé si besoin) et l'année scolaire en cours. parent_id = l'utilisateur
+  // connecté côté serveur (auth.uid()) ; child.parent_id n'est plus transmis.
+  // super_power / super_power_emoji ne sont pas pris en charge à la création (profil, plus tard).
   return supabase
-    .from('children')
-    .insert(child)
-    .select()
+    .rpc('create_child', {
+      p_first_name: child.first_name,
+      p_last_name: child.last_name ?? '',
+      p_birth_date: child.birth_date ?? null,
+      p_age: child.age ?? null,
+      p_classe: child.classe,
+      p_school: child.school,
+      p_avatar_emoji: child.avatar_emoji ?? '👦',
+      p_color: child.color ?? '#4338CA',
+      p_scolaria_id: child.scolaria_id ?? '',
+    })
     .single();
 }
 

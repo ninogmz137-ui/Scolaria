@@ -46,7 +46,7 @@ export const DEFAULT_CHILD_COLOR = '#4338CA';
 export const MOCK_CHILDREN: Child[] = [
   { id: 'demo-lea', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2020-03-15', avatarType: 'emoji', avatarEmoji: '🦁', color: '#0F766E' },
   { id: 'demo-lucas', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2015-07-22', avatarType: 'emoji', avatarEmoji: '🐻', color: '#4338CA' },
-  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊', color: '#B45309' },
+  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊', color: '#0369A1' },
 ];
 
 // Backwards-compatible alias — any file importing CHILDREN keeps working

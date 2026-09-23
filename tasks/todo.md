@@ -2,7 +2,7 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : plan M0–M12 VALIDÉ. Lot 1 (M0 + M1) et lot 2 (M2–M4) FAITS le 23 sept. Lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
+**Statut : plan M0–M12 VALIDÉ. Lots 1, 2 et 2-bis FAITS (23–24 sept). Lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
@@ -35,10 +35,23 @@
   - M4 : année active posée automatiquement ; année archivée du même enfant acceptée ; année d’un autre enfant refusée ; enfant sans année → NULL accepté.
 - [x] Advisors : **0 ERROR**. WARN : GraphQL (structure), mots de passe divulgués (tableau de bord), `is_responsable` exécutable par authenticated (voulu).
 - [x] `supabase migration list` : local = distant (8/8).
-- [x] Code : `getChildren()` et l’export RGPD s’appuient sur la RLS (tous les enfants dont on est responsable, plus seulement ceux créés) ; `Child.color` + `DEFAULT_CHILD_COLOR` ; couleurs des enfants de démo Moreau (Léa #0F766E, Lucas #4338CA, Emma #B45309) dans `ActiveChildContext` et `demo-children.json`. tsc OK.
+- [x] Code : `getChildren()` et l’export RGPD s’appuient sur la RLS (tous les enfants dont on est responsable, plus seulement ceux créés) ; `Child.color` + `DEFAULT_CHILD_COLOR` ; couleurs des enfants de démo Moreau (Léa #0F766E, Lucas #4338CA, Emma #0369A1 (lot 2-bis)) dans `ActiveChildContext` et `demo-children.json`. tsc OK.
 - [ ] **Phase B** : afficher `child.color` sur l’avatar (top bar, sélecteur) et le header de l’Accueil — encore en indigo neutre (aucun écran modifié en phase A) ; écran « modifier la couleur » dans le profil de l’enfant.
-- [ ] **Phase B** : invitation d’un second responsable (écriture dans `responsables` réservée au serveur aujourd’hui → Edge Function ou RPC dédiée).
+- [x] ~~Invitation d’un second responsable~~ : mécanisme en base fait au lot 2-bis (M2c) ; écrans en Phase B.
 - [ ] Plus tard : tables « famille » (access_journal, deletion_requests, export_history, person_permissions, transfer_codes) encore rattachées à `family_id = auth.uid()` → passer à `foyer_id`.
+
+#### Lot 2-bis · M2b + M2c + M2d — FAIT (24 sept)
+- [x] M2b `20260924090000_m2b_creation_enfant` : lecture de children UNIQUEMENT via responsables (plus de parent_id = auth.uid()) ; insertion directe interdite (policy children_insert supprimée, trigger du créateur supprimé) → `create_child()` crée enfant + lien responsable + année scolaire en cours en une transaction ; `current_school_year()` (bascule en août, heure de Paris) ; contrainte différée : jamais d’enfant sans année (création ou suppression de la dernière année refusées au COMMIT).
+- [x] M2c `20260924090100_m2c_invitations_responsables` : table `invitations_responsable` (7 jours, une seule en attente par enfant + email) ; créée par un responsable de l’enfant ; visible par ses responsables et par l’invité ; `respond_invitation(id, accepter)` : seul l’invité (email du compte CONFIRMÉ = email invité) accepte ou refuse ; acceptation → lien dans le foyer de l’invitant. Aucune policy INSERT/UPDATE sur responsables.
+- [x] M2d `20260924090200_m2d_retrait_responsable` : un responsable ne retire que LUI-MÊME (policy DELETE user_id = auth.uid()) ; le DERNIER responsable ne peut pas se retirer (trigger) ; la suppression de l’enfant (cascade) n’est pas bloquée.
+- [x] Appliquées par `supabase db push` (versions = noms de fichiers), inverses dans migrations_down/.
+- [x] Tests SQL (transactions annulées, 0 donnée restante) :
+  - M2b : create_child → enfant + responsable + année 2026-2027 (CE1, active) ; insert direct refusé ; enfant sans année refusé ; suppression de la dernière année refusée ; **A retiré des responsables → 0 enfant, 0 année visibles**.
+  - M2c : **C ne peut ni s’auto-rattacher, ni rattacher D, ni s’inviter** ; C ne voit pas et ne peut pas accepter l’invitation de B ; B voit l’enfant seulement APRÈS acceptation (même foyer que A) ; invitation non réutilisable.
+  - M2d : **B ne peut pas retirer A** (0 ligne) ; B se retire lui-même (1 ligne, ne voit plus l’enfant) ; A, dernier responsable, ne peut pas se retirer ; A peut supprimer l’enfant (liens et années supprimés en cascade).
+- [x] Advisors : 0 ERROR. WARN voulus : create_child, respond_invitation, is_responsable exécutables par authenticated (points d’entrée contrôlés).
+- [x] Code : `createChild` appelle `rpc('create_child')` (paramètres identiques, super_power non pris en charge à la création) ; démo : Emma en bleu océan `#0369A1` (l’ambre est réservé au Score de Joie).
+- [ ] Phase B : écrans « inviter un responsable » (insert invitations_responsable) et « invitations reçues » (respond_invitation) ; annulation d’une invitation par l’invitant (RPC à ajouter) ; procédure vérifiée de retrait d’un autre responsable (garde partagée, côté serveur).
 
 #### Lot 3 · règle à appliquer (NE PAS toucher avant le feu vert)
 - **Les classes doivent être identifiées par un id (école + classe), JAMAIS par leur nom** : aujourd’hui mots_liaison, class_posts et class_events sont rattachés au texte `classe` (« CE1 ») → une CE1 d’une école voit les publications d’une autre. Au lot 3 : table des classes (id, école, niveau, nom, année), `children` / publications / mots rattachés par `class_id`, policies réécrites sur l’id.
