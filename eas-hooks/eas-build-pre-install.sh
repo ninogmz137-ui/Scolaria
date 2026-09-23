@@ -14,7 +14,7 @@ ENV_FILE=".env"
 > "$ENV_FILE"
 
 # Write each EXPO_PUBLIC_ var from OS env to .env
-for var in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_ANTHROPIC_API_KEY EXPO_PUBLIC_GOOGLE_VISION_KEY; do
+for var in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY; do
   value="${!var:-}"
   if [ -n "$value" ]; then
     echo "${var}=${value}" >> "$ENV_FILE"

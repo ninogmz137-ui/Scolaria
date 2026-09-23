@@ -1,13 +1,17 @@
 /**
- * Aria API Service — connects to Claude API (Anthropic)
+ * Aria API Service — passe par l'Edge Function Supabase « aria ».
  *
- * Sends messages to claude-sonnet-4-20250514 with the child's
- * full context as system prompt. Falls back to a mock
- * response if the API key is not configured.
+ * L'app ne connaît AUCUNE clé API : elle appelle supabase.functions.invoke('aria'),
+ * qui transmet automatiquement la session de l'utilisateur. La clé Anthropic est un
+ * secret Supabase, utilisé uniquement côté serveur (supabase/functions/aria).
+ *
+ * Mode démo (sans session) : réponses d'exemple locales, aucun appel réseau.
+ * Toute erreur → « Aria est momentanément indisponible. » (jamais de détail technique).
  */
 
 import { getChildContext, buildChildContextString } from './childContext';
-import { ENV } from './getEnv';
+import { supabase } from './supabase';
+import { detectEmergency, EMERGENCY_MESSAGE } from '../../supabase/functions/_shared/emergency';
 import { CONVERSATIONS_BY_CHILD } from '../data/messagerieData';
 
 // ─── Types ────────────────────────────────────────────────
@@ -17,18 +21,17 @@ interface ClaudeMessage {
   content: string;
 }
 
-interface ClaudeResponse {
-  content: { type: string; text: string }[];
+interface AriaFunctionResponse {
+  text?: string;
+  /** Catégorie du protocole d'urgence déclenché côté serveur (le texte est alors le message fixe). */
+  alert?: string;
+  error?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-20250514';
-const API_URL = 'https://api.anthropic.com/v1/messages';
-const MAX_TOKENS = 1024;
-
-// ─── Startup diagnostics ────────────────────────────────
-console.log(`[Aria] API key status: ${ENV.ANTHROPIC_API_KEY ? `present (${ENV.ANTHROPIC_API_KEY.substring(0, 12)}...)` : 'MISSING'}`);
+/** Seul message d'erreur montré à l'utilisateur. */
+export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
 
 // ─── System prompt builder ───────────────────────────────
 
@@ -42,7 +45,7 @@ function buildSystemPrompt(childId: string, childName?: string): string {
     ? `\n═══ CONVERSATIONS DISPONIBLES POUR LES MESSAGES ═══\n${convList}\n`
     : '';
 
-  return `Tu es Aria ✦, l'assistante IA de Scolaria — le passeport scolaire numérique pour les familles françaises.
+  return `Tu es Aria, l'assistante IA de Scolaria — le carnet de scolarité numérique des familles françaises.
 
 ═══ TON RÔLE ═══
 - Tu accompagnes les parents dans le suivi scolaire de leurs enfants
@@ -107,11 +110,15 @@ export async function sendToAria(
   childId: string = 'demo-lea',
   options?: { isDemo?: boolean; childName?: string },
 ): Promise<string> {
-  const apiKey = ENV.ANTHROPIC_API_KEY;
+  // Protocole d'urgence (CLAUDE.md) : jamais de réponse d'IA ni d'exemple sur un message de détresse.
+  // L'Edge Function refait ce contrôle et fait foi ; ici il couvre aussi le mode démo.
+  if (detectEmergency(userMessage)) {
+    return EMERGENCY_MESSAGE;
+  }
 
-  if (!apiKey || apiKey === 'your-api-key-here') {
-    console.warn('[Aria] No API key configured — using fallback response');
-    return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
+  // Mode démo : réponses d'exemple locales, pas d'appel serveur
+  if (options?.isDemo) {
+    return getFallbackResponse(userMessage, childId, options?.childName);
   }
 
   const systemPrompt = buildSystemPrompt(childId, options?.childName);
@@ -123,60 +130,30 @@ export async function sendToAria(
   ];
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        system: systemPrompt,
-        messages,
-      }),
+    // invoke() joint automatiquement le JWT de la session Supabase en cours
+    const { data, error } = await supabase.functions.invoke<AriaFunctionResponse>('aria', {
+      body: { system: systemPrompt, messages },
     });
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error('[Aria] API error:', response.status, errorBody);
-
-      if (response.status === 401) {
-        return '⚠️ Clé API expirée ou invalide. Régénère ta clé sur console.anthropic.com et mets-la à jour dans eas.json + .env';
-      }
-      if (response.status === 429) {
-        return '⏳ Trop de requêtes envoyées. Attends quelques secondes et réessaie.';
-      }
-
-      return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
+    if (error || !data?.text) {
+      console.warn('[Aria] Edge Function indisponible', error?.name ?? data?.error ?? 'réponse vide');
+      return ARIA_UNAVAILABLE;
     }
-
-    const data: ClaudeResponse = await response.json();
-
-    const textContent = data.content.find((c) => c.type === 'text');
-    if (textContent) {
-      return textContent.text;
-    }
-
-    return getFallbackResponse(userMessage, childId, options?.isDemo === true, options?.childName);
+    return data.text;
   } catch (error) {
-    console.error('[Aria] Network error:', error);
-    return '📡 Impossible de contacter Aria pour le moment. Vérifie ta connexion internet et réessaie.';
+    console.warn('[Aria] Appel impossible', error);
+    return ARIA_UNAVAILABLE;
   }
 }
 
-// ─── Fallback responses (when no API key) ───────────────
+// ─── Réponses d'exemple (mode démo uniquement) ──────────
 
-function buildFallbackResponses(childId: string, isDemoApp: boolean, childName?: string): string[] {
+function buildFallbackResponses(childId: string, childName?: string): string[] {
   const child = getChildContext(childId, childName);
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
-  const intro = isDemoApp
-    ? `Bonjour ! Je suis Aria ✦, ton assistante scolaire. En mode démo, je te propose des exemples adaptés à ${name} pour découvrir Scolaria.`
-    : `Je suis Aria, ton assistante scolaire ! Pour me connecter à l'IA, configure ta clé API Anthropic dans le fichier .env (EXPO_PUBLIC_ANTHROPIC_API_KEY). En attendant, je fonctionne en mode démo pour ${name}. 🔑`;
+  const intro = `Bonjour ! Je suis Aria, ton assistante scolaire. En mode démo, je te propose des exemples adaptés à ${name} pour découvrir Scolaria.`;
 
   if (grades.length === 0) {
     // Maternelle — no grades
@@ -219,10 +196,9 @@ let fallbackIndex = 0;
 function getFallbackResponse(
   userMessage: string,
   childId: string,
-  isDemoApp = false,
   childName?: string,
 ): string {
-  const responses = buildFallbackResponses(childId, isDemoApp, childName);
+  const responses = buildFallbackResponses(childId, childName);
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('note') || msg.includes('résultat') || msg.includes('moyenne')) {

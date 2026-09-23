@@ -1,5 +1,34 @@
 # TODO — Scolaria
 
+## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
+
+**Statut : S2–S4 commités, NON déployés (attente réactivation du projet). Migrations : bloquées, en attente de la réactivation du projet + sauvegarde.**
+
+### Étape 2 · état Supabase (constaté le 23 sept)
+- Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
+- Schéma local (`supabase/schema-complet.sql`, dernier commit 2 mai) : 14 tables (profiles, children, academic_years, subjects, grades, bulletins, mots_liaison, signatures, messages, read_receipts, agenda_events, absences, checkins, aria_conversations/messages), 49 policies — à comparer au schéma réel.
+- Décision : l’utilisateur réactive le projet et fait `supabase db dump` (schéma + données) dans `supabase/backups/` (ignoré par Git).
+- Règle validée : **garder les noms de tables existants** (children, profiles…) ; toute table présente est modifiée, jamais recréée ; c’est CLAUDE.md qui sera mis à jour.
+- [ ] Lire le schéma réel (tables, colonnes, clés, RLS) → lister ce qui n’est pas rattaché à student(child)_id + academic_year_id
+- [ ] Écrire le plan de migration ici (une migration réversible par sujet, aucun DROP sans accord) → attendre validation
+
+### S · Sécurité Aria
+- [x] S1 : aucune clé `sk-ant-` dans l’historique Git (toutes branches) ; `eas.json` propre depuis `6f641b9`. La clé était dans `.env` (non suivi) → `extra` → APK, et dans les variables EAS (supprimées par l’utilisateur, clé révoquée).
+- [x] S2 : Edge Function `supabase/functions/aria/index.ts` (SDK `npm:@anthropic-ai/sdk`) : session Supabase obligatoire (JWT + getUser), modèle / max_tokens / fallbacks fixés côté serveur, garde-fous de taille, réponse `{ text }` ou `{ error: "unavailable" }`. App : `supabase.functions.invoke("aria")` ; mode démo = réponses locales sans réseau (vérifié en web).
+  - Modèle : `claude-sonnet-5` par défaut (décision : coût), surchargeable sans redéployer par le secret `ARIA_MODEL`. Repli automatique DÉSACTIVÉ : un refus du modèle → « Aria est momentanément indisponible. ». L’ancien code utilisait `claude-sonnet-4-20250514`.
+  - Minimisation : le contexte envoyé à Aria ne contient que le PRÉNOM (plus de nom de famille, d’école ni d’identifiant Scolaria) — `childContext.ts`.
+  - Protocole d’urgence : `supabase/functions/_shared/emergency.ts` (module partagé). Edge Function : contrôle AVANT tout appel au modèle → message fixe 3114 / 3020 / 119 (+ 112), aucun appel Anthropic, alerte journalisée (catégorie + user id, jamais le texte). App : même contrôle, y compris en mode démo (vérifié en web). 14/14 cas de test (dont violon / violent / violette).
+  - TEMPORAIRE : le prompt système est encore construit côté app (données de démo locales). Quand les données seront en base, la fonction construira elle-même le contexte depuis child_id sous RLS et n’acceptera plus de `system` du client.
+- [x] S3 : clés retirées de `app.config.js` (extra), `getEnv.ts` (+ journaux qui affichaient 12 caractères de la clé), `scripts/write-env.js`, `eas-hooks/eas-build-pre-install.sh`, `.env.example`, `.env`. `.env` déjà ignoré ; `supabase/backups/` ajouté au .gitignore.
+- [x] Google Vision : la clé était embarquée mais **jamais utilisée** (aucun appel OCR dans le code) → retirée sans Edge Function. Le futur OCR suivra le même modèle (fonction dédiée + secret).
+- [x] S4 : toute panne d’Aria → « Aria est momentanément indisponible. » (plus de mention de clé, .env, eas.json).
+- [ ] S5 : poser le secret et déployer (commandes transmises à l’utilisateur), puis tester un vrai compte (non démo).
+- [ ] Protocole d’urgence — suites :
+  - Faire valider la liste de mots-clés (catégories suicide / harcèlement / maltraitance). Faux positifs probables : « en finir » (« en finir avec les devoirs »).
+  - [UNCLEAR] Vérifier que le 3020 est toujours le bon numéro « harcèlement » (possible regroupement sous le 3018) avant la mise en production.
+  - Persister l’alerte (table d’alertes, student_id + responsable) et notifier le ou les responsables — nécessite la migration (phase A).
+  - Ne pas ajouter la réponse « indisponible » / « urgence » à l’historique envoyé au modèle au tour suivant.
+
 ## Top bar · voile au défilement (23 sept 2026)
 
 **Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.** Annule le fond opaque de la 0-ter (choix de design : jamais de bandeau opaque).

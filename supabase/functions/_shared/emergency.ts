@@ -1,0 +1,72 @@
+/**
+ * Protocole d'urgence d'Aria (CLAUDE.md § Aria) — module PARTAGÉ, sans dépendance :
+ *  - Edge Function « aria » : vérification faisant foi, AVANT tout appel au modèle ;
+ *  - app (mode démo inclus) : même vérification, pour ne jamais répondre par une réponse
+ *    d'exemple à un message de détresse.
+ *
+ * Si un mot-clé critique est détecté : aucune réponse de l'IA, message fixe avec les numéros
+ * d'aide, et alerte signalée (catégorie uniquement — jamais le contenu du message).
+ *
+ * Choix assumé : mieux vaut un faux positif (« le suicide dans Roméo et Juliette ») qu'un
+ * message de détresse traité comme une question ordinaire.
+ */
+
+export type EmergencyCategory = 'suicide' | 'harcelement' | 'maltraitance';
+
+/** Minuscules, sans accents, espaces normalisés, apostrophes droites. */
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[’`]/g, "'")
+    .replace(/\s+/g, ' ');
+}
+
+// Motifs appliqués au texte normalisé. \b évite « viol » dans « violon », « violet », « violent ».
+const PATTERNS: Record<EmergencyCategory, RegExp[]> = {
+  suicide: [
+    /\bsuicid/,                              // suicide, suicider, suicidaire
+    /\b(me|te|se) (tuer|foutre en l'air)\b/,
+    /\b(envie|veux|veut|voudrais|voulais) (de )?mourir\b/,
+    /\ben finir\b/,
+    /\bplus (envie|goût|gout) de vivre\b/,
+    /\b(me|se|te) faire du mal\b/,
+    /\bscarifi/,                             // scarifier, scarification
+    /\b(me|se) couper les veines\b/,
+    /\bplus la peine de vivre\b/,
+  ],
+  harcelement: [
+    /\bharcel/,                              // harcèlement, harcelé(e), harceler
+    /\bcyberharcel/,
+    /\bracket/,
+    /\bmenaces? de mort\b/,
+  ],
+  maltraitance: [
+    /\bmaltrait/,                            // maltraitance, maltraité(e)
+    /\b(me|le|la|nous|les) (frappe|frappent|bat|battent)\b/,
+    /\battouchements?\b/,
+    /\b(abus|agression)s? sexuel/,
+    /\bviol(e|ee|ees|es|er)?\b/,             // viol, violé(e) — pas violon/violet/violent
+    /\binceste\b/,
+  ],
+};
+
+export function detectEmergency(text: string): EmergencyCategory | null {
+  const t = normalize(text);
+  for (const category of Object.keys(PATTERNS) as EmergencyCategory[]) {
+    if (PATTERNS[category].some((re) => re.test(t))) return category;
+  }
+  return null;
+}
+
+/** Message fixe, identique quelle que soit la catégorie : aucune réponse générée par l'IA. */
+export const EMERGENCY_MESSAGE = [
+  'Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. Aria ne peut pas répondre seule à cette situation.',
+  '',
+  '• 3114 — prévention du suicide, 24h/24, gratuit',
+  '• 3020 — harcèlement à l’école, gratuit',
+  '• 119 — Allô Enfance en danger, 24h/24, gratuit',
+  '',
+  'En cas de danger immédiat, appelez le 112.',
+].join('\n');

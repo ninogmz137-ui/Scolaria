@@ -9,8 +9,6 @@ const path = require('path');
 const VARS = [
   'EXPO_PUBLIC_SUPABASE_URL',
   'EXPO_PUBLIC_SUPABASE_ANON_KEY',
-  'EXPO_PUBLIC_ANTHROPIC_API_KEY',
-  'EXPO_PUBLIC_GOOGLE_VISION_KEY',
 ];
 
 const envPath = path.join(__dirname, '..', '.env');

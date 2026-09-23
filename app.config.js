@@ -12,14 +12,13 @@ const IS_EAS = process.env.EAS_BUILD === 'true';
 // Read from eas.json env (OS env during EAS Build) or local .env (loaded by Metro)
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
-const ANTHROPIC_API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
-const GOOGLE_VISION_KEY = process.env.EXPO_PUBLIC_GOOGLE_VISION_KEY ?? '';
+// Aucune clé d'API tierce ici : Anthropic et Google Vision passent par les Edge Functions
+// Supabase (secrets serveur). Tout ce qui est dans `extra` est lisible dans l'APK.
 
 if (IS_EAS) {
   console.log('[app.config.js] EAS Build detected');
   console.log('[app.config.js] SUPABASE_URL:', SUPABASE_URL ? 'SET' : 'MISSING');
   console.log('[app.config.js] SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
-  console.log('[app.config.js] ANTHROPIC_API_KEY:', ANTHROPIC_API_KEY ? 'SET' : 'MISSING');
 }
 
 module.exports = {
@@ -91,8 +90,6 @@ module.exports = {
     extra: {
       EXPO_PUBLIC_SUPABASE_URL: SUPABASE_URL,
       EXPO_PUBLIC_SUPABASE_ANON_KEY: SUPABASE_ANON_KEY,
-      EXPO_PUBLIC_ANTHROPIC_API_KEY: ANTHROPIC_API_KEY,
-      EXPO_PUBLIC_GOOGLE_VISION_KEY: GOOGLE_VISION_KEY,
       eas: {
         projectId: 'bf7dc734-6f3f-4481-80d7-84fd2c818404',
       },

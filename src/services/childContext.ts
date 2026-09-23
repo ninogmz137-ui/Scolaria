@@ -232,6 +232,14 @@ export const MOCK_CHILDREN: ChildContext[] = [
 
 // ─── Build context string for Claude system prompt ───────
 
+/**
+ * Minimisation (RGPD) : Aria ne reçoit que le PRÉNOM — jamais le nom de famille,
+ * l'école ni l'identifiant Scolaria.
+ */
+function firstNameOnly(name: string): string {
+  return name.trim().split(/\s+/)[0] ?? '';
+}
+
 export function buildChildContextString(child: ChildContext): string {
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
 
@@ -280,10 +288,9 @@ ${gradesStr}`;
 
   return `
 ═══ PROFIL ENFANT ═══
-Nom: ${profile.name}
+Prénom: ${firstNameOnly(profile.name)}
 Âge: ${profile.age} ans
-Classe: ${profile.classe} — ${profile.school}
-ID Scolaria: ${profile.scolariaId}
+Classe: ${profile.classe}
 Super-pouvoir identifié: ${profile.superPower}
 
 ${gradesSection}

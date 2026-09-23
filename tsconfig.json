@@ -6,5 +6,5 @@
     "resolveJsonModule": true
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.json", "nativewind-env.d.ts"],
-  "exclude": ["node_modules", "scolaria-design-workspace"]
+  "exclude": ["node_modules", "scolaria-design-workspace", "supabase/functions"]
 }
