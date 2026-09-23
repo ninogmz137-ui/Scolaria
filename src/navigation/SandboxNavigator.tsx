@@ -19,7 +19,6 @@
 import { useState } from 'react';
 import {
   Modal,
-  TextInput,
   Pressable as RNPressable,
   ActivityIndicator,
   Platform,
@@ -28,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import { Box, Text, HStack, VStack } from '../components/ui';
+import { Box, Text, HStack, VStack, TextInput } from '../components/ui';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';

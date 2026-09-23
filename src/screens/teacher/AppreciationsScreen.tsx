@@ -8,12 +8,11 @@ import { useState, useRef } from 'react';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
-  TextInput,
   Animated,
   Platform,
   Alert,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack, Spinner } from '../../components/ui';
+import { Box, Text, Pressable, HStack, VStack, Spinner, TextInput } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';

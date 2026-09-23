@@ -9,7 +9,6 @@ import { useState, useRef, useEffect } from 'react';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   View,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -17,13 +16,22 @@ import {
   Animated,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/colors';
+import {
+  Building2,
+  ChevronDown,
+  ChevronUp,
+  Fingerprint,
+  GraduationCap,
+  ShieldCheck,
+  User,
+  UserPlus,
+} from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
-import { Text } from '../components/ui';
+import { Text, TextInput } from '../components/ui';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -196,9 +204,11 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
   // ─── Render ─────────────────────────────────────────────
 
+  const age = computeAge();
+
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-blue-night"
+      style={s.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -212,86 +222,79 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
       >
         <Animated.View
           style={{
-            paddingHorizontal: 20,
+            paddingHorizontal: 16,
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
           }}
         >
-          {/* Header */}
-          <View className="items-center pt-5 pb-2">
-            <Text style={{ fontSize: 42, marginBottom: 10 }}>👶</Text>
-            <Text className="text-2xl font-extrabold text-white mb-1.5">Ajouter un enfant</Text>
-            <Text className="text-sm text-gray-400 text-center leading-5">
-              Remplissez les informations de votre enfant pour créer son passeport scolaire
-            </Text>
-          </View>
+          {/* Intro — le titre est déjà dans la top bar */}
+          <Text style={s.intro}>
+            Remplissez les informations de votre enfant pour créer son carnet de scolarité.
+          </Text>
 
-          {/* Scolaria ID badge */}
-          <Animated.View style={{ marginVertical: 20, borderRadius: 16, overflow: 'hidden', transform: [{ scale: idPulse }] }}>
-            <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)' }, { backgroundColor: 'rgba(15,23,42,0.04)' }]}>
-              <Ionicons name="finger-print" size={20} color={Colors.cyan} />
-              <View>
-                <Text className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Identifiant Scolaria</Text>
-                <Text className="text-base font-extrabold mt-0.5" style={{ color: Colors.cyan, letterSpacing: 1 }}>{scolariaId}</Text>
-              </View>
-              <View className="ml-auto rounded-[10px] px-2.5 py-1" style={{ backgroundColor: Colors.green + '20' }}>
-                <Text className="text-[11px] font-bold" style={{ color: Colors.green }}>Auto</Text>
-              </View>
+          {/* Identifiant Scolaria */}
+          <Animated.View style={[s.idCard, { transform: [{ scale: idPulse }] }]}>
+            <Fingerprint size={20} color={INDIGO} strokeWidth={2} />
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={s.idLabel}>Identifiant Scolaria</Text>
+              <Text style={s.idValue}>{scolariaId}</Text>
+            </View>
+            <View style={s.tag}>
+              <Text style={s.tagText}>Auto</Text>
             </View>
           </Animated.View>
 
-          {/* Avatar picker */}
-          <View className="mb-5">
-            <Text className="text-sm font-bold text-gray-300 mb-3">Avatar</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingVertical: 4 }}
-            >
-              {AVATARS.map((emoji) => (
+          {/* Avatar */}
+          <Text style={s.label}>Avatar</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingVertical: 4 }}
+            style={{ marginBottom: 20 }}
+          >
+            {AVATARS.map((emoji) => {
+              const active = selectedAvatar === emoji;
+              return (
                 <TouchableOpacity
                   key={emoji}
-                  className="w-[52px] h-[52px] rounded-[26px] justify-center items-center"
-                  style={{
-                    backgroundColor: selectedAvatar === emoji ? Colors.cyan + '15' : Colors.blueNightCard,
-                    borderWidth: 2,
-                    borderColor: selectedAvatar === emoji ? Colors.cyan : 'transparent',
-                  }}
+                  style={[s.avatarBtn, active && s.avatarBtnActive]}
                   onPress={() => setSelectedAvatar(emoji)}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                 >
-                  <Text style={{ fontSize: 28 }}>{emoji}</Text>
+                  <Text style={{ fontSize: 26 }}>{emoji}</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+              );
+            })}
+          </ScrollView>
 
           {/* Prénom & Nom */}
-          <View className="flex-row gap-3">
-            <View className="flex-1 mb-4.5">
-              <Text className="text-[13px] font-semibold text-gray-300 mb-2">
-                Prénom <Text className="text-red-500">*</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={[s.field, { flex: 1, marginRight: 12 }]}>
+              <Text style={s.label}>
+                Prénom <Text style={s.required}>*</Text>
               </Text>
-              <View className="flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5">
-                <Ionicons name="person" size={18} color={Colors.gray} />
+              <View style={s.input}>
+                <User size={18} color={TEXT35} strokeWidth={2} />
                 <TextInput
-                  className="flex-1 text-white text-[15px] py-3.5"
+                  style={s.inputText}
                   placeholder="Lucas"
-                  placeholderTextColor={Colors.gray}
+                  placeholderTextColor={PLACEHOLDER}
                   value={firstName}
                   onChangeText={setFirstName}
                   autoCapitalize="words"
                 />
               </View>
             </View>
-            <View className="flex-1 mb-4.5">
-              <Text className="text-[13px] font-semibold text-gray-300 mb-2">Nom</Text>
-              <View className="flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5">
-                <Ionicons name="person-outline" size={18} color={Colors.gray} />
+            <View style={[s.field, { flex: 1 }]}>
+              <Text style={s.label}>Nom</Text>
+              <View style={s.input}>
+                <User size={18} color={TEXT35} strokeWidth={2} />
                 <TextInput
-                  className="flex-1 text-white text-[15px] py-3.5"
+                  style={s.inputText}
                   placeholder="Moreau"
-                  placeholderTextColor={Colors.gray}
+                  placeholderTextColor={PLACEHOLDER}
                   value={lastName}
                   onChangeText={setLastName}
                   autoCapitalize="words"
@@ -301,66 +304,63 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           </View>
 
           {/* Date de naissance */}
-          <View className="mb-4.5">
-            <Text className="text-[13px] font-semibold text-gray-300 mb-2">
-              Date de naissance <Text className="text-red-500">*</Text>
+          <View style={s.field}>
+            <Text style={s.label}>
+              Date de naissance <Text style={s.required}>*</Text>
             </Text>
-            <View className="flex-row items-center gap-2">
-              <View className="flex-1 flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={[s.input, { flex: 1 }]}>
                 <TextInput
-                  className="flex-1 text-white text-[15px] py-3.5 text-center"
+                  style={[s.inputText, s.inputCentered]}
                   placeholder="JJ"
-                  placeholderTextColor={Colors.gray}
+                  placeholderTextColor={PLACEHOLDER}
                   value={birthDay}
                   onChangeText={(t) => setBirthDay(t.replace(/\D/g, '').slice(0, 2))}
                   keyboardType="number-pad"
                   maxLength={2}
                 />
               </View>
-              <Text className="text-xl text-gray-400 font-light">/</Text>
-              <View className="flex-1 flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5">
+              <Text style={s.dateSep}>/</Text>
+              <View style={[s.input, { flex: 1 }]}>
                 <TextInput
-                  className="flex-1 text-white text-[15px] py-3.5 text-center"
+                  style={[s.inputText, s.inputCentered]}
                   placeholder="MM"
-                  placeholderTextColor={Colors.gray}
+                  placeholderTextColor={PLACEHOLDER}
                   value={birthMonth}
                   onChangeText={(t) => setBirthMonth(t.replace(/\D/g, '').slice(0, 2))}
                   keyboardType="number-pad"
                   maxLength={2}
                 />
               </View>
-              <Text className="text-xl text-gray-400 font-light">/</Text>
-              <View
-                className="flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5"
-                style={{ flex: 1.5 }}
-              >
+              <Text style={s.dateSep}>/</Text>
+              <View style={[s.input, { flex: 1.5 }]}>
                 <TextInput
-                  className="flex-1 text-white text-[15px] py-3.5 text-center"
+                  style={[s.inputText, s.inputCentered]}
                   placeholder="AAAA"
-                  placeholderTextColor={Colors.gray}
+                  placeholderTextColor={PLACEHOLDER}
                   value={birthYear}
                   onChangeText={(t) => setBirthYear(t.replace(/\D/g, '').slice(0, 4))}
                   keyboardType="number-pad"
                   maxLength={4}
                 />
               </View>
-              {computeAge() !== null && (
-                <View className="rounded-xl px-3 py-2 ml-1" style={{ backgroundColor: Colors.cyan + '20' }}>
-                  <Text className="text-[13px] font-bold" style={{ color: Colors.cyan }}>{computeAge()} ans</Text>
+              {age !== null && (
+                <View style={[s.tag, { marginLeft: 8 }]}>
+                  <Text style={s.tagText}>{age} ans</Text>
                 </View>
               )}
             </View>
           </View>
 
           {/* École */}
-          <View className="mb-4.5">
-            <Text className="text-[13px] font-semibold text-gray-300 mb-2">École / Établissement</Text>
-            <View className="flex-row items-center bg-blue-night-card rounded-[14px] border border-white/10 px-3.5 gap-2.5">
-              <Ionicons name="business" size={18} color={Colors.gray} />
+          <View style={s.field}>
+            <Text style={s.label}>École / Établissement</Text>
+            <View style={s.input}>
+              <Building2 size={18} color={TEXT35} strokeWidth={2} />
               <TextInput
-                className="flex-1 text-white text-[15px] py-3.5"
+                style={s.inputText}
                 placeholder="École Victor Hugo"
-                placeholderTextColor={Colors.gray}
+                placeholderTextColor={PLACEHOLDER}
                 value={school}
                 onChangeText={setSchool}
                 autoCapitalize="words"
@@ -369,59 +369,60 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           </View>
 
           {/* Classe */}
-          <View className="mb-4.5">
-            <Text className="text-[13px] font-semibold text-gray-300 mb-2">
-              Classe <Text className="text-red-500">*</Text>
+          <View style={s.field}>
+            <Text style={s.label}>
+              Classe <Text style={s.required}>*</Text>
             </Text>
             <TouchableOpacity
-              className="flex-row items-center bg-blue-night-card rounded-[14px] border px-3.5 gap-2.5 justify-between"
-              style={{ borderColor: showClassePicker ? Colors.cyan + '40' : 'rgba(255,255,255,0.08)' }}
+              style={[s.input, showClassePicker && s.inputFocused]}
               onPress={() => setShowClassePicker(!showClassePicker)}
               activeOpacity={0.8}
+              accessibilityRole="button"
             >
-              <Ionicons name="school" size={18} color={Colors.gray} />
+              <GraduationCap size={18} color={TEXT35} strokeWidth={2} />
               <Text
-                className="flex-1 text-[15px] py-3.5"
-                style={{ color: selectedClasse ? Colors.white : Colors.gray, fontFamily: selectedClasse ? FontFamily.sansSemiBold : FontFamily.sansRegular }}
+                style={[
+                  s.inputText,
+                  {
+                    color: selectedClasse ? INK : PLACEHOLDER,
+                    fontFamily: selectedClasse ? FontFamily.sansSemiBold : FontFamily.sansRegular,
+                  },
+                ]}
               >
                 {selectedClasse || 'Sélectionner la classe'}
               </Text>
-              <Ionicons
-                name={showClassePicker ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={Colors.gray}
-              />
+              {showClassePicker ? (
+                <ChevronUp size={18} color={TEXT35} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={18} color={TEXT35} strokeWidth={2} />
+              )}
             </TouchableOpacity>
 
             {showClassePicker && (
-              <View className="bg-blue-night-card rounded-2xl p-4 mt-2.5 border border-white/10" style={{ gap: 16 }}>
-                {CLASSES.map((section) => (
-                  <View key={section.section}>
-                    <Text className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: Colors.cyan }}>
-                      {section.section}
-                    </Text>
-                    <View className="flex-row flex-wrap gap-2">
-                      {section.items.map((classe) => (
-                        <TouchableOpacity
-                          key={classe}
-                          className="px-4 py-2.5 rounded-xl border"
-                          style={{
-                            backgroundColor: selectedClasse === classe ? Colors.violet + '30' : 'rgba(255,255,255,0.06)',
-                            borderColor: selectedClasse === classe ? Colors.violet : 'rgba(255,255,255,0.08)',
-                          }}
-                          onPress={() => {
-                            setSelectedClasse(classe);
-                            setShowClassePicker(false);
-                          }}
-                        >
-                          <Text
-                            className="text-sm font-semibold"
-                            style={{ color: selectedClasse === classe ? Colors.white : Colors.gray }}
+              <View style={s.picker}>
+                {CLASSES.map((section, i) => (
+                  <View key={section.section} style={i > 0 ? { marginTop: 16 } : undefined}>
+                    <Text style={s.sectionLabel}>{section.section}</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                      {section.items.map((classe) => {
+                        const active = selectedClasse === classe;
+                        return (
+                          <TouchableOpacity
+                            key={classe}
+                            style={[s.pill, active ? s.pillActive : s.pillInactive]}
+                            onPress={() => {
+                              setSelectedClasse(classe);
+                              setShowClassePicker(false);
+                            }}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: active }}
                           >
-                            {classe}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                            <Text style={[s.pillText, { color: active ? '#FFFFFF' : TEXT55 }]}>
+                              {classe}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
                   </View>
                 ))}
@@ -429,52 +430,50 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             )}
           </View>
 
-          {/* Summary preview */}
+          {/* Aperçu */}
           {isFormValid && (
-            <View className="mb-5 rounded-[18px] overflow-hidden">
-              <View style={[{ padding: 18, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }, { backgroundColor: Colors.blueNightCard }]}>
-                <Text className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3.5">Aperçu du profil</Text>
-                <View className="flex-row items-center gap-3.5">
-                  <Text style={{ fontSize: 42 }}>{selectedAvatar}</Text>
-                  <View className="flex-1">
-                    <Text className="text-lg font-extrabold text-white">
-                      {firstName} {lastName}
-                    </Text>
-                    <Text className="text-[13px] text-gray-400 mt-0.5">
-                      {selectedClasse} • {computeAge()} ans
-                      {school ? ` • ${school}` : ''}
-                    </Text>
-                    <Text className="text-xs font-bold mt-1" style={{ color: Colors.cyan, letterSpacing: 0.5 }}>{scolariaId}</Text>
-                  </View>
+            <View style={s.preview}>
+              <Text style={s.sectionLabel}>Aperçu du profil</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 40, marginRight: 14 }}>{selectedAvatar}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.previewName}>
+                    {firstName} {lastName}
+                  </Text>
+                  <Text style={s.previewMeta}>
+                    {selectedClasse} · {age} ans
+                    {school ? ` · ${school}` : ''}
+                  </Text>
+                  <Text style={s.previewId}>{scolariaId}</Text>
                 </View>
               </View>
             </View>
           )}
 
-          {/* Submit button */}
+          {/* Bouton primaire §2 */}
           <TouchableOpacity
-            className="rounded-full overflow-hidden mb-4"
-            style={!isFormValid ? { opacity: 0.5 } : undefined}
+            style={[s.primaryBtn, (!isFormValid || loading) && { opacity: 0.4 }]}
             onPress={handleSubmit}
-            activeOpacity={0.8}
+            activeOpacity={0.78}
             disabled={!isFormValid || loading}
+            accessibilityRole="button"
           >
-            <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 16 }, { backgroundColor: isFormValid ? '#0F172A' : 'rgba(15,23,42,0.25)' }]}>
-              {loading ? (
-                <ActivityIndicator color={Colors.white} />
-              ) : (
-                <>
-                  <Ionicons name="person-add" size={22} color={Colors.white} />
-                  <Text className="text-[17px] font-extrabold text-white">Ajouter {firstName || 'l\'enfant'}</Text>
-                </>
-              )}
-            </View>
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <UserPlus size={20} color="#FFFFFF" strokeWidth={2} />
+                <Text style={s.primaryBtnText} numberOfLines={1}>
+                  Ajouter {firstName || 'l\'enfant'}
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
 
-          {/* Info footer */}
-          <View className="flex-row items-start gap-2 px-1">
-            <Ionicons name="shield-checkmark" size={14} color={Colors.cyan} />
-            <Text className="flex-1 text-xs text-gray-400 leading-[18px]">
+          {/* Info RGPD */}
+          <View style={s.footer}>
+            <ShieldCheck size={14} color={TEXT35} strokeWidth={2} />
+            <Text style={s.footerText}>
               Les données sont protégées et conformes au RGPD.
               L'identifiant Scolaria est unique et non modifiable.
             </Text>
@@ -484,3 +483,188 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
     </KeyboardAvoidingView>
   );
 }
+
+// ─── Styles ──────────────────────────────────────────────
+// Fond #F2F1EE, textes #0F172A, inputs COMPONENTS.md §5, bouton primaire §2.
+
+const BG = '#F2F1EE';
+const INK = '#0F172A';
+const INDIGO = '#4338CA';
+const TEXT55 = 'rgba(15,23,42,0.55)';
+const TEXT35 = 'rgba(15,23,42,0.35)';
+const PLACEHOLDER = 'rgba(15,23,42,0.30)';
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: BG },
+
+  intro: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    lineHeight: 20,
+    color: TEXT55,
+    marginTop: 8,
+  },
+
+  idCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.06)',
+  },
+  idLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: TEXT55,
+  },
+  idValue: {
+    fontFamily: FontFamily.sansBold,
+    fontSize: 15,
+    letterSpacing: 0.8,
+    color: INK,
+    marginTop: 2,
+  },
+  tag: {
+    height: 22,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(67,56,202,0.10)',
+  },
+  tagText: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, color: INDIGO },
+
+  field: { marginBottom: 18 },
+  label: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 13,
+    color: INK,
+    marginBottom: 8,
+  },
+  required: { color: '#EF4444' },
+
+  avatarBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  avatarBtnActive: { borderColor: INDIGO },
+
+  // Input standard §5
+  input: {
+    height: 52,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.80)',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.08)',
+  },
+  inputFocused: { borderColor: INDIGO, borderWidth: 1.5 },
+  inputText: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 15,
+    color: INK,
+    marginLeft: 10,
+    paddingVertical: 0,
+  },
+  inputCentered: { textAlign: 'center', marginLeft: 0 },
+  dateSep: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 18,
+    color: TEXT35,
+    marginHorizontal: 8,
+  },
+
+  picker: {
+    marginTop: 10,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.06)',
+  },
+  sectionLabel: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    color: TEXT55,
+    marginBottom: 10,
+  },
+  // Pills filtre §3
+  pill: {
+    height: 30,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  pillActive: { backgroundColor: INK },
+  pillInactive: { backgroundColor: 'rgba(15,23,42,0.08)' },
+  pillText: { fontFamily: FontFamily.sansSemiBold, fontSize: 12 },
+
+  preview: {
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.06)',
+  },
+  previewName: { fontFamily: FontFamily.sansBold, fontSize: 16, color: INK },
+  previewMeta: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: TEXT55, marginTop: 2 },
+  previewId: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: INDIGO,
+    marginTop: 4,
+  },
+
+  // Bouton primaire §2
+  primaryBtn: {
+    height: 52,
+    width: '100%',
+    maxWidth: 240,
+    alignSelf: 'center',
+    borderRadius: 999,
+    backgroundColor: INK,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  primaryBtnText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 15,
+    color: '#FFFFFF',
+    marginLeft: 8,
+    flexShrink: 1,
+  },
+
+  footer: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 4 },
+  footerText: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    lineHeight: 18,
+    color: TEXT55,
+    marginLeft: 8,
+  },
+});

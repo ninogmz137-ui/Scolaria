@@ -21,7 +21,6 @@ import {
   StyleSheet,
   Platform,
   Modal,
-  TextInput,
   Alert,
   KeyboardAvoidingView,
   Keyboard,
@@ -49,7 +48,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text } from '../components/ui';
+import { Text, TextInput } from '../components/ui';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -121,6 +120,15 @@ const NEW_EVENT_TYPE_LABELS: Record<NewEventType, string> = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────
+
+/** '#RRGGBB' / '#RGB' → rgba(r,g,b,alpha). Évite les hex à 8 chiffres concaténés (color + '12'). */
+function withAlpha(color: string, alpha: number): string {
+  const hex = color.replace('#', '');
+  const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex.slice(0, 6);
+  if (!/^[0-9a-fA-F]{6}$/.test(full)) return `rgba(15,23,42,${alpha})`;
+  const n = parseInt(full, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
 
 function getMondayOfWeek(d: Date): Date {
   const day = d.getDay();
@@ -749,19 +757,16 @@ export default function AgendaScreen() {
     const isDevoir = event.type === 'devoir';
 
     return (
-      <Pressable
+      <TouchableOpacity
         key={event.id}
         onPress={() => navigation.navigate('EventDetail', { eventId: event.id, eventTitle: event.title, eventCategory: event.type })}
-        style={({ pressed }) => [
+        activeOpacity={0.8}
+        style={[
           st.eventCard,
-          { backgroundColor: event.color + '12' },
+          { borderLeftColor: event.color, backgroundColor: withAlpha(event.color, 0.08) },
           isDevoir && event.done && { opacity: 0.55 },
-          pressed && { opacity: 0.80 },
         ]}
       >
-        {/* Left accent bar */}
-        <View style={[st.eventAccentBar, { backgroundColor: event.color }]} />
-
         <View style={st.eventInner}>
           {/* Title + time */}
           <View style={{ flex: 1 }}>
@@ -791,7 +796,7 @@ export default function AgendaScreen() {
             />
           )}
         </View>
-      </Pressable>
+      </TouchableOpacity>
     );
   };
 
@@ -1395,23 +1400,17 @@ const st = StyleSheet.create({
   },
 
   // Event card
+  // COMPONENTS.md §7 — Card événement Agenda
   eventCard: {
-    flexDirection: 'row',
-    borderRadius: 20,
-    marginBottom: 10,
-    overflow: 'hidden',
-  },
-  eventAccentBar: {
-    width: 4,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    borderRadius: 14,
+    borderLeftWidth: 3,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
   },
   eventInner: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
   },
   eventTitle: {
     fontFamily: FontFamily.sansBold,

@@ -10,11 +10,20 @@
 import {
   View,
   Text as RNText,
+  TextInput as RNTextInput,
   Pressable as RNPressable,
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import type { ViewProps, TextProps, PressableProps, ActivityIndicatorProps, TextStyle } from 'react-native';
+import type {
+  ViewProps,
+  TextProps,
+  TextInputProps,
+  PressableProps,
+  ActivityIndicatorProps,
+  TextStyle,
+  StyleProp,
+} from 'react-native';
 import React from 'react';
 import { cssInterop } from 'nativewind';
 
@@ -60,14 +69,30 @@ const FIGTREE_BY_WEIGHT: Record<string, string> = {
  *
  * Tous les écrans importent Text d'ici, jamais de 'react-native'.
  */
-export const Text = React.forwardRef<RNText, TextProps>(function Text({ style, ...props }, ref) {
+function figtreeStyle(style: StyleProp<TextStyle>): TextStyle {
   const { fontWeight, ...flat } = (StyleSheet.flatten(style) ?? {}) as TextStyle;
   const fontFamily = flat.fontFamily ?? FIGTREE_BY_WEIGHT[String(fontWeight ?? '400')] ?? 'Figtree_400Regular';
-  return <RNText ref={ref} {...props} style={{ ...flat, fontFamily }} />;
+  return { ...flat, fontFamily };
+}
+
+export const Text = React.forwardRef<RNText, TextProps>(function Text({ style, ...props }, ref) {
+  return <RNText ref={ref} {...props} style={figtreeStyle(style)} />;
+});
+
+export type Text = RNText;
+export type TextInput = RNTextInput;
+
+/** TextInput — même règle que Text : Figtree par défaut (texte saisi et placeholder). */
+export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(function TextInput(
+  { style, ...props },
+  ref,
+) {
+  return <RNTextInput ref={ref} {...props} style={figtreeStyle(style)} />;
 });
 
 // className NativeWind → style, pour que les classes font-* passent par le mapping ci-dessus.
 cssInterop(Text, { className: 'style' });
+cssInterop(TextInput, { className: 'style' });
 
 // ─── Interaction ────────────────────────────────────────
 
@@ -79,4 +104,4 @@ export const Spinner = ActivityIndicator;
 
 // ─── Input (simple re-export; AuthScreen uses Gluestack Input) ──
 
-export { TextInput as InputField } from 'react-native';
+export const InputField = TextInput;

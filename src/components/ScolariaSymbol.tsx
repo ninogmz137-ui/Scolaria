@@ -20,7 +20,7 @@
  */
 
 import React from 'react';
-import Svg, { G, Ellipse } from 'react-native-svg';
+import Svg, { Ellipse } from 'react-native-svg';
 
 export interface ScolariaSymbolProps {
   /** Taille du symbole en pixels (carré). @default 48 */
@@ -31,6 +31,7 @@ export interface ScolariaSymbolProps {
   entrance?: 'none' | 'assemble';
 }
 
+const GLOBAL_ROTATION = 22.5;
 const LARGE_ANGLES = [8, 98, 188, 278] as const;
 const SMALL_ANGLES = [53, 143, 233, 323] as const;
 
@@ -45,19 +46,31 @@ const SMALL_CY = -62;
 export default function ScolariaSymbol({ size = 48, color = '#4338CA' }: ScolariaSymbolProps) {
   return (
     <Svg width={size} height={size} viewBox="-100 -100 200 200">
-      <G rotation={22.5} originX={0} originY={0}>
-        {LARGE_ANGLES.map((angle) => (
-          <G key={`large-${angle}`} rotation={angle} originX={0} originY={0}>
-            <Ellipse cx={0} cy={LARGE_CY} rx={LARGE_RX} ry={LARGE_RY} fill={color} />
-          </G>
-        ))}
+      {/* Une seule rotation par ellipse, en transform SVG (centre = origine du viewBox).
+          Pas de <G rotation originX> imbriqués : mal rendus par react-native-svg sur Android. */}
+      {LARGE_ANGLES.map((angle) => (
+        <Ellipse
+          key={`large-${angle}`}
+          cx={0}
+          cy={LARGE_CY}
+          rx={LARGE_RX}
+          ry={LARGE_RY}
+          fill={color}
+          transform={`rotate(${GLOBAL_ROTATION + angle})`}
+        />
+      ))}
 
-        {SMALL_ANGLES.map((angle) => (
-          <G key={`small-${angle}`} rotation={angle} originX={0} originY={0}>
-            <Ellipse cx={0} cy={SMALL_CY} rx={SMALL_RX} ry={SMALL_RY} fill={color} />
-          </G>
-        ))}
-      </G>
+      {SMALL_ANGLES.map((angle) => (
+        <Ellipse
+          key={`small-${angle}`}
+          cx={0}
+          cy={SMALL_CY}
+          rx={SMALL_RX}
+          ry={SMALL_RY}
+          fill={color}
+          transform={`rotate(${GLOBAL_ROTATION + angle})`}
+        />
+      ))}
     </Svg>
   );
 }

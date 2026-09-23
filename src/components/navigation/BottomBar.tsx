@@ -36,8 +36,22 @@ import type { ActiveTab } from './TopBar';
 export const BOTTOM_BAR_HEIGHT = 70;
 
 /** Padding bottom pour les ScrollView derrière la BottomBar */
+/** Distance entre le bas de l'écran et la barre (safe-area Android/iOS comprise). */
+export function getBottomBarOffset(insetsBottom: number): number {
+  return insetsBottom > 0 ? insetsBottom + 8 : 12;
+}
+
+/** Hauteur du voile flou posé derrière la barre (TabNavigator) : barre + dégradé de 28 px. */
+export function getBottomChromeHeight(insetsBottom: number): number {
+  return getBottomBarOffset(insetsBottom) + BOTTOM_BAR_HEIGHT + 28;
+}
+
+/**
+ * paddingBottom des ScrollView sous la bottom bar : toute la zone du bas (barre + voile)
+ * + 12 px d'air, pour que le dernier élément ne passe jamais sous la barre ni sous le voile.
+ */
 export function getBottomBarScrollPadding(insetsBottom: number): number {
-  return BOTTOM_BAR_HEIGHT + insetsBottom + 20;
+  return getBottomChromeHeight(insetsBottom) + 12;
 }
 
 // ─── Props ───────────────────────────────────────────────
@@ -91,7 +105,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
   };
 
   return (
-    <View style={[styles.container, { bottom: insets.bottom > 0 ? insets.bottom + 8 : 12 }]}>
+    <View style={[styles.container, { bottom: getBottomBarOffset(insets.bottom) }]}>
 
       {/* ── Bouton Recherche (gauche) ── */}
       <Pressable

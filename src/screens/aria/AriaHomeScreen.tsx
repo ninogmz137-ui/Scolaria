@@ -21,7 +21,6 @@ import {
   KeyboardAvoidingView,
   Animated,
   Dimensions,
-  TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,7 +53,7 @@ import {
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
-import { Text } from '../../components/ui';
+import { Text, TextInput } from '../../components/ui';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

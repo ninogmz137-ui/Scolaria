@@ -51,9 +51,8 @@ export default function ScolariaLogo({
       <SvgText
         x={0}
         y={baseline}
-        fontFamily="Rufina-Bold"
+        fontFamily="Rufina_700Bold"
         fontSize={fontSize}
-        fontWeight="700"
         fill={primaryColor}
       >
         Scolar
@@ -62,9 +61,8 @@ export default function ScolariaLogo({
       <SvgText
         x={scolarW}
         y={baseline}
-        fontFamily="Rufina-Bold"
+        fontFamily="Rufina_700Bold"
         fontSize={fontSize}
-        fontWeight="700"
         fill={primaryColor}
       >
         {'\u0131'}
@@ -73,9 +71,8 @@ export default function ScolariaLogo({
       <SvgText
         x={scolarW + iW}
         y={baseline}
-        fontFamily="Rufina-Bold"
+        fontFamily="Rufina_700Bold"
         fontSize={fontSize}
-        fontWeight="700"
         fill={primaryColor}
       >
         a
@@ -84,9 +81,8 @@ export default function ScolariaLogo({
       <SvgText
         x={sparkX}
         y={sparkY}
-        fontFamily="Rufina-Bold"
+        fontFamily="Rufina_700Bold"
         fontSize={sparkFS}
-        fontWeight="700"
         fill={sparkleColor}
         textAnchor="middle"
       >

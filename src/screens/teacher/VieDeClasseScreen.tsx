@@ -9,7 +9,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
-  TextInput,
   Animated,
   Alert,
   Dimensions,
@@ -17,7 +16,7 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
+import { Box, Text, Pressable, HStack, VStack, TextInput } from '../../components/ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';

@@ -11,7 +11,6 @@ import {
   View,
   Pressable,
   ScrollView,
-  TextInput,
   StyleSheet,
   Alert,
   Platform,
@@ -36,7 +35,7 @@ import {
   type AbsenceMotif,
   type DemiJournee,
 } from '../services/absenceService';
-import { Text } from '../components/ui';
+import { Text, TextInput } from '../components/ui';
 
 // ─── Helpers ─────────────────────────────────────────────
 

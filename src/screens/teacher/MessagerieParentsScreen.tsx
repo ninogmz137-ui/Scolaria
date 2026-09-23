@@ -2,14 +2,13 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
-  TextInput,
   Animated,
   KeyboardAvoidingView,
   Platform,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
+import { Box, Text, Pressable, HStack, VStack, TextInput } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { getConversations, sendMessage, markConversationRead, type ConversationData } from '../../services/teacherService';

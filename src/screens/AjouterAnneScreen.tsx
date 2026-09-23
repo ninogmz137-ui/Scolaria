@@ -8,8 +8,8 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, TextInput, Alert } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../components/ui';
+import { ScrollView, Alert } from 'react-native';
+import { Box, Text, Pressable, HStack, VStack, TextInput } from '../components/ui';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';

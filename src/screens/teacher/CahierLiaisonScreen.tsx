@@ -2,13 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import {
   ScrollView,
-  TextInput,
   Animated,
   Modal,
   Alert,
   Platform,
 } from 'react-native';
-import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
+import { Box, Text, Pressable, HStack, VStack, TextInput } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

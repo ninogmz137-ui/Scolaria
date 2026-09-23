@@ -11,7 +11,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
-  TextInput,
   ScrollView,
   Pressable,
   StyleSheet,
@@ -31,7 +30,7 @@ import Animated, {
   Easing,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { School, CalendarX, Search, ChevronDown, Plus } from 'lucide-react-native';
+import { School, CalendarX, Search, ChevronDown } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScroll } from '../contexts/TopbarScrollContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -43,7 +42,7 @@ import {
 import type { Conversation } from '../data/messagerieData';
 import { C } from '../constants/design';
 import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
-import { Text } from '../components/ui';
+import { Text, TextInput } from '../components/ui';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -737,21 +736,6 @@ export default function MessagerieScreen() {
 
     </View>
 
-    {/* FAB — nouveau message */}
-    <View pointerEvents="box-none" style={styles.fabWrap}>
-      <View style={styles.fabShadowOuter}>
-        <Pressable
-          style={styles.fab}
-          onPress={() => {}}
-          accessibilityRole="button"
-          accessibilityLabel="Nouveau message"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Plus size={22} color="#FFFFFF" strokeWidth={2} />
-        </Pressable>
-      </View>
-    </View>
-
     <Modal
       visible={!!(filterDropdownVisible && dropdownLayout)}
       transparent
@@ -1003,7 +987,6 @@ const styles = StyleSheet.create({
     zIndex: 40,
     backgroundColor: 'transparent',
     ...Platform.select({
-      /** Must stay above FAB wrapper elevation when search is open. */
       android: { elevation: 32 },
       default: {},
     }),
@@ -1153,7 +1136,7 @@ const styles = StyleSheet.create({
       default: { minHeight: 0 },
     }),
   },
-  /** Keep list layer under the FAB on Android (stacking + elevation interop). */
+  /** Keep list layer under overlays on Android (stacking + elevation interop). */
   conversationScrollAndroid: {
     zIndex: 0,
     elevation: 0,
@@ -1333,37 +1316,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: StyleSheet.hairlineWidth,
     backgroundColor: BORDER_L,
-  },
-
-  // FAB
-  fabWrap: {
-    position: 'absolute',
-    bottom: 72,
-    right: 14,
-    zIndex: 15,
-  },
-  fabShadowOuter: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    backgroundColor: '#0F172A',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.22,
-        shadowRadius: 20,
-      },
-      android: { elevation: 10 },
-      default: {},
-    }),
-  },
-  fab: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 
   // Empty

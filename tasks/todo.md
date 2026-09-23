@@ -1,8 +1,21 @@
 # TODO — Scolaria
 
+## Phase 0-bis · retours du test Android (23 sept 2026)
+
+**Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.**
+- [x] ScolariaLogo : fontFamily Rufina_700Bold (au lieu de "Rufina-Bold"), fontWeight retiré
+- [x] ScolariaSymbol : 8 ellipses en transform="rotate(22.5 + angle)", plus de <G rotation> imbriqués
+- [x] Cartes Agenda §7 : TouchableOpacity, borderLeft 3px couleur, fond rgba(couleur, 0.08), radius 14, padding 10/12
+- [x] Bas d’écran : getBottomChromeHeight() partagé par le voile flou et getBottomBarScrollPadding() (padding = voile + 12) ; conversation : « Aria peut résumer » au-dessus du champ
+- [x] Messages : FAB supprimé (JSX, styles, import Plus) ; l’action reste le ✏️ de la bottom bar
+- [x] Bouton « Tools » : FAB d’expo-dev-menu, dev client uniquement (absent des builds release), rien à changer dans le code
+- [x] TextInput Figtree (wrapper ui) : 17 fichiers redirigés
+- [x] PinScreen et AjouterEnfantScreen en clair : fond #F2F1EE, textes #0F172A, inputs §5, bouton primaire §2 (+ icônes lucide, gap → marges)
+- Reste : Phase B (FAB Agenda vs + bottom bar, voir plus bas)
+
 ## Addendum v3.4 · PHASE 0 : nettoyage des anciennes décisions (22 sept 2026)
 
-**Statut : FAIT (22 sept 2026). Liste validée, Q1-Q5 acceptées. tsc OK, vérifié en localhost (web). Non vérifié sur appareil Android. Non commité.**
+**Statut : FAIT (22 sept 2026). Liste validée, Q1-Q5 acceptées. tsc OK, vérifié en localhost (web). Commit 5116cca. Retours Android traités en phase 0-bis.**
 Périmètre : aucun changement de BDD, aucun nouvel écran.
 
 ### Réalisé
@@ -17,12 +30,12 @@ Périmètre : aucun changement de BDD, aucun nouvel écran.
 - [x] Couleur enfant (Q1) : avatar top bar, sélecteur, profil et header Accueil en indigo neutre #4338CA (texte du header passé en blanc, dégradé vertical)
 
 ### Restes signalés (hors liste validée)
-- **Écrans encore sombres** : `PinScreen.tsx` (fond `#0B1628→#162240`, halos) et `AjouterEnfantScreen.tsx` (`bg-blue-night`, cartes `blue-night-card`, textes blancs). Refonte claire à faire, à planifier.
+- ~~Écrans encore sombres (PinScreen, AjouterEnfant)~~ : faits en phase 0-bis.
 - Emoji en état vide de l'Agenda (« Journée libre 🏖️ ») : ce n'est pas une carte, conservé.
-- `TextInput` n'hérite pas du `Text` Figtree : les champs de saisie restent en police système (à traiter avec un `TextInput` dans `components/ui`).
+- ~~TextInput en police système~~ : fait en phase 0-bis.
 - `SuperPowerBadge.tsx` : jamais monté (seul son type est importé), à supprimer lors d'un nettoyage.
 - Imports `LinearGradient` inutilisés déjà présents avant la phase 0 : AgendaScreen, MessagesListScreen, SignDocScreen.
-- [UNCLEAR] `ScolariaLogo` : `fontFamily="Rufina-Bold"` alors que la police est chargée sous le nom `Rufina_700Bold`. À vérifier sur l'appareil.
+- ~~ScolariaLogo Rufina-Bold~~ : corrigé en phase 0-bis.
 
 ### Phase B · écart à corriger (NE PAS toucher avant)
 - **FAB Agenda** : CLAUDE.md prévoit un FAB circulaire sur l'Agenda et **aucune** action dans la bottom bar (« Agenda → rien, le FAB suffit »). Le code fait l'inverse : pas de FAB, et un `+` dans la bottom bar (`BottomBar.tsx:58`, `TabNavigator.tsx:659` `agendaActionRef`). À aligner en Phase B.

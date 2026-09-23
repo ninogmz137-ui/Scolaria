@@ -23,7 +23,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { BOTTOM_BAR_HEIGHT } from '../components/navigation/BottomBar';
+import { getBottomChromeHeight } from '../components/navigation/BottomBar';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
@@ -928,7 +928,7 @@ export default function TabNavigator() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    height: (insets.bottom > 0 ? insets.bottom + 8 : 12) + BOTTOM_BAR_HEIGHT + 28,
+                    height: getBottomChromeHeight(insets.bottom),
                     zIndex: 15,
                   },
                   bottomBlurStyle,

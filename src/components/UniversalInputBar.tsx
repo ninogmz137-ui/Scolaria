@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
   View,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -18,6 +17,7 @@ import {
 } from '../constants/theme';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
+import { TextInput } from './ui';
 
 const BUBBLE_SHADOW = Platform.select({
   ios: {
