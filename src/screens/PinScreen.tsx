@@ -9,7 +9,6 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import {
   View,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -21,7 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 interface Props {
   onBack?: () => void;

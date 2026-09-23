@@ -4,7 +4,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -20,7 +19,7 @@ import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 // ─── Helper: build welcome & suggestions per child ───────
 

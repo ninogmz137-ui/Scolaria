@@ -3,7 +3,6 @@ import {
   View,
   Image,
   Modal,
-  Pressable,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -13,8 +12,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Settings2, LogOut } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { getChildInitials } from '../utils/childInitials';
 import { useAuth } from '../contexts/AuthContext';
-import { Text } from './ui';
+import { Text, Pressable } from './ui';
 
 interface Props {
   visible: boolean;
@@ -25,6 +25,7 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { children, selectedChild, selectChild } = useActiveChild();
+  const siblingNames = children.map((c) => c.name);
   const { user, signOut } = useAuth();
 
   const handleSignOut = () => {
@@ -99,12 +100,7 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
                     <Text style={styles.childAvatarEmoji}>{child.avatarEmoji}</Text>
                   ) : (
                     <Text style={styles.childAvatarInitials}>
-                      {child.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2)}
+                      {getChildInitials(child.name, siblingNames)}
                     </Text>
                   )}
                 </View>

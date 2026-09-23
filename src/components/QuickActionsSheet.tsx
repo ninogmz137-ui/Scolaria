@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Pressable,
   StyleSheet,
   Platform,
   Modal,
@@ -10,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MessageCircle, Calendar, UserX } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text } from './ui';
+import { Text, Pressable } from './ui';
 
 const ACTIONS = [
   {

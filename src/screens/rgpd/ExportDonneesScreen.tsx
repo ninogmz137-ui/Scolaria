@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Pressable, ScrollView, StyleSheet, Animated, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, Animated, Alert, Switch, ActivityIndicator, Platform } from 'react-native';
 import {
   ArrowDown,
   Check,
@@ -10,7 +10,6 @@ import {
   Calendar,
   Camera,
   Heart,
-  Sparkles,
   List,
   Lock,
   PieChart,
@@ -27,7 +26,8 @@ import RgpdHero from '../../components/rgpd/RgpdHero';
 import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
-import { Text } from '../../components/ui';
+import { Text, Pressable } from '../../components/ui';
+import ScolariaSymbol from '../../components/ScolariaSymbol';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -63,7 +63,7 @@ export default function ExportDonneesScreen() {
     { key: 'competences', name: 'Compétences & radar', Icon: PieChart, color: ARIA_INDIGO, size: '8 Ko', count: '5 compétences', selected: true },
     { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: ARIA_INDIGO, size: '15 Ko', count: '5 activités', selected: true },
     { key: 'photos', name: 'Photos & médias', Icon: Camera, color: ARIA_INDIGO, size: '4.2 Mo', count: '24 photos', selected: false },
-    { key: 'conversations', name: 'Conversations Aria', Icon: Sparkles, color: ARIA_INDIGO, size: '234 Ko', count: '34 conversations', selected: true },
+    { key: 'conversations', name: 'Conversations Aria', Icon: ScolariaSymbol, color: ARIA_INDIGO, size: '234 Ko', count: '34 conversations', selected: true },
     { key: 'journal', name: "Journal d'accès", Icon: List, color: ARIA_INDIGO, size: '56 Ko', count: '210 entrées', selected: true },
     { key: 'permissions', name: 'Permissions', Icon: Lock, color: ARIA_INDIGO, size: '3 Ko', count: '5 personnes', selected: true },
   ]);

@@ -4,13 +4,13 @@
  * Shows a list of school-wide announcements: vacations, events, canteen info.
  */
 
-import { View, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ChevronLeft removed — AppTopbar handles back navigation
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
-import { Text } from '../../components/ui';
+import { Text, Pressable } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Image,
-  Pressable,
   ScrollView,
   StyleSheet,
   Platform,
@@ -58,7 +57,7 @@ import {
 } from '../services/pdfExport';
 import { getChild, getCheckins } from '../services/database';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';

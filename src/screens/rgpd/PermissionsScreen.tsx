@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Pressable, ScrollView, StyleSheet, Switch, Animated, Modal, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Switch, Animated, Modal, Alert } from 'react-native';
 import {
   Lock,
   Info,
@@ -12,7 +12,6 @@ import {
   Calendar,
   Camera,
   Heart,
-  Sparkles,
   Plus,
 } from 'lucide-react-native';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
@@ -30,7 +29,8 @@ import {
   deletePermission,
   type PersonPermission,
 } from '../../services/rgpdService';
-import { Text } from '../../components/ui';
+import { Text, Pressable } from '../../components/ui';
+import ScolariaSymbol from '../../components/ScolariaSymbol';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -158,7 +158,7 @@ const MODULE_CONFIG = [
   { key: 'ressenti' as const, label: 'Ressenti', Icon: Heart, color: ARIA_INDIGO },
   { key: 'profil' as const, label: 'Profil élève', Icon: User, color: ARIA_INDIGO },
   { key: 'photos' as const, label: 'Photos', Icon: Camera, color: ARIA_INDIGO },
-  { key: 'aria' as const, label: 'Aria', Icon: Sparkles, color: ARIA_INDIGO },
+  { key: 'aria' as const, label: 'Aria', Icon: ScolariaSymbol, color: ARIA_INDIGO },
 ];
 
 // ─── Component ────────────────────────────────────────────

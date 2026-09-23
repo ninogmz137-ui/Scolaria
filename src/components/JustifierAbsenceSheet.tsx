@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Platform,
@@ -15,7 +14,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import ScolariaSymbol from './ScolariaSymbol';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text } from './ui';
+import { Text, Pressable } from './ui';
 
 // ─── Types ────────────────────────────────────────────────
 

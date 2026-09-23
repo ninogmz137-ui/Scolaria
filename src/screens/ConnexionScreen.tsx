@@ -3,7 +3,6 @@ import {
   View,
   TouchableOpacity,
   StyleSheet,
-  Pressable,
   Platform,
   ActivityIndicator,
 } from 'react-native';
@@ -12,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../services/supabase';
 import { useAuth, type UserRole } from '../contexts/AuthContext';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 const BG = '#F2F1EE';
 const NAVY = '#0F172A';

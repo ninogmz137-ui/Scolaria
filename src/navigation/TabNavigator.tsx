@@ -13,7 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Pressable, Dimensions, PanResponder } from 'react-native';
+import { View, Dimensions, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -99,6 +99,7 @@ import GradeDetailScreen from '../screens/GradeDetailScreen';
 import BulletinScreen from '../screens/BulletinScreen';
 import SignDocScreen from '../screens/SignDocScreen';
 import SignSuccessScreen from '../screens/SignSuccessScreen';
+import { Pressable } from '../components/ui';
 
 // ─── Screen dimensions ───────────────────────────────────
 

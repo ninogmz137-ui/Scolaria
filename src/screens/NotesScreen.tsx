@@ -6,7 +6,6 @@ import { useState, useEffect, useCallback, useMemo, useRef, Fragment } from 'rea
 import {
   View,
   ScrollView,
-  Pressable,
   StyleSheet,
   Platform,
   UIManager,
@@ -57,7 +56,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 

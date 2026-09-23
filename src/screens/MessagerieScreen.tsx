@@ -12,7 +12,6 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import {
   View,
   ScrollView,
-  Pressable,
   StyleSheet,
   Platform,
   Modal,
@@ -42,7 +41,7 @@ import {
 import type { Conversation } from '../data/messagerieData';
 import { C } from '../constants/design';
 import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 // ─── Constants ────────────────────────────────────────────
 

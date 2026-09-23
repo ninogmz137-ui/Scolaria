@@ -4,12 +4,12 @@
  */
 
 import { useState } from 'react';
-import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FileText, Check } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
-import { Text } from '../../components/ui';
+import { Text, Pressable } from '../../components/ui';
 
 export default function MotDetailScreen({ route, navigation }: { route: any; navigation: any }) {
   const insets = useSafeAreaInsets();

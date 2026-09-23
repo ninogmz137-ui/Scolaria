@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Pressable,
   ScrollView,
   StyleSheet,
   Image,
@@ -16,7 +15,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 import { nativeInactivePillShadow, PILL_ACTIVE_NAVY } from '../constants/theme';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 12;

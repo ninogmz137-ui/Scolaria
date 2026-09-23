@@ -16,7 +16,6 @@ import {
   View,
   ScrollView,
   FlatList,
-  Pressable,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -48,7 +47,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

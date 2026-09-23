@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, View, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, ChevronRight, Check, Archive, Upload, FileText } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,7 +20,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { AcademicYearStatut } from '../services/database';
 import { getAcademicYears } from '../services/database';
 import { useDemoData } from '../contexts/DemoContext';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 // ─── Mock academic year data ─────────────────────────────
 

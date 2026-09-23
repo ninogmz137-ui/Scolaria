@@ -5,7 +5,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Animated,
   Dimensions,
@@ -43,7 +42,7 @@ import UniversalInputBar from '../../components/UniversalInputBar';
 import AriaOrb from '../../components/AriaOrb';
 import RoundGlassIconButton from '../../components/shared/RoundGlassIconButton';
 import { ariaSidebarTitle, defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
-import { Text, TextInput } from '../../components/ui';
+import { Text, TextInput, Pressable } from '../../components/ui';
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.82;

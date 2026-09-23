@@ -6,7 +6,6 @@ import {
   Platform,
   type ViewStyle,
   type TextInputProps,
-  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Mic, Send, ArrowUp } from 'lucide-react-native';
@@ -17,7 +16,7 @@ import {
 } from '../constants/theme';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
-import { TextInput } from './ui';
+import { TextInput, Pressable } from './ui';
 
 const BUBBLE_SHADOW = Platform.select({
   ios: {

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   View,
-  Pressable,
   ScrollView,
   StyleSheet,
   Alert,
@@ -27,10 +26,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { getChildInitials } from '../utils/childInitials';
 import { useWallpaper, WALLPAPERS } from '../contexts/WallpaperContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 // ─── Tokens ────────────────────────────────────────────
 const NAVY = '#0F172A';
@@ -220,7 +220,7 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={[st.root, { paddingTop: insets.top }]}>
+    <View style={[st.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={[StyleSheet.absoluteFill, { backgroundColor: '#F2F1EE' }]} />
 
       {/* White sheet */}
@@ -245,7 +245,7 @@ export default function EditProfileScreen() {
         <ScrollView
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+          contentContainerStyle={{ paddingBottom: 32 }}
         >
           {/* Children carousel */}
           <View style={st.carouselSection}>
@@ -260,7 +260,7 @@ export default function EditProfileScreen() {
             >
               {childList.map((child) => {
                 const selected = child.id === selectedChildId;
-                const initials = getInitials(child.name);
+                const initials = getChildInitials(child.name, childList.map((c) => c.name));
                 return (
                   <Pressable
                     key={child.id}
@@ -675,12 +675,13 @@ const st = StyleSheet.create({
   },
 
   // Settings row
+  // COMPONENTS.md §8 — Row standard : icône · titre · valeur · chevron/toggle, en ligne
   settingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   settingsRowBorder: {
     borderBottomWidth: 1,
@@ -694,26 +695,28 @@ const st = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    marginRight: 12,
   },
   rowIconBoxDanger: {
     backgroundColor: 'rgba(239,68,68,0.1)',
   },
   rowLabel: {
     flex: 1,
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
     color: NAVY,
-    letterSpacing: -0.15,
+    letterSpacing: -0.1,
+    marginRight: 8,
   },
   rowLabelDanger: {
     color: '#DC2626',
   },
   rowValue: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12.5,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
     color: TEXT55,
-    letterSpacing: -0.05,
     maxWidth: 140,
+    marginRight: 4,
   },
   rowChevron: {
     fontFamily: FontFamily.sansRegular,

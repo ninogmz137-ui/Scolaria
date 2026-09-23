@@ -10,7 +10,6 @@
 import { useState, useCallback } from 'react';
 import {
   View,
-  Pressable,
   ScrollView,
   Modal,
   TouchableWithoutFeedback,
@@ -28,7 +27,7 @@ import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useDemoData } from '../../contexts/DemoContext';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import { nativeWhiteInteractiveShadow } from '../../constants/theme';
-import { Text } from '../../components/ui';
+import { Text, Pressable } from '../../components/ui';
 
 // ─── Types ────────────────────────────────────────────────
 

@@ -1,8 +1,8 @@
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Plus } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { Text } from '../ui';
+import { Text, Pressable } from '../ui';
 
 /** Single accent for all portfolio progress fills (no per-activity bar colors). */
 const PORTFOLIO_BAR_COLOR = '#4338CA';

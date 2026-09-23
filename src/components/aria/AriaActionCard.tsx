@@ -7,7 +7,6 @@
 
 import {
   View,
-  Pressable,
   ActivityIndicator,
   StyleSheet,
   Platform,
@@ -21,7 +20,7 @@ import {
 } from 'lucide-react-native';
 import { type AriaAction, formatAriaActionLabel } from '../../services/ariaActions';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { Text } from '../ui';
+import { Text, Pressable } from '../ui';
 
 // ─── Types ─────────────────────────────────────────────────
 

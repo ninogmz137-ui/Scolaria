@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, GraduationHat } from '@getpapillon/papicons';
 import { Heart, Shield, ChevronRight } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
+import { getChildInitials } from '../utils/childInitials';
 import { useAuth } from '../contexts/AuthContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from './navigation/BottomBar';
@@ -37,14 +38,6 @@ interface Props {
 
 // ─── Helpers ─────────────────────────────────────────────
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 // ─── Menu items definition ───────────────────────────────
 
@@ -101,7 +94,7 @@ function MenuItem({
 // ─── Main exported component ─────────────────────────────
 
 export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, children } = useActiveChild();
   const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
 
@@ -112,7 +105,7 @@ export function BurgerMenuContent({ onClose, onNavigate, onLogout }: Props) {
     }
   };
 
-  const childInitials = getInitials(selectedChild.name);
+  const childInitials = getChildInitials(selectedChild.name, children.map((c) => c.name));
   const childEmoji = selectedChild.avatarType === 'emoji' ? (selectedChild.avatarEmoji ?? null) : null;
   const childPhoto = selectedChild.avatarType === 'photo' ? (selectedChild.avatarPhotoUri ?? null) : null;
 

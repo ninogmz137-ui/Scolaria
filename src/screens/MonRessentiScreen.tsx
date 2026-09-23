@@ -4,7 +4,6 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Pressable,
   Linking,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -22,7 +21,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 

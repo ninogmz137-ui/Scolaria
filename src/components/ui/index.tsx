@@ -20,6 +20,8 @@ import type {
   TextProps,
   TextInputProps,
   PressableProps,
+  PressableStateCallbackType,
+  GestureResponderEvent,
   ActivityIndicatorProps,
   TextStyle,
   StyleProp,
@@ -96,7 +98,39 @@ cssInterop(TextInput, { className: 'style' });
 
 // ─── Interaction ────────────────────────────────────────
 
-export const Pressable = RNPressable;
+/**
+ * Pressable — résout lui-même un style en fonction (`({ pressed }) => [...]`).
+ *
+ * Sur Android, avec l'interop NativeWind, un style en fonction passé au Pressable natif
+ * est ignoré : la ligne perd son flexDirection, la carte son fond et sa bordure.
+ * Ici le Pressable natif ne reçoit toujours qu'un style statique.
+ * Tous les écrans importent Pressable d'ici, jamais de 'react-native'.
+ */
+export const Pressable = React.forwardRef<View, PressableProps>(function Pressable(
+  { style, onPressIn, onPressOut, ...props },
+  ref,
+) {
+  const [pressed, setPressed] = React.useState(false);
+  const isFn = typeof style === 'function';
+  const resolved = isFn
+    ? (style as (s: PressableStateCallbackType) => PressableProps['style'])({ pressed, hovered: false } as PressableStateCallbackType)
+    : style;
+  return (
+    <RNPressable
+      ref={ref}
+      {...props}
+      onPressIn={(e: GestureResponderEvent) => {
+        if (isFn) setPressed(true);
+        onPressIn?.(e);
+      }}
+      onPressOut={(e: GestureResponderEvent) => {
+        if (isFn) setPressed(false);
+        onPressOut?.(e);
+      }}
+      style={resolved as ViewProps['style']}
+    />
+  );
+});
 
 // ─── Feedback ───────────────────────────────────────────
 

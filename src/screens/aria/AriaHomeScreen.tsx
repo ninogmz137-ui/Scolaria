@@ -14,7 +14,6 @@ import {
   View,
   ScrollView,
   FlatList,
-  Pressable,
   TouchableOpacity,
   StyleSheet,
   Platform,
@@ -53,7 +52,7 @@ import {
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
-import { Text, TextInput } from '../../components/ui';
+import { Text, TextInput, Pressable } from '../../components/ui';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');

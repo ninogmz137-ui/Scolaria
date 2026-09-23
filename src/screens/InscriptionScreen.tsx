@@ -3,7 +3,6 @@ import {
   View,
   TouchableOpacity,
   StyleSheet,
-  Pressable,
   Platform,
   ActivityIndicator,
   ScrollView,
@@ -12,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 const BG = '#F2F1EE';
 const NAVY = '#0F172A';

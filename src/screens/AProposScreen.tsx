@@ -8,7 +8,6 @@
 import { useState } from 'react';
 import {
   View,
-  Pressable,
   ScrollView,
   StyleSheet,
   Linking,
@@ -16,7 +15,6 @@ import {
 import {
   Heart,
   Lock,
-  Sparkles,
   User,
   MessageCircle,
   X,
@@ -37,7 +35,8 @@ import ScolariaAppIcon from '../components/ScolariaAppIcon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 
 // ─── Charter data ────────────────────────────────────────
 
@@ -69,7 +68,7 @@ const CHARTER_ARTICLES: CharterArticle[] = [
   {
     number: 3,
     title: 'IA éthique et transparente',
-    Icon: Sparkles,
+    Icon: ScolariaSymbol,
     color: Colors.violet,
     content:
       'Aria, notre assistante IA, est conçue pour accompagner — jamais pour remplacer le jugement humain. Elle ne pose pas de diagnostic médical ou psychologique. Ses recommandations sont toujours des suggestions, validées par le parent. L\'algorithme est explicable : le parent peut comprendre pourquoi une recommandation est faite.',
@@ -129,7 +128,7 @@ const STATS = [
 
 const TECH_STACK = [
   { name: 'React Native', desc: 'App mobile cross-platform', Icon: Smartphone as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', Icon: Sparkles as React.ComponentType<{ size?: number; color?: string }> },
+  { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', Icon: ScolariaSymbol as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Google Vision', desc: 'OCR bulletins scolaires', Icon: Code as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Supabase', desc: 'Base de données sécurisée', Icon: Database as React.ComponentType<{ size?: number; color?: string }> },
   { name: 'Chiffrement E2E', desc: 'AES-256 bout en bout', Icon: Lock as React.ComponentType<{ size?: number; color?: string }> },

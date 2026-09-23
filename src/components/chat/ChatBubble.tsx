@@ -1,6 +1,6 @@
-import { Pressable } from 'react-native';
+
 import { LinearGradient } from 'expo-linear-gradient';
-import { Box, Text, HStack } from '../ui';
+import { Box, Text, HStack, Pressable } from '../ui';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useChildTheme } from '../../contexts/ChildThemeContext';

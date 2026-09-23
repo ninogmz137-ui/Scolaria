@@ -20,6 +20,7 @@ import { Colors } from '../../constants/colors';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { getClassMeteo } from '../../services/teacherService';
+import ScolariaSymbol from '../../components/ScolariaSymbol';
 
 const { width } = Dimensions.get('window');
 
@@ -315,7 +316,7 @@ export default function MeteoClasseScreen() {
           <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
             <HStack className="items-center gap-2.5 mb-3">
               <Box style={[{ width: 30, height: 30, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }, { backgroundColor: '#4338CA' }]}>
-                <Ionicons name="sparkles" size={16} color={Colors.white} />
+                <ScolariaSymbol size={18} color={Colors.white} />
               </Box>
               <Text className="text-sm font-bold" style={{ color: Colors.violet + 'CC' }}>Analyse IA de la semaine</Text>
             </HStack>

@@ -24,6 +24,7 @@ import JournalAccesScreen from '../screens/rgpd/JournalAccesScreen';
 import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 
 // ─── Stack navigators ────────────────────────────────────
 
@@ -161,7 +162,7 @@ const tabIcons: Record<
   Profil: { icon: 'person-outline', iconActive: 'person' },
   Notes: { icon: 'school-outline', iconActive: 'school' },
   Ressenti: { icon: 'heart-outline', iconActive: 'heart' },
-  Aria: { icon: 'sparkles-outline', iconActive: 'sparkles' },
+  Aria: { icon: 'ellipse-outline', iconActive: 'ellipse' }, // non affiché : ScolariaSymbol
   Réglages: { icon: 'settings-outline', iconActive: 'settings' },
 };
 
@@ -172,13 +173,16 @@ export default function EleveTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size, focused }) => (
-          <Ionicons
-            name={focused ? tabIcons[route.name].iconActive : tabIcons[route.name].icon}
-            size={focused ? size + 2 : size}
-            color={color}
-          />
-        ),
+        tabBarIcon: ({ color, size, focused }) =>
+          route.name === 'Aria' ? (
+            <ScolariaSymbol size={focused ? size + 2 : size} color={color} />
+          ) : (
+            <Ionicons
+              name={focused ? tabIcons[route.name].iconActive : tabIcons[route.name].icon}
+              size={focused ? size + 2 : size}
+              color={color}
+            />
+          ),
         tabBarActiveTintColor: theme.tabActive,
         tabBarInactiveTintColor: theme.tabInactive,
         tabBarStyle: {

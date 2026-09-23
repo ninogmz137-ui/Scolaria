@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type ViewStyle } from 'react-native';
 import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../../constants/colors';
 import { nativeWhiteInteractiveShadow } from '../../constants/theme';
 import RoundGlassIconButton from '../shared/RoundGlassIconButton';
+import { Pressable } from '../ui';
 
 type Props = {
   children: React.ReactNode;

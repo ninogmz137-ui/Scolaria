@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../constants/colors';
 import { ARIA_INDIGO } from '../../constants/theme';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { Text } from '../ui';
+import { Text, Pressable } from '../ui';
 
 type Props = {
   Icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   ScrollView,
-  Pressable,
   StyleSheet,
   Platform,
   Modal,
@@ -12,7 +11,7 @@ import { Search, X, Settings, Heart, GraduationCap,
          Shield, Info, Palette, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 const QUICK_LINKS = [
   { id: 'profil',    icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },

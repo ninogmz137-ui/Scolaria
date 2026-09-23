@@ -18,6 +18,7 @@ import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { getChildInitials } from '../../utils/childInitials';
 import ChildSelectorSheet from '../ChildSelectorSheet';
 
 // ─── Types ──────────────────────────────────────────────
@@ -54,9 +55,8 @@ const TABS: TabConfig[] = [
 export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, children } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
-  const isHome = activeTab === 'accueil';
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -109,8 +109,8 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               style={[
                 styles.pill,
                 isActive
-                  ? (isHome ? styles.pillActiveHome : styles.pillActiveOther)
-                  : (isHome ? styles.pillInactiveHome : styles.pillInactiveOther),
+                  ? styles.pillActiveOther
+                  : styles.pillInactiveOther,
                 !isLast && styles.pillMargin,
               ]}
               accessibilityRole="button"
@@ -119,7 +119,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
             >
               <Icon
                 size={22}
-                color={isActive ? '#0F172A' : (isHome ? 'rgba(15,23,42,0.45)' : 'rgba(15,23,42,0.50)')}
+                color={isActive ? '#0F172A' : 'rgba(15,23,42,0.50)'}
               />
               {isActive && (
                 <Text style={styles.pillLabel}>{tab.label}</Text>
@@ -152,12 +152,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
                 <Text style={styles.childAvatarEmoji}>{selectedChild.avatarEmoji}</Text>
               ) : (
                 <Text style={styles.childAvatarInitials}>
-                  {selectedChild.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)}
+                  {getChildInitials(selectedChild.name, children.map((c) => c.name))}
                 </Text>
               )}
             </View>
@@ -186,7 +181,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingBottom: 12,
-    backgroundColor: 'transparent',
+    // Opaque : la barre couvre la zone de l'heure (insets.top) et ses onglets.
+    backgroundColor: '#F2F1EE',
   },
 
   // ── Burger ───────────────────────────────────────────
@@ -217,16 +213,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  // Active sur Accueil (hero gradient derrière) — fond blanc semi-transparent
-  pillActiveHome: {
-    height: 34,
-    paddingLeft: 11,
-    paddingRight: 14,
-    backgroundColor: 'rgba(255,255,255,0.42)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.58)',
-  },
-  // Active sur autres onglets (fond page uni) — fond sombre discret
+  // Active — fond sombre discret
   pillActiveOther: {
     height: 34,
     paddingLeft: 11,
@@ -235,13 +222,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.10)',
   },
-  // Inactive sur Accueil — transparent (gradient visible)
-  pillInactiveHome: {
-    height: 32,
-    padding: 8,
-    backgroundColor: 'transparent',
-  },
-  // Inactive sur autres onglets — fond discret pour rester lisible
+  // Inactive — fond discret pour rester lisible
   pillInactiveOther: {
     width: 36,
     height: 32,

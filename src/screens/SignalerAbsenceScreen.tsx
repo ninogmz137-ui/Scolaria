@@ -9,7 +9,6 @@
 import { useState, useCallback } from 'react';
 import {
   View,
-  Pressable,
   ScrollView,
   StyleSheet,
   Alert,
@@ -35,7 +34,7 @@ import {
   type AbsenceMotif,
   type DemiJournee,
 } from '../services/absenceService';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
 
 // ─── Helpers ─────────────────────────────────────────────
 

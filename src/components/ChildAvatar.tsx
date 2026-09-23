@@ -12,6 +12,8 @@
 import { View, Image, StyleSheet } from 'react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from './ui';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { getChildInitials } from '../utils/childInitials';
 
 interface ChildAvatarProps {
   /** Child's display name (used for initials fallback) */
@@ -36,6 +38,7 @@ export default function ChildAvatar({
   size = 36,
   showBurgerBadge = false,
 }: ChildAvatarProps) {
+  const { children } = useActiveChild();
   const borderRadius = size / 2;
   const fontSize = size * 0.42;
   const emojiSize = size * 0.5;
@@ -88,7 +91,7 @@ export default function ChildAvatar({
           ]}
         >
           <Text style={[styles.initials, { fontSize }]}>
-            {name.charAt(0).toUpperCase()}
+            {getChildInitials(name, children.map((c) => c.name))}
           </Text>
         </View>
       )}

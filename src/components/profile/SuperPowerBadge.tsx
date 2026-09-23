@@ -7,6 +7,7 @@ import {
 import { Box, Text, Pressable, HStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import ScolariaSymbol from '../ScolariaSymbol';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ export default function SuperPowerBadge({
           className="items-center gap-1 px-2 py-1 rounded-lg"
           style={{ backgroundColor: accentLight + '12', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }}
         >
-          <Ionicons name="sparkles" size={10} color={accentColor} />
+          <ScolariaSymbol size={12} color={accentColor} />
           <Text className="text-[10px] font-bold" style={{ color: accentColor }}>
             Observé par Aria
           </Text>

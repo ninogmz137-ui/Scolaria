@@ -35,42 +35,64 @@ const GLOBAL_ROTATION = 22.5;
 const LARGE_ANGLES = [8, 98, 188, 278] as const;
 const SMALL_ANGLES = [53, 143, 233, 323] as const;
 
-const LARGE_RX = 10;
-const LARGE_RY = 20;
-const LARGE_CY = -66;
+/** Géométrie de référence (icône officielle), dans un viewBox -100..100. */
+const REFERENCE = {
+  large: { rx: 10, ry: 20, cy: -66 },
+  small: { rx: 8, ry: 14, cy: -62 },
+};
 
-const SMALL_RX = 8;
-const SMALL_RY = 14;
-const SMALL_CY = -62;
+/**
+ * Géométrie « petite taille » (< 32 px) : même composition (8 ellipses, mêmes angles),
+ * ellipses plus pleines et couronne resserrée. À 14 px, la géométrie de référence donne
+ * des ellipses de 1,4 × 2,8 px qui se lisent comme des tirets.
+ */
+const COMPACT = {
+  large: { rx: 16, ry: 28, cy: -60 },
+  small: { rx: 13, ry: 21, cy: -58 },
+};
 
-export default function ScolariaSymbol({ size = 48, color = '#4338CA' }: ScolariaSymbolProps) {
+export const COMPACT_BELOW = 32;
+
+/**
+ * Les 8 ellipses de la couronne, à placer dans un <Svg viewBox="-100 -100 200 200">.
+ * Partagé avec AriaOrb : une seule définition du symbole dans l'app.
+ * Une seule rotation par ellipse, en transform SVG (centre = origine du viewBox) :
+ * pas de <G rotation originX> imbriqués, mal rendus par react-native-svg sur Android.
+ */
+export function CrownShapes({ color, compact = false }: { color: string; compact?: boolean }) {
+  const g = compact ? COMPACT : REFERENCE;
   return (
-    <Svg width={size} height={size} viewBox="-100 -100 200 200">
-      {/* Une seule rotation par ellipse, en transform SVG (centre = origine du viewBox).
-          Pas de <G rotation originX> imbriqués : mal rendus par react-native-svg sur Android. */}
+    <>
       {LARGE_ANGLES.map((angle) => (
         <Ellipse
           key={`large-${angle}`}
           cx={0}
-          cy={LARGE_CY}
-          rx={LARGE_RX}
-          ry={LARGE_RY}
+          cy={g.large.cy}
+          rx={g.large.rx}
+          ry={g.large.ry}
           fill={color}
           transform={`rotate(${GLOBAL_ROTATION + angle})`}
         />
       ))}
-
       {SMALL_ANGLES.map((angle) => (
         <Ellipse
           key={`small-${angle}`}
           cx={0}
-          cy={SMALL_CY}
-          rx={SMALL_RX}
-          ry={SMALL_RY}
+          cy={g.small.cy}
+          rx={g.small.rx}
+          ry={g.small.ry}
           fill={color}
           transform={`rotate(${GLOBAL_ROTATION + angle})`}
         />
       ))}
+    </>
+  );
+}
+
+export default function ScolariaSymbol({ size = 48, color = '#4338CA' }: ScolariaSymbolProps) {
+  return (
+    <Svg width={size} height={size} viewBox="-100 -100 200 200">
+      <CrownShapes color={color} compact={size < COMPACT_BELOW} />
     </Svg>
   );
 }

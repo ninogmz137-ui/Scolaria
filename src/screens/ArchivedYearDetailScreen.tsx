@@ -9,7 +9,6 @@ import { useState } from 'react';
 import {
   View,
   ScrollView,
-  Pressable,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -23,7 +22,7 @@ import GlassCard from '../components/GlassCard';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useDemoData, type DemoArchivedBulletin } from '../contexts/DemoContext';
-import { Text } from '../components/ui';
+import { Text, Pressable } from '../components/ui';
 
 // ─── Navigation types ────────────────────────────────────
 

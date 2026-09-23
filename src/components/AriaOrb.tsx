@@ -12,8 +12,8 @@
  */
 
 import { useEffect } from 'react';
-import { type ViewStyle } from 'react-native';
-import Svg, { Ellipse, G } from 'react-native-svg';
+import { View, type ViewStyle } from 'react-native';
+import Svg, { G } from 'react-native-svg';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -26,19 +26,11 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { ARIA_INDIGO } from '../constants/theme';
+import ScolariaSymbol, { CrownShapes, COMPACT_BELOW } from './ScolariaSymbol';
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 
-// ─── Crown geometry — identical to ScolariaSymbol ────────
-const LARGE_ANGLES = [8, 98, 188, 278] as const;
-const SMALL_ANGLES = [53, 143, 233, 323] as const;
-const LARGE_RX = 10;
-const LARGE_RY = 20;
-const LARGE_CY = -66;
-const SMALL_RX = 8;
-const SMALL_RY = 14;
-const SMALL_CY = -62;
-const OUTER_TILT = 22.5;
+// Géométrie de la couronne : CrownShapes (ScolariaSymbol), source unique.
 
 export type AriaOrbState = 'idle' | 'listening' | 'thinking';
 
@@ -74,19 +66,7 @@ function CrownAnimated({
     <Svg width={size} height={size} viewBox="-100 -100 200 200">
       {/* Animated outer group — rotation in SVG space, stays crisp */}
       <AnimatedG animatedProps={rotProps}>
-        {/* Fixed tilt matching ScolariaSymbol's OUTER_TO=22.5 */}
-        <G rotation={OUTER_TILT} originX={0} originY={0}>
-          {LARGE_ANGLES.map((angle) => (
-            <G key={`L${angle}`} rotation={angle} originX={0} originY={0}>
-              <Ellipse cx={0} cy={LARGE_CY} rx={LARGE_RX} ry={LARGE_RY} fill={color} />
-            </G>
-          ))}
-          {SMALL_ANGLES.map((angle) => (
-            <G key={`S${angle}`} rotation={angle} originX={0} originY={0}>
-              <Ellipse cx={0} cy={SMALL_CY} rx={SMALL_RX} ry={SMALL_RY} fill={color} />
-            </G>
-          ))}
-        </G>
+        <CrownShapes color={color} compact={size < COMPACT_BELOW} />
       </AnimatedG>
     </Svg>
   );
@@ -104,20 +84,9 @@ function AriaOrbBubble({
   style?: ViewStyle;
 }) {
   return (
-    <Svg width={size} height={size} viewBox="-100 -100 200 200" style={style}>
-      <G rotation={OUTER_TILT} originX={0} originY={0}>
-        {LARGE_ANGLES.map((angle) => (
-          <G key={`L${angle}`} rotation={angle} originX={0} originY={0}>
-            <Ellipse cx={0} cy={LARGE_CY} rx={LARGE_RX} ry={LARGE_RY} fill={color} />
-          </G>
-        ))}
-        {SMALL_ANGLES.map((angle) => (
-          <G key={`S${angle}`} rotation={angle} originX={0} originY={0}>
-            <Ellipse cx={0} cy={SMALL_CY} rx={SMALL_RX} ry={SMALL_RY} fill={color} />
-          </G>
-        ))}
-      </G>
-    </Svg>
+    <View style={style}>
+      <ScolariaSymbol size={size} color={color} />
+    </View>
   );
 }
 

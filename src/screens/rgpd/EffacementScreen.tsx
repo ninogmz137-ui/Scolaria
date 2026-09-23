@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, Pressable, ScrollView, StyleSheet, Animated, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Animated, Alert } from 'react-native';
 import {
   Trash2,
   Check,
@@ -14,7 +14,6 @@ import {
   Calendar,
   Camera,
   Heart,
-  Sparkles,
   List,
   Lock,
   Home,
@@ -30,7 +29,8 @@ import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import GradientButton from '../../components/shared/GradientButton';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
-import { Text, TextInput } from '../../components/ui';
+import { Text, TextInput, Pressable } from '../../components/ui';
+import ScolariaSymbol from '../../components/ScolariaSymbol';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -89,7 +89,7 @@ export default function EffacementScreen() {
     { name: 'Ressenti & bien-être', Icon: Heart, count: '89 check-ins', color: ARIA_INDIGO },
     { name: 'Profil & compétences', Icon: User, count: '5 compétences, 5 activités', color: ARIA_INDIGO },
     { name: 'Photos & médias', Icon: Camera, count: '24 photos', color: ARIA_INDIGO },
-    { name: 'Conversations Aria', Icon: Sparkles, count: '34 conversations', color: ARIA_INDIGO },
+    { name: 'Conversations Aria', Icon: ScolariaSymbol, count: '34 conversations', color: ARIA_INDIGO },
     { name: "Journal d'accès", Icon: List, count: '210 entrées', color: ARIA_INDIGO },
     { name: 'Permissions & partages', Icon: Lock, count: '5 personnes', color: ARIA_INDIGO },
   ];
