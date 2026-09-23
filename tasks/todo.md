@@ -22,7 +22,8 @@
 - [x] Code : colonne `emoji` retirée de `database.ts` (select des notes, createSubject, createAgendaEvent). tsc OK.
 - [x] `nul/` supprimé (export web d’avril, jamais suivi par Git).
 - ⚠️ Limite connue : publications de classe rattachées par le texte `classe` (« CE1 » de deux écoles) → vrai identifiant de classe avec le lien enseignant ↔ classe.
-- [ ] À vérifier à la prochaine inscription réelle : le trigger `on_auth_user_created` crée bien le profil (EXECUTE retiré de handle_new_user, sans effet attendu sur le déclenchement du trigger).
+- [x] Trigger `on_auth_user_created` vérifié après M1 (compte de test créé le 23 sept à 15:02) : profil créé automatiquement (+4 ms), rôle « parent », email renseigné.
+- [ ] Reliquat : 1 compte auth du 21 mars 2026 SANS profil (bug d’inscription de l’époque, corrigé par 5b84de3) → créer son profil ou supprimer le compte (décision utilisateur).
 
 #### Impact des migrations sur le code de l’app
 | Migration | Impact | Action |
@@ -102,7 +103,13 @@ Ordre proposé : M0 → M1 (sécurité, tout de suite) → M2 → M3 → M4 → 
 - [x] Google Vision : la clé était embarquée mais **jamais utilisée** (aucun appel OCR dans le code) → retirée sans Edge Function. Le futur OCR suivra le même modèle (fonction dédiée + secret).
 - [x] S4 : toute panne d’Aria → « Aria est momentanément indisponible. » (plus de mention de clé, .env, eas.json).
 - [x] S5 : secret ANTHROPIC_API_KEY posé par l’utilisateur (tableau de bord) ; fonction déployée le 23 sept (`functions deploy aria --use-api`, Docker arrêté) : ACTIVE, verify_jwt. Contrôles faits : sans en-tête → 401 passerelle ; clé anon sans session → 401 `unavailable` (y compris phrase d’urgence).
-- [ ] Test authentifié (vrai compte, non démo) : réponse de claude-sonnet-5 + phrase d’urgence sans appel Anthropic → nécessite une session utilisateur (connexion par l’utilisateur).
+- [x] Test Redmi (compte de test, 23 sept) — question normale : « indisponible ». Journaux : 1 appel, HTTP 500 AVANT tout appel Anthropic ; cause = secret ANTHROPIC_API_KEY contenant un retour à la ligne (Deno refuse l’en-tête). La valeur ressemble à l’ANCIENNE clé de .env (même coupure). ⚠️ L’erreur Deno a recopié la clé dans les journaux de la fonction.
+  - Corrigé et redéployé (v2) : secret contrôlé (absent / espace / retour à la ligne → 503 + journal SANS la valeur) ; journaux d’erreur limités à statut / type / nom (jamais le message brut) ; succès journalisé avec le modèle ; 404 → « vérifier ARIA_MODEL ».
+  - Compte réel sans enfant : contexte neutre envoyé à Aria (plus les données de démo de Léa).
+  - [ ] **Utilisateur** : révoquer la clé apparue dans les journaux (si ce n’est pas déjà l’ancienne clé révoquée), créer une NOUVELLE clé, la coller sur UNE seule ligne dans Edge Functions → Secrets (ANTHROPIC_API_KEY), puis retester.
+- [x] Phrase d’urgence (Redmi) : message correct ; journaux : AUCUN appel à la fonction pour ce message (détection côté app) → Anthropic non appelé.
+  - [x] Numéros cliquables dans les bulles d’Aria (tel:3114 / 3018 / 119 / 112, pas les décimaux) ; ordre selon la catégorie (numéro concerné en premier, 112 en dernier) — `buildEmergencyMessage(category)`, testé (22 cas + 3 messages).
+- [ ] Compte orphelin du 21 mars (sans profil) : à supprimer PAR L’UTILISATEUR (suppression définitive de données) — Authentication → Users, compte créé le 21/03/2026.
 - [ ] Protocole d’urgence — suites :
   - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
   - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
@@ -190,6 +197,7 @@ Périmètre : aucun changement de BDD, aucun nouvel écran.
 - La détection par mots-clés (`supabase/functions/_shared/emergency.ts`) est une solution de DÉMO. En production : détection plus robuste (contexte, formulations indirectes, fautes, langage enfant/ado), validée par le comité éthique avant mise en service.
 
 #### AUTRES
+- Écran Aria sur un compte SANS enfant : affiche « Comment va Léa aujourd’hui ? » et d’autres suggestions tirées des données de démo en dur → suggestions et titres liés à l’enfant actif (ou génériques s’il n’y a aucun enfant).
 - Écran Aria : suggestions en cartes 2×2 avec emoji → pills horizontales (règle CLAUDE.md).
 - Accueil : notes /20 et carte Aria sur Emma affichées pour Léa (GS) → toutes les données liées à l'enfant actif.
 - Enfant actif incohérent entre top bar, sélecteur, Messages et Emploi du temps (codé en dur pour Emma) → une seule source (détail : section « Phase A/B · enfant actif incohérent »).

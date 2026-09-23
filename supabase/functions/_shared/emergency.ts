@@ -65,13 +65,27 @@ export function detectEmergency(text: string): EmergencyCategory | null {
   return null;
 }
 
-/** Message fixe, identique quelle que soit la catégorie : aucune réponse générée par l'IA. */
-export const EMERGENCY_MESSAGE = [
-  'Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. Aria ne peut pas répondre seule à cette situation.',
-  '',
-  '• 3114 — prévention du suicide, 24h/24, gratuit',
-  '• 3018 — harcèlement et cyberharcèlement, 7j/7 de 9h à 23h, gratuit',
-  '• 119 — Allô Enfance en danger, 24h/24, gratuit',
-  '',
-  'En cas de danger immédiat, appelez le 112.',
-].join('\n');
+const HELP_LINES: Record<EmergencyCategory, string> = {
+  suicide: '• 3114 — prévention du suicide, 24h/24, gratuit',
+  harcelement: '• 3018 — harcèlement et cyberharcèlement, 7j/7 de 9h à 23h, gratuit',
+  maltraitance: '• 119 — Allô Enfance en danger, 24h/24, gratuit',
+};
+
+/** Numéros d'aide du protocole (l'app les rend cliquables : tel:…). */
+export const HELP_NUMBERS = ['3114', '3018', '119', '112'] as const;
+
+/**
+ * Message fixe (aucune réponse générée par l'IA). Le numéro de la catégorie détectée vient en
+ * premier, les autres ensuite, le 112 toujours en dernier.
+ */
+export function buildEmergencyMessage(category: EmergencyCategory): string {
+  const others = (Object.keys(HELP_LINES) as EmergencyCategory[]).filter((c) => c !== category);
+  return [
+    'Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. Aria ne peut pas répondre seule à cette situation.',
+    '',
+    HELP_LINES[category],
+    ...others.map((c) => HELP_LINES[c]),
+    '',
+    'En cas de danger immédiat, appelez le 112.',
+  ].join('\n');
+}

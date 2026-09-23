@@ -11,7 +11,7 @@
 
 import { getChildContext, buildChildContextString } from './childContext';
 import { supabase } from './supabase';
-import { detectEmergency, EMERGENCY_MESSAGE } from '../../supabase/functions/_shared/emergency';
+import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { CONVERSATIONS_BY_CHILD } from '../data/messagerieData';
 
 // ─── Types ────────────────────────────────────────────────
@@ -102,6 +102,22 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 `;
 }
 
+/** Compte sans enfant enregistré : Aria répond de façon générale, sans données d'enfant. */
+function buildNoChildSystemPrompt(): string {
+  return `Tu es Aria, l'assistante IA de Scolaria — le carnet de scolarité numérique des familles françaises.
+
+Aucun enfant n'est encore ajouté au carnet de ce parent.
+- Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée).
+- N'invente jamais de notes, d'enseignants ni d'événements : tu n'as aucune donnée d'enfant.
+- Quand c'est utile, propose d'ajouter un enfant au carnet pour des réponses personnalisées.
+- Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
+- Réponds en français, en 2 à 4 paragraphes maximum.
+
+═══ DATE DU JOUR ═══
+${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+`;
+}
+
 // ─── API call ────────────────────────────────────────────
 
 export async function sendToAria(
@@ -112,8 +128,9 @@ export async function sendToAria(
 ): Promise<string> {
   // Protocole d'urgence (CLAUDE.md) : jamais de réponse d'IA ni d'exemple sur un message de détresse.
   // L'Edge Function refait ce contrôle et fait foi ; ici il couvre aussi le mode démo.
-  if (detectEmergency(userMessage)) {
-    return EMERGENCY_MESSAGE;
+  const emergency = detectEmergency(userMessage);
+  if (emergency) {
+    return buildEmergencyMessage(emergency);
   }
 
   // Mode démo : réponses d'exemple locales, pas d'appel serveur
@@ -121,7 +138,11 @@ export async function sendToAria(
     return getFallbackResponse(userMessage, childId, options?.childName);
   }
 
-  const systemPrompt = buildSystemPrompt(childId, options?.childName);
+  // Compte réel sans enfant : l'app retombe sur les enfants de démo (ids « demo-… », à corriger en
+  // Phase B). On n'envoie alors AUCUN contexte d'enfant à Aria, surtout pas celui de la démo.
+  const systemPrompt = childId.startsWith('demo-')
+    ? buildNoChildSystemPrompt()
+    : buildSystemPrompt(childId, options?.childName);
 
   // Build messages array: conversation history + new message
   const messages: ClaudeMessage[] = [

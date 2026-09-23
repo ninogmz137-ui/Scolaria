@@ -17,7 +17,7 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { detectEmergency, EMERGENCY_MESSAGE } from '../_shared/emergency.ts';
+import { buildEmergencyMessage, detectEmergency } from '../_shared/emergency.ts';
 
 const MODEL = Deno.env.get('ARIA_MODEL') ?? 'claude-sonnet-5';
 const MAX_TOKENS = 16000;
@@ -77,10 +77,15 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError || !userData?.user) return unavailable(401);
 
-  // 2. Clé API côté serveur uniquement
+  // 2. Clé API côté serveur uniquement — JAMAIS journalisée, même en partie
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) {
     console.error('[aria] secret ANTHROPIC_API_KEY absent');
+    return unavailable(503);
+  }
+  if (/\s/.test(apiKey)) {
+    // Ex. clé collée sur deux lignes : Deno refuserait l'en-tête ET recopierait sa valeur dans l'erreur.
+    console.error('[aria] secret ANTHROPIC_API_KEY mal formé (espace ou retour à la ligne) — valeur non journalisée');
     return unavailable(503);
   }
 
@@ -102,8 +107,8 @@ Deno.serve(async (req) => {
   if (emergency) {
     // Alerte signalée sans le contenu du message (minimisation). Persistance + notification
     // des responsables : à brancher quand la table d'alertes existera (phase A, voir todo).
-    console.warn('[aria] ALERTE protocole d’urgence', { category: emergency, user: userData.user.id });
-    return json({ text: EMERGENCY_MESSAGE, alert: emergency });
+    console.warn('[aria] ALERTE protocole d’urgence — Anthropic non appelé', { category: emergency, user: userData.user.id });
+    return json({ text: buildEmergencyMessage(emergency), alert: emergency });
   }
 
   // 5. Appel Anthropic (SDK officiel)
@@ -118,9 +123,10 @@ Deno.serve(async (req) => {
 
     // Refus des classifieurs : pas de repli, simplement « indisponible »
     if (response.stop_reason === 'refusal') {
-      console.warn('[aria] refus du modèle');
+      console.warn('[aria] refus du modèle', { model: response.model });
       return unavailable(200);
     }
+    console.log('[aria] réponse Anthropic OK', { model: response.model, stop_reason: response.stop_reason });
 
     const text = response.content
       .filter((block) => block.type === 'text')
@@ -130,19 +136,26 @@ Deno.serve(async (req) => {
 
     return text ? json({ text }) : unavailable(502);
   } catch (error) {
+    // Journaux : statut / type / nom d'erreur uniquement. Jamais le message brut ni l'objet d'erreur
+    // (une erreur réseau peut recopier les en-têtes, donc la clé).
     if (error instanceof Anthropic.RateLimitError) {
-      console.warn('[aria] limite de débit Anthropic');
+      console.warn('[aria] limite de débit Anthropic', { status: 429 });
       return unavailable(429);
     }
     if (error instanceof Anthropic.AuthenticationError) {
-      console.error('[aria] clé Anthropic refusée (révoquée ou invalide) — vérifier le secret');
+      console.error('[aria] clé Anthropic refusée (révoquée ou invalide) — vérifier le secret', { status: 401 });
       return unavailable(503);
     }
-    if (error instanceof Anthropic.APIError) {
-      console.error('[aria] erreur API', error.status, error.message);
+    if (error instanceof Anthropic.NotFoundError) {
+      console.error('[aria] modèle ou ressource introuvable — vérifier ARIA_MODEL', { status: 404, model: MODEL });
       return unavailable(502);
     }
-    console.error('[aria] erreur inattendue', error);
+    if (error instanceof Anthropic.APIError) {
+      const type = (error as { error?: { error?: { type?: string } } }).error?.error?.type ?? null;
+      console.error('[aria] erreur API Anthropic', { status: error.status ?? null, type, model: MODEL });
+      return unavailable(502);
+    }
+    console.error('[aria] erreur inattendue', { name: error instanceof Error ? error.name : typeof error });
     return unavailable(500);
   }
 });

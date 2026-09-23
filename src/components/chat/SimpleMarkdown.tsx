@@ -2,11 +2,12 @@
  * SimpleMarkdown — lightweight Markdown renderer for React Native.
  *
  * Supports: **bold**, *italic*, ## headings, - bullet lists, numbered lists.
+ * Numéros d'aide du protocole d'urgence (3114, 3018, 119, 112) : cliquables → appel (tel:).
  * No external dependencies — pure RN Text components.
  */
 
 import { Fragment } from 'react';
-import { type TextStyle } from 'react-native';
+import { Linking, type TextStyle } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text } from '../ui';
 
@@ -15,13 +16,19 @@ interface Props {
   baseStyle?: TextStyle;
 }
 
+const HELP_NUMBER_STYLE: TextStyle = {
+  fontFamily: FontFamily.sansBold,
+  color: '#4338CA',
+  textDecorationLine: 'underline',
+};
+
 /**
- * Render inline formatting: **bold** and *italic*
+ * Render inline formatting: **bold**, *italic*, and help numbers as tel: links
  */
 function renderInline(text: string, baseStyle: TextStyle): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
-  // Match **bold** or *italic* segments
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+  // Match **bold**, *italic*, or a help number (whole token only: pas « 1190 » ni « 3018,5 »)
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|(?<!\d|\d[,.])\b(3114|3018|119|112)\b(?![,.]?\d))/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -47,6 +54,20 @@ function renderInline(text: string, baseStyle: TextStyle): React.ReactNode[] {
       parts.push(
         <Text key={`i-${match.index}`} style={[baseStyle, { fontStyle: 'italic' }]}>
           {match[3]}
+        </Text>,
+      );
+    } else if (match[4]) {
+      // Numéro d'aide → appel direct
+      const number = match[4];
+      parts.push(
+        <Text
+          key={`tel-${match.index}`}
+          style={[baseStyle, HELP_NUMBER_STYLE]}
+          onPress={() => Linking.openURL(`tel:${number}`)}
+          accessibilityRole="link"
+          accessibilityLabel={`Appeler le ${number}`}
+        >
+          {number}
         </Text>,
       );
     }

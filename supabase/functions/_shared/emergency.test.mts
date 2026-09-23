@@ -2,7 +2,7 @@
  * Tests du protocole d'urgence — `npm run test:emergency` (Node 22+, exécute le TypeScript).
  * Toute modification des motifs de emergency.ts doit garder ce fichier au vert.
  */
-import { detectEmergency, EMERGENCY_MESSAGE, type EmergencyCategory } from './emergency.ts';
+import { buildEmergencyMessage, detectEmergency, type EmergencyCategory } from './emergency.ts';
 
 const CASES: [string, EmergencyCategory | null][] = [
   // Doivent déclencher
@@ -39,16 +39,24 @@ for (const [text, expected] of CASES) {
   console.log(`${pass ? 'ok  ' : 'FAIL'} ${JSON.stringify(text)} → ${got}${pass ? '' : ` (attendu : ${expected})`}`);
 }
 
-// Le message fixe doit toujours contenir les numéros du protocole, et jamais l'ancien 3020.
-for (const number of ['3114', '3018', '119', '112']) {
-  if (!EMERGENCY_MESSAGE.includes(number)) {
-    failures++;
-    console.log(`FAIL message d'urgence sans le ${number}`);
+// Message fixe : tous les numéros, celui de la catégorie en premier, 112 en dernier, jamais le 3020.
+const FIRST: Record<EmergencyCategory, string> = { suicide: '3114', harcelement: '3018', maltraitance: '119' };
+for (const category of Object.keys(FIRST) as EmergencyCategory[]) {
+  const message = buildEmergencyMessage(category);
+  const order = ['3114', '3018', '119', '112'].map((n) => [n, message.indexOf(n)] as const);
+  const missing = order.filter(([, i]) => i < 0).map(([n]) => n);
+  const firstNumber = order.filter(([n]) => n !== '112').sort((a, b) => a[1] - b[1])[0][0];
+  const lastIs112 = order.every(([n, i]) => n === '112' || i < message.lastIndexOf('112'));
+  const checks: [boolean, string][] = [
+    [missing.length === 0, `numéros manquants : ${missing.join(', ')}`],
+    [firstNumber === FIRST[category], `premier numéro ${firstNumber} au lieu de ${FIRST[category]}`],
+    [lastIs112, '112 pas en dernier'],
+    [!message.includes('3020'), 'contient le 3020 (hors service depuis 2024)'],
+  ];
+  for (const [ok, label] of checks) {
+    if (!ok) failures++;
+    console.log(`${ok ? 'ok  ' : 'FAIL'} message « ${category} » : ${ok ? 'conforme' : label}`);
   }
-}
-if (EMERGENCY_MESSAGE.includes('3020')) {
-  failures++;
-  console.log('FAIL message d’urgence contient le 3020 (hors service depuis 2024)');
 }
 
 console.log(`\n${CASES.length} cas, ${failures} échec(s)`);
