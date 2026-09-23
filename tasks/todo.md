@@ -1,5 +1,117 @@
 # TODO — Scolaria
 
+## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
+
+**Statut : PLAN VALIDÉ (24 sept, 6 questions tranchées). B1 en cours.**
+Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
+
+**Règles communes à chaque lot**
+- Un lot = un commit, testable seul. Arrêt et test sur le Redmi (`npm run dev:android`) avant le lot suivant : le web ne prouve rien pour Android.
+- Avant chaque lot : grep des motifs touchés (leçons du 17 avril et du 23 sept) ; `Pressable` / `Text` / `TextInput` depuis `components/ui` ; pas de `gap` en ligne ; pas de `sed -i` sur src/.
+- Après chaque lot : `tsc --noEmit`, contrôle web, checklist Redmi du lot, lessons.md, primer.md.
+- Toute migration : `supabase db push` (dry-run d’abord), script inverse dans `migrations_down/`, tests SQL en transaction annulée, advisors 0 ERROR.
+- Estimation en **sessions** (≈ une séance de travail Claude Code + un test Redmi). Total : **13 à 19 sessions**.
+
+**Constats du code (23 sept) qui fixent les estimations**
+- Enfant actif : `ActiveChildContext` existe mais 20 fichiers le lisent par des chemins différents ; 19 écrans / composants contiennent encore Emma / Léa en dur (Accueil, Timetable, Homework, Bulletin, GradeDetail, SignDoc, SignSuccess, MonParcours, Aria ×3, RGPD ×3…).
+- Navigation : swipe `PanResponder` dans `TabNavigator.tsx:777-868` (retour + ouverture burger) ; `ChildSelectorSheet` contient encore Réglages et Déconnexion (`:126`, `:136`) ; `ReglagesScreen` (661 l.) et « Mon compte » (BurgerMenu) coexistent.
+- Suivi : `NotesScreen` (2424 l.) ne distingue que maternelle / autre (`:1104`) ; pas de vue primaire LSU ni de segmented.
+- Messages : filtres actuels Tout / Non lus / Messages / École / Absences (`MessagerieScreen.tsx:74`).
+- Agenda : `agenda_events.mot_id` **n’existe pas en base** (prévu au plan M5, non fait) ; « À prévoir » d’EventDetail = état local non enregistré.
+- Import : `expo-image-picker` et `expo-document-picker` déjà installés ; **aucun bucket Storage** en migration.
+- Aria : suggestions en cartes (`AriaHomeScreen.tsx:542-550`), `makeSuggestions(childName, mode)`.
+
+### B1 · Navigation — 2 à 3 sessions
+Objectif : ☰ → « Famille & paramètres » (un seul écran, base visuelle « Mon compte ») ; avatar → sélecteur d’enfant seul ; plus de swipe d’ouverture ; top bar en voile (déjà fait, commit 4914e8d → contrôle seulement).
+- [ ] Écran « Famille & paramètres » : Mes enfants · Responsables légaux · Mon profil · Apparence · Notifications (3 réglages) · Aria · Confidentialité & données · Système · Compte (détail : § « FUSION RÉGLAGES » plus bas). Sections Responsables / Apparence / Notifications = entrées qui ouvrent leurs écrans ; leur contenu réel arrive en B2 / B4.
+- [ ] Supprimer `ReglagesScreen` et ses entrées hors sujet (Capacités, Connecteurs, Liens partagés, Thème Auto, fonds dégradés), le doublon « Résumé quotidien 8h00 », « Ne pas déranger » → 20h–7h, libellé Face ID / empreinte selon la plateforme.
+- [ ] `ChildSelectorSheet` : retirer Réglages et Déconnexion ; liste + point de nouveauté + « Ajouter un enfant ».
+- [ ] ☰ ouvre DIRECTEMENT « Famille & paramètres » (décision Q1). L’ancien panneau burger (`BurgerMenuContent`, tiroir animé) et `ReglagesScreen` sont supprimés. Plus de swipe d’ouverture (garder le retour arrière) ; nettoyer refs et styles.
+- [ ] `chrome.ts` (ROUTE_CHROME) + libellés de route à jour.
+- Écrans touchés : `TabNavigator.tsx`, `chrome.ts`, `TopBar.tsx`, `BurgerMenu.tsx`, `ChildSelectorSheet.tsx`, `ReglagesScreen.tsx` (supprimé), `NotificationsSettingsScreen.tsx`, `TextSizeScreen.tsx`, `WallpaperPickerScreen.tsx`, `RGPDScreen.tsx`, `AProposScreen.tsx`.
+- Test Redmi : ☰ ouvre l’écran unique ; swipe depuis le bord n’ouvre rien et le pager des onglets glisse toujours ; avatar → sheet sans réglages ; chaque ligne mène au bon écran ; voile haut/bas au défilement.
+- Risques : `TabNavigator.tsx` (≈ 900 l., CRLF) est le fichier le plus fragile du projet ; liens profonds vers `ReglagesScreen` oubliés (`:674` et ailleurs → grep) ; perte du retour arrière par swipe si le PanResponder est retiré en bloc.
+
+### B2 · Enfant actif — 3 à 4 sessions (le plus gros lot)
+Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.
+- [ ] Contrat unique : `selectedChild` (id, prénom, niveau, couleur, année active) ; supprimer les chemins parallèles (`selectedChildId` lu seul, `GlobalChildSwitcher`, `ChildThemeContext` passe-plat) ; `SchoolModeContext` dérivé du niveau de l’enfant (pas de la date de naissance seule).
+- [ ] Données de démo indexées par id d’enfant (Léa GS / Lucas / Emma 4ème) : Accueil, Messages, Agenda, Emploi du temps, Devoirs, Bulletin, GradeDetail, SignDoc/SignSuccess, MonParcours, Aria. Emploi du temps et Devoirs : rien pour un enfant de maternelle (empty state), pas les données d’Emma.
+- [ ] Compte réel : lecture Supabase filtrée par `child_id` (RLS fait le périmètre, pas de refiltre sur parent_id) ; compte sans enfant → empty states, jamais la démo.
+- [ ] Header Accueil : carte 130 px, radius 20, marge 12, couleur de l’enfant ou fond choisi PAR enfant ; texte et pills lisibles sur toutes les couleurs de démo.
+- [ ] Fond de l’Accueil (décision Q2) : **en base, par enfant, commun aux responsables** — migration M13 `children.fond` (identifiant texte, NULL = couleur de l’enfant, CHECK sur la liste des fonds connus ou format simple), modifiable par un responsable (policy children_update existante). Images **intégrées à l’app** ; la base ne stocke que l’identifiant. `WallpaperContext` / `WallpaperPickerScreen` lisent et écrivent le fond de l’enfant actif.
+- [ ] Avatars (top bar, sélecteur, Famille & paramètres, ChildAvatar) à `child.color` ; écran « modifier la couleur » dans le profil de l’enfant (update `children.color`, palette sans ambre ni vert/rouge).
+- [ ] Indicateur de nouveauté par enfant dans le sélecteur (démo : calculé localement).
+- Écrans touchés : `ActiveChildContext`, `SchoolModeContext`, `ChildThemeContext`, `WallpaperContext`, `GlobalChildSwitcher`, `TopBar`, `ChildSelectorSheet`, `ChildAvatar`, `AccueilScreen`, `MessagerieScreen`, `MessagesListScreen`, `AgendaScreen`, `TimetableScreen`, `HomeworkScreen`, `BulletinScreen`, `GradeDetailScreen`, `SignDocScreen`, `SignSuccessScreen`, `MonParcoursScreen`, `ProfilEnfantScreen`, `EditProfileScreen`, `WallpaperPickerScreen`, `data/demo/*`.
+- Test Redmi : changer d’enfant 3 fois → chaque écran (Accueil, Messages, Agenda, EDT, Aria, avatar, header) suit ; Léa (GS) n’affiche jamais de note /20 ni l’EDT d’Emma.
+- Risques : bug d’id silencieux déjà vécu (leçon 17 avril : `.find() ?? [0]`) → warn en dev sur tout repli ; contraste texte blanc sur couleur claire ; rendu en double au changement d’enfant (écrans montés dans le pager) ; migration M13 (colonne fond) ; les fonds actuels de WallpaperContext incluent des dégradés abstraits à retirer (B1) → liste de fonds à figer.
+
+### B3 · Suivi (ex-Notes) — 3 à 4 sessions
+Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages · Souvenirs · Livrets, bouton année + Mon parcours.
+- [ ] Renommer l’onglet Notes → Suivi (pill top bar, icône `trending-up`, routes).
+- [ ] Découper `NotesScreen` (2424 l.) : conteneur Suivi + 3 vues Apprentissages — maternelle (domaines + observations), primaire (compétences LSU, 4 segments #0F172A / rgba 0.12, jamais vert/rouge), collège-lycée (vue notes v7 actuelle, déplacée sans refonte).
+- [ ] Démo (décision Q3) : pas de 4e enfant. **Lucas reste en CM2 (primaire)** : ses données de démo passent des notes /20 à des compétences sur 4 niveaux (livret). **Emma garde les notes** (collège). Léa (GS) : domaines maternelle.
+- [ ] Compétences lues depuis `competences` (compte réel) avec la source affichée (« Saisi par Mme Durand · 12 déc. » / « Ajouté par vous »).
+- [ ] Souvenirs et Livrets : lecture de `carnet_items` (souvenir, jalon / livret) + `bulletins` ; empty states ; le remplissage vient de B5.
+- [ ] Bouton « 2025–2026 · CE1 ⌄ » : année active + lien Mon parcours (archives lecture seule, pas d’alerte Score de Joie) ; `ArchivedYearDetailScreen` branché sur `academic_year_id`.
+- [ ] Action ⊞ de la bottom bar sur Suivi → Ajouter au carnet (câblée en B5, ici simple entrée).
+- Écrans touchés : `NotesScreen` (→ Suivi + sous-vues), `SubjectDetailScreen`, `GradeDetailScreen`, `BulletinScreen`, `MonParcoursScreen`, `ArchivedYearDetailScreen`, `TopBar`, `BottomBar`, `TabNavigator`, `chrome.ts`.
+- Test Redmi : Léa (GS) → domaines ; Lucas (CM2) → 4 segments, aucune note /20 ; Emma (4ème) → notes v7 identiques à avant ; segmented et bouton année ; archive en lecture seule.
+- Risques : régression de la vue notes v7 lors du découpage (le fichier mélange les 2 modes) ; les notes /20 de Lucas sont lues ailleurs (Accueil, GradeDetail, Bulletin, Aria) → grep avant de les retirer ; nomenclature maternelle / LSU à valider (domaines et intitulés officiels à reprendre des textes Éduscol, pas inventés).
+
+### B4 · Mots et Messages — 3 à 4 sessions
+Objectif : types de mots et signature par responsable, filtres Tout / À signer / École / Privés, invitations d’un responsable.
+- [ ] Mots : 4 types (information / signature / autorisation / participation) ; statut par responsable (« Signé par vous · en attente de Marc ») via `mot_carnets_statut` ; réponses autorisation (oui/non) et participation (oui / peut-être / non) via `reponses_mot` ; signature en son nom (déjà côté service, `liaisonService`).
+- [ ] Filtres Messages : Tout · À signer · École · Privés (remplacent Non lus / Messages / Absences). Privés = conversations privées de l’utilisateur, jamais celles de l’autre responsable.
+- [ ] Absences (décision Q4) : restent dans Messages, en **fil dédié par enfant** (« Absences Léa »), visible sous le filtre **École** (et Tout). Déclaration via le ✏️ de Messages → choix « Nouveau message » ou « Déclarer une absence » (`SignalerAbsenceScreen`, enfant actif).
+- [ ] Invitations : « Inviter un responsable » (email, par enfant) dans Famille & paramètres › Responsables légaux ; « Invitations reçues » (accepter / refuser via `respond_invitation`) ; « Me retirer » (jamais le dernier) ; annulation par l’invitant → **nouvelle RPC** (migration M14).
+- Droit à l’image (décision Q5) : **reporté au sprint enseignant** (dépend des publications photo).
+- Écrans touchés : `MessagerieScreen`, `messagerie/MessagesListScreen`, `messagerie/MotDetailScreen`, `messagerie/ConversationDetailScreen`, `SignDocScreen`, `SignSuccessScreen`, `SignalerAbsenceScreen`, `messagerie/AbsencesListScreen`, `BottomBar` (✏️), `AccueilScreen` (mots à signer), écran Responsables légaux (nouveau), écran Invitations reçues (nouveau), `liaisonService`, `database.ts`.
+- Test Redmi + SQL : 2 comptes de test (A, B) sur le même enfant : A signe → A voit « en attente de B » ; B signe → « signé » ; B ne voit pas les conversations privées de A ; invitation acceptée seulement avec email confirmé.
+- Risques : mode démo sans deuxième compte réel → statuts simulés à écrire ; email de confirmation Supabase (SMTP par défaut limité) pour tester l’invitation ; mapping types DB ↔ types écran déjà ambigu (info ↔ information, bon_de_sortie → autorisation) ; migration M14 (annulation d’invitation).
+
+### B5 · Ajouter au carnet — 2 à 3 sessions
+Objectif : les 4 actions d’import, rangées dans le carnet de l’enfant actif, fichiers dans un stockage privé.
+- [ ] Migration M15 : bucket Storage **privé** `carnet` ; chemin `{child_id}/{item_id}` ; policies calquées sur `carnet_items` (foyer = responsables, privé = auteur seul) ; URLs signées 24 h ; tests SQL sous rôle authenticated.
+- [ ] Sheet « Ajouter au carnet » (+ Accueil, ⊞ Suivi) : Photographier · Importer une capture · Ajouter un document (PDF) · Noter une première fois (jalon, sans fichier).
+- [ ] Formulaire V1 : catégorie (Mot / Livret / Souvenir / Jalon), date, visibilité (Foyer par défaut / Privé), enfant = enfant actif affiché, source « Ajouté par vous ».
+- [ ] Affichage dans Suivi (Souvenirs, Livrets) et Accueil (« Nouveau dans le carnet ») ; suppression par l’auteur avec Alert.
+- [ ] Mode démo : stockage local, rien envoyé.
+- Écrans touchés : `QuickActionsSheet` (ou nouvelle sheet), `BottomBar`, `TabNavigator` (refs d’action), écran Ajouter (nouveau), vues Suivi (B3), `AccueilScreen`, service carnet (nouveau).
+- Test Redmi : photo → souvenir visible chez A et B ; même photo en Privé → invisible pour B ; PDF ouvert via URL signée ; permissions caméra / galerie refusées → message clair.
+- Risques : permissions Android (caméra, médias) et taille des photos (compresser avant envoi) ; upload interrompu → ligne `carnet_items` sans fichier (écrire la ligne après l’upload) ; suppression de la ligne ≠ suppression du fichier (à faire ensemble) ; B3 doit être fait pour l’affichage.
+
+### B6 · Agenda — 1 à 2 sessions
+Objectif : événements issus des mots, « À prévoir » cochable, FAB conforme.
+- [ ] Migration M16 : `agenda_events.mot_id` (NULL, FK mots_liaison) ; événement créé pour chaque carnet quand le mot a une `event_date` (trigger à la distribution `mot_carnets`) ; table des cases cochées « À prévoir » (décision Q6) : **commune au carnet de l’enfant** (une ligne par carnet + élément), avec l’auteur de la coche affiché (« coché par Julien ») ; lisible et modifiable par les responsables de l’enfant.
+- [ ] Carte d’événement liée au mot source (lien « Voir le mot ») ; mots importés : date saisie à la main (B5).
+- [ ] FAB rond 48 px (bottom 72, right 14) sur l’Agenda ; retirer le + de la bottom bar (`BottomBar.tsx:58`, `agendaActionRef` `TabNavigator.tsx:659`) avec ses constantes et imports.
+- [ ] EventDetail : « À prévoir » enregistré (plus d’état local).
+- Écrans touchés : `AgendaScreen`, `EventDetailScreen`, `BottomBar`, `TabNavigator`, `database.ts` / `liaisonService`.
+- Test Redmi : un mot avec date (démo) crée l’événement dans l’Agenda de chaque enfant concerné ; cocher chez A → visible chez B avec « coché par A » ; FAB rond au-dessus de la bottom bar, plus de + à droite.
+- Risques : sans interface enseignant, aucun vrai mot n’a de date → test surtout en SQL et en démo ; doublons d’événements si le mot est redistribué (UNIQUE mot_id + child_id).
+
+### B7 · Aria — 1 à 2 sessions
+Objectif : suggestions en pills horizontales, contexte = enfant actif uniquement.
+- [ ] Suggestions : `ScrollView horizontal` de pills (leçon du 18 avril, jamais flexWrap + %) ; plus d’emoji ; générées depuis l’enfant actif (prénom, niveau) ; génériques si aucun enfant.
+- [ ] Titres / hero : prénom de l’enfant actif, jamais « Léa » en dur ; compte réel sans enfant → contexte neutre (déjà côté API, à vérifier côté écran).
+- [ ] Historique des conversations filtré par enfant ; changement d’enfant → nouvelle conversation.
+- [ ] Ne pas renvoyer au modèle les réponses « indisponible » / « urgence » (reliquat S).
+- Écrans touchés : `aria/AriaHomeScreen`, `aria/AriaConversationScreen`, `AriaScreen`, `services/childContext.ts`, `services/ariaApi.ts`.
+- Test Redmi : suggestions différentes pour Léa et Emma ; aucune mention d’un autre enfant ; phrase d’urgence toujours interceptée (`npm run test:emergency`).
+- Risques : le prompt système est encore construit côté app (temporaire, voir S2) → ne pas l’étendre, le passage côté serveur reste à planifier ; ne pas toucher au protocole d’urgence sans relancer les 22 cas.
+
+### Dépendances et ordre
+B1 → B2 (bloquant pour tous les autres) → B3 → B4 → B5 (affichage dans B3) → B6 (utilise les mots de B4) → B7 (peut passer juste après B2 si besoin).
+Migrations prévues : M13 (fond d’Accueil par enfant, B2), M14 (annulation d’invitation, B4), M15 (bucket carnet, B5), M16 (agenda ↔ mots + À prévoir, B6).
+
+### Décisions du 24 sept (6 questions)
+1. ☰ reste et ouvre DIRECTEMENT « Famille & paramètres » ; ancien panneau burger et `ReglagesScreen` supprimés. (B1)
+2. Fond de l’Accueil en base, par enfant, commun aux responsables ; images intégrées à l’app, la base ne stocke que l’identifiant. (B2, M13)
+3. Pas de 4e enfant ; Lucas CM2 (primaire) passe aux compétences 4 niveaux, Emma garde les notes. (B3)
+4. Absences : fil dédié par enfant dans Messages, sous le filtre École ; déclaration via ✏️ (« Nouveau message » / « Déclarer une absence »). (B4)
+5. Droit à l’image reporté au sprint enseignant.
+6. « À prévoir » commun au carnet de l’enfant, source affichée (« coché par Julien »). (B6, M16)
+
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
 **Statut : plan M0–M12 VALIDÉ. Lots 1, 2, 2-bis, 3a (M5–M8) et 3b (M9–M12) FAITS (23–24 sept). Phase A (BDD) terminée : attendre la suite.**
