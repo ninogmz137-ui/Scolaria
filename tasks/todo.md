@@ -106,10 +106,11 @@ Ordre proposé : M0 → M1 (sécurité, tout de suite) → M2 → M3 → M4 → 
 - [x] Test Redmi (compte de test, 23 sept) — question normale : « indisponible ». Journaux : 1 appel, HTTP 500 AVANT tout appel Anthropic ; cause = secret ANTHROPIC_API_KEY contenant un retour à la ligne (Deno refuse l’en-tête). La valeur ressemble à l’ANCIENNE clé de .env (même coupure). ⚠️ L’erreur Deno a recopié la clé dans les journaux de la fonction.
   - Corrigé et redéployé (v2) : secret contrôlé (absent / espace / retour à la ligne → 503 + journal SANS la valeur) ; journaux d’erreur limités à statut / type / nom (jamais le message brut) ; succès journalisé avec le modèle ; 404 → « vérifier ARIA_MODEL ».
   - Compte réel sans enfant : contexte neutre envoyé à Aria (plus les données de démo de Léa).
-  - [ ] **Utilisateur** : révoquer la clé apparue dans les journaux (si ce n’est pas déjà l’ancienne clé révoquée), créer une NOUVELLE clé, la coller sur UNE seule ligne dans Edge Functions → Secrets (ANTHROPIC_API_KEY), puis retester.
+  - [x] Utilisateur : anciennes clés révoquées, nouvelle clé posée sur une ligne, aucune clé dans .env.
+  - [x] Retest Redmi (23 sept, 18:30) : journaux de la fonction → 1 exécution, « réponse Anthropic OK », modèle **claude-sonnet-5**, stop_reason end_turn, 0 erreur ; phrase d’urgence → 0 alerte serveur et aucune autre exécution (interceptée dans l’app) → Anthropic non appelé. (Ligne HTTP de la passerelle pas encore ingérée au moment du contrôle ; le 200 se déduit du chemin de code après « OK ».)
 - [x] Phrase d’urgence (Redmi) : message correct ; journaux : AUCUN appel à la fonction pour ce message (détection côté app) → Anthropic non appelé.
   - [x] Numéros cliquables dans les bulles d’Aria (tel:3114 / 3018 / 119 / 112, pas les décimaux) ; ordre selon la catégorie (numéro concerné en premier, 112 en dernier) — `buildEmergencyMessage(category)`, testé (22 cas + 3 messages).
-- [ ] Compte orphelin du 21 mars (sans profil) : à supprimer PAR L’UTILISATEUR (suppression définitive de données) — Authentication → Users, compte créé le 21/03/2026.
+- [x] Compte orphelin du 21 mars supprimé par l’utilisateur.
 - [ ] Protocole d’urgence — suites :
   - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
   - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
