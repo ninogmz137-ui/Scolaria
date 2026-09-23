@@ -2,15 +2,74 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : S2–S4 commités, NON déployés (attente réactivation du projet). Migrations : bloquées, en attente de la réactivation du projet + sauvegarde.**
+**Statut : sauvegarde FAITE ; Edge Function aria DÉPLOYÉE (v1, verify_jwt) ; plan de migration ÉCRIT → EN ATTENTE DE VALIDATION. Aucune migration exécutée.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
 - Schéma local (`supabase/schema-complet.sql`, dernier commit 2 mai) : 14 tables (profiles, children, academic_years, subjects, grades, bulletins, mots_liaison, signatures, messages, read_receipts, agenda_events, absences, checkins, aria_conversations/messages), 49 policies — à comparer au schéma réel.
 - Décision : l’utilisateur réactive le projet et fait `supabase db dump` (schéma + données) dans `supabase/backups/` (ignoré par Git).
 - Règle validée : **garder les noms de tables existants** (children, profiles…) ; toute table présente est modifiée, jamais recréée ; c’est CLAUDE.md qui sera mis à jour.
-- [ ] Lire le schéma réel (tables, colonnes, clés, RLS) → lister ce qui n’est pas rattaché à student(child)_id + academic_year_id
-- [ ] Écrire le plan de migration ici (une migration réversible par sujet, aucun DROP sans accord) → attendre validation
+- [x] Projet réactivé ; sauvegarde schéma + données (voir ci-dessous)
+- [x] Schéma réel lu et comparé → écarts listés ci-dessous
+- [x] Plan de migration écrit ci-dessous
+- [ ] **Validation du plan par l’utilisateur** (STOP)
+
+### Étape 2 bis · schéma RÉEL vs fichiers locaux (lu le 23 sept, projet réactivé)
+Sauvegarde faite le 23 sept (Docker arrêté → via les outils Supabase) : `supabase/backups/schema-2026-09-23.sql` (44 018 o) et `data-2026-09-23.sql` (1 156 o), ignorés par Git. Contrôle : 27 tables, 29 FK, 31 CHECK, 35 PK/UNIQUE, 30 index, 69 policies, 3 fonctions, 9 triggers, 3 vues = identique à la base. Données : 1 ligne (public.profiles), toutes les autres tables vides. Non sauvegardé : schéma auth (2 comptes — empreintes de mots de passe non lues), tables internes storage.
+
+**Écarts avec `supabase/*.sql` (fichiers locaux périmés) :**
+- 12 tables en base absentes des fichiers : access_journal, appreciations, class_events, class_post_reactions, class_post_seen, class_posts, deletion_requests, export_history, person_permissions, teacher_conversations, teacher_messages, transfer_codes.
+- 0 table des fichiers absente de la base.
+- Colonnes : `agenda_events.emoji` et `subjects.emoji` n’existent plus en base (encore dans les fichiers). ⚠️ `src/services/database.ts:129` sélectionne encore `subjects(name, emoji, color)` → la requête échouera sur un vrai compte.
+- Policies : 69 en base contre 49 + 23 + 14 + 1 réparties dans 4 fichiers → les fichiers ne sont plus une source fiable. Désormais : `supabase/migrations/` = seule source (voir M0).
+
+**Non conforme à « toute donnée de carnet → child_id + academic_year_id » :**
+| Table | child_id | academic_year_id | Remarque |
+|---|---|---|---|
+| grades | ✓ | ✗ | |
+| agenda_events | ✓ | ✗ | + pas de lien vers le mot source |
+| messages | nullable | ✗ | |
+| checkins | ✓ | ✗ | |
+| subjects | ✓ | ✗ | matières propres à une année |
+| absences | student_id ✓ | **text** `''` | type faux (pas de FK) |
+| appreciations | student_id sans FK | `academic_year` text | |
+| teacher_conversations | student_id sans FK | ✗ | |
+| mots_liaison | ✗ (rattaché à `classe` texte) | ✗ | copie par carnet absente |
+| signatures | ✓ | ✗ | UNIQUE(mot, élève) empêche la signature des 2 parents |
+| bulletins, academic_years | ✓ | ✓ | conformes |
+
+**Failles de sécurité constatées (advisors Supabase + lecture des policies) :**
+1. 🔴 Les 3 vues (`child_overview`, `subject_averages`, `mots_liaison_enriched`) sont en SECURITY DEFINER : elles ignorent la RLS. `child_overview` renvoie prénom, classe, école et moyennes de TOUS les enfants à n’importe quel compte, et même à `anon`.
+2. 🔴 Toute personne avec `profiles.role = 'enseignant'` lit TOUS les enfants, notes, matières, absences et ressentis (policies *_teacher_* / `children_select` / `grades_*` / `subjects_select` / `checkins_select`). Or le rôle est modifiable par l’utilisateur (`profiles_update` sans restriction de colonne) → n’importe quel parent peut se déclarer enseignant.
+3. 🔴 `class_posts`, `class_events`, `class_post_reactions` : SELECT `USING (true)` → tout compte lit les publications de toutes les classes.
+4. 🟠 `handle_new_user()` (SECURITY DEFINER) appelable via `/rest/v1/rpc` par anon et authenticated.
+5. 🟠 `generate_scolaria_id`, `update_updated_at` : search_path non fixé.
+6. 🟠 `checkins_select` : requête incohérente (UNION sans lien réel avec l’enfant).
+7. 🟡 Protection contre les mots de passe divulgués (HaveIBeenPwned) désactivée — réglage Auth du tableau de bord.
+
+### Plan de migration Phase A (À VALIDER — rien n’est exécuté)
+Règles : noms existants conservés (children, profiles…) ; on modifie, on ne recrée pas ; une migration réversible par sujet dans `supabase/migrations/AAAAMMJJHHMM_sujet.sql`, chacune avec son script inverse `…_down.sql` ; après chaque migration : advisors sécurité + tsc. Les tables sont vides (sauf profiles) : aucune reprise de données lourde.
+
+**Opérations destructives à approuver explicitement** (aucune ne supprime de table ni de colonne) : M1 `DROP VIEW`/re-create en security_invoker ; M2 `DROP POLICY` des policies enseignant trop larges ; M6 `DROP CONSTRAINT` (UNIQUE signatures, CHECK type de mots_liaison) ; M7 `ALTER COLUMN absences.academic_year_id TYPE uuid` (table vide).
+
+- **M0 · Baseline** — `supabase/migrations/…_baseline.sql` = copie du schéma sauvegardé (référence, NON rejouée en base) ; les anciens `supabase/*.sql` déplacés dans `docs/archives/sql/` (déplacement, pas suppression).
+- **M1 · Correctifs de sécurité immédiats** — vues en `security_invoker = true` ; `search_path` fixé sur les 2 fonctions ; `REVOKE EXECUTE` de `handle_new_user` pour anon/authenticated ; `REVOKE SELECT` des 3 vues pour anon. Down : état actuel.
+- **M2 · Foyers et responsables** — nouvelles tables `foyers (id, nom, created_at)` et `responsables (foyer_id, user_id, child_id, lien, created_at, UNIQUE(user_id, child_id))` ; fonction `is_responsable(child_id)` SECURITY DEFINER STABLE (search_path fixé) ; reprise : un foyer + une ligne responsable par couple children.parent_id (0 enfant aujourd’hui) ; `children.parent_id` conservé (= créateur). Toutes les policies « `children.parent_id = auth.uid()` » réécrites en `is_responsable(child_id)`. Policies enseignant larges RETIRÉES (le lien enseignant ↔ classe viendra avec l’interface enseignant) ; `profiles_update` interdit de modifier `role`. Down : policies d’origine, tables supprimées.
+- **M3 · Couleur de l’enfant** — `children.color text NOT NULL DEFAULT '#4338CA'` + CHECK format hex. Down : suppression de la colonne (ajoutée par nous).
+- **M4 · Rattachement à l’année** — `academic_year_id uuid NULL REFERENCES academic_years` sur grades, agenda_events, messages, checkins, subjects, signatures, teacher_conversations ; FK `appreciations.student_id → children` + `academic_year_id` ; FK `teacher_conversations.student_id → children` ; index associés. NULL autorisé tant que l’app ne les renseigne pas (passage NOT NULL = migration ultérieure).
+- **M5 · Mots de liaison** — `mots_liaison` : `signature_mode text (none|one|both) DEFAULT 'none'`, `event_date timestamptz NULL`, `a_prevoir jsonb NULL` ; nouveau CHECK `type` (information|signature|autorisation|participation) avec correspondance info→information, bon_de_sortie→autorisation ; `requires_signature` conservé (déprécié). Nouvelle table `mot_carnets (mot_id, child_id, academic_year_id, UNIQUE(mot_id, child_id))` = la copie du mot dans chaque carnet (fratrie = une copie par enfant) ; policy parent : via `is_responsable(child_id)` au lieu de `classe`. `agenda_events.mot_id NULL` (événement lié au mot source).
+- **M6 · Signatures** — UNIQUE(mot_id, student_id) remplacé par UNIQUE(mot_id, student_id, parent_id) : une signature par responsable. Policy : chaque responsable voit les signatures des enfants dont il est responsable (statut visible par parent).
+- **M7 · Absences** — `academic_year_id` text → uuid FK (table vide).
+- **M8 · reponses_mot** — `(id, mot_id, child_id, responsable_id, autorisation boolean NULL, participation text NULL CHECK (oui|peut_etre|non), created_at, UNIQUE(mot_id, child_id, responsable_id))` + RLS responsable.
+- **M9 · competences** — `(id, child_id, academic_year_id, domaine, competence, niveau smallint CHECK 1-4, source text CHECK (ecole|parent), saisi_par uuid, date, created_at)` + RLS responsable.
+- **M10 · carnet_items** — `(id, child_id, academic_year_id, categorie CHECK (mot|livret|souvenir|jalon), fichier text, date, ajoute_par uuid, visibilite CHECK (foyer|prive) DEFAULT 'foyer', created_at)` ; RLS : `foyer` → responsables de l’enfant, `prive` → auteur seul. Bucket Storage privé (URLs signées 24 h) : migration séparée plus tard.
+- **M11 · Alertes du protocole d’urgence** — `alertes (id, child_id NULL, auteur uuid, categorie CHECK (suicide|harcelement|maltraitance), created_at)` — jamais le texte du message ; RLS : auteur + responsables de l’enfant ; écriture par l’Edge Function uniquement. Notification des responsables : étape suivante.
+- **M12 · Publications de classe** — `class_posts` / `class_events` / `class_post_reactions` : SELECT réservé aux responsables d’un enfant de la classe (remplace `USING (true)`).
+- **Code (hors migration, après M3/M4)** — `database.ts:129` : retirer `emoji` du select ; données de démo Moreau : ajouter `color` à chaque enfant (Léa, Lucas, Emma) dans `demo-children.json` / `ActiveChildContext` ; CLAUDE.md § Architecture BDD mis à jour avec les noms réels (children, profiles…).
+- **Hors SQL (tableau de bord)** — activer la protection des mots de passe divulgués (Auth → Password security).
+
+Ordre proposé : M0 → M1 (sécurité, tout de suite) → M2 → M3 → M4 → M5/M6 → M7 → M8–M11 → M12.
+
 
 ### S · Sécurité Aria
 - [x] S1 : aucune clé `sk-ant-` dans l’historique Git (toutes branches) ; `eas.json` propre depuis `6f641b9`. La clé était dans `.env` (non suivi) → `extra` → APK, et dans les variables EAS (supprimées par l’utilisateur, clé révoquée).
@@ -22,7 +81,8 @@
 - [x] S3 : clés retirées de `app.config.js` (extra), `getEnv.ts` (+ journaux qui affichaient 12 caractères de la clé), `scripts/write-env.js`, `eas-hooks/eas-build-pre-install.sh`, `.env.example`, `.env`. `.env` déjà ignoré ; `supabase/backups/` ajouté au .gitignore.
 - [x] Google Vision : la clé était embarquée mais **jamais utilisée** (aucun appel OCR dans le code) → retirée sans Edge Function. Le futur OCR suivra le même modèle (fonction dédiée + secret).
 - [x] S4 : toute panne d’Aria → « Aria est momentanément indisponible. » (plus de mention de clé, .env, eas.json).
-- [ ] S5 : poser le secret et déployer (commandes transmises à l’utilisateur), puis tester un vrai compte (non démo).
+- [x] S5 : secret ANTHROPIC_API_KEY posé par l’utilisateur (tableau de bord) ; fonction déployée le 23 sept (`functions deploy aria --use-api`, Docker arrêté) : ACTIVE, verify_jwt. Contrôles faits : sans en-tête → 401 passerelle ; clé anon sans session → 401 `unavailable` (y compris phrase d’urgence).
+- [ ] Test authentifié (vrai compte, non démo) : réponse de claude-sonnet-5 + phrase d’urgence sans appel Anthropic → nécessite une session utilisateur (connexion par l’utilisateur).
 - [ ] Protocole d’urgence — suites :
   - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
   - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
