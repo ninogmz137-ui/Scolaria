@@ -12,7 +12,7 @@ import VieDeClasseScreen from '../screens/teacher/VieDeClasseScreen';
 import MessagerieParentsScreen from '../screens/teacher/MessagerieParentsScreen';
 import CahierLiaisonScreen from '../screens/teacher/CahierLiaisonScreen';
 import AbsencesEnseignantScreen from '../screens/teacher/AbsencesEnseignantScreen';
-import ReglagesScreen from '../screens/ReglagesScreen';
+import FamilleParametresScreen from '../screens/FamilleParametresScreen';
 
 // About screen
 import AProposScreen from '../screens/AProposScreen';
@@ -92,7 +92,7 @@ const ReglagesTeacherStack = createNativeStackNavigator();
 function ReglagesTeacherStackScreen() {
   return (
     <ReglagesTeacherStack.Navigator screenOptions={STACK_OPTS}>
-      <ReglagesTeacherStack.Screen name="ReglagesHome" component={ReglagesScreen} options={{ title: 'Réglages' }} />
+      <ReglagesTeacherStack.Screen name="ReglagesHome" component={FamilleParametresScreen} initialParams={{ espace: 'enseignant' }} options={{ headerShown: false }} />
       <ReglagesTeacherStack.Screen name="PermissionsRGPD" component={PermissionsScreen} options={{ title: "Permissions d'accès" }} />
       <ReglagesTeacherStack.Screen name="JournalAcces" component={JournalAccesScreen} options={{ title: "Journal d'accès" }} />
       <ReglagesTeacherStack.Screen name="TransfertCode" component={TransfertCodeScreen} options={{ title: 'Code de transfert' }} />

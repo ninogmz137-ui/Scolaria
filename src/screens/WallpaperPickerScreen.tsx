@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -14,20 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
-import { nativeInactivePillShadow, PILL_ACTIVE_NAVY } from '../constants/theme';
 import { Text, Pressable } from '../components/ui';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_GAP = 12;
 const CARD_W = (SCREEN_W - 32 - CARD_GAP) / 2;
-
-type Category = 'all' | 'nature' | 'abstract';
-
-const CATEGORIES: { key: Category; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'nature', label: 'Nature' },
-  { key: 'abstract', label: 'Gradients' },
-];
 
 // ─── Single wallpaper card ────────────────────────────────
 
@@ -74,41 +64,10 @@ function WallpaperCard({
 export default function WallpaperPickerScreen() {
   const insets = useSafeAreaInsets();
   const { wallpaper, setWallpaperId, wallpapers } = useWallpaper();
-  const [activeCategory, setActiveCategory] = useState<Category>('all');
-
-  const filtered = activeCategory === 'all'
-    ? wallpapers
-    : wallpapers.filter((w) => w.category === activeCategory);
+  const filtered = wallpapers.filter((w) => w.category === 'nature');
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
-      {/* ── Horizontal category pills ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillsRow}
-      >
-        {CATEGORIES.map((cat) => (
-          <Pressable
-            key={cat.key}
-            onPress={() => setActiveCategory(cat.key)}
-            style={[
-              styles.pill,
-              activeCategory === cat.key ? styles.pillActive : nativeInactivePillShadow,
-            ]}
-          >
-            <Text
-              style={[
-                styles.pillText,
-                activeCategory === cat.key && styles.pillTextActive,
-              ]}
-            >
-              {cat.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
       {/* ── Grid ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -137,36 +96,10 @@ const styles = StyleSheet.create({
     backgroundColor: SCREEN_BACKGROUND,
   },
 
-  // ── Category pills
-  pillsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 0,
-  },
-  pillActive: {
-    backgroundColor: PILL_ACTIVE_NAVY,
-  },
-  pillText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#64748B',
-  },
-  pillTextActive: {
-    color: '#FFFFFF',
-  },
-
   // ── Grid
   scrollContent: {
     paddingHorizontal: 16,
+    paddingTop: 16,
   },
   grid: {
     flexDirection: 'row',

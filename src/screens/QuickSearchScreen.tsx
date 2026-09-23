@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, X, Settings, Heart, GraduationCap,
-         Shield, Info, Palette, Bell, User } from 'lucide-react-native';
+         Shield, Info, Palette, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
@@ -17,9 +17,8 @@ const QUICK_LINKS = [
   { id: 'profil',    icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },
   { id: 'parcours',  icon: GraduationCap, label: 'Mon Parcours',           screen: 'MonParcours',           tab: 'Accueil' },
   { id: 'bienetre',  icon: Heart,         label: 'Bien-être & Ressenti',   screen: 'BienEtreScreen',        tab: 'Accueil' },
-  { id: 'reglages',  icon: Settings,      label: 'Réglages',               screen: 'ReglagesScreen',        tab: 'Accueil' },
-  { id: 'notifs',    icon: Bell,          label: 'Notifications',          screen: 'NotificationsSettings', tab: 'Accueil' },
-  { id: 'wallpaper', icon: Palette,       label: "Fond d'écran",           screen: 'WallpaperPicker',       tab: 'Accueil' },
+  { id: 'reglages',  icon: Settings,      label: 'Famille & paramètres',   screen: 'FamilleParametres',     tab: 'Accueil' },
+  { id: 'wallpaper', icon: Palette,       label: 'Fond de l’Accueil',      screen: 'WallpaperPicker',       tab: 'Accueil' },
   { id: 'rgpd',      icon: Shield,        label: 'RGPD & Confidentialité', screen: 'RGPDScreen',            tab: 'Accueil' },
   { id: 'apropos',   icon: Info,          label: 'À propos',               screen: 'APropos',               tab: 'Accueil' },
 ];
@@ -46,7 +45,7 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
     setTimeout(() => {
       navigation.navigate('MainPager', {
         screen: item.tab,
-        params: { screen: item.screen },
+        params: { screen: item.screen, initial: false },
       });
     }, 150);
   };

@@ -1,3 +1,8 @@
+/**
+ * ChildSelectorSheet — sélecteur d’enfant (COMPONENTS §13), ouvert par l’avatar de la top bar.
+ * Liste des enfants + « Ajouter un enfant ». Rien d’autre : réglages et déconnexion sont dans
+ * « Famille & paramètres » (☰).
+ */
 import React from 'react';
 import {
   View,
@@ -6,10 +11,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Platform,
-  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, Settings2, LogOut } from 'lucide-react-native';
+import { Check, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { getChildInitials } from '../utils/childInitials';
@@ -26,32 +30,14 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
   const navigation = useNavigation<any>();
   const { children, selectedChild, selectChild } = useActiveChild();
   const siblingNames = children.map((c) => c.name);
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Déconnexion ?',
-      "Vous serez redirigé vers l'écran de connexion.",
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Se déconnecter',
-          style: 'destructive',
-          onPress: async () => {
-            onClose();
-            await signOut();
-          },
-        },
-      ],
-    );
-  };
-
-  const handleSettings = () => {
+  const handleAddChild = () => {
     onClose();
     setTimeout(() => {
       navigation.navigate('MainPager', {
         screen: 'Accueil',
-        params: { screen: 'ReglagesScreen' },
+        params: { screen: 'AjouterEnfant', initial: false },
       });
     }, 150);
   };
@@ -119,24 +105,17 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
             );
           })}
 
-          {/* Gérer les enfants */}
+          {/* Ajouter un enfant */}
           <TouchableOpacity
             activeOpacity={0.75}
-            style={styles.settingsRow}
-            onPress={handleSettings}
+            style={styles.addRow}
+            onPress={handleAddChild}
+            accessibilityRole="button"
           >
-            <Text style={styles.settingsLabel}>Gérer les enfants</Text>
-            <Settings2 size={16} color="#4338CA" strokeWidth={2} />
-          </TouchableOpacity>
-
-          {/* Se déconnecter */}
-          <TouchableOpacity
-            activeOpacity={0.75}
-            style={styles.signOutRow}
-            onPress={handleSignOut}
-          >
-            <LogOut size={16} color="#EF4444" strokeWidth={2} style={{ marginRight: 8 }} />
-            <Text style={styles.signOutLabel}>Se déconnecter</Text>
+            <View style={styles.addIcon}>
+              <Plus size={18} color="#4338CA" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.addLabel}>Ajouter un enfant</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -229,29 +208,25 @@ const styles = StyleSheet.create({
     color: 'rgba(15,23,42,0.55)',
     marginTop: 1,
   },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(15,23,42,0.06)',
-  },
-  settingsLabel: {
-    fontFamily: 'Figtree_600SemiBold',
-    fontSize: 13,
-    color: '#4338CA',
-  },
-  signOutRow: {
+  addRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
+    minHeight: 48,
   },
-  signOutLabel: {
+  addIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(67,56,202,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  addLabel: {
     fontFamily: 'Figtree_600SemiBold',
     fontSize: 13,
-    color: '#EF4444',
+    color: '#4338CA',
   },
 });

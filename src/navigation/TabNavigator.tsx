@@ -1,5 +1,5 @@
 /**
- * TabNavigator — Parent navigation with 4 bottom tabs + burger menu.
+ * TabNavigator — Parent navigation with 4 top tabs.
  *
  * Tabs: Accueil | Notes | Agenda | Messagerie
  *
@@ -8,20 +8,14 @@
  *   plus profonde de tout l'état de navigation (toutes les piles). Un écran profond qui dessine
  *   son propre en-tête est en mode 'none' : les deux barres disparaissent.
  *
- * Burger menu: slide & scale effect — main content scales to 0.85 and
- * translates right while the dark menu panel is revealed behind it.
+ * ☰ (TopBar) ouvre directement l'écran « Famille & paramètres ». Aucun menu ne s'ouvre par
+ * swipe : le seul geste horizontal géré ici est le retour arrière depuis une page profonde.
  */
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { View, Dimensions, PanResponder } from 'react-native';
+import { useState, useMemo, useRef } from 'react';
+import { View, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolate,
-  Easing,
-} from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import ScrollVeil from '../components/navigation/ScrollVeil';
 import { TOPBAR_PADDING_TOP, TOPBAR_ROW_HEIGHT } from '../components/navigation/TopBar';
 import { getBottomBarOffset, BOTTOM_BAR_ROW_HEIGHT } from '../components/navigation/BottomBar';
@@ -29,13 +23,11 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
 import { getChromeMode, getFocusedLeafRouteName, type StackParams } from './chrome';
-import { useAuth } from '../contexts/AuthContext';
 
 // Navigation chrome
 import TopBar, { type ActiveTab } from '../components/navigation/TopBar';
 import BottomBar from '../components/navigation/BottomBar';
 import { ChildSwitcherModal } from '../components/GlobalChildSwitcher';
-import { BurgerMenuContent } from '../components/BurgerMenu';
 
 // Topbar scroll context (conservé pour AccueilScreen — no-op scroll-to-hide)
 import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
@@ -53,13 +45,11 @@ import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
-import ReglagesScreen from '../screens/ReglagesScreen';
+import FamilleParametresScreen from '../screens/FamilleParametresScreen';
 // Legacy AriaScreen has been superseded by AriaHome/AriaConversation.
 import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
-import TextSizeScreen from '../screens/TextSizeScreen';
 import AriaHomeScreen from '../screens/aria/AriaHomeScreen';
 import AriaConversationScreen from '../screens/aria/AriaConversationScreen';
-import NotificationsSettingsScreen from '../screens/NotificationsSettingsScreen';
 
 // Messagerie sub-screens
 import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
@@ -71,9 +61,6 @@ import MotDetailScreen from '../screens/messagerie/MotDetailScreen';
 // Detail screens
 import ArchivedYearDetailScreen from '../screens/ArchivedYearDetailScreen';
 import SubjectDetailScreen from '../screens/SubjectDetailScreen';
-
-// Profile
-import EditProfileScreen from '../screens/EditProfileScreen';
 
 // About
 import AProposScreen from '../screens/AProposScreen';
@@ -100,11 +87,6 @@ import GradeDetailScreen from '../screens/GradeDetailScreen';
 import BulletinScreen from '../screens/BulletinScreen';
 import SignDocScreen from '../screens/SignDocScreen';
 import SignSuccessScreen from '../screens/SignSuccessScreen';
-import { Pressable } from '../components/ui';
-
-// ─── Screen dimensions ───────────────────────────────────
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Shared refs for topbar state ────────────────────────
 
@@ -121,7 +103,7 @@ const SCREEN_TITLES: Record<string, string> = {
   AjouterEnfant: 'Ajouter un enfant',
   AjouterAnne: 'Ajouter une année',
   MonParcours: 'Mon parcours',
-  ReglagesScreen: 'Réglages',
+  FamilleParametres: 'Famille & paramètres',
   RGPDScreen: 'RGPD & Confidentialité',
   PermissionsRGPD: 'Permissions',
   JournalAcces: "Journal d'accès",
@@ -134,8 +116,6 @@ const SCREEN_TITLES: Record<string, string> = {
   AriaConversation: 'Aria',
   MessagerieAriaScreen: 'Aria',
   WallpaperPicker: "Fond d'écran",
-  TextSize: 'Taille du texte',
-  NotificationsSettings: 'Notifications',
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
@@ -160,7 +140,7 @@ function AccueilStackScreen() {
           const index = data?.state?.index ?? 0;
           const routeName = routes?.[index]?.name as string | undefined;
           const isReglagesModal =
-            routeName === 'ReglagesScreen' ||
+            routeName === 'FamilleParametres' ||
             routeName === 'PermissionsRGPD' ||
             routeName === 'JournalAcces' ||
             routeName === 'TransfertCode' ||
@@ -236,17 +216,9 @@ function AccueilStackScreen() {
         options={{ title: 'Mon parcours' }}
       />
       <AccueilStack.Screen
-        name="ReglagesScreen"
-        component={ReglagesScreen}
-        options={{
-          title: 'Réglages',
-          headerShown: false,
-          presentation: 'transparentModal',
-          animation: 'slide_from_bottom',
-          // Android: le contenu doit occuper toute la hauteur pour que le bottom sheet se positionne
-          // comme sur le web (overlay plein écran + feuille ancrée en bas).
-          contentStyle: { backgroundColor: 'transparent', flex: 1 },
-        }}
+        name="FamilleParametres"
+        component={FamilleParametresScreen}
+        options={{ title: 'Famille & paramètres', headerShown: false }}
       />
       <AccueilStack.Screen
         name="RGPDScreen"
@@ -313,11 +285,6 @@ function AccueilStackScreen() {
         component={AProposScreen}
         options={{ title: 'À propos' }}
       />
-      <AccueilStack.Screen
-        name="EditProfile"
-        component={EditProfileScreen}
-        options={{ headerShown: false, presentation: 'modal' }}
-      />
       {/* Backward-compat route: keep name but render new Aria home */}
       <AccueilStack.Screen
         name="AriaScreen"
@@ -338,16 +305,6 @@ function AccueilStackScreen() {
         name="WallpaperPicker"
         component={WallpaperPickerScreen}
         options={{ title: "Fond d'écran" }}
-      />
-      <AccueilStack.Screen
-        name="TextSize"
-        component={TextSizeScreen}
-        options={{ title: 'Taille du texte' }}
-      />
-      <AccueilStack.Screen
-        name="NotificationsSettings"
-        component={NotificationsSettingsScreen}
-        options={{ headerShown: false }}
       />
       <AccueilStack.Screen
         name="ArchivedYearDetail"
@@ -605,8 +562,6 @@ function TabContent() {
 
 const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
-const burgerNavRef: { current: ((screen: string) => void) | null } = { current: null };
-const profileNavRef: { current: (() => void) | null } = { current: null };
 const searchNavRef: { current: (() => void) | null } = { current: null };
 const actionNavRef: { current: (() => void) | null } = { current: null };
 const agendaActionRef: { current: (() => void) | null } = { current: null };
@@ -614,15 +569,8 @@ const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
 // ─── TabContentWithNav ───────────────────────────────────
 
-function TabContentWithNav({
-  onNavigate,
-  onLogout,
-}: {
-  onNavigate: (screen: string) => void;
-  onLogout: () => void;
-}) {
+function TabContentWithNav() {
   const navigation = useNavigation<any>();
-  const { signOut } = useAuth();
 
   goBackRef.current = () => {
     navigation.dispatch(CommonActions.goBack());
@@ -634,13 +582,6 @@ function TabContentWithNav({
     navigation.navigate('MainPager', {
       screen: 'Accueil',
       params: { screen: 'AriaHome' },
-    } as any);
-  };
-
-  profileNavRef.current = () => {
-    navigation.navigate('MainPager', {
-      screen: 'Accueil',
-      params: { screen: 'EditProfile' },
     } as any);
   };
 
@@ -665,34 +606,13 @@ function TabContentWithNav({
     } as any);
   };
 
-  burgerNavRef.current = (screen: string) => {
-    const routeMap: Record<string, { tab: string; screen: string }> = {
-      ProfilEnfant:   { tab: 'Accueil', screen: 'ProfilEnfant' },
-      MonParcours:    { tab: 'Accueil', screen: 'MonParcours' },
-      BienEtreScreen: { tab: 'Accueil', screen: 'BienEtreScreen' },
-      WallpaperPicker:{ tab: 'Accueil', screen: 'WallpaperPicker' },
-      ReglagesScreen: { tab: 'Accueil', screen: 'ReglagesScreen' },
-      RGPDScreen:     { tab: 'Accueil', screen: 'RGPDScreen' },
-    };
-
-    const target = routeMap[screen];
-    if (!target) return;
-
-    navigation.navigate('MainPager', {
-      screen: target.tab,
-      params: { screen: target.screen },
-    } as any);
-  };
-
   return <TabContent />;
 }
 
-// ─── Main navigator with topbar + burger ─────────────────
+// ─── Main navigator with topbar ──────────────────────────
 
 export default function TabNavigator() {
-  const { signOut } = useAuth();
   const insets = useSafeAreaInsets();
-  const [burgerVisible, setBurgerVisible] = useState(false);
   const [showBack, setShowBack] = useState(false);
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
@@ -729,39 +649,6 @@ export default function TabNavigator() {
   const focusedLeafRoute = useNavigationState((state) => getFocusedLeafRouteName(state as any));
   const showNavChrome = getChromeMode(focusedLeafRoute) === 'full';
 
-  // ── Burger slide & scale ──────────────────────────────
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withTiming(burgerVisible ? 1 : 0, {
-      duration: 350,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-    });
-  }, [burgerVisible]);
-
-  const mainContentStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(progress.value, [0, 1], [0, SCREEN_WIDTH * 0.72]);
-    // Claude-style: slide only (no scale)
-    const borderRadius = interpolate(progress.value, [0, 1], [0, 24]);
-    const shadowOpacity = interpolate(progress.value, [0, 1], [0, 0.18]);
-    const shadowRadius = interpolate(progress.value, [0, 1], [0, 28]);
-    return {
-      transform: [{ translateX }],
-      borderRadius,
-      overflow: 'hidden',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 14 },
-      shadowOpacity,
-      shadowRadius,
-      elevation: 0,
-    };
-  });
-
-  const mainDimStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(progress.value, [0, 1], [0, 0.22]);
-    return { opacity };
-  });
-
   const showBackRef = useRef(showBack);
   showBackRef.current = showBack;
 
@@ -774,22 +661,13 @@ export default function TabNavigator() {
   const bottomVeilSolid = getBottomBarOffset(insets.bottom) + BOTTOM_BAR_ROW_HEIGHT / 2;
   const bottomVeilFade = BOTTOM_BAR_ROW_HEIGHT / 2 + VEIL_FADE_PAST_BAR;
 
-  // ── Swipe gestures (swipe-back + burger open) ────────
+  // ── Swipe depuis la gauche = retour arrière (jamais d'ouverture de menu) ────────
   // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
-  const burgerVisibleRef = useRef(burgerVisible);
-  burgerVisibleRef.current = burgerVisible;
-  const activeTabRef2 = useRef(activeTab);
-  activeTabRef2.current = activeTab;
   const currentRouteRef = useRef(currentAccueilRoute);
   currentRouteRef.current = currentAccueilRoute;
 
-  const ARIA_ROUTES = new Set(['AriaHome', 'AriaConversation', 'AriaScreen']);
-  /** Swipe depuis le bord gauche : pas d’ouverture burger (écran plein avec header intégré). */
-  const ACCUEIL_NO_BURGER_EDGE_ROUTES = new Set([
-    ...ARIA_ROUTES,
-    'ProfilEnfant',
-    'BienEtreScreen',
-  ]);
+  /** Pages profondes de la pile Accueil qui dessinent leur propre en-tête (pas de flèche en top bar). */
+  const SWIPE_BACK_ROUTES = new Set(['ProfilEnfant', 'BienEtreScreen', 'FamilleParametres']);
 
   const swipePan = useRef(
     PanResponder.create({
@@ -797,40 +675,15 @@ export default function TabNavigator() {
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, g) => {
         if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
-        if (showBackRef.current) return true;
-        if (
-          activeTabRef2.current === 'Accueil' &&
-          (currentRouteRef.current === 'ProfilEnfant' ||
-            currentRouteRef.current === 'BienEtreScreen')
-        )
-          return true;
-        if (currentRouteRef.current === 'ReglagesScreen') return true;
-        if (
-          activeTabRef2.current === 'Accueil' &&
-          !burgerVisibleRef.current &&
-          !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
-        ) return true;
-        return false;
+        return showBackRef.current || SWIPE_BACK_ROUTES.has(currentRouteRef.current);
       },
       onPanResponderRelease: (_, g) => {
         if (g.dx > 80 && g.vx > 0.2) {
           if (showBackRef.current) {
             goBackRef.current?.();
             setShowBack(false);
-          } else if (currentRouteRef.current === 'ReglagesScreen') {
+          } else if (SWIPE_BACK_ROUTES.has(currentRouteRef.current)) {
             goBackRef.current?.();
-          } else if (
-            activeTabRef2.current === 'Accueil' &&
-            (currentRouteRef.current === 'ProfilEnfant' ||
-              currentRouteRef.current === 'BienEtreScreen')
-          ) {
-            goBackRef.current?.();
-          } else if (
-            activeTabRef2.current === 'Accueil' &&
-            !burgerVisibleRef.current &&
-            !ACCUEIL_NO_BURGER_EDGE_ROUTES.has(currentRouteRef.current)
-          ) {
-            setBurgerVisible(true);
           }
         }
       },
@@ -839,60 +692,18 @@ export default function TabNavigator() {
 
   return (
     <TopbarScrollContext.Provider value={topbarScrollContextValue}>
-      <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-        {/* ── Burger menu — rendered behind, always mounted ── */}
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: SCREEN_WIDTH * 0.72,
-            backgroundColor: '#0F172A',
-          }}
-        >
-          <BurgerMenuContent
-            onClose={() => setBurgerVisible(false)}
-            onNavigate={(screen) => {
-              setBurgerVisible(false);
-              setTimeout(() => burgerNavRef.current?.(screen), 200);
-            }}
-            onLogout={() => {
-              setBurgerVisible(false);
-              signOut();
-            }}
-          />
-        </View>
-
-        {/* ── Main content — animated scale/translate ── */}
-        <Animated.View style={[{ flex: 1 }, mainContentStyle]} {...swipePan.panHandlers}>
-          <View style={{ flex: 1, backgroundColor: '#F2F1EE' }}>
+      <View style={{ flex: 1, backgroundColor: '#F2F1EE' }} {...swipePan.panHandlers}>
             {/* Voile haut : apparaît au défilement, jamais de bandeau opaque au repos */}
             {showNavChrome && (
               <ScrollVeil edge="top" solid={topVeilSolid} fade={topVeilFade} scrollY={scrollY} />
             )}
             {/* TopBar — toujours en haut sauf écrans plein-écran */}
             {showNavChrome && (
-              <TopBar
-                activeTab={navActiveTab}
-                onAvatarPress={() => {
-                  profileNavRef.current?.();
-                }}
-                hasUnreadMessages={false}
-              />
+              <TopBar activeTab={navActiveTab} hasUnreadMessages={false} />
             )}
 
             {/* Tab content */}
-            <TabContentWithNav
-              onNavigate={(screen) => {
-                setBurgerVisible(false);
-                setTimeout(() => burgerNavRef.current?.(screen), 200);
-              }}
-              onLogout={() => {
-                setBurgerVisible(false);
-                signOut();
-              }}
-            />
+            <TabContentWithNav />
 
             {/* Voile bas : même composant, miroir */}
             {showNavChrome && (
@@ -930,32 +741,6 @@ export default function TabNavigator() {
               visible={childSwitcherVisible}
               onClose={() => setChildSwitcherVisible(false)}
             />
-          </View>
-
-          {/* Subtle dim overlay when burger is open (keeps page visible) */}
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: '#000',
-              },
-              mainDimStyle,
-            ]}
-          />
-
-          {/* Tap-to-close overlay when burger menu is open */}
-          {burgerVisible && (
-            <Pressable
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-              onPress={() => setBurgerVisible(false)}
-            />
-          )}
-        </Animated.View>
       </View>
     </TopbarScrollContext.Provider>
   );

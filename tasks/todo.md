@@ -2,7 +2,7 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept, 6 questions tranchées). B1 en cours.**
+**Statut : PLAN VALIDÉ (24 sept). B1 FAIT (à vérifier sur le Redmi) ; B2 non commencé.**
 Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
 
 **Règles communes à chaque lot**
@@ -21,16 +21,32 @@ Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif,
 - Import : `expo-image-picker` et `expo-document-picker` déjà installés ; **aucun bucket Storage** en migration.
 - Aria : suggestions en cartes (`AriaHomeScreen.tsx:542-550`), `makeSuggestions(childName, mode)`.
 
-### B1 · Navigation — 2 à 3 sessions
-Objectif : ☰ → « Famille & paramètres » (un seul écran, base visuelle « Mon compte ») ; avatar → sélecteur d’enfant seul ; plus de swipe d’ouverture ; top bar en voile (déjà fait, commit 4914e8d → contrôle seulement).
-- [ ] Écran « Famille & paramètres » : Mes enfants · Responsables légaux · Mon profil · Apparence · Notifications (3 réglages) · Aria · Confidentialité & données · Système · Compte (détail : § « FUSION RÉGLAGES » plus bas). Sections Responsables / Apparence / Notifications = entrées qui ouvrent leurs écrans ; leur contenu réel arrive en B2 / B4.
-- [ ] Supprimer `ReglagesScreen` et ses entrées hors sujet (Capacités, Connecteurs, Liens partagés, Thème Auto, fonds dégradés), le doublon « Résumé quotidien 8h00 », « Ne pas déranger » → 20h–7h, libellé Face ID / empreinte selon la plateforme.
-- [ ] `ChildSelectorSheet` : retirer Réglages et Déconnexion ; liste + point de nouveauté + « Ajouter un enfant ».
-- [ ] ☰ ouvre DIRECTEMENT « Famille & paramètres » (décision Q1). L’ancien panneau burger (`BurgerMenuContent`, tiroir animé) et `ReglagesScreen` sont supprimés. Plus de swipe d’ouverture (garder le retour arrière) ; nettoyer refs et styles.
-- [ ] `chrome.ts` (ROUTE_CHROME) + libellés de route à jour.
-- Écrans touchés : `TabNavigator.tsx`, `chrome.ts`, `TopBar.tsx`, `BurgerMenu.tsx`, `ChildSelectorSheet.tsx`, `ReglagesScreen.tsx` (supprimé), `NotificationsSettingsScreen.tsx`, `TextSizeScreen.tsx`, `WallpaperPickerScreen.tsx`, `RGPDScreen.tsx`, `AProposScreen.tsx`.
-- Test Redmi : ☰ ouvre l’écran unique ; swipe depuis le bord n’ouvre rien et le pager des onglets glisse toujours ; avatar → sheet sans réglages ; chaque ligne mène au bon écran ; voile haut/bas au défilement.
-- Risques : `TabNavigator.tsx` (≈ 900 l., CRLF) est le fichier le plus fragile du projet ; liens profonds vers `ReglagesScreen` oubliés (`:674` et ailleurs → grep) ; perte du retour arrière par swipe si le PanResponder est retiré en bloc.
+### B1 · Navigation — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfant seul ; plus de swipe d’ouverture ; top bar en voile (déjà fait, commit 4914e8d → contrôle seulement).
+- [x] Nouvel écran `FamilleParametresScreen` (route `FamilleParametres`, chrome 'none', page profonde §8) : Mes enfants (row → profil de l’enfant, « Ajouter un enfant ») · Responsables légaux (vous seul pour l’instant → B4) · Mon profil · Apparence (Fond de l’Accueil) · Notifications (3 interrupteurs : mots et messages / résumé 18h / silence 20h–7h) · Aria (activée, personnalité, langue de saisie vocale) · Confidentialité & données (autorisations, journal, export, effacement) · Compte (à propos, déconnexion / quitter la démo, avec Alert).
+- [x] ☰ ouvre DIRECTEMENT cet écran. Supprimés : `BurgerMenu.tsx` (tiroir sombre + animation + overlays), `ReglagesScreen`, `EditProfileScreen` (« Mon compte », fusionné), `NotificationsSettingsScreen` (matrice par module, interdite ; écrivait une colonne `profiles.notification_preferences` qui n’existe pas), `TextSizeScreen` (réglage lu nulle part). Supprimés aussi : Capacités, Connecteurs, Liens partagés, Thème Auto, « Résumé quotidien 8h00 », fonds dégradés abstraits (WallpaperPicker : photos nature uniquement).
+- [x] Swipe : plus aucune ouverture de menu ; le retour arrière par swipe depuis le bord est conservé (pages avec flèche + ProfilEnfant, BienEtre, FamilleParametres). Fond racine #0F172A → #F2F1EE.
+- [x] `ChildSelectorSheet` : Réglages et Déconnexion retirés ; « Ajouter un enfant » (indigo). Point de nouveauté par enfant → B2 (aucune donnée de nouveauté aujourd’hui).
+- [x] Espaces enseignant et élève : leur onglet Réglages affiche le même écran (`espace` = enseignant / eleve, titre « Paramètres », sans sections famille, sans bouton retour).
+- [x] Navigation imbriquée avec `initial: false` (☰, « Ajouter un enfant », recherche rapide) : sans ça l’écran devenait la racine de la pile Accueil et le retour n’avait nulle part où aller.
+- [x] `chrome.ts`, SCREEN_TITLES, recherche rapide (« Famille & paramètres », « Fond de l’Accueil »), `DeepScreenHeader` (retour facultatif).
+- [x] tsc OK ; web (375×812, mode démo) : ☰ → écran complet, retour → Accueil, Journal d’accès s’ouvre et se ferme, avatar → sélecteur sans réglages, « Ajouter un enfant » → formulaire. Déconnexion non testable en web (Alert inactif sur react-native-web).
+- Non affiché volontairement (rien ne fonctionne derrière) : code de déverrouillage (aucun verrou dans l’app, « Face ID » était un libellé fixe), retour haptique (aucun appel haptique dans l’app), centre d’aide (aucun écran).
+- [UNCLEAR] Préférences Notifications et Aria enregistrées sur l’appareil seulement (`@scolaria:prefs`) : rien ne les lit encore (pas de push, Aria ne lit pas le ton). À brancher avec les notifications push / l’Edge Function.
+- [UNCLEAR] « Mon Ressenti » (Score de Joie) et « Mon parcours » n’étaient accessibles que par l’ancien tiroir : restent accessibles via la recherche rapide ; Mon parcours revient par le bouton année de Suivi (B3). Emplacement de Mon Ressenti à décider.
+- Reste : `QuickActionsSheet` navigue encore sans `initial: false` (à corriger en B5, qui la refait) ; Fond de l’Accueil choisi mais pas encore affiché sur l’Accueil (B2, M13).
+
+#### Checklist Redmi · B1 (`npm run dev:android`)
+1. Accueil : tap ☰ → « Famille & paramètres » s’ouvre en plein écran, sans top bar ni bottom bar, flèche ‹ en haut à gauche.
+2. ‹ → retour à l’Accueil. Recommencer, puis swipe depuis le bord gauche → retour à l’Accueil.
+3. Sur l’Accueil : swipe depuis le bord gauche → AUCUN menu ne s’ouvre ; swipe horizontal au milieu → le pager change d’onglet (Accueil → Notes…).
+4. Défilement de « Famille & paramètres » jusqu’en bas : groupes blancs, séparateurs gris, police Figtree partout, pas de ligne coupée, pas de contour gris (elevation).
+5. Interrupteurs Notifications et Aria : ils basculent ; quitter et revenir → l’état est conservé. Pills de personnalité : sélection noire.
+6. Chaque ligne : Léa / Lucas / Emma → profil de l’enfant ; Ajouter un enfant → formulaire ; Fond de l’Accueil → 5 photos nature, aucun dégradé ; Autorisations / Journal d’accès / Exporter / Effacement → feuille qui s’ouvre et se ferme ; À propos → écran.
+7. « Quitter la démo » → confirmation native, Annuler ne fait rien, Quitter → écran d’ouverture.
+8. Avatar (en haut à droite) → sélecteur : e-mail, 3 enfants, coche sur l’enfant actif, « Ajouter un enfant » ; plus de « Gérer les enfants » ni de « Se déconnecter ». Changer d’enfant → la feuille se ferme.
+9. Voile : sur Notes et Agenda, faire défiler → fondu #F2F1EE sous la top bar et au-dessus de la bottom bar, jamais de bandeau opaque au repos.
+10. Retour matériel Android depuis « Famille & paramètres » → Accueil (pas de sortie de l’app).
 
 ### B2 · Enfant actif — 3 à 4 sessions (le plus gros lot)
 Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.

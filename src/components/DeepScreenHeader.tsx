@@ -13,7 +13,8 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from './ui';
 
 interface DeepScreenHeaderProps {
-  onBack: () => void;
+  /** Absent : pas de bouton retour (écran racine d’un onglet). */
+  onBack?: () => void;
   title: string;
   subtitle?: string;
   rightElement?: React.ReactNode;
@@ -39,13 +40,19 @@ export const DeepScreenHeader: React.FC<DeepScreenHeaderProps> = ({
         withTopInset && { paddingTop: insets.top + 10 },
       ]}
     >
-      <TouchableOpacity
-        onPress={onBack}
-        style={styles.backBtn}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <ChevronLeft size={22} color={C.text} strokeWidth={2.2} />
-      </TouchableOpacity>
+      {onBack ? (
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
+          <ChevronLeft size={22} color={C.text} strokeWidth={2.2} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.backBtn} />
+      )}
 
       <View style={styles.center}>
         <Text style={styles.title} numberOfLines={1}>

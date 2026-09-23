@@ -11,7 +11,7 @@ import NotesScreen from '../screens/NotesScreen';
 import SubjectDetailScreen from '../screens/SubjectDetailScreen';
 import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
-import ReglagesScreen from '../screens/ReglagesScreen';
+import FamilleParametresScreen from '../screens/FamilleParametresScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 
@@ -114,8 +114,9 @@ function ReglagesEleveStackScreen() {
     <ReglagesEleveStack.Navigator screenOptions={stackOpts}>
       <ReglagesEleveStack.Screen
         name="ReglagesHome"
-        component={ReglagesScreen}
-        options={{ title: 'Réglages' }}
+        component={FamilleParametresScreen}
+        initialParams={{ espace: 'eleve' }}
+        options={{ headerShown: false }}
       />
       <ReglagesEleveStack.Screen
         name="PermissionsRGPD"

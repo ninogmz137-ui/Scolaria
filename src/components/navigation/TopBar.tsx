@@ -3,7 +3,7 @@
  *
  * Structure : [Burger ☰] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages] [Avatar enfant]
  *
- * - Burger 34px gauche → navigation Réglages
+ * - Burger 34px gauche → écran unique « Famille & paramètres »
  * - Pill active : icône + label, fond rgba(255,255,255,0.42), border blanc
  * - Pill inactive : icône seule, transparent
  * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
@@ -29,8 +29,6 @@ export type ActiveTab = 'accueil' | 'notes' | 'agenda' | 'messages' | 'aria';
 
 export interface TopBarProps {
   activeTab: ActiveTab;
-  /** Conservé pour compatibilité — non utilisé (burger gère la nav Réglages en interne) */
-  onAvatarPress: () => void;
   hasUnreadMessages?: boolean;
 }
 
@@ -96,7 +94,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const handleBurgerPress = () => {
     (navigation as any).navigate('MainPager', {
       screen: 'Accueil',
-      params: { screen: 'ReglagesScreen' },
+      params: { screen: 'FamilleParametres', initial: false },
     });
   };
 
@@ -109,7 +107,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
           onPress={handleBurgerPress}
           style={styles.burger}
           accessibilityRole="button"
-          accessibilityLabel="Réglages"
+          accessibilityLabel="Famille et paramètres"
         >
           <View style={styles.burgerLine} />
           <View style={styles.burgerLine} />
