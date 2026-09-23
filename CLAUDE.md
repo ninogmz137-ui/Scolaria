@@ -396,7 +396,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Toujours citer ses sources pour chaque alerte ou résumé
 - Travaille toujours sur le carnet de l'enfant sélectionné — jamais sur plusieurs enfants à la fois
 - En mode archive : lecture seule, pas d'alertes Score de Joie
-- Protocole urgence : mots-clés critiques → numéros d'aide (3018, 3114, 119, + 112 en danger immédiat) + alerte parent + aucune réponse IA seule
+- Protocole urgence : mots-clés critiques → numéros d'aide (3018, 3114, 119, + 112 en danger immédiat) + alerte enregistrée (catégorie, enfant, date — jamais le texte), privée à son auteur + aucune réponse IA seule
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 
 ---
@@ -422,13 +422,14 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - `students` — profil enfant (dont couleur personnelle)
 - `academic_years` — millésimes liés à student (école, niveau, classe)
 - `grades` — notes (collège/lycée)
-- `competences` — student_id, academic_year_id, domaine, competence, niveau 1-4, source (ecole|parent), saisi_par, date
+- `competences` — child_id, academic_year_id, domaine, competence, niveau 1-4, source (ecole|parent) fixée par le serveur, saisi_par, date ; « ecole » modifiable par le titulaire seul
 - `bulletins` — liés à academic_year_id
 - `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable, classe_id (destinataire par id)
 - `mot_carnets` — une copie du mot par enfant (mot_id, child_id, academic_year_id) : classe → chaque enfant de la classe ; fratrie → `distribuer_mot()`
 - `signatures` — une ligne par (mot_id, student_id, parent_id = responsable, signed_at) ; statut par carnet : vue `mot_carnets_statut` (both = les 2 responsables, ou l'unique)
 - `reponses_mot` — autorisation (oui/non) et participation (oui/peut_etre/non), une par responsable et par carnet
-- `carnet_items` — import parent : student_id, academic_year_id, categorie (mot|livret|souvenir|jalon), fichier, date, ajoute_par, visibilite (foyer|prive)
+- `carnet_items` — import parent : child_id, academic_year_id, categorie (mot|livret|souvenir|jalon), fichier, date, ajoute_par, visibilite (foyer|prive = auteur seul)
+- `alertes_urgence` — protocole d'urgence : auteur, child_id, academic_year_id, catégorie, date — JAMAIS le texte ; privée à son auteur
 - `absences` — signalement enseignant + déclaration parent
 - `messages` — messagerie hub, rattachée à student_id
 - `ecoles` / `classes` — classe = école + année + nom, identifiée par son **id** (jamais par son nom) ; `enseignant_id` = titulaire ; élève rattaché via `academic_years.classe_id`

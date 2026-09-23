@@ -2,7 +2,7 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : plan M0–M12 VALIDÉ. Lots 1, 2, 2-bis et 3a (M5–M8) FAITS (23–24 sept). Lot 3b (M9–M12) : ATTENDRE LE FEU VERT.**
+**Statut : plan M0–M12 VALIDÉ. Lots 1, 2, 2-bis, 3a (M5–M8) et 3b (M9–M12) FAITS (23–24 sept). Phase A (BDD) terminée : attendre la suite.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
@@ -63,8 +63,22 @@
 - [x] Tests SQL (transaction annulée, 0 donnée restante) — 44 vérifications OK : A et B responsables → **ni A ni B ne peuvent supprimer l’enfant** ; A seul responsable de Zoé → suppression OK ; copies classe (2) / fratrie (2) / brouillon (0) ; C ne voit que le carnet de Max ; parent non titulaire ne peut pas envoyer à la classe ; **both : A seul → non signé, A + B → signé** ; one : A seul → signé ; signer au nom de B, double signature, mode none, C sur Léo → refusés ; absences : B voit celle de A, C ne voit rien, B ne modifie pas celle de A ; réponses : 2e réponse refusée, modification par l’auteur OK, B ne modifie pas celle de A, mauvais type / valeur / carnet refusés.
 - [x] Advisors : 0 ERROR. WARN voulus : `distribuer_mot`, `is_mot_teacher`, `nb_responsables_carnet` (points d’entrée contrôlés).
 - [x] Code (services seuls) : `liaisonService` → types DB ↔ types écran (info ↔ information, bon_de_sortie → autorisation ; signature → autorisation, participation → info à l’affichage), `signature_mode` à la création, compteurs enseignant via `mots_liaison_enriched`, non-signés via `mot_carnets_statut`, mots parent via `mot_carnets`, `is_signed` = signé par moi, signature sans nom client. `absenceService` : rien à changer. Démo Moreau : données locales, rien à changer.
+- [ ] Sprint enseignant · mode « both » avec UN seul responsable inscrit : l’enseignant voit « signé · 1 responsable inscrit sur 2 attendus », pas simplement « signé » (données : `mot_carnets_statut.nb_responsables`).
+- [ ] Sprint enseignant · direction : rôle directeur, portée école → écrire à toute l’école (mots, publications) ; à modéliser (rôle + `ecoles` ; distribution à toutes les classes de l’école).
 - [ ] Sprint enseignant : choix de la classe **par id** dans le composer (sans `classe_id`, un mot n’est distribué dans aucun carnet) ; création des écoles / classes et rattachement des enfants (`academic_years.classe_id`) ; teacherService (posts / événements) encore filtré par nom côté enseignant ; noms des élèves non lisibles par l’enseignant (RLS children).
 - [ ] Phase B : les 4 types et le mode both dans l’UI (« signé par vous · en attente de … »), réponses autorisation / participation, liste « À prévoir ».
+
+#### Lot 3b · M9 à M12 — FAIT (24 sept)
+- [x] M9 `20260924110000_m9_competences` (+ correctif M9b `…110400`) : `competences` (child_id + academic_year_id, niveau 1-4, observation). **source fixée par le serveur** : titulaire de la classe de l’année → 'ecole', responsable → 'parent' (la valeur envoyée est ignorée). Compétence école : modifiable / supprimable par le titulaire uniquement (ni parent, ni autre enseignant). Compétence parent : par le responsable qui l’a saisie. Lecture : responsables (tout), titulaire (école de sa classe). Enfant / année / source / auteur non modifiables.
+- [x] M10 `…110100_m10_carnet_items` : `carnet_items` (mot | livret | souvenir | jalon, fichier = chemin Storage, visibilite foyer | prive). **Privé = auteur seul**, foyer = tous les responsables ; modification / suppression par l’auteur ; aucun accès enseignant.
+- [x] M11 `…110200_m11_alertes_urgence` : **DÉCISION : alerte privée à son auteur**, jamais partagée automatiquement avec l’autre responsable (maltraitance signalée contre l’autre parent) ni avec l’enseignant. Colonnes : id, auteur_id, child_id, academic_year_id, categorie, created_at — **aucune colonne de texte**. Lecture / suppression : auteur ; pas de modification ; carnet supprimé → l’alerte reste à son auteur (child_id NULL). App : `ariaApi` enregistre l’alerte (catégorie + enfant) quand le protocole se déclenche sur un compte réel.
+- [x] M12 `…110300_m12_publications_classe` : publications / événements **par classe_id uniquement** (obligatoire) ; écriture par le titulaire de la classe seulement (avant : toute personne connectée pouvait publier dans n’importe quelle classe) ; changement de classe refusé ; « vu » seulement sur une publication lisible.
+- [x] Tests SQL (transaction annulée, 0 donnée restante) — 43 vérifications OK, dont : **ajout « privé » de A invisible pour B, ajout « foyer » de A visible pour B** ; **B (co-responsable) ne voit pas l’alerte de A** ; parent / autre enseignant ne modifient pas une compétence école ; source forcée dans les deux sens ; parent et non-titulaire ne publient pas.
+- [x] Advisors : 0 ERROR. WARN voulus : `is_titulaire_annee`, `is_titulaire_classe` (fonctions d’aide des policies).
+- [ ] Sprint enseignant : `teacherService` crée publications / événements sans `classe_id` → refusé en base pour un vrai compte (voulu) ; à passer à l’id avec le choix de classe.
+- [ ] Écran d’import (Phase B) : bucket Storage **privé** pour `carnet_items.fichier`, policies calquées sur la table (privé = auteur seul), URLs signées 24 h.
+- [ ] Filet serveur : l’Edge Function détecte aussi l’urgence mais n’enregistre pas d’alerte (elle ne connaît pas l’enfant — minimisation) ; l’app enregistre avant tout appel. À revoir si un client contourne l’app.
+- [ ] **Phase B · droit à l’image** : une publication photo ne montre un enfant que si ses responsables ont autorisé le droit à l’image (lien avec les mots de type autorisation / `reponses_mot`).
 
 #### Impact des migrations sur le code de l’app
 | Migration | Impact | Action |
@@ -74,7 +88,7 @@
 | M3 | `children.color` : type `Child`, mapping Supabase, démo Moreau. | **Fait** (modèle + démo). Affichage : Phase B. |
 | M4 | `academic_year_id` nullable, rempli par trigger : aucune casse, aucun changement d’insert nécessaire. | **Rien à changer** ; l’app pourra le passer explicitement (vue d’une année archivée). |
 | M5–M8 | Types de mots, `mot_carnets`, signatures par responsable, absences uuid, réponses. | **Fait** : `liaisonService` adapté (voir lot 3a). |
-| M9–M12 | Nouvelles tables (carnet, …). | Lot 3b. |
+| M9–M12 | competences, carnet_items, alertes_urgence, publications par classe_id. | **Fait** : `ariaApi` enregistre l’alerte ; écrans d’import / compétences : Phase B. |
 
 
 ### Étape 2 bis · schéma RÉEL vs fichiers locaux (lu le 23 sept, projet réactivé)
@@ -126,7 +140,7 @@ Règles : noms existants conservés (children, profiles…) ; on modifie, on ne 
 - **M8 · reponses_mot** — `(id, mot_id, child_id, responsable_id, autorisation boolean NULL, participation text NULL CHECK (oui|peut_etre|non), created_at, UNIQUE(mot_id, child_id, responsable_id))` + RLS responsable.
 - **M9 · competences** — `(id, child_id, academic_year_id, domaine, competence, niveau smallint CHECK 1-4, source text CHECK (ecole|parent), saisi_par uuid, date, created_at)` + RLS responsable.
 - **M10 · carnet_items** — `(id, child_id, academic_year_id, categorie CHECK (mot|livret|souvenir|jalon), fichier text, date, ajoute_par uuid, visibilite CHECK (foyer|prive) DEFAULT 'foyer', created_at)` ; RLS : `foyer` → responsables de l’enfant, `prive` → auteur seul. Bucket Storage privé (URLs signées 24 h) : migration séparée plus tard.
-- **M11 · Alertes du protocole d’urgence** — `alertes (id, child_id NULL, auteur uuid, categorie CHECK (suicide|harcelement|maltraitance), created_at)` — jamais le texte du message ; RLS : auteur + responsables de l’enfant ; écriture par l’Edge Function uniquement. Notification des responsables : étape suivante.
+- **M11 · Alertes du protocole d’urgence** — `alertes (id, child_id NULL, auteur uuid, categorie CHECK (suicide|harcelement|maltraitance), created_at)` — jamais le texte du message ; ~~RLS : auteur + responsables de l’enfant~~ → **décision du 24 sept : privée à son auteur uniquement** (fait, lot 3b).
 - **M12 · Publications de classe** — `class_posts` / `class_events` / `class_post_reactions` : SELECT réservé aux responsables d’un enfant de la classe (remplace `USING (true)`).
 - **Code (hors migration, après M3/M4)** — `database.ts:129` : retirer `emoji` du select ; données de démo Moreau : ajouter `color` à chaque enfant (Léa, Lucas, Emma) dans `demo-children.json` / `ActiveChildContext` ; CLAUDE.md § Architecture BDD mis à jour avec les noms réels (children, profiles…).
 - **Hors SQL (tableau de bord)** — activer la protection des mots de passe divulgués (Auth → Password security).
@@ -156,7 +170,7 @@ Ordre proposé : M0 → M1 (sécurité, tout de suite) → M2 → M3 → M4 → 
 - [ ] Protocole d’urgence — suites :
   - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
   - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
-  - [ ] **Phase A** : table d’alertes (child_id + academic_year_id, catégorie, horodatage, jamais le texte du message) + notification des responsables légaux de l’enfant.
+  - [x] **Phase A** : table d’alertes (child_id + academic_year_id, catégorie, horodatage, jamais le texte du message) — faite au lot 3b. Pas de notification de l’autre responsable : alerte privée à son auteur (décision du 24 sept).
   - Ne pas ajouter la réponse « indisponible » / « urgence » à l’historique envoyé au modèle au tour suivant.
 
 ## Top bar · voile au défilement (23 sept 2026)
