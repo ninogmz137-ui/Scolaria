@@ -2,7 +2,7 @@
 
 ## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
 
-**Statut : sauvegarde FAITE ; Edge Function aria DÉPLOYÉE (v1, verify_jwt) ; plan de migration ÉCRIT → EN ATTENTE DE VALIDATION. Aucune migration exécutée.**
+**Statut : plan M0–M12 VALIDÉ (4 opérations destructives acceptées). Lot 1 (M0 + M1) FAIT le 23 sept. Lot 2 (M2–M4) et lot 3 (M5–M12) : ATTENDRE LE FEU VERT.**
 
 ### Étape 2 · état Supabase (constaté le 23 sept)
 - Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
@@ -12,7 +12,27 @@
 - [x] Projet réactivé ; sauvegarde schéma + données (voir ci-dessous)
 - [x] Schéma réel lu et comparé → écarts listés ci-dessous
 - [x] Plan de migration écrit ci-dessous
-- [ ] **Validation du plan par l’utilisateur** (STOP)
+- [x] Plan validé : 3 lots avec arrêt et test entre chaque lot.
+
+#### Lot 1 · M0 + M1 — FAIT (23 sept)
+- [x] M0 : `supabase/migrations/` = seule référence. `20260923140000_baseline.sql` (état réel, enregistrée « appliquée » sans exécution) + 3 fichiers-repères pour les migrations distantes de mars. Anciens `supabase/*.sql` → `docs/archives/sql/`. Scripts inverses dans `supabase/migrations_down/` (hors du dossier lu par la CLI). `supabase migration list` : local = distant (5/5).
+- [x] M1 `20260923145605_m1_securite` appliquée : vues en security_invoker + REVOKE anon ; search_path fixé ; handle_new_user non exécutable via l’API ; **profiles.role immuable** hors service_role (trigger `protect_profile_role` + WITH CHECK de `profiles_update`, profil créé par l’utilisateur = parent) ; **enseignants : plus aucune lecture de donnée d’enfant** (3 policies supprimées, children/subjects/grades/checkins réécrites) ; **publications de classe** : responsables d’un enfant de la classe uniquement.
+- [x] Tests SQL (transactions annulées) : changement de rôle refusé (42501) ; modification du prénom autorisée ; anon sans accès aux vues ni à handle_new_user ; 0 policy « enseignant » ; 0 publication lisible par tous ; 66 policies (69 − 3).
+- [x] Advisors sécurité : **0 ERROR** (3 avant). Restent des WARN : visibilité des tables dans le schéma GraphQL (structure, pas les lignes : la RLS s’applique) ; protection des mots de passe divulgués (réglage du tableau de bord, à activer par l’utilisateur).
+- [x] Code : colonne `emoji` retirée de `database.ts` (select des notes, createSubject, createAgendaEvent). tsc OK.
+- [x] `nul/` supprimé (export web d’avril, jamais suivi par Git).
+- ⚠️ Limite connue : publications de classe rattachées par le texte `classe` (« CE1 » de deux écoles) → vrai identifiant de classe avec le lien enseignant ↔ classe.
+- [ ] À vérifier à la prochaine inscription réelle : le trigger `on_auth_user_created` crée bien le profil (EXECUTE retiré de handle_new_user, sans effet attendu sur le déclenchement du trigger).
+
+#### Impact des migrations sur le code de l’app
+| Migration | Impact | Action |
+|---|---|---|
+| M1 | `database.ts` : vues `subject_averages` (l. 215), `child_overview` (l. 527) → filtrées par la RLS (voulu). `teacherService` (météo de classe, élèves, ressentis) et `absenceService` côté enseignant → **listes vides** pour un vrai compte enseignant (voulu, démo inchangée). Aucune écriture de `profiles.role` dans l’app. | Colonne `emoji` retirée de `database.ts`. |
+| M2 | Accès enfant par `is_responsable()` au lieu de `children.parent_id` : lectures inchangées pour le parent créateur ; `createChild` doit aussi créer le foyer + la ligne responsable (ou trigger). | À traiter dans le lot 2. |
+| M3 | `children.color` : type `Child` (ActiveChildContext) + avatar / header de l’Accueil ; données de démo Moreau (couleur par enfant). | Lot 2. |
+| M4 | `academic_year_id` nullable : aucune casse ; à renseigner dans les insert (notes, agenda, ressentis…). | Lot 2. |
+| M5–M12 | Types de mots (information/…), `mot_carnets`, signatures par responsable, nouvelles tables : services liaison, signatures, absences, carnet. | Lot 3. |
+
 
 ### Étape 2 bis · schéma RÉEL vs fichiers locaux (lu le 23 sept, projet réactivé)
 Sauvegarde faite le 23 sept (Docker arrêté → via les outils Supabase) : `supabase/backups/schema-2026-09-23.sql` (44 018 o) et `data-2026-09-23.sql` (1 156 o), ignorés par Git. Contrôle : 27 tables, 29 FK, 31 CHECK, 35 PK/UNIQUE, 30 index, 69 policies, 3 fonctions, 9 triggers, 3 vues = identique à la base. Données : 1 ligne (public.profiles), toutes les autres tables vides. Non sauvegardé : schéma auth (2 comptes — empreintes de mots de passe non lues), tables internes storage.

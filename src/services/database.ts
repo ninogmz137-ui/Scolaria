@@ -101,7 +101,6 @@ export async function getSubjects(childId: string) {
 export async function createSubject(subject: {
   child_id: string;
   name: string;
-  emoji?: string;
   color?: string;
 }) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
@@ -126,7 +125,7 @@ export async function getGrades(childId: string, options?: {
 
   let query = supabase
     .from('grades')
-    .select('*, subjects(name, emoji, color)')
+    .select('*, subjects(name, color)')
     .eq('child_id', childId)
     .order('date', { ascending: false });
 
@@ -304,7 +303,6 @@ export async function createAgendaEvent(event: {
   description?: string;
   event_type: string;
   subject?: string;
-  emoji?: string;
   color?: string;
   location?: string;
   start_time: string;
