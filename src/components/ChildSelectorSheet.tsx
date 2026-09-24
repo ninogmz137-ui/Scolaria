@@ -61,7 +61,7 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
 
           {/* Liste enfants */}
           {children.map((child) => {
-            const isActive = child.id === selectedChild.id;
+            const isActive = child.id === selectedChild?.id;
             const isEmoji = child.avatarType === 'emoji';
             const hasPhoto = child.avatarType === 'photo' && child.avatarPhotoUri;
             const firstName = child.name.split(' ')[0];

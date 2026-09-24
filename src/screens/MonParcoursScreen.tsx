@@ -11,7 +11,6 @@ import { ScrollView, View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Plus, ChevronRight, Check, Archive, Upload, FileText } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import WallpaperBackground from '../components/WallpaperBackground';
@@ -21,6 +20,7 @@ import type { AcademicYearStatut } from '../services/database';
 import { getAcademicYears } from '../services/database';
 import { useDemoData } from '../contexts/DemoContext';
 import { Text, Pressable } from '../components/ui';
+import { AucunEnfantPage } from '../components/AucunEnfant';
 
 // ─── Mock academic year data ─────────────────────────────
 
@@ -75,9 +75,9 @@ const STATUT_CONFIG: Record<AcademicYearStatut, { label: string; color: string; 
 
 // ─── Component ──────────────────────────────────────────
 
-export default function MonParcoursScreen() {
-  useChildTheme(); // kept for future theme re-integration
-  const { selectedChild } = useActiveChild();
+function MonParcoursScreenContent() {
+  const { selectedChild: enfantActif } = useActiveChild();
+  const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
   const { isDemoMode, getParcours: getDemoParcours } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -379,3 +379,10 @@ const styles = StyleSheet.create({
     color: '#4338CA',
   },
 });
+
+/** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
+export default function MonParcoursScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantPage title="Mon parcours" />;
+  return <MonParcoursScreenContent />;
+}

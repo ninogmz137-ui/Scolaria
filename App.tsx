@@ -25,7 +25,6 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
-import { ChildThemeProvider } from './src/contexts/ChildThemeContext';
 import { WallpaperProvider } from './src/contexts/WallpaperContext';
 import { DemoProvider } from './src/contexts/DemoContext';
 import { scheduleConseilDuMatin } from './src/services/notifications';
@@ -136,7 +135,6 @@ export default function App() {
         <AuthProvider>
           <SchoolModeProvider>
             <ActiveChildProvider>
-              <ChildThemeProvider>
                 <WallpaperProvider>
                 <DemoProvider>
                   <NavigationContainer ref={navigationRef} theme={NAV_THEME}>
@@ -147,7 +145,6 @@ export default function App() {
                   </NavigationContainer>
                 </DemoProvider>
                 </WallpaperProvider>
-              </ChildThemeProvider>
             </ActiveChildProvider>
           </SchoolModeProvider>
         </AuthProvider>

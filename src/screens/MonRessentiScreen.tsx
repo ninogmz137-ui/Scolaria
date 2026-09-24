@@ -22,6 +22,7 @@ import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { AucunEnfantPage } from '../components/AucunEnfant';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 
@@ -71,11 +72,11 @@ const GLOW_SHADOW: Record<AgeMode, object> = {
   },
 };
 
-export default function MonRessentiScreen() {
+function MonRessentiScreenContent() {
   const navigation = useNavigation<any>();
   const { mode: schoolMode } = useSchoolMode();
   const mode: AgeMode = mapSchoolModeToAgeMode(schoolMode);
-  const { selectedChildId } = useActiveChild();
+  const selectedChildId = useActiveChild().selectedChild!.id; // non nul : garanti par le garde
   const insets = useSafeAreaInsets();
 
   const [message, setMessage] = useState('');
@@ -487,3 +488,10 @@ const styles = StyleSheet.create({
   },
   urgencyHint: { fontSize: 11, color: '#7F1D1D', flex: 1 },
 });
+
+/** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
+export default function MonRessentiScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantPage title="Bien-être" />;
+  return <MonRessentiScreenContent />;
+}

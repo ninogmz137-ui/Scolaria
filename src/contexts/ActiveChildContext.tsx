@@ -1,8 +1,11 @@
 /**
- * ActiveChildContext — Global state for the currently selected child.
+ * ActiveChildContext — SOURCE UNIQUE de l'enfant actif (un enfant = un carnet).
  *
- * Loads children from Supabase when a user is authenticated.
- * Falls back to MOCK_CHILDREN in demo mode or when Supabase returns nothing.
+ * - Mode démo : les enfants de démo (famille Moreau) et UNIQUEMENT en mode démo.
+ * - Compte réel : uniquement SES enfants, lus en base (la RLS fait le périmètre).
+ *   Aucun enfant → `selectedChild = null` : les écrans affichent un état vide, jamais la démo.
+ * - Le dernier enfant consulté est persisté (par compte) et restauré à la réouverture.
+ * - Tout l'app lit l'enfant actif ici : aucune autre source (pas de liste locale, pas d'id en dur).
  */
 
 import {
@@ -11,6 +14,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   type ReactNode,
 } from 'react';
@@ -19,6 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
 import { getChildren } from '../services/database';
+import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
+import demoChildren from '../data/demo/demo-children.json';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -26,9 +32,15 @@ export type AvatarType = 'initials' | 'emoji' | 'photo';
 
 export type Child = {
   id: string;
+  /** Prénom (jamais le nom de famille : initiales et contexte Aria partent du prénom). */
   name: string;
   avatar: string;
+  /** Libellé affiché : « Niveau — École ». */
   classe: string;
+  /** Niveau normalisé (PS … Terminale), null si inconnu. */
+  niveau: string | null;
+  cycle: Cycle | null;
+  ecole?: string;
   birthDate?: string;
   avatar_url?: string;
   avatarType?: AvatarType;
@@ -41,189 +53,190 @@ export type Child = {
 /** Couleur neutre par défaut (identique au défaut en base, migration M3). */
 export const DEFAULT_CHILD_COLOR = '#4338CA';
 
-// ─── Fallback data (demo mode / empty Supabase result) ───
+// ─── Enfants de démo (famille Moreau) — mode démo UNIQUEMENT ───
 
-export const MOCK_CHILDREN: Child[] = [
-  { id: 'demo-lea', name: 'Léa Moreau', avatar: '', classe: 'Grande section — Maternelle Pasteur', birthDate: '2020-03-15', avatarType: 'emoji', avatarEmoji: '🦁', color: '#0F766E' },
-  { id: 'demo-lucas', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire', birthDate: '2015-07-22', avatarType: 'emoji', avatarEmoji: '🐻', color: '#4338CA' },
-  { id: 'demo-emma', name: 'Emma Moreau', avatar: '', classe: '3ème — Collège Hugo', birthDate: '2012-11-08', avatarType: 'emoji', avatarEmoji: '🦊', color: '#0369A1' },
-];
+type DemoChildRow = { id: string; firstName: string; class: string; school: string; color: string; birthDate: string };
 
-// Backwards-compatible alias — any file importing CHILDREN keeps working
-export const CHILDREN = MOCK_CHILDREN;
+export const DEMO_CHILDREN: Child[] = (demoChildren as DemoChildRow[]).map((c) => {
+  const niveau = normaliserNiveau(c.class);
+  return {
+    id: c.id,
+    name: c.firstName,
+    avatar: '',
+    classe: `${c.class} — ${c.school}`,
+    niveau,
+    cycle: cycleDuNiveau(niveau),
+    ecole: c.school,
+    birthDate: c.birthDate,
+    color: c.color,
+  };
+});
 
-// ─── Context ────────────────────────────────────────────
+// ─── Contexte ───────────────────────────────────────────
 
 interface ActiveChildContextValue {
   children: Child[];
-  selectedChild: Child;
-  selectedChildId: string;
+  /** Enfant actif ; null si le compte n'a encore aucun enfant. */
+  selectedChild: Child | null;
+  selectedChildId: string | null;
   selectChild: (id: string) => void;
+  /** Recharge la liste (après l'ajout d'un enfant) ; `preferId` devient l'enfant actif. */
+  reloadChildren: (preferId?: string) => Promise<void>;
   updateChildAvatar: (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => void;
   fadeAnim: Animated.Value;
   loading: boolean;
 }
 
 const ActiveChildContext = createContext<ActiveChildContextValue>({
-  children: MOCK_CHILDREN,
-  selectedChild: MOCK_CHILDREN[0],
-  selectedChildId: MOCK_CHILDREN[0].id,
+  children: [],
+  selectedChild: null,
+  selectedChildId: null,
   selectChild: () => {},
+  reloadChildren: async () => {},
   updateChildAvatar: () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
 });
 
-export function ActiveChildProvider({ children: reactChildren }: { children: ReactNode }) {
-  const { setModeFromBirthDate } = useSchoolMode();
-  const { user } = useAuth();
+type ChildRow = {
+  id: string;
+  first_name: string;
+  avatar_emoji?: string;
+  birth_date?: string;
+  classe?: string;
+  school?: string;
+  color?: string;
+};
 
-  const [childList, setChildList] = useState<Child[]>(MOCK_CHILDREN);
-  const [selectedChildId, setSelectedChildId] = useState(MOCK_CHILDREN[0].id);
+function mapRow(row: ChildRow): Child {
+  const niveau = normaliserNiveau(row.classe);
+  return {
+    id: row.id,
+    name: row.first_name,
+    avatar: '',
+    classe: [niveau ?? row.classe, row.school].filter(Boolean).join(' — '),
+    niveau,
+    cycle: cycleDuNiveau(niveau),
+    ecole: row.school || undefined,
+    birthDate: row.birth_date,
+    color: row.color || DEFAULT_CHILD_COLOR,
+  };
+}
+
+const storageKey = (userId: string) => `@scolaria:enfant_actif:${userId}`;
+
+export function ActiveChildProvider({ children: reactChildren }: { children: ReactNode }) {
+  const { setMode, setModeFromBirthDate } = useSchoolMode();
+  const { user, isDemo } = useAuth();
+  const userId = user?.id ?? null;
+
+  const [childList, setChildList] = useState<Child[]>([]);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // ─── Load children from Supabase ───────────────────────
-  useEffect(() => {
-    if (!user) {
-      console.log('[ActiveChild] No user yet, keeping mock children');
-      return;
+  // ─── Chargement : démo OU base, jamais les deux ─────────
+  const loadChildren = useCallback(async (): Promise<Child[]> => {
+    if (!userId) return [];
+    if (isDemo) return DEMO_CHILDREN;
+    try {
+      const result = await getChildren();
+      return ((result?.data ?? []) as ChildRow[]).map(mapRow);
+    } catch {
+      return [];
     }
+  }, [userId, isDemo]);
 
-    console.log('[ActiveChild] User available:', user.id, '— loading children from Supabase');
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      try {
-        const result = await getChildren();
-        if (cancelled) return;
-
-        console.log('[ActiveChild] getChildren result:', JSON.stringify({
-          dataLength: result?.data?.length ?? 0,
-          error: result?.error ?? null,
-          firstId: result?.data?.[0]?.id ?? 'none',
-        }));
-
-        const rows = result?.data;
-        if (rows && rows.length > 0) {
-          const mapped: Child[] = rows.map((row: {
-            id: string;
-            first_name: string;
-            last_name?: string;
-            avatar_emoji?: string;
-            birth_date?: string;
-            classe?: string;
-            school?: string;
-            color?: string;
-          }) => ({
-            id: row.id,
-            name: row.first_name,
-            avatar: row.avatar_emoji || '',
-            classe: [row.classe, row.school].filter(Boolean).join(' — '),
-            birthDate: row.birth_date,
-            color: row.color || DEFAULT_CHILD_COLOR,
-          }));
-          console.log('[ActiveChild] Loaded', mapped.length, 'children:', mapped.map((c) => `${c.name}(${c.id.substring(0, 8)})`).join(', '));
-          setChildList(mapped);
-          // Also update selectedChildId to first real child if current is a mock ID
-          setSelectedChildId((prev) => {
-            const isRealUUID = prev.includes('-') && prev.length > 10;
-            if (!isRealUUID) {
-              console.log('[ActiveChild] Replacing mock selectedChildId', prev, '→', mapped[0].id);
-              return mapped[0].id;
-            }
-            return prev;
-          });
-        } else {
-          console.log('[ActiveChild] No children found in Supabase, keeping mocks');
-        }
-      } catch (err) {
-        console.error('[ActiveChild] Error loading children:', err);
-      } finally {
-        if (!cancelled) setLoading(false);
+  const applyList = useCallback(
+    async (list: Child[], preferId?: string) => {
+      setChildList(list);
+      if (list.length === 0) {
+        setSelectedChildId(null);
+        return;
       }
-    }
+      // Dernier enfant consulté (par compte), sinon le premier.
+      let saved: string | null = null;
+      if (userId) {
+        try {
+          saved = await AsyncStorage.getItem(storageKey(userId));
+        } catch {
+          saved = null;
+        }
+      }
+      setSelectedChildId((prev) => {
+        if (preferId && list.some((c) => c.id === preferId)) return preferId;
+        if (prev && list.some((c) => c.id === prev)) return prev;
+        if (saved && list.some((c) => c.id === saved)) return saved;
+        return list[0].id;
+      });
+    },
+    [userId],
+  );
 
-    load();
-    return () => { cancelled = true; };
-  }, [user]);
-
-  // ─── Keep selection valid when childList changes ────────
   useEffect(() => {
-    const stillValid = childList.some((c) => c.id === selectedChildId);
-    if (!stillValid && childList.length > 0) {
-      setSelectedChildId(childList[0].id);
-    }
-  }, [childList, selectedChildId]);
+    let cancelled = false;
+    setSelectedChildId(null);
+    setChildList([]);
+    if (!userId) return;
+    setLoading(true);
+    loadChildren().then(async (list) => {
+      if (cancelled) return;
+      await applyList(list);
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, isDemo, loadChildren, applyList]);
 
-  const selectedChild =
-    childList.find((c) => c.id === selectedChildId) || childList[0];
+  const reloadChildren = useCallback(async (preferId?: string) => {
+    const list = await loadChildren();
+    await applyList(list, preferId);
+  }, [loadChildren, applyList]);
 
-  // ─── Sync school mode with selected child's birth date ──
+  const selectedChild = useMemo(
+    () => childList.find((c) => c.id === selectedChildId) ?? null,
+    [childList, selectedChildId],
+  );
+
+  // ─── Persistance du dernier enfant consulté ─────────────
   useEffect(() => {
-    if (selectedChild?.birthDate) {
-      setModeFromBirthDate(selectedChild.birthDate);
+    if (userId && selectedChildId) {
+      AsyncStorage.setItem(storageKey(userId), selectedChildId).catch(() => {});
     }
-  }, [selectedChildId, selectedChild?.birthDate, setModeFromBirthDate]);
+  }, [userId, selectedChildId]);
 
-  // ─── Load persisted avatars from AsyncStorage ───────────
+  // ─── Mode scolaire = cycle de l'enfant actif ────────────
   useEffect(() => {
-    async function loadAvatars() {
-      try {
-        const raw = await AsyncStorage.getItem('@scolaria_child_avatars');
-        if (!raw) return;
-        const saved: Record<string, { avatarType: AvatarType; avatarEmoji?: string; avatarPhotoUri?: string }> = JSON.parse(raw);
-        setChildList((prev) =>
-          prev.map((c) => {
-            const s = saved[c.id];
-            return s ? { ...c, avatarType: s.avatarType, avatarEmoji: s.avatarEmoji, avatarPhotoUri: s.avatarPhotoUri } : c;
-          }),
-        );
-      } catch (_) { /* ignore */ }
-    }
-    loadAvatars();
-  }, []);
+    if (!selectedChild) return;
+    if (selectedChild.cycle === 'maternelle') setMode('maternelle');
+    else if (selectedChild.cycle === 'primaire') setMode('primaire');
+    else if (selectedChild.cycle === 'college' || selectedChild.cycle === 'lycee') setMode('lycee');
+    else if (selectedChild.birthDate) setModeFromBirthDate(selectedChild.birthDate);
+  }, [selectedChild, setMode, setModeFromBirthDate]);
 
-  // ─── Update child avatar ────────────────────────────────
+  // ─── Avatar (photo) — persisté localement ───────────────
   const updateChildAvatar = useCallback(
     (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => {
-      setChildList((prev) => {
-        const updated = prev.map((c) =>
-          c.id === childId
-            ? { ...c, avatarType, avatarEmoji: emoji, avatarPhotoUri: photoUri, avatar: emoji || c.avatar }
-            : c,
-        );
-        // Persist to AsyncStorage
-        const toSave: Record<string, { avatarType: AvatarType; avatarEmoji?: string; avatarPhotoUri?: string }> = {};
-        for (const c of updated) {
-          if (c.avatarType) toSave[c.id] = { avatarType: c.avatarType, avatarEmoji: c.avatarEmoji, avatarPhotoUri: c.avatarPhotoUri };
-        }
-        AsyncStorage.setItem('@scolaria_child_avatars', JSON.stringify(toSave)).catch(() => {});
-        return updated;
-      });
+      setChildList((prev) =>
+        prev.map((c) =>
+          c.id === childId ? { ...c, avatarType, avatarEmoji: emoji, avatarPhotoUri: photoUri } : c,
+        ),
+      );
     },
     [],
   );
 
-  // ─── Animated child switch ───────────────────────────────
+  // ─── Changement d'enfant (fondu) ────────────────────────
   const selectChild = useCallback(
     (id: string) => {
-      if (id === selectedChildId) return;
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start(() => {
+      if (id === selectedChildId || !childList.some((c) => c.id === id)) return;
+      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
         setSelectedChildId(id);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       });
     },
-    [selectedChildId, fadeAnim],
+    [selectedChildId, childList, fadeAnim],
   );
 
   return (
@@ -231,8 +244,9 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       value={{
         children: childList,
         selectedChild,
-        selectedChildId: selectedChild?.id ?? selectedChildId,
+        selectedChildId: selectedChild?.id ?? null,
         selectChild,
+        reloadChildren,
         updateChildAvatar,
         fadeAnim,
         loading,

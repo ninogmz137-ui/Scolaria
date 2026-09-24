@@ -468,7 +468,7 @@ export default function MessagerieScreen() {
   );
 
   // ── Data ─────────────────────────────────────────────────
-  const conversations = getConversations(selectedChild.id);
+  const conversations = selectedChild ? getConversations(selectedChild.id) : [];
   const unreadCount = conversations.filter((c) => c.unread).length;
   const signerCount = conversations.filter((c) => c.urgency === 'signer').length;
   const repondreCount = conversations.filter((c) => c.urgency === 'repondre').length;

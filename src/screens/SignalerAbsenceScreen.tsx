@@ -18,7 +18,6 @@ import { Papicons } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import WallpaperBackground from '../components/WallpaperBackground';
 import GlassCard from '../components/GlassCard';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -35,6 +34,7 @@ import {
   type DemiJournee,
 } from '../services/absenceService';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { AucunEnfantPage } from '../components/AucunEnfant';
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -65,9 +65,10 @@ const TOMORROW = addDays(TODAY, 1);
 
 // ─── Component ───────────────────────────────────────────
 
-export default function SignalerAbsenceScreen() {
-  useChildTheme(); // kept for future theme re-integration
-  const { selectedChild, selectedChildId } = useActiveChild();
+function SignalerAbsenceScreenContent() {
+  const { selectedChild: enfantActif } = useActiveChild();
+  const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
+  const selectedChildId = selectedChild.id;
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   // Écran en mode chrome 'none' (chrome.ts) : son mini header remplace la top bar.
@@ -779,3 +780,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+/** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
+export default function SignalerAbsenceScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantPage title="Signaler une absence" />;
+  return <SignalerAbsenceScreenContent />;
+}

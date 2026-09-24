@@ -88,6 +88,7 @@ export default function PermissionsScreen() {
       Alert.alert('Mode démo', 'Aucune invitation n’est envoyée en mode démo.');
       return;
     }
+    if (!selectedChild) return;
     setEnvoi(true);
     const { error } = await inviterResponsable(selectedChild.id, adresse);
     setEnvoi(false);

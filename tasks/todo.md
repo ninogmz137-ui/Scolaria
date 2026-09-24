@@ -88,7 +88,9 @@ Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfan
   - Outil de test : `globalThis.__navRef` exposé en développement uniquement (`__DEV__`).
 - [x] 1.3 À propos : ligne contact@scolaria.fr retirée.
 
-### B2 · Enfant actif — 3 à 4 sessions (le plus gros lot)
+### B2 · Enfant actif — EN COURS (autonomie, 24 sept)
+- [x] 2.1 Source unique : `ActiveChildContext` réécrit — démo = enfants Moreau (depuis demo-children.json) UNIQUEMENT en mode démo ; compte réel = ses enfants en base ; `selectedChild: Child | null` ; dernier enfant consulté persisté par compte (`@scolaria:enfant_actif:<user>`) ; `niveau` + `cycle` (utils/niveau.ts) ; mode scolaire dérivé du cycle ; `reloadChildren(preferId)` après ajout (et `createChild` : l’erreur n’était pas vérifiée → « Enfant ajouté » affiché même en cas d’échec, corrigé). Supprimés : GlobalChildSwitcher (jamais ouvert), ChildThemeContext (passe-plat). Pages qui exigent un enfant (Profil, Signaler une absence, Mon parcours, Bien-être) : garde → état vide `AucunEnfantPage`. Messages : plus de conversations / mots / enseignants fictifs pour un compte réel. Web : bascule Léa → Emma, rechargement → Emma conservée.
+
 Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.
 - [ ] Contrat unique : `selectedChild` (id, prénom, niveau, couleur, année active) ; supprimer les chemins parallèles (`selectedChildId` lu seul, `GlobalChildSwitcher`, `ChildThemeContext` passe-plat) ; `SchoolModeContext` dérivé du niveau de l’enfant (pas de la date de naissance seule).
 - [ ] Données de démo indexées par id d’enfant (Léa GS / Lucas / Emma 4ème) : Accueil, Messages, Agenda, Emploi du temps, Devoirs, Bulletin, GradeDetail, SignDoc/SignSuccess, MonParcours, Aria. Emploi du temps et Devoirs : rien pour un enfant de maternelle (empty state), pas les données d’Emma.

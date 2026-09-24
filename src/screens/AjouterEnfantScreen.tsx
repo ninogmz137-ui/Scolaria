@@ -31,6 +31,7 @@ import {
   UserPlus,
 } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors';
@@ -67,6 +68,7 @@ function generateScolariaId(): string {
 export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props) {
   const insets = useSafeAreaInsets();
   const { user, isDemo } = useAuth();
+  const { reloadChildren } = useActiveChild();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthDay, setBirthDay] = useState('');
@@ -168,7 +170,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
       } else {
         // Real mode: save to Supabase
         const { createChild } = await import('../services/database');
-        await createChild({
+        const { data, error } = await createChild({
           parent_id: user!.id,
           scolaria_id: scolariaId,
           first_name: firstName.trim(),
@@ -179,6 +181,9 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           school: school.trim(),
           color,
         });
+        if (error) throw error;
+        // Source unique : la liste des enfants est rechargée et le nouvel enfant devient actif.
+        await reloadChildren((data as { id?: string } | null)?.id);
       }
 
       Alert.alert(

@@ -17,7 +17,6 @@ import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from '../components/ui';
 
@@ -76,7 +75,6 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 // ─── Component ────────────────────────────────────────────
 
 export default function AriaScreen() {
-  useChildTheme(); // kept for future theme re-integration
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();

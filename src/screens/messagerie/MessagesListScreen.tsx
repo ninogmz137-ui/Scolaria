@@ -53,64 +53,6 @@ interface Teacher {
   subject: string;
 }
 
-// ─── Mock data ────────────────────────────────────────────
-
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-1',
-    name: 'Mme Dupont',
-    role: 'CM2 B — Professeur principal',
-    lastMessage: 'La sortie scolaire est confirmée pour le 15 avril.',
-    date: "Aujourd'hui",
-    unread: true,
-  },
-  {
-    id: 'conv-2',
-    name: 'M. Martin',
-    role: 'SVT — 4e C',
-    lastMessage: "Le contrôle de SVT aura lieu vendredi.",
-    date: 'Hier',
-    unread: false,
-  },
-  {
-    id: 'conv-3',
-    name: 'Mme Lambert',
-    role: 'Français — 4e C',
-    lastMessage: 'Excellent travail sur la rédaction !',
-    date: 'Lun.',
-    unread: false,
-  },
-];
-
-const MOCK_MOTS: MotLiaison[] = [
-  {
-    id: 'mot-1',
-    title: 'Sortie scolaire du 15 avril',
-    deadline: '12/04',
-    signed: false,
-  },
-  {
-    id: 'mot-2',
-    title: 'Règlement intérieur 2025-2026',
-    deadline: null,
-    signed: true,
-  },
-  {
-    id: 'mot-3',
-    title: 'Autorisation piscine — Printemps',
-    deadline: '08/04',
-    signed: false,
-  },
-];
-
-const MOCK_TEACHERS: Teacher[] = [
-  { id: 't-1', name: 'Mme Dupont', subject: 'Professeur principal — CM2 B' },
-  { id: 't-2', name: 'M. Martin', subject: 'SVT — 4e C' },
-  { id: 't-3', name: 'Mme Lambert', subject: 'Français — 4e C' },
-  { id: 't-4', name: 'M. Leclerc', subject: 'Mathématiques — 4e C' },
-  { id: 't-5', name: 'Mme Bernard', subject: 'Anglais — 4e C' },
-];
-
 // ─── Helpers ─────────────────────────────────────────────
 
 function formatMessageDate(isoDate: string): string {
@@ -170,26 +112,27 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
   );
 
   // In demo mode, use filtered teachers for the selected child
-  const teachers = isDemoMode
+  // Compte réel : rien de fictif (les données réelles arriveront avec B4).
+  const teachers = isDemoMode && selectedChild
     ? getDemoTeachers(selectedChild.id).map((t) => ({
         id: t.id,
         name: t.name,
         subject: `${t.role} — ${t.class}`,
       }))
-    : MOCK_TEACHERS;
+    : [];
 
   // In demo mode, use filtered mots for the selected child
-  const mots = isDemoMode
+  const mots = isDemoMode && selectedChild
     ? getDemoMots(selectedChild.id).map((m) => ({
         id: m.id,
         title: m.title,
         deadline: m.deadline,
         signed: m.isSigned,
       }))
-    : MOCK_MOTS;
+    : [];
 
   // In demo mode, use filtered conversations for the selected child
-  const conversations: Conversation[] = isDemoMode
+  const conversations: Conversation[] = isDemoMode && selectedChild
     ? getDemoMessages(selectedChild.id)
         .filter((m) => m.type === 'conversation')
         .map((m) => ({
@@ -200,7 +143,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
           date: formatMessageDate(m.date),
           unread: !m.isRead,
         }))
-    : MOCK_CONVERSATIONS;
+    : [];
 
   return (
     <View style={styles.root}>
@@ -355,7 +298,7 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
                     key={teacher.id}
                     onPress={() => {
                       setTeacherModalVisible(false);
-                      const list = getConversations(selectedChild.id);
+                      const list = selectedChild ? getConversations(selectedChild.id) : [];
                       const match =
                         list.find((c) => c.name.trim() === teacher.name.trim()) ??
                         list.find((c) => c.avatarType === 'initials');

@@ -28,7 +28,6 @@ import { navigationRef } from './navigationRef';
 // Navigation chrome
 import TopBar, { type ActiveTab } from '../components/navigation/TopBar';
 import BottomBar from '../components/navigation/BottomBar';
-import { ChildSwitcherModal } from '../components/GlobalChildSwitcher';
 
 // Topbar scroll context (conservé pour AccueilScreen — no-op scroll-to-hide)
 import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
@@ -620,7 +619,6 @@ export default function TabNavigator() {
   const [activeTab, setActiveTab] = useState('Accueil');
   const [stackTitle, setStackTitle] = useState('');
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
-  const [childSwitcherVisible, setChildSwitcherVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const [quickActionsVisible, setQuickActionsVisible] = useState(false);
 
@@ -740,11 +738,6 @@ export default function TabNavigator() {
               onClose={() => setQuickActionsVisible(false)}
             />
 
-            {/* Child switcher modal */}
-            <ChildSwitcherModal
-              visible={childSwitcherVisible}
-              onClose={() => setChildSwitcherVisible(false)}
-            />
       </View>
     </TopbarScrollContext.Provider>
   );

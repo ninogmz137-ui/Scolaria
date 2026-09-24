@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Box, Text, HStack, Pressable } from '../ui';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { useChildTheme } from '../../contexts/ChildThemeContext';
 import {
   ARIA_INDIGO,
   ARIA_GRADIENT_VIOLET,
@@ -51,7 +50,6 @@ interface Props {
 // ─── Component ────────────────────────────────────────────
 
 export default function ChatBubble({ message, isTyping, onAction }: Props) {
-  useChildTheme(); // kept for future theme re-integration
   const isAria = message.sender === 'aria';
 
   const { cleanText, actionKey } = isAria && !isTyping

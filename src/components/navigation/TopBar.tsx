@@ -85,8 +85,8 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   );
   const onHeader = activeTab === 'accueil' && !overContent;
 
-  const isEmoji = selectedChild.avatarType === 'emoji';
-  const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
+  const isEmoji = selectedChild?.avatarType === 'emoji';
+  const hasPhoto = selectedChild?.avatarType === 'photo' && !!selectedChild?.avatarPhotoUri;
 
   const handleTabPress = (tab: TabConfig) => {
     if (tab.id === 'accueil') {
@@ -176,14 +176,14 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               <View style={[StyleSheet.absoluteFill, { backgroundColor: '#4338CA' }]} />
               {hasPhoto ? (
                 <Image
-                  source={{ uri: selectedChild.avatarPhotoUri! }}
+                  source={{ uri: selectedChild!.avatarPhotoUri! }}
                   style={styles.childAvatarImage}
                 />
-              ) : isEmoji && selectedChild.avatarEmoji ? (
+              ) : isEmoji && selectedChild?.avatarEmoji ? (
                 <Text style={styles.childAvatarEmoji}>{selectedChild.avatarEmoji}</Text>
               ) : (
                 <Text style={styles.childAvatarInitials}>
-                  {getChildInitials(selectedChild.name, children.map((c) => c.name))}
+                  {selectedChild ? getChildInitials(selectedChild.name, children.map((c) => c.name)) : '+'}
                 </Text>
               )}
             </View>

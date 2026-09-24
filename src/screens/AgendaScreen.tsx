@@ -40,7 +40,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { C } from '../constants/design';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useDemoData } from '../contexts/DemoContext';
@@ -305,7 +304,6 @@ function HomeworkCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
 // ─── Component ────────────────────────────────────────────
 
 export default function AgendaScreen() {
-  useChildTheme();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
@@ -587,8 +585,9 @@ export default function AgendaScreen() {
       Alert.alert('Titre requis', 'Veuillez saisir un titre pour l\'événement.');
       return;
     }
-    const currentChildId = selectedChild?.id ?? selectedChildId;
-    const isReal = currentChildId.includes('-') && currentChildId.length > 10;
+    const currentChildId = selectedChild?.id ?? null;
+    // Compte réel (jamais la démo) avec un enfant actif.
+    const isReal = !!currentChildId && !isDemoMode;
 
     const selectedDayInfo = weekDays.find((d) => d.date === selectedDay);
     const dayDate = selectedDayInfo?.fullDate ?? new Date();

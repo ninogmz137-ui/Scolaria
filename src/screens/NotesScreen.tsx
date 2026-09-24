@@ -47,7 +47,6 @@ import {
 } from 'lucide-react-native';
 import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
@@ -1071,7 +1070,6 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
 // ─── Main ─────────────────────────────────────────────────
 
 export default function NotesScreen() {
-  useChildTheme();
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const { wallpaperSource } = useWallpaper();

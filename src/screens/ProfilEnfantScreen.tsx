@@ -39,7 +39,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
@@ -58,6 +57,7 @@ import {
 import { getChild, getCheckins } from '../services/database';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, Pressable } from '../components/ui';
+import { AucunEnfantPage } from '../components/AucunEnfant';
 
 const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
@@ -304,9 +304,9 @@ function SuperPouvoirCard({
   );
 }
 
-export default function ProfilEnfantScreen() {
-  useChildTheme();
-  const { selectedChild, updateChildAvatar } = useActiveChild();
+function ProfilEnfantScreenContent() {
+  const { selectedChild: enfantActif, updateChildAvatar } = useActiveChild();
+  const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const childId = selectedChild?.id ?? '2';
@@ -896,3 +896,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
 });
+
+/** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
+export default function ProfilEnfantScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantPage title="Profil" />;
+  return <ProfilEnfantScreenContent />;
+}
