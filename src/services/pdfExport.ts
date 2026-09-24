@@ -51,18 +51,7 @@ export interface PDFExportData {
 
 function generateHTML(data: PDFExportData): string {
   // Jamais de Score de Joie dans un export (CLAUDE.md : tendance seulement, jamais de chiffre brut).
-  const { child, competences, activities } = data;
-
-  const compBars = competences.map(c => `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
-      <span style="flex:1;font-weight:600;color:#37352F;font-size:13px;">${c.label}</span>
-      <div style="width:120px;height:8px;background:#E8E5E0;border-radius:4px;overflow:hidden;">
-        <div style="width:${c.value * 10}%;height:100%;background:linear-gradient(to right,#4338CA,#22D3EE);border-radius:4px;"></div>
-      </div>
-      <span style="font-weight:800;color:#37352F;font-size:14px;width:30px;text-align:right;">${c.value}/10</span>
-    </div>
-  `).join('');
+  const { child, activities } = data;
 
   const actRows = activities.map(a => `
     <tr>
@@ -105,7 +94,6 @@ function generateHTML(data: PDFExportData): string {
     table { width: 100%; border-collapse: collapse; }
     table thead th { text-align: left; padding: 8px 12px; font-size: 11px; color: #787774; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #E8E5E0; }
     table tbody tr { border-bottom: 1px solid #F0EEED; }
-    .joy-chart { display: flex; gap: 2px; align-items: flex-end; height: 80px; padding: 8px 0; }
     .footer { text-align: center; padding: 20px 40px; color: #B4B0AC; font-size: 11px; border-top: 1px solid #E8E5E0; margin-top: 10px; }
     .footer .logo { font-size: 14px; font-weight: 800; color: #4338CA; }
   </style>
@@ -136,22 +124,11 @@ function generateHTML(data: PDFExportData): string {
       <div class="section-title">Vue d'ensemble</div>
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-value">${competences.length}</div>
-          <div class="stat-label">Compétences évaluées</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-value">${activities.length}</div>
           <div class="stat-label">Activités</div>
         </div>
       </div>
     </div>
-
-    <!-- Competences -->
-    <div class="section">
-      <div class="section-title">Compétences</div>
-      ${compBars}
-    </div>
-
 
     <!-- Portfolio -->
     <div class="section">
@@ -226,21 +203,8 @@ export interface TransitionMemoData {
 }
 
 function generateMemoHTML(data: TransitionMemoData): string {
-  const { child, competences, activities, fromSchool, toSchool, teacherName, personalNote, joyAverage } = data;
-
-  const topComps = [...competences].sort((a, b) => b.value - a.value).slice(0, 3);
-  const compList = topComps.map(c => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F2F1EE;border-radius:10px;margin-bottom:6px;">
-      <span style="width:8px;height:8px;border-radius:4px;background:#6B7280;flex-shrink:0;"></span>
-      <div style="flex:1;">
-        <div style="font-weight:700;color:#37352F;font-size:14px;">${c.label}</div>
-        <div style="font-size:12px;color:#787774;">Niveau ${c.value}/10</div>
-      </div>
-      <div style="display:flex;gap:2px;">
-        ${Array.from({ length: 10 }, (_, i) => `<div style="width:8px;height:8px;border-radius:4px;background:${i < c.value ? '#4338CA' : '#E8E5E0'};"></div>`).join('')}
-      </div>
-    </div>
-  `).join('');
+  // Jamais de Score de Joie ni de compétence notée sur 10 dans un mémo (CLAUDE.md ; refonte B3).
+  const { child, activities, fromSchool, toSchool, teacherName, personalNote } = data;
 
   const actList = activities.slice(0, 4).map(a => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0EEED;">
@@ -249,10 +213,6 @@ function generateMemoHTML(data: TransitionMemoData): string {
       <span style="font-size:12px;color:#787774;background:#F2F1EE;padding:3px 10px;border-radius:8px;">${a.level}</span>
     </div>
   `).join('');
-
-  const joyEmoji = joyAverage >= 7 ? '☀️' : joyAverage >= 5 ? '⛅' : '🌧️';
-  const joyLabel = joyAverage >= 7 ? 'Épanoui' : joyAverage >= 5 ? 'Correct' : 'Attention';
-  const joyColor = joyAverage >= 7 ? '#0F7B6C' : joyAverage >= 5 ? '#D9730D' : '#EB5757';
 
   return `<!DOCTYPE html>
 <html>
@@ -272,10 +232,6 @@ function generateMemoHTML(data: TransitionMemoData): string {
     .intro p { margin: 0; font-size: 14px; line-height: 1.6; color: #37352F; }
     .section { margin-bottom: 24px; }
     .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: #37352F; display: flex; align-items: center; gap: 8px; }
-    .joy-card { display: flex; align-items: center; gap: 16px; background: #F2F1EE; border-radius: 14px; padding: 16px 20px; border: 1px solid #E8E5E0; }
-    .joy-emoji { font-size: 36px; }
-    .joy-score { font-size: 32px; font-weight: 800; }
-    .joy-label { font-size: 13px; color: #787774; }
     .note-box { background: #FFF8E1; border-radius: 14px; padding: 18px; border-left: 4px solid #D9730D; }
     .note-box p { margin: 0; font-size: 13px; line-height: 1.6; color: #37352F; font-style: italic; }
     .footer { text-align: center; padding: 20px 40px; color: #B4B0AC; font-size: 11px; border-top: 1px solid #E8E5E0; margin-top: 10px; }
@@ -301,24 +257,6 @@ function generateMemoHTML(data: TransitionMemoData): string {
         Il présente un aperçu de son parcours et de ses points forts
         pour faciliter son accueil dans sa nouvelle classe.
       </p>
-    </div>
-
-    <!-- Bien-être -->
-    <div class="section">
-      <div class="section-title">🌤️ Bien-être général</div>
-      <div class="joy-card">
-        <div class="joy-emoji">${joyEmoji}</div>
-        <div>
-          <div class="joy-score" style="color:${joyColor};">${joyAverage.toFixed(1)}<span style="font-size:16px;color:#787774;">/10</span></div>
-          <div class="joy-label">${joyLabel} — Score de Joie moyen sur 30 jours</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Points forts -->
-    <div class="section">
-      <div class="section-title">⭐ Points forts (Top 3)</div>
-      ${compList}
     </div>
 
     <!-- Activités -->

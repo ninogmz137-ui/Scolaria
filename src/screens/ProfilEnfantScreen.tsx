@@ -538,19 +538,7 @@ function ProfilEnfantScreenContent() {
           />
           )}
 
-          {data.competences.length > 0 && (
-            <>
-              <SectionTitle label="Compétences clés" />
-              <View style={styles.glassCard}>
-                <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
-                <View style={styles.glassInner}>
-                  {data.competences.map((c) => (
-                    <CompetenceRow key={c.label} label={c.label} value={c.value} />
-                  ))}
-                </View>
-              </View>
-            </>
-          )}
+          {/* Compétences : plus de notation sur 10 — à refondre en B3 avec le Suivi (4 niveaux LSU en primaire). */}
 
           {/* Score de Joie : tendance neutre uniquement, jamais de chiffre ni d'alerte (alertes =
               Aria stade 3, Phase 3). Rien s'il n'y a pas assez de relevés. */}

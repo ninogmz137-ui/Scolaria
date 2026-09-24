@@ -1,8 +1,9 @@
 /**
  * Météo de Classe — Dashboard de bien-être anonymisé.
  *
- * Affiche la tendance globale du bien-être de la classe,
- * avec des indicateurs anonymisés (aucun nom d'élève visible).
+ * Affiche la tendance globale du bien-être de la classe, anonymisée (aucun nom d'élève visible).
+ * Score de Joie (CLAUDE.md) : météo et tendance en mots uniquement — jamais de chiffre ni de %,
+ * jamais de vert/rouge, aucune alerte ni « analyse Aria » en V1 (Aria stade 3, Phase 3).
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -73,36 +74,6 @@ const EMOTION_DISTRIBUTION: EmotionDistribution[] = [
   { emoji: '😢', label: 'Difficile', percent: 9, color: Colors.red },
 ];
 
-const WELLBEING_INDICATORS = [
-  { label: 'Énergie moyenne', value: 6.8, icon: '⚡', trend: +0.3 },
-  { label: 'Stress moyen', value: 3.2, icon: '😰', trend: -0.5 },
-  { label: 'Motivation', value: 7.1, icon: '🎯', trend: +0.2 },
-  { label: 'Climat social', value: 7.4, icon: '👥', trend: +0.1 },
-];
-
-const ANONYMOUS_ALERTS = [
-  {
-    id: '1',
-    level: 'vigilance' as const,
-    message: '1 élève montre une baisse de -35% du Score de Joie sur 5 jours',
-    date: 'Aujourd\'hui',
-  },
-  {
-    id: '2',
-    level: 'attention' as const,
-    message: '3 élèves ont un niveau de stress supérieur à 7/10',
-    date: 'Hier',
-  },
-];
-
-const ANXIETY_DATA = {
-  current: 12,
-  previous: 8,
-};
-
-const ARIA_SUMMARY =
-  'Semaine stable avec un pic de stress jeudi, probablement lié aux évaluations. Le moral général reste bon. La motivation est en légère hausse depuis lundi.';
-
 // ─── Helpers ─────────────────────────────────────────────
 
 function getWeatherEmoji(score: number): string {
@@ -121,27 +92,12 @@ function getWeatherLabel(score: number): string {
   return 'Orage';
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 7.5) return Colors.green;
-  if (score >= 6) return Colors.cyan;
-  if (score >= 4) return Colors.orange;
-  return Colors.red;
-}
-
-function getAnxietyColor(pct: number): string {
-  if (pct < 10) return Colors.green;
-  if (pct <= 20) return Colors.orange;
-  return Colors.red;
-}
-
-function getWeeklyTrend(data: DayWeather[]): { label: string; icon: string; color: string } {
-  if (data.length < 2) return { label: 'Stable', icon: 'remove', color: Colors.gray };
-  const first = data[0].avgScore;
-  const last = data[data.length - 1].avgScore;
-  const diff = last - first;
-  if (diff > 0.3) return { label: 'En hausse', icon: 'trending-up', color: Colors.green };
-  if (diff < -0.3) return { label: 'En baisse', icon: 'trending-down', color: Colors.red };
-  return { label: 'Stable', icon: 'remove', color: Colors.gray };
+function getWeeklyTrend(data: DayWeather[]): { label: string; icon: string } {
+  if (data.length < 2) return { label: 'Stable', icon: 'remove' };
+  const diff = data[data.length - 1].avgScore - data[0].avgScore;
+  if (diff > 0.3) return { label: 'Plutôt en hausse', icon: 'trending-up' };
+  if (diff < -0.3) return { label: 'Plutôt en baisse', icon: 'trending-down' };
+  return { label: 'Stable', icon: 'remove' };
 }
 
 // ─── Component ───────────────────────────────────────────
@@ -152,12 +108,10 @@ export default function MeteoClasseScreen() {
   const [weekData, setWeekData] = useState(WEEK_DATA);
   const [emotionDist, setEmotionDist] = useState(EMOTION_DISTRIBUTION);
   const [classInfo, setClassInfo] = useState(CLASS_INFO);
-  const [anxietyData, setAnxietyData] = useState(ANXIETY_DATA);
 
   // Animations
   const headerScale = useRef(new Animated.Value(0)).current;
   const barAnims = useRef(WEEK_DATA.map(() => new Animated.Value(0))).current;
-  const distAnims = useRef(EMOTION_DISTRIBUTION.map(() => new Animated.Value(0))).current;
 
   const loadMeteo = useCallback(async () => {
     const data = await getClassMeteo(classInfo.name);
@@ -172,10 +126,6 @@ export default function MeteoClasseScreen() {
         totalStudents: data.totalStudents,
         respondedToday: data.respondedToday,
       }));
-      setAnxietyData({
-        current: data.anxietyPercent,
-        previous: data.previousAnxietyPercent,
-      });
       setSelectedDay(data.weekData.length - 1);
     }
   }, []);
@@ -189,14 +139,10 @@ export default function MeteoClasseScreen() {
       Animated.stagger(100, barAnims.map((a) =>
         Animated.spring(a, { toValue: 1, tension: 60, friction: 8, useNativeDriver: false }),
       )),
-      Animated.stagger(80, distAnims.map((a) =>
-        Animated.timing(a, { toValue: 1, duration: 400, useNativeDriver: false }),
-      )),
     ]).start();
   }, []);
 
   const todayScore = weekData[selectedDay]?.avgScore ?? 0;
-  const anxietyColor = getAnxietyColor(anxietyData.current);
   const weeklyTrend = getWeeklyTrend(weekData);
 
   return (
@@ -218,7 +164,6 @@ export default function MeteoClasseScreen() {
 
         <Animated.View style={{ alignItems: 'center', marginBottom: 16, transform: [{ scale: headerScale }] }}>
           <Text className="text-[64px] mb-1">{getWeatherEmoji(todayScore)}</Text>
-          <Text className="text-[42px] font-black" style={{ color: Colors.white }}>{todayScore.toFixed(1)}</Text>
           <Text className="text-base font-semibold mt-0.5" style={{ color: Colors.white }}>{getWeatherLabel(todayScore)}</Text>
         </Animated.View>
 
@@ -231,44 +176,6 @@ export default function MeteoClasseScreen() {
       </LinearGradient>
 
       <VStack className="px-5 pt-2">
-        {/* ── 2. Anxiety percentage card ── */}
-        <VStack className="mb-6">
-          <HStack className="items-center gap-2 mb-3">
-            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
-            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Pourcentage d'anxiété</Text>
-          </HStack>
-          <Box className="rounded-[18px] p-5" style={{ backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.cardBorder, ...CARD_SHADOW }}>
-            <HStack className="justify-between items-center">
-              <VStack className="flex-1">
-                <Text className="text-5xl font-black" style={{ color: anxietyColor, letterSpacing: -1 }}>
-                  {anxietyData.current}%
-                </Text>
-                <Text className="text-[13px] mt-0.5" style={{ color: Colors.textSecondary }}>des élèves cette semaine</Text>
-              </VStack>
-              <HStack className="items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ backgroundColor: Colors.pageBg }}>
-                <Box className="w-2 h-2 rounded-full" style={{ backgroundColor: anxietyColor }} />
-                <Text className="text-[13px] font-bold" style={{ color: anxietyColor }}>
-                  {anxietyData.current < 10
-                    ? 'Faible'
-                    : anxietyData.current <= 20
-                      ? 'Modéré'
-                      : 'Élevé'}
-                </Text>
-              </HStack>
-            </HStack>
-            <HStack className="items-center gap-1 mt-3.5 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: Colors.cardBorder }}>
-              <Ionicons
-                name={anxietyData.current > anxietyData.previous ? 'arrow-up' : 'arrow-down'}
-                size={13}
-                color={anxietyData.current > anxietyData.previous ? Colors.red : Colors.green}
-              />
-              <Text className="text-[13px]" style={{ color: Colors.textSecondary }}>
-                vs {anxietyData.previous}% la semaine dernière
-              </Text>
-            </HStack>
-          </Box>
-        </VStack>
-
         {/* ── 3. Weekly trend with emoji row ── */}
         <VStack className="mb-6">
           <HStack className="items-center gap-2 mb-3">
@@ -288,167 +195,26 @@ export default function MeteoClasseScreen() {
                   <Text className="text-xs mb-0.5" style={{ color: selectedDay === i ? Colors.cyanDark : Colors.textSecondary, fontFamily: selectedDay === i ? FontFamily.displayExtraBold : FontFamily.sansSemiBold }}>
                     {day.day}
                   </Text>
-                  <Text className="text-xs font-bold" style={{ color: selectedDay === i ? Colors.textPrimary : Colors.textSecondary }}>
-                    {day.avgScore.toFixed(1)}
-                  </Text>
                 </Pressable>
               ))}
             </HStack>
 
             <HStack className="items-center gap-2 pt-3.5" style={{ borderTopWidth: 1, borderTopColor: Colors.cardBorder }}>
-              <Ionicons name={weeklyTrend.icon as any} size={20} color={weeklyTrend.color} />
-              <Text className="text-[15px] font-extrabold" style={{ color: weeklyTrend.color }}>
-                {weeklyTrend.label}
-              </Text>
-              <Text className="text-[13px] ml-auto" style={{ color: Colors.textSecondary }}>
-                {weekData[0].avgScore.toFixed(1)} → {weekData[weekData.length - 1].avgScore.toFixed(1)}
+              <Ionicons name={weeklyTrend.icon as any} size={20} color={Colors.textSecondary} />
+              <Text className="text-[15px] font-extrabold" style={{ color: Colors.textPrimary }}>
+                💛 {weeklyTrend.label}
               </Text>
             </HStack>
           </Box>
         </VStack>
 
-        {/* ── 4. Aria summary card ── */}
-        <VStack className="mb-6">
-          <HStack className="items-center gap-2 mb-3">
-            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
-            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Résumé Aria</Text>
-          </HStack>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)', ...CARD_SHADOW }}>
-            <HStack className="items-center gap-2.5 mb-3">
-              <Box style={[{ width: 30, height: 30, borderRadius: 10, justifyContent: 'center', alignItems: 'center' }, { backgroundColor: '#4338CA' }]}>
-                <ScolariaSymbol size={18} color={Colors.white} />
-              </Box>
-              <Text className="text-sm font-bold" style={{ color: Colors.violet + 'CC' }}>Analyse IA de la semaine</Text>
-            </HStack>
-            <Text className="text-sm leading-[21px]" style={{ color: Colors.textSecondary }}>{ARIA_SUMMARY}</Text>
-          </Box>
-        </VStack>
-
-        {/* ── 5. Emotion distribution ── */}
-        <VStack className="mb-6">
-          <HStack className="items-center gap-2 mb-3">
-            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
-            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Répartition des émotions</Text>
-          </HStack>
-          <Box className="rounded-[18px] p-[18px]" style={{ backgroundColor: Colors.card, borderWidth: 1.5, borderColor: Colors.cardBorder, ...CARD_SHADOW }}>
-            <HStack className="h-3.5 rounded-[7px] overflow-hidden mb-4 gap-0.5">
-              {emotionDist.map((e, i) => (
-                <Animated.View
-                  key={e.label}
-                  style={{
-                    flex: distAnims[i].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, e.percent],
-                    }),
-                    backgroundColor: e.color,
-                    borderRadius: 7,
-                  }}
-                />
-              ))}
-            </HStack>
-
-            <HStack className="justify-between">
-              {emotionDist.map((e) => (
-                <VStack key={e.label} className="items-center flex-1">
-                  <Text className="text-2xl mb-1">{e.emoji}</Text>
-                  <Text className="text-base font-extrabold" style={{ color: Colors.textPrimary }}>{e.percent}%</Text>
-                  <Text className="text-[10px] mt-0.5" style={{ color: Colors.textMuted }}>{e.label}</Text>
-                </VStack>
-              ))}
-            </HStack>
-          </Box>
-        </VStack>
-
-        {/* ── 6. Wellbeing indicators ── */}
-        <VStack className="mb-6">
-          <HStack className="items-center gap-2 mb-3">
-            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
-            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Indicateurs de bien-être</Text>
-          </HStack>
-          <HStack className="flex-wrap gap-2.5">
-            {WELLBEING_INDICATORS.map((ind) => (
-              <VStack
-                key={ind.label}
-                className="items-center p-4 rounded-2xl"
-                style={{
-                  width: (width - 50) / 2,
-                  backgroundColor: Colors.card,
-                  borderWidth: 1.5,
-                  borderColor: Colors.cardBorder,
-                  ...CARD_SHADOW,
-                }}
-              >
-                <Text className="text-2xl mb-1.5">{ind.icon}</Text>
-                <Text className="text-2xl font-black" style={{ color: getScoreColor(ind.label.includes('Stress') ? 10 - ind.value : ind.value) }}>
-                  {ind.value.toFixed(1)}
-                </Text>
-                <Text className="text-[11px] mt-0.5 text-center" style={{ color: Colors.textSecondary }}>{ind.label}</Text>
-                <HStack className="items-center gap-0.5 mt-1.5 px-2 py-0.5 rounded-lg" style={{ backgroundColor: Colors.pageBg }}>
-                  <Ionicons
-                    name={ind.trend >= 0 ? 'arrow-up' : 'arrow-down'}
-                    size={10}
-                    color={
-                      ind.label.includes('Stress')
-                        ? (ind.trend <= 0 ? Colors.green : Colors.red)
-                        : (ind.trend >= 0 ? Colors.green : Colors.red)
-                    }
-                  />
-                  <Text className="text-[11px] font-bold" style={{
-                    color: ind.label.includes('Stress')
-                      ? (ind.trend <= 0 ? Colors.green : Colors.red)
-                      : (ind.trend >= 0 ? Colors.green : Colors.red),
-                  }}>
-                    {ind.trend >= 0 ? '+' : ''}{ind.trend.toFixed(1)}
-                  </Text>
-                </HStack>
-              </VStack>
-            ))}
-          </HStack>
-        </VStack>
-
-        {/* ── 7. Anonymous alerts ── */}
-        {ANONYMOUS_ALERTS.length > 0 && (
-          <VStack className="mb-6">
-            <HStack className="items-center gap-2 mb-3">
-            <Box style={{ width: 4, height: 18, borderRadius: 2, backgroundColor: TEACHER_ORANGE }} />
-            <Text className="text-base font-bold" style={{ color: Colors.textPrimary }}>Signalements anonymes</Text>
-          </HStack>
-            {ANONYMOUS_ALERTS.map((alert) => (
-              <Box
-                key={alert.id}
-                className="rounded-[14px] p-3.5 mb-2"
-                style={{
-                  borderWidth: 1,
-                  borderColor: alert.level === 'vigilance' ? Colors.orange + '40' : Colors.red + '40',
-                  backgroundColor: alert.level === 'vigilance' ? '#FFFBEB' : '#FEF2F2',
-                }}
-              >
-                <HStack className="justify-between items-center mb-2">
-                  <HStack className="items-center gap-1 px-2 py-[3px] rounded-lg" style={{ backgroundColor: (alert.level === 'vigilance' ? Colors.orange : Colors.red) + '20' }}>
-                    <Ionicons
-                      name={alert.level === 'vigilance' ? 'warning' : 'alert'}
-                      size={14}
-                      color={alert.level === 'vigilance' ? Colors.orange : Colors.red}
-                    />
-                    <Text className="text-xs font-bold uppercase" style={{ color: alert.level === 'vigilance' ? Colors.orange : Colors.red }}>
-                      {alert.level === 'vigilance' ? 'Vigilance' : 'Attention'}
-                    </Text>
-                  </HStack>
-                  <Text className="text-[11px]" style={{ color: Colors.textMuted }}>{alert.date}</Text>
-                </HStack>
-                <Text className="text-[13px] leading-[19px]" style={{ color: Colors.textSecondary }}>{alert.message}</Text>
-              </Box>
-            ))}
-
-            {/* ── 8. Anonymity disclaimer ── */}
-            <HStack className="items-center gap-2 mt-2 px-1">
-              <Ionicons name="eye-off" size={14} color={Colors.textMuted} />
-              <Text className="flex-1 text-[11px] leading-4" style={{ color: Colors.textMuted }}>
-                Les données sont agrégées et anonymisées. Aucun nom d'élève n'est visible.
-              </Text>
-            </HStack>
-          </VStack>
-        )}
+        {/* ── Anonymat ── */}
+        <HStack className="items-center gap-2 mb-6 px-1">
+          <Ionicons name="eye-off" size={14} color={Colors.textMuted} />
+          <Text className="flex-1 text-[11px] leading-4" style={{ color: Colors.textMuted }}>
+            Données agrégées et anonymisées. Le Score de Joie est une tendance, jamais une note : aucun chiffre, aucune alerte.
+          </Text>
+        </HStack>
 
         <Box className="h-10" />
       </VStack>

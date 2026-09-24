@@ -48,7 +48,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
-import { aDesNotes } from '../utils/niveau';
+import { aDesDevoirs, aDesNotes, aUnEmploiDuTemps } from '../utils/niveau';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -310,9 +310,10 @@ function AgendaScreenContent() {
   const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Tout');
-  const avecDevoirs = aDesNotes(selectedChild?.cycle);
+  // Devoirs dès le CP ; jamais en maternelle (pas de filtre « Devoirs »).
+  const avecDevoirs = aDesDevoirs(selectedChild?.cycle);
   const filtres = FILTER_TABS.filter((f) => f !== 'Devoirs' || avecDevoirs);
-  // Changement d'enfant vers la maternelle / le primaire : pas de filtre « Devoirs ».
+  // Changement d'enfant vers la maternelle : pas de filtre « Devoirs ».
   useEffect(() => {
     if (!avecDevoirs && activeFilter === 'Devoirs') setActiveFilter('Tout');
   }, [avecDevoirs, activeFilter]);
@@ -393,26 +394,59 @@ function AgendaScreenContent() {
 
   // ─── Demo devoirs data ─────────────────────────────────
   const demoDevoirs = useMemo((): DevoirGroup[] => {
-    // Devoirs de démo : collège / lycée, en mode démo uniquement (jamais pour un compte réel).
-    if (!isDemoMode || !aDesNotes(selectedChild?.cycle)) return [];
+    // Devoirs de démo : dès le CP, en mode démo uniquement (jamais pour un compte réel).
+    // Primaire : leçons, lecture, poésie, tables — jamais de contenu de collège.
+    if (!isDemoMode || !aDesDevoirs(selectedChild?.cycle)) return [];
+    const college = aDesNotes(selectedChild?.cycle);
     const t = new Date();
     t.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(t); tomorrow.setDate(t.getDate() + 1);
-    const inThreeDays = new Date(t); inThreeDays.setDate(t.getDate() + 3);
-    const fourDaysAgo = new Date(t); fourDaysAgo.setDate(t.getDate() - 4);
+    // Échéances sur des jours d'école (jamais un samedi ou un dimanche).
+    const ecole = (d: Date, sens: 1 | -1) => { while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + sens); return d; };
+    const tomorrow = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), 1);
+    const inThreeDays = ecole(new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 2), 1);
+    const fourDaysAgo = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() - 4), -1);
+    const estDemain = tomorrow.toDateString() === new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1).toDateString();
     const DAY_SHORT = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
     const DAY_FULL = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
     const MONTH = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
     const fmt = (d: Date) => `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
     const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    if (!college) {
+      return [
+        {
+          label: fmt(tomorrow),
+          sublabel: estDemain ? 'Demain' : cap(DAY_FULL[tomorrow.getDay()]),
+          devoirs: [
+            { id: 'hwp1', subject: 'FRANÇAIS', title: 'Poésie : « Le Lion et le Rat », jusqu’au vers 8', time: '', isDemain: estDemain, done: false },
+            { id: 'hwp2', subject: 'MATHS', title: 'Revoir les tables de 7 et de 8', time: '', isDemain: estDemain, done: false },
+          ],
+        },
+        {
+          label: fmt(inThreeDays),
+          sublabel: cap(DAY_FULL[inThreeDays.getDay()]),
+          devoirs: [
+            { id: 'hwp3', subject: 'FRANÇAIS', title: 'Lire le chapitre 3 du Petit Prince', time: '', done: false },
+            { id: 'hwp4', subject: 'HISTOIRE', title: 'Apprendre la leçon sur la Renaissance', time: '', detail: 'Cahier d’histoire', done: false },
+          ],
+        },
+        {
+          label: fmt(fourDaysAgo),
+          sublabel: `${cap(DAY_FULL[fourDaysAgo.getDay()])} dernier`,
+          isRendus: true,
+          devoirs: [
+            { id: 'hwp5', subject: 'FRANÇAIS', title: 'Dictée préparée : liste de mots n°4', time: '', done: true },
+          ],
+        },
+      ];
+    }
     return [
       {
         label: fmt(tomorrow),
-        sublabel: 'Demain',
+        sublabel: estDemain ? 'Demain' : cap(DAY_FULL[tomorrow.getDay()]),
         devoirs: [
-          { id: 'hw1', subject: 'MATHS', title: 'Exercices p.84 n°12 à 18', time: '8h00', attachment: '1 PDF', isDemain: true, done: false },
+          { id: 'hw1', subject: 'MATHS', title: 'Exercices p.84 n°12 à 18', time: '8h00', attachment: '1 PDF', isDemain: estDemain, done: false },
           { id: 'hw2', subject: 'ANGLAIS', title: 'Apprendre vocabulaire unit 6', time: '10h00', done: false },
-          { id: 'hw3', subject: 'HISTOIRE', title: 'Lire chapitre 7', time: '14h00', detail: 'Manuel p.142', isDemain: true, done: false },
+          { id: 'hw3', subject: 'HISTOIRE', title: 'Lire chapitre 7', time: '14h00', detail: 'Manuel p.142', isDemain: estDemain, done: false },
         ],
       },
       {
@@ -484,7 +518,7 @@ function AgendaScreenContent() {
       for (let i = 0; i < 7; i++) {
         const dayDate = computed[i].fullDate;
         const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
-        // Devoirs : collège / lycée uniquement (jamais en maternelle ni en primaire).
+        // Devoirs : dès le CP, jamais en maternelle.
         const demoEvents = getDemoAgendaRef.current(selectedChildId, dateStr).filter(
           (ev) => avecDevoirs || ev.type !== 'devoir',
         );
@@ -907,7 +941,7 @@ function AgendaScreenContent() {
               style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
             />
           </Pressable>
-          {aDesNotes(selectedChild?.cycle) && (
+          {aUnEmploiDuTemps(selectedChild?.cycle) && (
           <Pressable
             onPress={() => navigation.navigate('Timetable')}
             hitSlop={8}

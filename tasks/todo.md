@@ -2,19 +2,25 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2 et B2-bis FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
+**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2, B2-bis et B2-ter FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
+
+### B2-ter (24 sept) — règles par niveau et réponses aux 3 questions
+- **Règle corrigée** (l'ancienne « devoirs / emploi du temps réservés au collège » était fausse) : maternelle = ni devoirs ni filtre « Devoirs » ni emploi du temps ; CP à CM2 = filtre « Devoirs » + devoirs de primaire + emploi du temps en journée type ; collège / lycée inchangé. `utils/niveau.ts` : `aDesDevoirs`, `aUnEmploiDuTemps`.
+- Lucas (CM2) : devoirs de démo remis et rendus crédibles (leçon d'histoire, tables de 7 et 8, lecture du Petit Prince, fractions, poésie de La Fontaine, dictée préparée ; « Évaluation de maths »), salles « Classe de CM2 B ». Onglet Devoirs primaire dédié. Échéances toujours sur un jour d'école.
+- Emploi du temps : construit depuis l'agenda de démo de l'enfant actif (semaine en cours, semaines précédente / suivante) ; Lucas = Mme Dupont (EPS : M. Garcia) ; Emma = enseignants de l'univers démo.
+- Q1 (espace enseignant) : tableau de bord et météo de classe sans chiffre, sans %, sans vert/rouge, sans alerte ni « analyse IA » ; tendance en mots ; liste en ordre alphabétique (aucun classement par Score de Joie).
+- Q2 (agenda de démo) : dates recalées sur la semaine courante (`DemoContext`, même jour de la semaine) ; cours répétés la semaine suivante.
+- Q3 (compétences sur 10) : section « Compétences clés » du profil, compétences de l'export PDF et « Points forts » du mémo supprimés → refonte en B3. Au passage : le bloc « Bien-être général » (joie /10) du mémo de transition, que B2-bis croyait retiré, l'est vraiment.
 
 ### B2-bis (24 sept) — conformité charte
 - Score de Joie : plus aucun chiffre ni alerte côté parent (profil, curseur du ressenti, export PDF, mémo de transition, réponses de démo d’Aria). Profil : « Tendance sur 5 jours : stable / plutôt en hausse / plutôt en baisse » (écart > 10 % entre les 5 derniers relevés et les 5 précédents), rien sous 10 relevés. JoyAlerts / JoyHistory supprimés.
 - Mon ressenti : détection d’urgence = `detectEmergency` partagé (celui d’Aria, 22 cas testés) au lieu d’une liste maison ; mention « chiffrées, partagées avec personne » (inexacte) remplacée par « Visible uniquement par les responsables de l’enfant ».
 - Super-pouvoir : étiquettes sans emoji, mention « Observé par Aria » retirée (aussi dans le texte partagé). L’emoji principal du super-pouvoir (🔭) est gardé (contenu).
-- Agenda : devoirs de démo (onglet Devoirs + événements « devoir ») réservés au collège / lycée ; filtre « Devoirs » masqué sinon (et remis sur « Tout » au changement d’enfant). Cause : le calcul des devoirs n’était fait qu’une fois (dépendances vides). Au passage : choisir un jour dans le calendrier du mois ne rechargeait pas la semaine (événements de la semaine en cours) → corrigé.
+- Agenda : ~~devoirs de démo réservés au collège / lycée~~ (règle erronée, corrigée en B2-ter : devoirs dès le CP) ; filtre « Devoirs » masqué en maternelle (et remis sur « Tout » au changement d’enfant). Cause : le calcul des devoirs n’était fait qu’une fois (dépendances vides). Au passage : choisir un jour dans le calendrier du mois ne rechargeait pas la semaine (événements de la semaine en cours) → corrigé.
 - Fond de l’Accueil : page profonde (‹ + titre, sans barres). Élision « de / d’ » : `utils/francais.ts` `de()` (profil, couleur, avatar, autorisations, ajout enfant / année, carte Aria, confirmation de signature).
 - Aria : vouvoiement dans les écrans, suggestions, réponses de démo, cartes ; consigne serveur fixe ajoutée par l’Edge Function (déployée).
 - État vide Agenda : icône lucide CalendarCheck.
-- [UNCLEAR] Espace enseignant (TeacherDashboard « joie x/10 » par élève, Météo de classe avec alertes en %) : non modifié (sprint enseignant). À aligner sur la même règle ?
-- [UNCLEAR] Agenda de démo : événements datés du 30 mars au 4 avril 2026 → la semaine en cours est vide en démo. Recaler les dates sur la semaine courante (relatif à aujourd’hui) ?
-- [UNCLEAR] Les « Compétences clés » du profil sont encore notées sur 10 (Connaissances 8, Créativité 7…), y compris dans l’export PDF : hors Score de Joie, mais contraire à « jamais de chiffre » sur les compétences LSU → à revoir avec la refonte du profil.
+- ~~3 questions (espace enseignant, dates de l'agenda de démo, compétences sur 10)~~ → répondues et faites en B2-ter.
 
 ### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
 - ~~Header Accueil, bas arrondi~~ → **remplacé le 24 sept par un fondu** (décision produit) : rgba(couleur, 1 → 0), 10 arrêts ease-out, ~300 px, cartes flottantes ; libellés sur le fondu en blanc (opacité ≥ 0,6) ou gris 55 %. Contrastes vérifiés sur les 6 couleurs (pire : sarcelle, « Bonjour » 5,1, « À FAIRE » 4,8). Photo : voile #F2F1EE d’opacité (1 − a), identique à une photo qui disparaît sur fond uni (MaskedView évité).
@@ -22,7 +28,7 @@
 - **Retour par glissement** : autorisé sur toute route qui n’est pas une racine d’onglet, départ du doigt à moins de 40 px du bord gauche, déclenché à 70 px (ou 30 px si rapide). Exclu : SignSuccess (revenir au formulaire déjà signé n’a pas de sens).
 - **Couleurs d’enfant** : 6 couleurs (Indigo #4338CA, Océan #0369A1, Sarcelle #0F766E, Framboise #BE185D, Ardoise #334155, Pierre #57534E) ; exclus : ambre (Score de Joie), violet, vert, rouge ; toutes lisibles avec une initiale blanche.
 - **Fond photo de l’Accueil** : voile sombre rgba(15,23,42,0.28) sur la photo pour garder « Bonjour + prénom » lisible en blanc.
-- **Emploi du temps, cahier de texte, bulletin de démo** : réservés au collège / lycée (Emma). Lucas (CM2) n’a ni emploi du temps ni devoirs en démo → page vide « Pas d’emploi du temps pour Lucas pour l’instant ». Bouton « Emploi du temps » de l’Agenda masqué hors collège / lycée.
+- ~~**Emploi du temps, cahier de texte, bulletin de démo** : réservés au collège / lycée~~ → **corrigé en B2-ter** : emploi du temps et devoirs dès le CP (Lucas : journée type de CM2) ; bulletin et cahier de texte de démo restent ceux d'Emma (collège).
 - **Compétences de démo de Lucas** : intitulés rédigés pour la démo, « dans l’esprit » du LSU ; les intitulés officiels (Éduscol) sont à reprendre en B3.
 - **Compte réel avec enfant** : Accueil, Notes, Agenda, Messages affichent des états vides (« Rien de prévu aujourd’hui », « Aucune note pour l’instant »…) tant que ces données ne sont pas branchées sur la base — jamais de démo.
 - **Aria, compte réel** : le modèle reçoit prénom + niveau seulement (aucune donnée du carnet encore). L’action « signaler une absence » est gardée ; l’action « envoyer un message » est retirée du prompt réel (aucune conversation réelle à cibler).
@@ -34,7 +40,7 @@
 - Aucune migration destructive requise. M13 (`children.fond`) et M2f sont des ajouts.
 - [UNCLEAR] Détail d’un événement : le badge « Inscrite » (féminin, figé) s’affiche pour tout événement → à revoir avec B6 (Agenda).
 - [UNCLEAR] L’onglet Notes (vue maternelle de démo) garde l’image de fond globale (WallpaperContext) → à retirer en B3 ?
-- [UNCLEAR] Emploi du temps de démo d’Emma : semaine figée « Semaine 18 · 4–10 mai 2026 ».
+- ~~Emploi du temps de démo d’Emma : semaine figée « Semaine 18 · 4–10 mai 2026 »~~ → semaine en cours (B2-ter).
 
 Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
 

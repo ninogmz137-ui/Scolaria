@@ -25,7 +25,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from '../components/ui';
 import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
-import { aDesNotes } from '../utils/niveau';
+import { aDesNotes, aUnEmploiDuTemps } from '../utils/niveau';
+import { useDemoData } from '../contexts/DemoContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -71,73 +72,36 @@ type DayInfo = {
   modified?: boolean;
 };
 
-// ─── Données démo — élève de collège (Emma, 3e B) ────────────────────────────
+// ─── Données démo : cours de l'agenda de démo de l'enfant actif ─────────────
 
-const SCHEDULE: ScheduleItem[] = [
-  {
-    id: '1',
-    start: '08:00',
-    end: '09:00',
-    subject: 'Mathématiques',
-    teacher: 'M. Petit',
-    room: 'Salle A112',
-  },
-  {
-    id: '2',
-    start: '09:00',
-    end: '10:00',
-    subject: 'Anglais',
-    teacher: 'Mme Bernard',
-    room: 'Salle C301',
-  },
-  { id: 'b1', type: 'break', label: 'Récréation · 15 min' },
-  {
-    id: '3',
-    start: '10:15',
-    end: '11:15',
-    subject: 'Histoire',
-    teacher: 'M. Durand',
-    room: 'Salle B105',
-  },
-  {
-    id: '4',
-    start: '11:15',
-    end: '12:15',
-    subject: 'Français',
-    teacher: 'Mme Lambert',
-    room: 'Salle A210',
-  },
-  { id: 'b2', type: 'break', label: 'Pause déjeuner · cantine' },
-  {
-    id: '5',
-    start: '13:30',
-    end: '14:30',
-    subject: 'SVT',
-    teacher: 'M. Martin',
-    room: 'Salle B204',
-    alert: 'SALLE CHANGÉE',
-  },
-  {
-    id: '6',
-    start: '14:30',
-    end: '15:30',
-    subject: 'EPS',
-    teacher: 'M. Olivier',
-    room: 'Gymnase',
-  },
-];
+/** Enseignants de l'univers de démo (src/data/demo/carnet.ts). */
+const ENSEIGNANT_COLLEGE: Record<string, string> = {
+  'Mathématiques': 'M. Petit',
+  'Français': 'Mme Lambert',
+  'SVT': 'M. Martin',
+  'Anglais': 'Mme Bernard',
+  'Physique-Chimie': 'M. Leclerc',
+  'Histoire-Géo': 'M. Durand',
+  'Vie de classe': 'Mme Rousseau',
+};
 
-// Semaine 18 · 4–10 mai 2026
-// Point rouge sur Mardi (SVT salle changée)
-const DAYS: DayInfo[] = [
-  { letter: 'L', num: 4 },
-  { letter: 'M', num: 5, modified: true },
-  { letter: 'M', num: 6 },
-  { letter: 'J', num: 7 },
-  { letter: 'V', num: 8 },
-  { letter: 'S', num: 9 },
-  { letter: 'D', num: 10 },
-];
+const JOUR_LETTRE = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+function lundiDe(d: Date): Date {
+  const l = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  l.setDate(l.getDate() - ((l.getDay() + 6) % 7));
+  return l;
+}
+
+function isoLocal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function enseignant(subject: string, college: boolean): string {
+  if (college) return ENSEIGNANT_COLLEGE[subject] ?? '';
+  return subject === 'EPS' ? 'M. Garcia' : 'Mme Dupont';
+}
 
 // ─── Composants ───────────────────────────────────────────────────────────────
 
@@ -175,7 +139,7 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
           {item.alert ? <AlertBadge label={item.alert} /> : null}
         </View>
         <Text style={styles.courseMeta} numberOfLines={1}>
-          {item.teacher} · {item.room}
+          {[item.teacher, item.room].filter(Boolean).join(' · ')}
         </Text>
       </View>
     </View>
@@ -184,11 +148,43 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
 
 // ─── Écran principal ──────────────────────────────────────────────────────────
 
-function TimetableScreenContent() {
+function TimetableScreenContent({ childId, college }: { childId: string; college: boolean }) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const [selectedDayIdx, setSelectedDayIdx] = useState(1); // Mardi par défaut
+  const { getAgenda } = useDemoData();
+  const aujourdHui = new Date();
+  const [semaine, setSemaine] = useState(0);
+  const lundi = lundiDe(aujourdHui);
+  lundi.setDate(lundi.getDate() + semaine * 7);
+  const jours = Array.from({ length: 7 }, (_, i) => new Date(lundi.getFullYear(), lundi.getMonth(), lundi.getDate() + i));
+  const indexAujourdHui = (aujourdHui.getDay() + 6) % 7;
+  const [selectedDayIdx, setSelectedDayIdx] = useState(indexAujourdHui);
 
+  const DAYS: DayInfo[] = jours.map((d, i) => ({ letter: JOUR_LETTRE[i], num: d.getDate() }));
+  const dimanche = jours[6];
+  const weekLabel = lundi.getMonth() === dimanche.getMonth()
+    ? `Du ${lundi.getDate()} au ${dimanche.getDate()} ${MOIS[dimanche.getMonth()]}`
+    : `Du ${lundi.getDate()} ${MOIS[lundi.getMonth()]} au ${dimanche.getDate()} ${MOIS[dimanche.getMonth()]}`;
+
+  // Cours du jour choisi (journée type : identique chaque semaine), pauses ajoutées entre les créneaux.
+  const cours = getAgenda(childId, isoLocal(jours[selectedDayIdx]))
+    .filter((c) => c.type === 'cours' || c.type === 'examen')
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const SCHEDULE: ScheduleItem[] = [];
+  cours.forEach((c, i) => {
+    const precedent = cours[i - 1];
+    if (precedent && precedent.endTime <= '12:00' && c.startTime >= '13:00') {
+      SCHEDULE.push({ id: `pause-${c.id}`, type: 'break', label: 'Pause déjeuner · cantine' });
+    }
+    SCHEDULE.push({
+      id: c.id,
+      start: c.startTime,
+      end: c.endTime,
+      subject: c.title,
+      teacher: enseignant(c.subject, college),
+      room: c.room,
+    });
+  });
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
 
@@ -212,6 +208,7 @@ function TimetableScreenContent() {
 
         {/* Droite : Aujourd'hui */}
         <TouchableOpacity
+          onPress={() => { setSemaine(0); setSelectedDayIdx(indexAujourdHui); }}
           style={styles.todayBtnWrap}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
@@ -223,13 +220,15 @@ function TimetableScreenContent() {
       {/* ── Sélecteur semaine ── */}
       <View style={styles.weekNav}>
         <TouchableOpacity
+          onPress={() => setSemaine((s) => s - 1)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
           <ChevronLeft size={18} color={TEXT55} strokeWidth={2} />
         </TouchableOpacity>
-        <Text style={styles.weekLabel}>Semaine 18 · 4–10 mai 2026</Text>
+        <Text style={styles.weekLabel}>{weekLabel}</Text>
         <TouchableOpacity
+          onPress={() => setSemaine((s) => s + 1)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
@@ -279,6 +278,9 @@ function TimetableScreenContent() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.timelineContent}
       >
+        {SCHEDULE.length === 0 && (
+          <Text style={styles.breakText}>{selectedDayIdx >= 5 ? 'Pas d’école ce jour-là' : 'Pas de cours ce jour-là'}</Text>
+        )}
         {SCHEDULE.map((item) => {
           if (item.type === 'break') {
             return <BreakRow key={item.id} label={item.label} />;
@@ -520,15 +522,15 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Garde « un enfant = un carnet » : ces données de démo sont celles d'un élève de collège.
- * Elles ne s'affichent qu'en mode démo, pour un enfant de collège / lycée ; sinon, page vide.
+ * Garde « un enfant = un carnet » : emploi du temps de l'enfant actif (démo uniquement).
+ * Dès le CP (en primaire : journée type identique chaque semaine) ; jamais en maternelle.
  */
 export default function TimetableScreen() {
   const { selectedChild } = useActiveChild();
   const { isDemo } = useAuth();
   if (!selectedChild) return <AucunEnfantPage title="Emploi du temps" />;
-  if (!isDemo || !aDesNotes(selectedChild.cycle)) {
+  if (!isDemo || !aUnEmploiDuTemps(selectedChild.cycle)) {
     return <PageVide title="Emploi du temps" message={`Pas d’emploi du temps pour ${selectedChild.name} pour l’instant.`} />;
   }
-  return <TimetableScreenContent />;
+  return <TimetableScreenContent key={selectedChild.id} childId={selectedChild.id} college={aDesNotes(selectedChild.cycle)} />;
 }

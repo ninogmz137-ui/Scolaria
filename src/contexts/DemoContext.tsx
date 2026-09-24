@@ -7,7 +7,7 @@
  * Data comes from static JSON files in src/data/demo/.
  */
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
 // ─── Import demo data ────────────────────────────────────
@@ -172,6 +172,39 @@ const DemoContext = createContext<DemoContextValue>({
   signMot: () => {},
 });
 
+// ─── Agenda de démo recalé sur aujourd'hui ───────────────
+
+/** Lundi de la semaine type des données de démo (demo-agenda.json). */
+const LUNDI_DEMO = new Date(2026, 2, 30);
+
+function lundiDe(d: Date): Date {
+  const l = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  l.setDate(l.getDate() - ((l.getDay() + 6) % 7));
+  return l;
+}
+
+function isoLocal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Les dates de démo sont relatives à aujourd'hui : la semaine type devient la semaine en cours
+ * (même jour de la semaine), et ses cours se répètent la semaine suivante (emploi du temps fixe).
+ * La semaine courante n'est donc jamais vide, pour chaque enfant.
+ */
+function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
+  const decalage = Math.round((lundiDe(aujourdHui).getTime() - LUNDI_DEMO.getTime()) / 86400000);
+  const deplacer = (date: string, jours: number) => {
+    const [a, m, j] = date.split('-').map(Number);
+    return isoLocal(new Date(a, m - 1, j + jours));
+  };
+  const semaine = (demoAgenda as DemoAgendaEvent[]).map((e) => ({ ...e, date: deplacer(e.date, decalage) }));
+  const suivante = semaine
+    .filter((e) => e.type === 'cours')
+    .map((e) => ({ ...e, id: `${e.id}-s2`, date: deplacer(e.date, 7) }));
+  return [...semaine, ...suivante];
+}
+
 // ─── Provider ────────────────────────────────────────────
 
 export function DemoProvider({ children: reactChildren }: { children: ReactNode }) {
@@ -193,8 +226,10 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     return grades;
   }, []);
 
+  const agenda = useMemo(() => agendaRecale(new Date()), []);
+
   const getAgenda = useCallback((childId: string, date?: string): DemoAgendaEvent[] => {
-    let events = (demoAgenda as DemoAgendaEvent[]).filter((e) => e.childId === childId);
+    let events = agenda.filter((e) => e.childId === childId);
     if (date) {
       events = events.filter((e) => e.date === date);
     }
@@ -203,7 +238,7 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
       ...e,
       is_completed: agendaState[e.id] !== undefined ? agendaState[e.id] : e.is_completed,
     }));
-  }, [agendaState]);
+  }, [agenda, agendaState]);
 
   const getMessages = useCallback((childId: string): DemoMessage[] => {
     return (demoMessages as DemoMessage[])

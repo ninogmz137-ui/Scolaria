@@ -311,6 +311,12 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 - V1 : date saisie par l'enseignant. Phase 2 : détection automatique par Aria.
 - Mots importés : le parent ajoute la date à la main.
 
+### Devoirs et emploi du temps selon le niveau
+- **Maternelle** : pas de devoirs, pas de filtre « Devoirs », pas d'emploi du temps.
+- **CP à CM2** : filtre « Devoirs » présent ; devoirs de primaire (leçon à apprendre, lecture, poésie, tables, dictée préparée), jamais de contenu de collège. Emploi du temps = **journée type fixe**, identique chaque semaine.
+- **Collège / lycée** : devoirs et emploi du temps par matière et par enseignant.
+- Démo : dates **relatives à aujourd'hui** (la semaine courante n'est jamais vide, pour chaque enfant).
+
 ---
 
 ## Notifications
@@ -433,7 +439,8 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
 - Fenêtre glissante 5 jours
 - 3 niveaux : Attention (baisse 15-30%) / Vigilance (baisse >30%) / Urgence (mots-clés)
-- Présenté comme tendance — jamais chiffre brut
+- Présenté comme tendance en mots (« stable », « plutôt en hausse », « plutôt en baisse ») — jamais de chiffre, de %, ni de vert/rouge, **y compris côté enseignant** (tableau de bord, météo de classe)
+- **V1 : aucune alerte** (Attention / Vigilance arrivent avec Aria stade 3, Phase 3). Seul le protocole d'urgence (mots-clés) s'applique.
 - Révisable par le parent (contexte maladie, événement familial)
 - Couleur : #F59E0B · Emoji : 💛
 

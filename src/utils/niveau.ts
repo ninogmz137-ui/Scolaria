@@ -52,3 +52,13 @@ export function cycleDuNiveau(niveau: string | null | undefined): Cycle | null {
 export function aDesNotes(cycle: Cycle | null | undefined): boolean {
   return cycle === 'college' || cycle === 'lycee';
 }
+
+/** Devoirs : dès le CP (primaire, collège, lycée). Jamais en maternelle. */
+export function aDesDevoirs(cycle: Cycle | null | undefined): boolean {
+  return cycle === 'primaire' || aDesNotes(cycle);
+}
+
+/** Emploi du temps : dès le CP (en primaire, journée type identique chaque semaine). */
+export function aUnEmploiDuTemps(cycle: Cycle | null | undefined): boolean {
+  return cycle === 'primaire' || aDesNotes(cycle);
+}
