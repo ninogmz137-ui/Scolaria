@@ -4,15 +4,15 @@
  * Structure : [Burger ☰] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages] [Avatar enfant]
  *
  * - Burger 34px gauche → écran unique « Famille & paramètres »
- * - Pill active : icône + label, fond rgba(255,255,255,0.42), border blanc
- * - Pill inactive : icône seule, transparent
+ * - Pill active : icône + libellé, fond rgba(15,23,42,0.08), hauteur 30 (COMPONENTS §0)
+ * - Onglet inactif : icône seule, SANS fond, couleur rgba(15,23,42,0.38)
+ * - La barre est toujours posée sur #F2F1EE (le header de l'Accueil est une carte SOUS la barre) :
+ *   un seul jeu de couleurs, jamais de variante « sur header ».
  * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
  * - Badge rouge 6px sur Messages si hasUnreadMessages
  */
 
 import React, { useState } from 'react';
-import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
-import { useTopbarScrollY } from '../../contexts/TopbarScrollContext';
 import { View, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,8 +54,8 @@ const TABS: TabConfig[] = [
 export const TOPBAR_PADDING_TOP = 10;
 export const TOPBAR_ROW_HEIGHT = 34;
 
-/** Au-delà de ce défilement, le voile #F2F1EE est assez présent pour passer aux pills sombres. */
-const HEADER_PILLS_UNTIL_SCROLL = 8;
+const ICON_ACTIVE = '#0F172A';
+const ICON_INACTIVE = 'rgba(15,23,42,0.38)';
 
 // ─── Composant ───────────────────────────────────────────
 
@@ -64,18 +64,6 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const navigation = useNavigation<any>();
   const { selectedChild, children } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
-
-  // Accueil au repos : la barre est posée sur le header indigo → pills claires.
-  // Dès que le voile #F2F1EE apparaît (ou sur les autres onglets) → pills sombres.
-  const scrollY = useTopbarScrollY();
-  const [overContent, setOverContent] = useState(false);
-  useAnimatedReaction(
-    () => scrollY.value > HEADER_PILLS_UNTIL_SCROLL,
-    (next, prev) => {
-      if (next !== prev) runOnJS(setOverContent)(next);
-    },
-  );
-  const onHeader = activeTab === 'accueil' && !overContent;
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -127,19 +115,15 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               onPress={() => handleTabPress(tab)}
               style={[
                 styles.pill,
-                isActive
-                  ? (onHeader ? styles.pillActiveOnHeader : styles.pillActiveOther)
-                  : (onHeader ? styles.pillInactiveOnHeader : styles.pillInactiveOther),
+                isActive ? styles.pillActive : styles.pillInactive,
                 !isLast && styles.pillMargin,
               ]}
+              hitSlop={{ top: 7, bottom: 7 }}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={tab.label}
             >
-              <Icon
-                size={22}
-                color={isActive ? '#0F172A' : (onHeader ? '#FFFFFF' : 'rgba(15,23,42,0.60)')}
-              />
+              <Icon size={22} color={isActive ? ICON_ACTIVE : ICON_INACTIVE} />
               {isActive && (
                 <Text style={styles.pillLabel}>{tab.label}</Text>
               )}
@@ -208,10 +192,8 @@ const styles = StyleSheet.create({
   burger: {
     width: 34,
     height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.38)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -232,36 +214,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  // Sur le header indigo de l'Accueil (au repos) — contraste : #0F172A sur blanc 92 %
-  pillActiveOnHeader: {
-    height: 34,
-    paddingLeft: 11,
-    paddingRight: 14,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-  },
-  pillInactiveOnHeader: {
-    width: 36,
-    height: 32,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    justifyContent: 'center',
-  },
-  // Active — fond sombre discret
-  pillActiveOther: {
-    height: 34,
-    paddingLeft: 11,
-    paddingRight: 14,
+  // Onglet actif : pill grise, icône + libellé
+  pillActive: {
+    height: 30,
+    paddingHorizontal: 10,
     backgroundColor: 'rgba(15,23,42,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.10)',
   },
-  // Inactive — fond discret pour rester lisible
-  pillInactiveOther: {
-    width: 36,
-    height: 32,
-    backgroundColor: 'rgba(15,23,42,0.08)',
+  // Onglet inactif : icône seule, sans fond (zone tactile 44 px en hauteur via hitSlop)
+  pillInactive: {
+    width: 34,
+    height: 30,
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   pillMargin: {
     marginRight: 5,
@@ -270,7 +234,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    fontWeight: '700',
     letterSpacing: -0.2,
     color: '#0F172A',
     lineHeight: Platform.OS === 'android' ? 20 : undefined,
@@ -312,7 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.65)',
+    borderColor: 'rgba(15,23,42,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },

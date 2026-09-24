@@ -120,20 +120,6 @@ export default function AccueilScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Header wallpaper — indigo neutre en attendant la couleur de l'enfant (students.color, phase A) */}
-      <LinearGradient
-        colors={[
-          '#4338CA',
-          'rgba(67,56,202,0.72)',
-          'rgba(242,241,238,0.9)',
-          'rgba(242,241,238,0)',
-        ]}
-        locations={[0, 0.40, 0.88, 1.0]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.heroGradient}
-      />
-
       <Animated.ScrollView
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
@@ -144,10 +130,10 @@ export default function AccueilScreen() {
         {/* Espace TopBar (position: absolute) */}
         <View style={{ height: insets.top + 60 }} />
 
-        {/* Contenu hero */}
-        <View style={styles.heroContent}>
-          <Text style={styles.heroHello}>Bonjour 👋</Text>
-          <Text style={styles.heroPrenom}>{prenom}</Text>
+        {/* Header : carte 130 px sous la top bar. Indigo neutre ; couleur / fond de l'enfant en B2. */}
+        <View style={styles.heroCard}>
+          <Text style={styles.heroHello}>Bonjour</Text>
+          <Text style={styles.heroPrenom} numberOfLines={1}>{prenom}</Text>
         </View>
 
         {/* À faire */}
@@ -271,16 +257,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.bg,
   },
 
-  // ── Hero gradient (absolu, derrière tout) ────────────
-  heroGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 440,
-    zIndex: 0,
-  },
-
   // ── ScrollView transparent ───────────────────────────
   scroll: {
     flex: 1,
@@ -288,23 +264,25 @@ const styles = StyleSheet.create({
   },
 
   // ── Contenu hero ─────────────────────────────────────
-  heroContent: {
-    paddingTop: 2,
+  heroCard: {
+    height: 130,
+    marginHorizontal: 12,
+    marginBottom: 16,
+    borderRadius: 20,
+    backgroundColor: '#4338CA',
     paddingHorizontal: 18,
-    paddingBottom: 24,
-    zIndex: 10,
+    paddingBottom: 16,
+    justifyContent: 'flex-end',
   },
   heroHello: {
     fontFamily: 'Figtree_500Medium',
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.72)',
+    color: 'rgba(255,255,255,0.78)',
     marginBottom: 1,
   },
   heroPrenom: {
     fontFamily: 'Figtree_900Black',
     fontSize: 32,
-    fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -1.2,
     lineHeight: 36,

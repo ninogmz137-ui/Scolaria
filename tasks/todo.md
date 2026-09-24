@@ -2,7 +2,7 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept). B1 FAIT (à vérifier sur le Redmi) ; B2 non commencé.**
+**Statut : PLAN VALIDÉ (24 sept). B1 validé sur le Redmi ; B1-bis FAIT (à vérifier sur le Redmi) ; B2 non commencé.**
 Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
 
 **Règles communes à chaque lot**
@@ -21,7 +21,7 @@ Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif,
 - Import : `expo-image-picker` et `expo-document-picker` déjà installés ; **aucun bucket Storage** en migration.
 - Aria : suggestions en cartes (`AriaHomeScreen.tsx:542-550`), `makeSuggestions(childName, mode)`.
 
-### B1 · Navigation — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+### B1 · Navigation — FAIT et VALIDÉ sur le Redmi (24 sept), corrections en B1-bis
 Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfant seul ; plus de swipe d’ouverture ; top bar en voile (déjà fait, commit 4914e8d → contrôle seulement).
 - [x] Nouvel écran `FamilleParametresScreen` (route `FamilleParametres`, chrome 'none', page profonde §8) : Mes enfants (row → profil de l’enfant, « Ajouter un enfant ») · Responsables légaux (vous seul pour l’instant → B4) · Mon profil · Apparence (Fond de l’Accueil) · Notifications (3 interrupteurs : mots et messages / résumé 18h / silence 20h–7h) · Aria (activée, personnalité, langue de saisie vocale) · Confidentialité & données (autorisations, journal, export, effacement) · Compte (à propos, déconnexion / quitter la démo, avec Alert).
 - [x] ☰ ouvre DIRECTEMENT cet écran. Supprimés : `BurgerMenu.tsx` (tiroir sombre + animation + overlays), `ReglagesScreen`, `EditProfileScreen` (« Mon compte », fusionné), `NotificationsSettingsScreen` (matrice par module, interdite ; écrivait une colonne `profiles.notification_preferences` qui n’existe pas), `TextSizeScreen` (réglage lu nulle part). Supprimés aussi : Capacités, Connecteurs, Liens partagés, Thème Auto, « Résumé quotidien 8h00 », fonds dégradés abstraits (WallpaperPicker : photos nature uniquement).
@@ -47,6 +47,33 @@ Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfan
 8. Avatar (en haut à droite) → sélecteur : e-mail, 3 enfants, coche sur l’enfant actif, « Ajouter un enfant » ; plus de « Gérer les enfants » ni de « Se déconnecter ». Changer d’enfant → la feuille se ferme.
 9. Voile : sur Notes et Agenda, faire défiler → fondu #F2F1EE sous la top bar et au-dessus de la bottom bar, jamais de bandeau opaque au repos.
 10. Retour matériel Android depuis « Famille & paramètres » → Accueil (pas de sortie de l’app).
+
+### B1-bis · Corrections après test Redmi — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+- [x] 1. Top bar (COMPONENTS §0) : onglet actif = pill rgba(15,23,42,0.08), 30 px, icône + libellé ; inactifs = icône seule SANS fond, rgba(15,23,42,0.38). Plus de variante « sur header » (pills blanches) : cause = la barre était posée sur le header indigo plein écran de l’Accueil. **Header de l’Accueil passé en carte 130 px sous la barre** (radius 20, marge 12, indigo neutre ; couleur / fond de l’enfant en B2). Burger = cercle 34 px rgba(15,23,42,0.08) ; avatar bordure 2 px rgba(15,23,42,0.15) ; fontWeight retiré du libellé.
+- [x] 2. Tagline : « Pour les familles françaises » (À propos) → « Le carnet de scolarité numérique ». « Passeport scolaire » → « carnet de scolarité » (fr.ts ×3, PDF ×3). Restent volontairement : phrases descriptives de CLAUDE.md / VISION.md / prompt d’Aria (« … des familles françaises », pas une tagline).
+- [x] 3. À propos réécrit en page profonde (§8) : retirés « 100 % Données en Europe », « AES-256 », « RGPD Conforme », « Conforme RGPD · CNIL · Données hébergées en France », le bloc Technologies (Google Vision jamais utilisé, « chiffrement E2E », « hébergement UE »), les emoji-icônes. Gardés : aucune publicité, données jamais revendues (icônes lucide). Charte = 7 principes de VISION.md §8 (dépliables).
+- [x] 4. Autorisations : rôles fictifs retirés (famille proche, accompagnant, accès minimal, grand-mère, assistante maternelle, médecin, 4 niveaux, modules). Affiche les vrais responsables légaux de l’enfant actif + invitations en attente + « Inviter un responsable » (insert invitations_responsable, acceptation par l’invité à l’email confirmé). Migration **M2f** `20260924130000_m2f_liste_responsables` : RPC `responsables_enfant(child_id)` (DEFINER, lecture seule, prénom / nom / lien / vous, jamais l’email) — nécessaire car profiles_select masque le nom de l’autre responsable. Tests SQL (transaction annulée, 0 donnée restante) : A et B voient 2 responsables (« vous » en premier), C (sans lien) 0, anon sans droit d’exécution. Advisors : 0 ERROR (WARN voulu : fonction exécutable par authenticated). 23/23 migrations alignées. Entrée masquée dans les espaces enseignant / élève. Fonctions `person_permissions` de rgpdService supprimées (table conservée, inutilisée).
+- [x] 5. « Ajouter un enfant » et « À propos » : pages profondes (chrome 'none', en-tête ‹ + titre centré, swipe retour), plus de bottom bar sur le bouton. Espaces enseignant / élève : en-tête natif masqué sur À propos.
+- [x] 6. Formulaire : avatars emoji → couleur de l’enfant (6 couleurs, `constants/childColors.ts`, sans ambre / violet / vert / rouge ; avatar = initiale sur la couleur, envoyée à create_child). « Classe » → **Niveau** obligatoire (PS → Terminale) + **école facultative** en texte libre, pas de liste de classes. Pied « conformes au RGPD » retiré.
+- [x] Composant partagé `components/DeepList.tsx` (groupes / rows §8) : Famille & paramètres, À propos, Autorisations.
+- [x] tsc OK ; web 375×812 démo : pills conformes, header en carte, Autorisations (2 responsables + formulaire d’invitation), À propos (7 principes dépliables, sans barres), Ajouter un enfant (couleur, niveau, bouton visible).
+- [ ] **Idée future (VISION)** : accès partiels pour les proches (grands-parents, nounou) — lecture limitée à certains modules, révocable, journalisée. Table `person_permissions` existante mais non branchée. Ne pas afficher avant d’être réel.
+- [UNCLEAR] VISION.md §8 principe 3 annonce « hébergement OVH France » : faux aujourd’hui (Supabase eu-west-2 = Londres ; Aria = Anthropic hors UE). À corriger dans VISION.md / CLAUDE.md (§ RGPD : « Hébergement OVH France », « AES-256 ») ou à rendre vrai.
+- [UNCLEAR] wo.ts (wolof) contient encore « passeport scolaire » ×3 : je ne traduis pas en wolof sans relecture.
+- [UNCLEAR] contact@scolaria.fr : adresse conservée dans À propos, non vérifiée (domaine détenu ?).
+- Reste : saisie de la date de naissance serrée en rendu web (déjà le cas avant) → à vérifier sur le Redmi.
+
+#### Checklist Redmi · B1-bis (`npm run dev:android`)
+1. Top bar sur les 4 onglets : l’onglet actif est une pill grise (icône + libellé), les autres sont des icônes seules grises SANS rond derrière. Jamais de pill blanche, y compris sur l’Accueil en haut de page.
+2. Accueil : le bandeau « Bonjour Léa » est une carte indigo arrondie de 130 px SOUS la top bar, avec 12 px de marge à gauche et à droite ; la barre du haut est sur le fond clair.
+3. Faire défiler l’Accueil : le voile apparaît sous la barre, les pills restent identiques.
+4. ☰ → Autorisations : seulement « Moreau (vous) » et « Marc Moreau », plus « Inviter un responsable ». Aucun grand-parent, nounou, médecin, niveau d’accès ni module.
+5. « Inviter un responsable » → champ e-mail + bouton pill « Envoyer l’invitation » ; en démo, message « Aucune invitation n’est envoyée en mode démo ».
+6. ☰ → À propos : en-tête ‹ + « À propos », AUCUNE barre en haut ni en bas ; tagline « Le carnet de scolarité numérique » ; engagements = « Aucune publicité » et « Vos données ne sont jamais revendues » ; charte = 7 principes qui se déplient ; aucune mention d’Europe, AES-256, RGPD conforme.
+7. ☰ → Ajouter un enfant (et avatar → Ajouter un enfant) : en-tête ‹ + titre, AUCUNE bottom bar ; le bouton « Ajouter … » est entièrement visible et cliquable en bas de page, clavier ouvert compris.
+8. Formulaire : 6 pastilles de couleur sur une ligne, l’aperçu rond montre l’initiale du prénom sur la couleur choisie ; « Niveau * » propose PS → Terminale ; « École (facultatif) » ; le bouton reste grisé tant que prénom, date et niveau manquent.
+9. Saisie de la date de naissance (JJ / MM / AAAA) : chiffres lisibles, séparateurs non superposés.
+10. Swipe depuis le bord gauche sur À propos et Ajouter un enfant → retour.
 
 ### B2 · Enfant actif — 3 à 4 sessions (le plus gros lot)
 Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.

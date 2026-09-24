@@ -11,12 +11,11 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Switch } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  ChevronRight,
   Plus,
   Image as ImageIcon,
   Bell,
@@ -35,6 +34,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { getChildInitials } from '../utils/childInitials';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
+import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text, Pressable } from '../components/ui';
 
@@ -45,7 +45,6 @@ const RED = '#EF4444';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';
 const BORDER_L = 'rgba(15,23,42,0.05)';
-const GROUP_GAP_BG = 'rgba(15,23,42,0.04)';
 const BG = '#F2F1EE';
 /** Indigo neutre en attendant l'affichage de child.color (Phase B, lot B2). */
 const CHILD_AVATAR_BG = INDIGO;
@@ -95,91 +94,6 @@ function usePrefs() {
   }, []);
 
   return { prefs, update };
-}
-
-// ─── Briques ───────────────────────────────────────────
-
-function Group({ title, children, first }: { title: string; children: React.ReactNode; first?: boolean }) {
-  return (
-    <>
-      {!first && <View style={st.groupGap} />}
-      <Text style={st.groupTitle}>{title}</Text>
-      <View style={st.group}>{children}</View>
-    </>
-  );
-}
-
-interface RowProps {
-  icon?: React.ReactNode;
-  leading?: React.ReactNode;
-  label: string;
-  description?: string;
-  value?: string;
-  last?: boolean;
-  danger?: boolean;
-  accent?: boolean;
-  toggle?: boolean;
-  onToggle?: (v: boolean) => void;
-  onPress?: () => void;
-}
-
-function Row({ icon, leading, label, description, value, last, danger, accent, toggle, onToggle, onPress }: RowProps) {
-  const isToggle = toggle !== undefined;
-  const content = (
-    <>
-      {leading ?? (icon ? <View style={st.rowIcon}>{icon}</View> : null)}
-      <View style={st.rowText}>
-        <Text
-          style={[st.rowLabel, danger && { color: RED }, accent && { color: INDIGO }]}
-          numberOfLines={1}
-        >
-          {label}
-        </Text>
-        {description ? <Text style={st.rowDescription} numberOfLines={2}>{description}</Text> : null}
-      </View>
-      {value !== undefined && <Text style={st.rowValue} numberOfLines={1}>{value}</Text>}
-      {isToggle ? (
-        <Switch
-          value={toggle}
-          onValueChange={onToggle}
-          trackColor={{ false: 'rgba(15,23,42,0.18)', true: INDIGO }}
-          thumbColor="#FFFFFF"
-          accessibilityLabel={label}
-        />
-      ) : onPress && !danger ? (
-        <ChevronRight size={16} color={TEXT35} strokeWidth={2} />
-      ) : null}
-    </>
-  );
-
-  const rowStyle = [st.row, !last && st.rowBorder];
-  if (isToggle) {
-    return (
-      <Pressable style={rowStyle} onPress={() => onToggle?.(!toggle)} accessibilityRole="switch">
-        {content}
-      </Pressable>
-    );
-  }
-  if (onPress) {
-    return (
-      <Pressable
-        style={({ pressed }) => [...rowStyle, pressed && st.rowPressed]}
-        onPress={onPress}
-        accessibilityRole="button"
-      >
-        {content}
-      </Pressable>
-    );
-  }
-  return <View style={rowStyle}>{content}</View>;
-}
-
-function Avatar({ initials, color }: { initials: string; color: string }) {
-  return (
-    <View style={[st.avatar, { backgroundColor: color }]}>
-      <Text style={st.avatarText}>{initials}</Text>
-    </View>
-  );
 }
 
 // ─── Écran ─────────────────────────────────────────────
@@ -248,74 +162,74 @@ export default function FamilleParametresScreen() {
 
         {isFamille && (
           <>
-            <Group title="Mes enfants" first>
+            <DeepGroup title="Mes enfants" first>
               {childList.map((child) => (
-                <Row
+                <DeepRow
                   key={child.id}
                   leading={
-                    <Avatar initials={getChildInitials(child.name, siblingNames)} color={CHILD_AVATAR_BG} />
+                    <DeepAvatar initials={getChildInitials(child.name, siblingNames)} color={CHILD_AVATAR_BG} />
                   }
                   label={child.name.split(' ')[0]}
                   description={child.classe}
                   onPress={() => openChild(child.id)}
                 />
               ))}
-              <Row
+              <DeepRow
                 icon={<Plus size={20} color={INDIGO} strokeWidth={2} />}
                 label="Ajouter un enfant"
                 accent
                 last
                 onPress={() => navigation.navigate('AjouterEnfant')}
               />
-            </Group>
+            </DeepGroup>
 
-            <Group title="Responsables légaux">
-              <Row
-                leading={<Avatar initials={parentInitials} color={NAVY} />}
+            <DeepGroup title="Responsables légaux">
+              <DeepRow
+                leading={<DeepAvatar initials={parentInitials} color={NAVY} />}
                 label={`${fullName} (vous)`}
                 description={prenomsEnfants ? `Responsable de ${prenomsEnfants}` : undefined}
                 last
               />
-            </Group>
+            </DeepGroup>
           </>
         )}
 
-        <Group title="Mon profil" first={!isFamille}>
-          <Row
-            leading={<Avatar initials={parentInitials} color={NAVY} />}
+        <DeepGroup title="Mon profil" first={!isFamille}>
+          <DeepRow
+            leading={<DeepAvatar initials={parentInitials} color={NAVY} />}
             label={fullName}
             description={email || undefined}
             last
           />
-        </Group>
+        </DeepGroup>
 
         {isFamille && (
-          <Group title="Apparence">
-            <Row
+          <DeepGroup title="Apparence">
+            <DeepRow
               icon={<ImageIcon size={20} color={TEXT55} strokeWidth={2} />}
               label="Fond de l’Accueil"
               last
               onPress={() => navigation.navigate('WallpaperPicker')}
             />
-          </Group>
+          </DeepGroup>
         )}
 
-        <Group title="Notifications">
-          <Row
+        <DeepGroup title="Notifications">
+          <DeepRow
             icon={<Bell size={20} color={TEXT55} strokeWidth={2} />}
             label="Mots et messages"
             description="Mots à signer, messages de l’enseignant et de la direction"
             toggle={prefs.notifMotsMessages}
             onToggle={(v) => update('notifMotsMessages', v)}
           />
-          <Row
+          <DeepRow
             icon={<Clock size={20} color={TEXT55} strokeWidth={2} />}
             label="Résumé à 18h"
             description="Photos, annonces et informations en une seule notification"
             toggle={prefs.notifResume18h}
             onToggle={(v) => update('notifResume18h', v)}
           />
-          <Row
+          <DeepRow
             icon={<Moon size={20} color={TEXT55} strokeWidth={2} />}
             label="Silence de 20h à 7h"
             description="Sauf urgence de l’école"
@@ -323,11 +237,11 @@ export default function FamilleParametresScreen() {
             onToggle={(v) => update('notifSilence', v)}
             last
           />
-        </Group>
+        </DeepGroup>
 
         {isFamille && (
-          <Group title="Aria">
-            <Row
+          <DeepGroup title="Aria">
+            <DeepRow
               icon={<ScolariaSymbol size={18} color={TEXT55} />}
               label="Aria activée"
               toggle={prefs.ariaActive}
@@ -357,53 +271,56 @@ export default function FamilleParametresScreen() {
                 })}
               </ScrollView>
             </View>
-            <Row
+            <DeepRow
               icon={<Mic size={20} color={TEXT55} strokeWidth={2} />}
               label="Langue de la saisie vocale"
               value="Français"
               last
             />
-          </Group>
+          </DeepGroup>
         )}
 
-        <Group title="Confidentialité & données">
-          <Row
-            icon={<Shield size={20} color={TEXT55} strokeWidth={2} />}
-            label="Autorisations"
-            onPress={() => navigation.navigate('PermissionsRGPD')}
-          />
-          <Row
+        <DeepGroup title="Confidentialité & données">
+          {isFamille && (
+            <DeepRow
+              icon={<Shield size={20} color={TEXT55} strokeWidth={2} />}
+              label="Autorisations"
+              description="Qui a accès au carnet de l’enfant"
+              onPress={() => navigation.navigate('PermissionsRGPD')}
+            />
+          )}
+          <DeepRow
             icon={<FileText size={20} color={TEXT55} strokeWidth={2} />}
             label="Journal d’accès"
             onPress={() => navigation.navigate('JournalAcces')}
           />
-          <Row
+          <DeepRow
             icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
             label="Exporter mes données"
             onPress={() => navigation.navigate('ExportDonnees')}
           />
-          <Row
+          <DeepRow
             icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}
             label="Droit à l’effacement"
             last
             onPress={() => navigation.navigate('Effacement')}
           />
-        </Group>
+        </DeepGroup>
 
-        <Group title="Compte">
-          <Row
+        <DeepGroup title="Compte">
+          <DeepRow
             icon={<Info size={20} color={TEXT55} strokeWidth={2} />}
             label="À propos"
             onPress={() => navigation.navigate('APropos')}
           />
-          <Row
+          <DeepRow
             icon={<LogOut size={20} color={RED} strokeWidth={2} />}
             label={isDemo ? 'Quitter la démo' : 'Se déconnecter'}
             danger
             last
             onPress={handleLogout}
           />
-        </Group>
+        </DeepGroup>
 
         <Text style={st.footer}>Scolaria · Le carnet de scolarité numérique · Version 1.0.0</Text>
       </ScrollView>
@@ -426,52 +343,9 @@ const st = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  groupGap: {
-    height: 8,
-    backgroundColor: GROUP_GAP_BG,
-    marginTop: 8,
-  },
-  groupTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    lineHeight: 14,
-    color: TEXT55,
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 6,
-  },
-  group: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: BORDER_L,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    minHeight: 48,
-    backgroundColor: '#FFFFFF',
-  },
   rowBorder: {
     borderBottomWidth: 1,
     borderBottomColor: BORDER_L,
-  },
-  rowPressed: {
-    backgroundColor: 'rgba(15,23,42,0.04)',
-  },
-  rowIcon: {
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rowText: {
-    flex: 1,
-    minWidth: 0,
-    marginRight: 8,
   },
   rowLabel: {
     fontFamily: FontFamily.sansMedium,
@@ -485,25 +359,6 @@ const st = StyleSheet.create({
     lineHeight: 14,
     color: TEXT55,
     marginTop: 1,
-  },
-  rowValue: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: TEXT55,
-    marginRight: 6,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 12,
-    color: '#FFFFFF',
   },
   tonesBlock: {
     paddingVertical: 12,

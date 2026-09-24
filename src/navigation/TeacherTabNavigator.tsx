@@ -98,7 +98,7 @@ function ReglagesTeacherStackScreen() {
       <ReglagesTeacherStack.Screen name="TransfertCode" component={TransfertCodeScreen} options={{ title: 'Code de transfert' }} />
       <ReglagesTeacherStack.Screen name="Effacement" component={EffacementScreen} options={{ title: "Droit à l'effacement" }} />
       <ReglagesTeacherStack.Screen name="ExportDonnees" component={ExportDonneesScreen} options={{ title: 'Export des données' }} />
-      <ReglagesTeacherStack.Screen name="APropos" component={AProposScreen} options={{ title: 'À propos' }} />
+      <ReglagesTeacherStack.Screen name="APropos" component={AProposScreen} options={{ headerShown: false }} />
     </ReglagesTeacherStack.Navigator>
   );
 }

@@ -139,7 +139,7 @@ export default {
     start: 'Commencer',
     slide1Title: 'Bienvenue dans',
     slide1Highlight: 'Scolaria',
-    slide1Desc: 'Le passeport scolaire numérique qui accompagne vos enfants tout au long de leur scolarité.',
+    slide1Desc: 'Le carnet de scolarité numérique qui accompagne vos enfants tout au long de leur scolarité.',
     slide1Feature1: 'Données sécurisées (RGPD)',
     slide1Feature2: 'Multi-enfants',
     slide1Feature3: 'Tout sur mobile',
@@ -193,7 +193,7 @@ export default {
     portfolio: 'Portfolio extra-scolaire',
     joyHistory: 'Score de Joie',
     exportPdf: 'Exporter en PDF',
-    exportHint: 'Génère un passeport scolaire complet au format PDF',
+    exportHint: 'Génère le carnet de scolarité complet au format PDF',
     activities: 'activités',
     hoursWeek: 'h/semaine',
     average: 'Moyenne',
@@ -204,7 +204,7 @@ export default {
   // ─── Add child ──────────────────────────────────────
   addChild: {
     title: 'Ajouter un enfant',
-    subtitle: 'Remplissez les informations de votre enfant pour créer son passeport scolaire',
+    subtitle: 'Remplissez les informations de votre enfant pour créer son carnet de scolarité',
     scolariaId: 'Identifiant Scolaria',
     auto: 'Auto',
     avatar: 'Avatar',

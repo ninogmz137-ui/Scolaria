@@ -545,3 +545,47 @@ export async function getChildOverview(childId: string) {
     .eq('child_id', childId)
     .single();
 }
+
+// ─── Responsables légaux (M2f) et invitations (M2c) ──────
+
+export type ResponsableEnfant = {
+  user_id: string;
+  prenom: string;
+  nom: string;
+  lien: 'parent' | 'tuteur' | 'autre';
+  est_moi: boolean;
+  depuis: string;
+};
+
+/** Vrais responsables légaux de l'enfant (vous en premier). 0 ligne si vous n'êtes pas responsable. */
+export async function getResponsablesEnfant(childId: string) {
+  if (!isSupabaseConfigured()) return { data: [] as ResponsableEnfant[], error: null };
+  const { data, error } = await supabase.rpc('responsables_enfant', { p_child_id: childId });
+  return { data: (data ?? []) as ResponsableEnfant[], error };
+}
+
+/** Invitations en attente pour cet enfant (visibles par ses responsables). */
+export async function getInvitationsEnAttente(childId: string) {
+  if (!isSupabaseConfigured()) return { data: [] as { id: string; invited_email: string; expires_at: string }[], error: null };
+  const { data, error } = await supabase
+    .from('invitations_responsable')
+    .select('id, invited_email, expires_at')
+    .eq('child_id', childId)
+    .eq('statut', 'en_attente')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false });
+  return { data: data ?? [], error };
+}
+
+/** Invite un second responsable (acceptation par l'invité, email confirmé — M2c). */
+export async function inviterResponsable(childId: string, email: string) {
+  if (!isSupabaseConfigured()) return { error: null };
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id;
+  if (!userId) return { error: new Error('not_authenticated') };
+  return supabase.from('invitations_responsable').insert({
+    child_id: childId,
+    invited_by: userId,
+    invited_email: email.trim().toLowerCase(),
+  });
+}

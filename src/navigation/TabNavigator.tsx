@@ -203,7 +203,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="AjouterEnfant"
         component={AjouterEnfantScreen}
-        options={{ title: 'Ajouter un enfant' }}
+        options={{ title: 'Ajouter un enfant', headerShown: false }}
       />
       <AccueilStack.Screen
         name="AjouterAnne"
@@ -283,7 +283,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="APropos"
         component={AProposScreen}
-        options={{ title: 'À propos' }}
+        options={{ title: 'À propos', headerShown: false }}
       />
       {/* Backward-compat route: keep name but render new Aria home */}
       <AccueilStack.Screen
@@ -667,7 +667,13 @@ export default function TabNavigator() {
   currentRouteRef.current = currentAccueilRoute;
 
   /** Pages profondes de la pile Accueil qui dessinent leur propre en-tête (pas de flèche en top bar). */
-  const SWIPE_BACK_ROUTES = new Set(['ProfilEnfant', 'BienEtreScreen', 'FamilleParametres']);
+  const SWIPE_BACK_ROUTES = new Set([
+    'ProfilEnfant',
+    'BienEtreScreen',
+    'FamilleParametres',
+    'AjouterEnfant',
+    'APropos',
+  ]);
 
   const swipePan = useRef(
     PanResponder.create({

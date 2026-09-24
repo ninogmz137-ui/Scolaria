@@ -1,7 +1,9 @@
 /**
- * Ajouter un Enfant — Formulaire complet pour ajouter un enfant.
+ * Ajouter un enfant — page profonde (en-tête ‹ retour, sans top bar ni bottom bar).
  *
- * Champs : prénom, date de naissance, école, classe, emoji avatar.
+ * Champs : couleur de l'enfant (avatar = initiale sur cette couleur), prénom, nom,
+ * date de naissance, niveau (obligatoire, PS → Terminale), école (facultative, texte libre :
+ * l'école n'est pas forcément sur Scolaria, donc pas de liste de classes).
  * Génère automatiquement un identifiant Scolaria (SCA-YYYY-FR-XXXXXX).
  */
 
@@ -20,17 +22,18 @@ import {
 } from 'react-native';
 import {
   Building2,
+  Check,
   ChevronDown,
   ChevronUp,
   Fingerprint,
   GraduationCap,
-  ShieldCheck,
   User,
   UserPlus,
 } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { DeepScreenHeader } from '../components/DeepScreenHeader';
+import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors';
 import { Text, TextInput } from '../components/ui';
 
 // ─── Types ───────────────────────────────────────────────
@@ -40,18 +43,14 @@ interface Props {
   onChildAdded?: () => void;
 }
 
-// ─── Classes par niveau ──────────────────────────────────
+// ─── Niveaux ─────────────────────────────────────────────
 
-const CLASSES = [
+const NIVEAUX = [
   { section: 'Maternelle', items: ['PS', 'MS', 'GS'] },
   { section: 'Élémentaire', items: ['CP', 'CE1', 'CE2', 'CM1', 'CM2'] },
   { section: 'Collège', items: ['6ème', '5ème', '4ème', '3ème'] },
   { section: 'Lycée', items: ['2nde', '1ère', 'Terminale'] },
 ];
-
-// ─── Emojis d'avatar ─────────────────────────────────────
-
-const AVATARS = ['👦', '👧', '🧒', '👶', '🧑', '👱', '🧑‍🎓', '🦸', '🧙', '🦊', '🐱', '🐼'];
 
 // ─── Génération ID Scolaria ──────────────────────────────
 
@@ -74,9 +73,9 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
   const [birthMonth, setBirthMonth] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [school, setSchool] = useState('');
-  const [selectedClasse, setSelectedClasse] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState('👦');
-  const [showClassePicker, setShowClassePicker] = useState(false);
+  const [niveau, setNiveau] = useState('');
+  const [color, setColor] = useState(DEFAULT_CHILD_COLOR_HEX);
+  const [showNiveauPicker, setShowNiveauPicker] = useState(false);
   const [loading, setSaving] = useState(false);
 
   const scolariaId = useRef(generateScolariaId()).current;
@@ -139,7 +138,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
   const isFormValid =
     firstName.trim().length >= 2 &&
-    selectedClasse !== '' &&
+    niveau !== '' &&
     birthDay !== '' &&
     birthMonth !== '' &&
     birthYear.length === 4;
@@ -148,7 +147,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
   const handleSubmit = async () => {
     if (!isFormValid) {
-      Alert.alert('Champs manquants', 'Veuillez remplir le prénom, la date de naissance et la classe.');
+      Alert.alert('Champs manquants', 'Veuillez remplir le prénom, la date de naissance et le niveau.');
       return;
     }
 
@@ -174,20 +173,20 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           scolaria_id: scolariaId,
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          avatar_emoji: selectedAvatar,
           birth_date: birthDate,
           age,
-          classe: selectedClasse,
+          classe: niveau,
           school: school.trim(),
+          color,
         });
       }
 
       Alert.alert(
-        '🎉 Enfant ajouté !',
-        `${firstName} a été ajouté avec l'identifiant ${scolariaId}`,
+        'Enfant ajouté',
+        `Le carnet de ${firstName} est créé (identifiant ${scolariaId}).`,
         [
           {
-            text: 'Super !',
+            text: 'OK',
             onPress: () => {
               onChildAdded?.();
               navigation.goBack();
@@ -205,17 +204,18 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
   // ─── Render ─────────────────────────────────────────────
 
   const age = computeAge();
+  const initiale = firstName.trim().charAt(0).toUpperCase() || '?';
 
   return (
     <KeyboardAvoidingView
       style={s.root}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <DeepScreenHeader title="Ajouter un enfant" onBack={() => navigation.goBack()} withTopInset />
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: insets.top + 60,
-          paddingBottom: getBottomBarScrollPadding(insets.bottom),
+          paddingBottom: insets.bottom + 24,
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -227,7 +227,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             transform: [{ translateY: slideAnim }],
           }}
         >
-          {/* Intro — le titre est déjà dans la top bar */}
+          {/* Intro — le titre est dans l'en-tête */}
           <Text style={s.intro}>
             Remplissez les informations de votre enfant pour créer son carnet de scolarité.
           </Text>
@@ -244,30 +244,38 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             </View>
           </Animated.View>
 
-          {/* Avatar */}
-          <Text style={s.label}>Avatar</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 4 }}
-            style={{ marginBottom: 20 }}
-          >
-            {AVATARS.map((emoji) => {
-              const active = selectedAvatar === emoji;
-              return (
-                <TouchableOpacity
-                  key={emoji}
-                  style={[s.avatarBtn, active && s.avatarBtnActive]}
-                  onPress={() => setSelectedAvatar(emoji)}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                >
-                  <Text style={{ fontSize: 26 }}>{emoji}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          {/* Couleur de l'enfant : avatar = initiale sur cette couleur */}
+          <Text style={s.label}>Couleur</Text>
+          <View style={s.colorRow}>
+            <View style={[s.colorPreview, { backgroundColor: color }]}>
+              <Text style={s.colorPreviewText}>{initiale}</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 4, alignItems: 'center' }}
+            >
+              {CHILD_COLORS.map((c) => {
+                const active = color === c.hex;
+                return (
+                  <TouchableOpacity
+                    key={c.hex}
+                    style={[s.swatchRing, active && s.swatchRingActive]}
+                    hitSlop={{ top: 2, bottom: 2, left: 2, right: 2 }}
+                    onPress={() => setColor(c.hex)}
+                    activeOpacity={0.7}
+                    accessibilityRole="radio"
+                    accessibilityLabel={c.nom}
+                    accessibilityState={{ selected: active }}
+                  >
+                    <View style={[s.swatch, { backgroundColor: c.hex }]}>
+                      {active && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
 
           {/* Prénom & Nom */}
           <View style={{ flexDirection: 'row' }}>
@@ -354,7 +362,9 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
           {/* École */}
           <View style={s.field}>
-            <Text style={s.label}>École / Établissement</Text>
+            <Text style={s.label}>
+              École <Text style={s.optional}>(facultatif)</Text>
+            </Text>
             <View style={s.input}>
               <Building2 size={18} color={TEXT35} strokeWidth={2} />
               <TextInput
@@ -371,11 +381,11 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           {/* Classe */}
           <View style={s.field}>
             <Text style={s.label}>
-              Classe <Text style={s.required}>*</Text>
+              Niveau <Text style={s.required}>*</Text>
             </Text>
             <TouchableOpacity
-              style={[s.input, showClassePicker && s.inputFocused]}
-              onPress={() => setShowClassePicker(!showClassePicker)}
+              style={[s.input, showNiveauPicker && s.inputFocused]}
+              onPress={() => setShowNiveauPicker(!showNiveauPicker)}
               activeOpacity={0.8}
               accessibilityRole="button"
             >
@@ -384,41 +394,41 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                 style={[
                   s.inputText,
                   {
-                    color: selectedClasse ? INK : PLACEHOLDER,
-                    fontFamily: selectedClasse ? FontFamily.sansSemiBold : FontFamily.sansRegular,
+                    color: niveau ? INK : PLACEHOLDER,
+                    fontFamily: niveau ? FontFamily.sansSemiBold : FontFamily.sansRegular,
                   },
                 ]}
               >
-                {selectedClasse || 'Sélectionner la classe'}
+                {niveau || 'Choisir le niveau'}
               </Text>
-              {showClassePicker ? (
+              {showNiveauPicker ? (
                 <ChevronUp size={18} color={TEXT35} strokeWidth={2} />
               ) : (
                 <ChevronDown size={18} color={TEXT35} strokeWidth={2} />
               )}
             </TouchableOpacity>
 
-            {showClassePicker && (
+            {showNiveauPicker && (
               <View style={s.picker}>
-                {CLASSES.map((section, i) => (
+                {NIVEAUX.map((section, i) => (
                   <View key={section.section} style={i > 0 ? { marginTop: 16 } : undefined}>
                     <Text style={s.sectionLabel}>{section.section}</Text>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                      {section.items.map((classe) => {
-                        const active = selectedClasse === classe;
+                      {section.items.map((item) => {
+                        const active = niveau === item;
                         return (
                           <TouchableOpacity
-                            key={classe}
+                            key={item}
                             style={[s.pill, active ? s.pillActive : s.pillInactive]}
                             onPress={() => {
-                              setSelectedClasse(classe);
-                              setShowClassePicker(false);
+                              setNiveau(item);
+                              setShowNiveauPicker(false);
                             }}
                             accessibilityRole="button"
                             accessibilityState={{ selected: active }}
                           >
                             <Text style={[s.pillText, { color: active ? '#FFFFFF' : TEXT55 }]}>
-                              {classe}
+                              {item}
                             </Text>
                           </TouchableOpacity>
                         );
@@ -435,13 +445,15 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
             <View style={s.preview}>
               <Text style={s.sectionLabel}>Aperçu du profil</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={{ fontSize: 40, marginRight: 14 }}>{selectedAvatar}</Text>
+                <View style={[s.colorPreview, s.previewAvatar, { backgroundColor: color }]}>
+                  <Text style={s.colorPreviewText}>{initiale}</Text>
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={s.previewName}>
                     {firstName} {lastName}
                   </Text>
                   <Text style={s.previewMeta}>
-                    {selectedClasse} · {age} ans
+                    {niveau} · {age} ans
                     {school ? ` · ${school}` : ''}
                   </Text>
                   <Text style={s.previewId}>{scolariaId}</Text>
@@ -472,9 +484,8 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
           {/* Info RGPD */}
           <View style={s.footer}>
-            <ShieldCheck size={14} color={TEXT35} strokeWidth={2} />
+            <Fingerprint size={14} color={TEXT35} strokeWidth={2} />
             <Text style={s.footerText}>
-              Les données sont protégées et conformes au RGPD.
               L'identifiant Scolaria est unique et non modifiable.
             </Text>
           </View>
@@ -547,19 +558,38 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   required: { color: '#EF4444' },
+  optional: { fontFamily: FontFamily.sansRegular, color: TEXT55 },
 
-  avatarBtn: {
+  colorRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+  colorPreview: {
     width: 52,
     height: 52,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
-    backgroundColor: '#FFFFFF',
+    marginRight: 14,
+  },
+  colorPreviewText: { fontFamily: FontFamily.sansBold, fontSize: 20, color: '#FFFFFF' },
+  previewAvatar: { width: 44, height: 44 },
+  // 40 px + hitSlop 2 = 44 px tactiles ; 6 pastilles + aperçu tiennent sur 343 px.
+  swatchRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  avatarBtnActive: { borderColor: INDIGO },
+  swatchRingActive: { borderColor: INK },
+  swatch: {
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
   // Input standard §5
   input: {

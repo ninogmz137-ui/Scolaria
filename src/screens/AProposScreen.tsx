@@ -1,480 +1,195 @@
 /**
- * AProposScreen — About page with Ethical Charter
+ * AProposScreen — À propos : mission, engagements, charte éthique (7 principes, VISION.md §8).
  *
- * Displays Scolaria's mission, ethical commitments, team info,
- * and the complete ethical charter for the app.
+ * Page profonde (en-tête ‹ retour + titre centré, sans top bar ni bottom bar, COMPONENTS §8).
+ * N'affirme que ce qui est vrai aujourd'hui : aucune mention d'hébergement, de chiffrement
+ * ou de conformité tant que ce n'est pas vérifié (Aria appelle un modèle hébergé hors UE).
  */
 
 import { useState } from 'react';
+import { View, ScrollView, StyleSheet, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Linking,
-} from 'react-native';
-import {
-  Heart,
+  Ban,
   Lock,
-  User,
-  MessageCircle,
-  X,
-  ChevronUp,
-  ChevronDown,
+  HeartHandshake,
+  Eye,
+  ShieldCheck,
+  Activity,
+  Scale,
+  Moon,
+  LifeBuoy,
   Mail,
-  ExternalLink,
-  Check,
-  Settings,
-  Smartphone,
-  Database,
-  Code,
 } from 'lucide-react-native';
-import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
-import { useChildTheme } from '../contexts/ChildThemeContext';
 import ScolariaLogo from '../components/ScolariaLogo';
 import ScolariaAppIcon from '../components/ScolariaAppIcon';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { DeepScreenHeader } from '../components/DeepScreenHeader';
+import { DeepGroup, DeepRow, DEEP } from '../components/DeepList';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text, Pressable } from '../components/ui';
-import ScolariaSymbol from '../components/ScolariaSymbol';
+import { Text } from '../components/ui';
 
-// ─── Charter data ────────────────────────────────────────
+const ICON = { size: 20, color: DEEP.text55, strokeWidth: 2 } as const;
 
-interface CharterArticle {
-  number: number;
-  title: string;
-  Icon: React.ComponentType<{ size?: number; color?: string }>;
-  color: string;
-  content: string;
-}
+// ─── Charte éthique : 7 principes (VISION.md §8) ─────────
 
-const CHARTER_ARTICLES: CharterArticle[] = [
+const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
   {
-    number: 1,
-    title: 'Bien-être de l\'enfant avant tout',
-    Icon: Heart,
-    color: Colors.pink,
-    content:
-      'Scolaria place le bien-être et l\'épanouissement de chaque enfant au centre de sa mission. Aucune fonctionnalité ne doit générer de stress, de comparaison malsaine ou de pression scolaire excessive. Le Score de Joie existe pour détecter et prévenir le mal-être, jamais pour juger.',
+    titre: 'Non-substitution',
+    texte:
+      'Aria ne remplace jamais un professionnel. Elle ne pose aucun diagnostic : elle suggère et informe.',
+    Icon: HeartHandshake,
   },
   {
-    number: 2,
-    title: 'Protection absolue des données',
-    Icon: Lock,
-    color: Colors.green,
-    content:
-      'Les données des enfants sont sacrées. Elles sont chiffrées de bout en bout (AES-256), stockées sur des serveurs européens certifiés, et ne sont jamais vendues, partagées ou utilisées à des fins publicitaires. Le parent garde un contrôle total : export, effacement, et transfert à tout moment (RGPD Art. 15, 17, 20).',
+    titre: 'Transparence',
+    texte: 'Aria explique toujours pourquoi elle fait une suggestion et cite ses sources.',
+    Icon: Eye,
   },
   {
-    number: 3,
-    title: 'IA éthique et transparente',
-    Icon: ScolariaSymbol,
-    color: Colors.violet,
-    content:
-      'Aria, notre assistante IA, est conçue pour accompagner — jamais pour remplacer le jugement humain. Elle ne pose pas de diagnostic médical ou psychologique. Ses recommandations sont toujours des suggestions, validées par le parent. L\'algorithme est explicable : le parent peut comprendre pourquoi une recommandation est faite.',
+    titre: 'Souveraineté des données',
+    texte:
+      'Les données du carnet appartiennent à la famille. Elles ne sont jamais revendues et ne servent à aucune publicité.',
+    Icon: ShieldCheck,
   },
   {
-    number: 4,
-    title: 'Anonymisation dans l\'espace enseignant',
-    Icon: User,
-    color: Colors.cyan,
-    content:
-      'Les enseignants accèdent à des données agrégées et anonymisées. Ils voient les tendances de classe, jamais les données individuelles identifiantes d\'un enfant. L\'anonymisation est conforme aux recommandations de la CNIL pour la protection des mineurs.',
+    titre: 'Gradation, jamais de panique',
+    texte:
+      'Aucune alerte sur un signal isolé : Aria observe une tendance sur 5 jours avant de vous prévenir.',
+    Icon: Activity,
   },
   {
-    number: 5,
-    title: 'Consentement parental éclairé',
-    Icon: Check,
-    color: Colors.orange,
-    content:
-      'Chaque partage de données nécessite le consentement explicite du parent ou tuteur légal. Les permissions sont granulaires (4 niveaux d\'accès), révocables à tout instant, et font l\'objet d\'un journal d\'accès transparent consultable par le parent.',
+    titre: 'Neutralité',
+    texte:
+      'Aucune comparaison entre enfants. Les filières professionnelles valent les filières générales. Un enfant peut être comparé à lui-même sur plusieurs années, en tendance et sources citées.',
+    Icon: Scale,
   },
   {
-    number: 6,
-    title: 'Inclusion et accessibilité',
-    Icon: User,
-    color: '#818CF8',
-    content:
-      'Scolaria est conçue pour tous les enfants, quelles que soient leurs capacités, leur situation familiale ou leur parcours scolaire. L\'interface s\'adapte à l\'âge (mode primaire / collège-lycée), supporte 10 langues, et respecte les normes d\'accessibilité WCAG 2.1 AA.',
+    titre: 'Protection contre l’hyper-connexion',
+    texte: 'Silence de 20h à 7h, et au plus une alerte non urgente toutes les 48 heures.',
+    Icon: Moon,
   },
   {
-    number: 7,
-    title: 'Bienveillance dans la communication',
-    Icon: MessageCircle,
-    color: Colors.warmOrange,
-    content:
-      'La messagerie entre parents et enseignants est encadrée : pas de notifications intrusives la nuit, conservation limitée à 12 mois, et ton toujours constructif. Scolaria facilite la coéducation sans créer de tensions.',
-  },
-  {
-    number: 8,
-    title: 'Indépendance et absence de publicité',
-    Icon: X,
-    color: Colors.red,
-    content:
-      'Scolaria ne contient aucune publicité, aucun contenu sponsorisé, et aucun mécanisme de gamification addictif. Le modèle économique ne repose jamais sur la monétisation des données.',
+    titre: 'Protocole d’urgence',
+    texte:
+      'Face à un message de détresse, Aria sort de son rôle : aucune réponse automatique, les numéros d’aide s’affichent (3114, 3018, 119, 112).',
+    Icon: LifeBuoy,
   },
 ];
 
-// ─── Stats ───────────────────────────────────────────────
-
-const STATS = [
-  { value: '100%', label: 'Données en Europe', icon: '🇪🇺' },
-  { value: '0', label: 'Publicités', icon: '🚫' },
-  { value: 'AES-256', label: 'Chiffrement', icon: '🔐' },
-  { value: 'RGPD', label: 'Conforme', icon: '✅' },
-];
-
-// ─── Tech stack data ──────────────────────────────────────
-
-const TECH_STACK = [
-  { name: 'React Native', desc: 'App mobile cross-platform', Icon: Smartphone as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Claude (Anthropic)', desc: 'IA conversationnelle Aria', Icon: ScolariaSymbol as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Google Vision', desc: 'OCR bulletins scolaires', Icon: Code as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Supabase', desc: 'Base de données sécurisée', Icon: Database as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Chiffrement E2E', desc: 'AES-256 bout en bout', Icon: Lock as React.ComponentType<{ size?: number; color?: string }> },
-  { name: 'Hébergement EU', desc: 'Serveurs France/UE', Icon: Settings as React.ComponentType<{ size?: number; color?: string }> },
-];
-
-// ─── Component ───────────────────────────────────────────
+// ─── Écran ───────────────────────────────────────────────
 
 export default function AProposScreen() {
-  const { theme } = useChildTheme();
   const insets = useSafeAreaInsets();
-  const TOPBAR_H = insets.top + 56;
-  const [expandedArticle, setExpandedArticle] = useState<number | null>(null);
-
-  const toggleArticle = (num: number) => {
-    setExpandedArticle(expandedArticle === num ? null : num);
-  };
+  const navigation = useNavigation<any>();
+  const [ouvert, setOuvert] = useState<number | null>(null);
 
   return (
-    <View style={{ flex: 1, backgroundColor: SCREEN_BACKGROUND }}>
+    <View style={[st.root, { paddingBottom: insets.bottom }]}>
+      <DeepScreenHeader
+        title="À propos"
+        onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+        withTopInset
+      />
+
       <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: TOPBAR_H + 12,
-          paddingBottom: getBottomBarScrollPadding(insets.bottom),
-          paddingHorizontal: 18,
-        }}
+        contentContainerStyle={{ paddingBottom: 32 }}
       >
-        {/* Logo / Hero */}
-        <View style={[styles.card, styles.heroCard]}>
-          <View style={styles.heroInner}>
-            <View style={styles.heroIconRow}>
-              <ScolariaAppIcon size={88} withBackground />
-            </View>
-            <ScolariaLogo fontSize={34} primaryColor="#0F172A" />
-            <Text style={styles.heroSubtitle}>Pour les familles françaises</Text>
-            <View style={styles.versionPill}>
-              <Text style={styles.versionText}>Version 1.0.0</Text>
-            </View>
+        {/* Identité */}
+        <View style={st.hero}>
+          <ScolariaAppIcon size={72} withBackground />
+          <View style={{ height: 12 }} />
+          <ScolariaLogo fontSize={30} primaryColor={DEEP.navy} />
+          <Text style={st.tagline}>Le carnet de scolarité numérique</Text>
+          <Text style={st.version}>Version 1.0.0</Text>
+        </View>
+
+        <DeepGroup title="Notre mission" first>
+          <View style={st.textBlock}>
+            <Text style={st.body}>
+              Comme le carnet de santé, le carnet de scolarité appartient à la famille. Il suit
+              l’enfant de la maternelle au bac, quel que soit l’établissement, et se remplit même
+              si l’école n’utilise pas Scolaria.
+            </Text>
           </View>
-        </View>
+        </DeepGroup>
 
-        {/* Mission */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Notre mission</Text>
-          <Text style={styles.cardBody}>
-            Scolaria accompagne chaque famille dans le parcours scolaire de ses
-            enfants, en plaçant le bien-être au centre. Grâce à l'intelligence
-            artificielle éthique et au respect absolu des données personnelles,
-            nous créons un pont bienveillant entre l'école et la maison.
-          </Text>
-        </View>
+        <DeepGroup title="Nos engagements">
+          <DeepRow icon={<Ban {...ICON} />} label="Aucune publicité" />
+          <DeepRow icon={<Lock {...ICON} />} label="Vos données ne sont jamais revendues" last />
+        </DeepGroup>
 
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          {STATS.map((stat, i) => (
-            <View key={i} style={[styles.card, styles.statCard]}>
-              <Text style={styles.statIcon}>{stat.icon}</Text>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
+        <DeepGroup title="Charte éthique · 7 principes">
+          {PRINCIPES.map((p, i) => (
+            <DeepRow
+              key={p.titre}
+              icon={<p.Icon {...ICON} />}
+              label={`${i + 1}. ${p.titre}`}
+              expanded={ouvert === i}
+              details={p.texte}
+              onPress={() => setOuvert(ouvert === i ? null : i)}
+              last={i === PRINCIPES.length - 1}
+            />
           ))}
-        </View>
+        </DeepGroup>
 
-        {/* Ethical Charter heading */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionBar} />
-          <View>
-            <Text style={styles.sectionTitle}>Charte Éthique</Text>
-            <Text style={styles.sectionSubtitle}>8 engagements fondateurs qui guident chaque décision produit</Text>
-          </View>
-        </View>
-
-        {CHARTER_ARTICLES.map((article) => {
-          const isExpanded = expandedArticle === article.number;
-          return (
-            <Pressable
-              key={article.number}
-              onPress={() => toggleArticle(article.number)}
-            >
-              <View style={[styles.card, styles.articleCard]}>
-                <View style={styles.articleRow}>
-                  <View style={[styles.articleIconBox, { backgroundColor: article.color + '20' }]}>
-                    <article.Icon size={18} color={article.color} />
-                  </View>
-                  <View style={styles.articleTextBox}>
-                    <Text style={styles.articleNumber}>Article {article.number}</Text>
-                    <Text style={styles.articleTitle}>{article.title}</Text>
-                  </View>
-                  {isExpanded
-                    ? <ChevronUp size={18} color="#CBD5E1" />
-                    : <ChevronDown size={18} color="#CBD5E1" />
-                  }
-                </View>
-                {isExpanded && (
-                  <Text style={styles.articleContent}>{article.content}</Text>
-                )}
-              </View>
-            </Pressable>
-          );
-        })}
-
-        {/* Technologies heading */}
-        <View style={[styles.sectionHeader, { marginTop: 8 }]}>
-          <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>Technologies</Text>
-        </View>
-
-        {TECH_STACK.map((tech, i) => (
-          <View key={i} style={[styles.card, styles.techCard, i < TECH_STACK.length - 1 && { marginBottom: 6 }]}>
-            <View style={styles.techRow}>
-              <tech.Icon size={20} color={Colors.violet} />
-              <View style={{ marginLeft: 12, flex: 1 }}>
-                <Text style={styles.techName}>{tech.name}</Text>
-                <Text style={styles.techDesc}>{tech.desc}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-
-        {/* Contact & Legal */}
-        <View style={[styles.card, { marginTop: 14, gap: 14 }]}>
-          <Pressable
-            style={styles.contactRow}
+        <DeepGroup title="Contact">
+          <DeepRow
+            icon={<Mail {...ICON} />}
+            label="contact@scolaria.fr"
             onPress={() => Linking.openURL('mailto:contact@scolaria.fr')}
-          >
-            <Mail size={18} color={Colors.violet} />
-            <Text style={styles.contactText}>contact@scolaria.fr</Text>
-          </Pressable>
-          <Pressable
-            style={styles.contactRow}
-            onPress={() => Linking.openURL('https://scolaria.fr')}
-          >
-            <ExternalLink size={18} color={Colors.violet} />
-            <Text style={styles.contactText}>scolaria.fr</Text>
-          </Pressable>
-          <View style={styles.contactRow}>
-            <Lock size={18} color={Colors.green} />
-            <Text style={styles.contactText}>Conforme RGPD · CNIL · Données hébergées en France</Text>
-          </View>
-        </View>
+            last
+          />
+        </DeepGroup>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <ScolariaLogo fontSize={20} primaryColor="#0F172A" />
-          <Text style={styles.footerCopy}>© 2026 Scolaria · Tous droits réservés</Text>
-          <Text style={styles.footerQuote}>
-            « Chaque enfant mérite d'être compris, pas seulement évalué. »
-          </Text>
-        </View>
+        <Text style={st.footer}>© 2026 Scolaria</Text>
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: SCREEN_BACKGROUND,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    padding: 16,
-    marginBottom: 12,
+const st = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: DEEP.bg,
   },
-  heroCard: {
+  hero: {
     alignItems: 'center',
-    marginBottom: 14,
+    paddingTop: 24,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
   },
-  heroInner: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  heroIconRow: {
-    marginBottom: 14,
-  },
-  heroSubtitle: {
+  tagline: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#94A3B8',
+    fontSize: 13,
+    lineHeight: 18,
+    color: DEEP.text55,
     marginTop: 6,
   },
-  versionPill: {
-    marginTop: 10,
-    backgroundColor: Colors.violet + '10',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.06)',
-  },
-  versionText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: Colors.violet,
-  },
-  cardTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 17,
-    color: '#1A2340',
-    marginBottom: 10,
-  },
-  cardBody: {
+  version: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    lineHeight: 21,
-    color: '#94A3B8',
+    fontSize: 11,
+    lineHeight: 14,
+    color: DEEP.text35,
+    marginTop: 4,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 18,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
+  textBlock: {
     paddingVertical: 12,
-    paddingHorizontal: 6,
-    marginBottom: 0,
+    paddingHorizontal: 16,
   },
-  statIcon: {
-    fontSize: 20,
-    marginBottom: 6,
-  },
-  statValue: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-    color: '#1A2340',
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 10,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    gap: 10,
-  },
-  sectionBar: {
-    width: 4,
-    height: 20,
-    borderRadius: 2,
-    backgroundColor: Colors.violet,
-    marginTop: 2,
-  },
-  sectionTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 18,
-    color: '#1A2340',
-  },
-  sectionSubtitle: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  articleCard: {
-    marginBottom: 8,
-  },
-  articleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  articleIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  articleTextBox: {
-    flex: 1,
-  },
-  articleNumber: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 10,
-    color: '#CBD5E1',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  articleTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-    color: '#1A2340',
-    marginTop: 1,
-  },
-  articleContent: {
+  body: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 13,
     lineHeight: 20,
-    color: '#94A3B8',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  techCard: {
-    marginBottom: 0,
-  },
-  techRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  techName: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    color: '#1A2340',
-  },
-  techDesc: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 1,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  contactText: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    flex: 1,
-    color: '#94A3B8',
+    color: DEEP.navy,
   },
   footer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    gap: 8,
-  },
-  footerCopy: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#CBD5E1',
-    marginTop: 4,
-  },
-  footerQuote: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: Colors.violet,
+    fontSize: 11,
+    lineHeight: 14,
+    color: DEEP.text35,
     textAlign: 'center',
-    paddingHorizontal: 20,
-    fontStyle: 'italic',
+    paddingTop: 20,
   },
 });

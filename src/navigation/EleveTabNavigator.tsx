@@ -146,7 +146,7 @@ function ReglagesEleveStackScreen() {
       <ReglagesEleveStack.Screen
         name="APropos"
         component={AProposScreen}
-        options={{ title: 'À propos' }}
+        options={{ headerShown: false }}
       />
     </ReglagesEleveStack.Navigator>
   );

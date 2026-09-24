@@ -22,83 +22,9 @@ async function getUserId(): Promise<string> {
   return user?.id ?? '';
 }
 
-// ═══════════════════════════════════════════════════════════
-// 1. PERSON PERMISSIONS
-// ═══════════════════════════════════════════════════════════
-
-export interface PersonPermission {
-  id: string;
-  family_id: string;
-  name: string;
-  email: string | null;
-  avatar: string;
-  role: string;
-  access_level: 'tuteur' | 'famille_proche' | 'accompagnant' | 'minimal';
-  modules: {
-    notes: boolean;
-    agenda: boolean;
-    ressenti: boolean;
-    profil: boolean;
-    photos: boolean;
-    aria: boolean;
-  };
-  last_access: string | null;
-  created_at: string;
-}
-
-export async function getPermissions(): Promise<PersonPermission[]> {
-  if (!isSupabaseConfigured()) return [];
-
-  const { data, error } = await supabase
-    .from('person_permissions')
-    .select('*')
-    .order('created_at', { ascending: true });
-
-  if (error) {
-    console.warn('[RGPD] getPermissions error:', error.message);
-    return [];
-  }
-  return data ?? [];
-}
-
-export async function createPermission(person: Omit<PersonPermission, 'id' | 'family_id' | 'created_at' | 'last_access'>): Promise<PersonPermission | null> {
-  if (!isSupabaseConfigured()) return null;
-
-  const userId = await getUserId();
-  const { data, error } = await supabase
-    .from('person_permissions')
-    .insert({ ...person, family_id: userId })
-    .select()
-    .single();
-
-  if (error) {
-    console.warn('[RGPD] createPermission error:', error.message);
-    return null;
-  }
-  return data;
-}
-
-export async function updatePermission(id: string, updates: Partial<Pick<PersonPermission, 'access_level' | 'modules'>>): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const { error } = await supabase
-    .from('person_permissions')
-    .update(updates)
-    .eq('id', id);
-
-  if (error) console.warn('[RGPD] updatePermission error:', error.message);
-}
-
-export async function deletePermission(id: string): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const { error } = await supabase
-    .from('person_permissions')
-    .delete()
-    .eq('id', id);
-
-  if (error) console.warn('[RGPD] deletePermission error:', error.message);
-}
+// 1. (supprimé en B1-bis) Permissions par personne : rôles fictifs retirés. Les accès au carnet
+//    = les responsables légaux (table responsables, RPC responsables_enfant). Accès partiels des
+//    proches : idée future (VISION), table person_permissions conservée mais inutilisée.
 
 // ═══════════════════════════════════════════════════════════
 // 2. ACCESS JOURNAL
