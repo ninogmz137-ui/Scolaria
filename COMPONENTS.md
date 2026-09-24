@@ -29,7 +29,9 @@ TOP BAR (toujours visible, toutes les pages)
 BOTTOM BAR (toujours visible, toutes les pages)
   [🔍] [◉ Demander à Aria…] [action contextuelle]
   - Height barre : padding 8px 12px 18px
-  - Background : #F2F1EE, border-top 1px rgba(15,23,42,0.07)
+  - Background : #F2F1EE, border-top 1px rgba(15,23,42,0.07). Fond porté par le voile ScrollVeil du
+    bas, TOUJOURS visible (pas lié au défilement : le contenu passe sous la barre dès le repos).
+    Android : voile en élévation 12, barre en élévation 13 (Android trie par élévation avant zIndex).
   - Icônes gauche/droite : 34×34px cercle, background rgba(15,23,42,0.08)
   - Pill Aria centrale : flex:1, height 34px, borderRadius 999px
     background rgba(15,23,42,0.08), symbole Scolaria 14px + texte placeholder

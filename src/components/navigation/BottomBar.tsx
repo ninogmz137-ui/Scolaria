@@ -166,8 +166,10 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingVertical: 0,
     backgroundColor: 'transparent',
+    // Au-dessus du voile du bas (élévation 12) : Android trie les vues sœurs par élévation avant
+    // le zIndex. Conteneur sans fond → aucune ombre dessinée.
     ...Platform.select({
-      android: { elevation: 0 },
+      android: { elevation: 13 },
     }),
   },
 
