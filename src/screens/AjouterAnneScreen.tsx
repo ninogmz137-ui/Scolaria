@@ -18,6 +18,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { createAcademicYear, type Niveau } from '../services/database';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
+import { de } from '../utils/francais';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ export default function AjouterAnneScreen() {
 
     Alert.alert(
       'Millesime cree',
-      `L'annee ${selectedAnnee} (${selectedNiveau}) a ete ajoutee au profil de ${childName}.`,
+      `L’année ${selectedAnnee} (${selectedNiveau}) a été ajoutée au profil ${de(childName)}.`,
       [{ text: 'OK', onPress: () => navigation.goBack() }],
     );
   };
@@ -97,7 +98,7 @@ export default function AjouterAnneScreen() {
         Quelle annee scolaire ?
       </Text>
       <Text className="text-sm leading-5 mb-6" style={{ color: theme.textSecondary }}>
-        Selectionnez le niveau et l'annee a ajouter au profil de {childName}
+        Sélectionnez le niveau et l’année à ajouter au profil {de(childName)}
       </Text>
 
       {/* Year selection */}
@@ -280,7 +281,7 @@ export default function AjouterAnneScreen() {
         Pret a creer le millesime
       </Text>
       <Text className="text-sm text-center leading-5" style={{ color: theme.textSecondary }}>
-        L'annee {selectedAnnee} ({selectedNiveau}) sera ajoutee au profil de {childName} en statut "importee"
+        L’année {selectedAnnee} ({selectedNiveau}) sera ajoutée au profil {de(childName)} en statut « importée »
       </Text>
 
       <Box

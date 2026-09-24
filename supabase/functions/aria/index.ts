@@ -19,6 +19,10 @@ import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { buildEmergencyMessage, detectEmergency } from '../_shared/emergency.ts';
 
+/** Règle de ton imposée par le serveur (fait foi) : Aria vouvoie toujours le parent. */
+const REGLE_VOUVOIEMENT =
+  "Règle absolue : tu vouvoies TOUJOURS le parent (vous, votre, vos), jamais de tutoiement.";
+
 const MODEL = Deno.env.get('ARIA_MODEL') ?? 'claude-sonnet-5';
 const MAX_TOKENS = 16000;
 
@@ -111,13 +115,13 @@ Deno.serve(async (req) => {
     return json({ text: buildEmergencyMessage(emergency), alert: emergency });
   }
 
-  // 5. Appel Anthropic (SDK officiel)
+  // 5. Appel Anthropic (SDK officiel). Règle fixe ajoutée par le serveur au prompt du client.
   const client = new Anthropic({ apiKey });
   try {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system,
+      system: `${system}\n\n${REGLE_VOUVOIEMENT}`,
       messages,
     });
 

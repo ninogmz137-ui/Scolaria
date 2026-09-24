@@ -16,6 +16,15 @@ interface Props {
   onChange: (v: number) => void;
 }
 
+/** Jamais de chiffre brut (CLAUDE.md, Score de Joie) : un mot pour la position du curseur. */
+function motNiveau(v: number): string {
+  if (v <= 2) return 'Très bas';
+  if (v <= 4) return 'Bas';
+  if (v <= 6) return 'Moyen';
+  if (v <= 8) return 'Bon';
+  return 'Très bon';
+}
+
 export default function RessentiSlider({ label, Icon, value, onChange }: Props) {
   return (
     <View style={styles.wrap}>
@@ -24,7 +33,7 @@ export default function RessentiSlider({ label, Icon, value, onChange }: Props) 
           <Icon size={15} color="#6B7280" strokeWidth={1.8} />
           <Text style={styles.labelText}>{label}</Text>
         </View>
-        <Text style={styles.scoreText}>{value}/10</Text>
+        <Text style={styles.scoreText}>{motNiveau(value)}</Text>
       </View>
       <View style={styles.trackOuter}>
         <Slider

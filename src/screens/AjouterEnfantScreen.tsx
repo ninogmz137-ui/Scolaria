@@ -36,6 +36,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors';
 import { Text, TextInput } from '../components/ui';
+import { de } from '../utils/francais';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -188,7 +189,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
       Alert.alert(
         'Enfant ajouté',
-        `Le carnet de ${firstName} est créé (identifiant ${scolariaId}).`,
+        `Le carnet ${de(firstName)} est créé (identifiant ${scolariaId}).`,
         [
           {
             text: 'OK',

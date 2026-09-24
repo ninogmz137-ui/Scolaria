@@ -115,7 +115,7 @@ const SCREEN_TITLES: Record<string, string> = {
   AriaHome: 'Aria',
   AriaConversation: 'Aria',
   MessagerieAriaScreen: 'Aria',
-  WallpaperPicker: "Fond d'écran",
+  WallpaperPicker: 'Fond de l’Accueil',
   MessagesListScreen: 'Messages',
   AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
@@ -304,7 +304,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="WallpaperPicker"
         component={WallpaperPickerScreen}
-        options={{ title: "Fond d'écran" }}
+        options={{ headerShown: false, title: 'Fond de l’Accueil' }}
       />
       <AccueilStack.Screen
         name="ArchivedYearDetail"

@@ -11,9 +11,11 @@ import { Check } from 'lucide-react-native';
 import { WALLPAPERS } from '../contexts/WallpaperContext';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import AucunEnfant from '../components/AucunEnfant';
+import { DeepScreenHeader } from '../components/DeepScreenHeader';
+import { useNavigation } from '@react-navigation/native';
+import { de } from '../utils/francais';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import type { WallpaperDef } from '../contexts/WallpaperContext';
 import { SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, Pressable } from '../components/ui';
@@ -70,12 +72,22 @@ function WallpaperCard({
  */
 export default function WallpaperPickerScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const { selectedChild, setChildFond } = useActiveChild();
+  // Page profonde : en-tête ‹ retour + titre, sans top bar ni bottom bar.
+  const entete = (
+    <DeepScreenHeader
+      title="Fond de l’Accueil"
+      onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+      withTopInset
+    />
+  );
   const photos = WALLPAPERS.filter((w) => w.category === 'nature');
 
   if (!selectedChild) {
     return (
-      <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
+      <View style={styles.root}>
+        {entete}
         <AucunEnfant />
       </View>
     );
@@ -105,7 +117,7 @@ export default function WallpaperPickerScreen() {
           <Check size={14} color="#FFFFFF" strokeWidth={3} />
         </View>
       )}
-      <Text style={styles.cardLabel} numberOfLines={1}>Couleur de {selectedChild.name}</Text>
+      <Text style={styles.cardLabel} numberOfLines={1}>Couleur {de(selectedChild.name)}</Text>
     </Pressable>,
     ...photos.map((wp) => (
       <WallpaperCard key={wp.id} wp={wp} isActive={fond === wp.id} onPress={() => choisir(wp.id)} />
@@ -113,13 +125,14 @@ export default function WallpaperPickerScreen() {
   ];
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
+    <View style={styles.root}>
+      {entete}
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomBarScrollPadding(insets.bottom) }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
       >
         <Text style={styles.intro}>
-          Fond de l’Accueil du carnet de {selectedChild.name}. Il est le même pour tous ses responsables.
+          Fond de l’Accueil du carnet {de(selectedChild.name)}. Il est le même pour tous ses responsables.
         </Text>
         <View style={styles.grid}>
           {cartes.map((c, i) => (

@@ -101,7 +101,7 @@ const CARNETS: Record<string, DemoCarnet> = {
         source: 'Mme Laurent',
       },
     ],
-    aria: 'Léa part à la ferme pédagogique jeudi : veux-tu la liste des choses à prévoir ?',
+    aria: 'Léa part à la ferme pédagogique jeudi : voulez-vous la liste des choses à prévoir ?',
   },
   'demo-lucas': {
     todo: [
@@ -141,7 +141,7 @@ const CARNETS: Record<string, DemoCarnet> = {
         source: 'Mme Dupont',
       },
     ],
-    aria: 'Lucas a piscine cet après-midi : pense au sac de sport et au bonnet.',
+    aria: 'Lucas a piscine cet après-midi : pensez au sac de sport et au bonnet.',
   },
   'demo-emma': {
     todo: [
@@ -168,7 +168,7 @@ const CARNETS: Record<string, DemoCarnet> = {
       { subject: 'Français', grade: '13', scale: '20', date: '18 sept.' },
     ],
     apprentissagesRecents: [],
-    aria: 'Emma a un contrôle de maths aujourd’hui : veux-tu un résumé du chapitre ?',
+    aria: 'Emma a un contrôle de maths aujourd’hui : voulez-vous un résumé du chapitre ?',
   },
 };
 

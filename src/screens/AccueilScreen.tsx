@@ -26,6 +26,7 @@ import SectionLabel from '../components/SectionLabel';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
 import { Text } from '../components/ui';
+import { de } from '../utils/francais';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -358,7 +359,7 @@ export default function AccueilScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.ariaLabel}>ARIA</Text>
               <Text style={styles.ariaMessage}>
-                {carnet.aria || `Posez une question à Aria sur le carnet de ${prenom}.`}
+                {carnet.aria || `Posez une question à Aria sur le carnet ${de(prenom)}.`}
               </Text>
             </View>
           </TouchableOpacity>

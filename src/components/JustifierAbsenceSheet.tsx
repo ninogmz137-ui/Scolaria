@@ -171,7 +171,7 @@ export default function JustifierAbsenceSheet({ visible, onClose }: Props) {
               <View style={styles.ariaCardHeader}>
                 <View style={styles.ariaLabel}>
                   <ScolariaSymbol size={14} color={C.indigo} />
-                  <Text style={styles.ariaLabelText}>Aria a pré-rédigé pour toi</Text>
+                  <Text style={styles.ariaLabelText}>Aria a pré-rédigé pour vous</Text>
                 </View>
                 <Pressable hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Text style={styles.ariaGhostBtn}>Modifier</Text>

@@ -2,7 +2,19 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter et B2 FAITS en autonomie (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
+**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2 et B2-bis FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
+
+### B2-bis (24 sept) — conformité charte
+- Score de Joie : plus aucun chiffre ni alerte côté parent (profil, curseur du ressenti, export PDF, mémo de transition, réponses de démo d’Aria). Profil : « Tendance sur 5 jours : stable / plutôt en hausse / plutôt en baisse » (écart > 10 % entre les 5 derniers relevés et les 5 précédents), rien sous 10 relevés. JoyAlerts / JoyHistory supprimés.
+- Mon ressenti : détection d’urgence = `detectEmergency` partagé (celui d’Aria, 22 cas testés) au lieu d’une liste maison ; mention « chiffrées, partagées avec personne » (inexacte) remplacée par « Visible uniquement par les responsables de l’enfant ».
+- Super-pouvoir : étiquettes sans emoji, mention « Observé par Aria » retirée (aussi dans le texte partagé). L’emoji principal du super-pouvoir (🔭) est gardé (contenu).
+- Agenda : devoirs de démo (onglet Devoirs + événements « devoir ») réservés au collège / lycée ; filtre « Devoirs » masqué sinon (et remis sur « Tout » au changement d’enfant). Cause : le calcul des devoirs n’était fait qu’une fois (dépendances vides). Au passage : choisir un jour dans le calendrier du mois ne rechargeait pas la semaine (événements de la semaine en cours) → corrigé.
+- Fond de l’Accueil : page profonde (‹ + titre, sans barres). Élision « de / d’ » : `utils/francais.ts` `de()` (profil, couleur, avatar, autorisations, ajout enfant / année, carte Aria, confirmation de signature).
+- Aria : vouvoiement dans les écrans, suggestions, réponses de démo, cartes ; consigne serveur fixe ajoutée par l’Edge Function (déployée).
+- État vide Agenda : icône lucide CalendarCheck.
+- [UNCLEAR] Espace enseignant (TeacherDashboard « joie x/10 » par élève, Météo de classe avec alertes en %) : non modifié (sprint enseignant). À aligner sur la même règle ?
+- [UNCLEAR] Agenda de démo : événements datés du 30 mars au 4 avril 2026 → la semaine en cours est vide en démo. Recaler les dates sur la semaine courante (relatif à aujourd’hui) ?
+- [UNCLEAR] Les « Compétences clés » du profil sont encore notées sur 10 (Connaissances 8, Créativité 7…), y compris dans l’export PDF : hors Score de Joie, mais contraire à « jamais de chiffre » sur les compétences LSU → à revoir avec la refonte du profil.
 
 ### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
 - ~~Header Accueil, bas arrondi~~ → **remplacé le 24 sept par un fondu** (décision produit) : rgba(couleur, 1 → 0), 10 arrêts ease-out, ~300 px, cartes flottantes ; libellés sur le fondu en blanc (opacité ≥ 0,6) ou gris 55 %. Contrastes vérifiés sur les 6 couleurs (pire : sarcelle, « Bonjour » 5,1, « À FAIRE » 4,8). Photo : voile #F2F1EE d’opacité (1 − a), identique à une photo qui disparaît sur fond uni (MaskedView évité).

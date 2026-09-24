@@ -26,6 +26,7 @@ import {
 } from '../../services/database';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../../components/ui';
+import { de } from '../../utils/francais';
 
 const LIENS: Record<ResponsableEnfant['lien'], string> = {
   parent: 'Parent',
@@ -117,11 +118,11 @@ export default function PermissionsScreen() {
       >
         <Text style={st.title}>Autorisations</Text>
         <Text style={st.subtitle}>
-          Les responsables légaux de {prenomEnfant || 'l’enfant'} ont accès à tout son carnet.
+          Les responsables légaux {prenomEnfant ? de(prenomEnfant) : 'de l’enfant'} ont accès à tout son carnet.
           Chacun garde privés ses messages avec l’enseignant et ses ajouts marqués « privé ».
         </Text>
 
-        <DeepGroup title={`Responsables légaux de ${prenomEnfant}`} first>
+        <DeepGroup title={`Responsables légaux ${de(prenomEnfant)}`} first>
           {chargement ? (
             <DeepRow label="Chargement…" last />
           ) : responsables.length === 0 ? (
@@ -162,7 +163,7 @@ export default function PermissionsScreen() {
           {formOuvert && (
             <View style={st.form}>
               <Text style={st.formHint}>
-                L’autre responsable reçoit l’accès au carnet de {prenomEnfant} après avoir accepté,
+                L’autre responsable reçoit l’accès au carnet {de(prenomEnfant)} après avoir accepté,
                 depuis un compte Scolaria à cette adresse.
               </Text>
               <TextInput

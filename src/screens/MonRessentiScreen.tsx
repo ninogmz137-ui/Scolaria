@@ -18,7 +18,7 @@ import PrimaireMode from '../components/checkin/PrimaireMode';
 import LyceeMode from '../components/checkin/LyceeMode';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { detectCriticalKeywords } from '../components/profile/JoyAlerts';
+import { detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, TextInput, Pressable } from '../components/ui';
@@ -165,7 +165,8 @@ function MonRessentiScreenContent() {
 
   const showCounter = mode === 'lycee';
 
-  const critical = detectCriticalKeywords(message);
+  // Protocole d'urgence : même détection (testée, 22 cas) que pour Aria ; affiche les numéros d'aide.
+  const critical = detectEmergency(message) !== null;
 
   return (
     <View style={styles.root}>
@@ -268,7 +269,7 @@ function MonRessentiScreenContent() {
           </Pressable>
 
           <Text style={styles.privacy}>
-            🔒 Tes réponses sont chiffrées et ne sont partagées avec personne.
+            🔒 Visible uniquement par les responsables de l’enfant.
           </Text>
         </View>
       </ScrollView>

@@ -20,6 +20,7 @@ import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constant
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AriaInlineCard from '../components/AriaInlineCard';
 import { Text } from '../components/ui';
+import { de } from '../utils/francais';
 
 // ─── Sous-composants ─────────────────────────────────────
 
@@ -96,7 +97,7 @@ export default function SignSuccessScreen() {
         <View style={{ marginTop: 8 }}>
           <AriaInlineCard label="Aria">
             <Text style={styles.ariaText}>
-              Veux-tu ajouter « {doc.title} » à l’agenda de {prenom} avec un rappel la veille ?
+              Voulez-vous ajouter « {doc.title} » à l’agenda {de(prenom)} avec un rappel la veille ?
             </Text>
             <View style={styles.ariaActions}>
               <TouchableOpacity style={styles.ariaPillMain}>

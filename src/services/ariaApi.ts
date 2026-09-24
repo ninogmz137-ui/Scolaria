@@ -12,6 +12,7 @@
 import { getChildContext } from './childContext';
 import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
+import { de } from '../utils/francais';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ function buildRealChildSystemPrompt(childId: string, prenom: string, niveau?: st
 ═══ TON RÔLE ═══
 - Tu accompagnes un parent dans le suivi scolaire de ${prenom}${niveauStr}, et de cet enfant seulement.
 - Tu es bienveillante, encourageante et constructive, jamais alarmiste.
-- Tu parles en français, de manière claire et chaleureuse.
+- Tu parles en français, de manière claire et chaleureuse, et tu VOUVOIES toujours le parent.
 
 ═══ TES RÈGLES ═══
 - Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
@@ -72,7 +73,7 @@ function buildNoChildSystemPrompt(): string {
   return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
 
 Aucun enfant n'est encore ajouté au carnet de ce parent.
-- Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée).
+- Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée), en vouvoyant toujours le parent.
 - N'invente jamais de notes, d'enseignants ni d'événements : tu n'as aucune donnée d'enfant.
 - Quand c'est utile, propose d'ajouter un enfant au carnet pour des réponses personnalisées.
 - Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
@@ -160,25 +161,22 @@ function buildFallbackResponses(childId: string): string[] {
       'Bonjour ! Je suis Aria. Ajoutez le carnet d’un enfant pour découvrir des réponses adaptées à son niveau.',
     ];
   }
-  const { profile, grades, activities, recentJoy, upcomingEvents } = child;
+  const { profile, grades, activities, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
-  const intro = `Bonjour ! Je suis Aria, ton assistante scolaire. En mode démo, je te propose des exemples adaptés à ${name} pour découvrir Scolaria.`;
+  const intro = `Bonjour ! Je suis Aria. En mode démo, je vous propose des exemples adaptés à ${name} pour découvrir Scolaria.`;
 
   if (grades.length === 0) {
     // Maternelle — no grades
     const activitiesStr = activities.map((a) => a.name.toLowerCase()).join(', ');
-    const joyAvg = recentJoy.length > 0
-      ? (recentJoy.reduce((s, j) => s + j.score, 0) / recentJoy.length).toFixed(1)
-      : '—';
     return [
       intro,
-      `${name} a une journée bien remplie ! Ses activités (${activitiesStr}) contribuent à son épanouissement. Son Score de Joie moyen est de ${joyAvg}/10 — c'est excellent ! 🌈`,
-      `Le Score de Joie de ${name} est très positif cette semaine (moyenne ${joyAvg}/10). ${name} est épanoui(e) et plein(e) d'énergie ! 😊`,
+      `${name} a une semaine bien remplie : ses activités (${activitiesStr}) contribuent à son épanouissement.`,
+      `Le Score de Joie est une tendance, pas une note : pour ${name}, elle paraît stable ces derniers jours. Vous pouvez en parler ensemble si vous le souhaitez.`,
       upcomingEvents.length > 0
-        ? `Prochain événement pour ${name} : ${upcomingEvents[0]}. Une belle journée en perspective ! 🎨`
-        : `Pas d'événement particulier prévu pour ${name} cette semaine. Un moment de calme bien mérité ! 🌿`,
-      `Les activités de ${name} (${activitiesStr}) sont variées et stimulantes. Un bel équilibre pour son développement ! 🎯`,
+        ? `Prochain événement pour ${name} : ${upcomingEvents[0]}.`
+        : `Pas d'événement particulier prévu pour ${name} cette semaine.`,
+      `Les activités ${de(name)} (${activitiesStr}) sont variées : un bel équilibre.`,
     ];
   }
 
@@ -186,18 +184,14 @@ function buildFallbackResponses(childId: string): string[] {
   const best = grades.reduce((b, g) => (g.average > b.average ? g : b));
   const weakest = grades.reduce((w, g) => (g.average < w.average ? g : w));
   const activitiesStr = activities.map((a) => a.name.toLowerCase()).join(', ');
-  const joyAvg = recentJoy.length > 0
-    ? (recentJoy.reduce((s, j) => s + j.score, 0) / recentJoy.length).toFixed(1)
-    : '—';
-
   return [
     intro,
-    `D'après les données de ${name}, sa moyenne générale est de ${overallAvg}/20 — c'est très bien ! Sa matière la plus forte est ${best.subject.toLowerCase()} (${best.average}/20) et il/elle pourrait progresser en ${weakest.subject.toLowerCase()} (${weakest.average}/20). Un plan de révision ciblé serait bénéfique. 📊`,
-    `Le Score de Joie de ${name} est stable cette semaine (moyenne ${joyAvg}/10). Son niveau de stress reste bas, ce qui est positif ! 😊`,
+    `D'après le carnet ${de(name)}, la moyenne générale est de ${overallAvg}/20. Point fort : ${best.subject.toLowerCase()} (${best.average}/20) ; à consolider : ${weakest.subject.toLowerCase()} (${weakest.average}/20). Voulez-vous un plan de révision ?`,
+    `Le Score de Joie est une tendance, pas une note : pour ${name}, elle paraît stable ces derniers jours. Vous pouvez en parler ensemble si vous le souhaitez.`,
     upcomingEvents.length > 0
-      ? `${name} a un événement à venir : ${upcomingEvents[0]}. Je recommande de bien se préparer à l'avance avec des sessions courtes et régulières. 📐`
-      : `Pas de contrôle imminent pour ${name}. C'est le bon moment pour consolider les acquis et renforcer ${weakest.subject.toLowerCase()}. 📐`,
-    `Les activités extra-scolaires de ${name} (${activitiesStr}) sont bien équilibrées. Elles contribuent positivement à son épanouissement scolaire ! 🎯`,
+      ? `${name} a un événement à venir : ${upcomingEvents[0]}. Je vous conseille des révisions courtes et régulières d'ici là.`
+      : `Pas de contrôle imminent pour ${name} : c'est un bon moment pour consolider les acquis en ${weakest.subject.toLowerCase()}.`,
+    `Les activités extra-scolaires ${de(name)} (${activitiesStr}) sont bien équilibrées.`,
   ];
 }
 

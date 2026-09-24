@@ -50,15 +50,8 @@ export interface PDFExportData {
 // ─── HTML Template ──────────────────────────────────────
 
 function generateHTML(data: PDFExportData): string {
-  const { child, competences, activities, joyHistory } = data;
-
-  const avgJoy = joyHistory.length > 0
-    ? (joyHistory.reduce((s, d) => s + d.score, 0) / joyHistory.length).toFixed(1)
-    : '—';
-
-  const recentJoy = joyHistory.length >= 7
-    ? (joyHistory.slice(-7).reduce((s, d) => s + d.score, 0) / 7).toFixed(1)
-    : avgJoy;
+  // Jamais de Score de Joie dans un export (CLAUDE.md : tendance seulement, jamais de chiffre brut).
+  const { child, competences, activities } = data;
 
   const compBars = competences.map(c => `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -85,14 +78,6 @@ function generateHTML(data: PDFExportData): string {
       <td style="padding:10px 12px;color:#787774;font-size:12px;">Depuis ${a.since}</td>
     </tr>
   `).join('');
-
-  const joySparkline = joyHistory.slice(-30).map((d, i) => {
-    const h = d.score * 8;
-    const color = d.score >= 7 ? '#0F7B6C' : d.score >= 5 ? '#D9730D' : '#EB5757';
-    return `<div style="flex:1;display:flex;align-items:flex-end;height:80px;">
-      <div style="width:100%;height:${h}px;background:${color};border-radius:2px;min-height:3px;"></div>
-    </div>`;
-  }).join('');
 
   return `<!DOCTYPE html>
 <html>
@@ -151,14 +136,6 @@ function generateHTML(data: PDFExportData): string {
       <div class="section-title">Vue d'ensemble</div>
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-value">${avgJoy}</div>
-          <div class="stat-label">Score de Joie moyen</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">${recentJoy}</div>
-          <div class="stat-label">7 derniers jours</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-value">${competences.length}</div>
           <div class="stat-label">Compétences évaluées</div>
         </div>
@@ -175,11 +152,6 @@ function generateHTML(data: PDFExportData): string {
       ${compBars}
     </div>
 
-    <!-- Joy History -->
-    <div class="section">
-      <div class="section-title">Historique du Score de Joie (30 jours)</div>
-      <div class="joy-chart">${joySparkline}</div>
-    </div>
 
     <!-- Portfolio -->
     <div class="section">
@@ -326,7 +298,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
       <p>
         Ce mémo accompagne <strong>${child.name}</strong> dans sa transition de
         <strong>${fromSchool}</strong> vers <strong>${toSchool}</strong>.
-        Il présente un aperçu de son parcours, ses points forts et son bien-être
+        Il présente un aperçu de son parcours et de ses points forts
         pour faciliter son accueil dans sa nouvelle classe.
       </p>
     </div>

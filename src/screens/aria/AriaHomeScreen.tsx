@@ -53,6 +53,7 @@ import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 import { Text, TextInput, Pressable } from '../../components/ui';
+import { de } from '../../utils/francais';
 
 // ─── Constants ─────────────────────────────────────────────
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -116,7 +117,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
     return [
       `🌈 Comment va ${childName} aujourd'hui ?`,
       '🎨 Activités de la semaine',
-      '😊 Score de Joie',
+      `💛 Bien-être ${de(childName)}`,
       '🌱 Progrès récents',
     ];
   }
@@ -324,8 +325,8 @@ export default function AriaHomeScreen() {
       const confirmMsg: Message = {
         id: `a_${Date.now()}`,
         text: result.success
-          ? `${result.message}\n\nY a-t-il autre chose que je peux faire pour toi ?`
-          : `${result.message}\n\nVeux-tu réessayer ou as-tu besoin d'aide ?`,
+          ? `${result.message}\n\nPuis-je faire autre chose pour vous ?`
+          : `${result.message}\n\nVoulez-vous réessayer ou avez-vous besoin d'aide ?`,
         sender: 'aria',
         timestamp: nowTime(),
       };
@@ -344,7 +345,7 @@ export default function AriaHomeScreen() {
     setPendingAction(null);
     const cancelMsg: Message = {
       id: `a_${Date.now()}`,
-      text: "D'accord, je n'ai rien fait. N'hésite pas à me redemander si tu changes d'avis. 😊",
+      text: "D'accord, je n'ai rien fait. N'hésitez pas à me le redemander si vous changez d'avis.",
       sender: 'aria',
       timestamp: nowTime(),
     };
@@ -538,7 +539,7 @@ export default function AriaHomeScreen() {
             }}
           >
             <View style={{ alignItems: 'center' }}>
-              <Text style={styles.heroTitle}>Comment puis-je t'aider ce soir ?</Text>
+              <Text style={styles.heroTitle}>Comment puis-je vous aider ?</Text>
             </View>
 
             <View style={[styles.suggestionWrap, { marginTop: 26 }]}>

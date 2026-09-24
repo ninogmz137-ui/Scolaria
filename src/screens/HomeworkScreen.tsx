@@ -301,7 +301,7 @@ function HomeworkScreenContent() {
         {/* Aria card */}
         <AriaInlineCard>
           <Text style={styles.ariaText}>
-            2 devoirs urgents cette semaine. Veux-tu activer les rappels ?
+            2 devoirs urgents cette semaine. Voulez-vous activer les rappels ?
           </Text>
           <View style={styles.ariaActions}>
             <TouchableOpacity style={styles.ariaActionPrimary} activeOpacity={0.8}>

@@ -19,13 +19,14 @@ import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from '../components/ui';
+import { de } from '../utils/francais';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
 function makeWelcomeMessage(childName: string): Message {
   return {
     id: '1',
-    text: `Bonjour ! Je suis Aria ✦, ton assistante scolaire. J'ai accès au profil complet de ${childName} — notes, activités, bien-être. Pose-moi une question ! 📚`,
+    text: `Bonjour ! Je suis Aria, votre assistante pour le carnet ${de(childName)}. Posez-moi une question.`,
     sender: 'aria',
     timestamp: new Date().toLocaleTimeString('fr-FR', {
       hour: '2-digit',
@@ -39,7 +40,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
     return [
       `🌈 Comment va ${childName} aujourd'hui ?`,
       '🎨 Activités de la semaine',
-      '😊 Score de Joie',
+      `💛 Bien-être ${de(childName)}`,
       '🌱 Progrès récents',
       '👩‍🏫 Observation de la maîtresse',
     ];

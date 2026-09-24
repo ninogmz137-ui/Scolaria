@@ -35,7 +35,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronDown } from 'lucide-react-native';
+import { Check, ChevronDown, CalendarCheck } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { C } from '../constants/design';
@@ -310,6 +310,12 @@ function AgendaScreenContent() {
   const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Tout');
+  const avecDevoirs = aDesNotes(selectedChild?.cycle);
+  const filtres = FILTER_TABS.filter((f) => f !== 'Devoirs' || avecDevoirs);
+  // Changement d'enfant vers la maternelle / le primaire : pas de filtre « Devoirs ».
+  useEffect(() => {
+    if (!avecDevoirs && activeFilter === 'Devoirs') setActiveFilter('Tout');
+  }, [avecDevoirs, activeFilter]);
   const [expandedDevoir, setExpandedDevoir] = useState<string | null>(null);
   const [devoirDoneMap, setDevoirDoneMap] = useState<Record<string, boolean>>({});
 
@@ -427,7 +433,7 @@ function AgendaScreenContent() {
         ],
       },
     ];
-  }, []);
+  }, [isDemoMode, selectedChild?.cycle]);
 
   const toggleDevoirDone = useCallback((id: string) => {
     setDevoirDoneMap((prev) => ({ ...prev, [id]: !(prev[id] ?? false) }));
@@ -478,7 +484,10 @@ function AgendaScreenContent() {
       for (let i = 0; i < 7; i++) {
         const dayDate = computed[i].fullDate;
         const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
-        const demoEvents = getDemoAgendaRef.current(selectedChildId, dateStr);
+        // Devoirs : collège / lycée uniquement (jamais en maternelle ni en primaire).
+        const demoEvents = getDemoAgendaRef.current(selectedChildId, dateStr).filter(
+          (ev) => avecDevoirs || ev.type !== 'devoir',
+        );
         if (demoEvents.length > 0) {
           grouped[computed[i].date] = demoEvents.map((e) => ({
             id: e.id,
@@ -537,7 +546,7 @@ function AgendaScreenContent() {
       grouped[dayNum].push(mapped);
     }
     setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate, isDemoMode]);
+  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
@@ -615,6 +624,11 @@ function AgendaScreenContent() {
     const dayOfWeek = fullDate.getDay(); // 0=Sun
     const weekContainingDay = buildWeekDays(fullDate);
     setWeekDays(weekContainingDay);
+    // Semaine de référence = celle du jour choisi : sinon les événements restent ceux de la semaine en cours.
+    const semaines = Math.round(
+      (getMondayOfWeek(fullDate).getTime() - getMondayOfWeek(new Date()).getTime()) / (7 * 86400000),
+    );
+    setWeekOffset(semaines);
 
     const dayNum = fullDate.getDate();
     setSelectedDay(dayNum);
@@ -811,7 +825,7 @@ function AgendaScreenContent() {
           {dayEvents.length === 0 ? (
             <View style={st.emptyState}>
               <View style={st.emptyIconWrap}>
-                <Text style={{ fontSize: 36 }}>🏖️</Text>
+                <CalendarCheck size={32} color="rgba(15,23,42,0.35)" strokeWidth={1.8} />
               </View>
               <Text style={st.emptyTitle}>Journée libre</Text>
               <Text style={st.emptySubtitle}>Rien de prévu ce jour</Text>
@@ -1047,7 +1061,7 @@ function AgendaScreenContent() {
           contentContainerStyle={st.filterPillsContent}
           style={st.filterPillsRow}
         >
-          {FILTER_TABS.map((tab) => {
+          {filtres.map((tab) => {
             const isActive = activeFilter === tab;
             return (
               <Pressable
@@ -1065,7 +1079,7 @@ function AgendaScreenContent() {
       </View>
 
       {/* 5. Devoirs view OR swipeable day pages */}
-      {activeFilter === 'Devoirs' ? renderHomeworkView() : (
+      {activeFilter === 'Devoirs' && avecDevoirs ? renderHomeworkView() : (
       <FlatList
         ref={flatListRef}
         horizontal

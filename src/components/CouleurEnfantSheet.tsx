@@ -11,6 +11,7 @@ import { useActiveChild, DEFAULT_CHILD_COLOR, type Child } from '../contexts/Act
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ChildAvatar from './ChildAvatar';
 import { Text, Pressable } from './ui';
+import { de } from '../utils/francais';
 
 export default function CouleurEnfantSheet({
   child,
@@ -49,7 +50,7 @@ export default function CouleurEnfantSheet({
           <View style={st.header}>
             <ChildAvatar child={child} size={44} />
             <View style={{ marginLeft: 12, flex: 1 }}>
-              <Text style={st.title}>Couleur de {child.name}</Text>
+              <Text style={st.title}>Couleur {de(child.name)}</Text>
               <Text style={st.sub}>Avatar et header de l’Accueil de son carnet</Text>
             </View>
           </View>

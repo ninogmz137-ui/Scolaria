@@ -37,7 +37,7 @@ export const ROUTE_CHROME = {
   AriaScreen: 'none',
   AriaHome: 'none',
   AriaConversation: 'none',
-  WallpaperPicker: 'full',
+  WallpaperPicker: 'none',
   ArchivedYearDetail: 'full',
   Homework: 'none',
   Timetable: 'none',

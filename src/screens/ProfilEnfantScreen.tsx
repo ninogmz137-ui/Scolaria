@@ -43,12 +43,7 @@ import CouleurEnfantSheet from '../components/CouleurEnfantSheet';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
-import JoyHistory from '../components/profile/JoyHistory';
 import Portfolio from '../components/profile/Portfolio';
-import JoyAlerts, {
-  detectJoyAlert,
-  detectCriticalKeywords,
-} from '../components/profile/JoyAlerts';
 import {
   exportProfilePDF,
   exportTransitionMemo,
@@ -59,6 +54,7 @@ import { getChild, getCheckins } from '../services/database';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, Pressable } from '../components/ui';
 import { AucunEnfantPage } from '../components/AucunEnfant';
+import { de } from '../utils/francais';
 
 const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
@@ -249,6 +245,30 @@ function getChildProfileData(childId: string, prenom = '', classe = ''): ChildPr
   }
 }
 
+/** Tendance du Score de Joie sur 5 jours, en mots neutres (CLAUDE.md : jamais de chiffre brut). */
+function TendanceJoie({ jours, prenom }: { jours: { day: number; score: number }[]; prenom: string }) {
+  const releves = jours.filter((j) => j.score > 0);
+  if (releves.length < 10) return null;
+  const moy = (l: typeof releves) => l.reduce((s, j) => s + j.score, 0) / l.length;
+  const recents = moy(releves.slice(-5));
+  const avant = moy(releves.slice(-10, -5));
+  const ecart = avant > 0 ? (recents - avant) / avant : 0;
+  const tendance = ecart > 0.1 ? 'plutôt en hausse' : ecart < -0.1 ? 'plutôt en baisse' : 'stable';
+  return (
+    <>
+      <SectionTitle label="Score de Joie" />
+      <View style={styles.joieCard}>
+        <Text style={styles.joieTexte}>
+          💛 Tendance sur 5 jours : <Text style={styles.joieTendance}>{tendance}</Text>
+        </Text>
+        <Text style={styles.joieNote}>
+          Une tendance, pas une note. Vous pouvez en parler avec {prenom} si vous le souhaitez.
+        </Text>
+      </View>
+    </>
+  );
+}
+
 function SectionTitle({ label }: { label: string }) {
   return <Text style={styles.sectionTitle}>{label}</Text>;
 }
@@ -289,9 +309,6 @@ function SuperPouvoirCard({
     <View style={[styles.spCard, { backgroundColor: '#FFFFFF' }]}>
       <View style={styles.spTopRow}>
         <Text style={styles.spSectionLeft}>✦ SUPER-POUVOIR</Text>
-        <View style={[styles.spAriaBadge, { backgroundColor: 'rgba(67,56,202,0.08)' }]}>
-          <Text style={styles.spAriaBadgeText}>✦ Observé par Aria</Text>
-        </View>
       </View>
 
       <View style={[styles.spIconGrad, { backgroundColor: VIOLET }]}>
@@ -304,7 +321,6 @@ function SuperPouvoirCard({
       <View style={styles.spTraits}>
         {tags.map((t) => (
           <View key={t.label} style={styles.traitPill}>
-            <Text style={styles.traitEmoji}>{t.emoji}</Text>
             <Text style={styles.traitLabel}>{t.label}</Text>
           </View>
         ))}
@@ -411,8 +427,6 @@ function ProfilEnfantScreenContent() {
     loadProfile();
   }, [childId, loadProfile, profilDeBase]);
 
-  const joyAlert = detectJoyAlert(data.joy30Days);
-  const hasCriticalMessage = detectCriticalKeywords(data.lastCheckinMessage);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -455,11 +469,11 @@ function ProfilEnfantScreenContent() {
   };
 
   const handleShareSuper = async () => {
-    const tagLine = data.tags.map((t) => `${t.emoji} ${t.label}`).join(' · ');
+    const tagLine = data.tags.map((t) => t.label).join(' · ');
     try {
       await Share.share({
         message: `${data.superPowerEmoji} ${data.firstName} — ${data.superPower}\n\n${data.superPowerDescription}\n\n${tagLine}\n\n— Profil Scolaria`,
-        title: `Super-pouvoir de ${data.firstName}`,
+        title: `Super-pouvoir ${de(data.firstName)}`,
       });
     } catch {
       /* cancelled */
@@ -493,7 +507,7 @@ function ProfilEnfantScreenContent() {
             onPress={() => setCouleurVisible(true)}
             style={styles.avatarPress}
             accessibilityRole="button"
-            accessibilityLabel={`Changer la couleur de ${selectedChild.name}`}
+            accessibilityLabel={`Changer la couleur ${de(selectedChild.name)}`}
           >
             <ChildAvatar child={selectedChild} size={84} />
             <View style={styles.editBadge}>
@@ -513,18 +527,6 @@ function ProfilEnfantScreenContent() {
         </View>
 
         <View style={{ paddingHorizontal: 18, marginTop: 8 }}>
-          {(joyAlert.level || hasCriticalMessage) && (
-            <View style={{ marginBottom: 16 }}>
-              <JoyAlerts
-                level={joyAlert.level}
-                dropPercent={joyAlert.dropPercent}
-                recentAvg={joyAlert.recentAvg}
-                childName={data.firstName}
-                showUrgencyProtocol={hasCriticalMessage}
-              />
-            </View>
-          )}
-
           {!!data.superPower && (
           <SuperPouvoirCard
             power={data.superPower}
@@ -550,12 +552,9 @@ function ProfilEnfantScreenContent() {
             </>
           )}
 
-          {data.joy30Days.length > 0 && (
-            <>
-              <SectionTitle label="Score de joie" />
-              <JoyHistory data={data.joy30Days} month="Mars 2026" />
-            </>
-          )}
+          {/* Score de Joie : tendance neutre uniquement, jamais de chiffre ni d'alerte (alertes =
+              Aria stade 3, Phase 3). Rien s'il n'y a pas assez de relevés. */}
+          <TendanceJoie jours={data.joy30Days} prenom={data.firstName} />
 
           {data.portfolio.length > 0 && (
             <>
@@ -608,6 +607,23 @@ function ProfilEnfantScreenContent() {
 }
 
 const styles = StyleSheet.create({
+  joieCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(15,23,42,0.05)',
+    padding: 14,
+    marginBottom: 8,
+  },
+  joieTexte: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 20, color: '#0F172A' },
+  joieTendance: { fontFamily: FontFamily.sansBold },
+  joieNote: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    lineHeight: 17,
+    color: 'rgba(15,23,42,0.55)',
+    marginTop: 4,
+  },
   root: {
     flex: 1,
     backgroundColor: PAGE_BG,

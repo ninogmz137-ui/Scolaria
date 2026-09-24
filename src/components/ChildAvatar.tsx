@@ -9,6 +9,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from './ui';
 import { useActiveChild, DEFAULT_CHILD_COLOR, type Child } from '../contexts/ActiveChildContext';
 import { getChildInitials } from '../utils/childInitials';
+import { de } from '../utils/francais';
 
 interface ChildAvatarProps {
   /** null : aucun enfant → « + » neutre. */
@@ -35,7 +36,7 @@ export default function ChildAvatar({ child, size = 36, borderColor }: ChildAvat
           borderColor: borderColor ?? 'transparent',
         },
       ]}
-      accessibilityLabel={child ? `Avatar de ${child.name}` : 'Aucun enfant'}
+      accessibilityLabel={child ? `Avatar ${de(child.name)}` : 'Aucun enfant'}
     >
       <Text
         style={[
