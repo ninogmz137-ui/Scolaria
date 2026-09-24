@@ -93,6 +93,19 @@ interface AgendaEvent {
   done?: boolean;
 }
 
+/**
+ * Ordre d'une journée : les devoirs d'abord (sans horaire, « pour aujourd'hui »), puis tout le
+ * reste par heure, tous types confondus.
+ */
+function trierJournee(events: AgendaEvent[]): AgendaEvent[] {
+  return [...events].sort((a, b) => {
+    const da = a.type === 'devoir' ? 0 : 1;
+    const db = b.type === 'devoir' ? 0 : 1;
+    if (da !== db) return da - db;
+    return a.time.localeCompare(b.time);
+  });
+}
+
 type NewEventType = 'devoir' | 'controle' | 'sortie' | 'autre';
 type FilterTab = 'Tout' | 'Devoirs' | 'Événements' | 'Rappels';
 const FILTER_TABS: FilterTab[] = ['Tout', 'Devoirs', 'Événements', 'Rappels'];
@@ -526,7 +539,7 @@ function AgendaScreenContent() {
           (ev) => (avecDevoirs || ev.type !== 'devoir') && (avecCours || ev.type !== 'cours'),
         );
         if (demoEvents.length > 0) {
-          grouped[computed[i].date] = demoEvents.map((e) => ({
+          grouped[computed[i].date] = trierJournee(demoEvents.map((e) => ({
             id: e.id,
             title: e.title,
             time: e.startTime,
@@ -537,7 +550,7 @@ function AgendaScreenContent() {
             description: e.description || undefined,
             color: e.color || Colors.violet,
             done: e.is_completed ?? false,
-          }));
+          })));
         }
       }
       if (Object.keys(grouped).length === 0) {
@@ -583,6 +596,7 @@ function AgendaScreenContent() {
       if (!grouped[dayNum]) grouped[dayNum] = [];
       grouped[dayNum].push(mapped);
     }
+    for (const jour of Object.keys(grouped)) grouped[Number(jour)] = trierJournee(grouped[Number(jour)]);
     setEventsByDay(grouped);
   }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours]);
 
@@ -642,7 +656,7 @@ function AgendaScreenContent() {
         };
         setEventsByDay((prev) => ({
           ...prev,
-          [selectedDay]: [...(prev[selectedDay] ?? []), localEvent],
+          [selectedDay]: trierJournee([...(prev[selectedDay] ?? []), localEvent]),
         }));
       }
       setAddModalVisible(false);
