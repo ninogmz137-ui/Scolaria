@@ -57,6 +57,9 @@ import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
 import { Text, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
+import ApprentissagesVue, { type ApprentissageItem } from './suivi/ApprentissagesVue';
+import { getDemoCompetences } from '../data/demo/carnet';
+import { getCompetences } from '../services/database';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -217,52 +220,6 @@ const DEMO_PROFILES: Record<string, DemoNotesProfile> = {
         type: 'Statistiques',
         coefficient: 1,
         sortDate: '2026-02-14',
-        trimester: 3,
-      },
-    ],
-  },
-  'demo-lucas': {
-    childId: 'demo-lucas',
-    overallAverage: 13.8,
-    overallTrend: 0.5,
-    trimAverages: [12.8, 13.3, 13.8],
-    yearOverallAverage: 13.3,
-    graph: [12.9, 13.2, 13.5, 13.6, 13.7, 13.8],
-    lastNote: { value: 15, max: 20, label: 'Dictée', date: '7 avril' },
-    strong: { label: 'Lecture', score: '16/20' },
-    weak: { label: 'Mathématiques', score: '11/20' },
-    observation:
-      'Lucas fait de beaux progrès en expression écrite. Il doit consolider ses tables de multiplication.',
-    subjectOrder: ['Français', 'Mathématiques', 'Sciences', 'Histoire-Géo'],
-    lucasFrNotes: [
-      {
-        id: 'l1',
-        value: 15,
-        maxValue: 20,
-        date: '7 avril',
-        type: 'Dictée',
-        coefficient: 1,
-        sortDate: '2026-04-07',
-        trimester: 3,
-      },
-      {
-        id: 'l2',
-        value: 16,
-        maxValue: 20,
-        date: '24 mars',
-        type: 'Rédaction — La forêt',
-        coefficient: 2,
-        sortDate: '2026-03-24',
-        trimester: 3,
-      },
-      {
-        id: 'l3',
-        value: 13,
-        maxValue: 20,
-        date: '10 mars',
-        type: 'Lecture à voix haute',
-        coefficient: 1,
-        sortDate: '2026-03-10',
         trimester: 3,
       },
     ],
@@ -1070,7 +1027,39 @@ function NotesScreenContent() {
     ? getSchoolModeFromBirthDate(selectedChild.birthDate)
     : mode;
 
-  const isMaternelle = schoolMode === 'maternelle';
+  // Le cycle de l'enfant (niveau saisi) fait foi ; la date de naissance n'est qu'un repli.
+  const cycle = selectedChild?.cycle ?? null;
+  const isMaternelle = cycle ? cycle === 'maternelle' : schoolMode === 'maternelle';
+  const isPrimaire = cycle ? cycle === 'primaire' : schoolMode === 'primaire';
+
+  // Primaire : compétences sur 4 niveaux. Démo = enfant de démo ; compte réel = table competences.
+  const [competences, setCompetences] = useState<ApprentissageItem[]>([]);
+  useEffect(() => {
+    let annule = false;
+    if (!isPrimaire || !selectedChild) {
+      setCompetences([]);
+      return;
+    }
+    if (isDemoMode) {
+      setCompetences(getDemoCompetences(selectedChild.id));
+      return;
+    }
+    getCompetences(selectedChild.id).then(({ data }) => {
+      if (annule) return;
+      setCompetences(
+        data.map((c) => ({
+          domaine: c.domaine,
+          texte: c.competence,
+          niveau: c.niveau,
+          date: new Date(c.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+          source: c.source === 'ecole' ? 'l’école' : 'un responsable',
+        })),
+      );
+    });
+    return () => {
+      annule = true;
+    };
+  }, [isPrimaire, isDemoMode, selectedChild]);
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
@@ -1140,21 +1129,6 @@ function NotesScreenContent() {
             }
             if (s.name === 'Anglais') return { ...s, average: 16 };
             if (s.name === 'Physique-Chimie') return { ...s, average: 11.5 };
-            return s;
-          });
-        }
-
-        if (!yearView && selectedChild.id === 'demo-lucas' && prof?.lucasFrNotes) {
-          mapped = mapped.map((s) => {
-            if (s.name === 'Français') {
-              return {
-                ...s,
-                average: 14.5,
-                trend: 'up' as const,
-                grades: prof.lucasFrNotes!.map((g) => ({ ...g })),
-              };
-            }
-            if (s.name === 'Mathématiques') return { ...s, average: 11 };
             return s;
           });
         }
@@ -1369,12 +1343,35 @@ function NotesScreenContent() {
     if (isMaternelle && isAnnee) {
       return 'Vue annuelle — progression sur les 3 trimestres.';
     }
-    if (selectedChild?.id === 'demo-lea') return LE_OBSERVATION;
+    if (isDemoMode && selectedChild?.id === 'demo-lea') return LE_OBSERVATION;
     if (demoProfile && isDemoMode) return demoProfile.observation;
-    return `« ${selectedChild?.name?.split(' ')[0] ?? 'Votre enfant'} progresse régulièrement. »`;
+    // Jamais d'observation inventée : sans donnée, rien.
+    return '';
   }, [selectedChild, demoProfile, isDemoMode, isAnnee, isMaternelle]);
 
-  // ─── MATERNELLE (Léa / GS) ───────────────────────────────
+  // ─── PRIMAIRE : compétences sur 4 niveaux, jamais de notes /20 ─────
+
+  if (isPrimaire) {
+    return (
+      <ApprentissagesVue
+        titre={`Compétences du livret · ${selectedChild?.niveau ?? ''}`}
+        items={competences}
+        vide={`Aucune compétence saisie pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`}
+      />
+    );
+  }
+
+  // ─── MATERNELLE : domaines + observations (démo : Léa uniquement) ─────
+
+  if (isMaternelle && !(isDemoMode && selectedChild?.id === 'demo-lea')) {
+    return (
+      <ApprentissagesVue
+        titre={`Carnet de suivi des apprentissages · ${selectedChild?.niveau ?? ''}`}
+        items={[]}
+        vide={`Aucune observation pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`}
+      />
+    );
+  }
 
   if (isMaternelle) {
     const domains = LE_DOMAINS;

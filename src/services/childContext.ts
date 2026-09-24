@@ -90,68 +90,8 @@ export const MOCK_CHILDREN: ChildContext[] = [
       school: 'École Voltaire',
       superPower: 'Curiosité',
     },
-    grades: [
-      {
-        subject: 'Mathématiques',
-        average: 15.5,
-        classAvg: 12.3,
-        trend: 'up',
-        recentGrades: [
-          { value: 17, maxValue: 20, date: '15 mars', type: 'Contrôle' },
-          { value: 14, maxValue: 20, date: '8 mars', type: 'Devoir maison' },
-          { value: 16, maxValue: 20, date: '1 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        subject: 'Français',
-        average: 14.0,
-        classAvg: 13.1,
-        trend: 'stable',
-        recentGrades: [
-          { value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction' },
-          { value: 13, maxValue: 20, date: '7 mars', type: 'Dictée' },
-        ],
-      },
-      {
-        subject: 'Histoire-Géo',
-        average: 16.0,
-        classAvg: 11.8,
-        trend: 'up',
-        recentGrades: [
-          { value: 18, maxValue: 20, date: '12 mars', type: 'Exposé' },
-          { value: 15, maxValue: 20, date: '5 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        subject: 'Anglais',
-        average: 17.0,
-        classAvg: 13.7,
-        trend: 'up',
-        recentGrades: [
-          { value: 18, maxValue: 20, date: '13 mars', type: 'Oral' },
-          { value: 16, maxValue: 20, date: '6 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        subject: 'Sciences',
-        average: 13.0,
-        classAvg: 12.5,
-        trend: 'down',
-        recentGrades: [
-          { value: 12, maxValue: 20, date: '11 mars', type: 'TP' },
-          { value: 14, maxValue: 20, date: '4 mars', type: 'Contrôle' },
-        ],
-      },
-      {
-        subject: 'EPS',
-        average: 15.0,
-        classAvg: 14.2,
-        trend: 'stable',
-        recentGrades: [
-          { value: 16, maxValue: 20, date: '10 mars', type: 'Course' },
-        ],
-      },
-    ],
+    // Primaire : pas de notes /20 (compétences du livret, cf. carnet.ts).
+    grades: [],
     activities: [
       { name: 'Judo', category: 'Sport', level: 'Ceinture verte' },
       { name: 'Piano', category: 'Musique', level: '3ème année' },

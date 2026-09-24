@@ -172,6 +172,31 @@ const CARNETS: Record<string, DemoCarnet> = {
   },
 };
 
+/**
+ * Compétences du livret (primaire) — démo : Lucas, CM2 B, saisies par Mme Dupont.
+ * Intitulés rédigés pour la démo, dans l'esprit du LSU (à reprendre des textes officiels en B3).
+ */
+const COMPETENCES_DEMO: Record<string, DemoApprentissage[]> = {
+  'demo-lucas': [
+    { domaine: 'Français', texte: 'Lire et comprendre un texte littéraire', niveau: 3, date: '19 sept.', source: 'Mme Dupont' },
+    { domaine: 'Français', texte: 'Écrire un texte cohérent d’une dizaine de lignes', niveau: 2, date: '16 sept.', source: 'Mme Dupont' },
+    { domaine: 'Français', texte: 'Orthographier les mots les plus fréquents', niveau: 3, date: '12 sept.', source: 'Mme Dupont' },
+    { domaine: 'Mathématiques', texte: 'Résoudre des problèmes avec des fractions simples', niveau: 3, date: '19 sept.', source: 'Mme Dupont' },
+    { domaine: 'Mathématiques', texte: 'Calculer avec les nombres décimaux', niveau: 2, date: '15 sept.', source: 'Mme Dupont' },
+    { domaine: 'Mathématiques', texte: 'Reconnaître et tracer des figures géométriques', niveau: 4, date: '10 sept.', source: 'Mme Dupont' },
+    { domaine: 'Sciences et technologie', texte: 'Mener une démarche d’investigation', niveau: 3, date: '17 sept.', source: 'Mme Dupont' },
+    { domaine: 'Histoire-géographie', texte: 'Situer des faits dans le temps', niveau: 2, date: '18 sept.', source: 'Mme Dupont' },
+    { domaine: 'Langues vivantes (anglais)', texte: 'Comprendre des mots familiers à l’oral', niveau: 4, date: '11 sept.', source: 'Mme Dupont' },
+    { domaine: 'Éducation physique et sportive', texte: 'Nager sur une distance de 25 m', niveau: 1, date: '22 sept.', source: 'M. Garcia' },
+  ],
+};
+
+/** Compétences de démo (primaire) de l'enfant ; [] pour tout autre enfant. */
+export function getDemoCompetences(childId: string | null | undefined): DemoApprentissage[] {
+  if (!childId) return [];
+  return COMPETENCES_DEMO[childId] ?? [];
+}
+
 /** Carnet de démo de l'enfant ; null pour tout autre enfant (compte réel). */
 export function getDemoCarnet(childId: string | null | undefined): DemoCarnet | null {
   if (!childId) return null;

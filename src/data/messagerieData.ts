@@ -4,8 +4,9 @@
  *
  * Child IDs match MOCK_CHILDREN in ActiveChildContext:
  *   'demo-lea'   — Léa  (Maternelle Pasteur)
- *   'demo-lucas' — Lucas (Primaire Jules Ferry CE2)
- *   'demo-emma'  — Emma  (Collège Jean Moulin 4ème)
+ *   'demo-lucas' — Lucas (CM2 B, École Voltaire)
+ *   'demo-emma'  — Emma  (3e B, Collège Hugo)
+ * Référence unique de l'univers de démo : src/data/demo/carnet.ts
  *
  * Dates use ISO "YYYY-MM-DD" (today = 2026-04-11 Saturday):
  *   Lundi  = 2026-04-06
@@ -112,7 +113,7 @@ const leaConversations: Conversation[] = [
   },
 ];
 
-// ─── Lucas — Primaire Jules Ferry CE2 ───────────────────
+// ─── Lucas — CM2 B, École Voltaire ──────────────────────
 
 const lucasConversations: Conversation[] = [
   {
@@ -122,16 +123,16 @@ const lucasConversations: Conversation[] = [
     avatarColor: '#059669',
     id: 'lucas-moreau',
     childId: 'demo-lucas',
-    name: 'Mme Moreau',
-    role: 'Maîtresse CE2',
+    name: 'Mme Dupont',
+    role: 'Maîtresse CM2 B',
     avatarType: 'initials',
-    initials: 'MM',
+    initials: 'MD',
     lastMessage: 'Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.',
     lastDate: '2026-04-08',
     lastTime: '14:20',
     unread: true,
     messages: [
-      { id: 'lucas-m-1', sender: 'other', text: "Bonjour, Lucas a eu 15/20 à la dictée, très beau progrès !", time: '16:15', date: '2026-04-06' },
+      { id: 'lucas-m-1', sender: 'other', text: "Bonjour, Lucas a atteint l'objectif en dictée, très beau progrès !", time: '16:15', date: '2026-04-06' },
       { id: 'lucas-m-2', sender: 'parent', text: "Super, on est très contents !", time: '17:30', date: '2026-04-06' },
       { id: 'lucas-m-3', sender: 'other', text: "N'oubliez pas la sortie à la médiathèque vendredi, autorisation à signer.", time: '09:00', date: '2026-04-07' },
       { id: 'lucas-m-4', sender: 'parent', text: "Autorisation signée dans le cahier.", time: '09:45', date: '2026-04-07' },
@@ -141,7 +142,7 @@ const lucasConversations: Conversation[] = [
   {
     id: 'lucas-ecole',
     childId: 'demo-lucas',
-    name: 'École Jules Ferry',
+    name: 'École Voltaire',
     role: 'Établissement',
     avatarType: 'school',
     lastMessage: 'Collecte alimentaire la semaine prochaine — participation bienvenue.',
@@ -149,7 +150,7 @@ const lucasConversations: Conversation[] = [
     lastTime: '08:00',
     unread: false,
     messages: [
-      { id: 'lucas-e-1', sender: 'other', text: "Réunion de rentrée des CE2 jeudi 17h30 en salle polyvalente.", time: '09:00', date: '2026-04-06' },
+      { id: 'lucas-e-1', sender: 'other', text: "Réunion de rentrée des CM2 jeudi 17h30 en salle polyvalente.", time: '09:00', date: '2026-04-06' },
       { id: 'lucas-e-2', sender: 'other', text: "Les photos de classe sont disponibles sur l'espace famille.", time: '10:00', date: '2026-04-08' },
       { id: 'lucas-e-3', sender: 'other', text: "Collecte alimentaire la semaine prochaine — participation bienvenue.", time: '08:00', date: '2026-04-10' },
     ],
@@ -171,16 +172,16 @@ const lucasConversations: Conversation[] = [
   },
 ];
 
-// ─── Emma — Collège Jean Moulin 4ème ────────────────────
+// ─── Emma — 3e B, Collège Hugo ──────────────────────────
 
 const emmaConversations: Conversation[] = [
   {
     id: 'emma-dupont',
     childId: 'demo-emma',
-    name: 'Mme Dupont',
-    role: 'Professeure de Français',
+    name: 'Mme Lambert',
+    role: 'Professeure de français',
     avatarType: 'initials',
-    initials: 'MD',
+    initials: 'ML',
     avatarColor: '#EF4444',
     tag: 'controle',
     ariaSummary: 'Brevet blanc le 2 mai. Révisions prioritaires.',
@@ -197,10 +198,10 @@ const emmaConversations: Conversation[] = [
   {
     id: 'emma-garcia',
     childId: 'demo-emma',
-    name: 'M. Garcia',
-    role: 'Professeur de Mathématiques',
+    name: 'M. Petit',
+    role: 'Professeur de mathématiques',
     avatarType: 'initials',
-    initials: 'MG',
+    initials: 'MP',
     avatarColor: '#4338CA',
     tag: 'devoir',
     ariaSummary: 'Note 8/20. Fiche de révisions à venir cette semaine.',
@@ -239,19 +240,19 @@ const emmaConversations: Conversation[] = [
   {
     id: 'emma-direction',
     childId: 'demo-emma',
-    name: 'Collège Jean Moulin',
+    name: 'Collège Hugo',
     role: 'Direction',
     avatarType: 'school',
     tag: 'admin',
     ariaSummary: 'Réunion parents-profs 15 mai 17h–19h. Brevet 23–25 juin.',
-    lastMessage: "Rappel : règlement intérieur disponible sur l'ENT.",
+    lastMessage: "Rappel : le règlement intérieur est dans le carnet.",
     lastDate: '2026-04-09',
     lastTime: '14:00',
     unread: false,
     messages: [
       { id: 'emma-dir-1', sender: 'other', text: "Dates du brevet 2026 confirmées : 23, 24 et 25 juin.", time: '09:00', date: '2026-04-06' },
       { id: 'emma-dir-2', sender: 'other', text: "Réunion parents-professeurs le 15 mai de 17h à 19h.", time: '10:00', date: '2026-04-07' },
-      { id: 'emma-dir-3', sender: 'other', text: "Rappel : règlement intérieur disponible sur l'ENT.", time: '14:00', date: '2026-04-09' },
+      { id: 'emma-dir-3', sender: 'other', text: "Rappel : le règlement intérieur est dans le carnet.", time: '14:00', date: '2026-04-09' },
     ],
   },
   {

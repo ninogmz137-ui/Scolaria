@@ -589,3 +589,24 @@ export async function inviterResponsable(childId: string, email: string) {
     invited_email: email.trim().toLowerCase(),
   });
 }
+
+// ─── Compétences (M9) ────────────────────────────────────
+
+export type CompetenceRow = {
+  domaine: string;
+  competence: string;
+  niveau: 1 | 2 | 3 | 4;
+  source: 'ecole' | 'parent';
+  date: string;
+};
+
+/** Compétences de l'enfant (lues sous RLS : responsables de l'enfant). */
+export async function getCompetences(childId: string) {
+  if (!isSupabaseConfigured()) return { data: [] as CompetenceRow[], error: null };
+  const { data, error } = await supabase
+    .from('competences')
+    .select('domaine, competence, niveau, source, date')
+    .eq('child_id', childId)
+    .order('date', { ascending: false });
+  return { data: (data ?? []) as CompetenceRow[], error };
+}
