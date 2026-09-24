@@ -173,13 +173,16 @@ Amber (Score Joie)  #F59E0B
 
 ### Headers d'écran
 ```
-Accueil :   header PLEINE LARGEUR (décision du 24 sept 2026, remplace la « carte 130px »)
-            passe DERRIÈRE la barre d'état et la top bar (transparente, posée dessus au repos)
-            couleur de l'enfant, ou fond choisi pour cet enfant (images intégrées à l'app)
-            haut sans arrondi ; bas arrondi 28px posé sur #F2F1EE
-            « Bonjour » + prénom en blanc ; barre d'état claire au repos
-            au défilement : le header part avec le contenu, le voile ScrollVeil apparaît,
-            la top bar repasse en couleurs sombres (§0). Aucun voile au repos.
+Accueil :   header PLEINE LARGEUR en FONDU (décision du 24 sept 2026 ; ni carte 130px, ni bloc arrondi)
+            passe DERRIÈRE la barre d'état, la top bar et les premières cartes, qui flottent sur sa fin
+            couleur de l'enfant en dégradé vertical vers la TRANSPARENCE : rgba(c,1) → rgba(c,0),
+            même RGB à chaque arrêt (jamais couleur → #F2F1EE, jamais 'transparent')
+            ~300px sous la barre d'état, 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
+            photo choisie : photo + voile sombre, même courbe de disparition
+            compte sans enfant : même fondu, indigo
+            « Bonjour » + prénom en blanc sur la partie pleine ; barre d'état claire au repos
+            libellés posés sur le fondu : blanc si opacité ≥ 0,6, sinon #0F172A 55 %
+            au défilement : le fondu part avec le contenu, ScrollVeil apparaît, top bar en §0.
 Suivi :     pas de header coloré. Bouton année "2025–2026 · CE1 ⌄"
             puis segmented control Apprentissages · Souvenirs · Livrets
 Agenda :    pas de header coloré, mois + strip semaine directement

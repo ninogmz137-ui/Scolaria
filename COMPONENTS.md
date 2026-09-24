@@ -226,18 +226,25 @@ fontSize: 11-12px · placeholder: rgba(15,23,42,0.35)
 
 ## 6. HEADERS D'ÉCRAN
 
-### Accueil (pleine largeur — décision du 24 sept 2026, remplace la carte 130px)
+### Accueil (fondu pleine largeur — décision du 24 sept 2026 ; remplace carte 130px et bloc arrondi)
 ```
-Pleine largeur, premier élément du défilement : passe DERRIÈRE la barre d'état et la top bar
-paddingTop: insets.top + 60 (réserve de la top bar) · paddingHorizontal 20 · paddingBottom 26
-minHeight 200 · aucun arrondi en haut · borderBottomLeft/RightRadius 28 (bas posé sur #F2F1EE)
-background: couleur de l'enfant (children.color) ou fond choisi pour cet enfant (image intégrée,
-            voile sombre léger pour la lisibilité du texte blanc)
-« Bonjour » : Figtree 500 · 13px · rgba(255,255,255,0.78)
-Prénom : Figtree 900 · 32px · letterSpacing -1.2 · #FFFFFF
-Au repos : top bar transparente en couleurs claires (pill active rgba(255,255,255,0.22),
-           icônes et libellé blancs, inactifs sans fond) + barre d'état claire
-Au défilement (> 8px) : le header part avec le contenu, ScrollVeil apparaît, top bar en couleurs §0
+Composant : HeaderFondu (src/components/HeaderFondu.tsx), couche absolue en tête du contenu défilant
+Pleine largeur, derrière la barre d'état, la top bar et les premières cartes (« À faire » flotte dessus)
+Hauteur : insets.top + 300px · aucun arrondi · aucune coupure
+Couleur de l'enfant : rgba(c, a) avec le MÊME RGB à chaque arrêt (withAlpha, src/utils/couleur.ts)
+  arrêts [position, opacité] : [0,1] [.40,1] [.50,.94] [.58,.84] [.66,.68] [.74,.50]
+                               [.82,.32] [.89,.17] [.95,.06] [1,0]   (ease-out, pas de bande)
+  JAMAIS couleur → #F2F1EE, JAMAIS 'transparent' (= noir transparent : gris sur Android)
+Photo choisie : photo + voile rgba(15,23,42,0.28), puis voile #F2F1EE d'opacité (1 − a) aux
+  mêmes arrêts (sur une page unie, identique à une photo d'opacité a ; pas de MaskedView)
+Compte sans enfant : même fondu, indigo #4338CA ; l'état vide est dans une carte blanche
+Texte (paddingTop insets.top + 60 · paddingHorizontal 20 · paddingBottom 16) :
+  « Bonjour » : Figtree 500 · 13px · rgba(255,255,255,0.95)   (AA ≥ 5,1 sur les 6 couleurs)
+  Prénom : Figtree 900 · 32px · letterSpacing -1.2 · #FFFFFF    (≥ 5,2)
+Libellés / textes vides posés sur le fondu (SurFondu, mesure onLayout) :
+  opacité du fondu ≥ 0,6 → #FFFFFF ; 0,05–0,6 → rgba(15,23,42,0.55) ; au-delà → style normal
+Au repos : top bar claire (pill active rgba(255,255,255,0.22), icônes blanches) + barre d'état claire
+Au défilement (> 8px) : le fondu part avec le contenu, ScrollVeil apparaît, top bar en couleurs §0
 ```
 
 ### Suivi / Agenda

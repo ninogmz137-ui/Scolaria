@@ -5,7 +5,7 @@
 **Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter et B2 FAITS en autonomie (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
 
 ### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
-- **Header Accueil, bas** : arrondi 28 px plutôt qu’un fondu. Un fondu couleur → #F2F1EE crée une bande terne (teal / indigo mélangés au beige) et marche mal avec une photo ; l’arrondi est net dans les deux cas.
+- ~~Header Accueil, bas arrondi~~ → **remplacé le 24 sept par un fondu** (décision produit) : rgba(couleur, 1 → 0), 10 arrêts ease-out, ~300 px, cartes flottantes ; libellés sur le fondu en blanc (opacité ≥ 0,6) ou gris 55 %. Contrastes vérifiés sur les 6 couleurs (pire : sarcelle, « Bonjour » 5,1, « À FAIRE » 4,8). Photo : voile #F2F1EE d’opacité (1 − a), identique à une photo qui disparaît sur fond uni (MaskedView évité).
 - **Top bar posée sur le header coloré (au repos)** : même forme qu’en §0, couleurs claires : pill active blanc 22 %, icône + libellé blancs, inactifs SANS fond en blanc 78 %, burger cercle blanc 22 %, barre d’état claire. Dès 8 px de défilement : couleurs §0. (La pill blanche opaque et les ronds gris refusés en B1-bis ne reviennent pas.)
 - **Retour par glissement** : autorisé sur toute route qui n’est pas une racine d’onglet, départ du doigt à moins de 40 px du bord gauche, déclenché à 70 px (ou 30 px si rapide). Exclu : SignSuccess (revenir au formulaire déjà signé n’a pas de sens).
 - **Couleurs d’enfant** : 6 couleurs (Indigo #4338CA, Océan #0369A1, Sarcelle #0F766E, Framboise #BE185D, Ardoise #334155, Pierre #57534E) ; exclus : ambre (Score de Joie), violet, vert, rouge ; toutes lisibles avec une initiale blanche.

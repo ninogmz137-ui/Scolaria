@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   View,
-  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -18,6 +17,8 @@ import { WALLPAPERS } from '../contexts/WallpaperContext';
 import { getDemoCarnet, CARNET_VIDE, NIVEAUX_COMPETENCE, type NiveauCompetence } from '../data/demo/carnet';
 import { aDesNotes } from '../utils/niveau';
 import AucunEnfant from '../components/AucunEnfant';
+import HeaderFondu, { tonSurFondu } from '../components/HeaderFondu';
+import type { LayoutChangeEvent, StyleProp, TextStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
@@ -36,8 +37,34 @@ const ACTION_PILLS: Record<string, { label: string; bg: string; color: string }>
 
 /** Hauteur réservée à la top bar au-dessus du contenu du header (TOPBAR_PADDING_TOP + rangée + marge). */
 const HERO_TOPBAR_RESERVE = 60;
+/** Longueur du fondu sous la barre d'état (~300 px) : les premières cartes flottent sur sa fin. */
+const HERO_FONDU = 300;
 
 // ─── Sous-composants ──────────────────────────────────────
+
+const TON_STYLE: Record<'clair' | 'fonce', TextStyle> = {
+  clair: { color: '#FFFFFF' },
+  fonce: { color: 'rgba(15,23,42,0.55)' },
+};
+
+/**
+ * Enveloppe un texte posé en haut de l'Accueil : il mesure sa position et prend le ton lisible
+ * sur la partie du fondu qui est derrière lui (la position dépend du contenu et de la barre d'état).
+ */
+function SurFondu({
+  hauteur,
+  children,
+}: {
+  hauteur: number;
+  children: (ton: StyleProp<TextStyle>) => React.ReactNode;
+}) {
+  const [ton, setTon] = useState<'clair' | 'fonce' | null>(null);
+  const onLayout = (ev: LayoutChangeEvent) => {
+    const { y, height } = ev.nativeEvent.layout;
+    setTon(tonSurFondu(y + height / 2, hauteur));
+  };
+  return <View onLayout={onLayout}>{children(ton ? TON_STYLE[ton] : null)}</View>;
+}
 
 function ActionRow({
   kind, title, deadline, last, onPress,
@@ -159,6 +186,7 @@ export default function AccueilScreen() {
 
   const prenom = selectedChild?.name?.split(' ')[0] ?? '';
   const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
+  const hauteurFondu = insets.top + HERO_FONDU;
   // Fond choisi pour CET enfant (image intégrée à l'app) ; sinon sa couleur.
   const heroPhoto = selectedChild?.fond ? WALLPAPERS.find((w) => w.id === selectedChild.fond) : undefined;
 
@@ -171,37 +199,32 @@ export default function AccueilScreen() {
         scrollEventThrottle={16}
         onScroll={scrollHandler}
       >
-        {/* Header pleine largeur : passe derrière la barre d'état et la top bar (transparente au
-            repos), couleur de l'enfant, bas arrondi qui se pose sur #F2F1EE. Part avec le contenu. */}
-        <View
-          style={[
-            styles.hero,
-            { paddingTop: insets.top + HERO_TOPBAR_RESERVE, backgroundColor: heroColor },
-          ]}
-        >
-          {heroPhoto && (
-            <>
-              <Image source={heroPhoto.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
-              {/* Voile sombre léger : texte blanc lisible sur toutes les photos */}
-              <View style={[StyleSheet.absoluteFill, styles.heroPhotoVoile]} />
-            </>
-          )}
+        {/* Header pleine largeur en FONDU : couleur de l'enfant (ou sa photo) qui disparaît vers la
+            transparence, derrière la barre d'état, la top bar et les premières cartes. Part avec le
+            contenu au défilement. Aucun arrondi, aucune coupure. */}
+        <HeaderFondu couleur={heroColor} photo={heroPhoto?.source} hauteur={hauteurFondu} />
+        <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
           <Text style={styles.heroHello}>{selectedChild ? 'Bonjour' : 'Bienvenue'}</Text>
           <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : 'dans Scolaria'}</Text>
         </View>
 
         {/* Compte réel sans enfant : état vide, rien d'autre (aucune donnée de démo). */}
-        {!selectedChild && <AucunEnfant />}
+        {!selectedChild && (
+          <View style={styles.cardOuter}>
+            <View style={styles.cardInner}>
+              <AucunEnfant compact />
+            </View>
+          </View>
+        )}
 
         {selectedChild && (<>
 
         {/* À faire */}
         {carnet.todo.length > 0 && (
           <>
-            <SectionLabel
-              text="À faire"
-              style={styles.sectionLabel}
-            />
+            <SurFondu hauteur={hauteurFondu}>
+              {(ton) => <SectionLabel text="À faire" style={[styles.sectionLabel, ton]} />}
+            </SurFondu>
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
                 {carnet.todo.map((it, i) => (
@@ -222,7 +245,9 @@ export default function AccueilScreen() {
         )}
 
         {/* Aujourd'hui */}
-        <SectionLabel text="Aujourd'hui" style={styles.sectionLabel} />
+        <SurFondu hauteur={hauteurFondu}>
+          {(ton) => <SectionLabel text="Aujourd'hui" style={[styles.sectionLabel, ton]} />}
+        </SurFondu>
         {carnet.aujourdhui.length > 0 ? (
           <View style={styles.cardOuter}>
             <View style={styles.cardInner}>
@@ -248,13 +273,17 @@ export default function AccueilScreen() {
             </View>
           </View>
         ) : (
-          <Text style={styles.emptyState}>Rien de prévu aujourd’hui.</Text>
+          <SurFondu hauteur={hauteurFondu}>
+            {(ton) => <Text style={[styles.emptyState, ton]}>Rien de prévu aujourd’hui.</Text>}
+          </SurFondu>
         )}
 
         {avecNotes ? (
           <>
             {/* Dernières notes : collège / lycée uniquement */}
-            <SectionLabel text="Dernières notes" style={styles.sectionLabel} />
+            <SurFondu hauteur={hauteurFondu}>
+              {(ton) => <SectionLabel text="Dernières notes" style={[styles.sectionLabel, ton]} />}
+            </SurFondu>
             {carnet.notesRecentes.length > 0 ? (
               <View style={styles.cardOuter}>
                 <View style={styles.cardInner}>
@@ -269,7 +298,9 @@ export default function AccueilScreen() {
                 </View>
               </View>
             ) : (
-              <Text style={styles.emptyState}>Aucune note pour l’instant.</Text>
+              <SurFondu hauteur={hauteurFondu}>
+                {(ton) => <Text style={[styles.emptyState, ton]}>Aucune note pour l’instant.</Text>}
+              </SurFondu>
             )}
             <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
               <Text style={styles.ghostLinkText}>Voir toutes les notes →</Text>
@@ -278,7 +309,9 @@ export default function AccueilScreen() {
         ) : (
           <>
             {/* Maternelle / primaire : derniers apprentissages, jamais de notes /20 */}
-            <SectionLabel text="Derniers apprentissages" style={styles.sectionLabel} />
+            <SurFondu hauteur={hauteurFondu}>
+              {(ton) => <SectionLabel text="Derniers apprentissages" style={[styles.sectionLabel, ton]} />}
+            </SurFondu>
             {carnet.apprentissagesRecents.length > 0 ? (
               <View style={styles.cardOuter}>
                 <View style={styles.cardInner}>
@@ -293,7 +326,9 @@ export default function AccueilScreen() {
                 </View>
               </View>
             ) : (
-              <Text style={styles.emptyState}>Aucun apprentissage noté pour l’instant.</Text>
+              <SurFondu hauteur={hauteurFondu}>
+                {(ton) => <Text style={[styles.emptyState, ton]}>Aucun apprentissage noté pour l’instant.</Text>}
+              </SurFondu>
             )}
             <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
               <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
@@ -354,25 +389,16 @@ const styles = StyleSheet.create({
   },
 
   // ── Contenu hero ─────────────────────────────────────
-  // Pleine largeur, pas d'arrondi en haut ; bas arrondi (plus net qu'un fondu couleur → #F2F1EE,
-  // qui crée une bande terne, et compatible avec une photo de fond).
+  // Texte du header, posé sur la partie pleine du fondu (HeaderFondu, couche absolue).
   hero: {
     paddingHorizontal: 20,
-    paddingBottom: 26,
-    marginBottom: 14,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: 'hidden',
-    minHeight: 200,
-    justifyContent: 'flex-end',
-  },
-  heroPhotoVoile: {
-    backgroundColor: 'rgba(15,23,42,0.28)',
+    paddingBottom: 16,
   },
   heroHello: {
     fontFamily: 'Figtree_500Medium',
     fontSize: 13,
-    color: 'rgba(255,255,255,0.78)',
+    // 95 % : contraste AA ≥ 5,1 sur les 6 couleurs d'enfant (pire cas : sarcelle)
+    color: 'rgba(255,255,255,0.95)',
     marginBottom: 1,
   },
   heroPrenom: {
