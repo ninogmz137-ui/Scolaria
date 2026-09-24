@@ -24,14 +24,14 @@ const SPARK_Y_RATIO = 0.77; // hauteur point i au-dessus baseline / fontSize
 
 export interface ScolariaLogoProps {
   fontSize?: number; // @default 48
-  primaryColor?: string; // @default '#1A2340' — blanc sur fonds sombres
+  primaryColor?: string; // @default '#0F172A' (charte) — blanc sur fonds sombres
   sparkleColor?: string; // @default '#4338CA' — indigo solide (plus de gradient)
   debugMode?: boolean; // @default false
 }
 
 export default function ScolariaLogo({
   fontSize = 48,
-  primaryColor = '#1A2340',
+  primaryColor = '#0F172A',
   sparkleColor = '#4338CA',
   debugMode = false,
 }: ScolariaLogoProps) {
