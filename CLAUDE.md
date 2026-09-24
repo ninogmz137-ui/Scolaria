@@ -173,8 +173,13 @@ Amber (Score Joie)  #F59E0B
 
 ### Headers d'écran
 ```
-Accueil :   header wallpaper 130px, borderRadius 20px, margin horizontal 12px
-            couleur de l'enfant ou image au choix famille (bibliothèque curatée)
+Accueil :   header PLEINE LARGEUR (décision du 24 sept 2026, remplace la « carte 130px »)
+            passe DERRIÈRE la barre d'état et la top bar (transparente, posée dessus au repos)
+            couleur de l'enfant, ou fond choisi pour cet enfant (images intégrées à l'app)
+            haut sans arrondi ; bas arrondi 28px posé sur #F2F1EE
+            « Bonjour » + prénom en blanc ; barre d'état claire au repos
+            au défilement : le header part avec le contenu, le voile ScrollVeil apparaît,
+            la top bar repasse en couleurs sombres (§0). Aucun voile au repos.
 Suivi :     pas de header coloré. Bouton année "2025–2026 · CE1 ⌄"
             puis segmented control Apprentissages · Souvenirs · Livrets
 Agenda :    pas de header coloré, mois + strip semaine directement
@@ -525,6 +530,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ✗ Jamais de vue mélangeant plusieurs enfants
 ✗ Jamais de donnée de carnet rattachée au parent seul (toujours child_id / student_id)
 ✗ Jamais de top bar opaque → voile #F2F1EE lié au défilement
+✓ Retour par glissement depuis le bord gauche sur TOUTE page profonde (géré par l'app, navigation 3 boutons)
 ✗ Jamais de Pressable importé de react-native → `src/components/ui`
 ✗ Jamais de clé API dans l'app ou un .env → secret Supabase + Edge Function
 ✗ Jamais le texte d'un message de détresse stocké ou journalisé

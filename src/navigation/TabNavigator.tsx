@@ -21,8 +21,9 @@ import { TOPBAR_PADDING_TOP, TOPBAR_ROW_HEIGHT } from '../components/navigation/
 import { getBottomBarOffset, BOTTOM_BAR_ROW_HEIGHT } from '../components/navigation/BottomBar';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useNavigation, useNavigationState, CommonActions } from '@react-navigation/native';
-import { getChromeMode, getFocusedLeafRouteName, type StackParams } from './chrome';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { canSwipeBack, getChromeMode, getFocusedLeafRouteName, type StackParams } from './chrome';
+import { navigationRef } from './navigationRef';
 
 // Navigation chrome
 import TopBar, { type ActiveTab } from '../components/navigation/TopBar';
@@ -558,9 +559,15 @@ function TabContent() {
   );
 }
 
+// ─── Retour par glissement ───────────────────────────────
+
+/** Le geste doit partir à moins de SWIPE_EDGE px du bord gauche. */
+const SWIPE_EDGE = 40;
+/** Distance horizontale qui déclenche le retour (ou un geste plus court mais rapide). */
+const SWIPE_DISTANCE = 70;
+
 // ─── Nav refs ────────────────────────────────────────────
 
-const goBackRef: { current: (() => void) | null } = { current: null };
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const searchNavRef: { current: (() => void) | null } = { current: null };
 const actionNavRef: { current: (() => void) | null } = { current: null };
@@ -571,10 +578,6 @@ const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
 function TabContentWithNav() {
   const navigation = useNavigation<any>();
-
-  goBackRef.current = () => {
-    navigation.dispatch(CommonActions.goBack());
-  };
 
   // useNavigation() ici = RootStack (TabNavigator est le screen 'MainPager').
   // Pour atteindre un onglet ou un écran imbriqué, passer par 'MainPager'.
@@ -649,8 +652,6 @@ export default function TabNavigator() {
   const focusedLeafRoute = useNavigationState((state) => getFocusedLeafRouteName(state as any));
   const showNavChrome = getChromeMode(focusedLeafRoute) === 'full';
 
-  const showBackRef = useRef(showBack);
-  showBackRef.current = showBack;
 
   const topbarScrollContextValue = useMemo(() => ({ scrollY }), [scrollY]);
 
@@ -661,36 +662,33 @@ export default function TabNavigator() {
   const bottomVeilSolid = getBottomBarOffset(insets.bottom) + BOTTOM_BAR_ROW_HEIGHT / 2;
   const bottomVeilFade = BOTTOM_BAR_ROW_HEIGHT / 2 + VEIL_FADE_PAST_BAR;
 
-  // ── Swipe depuis la gauche = retour arrière (jamais d'ouverture de menu) ────────
-  // Refs pour éviter les closures stale dans PanResponder (créé une seule fois)
-  const currentRouteRef = useRef(currentAccueilRoute);
-  currentRouteRef.current = currentAccueilRoute;
-
-  /** Pages profondes de la pile Accueil qui dessinent leur propre en-tête (pas de flèche en top bar). */
-  const SWIPE_BACK_ROUTES = new Set([
-    'ProfilEnfant',
-    'BienEtreScreen',
-    'FamilleParametres',
-    'AjouterEnfant',
-    'APropos',
-  ]);
+  // ── Glissement depuis le bord gauche = retour arrière (jamais d'ouverture de menu) ────────
+  // Le Redmi est en navigation 3 boutons : c'est l'app qui gère ce geste, sur TOUTE page profonde.
+  // Capté en phase « capture » (avant les ScrollView / Pressable enfants), seulement s'il part du bord.
+  const leafRouteRef = useRef(focusedLeafRoute);
+  leafRouteRef.current = focusedLeafRoute;
+  // gestureState.x0 n'est renseigné qu'après l'attribution du geste : on mémorise nous-mêmes
+  // l'abscisse du doigt au départ (appelé pour chaque début de toucher, sans rien capturer).
+  const touchStartXRef = useRef(Number.POSITIVE_INFINITY);
 
   const swipePan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onStartShouldSetPanResponderCapture: () => false,
-      onMoveShouldSetPanResponder: (_, g) => {
-        if (g.dx <= 10 || Math.abs(g.dy) >= g.dx) return false;
-        return showBackRef.current || SWIPE_BACK_ROUTES.has(currentRouteRef.current);
+      onStartShouldSetPanResponderCapture: (evt) => {
+        touchStartXRef.current = evt.nativeEvent.pageX;
+        return false;
       },
+      onMoveShouldSetPanResponderCapture: (_, g) =>
+        touchStartXRef.current <= SWIPE_EDGE &&
+        g.dx > 12 &&
+        Math.abs(g.dy) < g.dx &&
+        canSwipeBack(leafRouteRef.current) &&
+        navigationRef.isReady() &&
+        navigationRef.canGoBack(),
+      onPanResponderTerminationRequest: () => false,
       onPanResponderRelease: (_, g) => {
-        if (g.dx > 80 && g.vx > 0.2) {
-          if (showBackRef.current) {
-            goBackRef.current?.();
-            setShowBack(false);
-          } else if (SWIPE_BACK_ROUTES.has(currentRouteRef.current)) {
-            goBackRef.current?.();
-          }
+        if (g.dx > SWIPE_DISTANCE || (g.dx > 30 && g.vx > 0.3)) {
+          if (navigationRef.isReady() && navigationRef.canGoBack()) navigationRef.goBack();
         }
       },
     })

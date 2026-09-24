@@ -226,13 +226,18 @@ fontSize: 11-12px · placeholder: rgba(15,23,42,0.35)
 
 ## 6. HEADERS D'ÉCRAN
 
-### Accueil (wallpaper)
+### Accueil (pleine largeur — décision du 24 sept 2026, remplace la carte 130px)
 ```
-Sous top bar · margin horizontal 12px
-height: 130px · borderRadius: 20px · overflow: hidden
-background: wallpaper famille (gradient ou image)
-Bonjour [Prénom] 👋 : fontSize 16px · fontWeight 700 · color #fff
-Sous-titre : fontSize 11px · color rgba(255,255,255,0.65)
+Pleine largeur, premier élément du défilement : passe DERRIÈRE la barre d'état et la top bar
+paddingTop: insets.top + 60 (réserve de la top bar) · paddingHorizontal 20 · paddingBottom 26
+minHeight 200 · aucun arrondi en haut · borderBottomLeft/RightRadius 28 (bas posé sur #F2F1EE)
+background: couleur de l'enfant (children.color) ou fond choisi pour cet enfant (image intégrée,
+            voile sombre léger pour la lisibilité du texte blanc)
+« Bonjour » : Figtree 500 · 13px · rgba(255,255,255,0.78)
+Prénom : Figtree 900 · 32px · letterSpacing -1.2 · #FFFFFF
+Au repos : top bar transparente en couleurs claires (pill active rgba(255,255,255,0.22),
+           icônes et libellé blancs, inactifs sans fond) + barre d'état claire
+Au défilement (> 8px) : le header part avec le contenu, ScrollVeil apparaît, top bar en couleurs §0
 ```
 
 ### Suivi / Agenda

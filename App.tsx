@@ -6,8 +6,8 @@ import {
   DefaultTheme,
   NavigationContainer,
   type NavigationContainerRef,
-  useNavigationContainerRef,
 } from '@react-navigation/native';
+import { navigationRef } from './src/navigation/navigationRef';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 import TabNavigator from './src/navigation/TabNavigator';
@@ -123,7 +123,6 @@ const NAV_THEME = {
 
 export default function App() {
   const fontsLoaded = useSolariaFonts();
-  const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
   // ENV diagnostics are logged at import time by src/services/getEnv.ts
 
@@ -143,7 +142,7 @@ export default function App() {
                   <NavigationContainer ref={navigationRef} theme={NAV_THEME}>
                     <StatusBar style="dark" />
                     <ErrorBoundary>
-                      <AppContent navigationRef={navigationRef} />
+                      <AppContent navigationRef={navigationRef as NavigationContainerRef<RootStackParamList>} />
                     </ErrorBoundary>
                   </NavigationContainer>
                 </DemoProvider>

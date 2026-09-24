@@ -102,3 +102,18 @@ export function getFocusedLeafRouteName(state: NavStateLike | undefined): string
   }
   return name;
 }
+
+/** Racines des piles d'onglets : pas de retour par glissement. */
+const STACK_ROOTS = new Set(['AccueilHome', 'NotesHome', 'AgendaHome', 'MessagerieHome']);
+
+/**
+ * Retour par glissement depuis le bord gauche : autorisé sur TOUTE page profonde (toute route qui
+ * n'est pas une racine d'onglet), sauf la confirmation de signature (revenir au formulaire signé
+ * n'a pas de sens).
+ */
+export function canSwipeBack(routeName: string | undefined): boolean {
+  if (!routeName) return false;
+  if (!(routeName in ROUTE_CHROME)) return false;
+  if (STACK_ROOTS.has(routeName)) return false;
+  return routeName !== 'SignSuccess';
+}

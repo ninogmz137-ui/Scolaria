@@ -2,7 +2,13 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept). B1 validé sur le Redmi ; B1-bis FAIT (à vérifier sur le Redmi) ; B2 non commencé.**
+**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi ; B1-ter FAIT ; B2 en cours (autonomie). B3 : NE PAS lancer.**
+
+### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
+- **Header Accueil, bas** : arrondi 28 px plutôt qu’un fondu. Un fondu couleur → #F2F1EE crée une bande terne (teal / indigo mélangés au beige) et marche mal avec une photo ; l’arrondi est net dans les deux cas.
+- **Top bar posée sur le header coloré (au repos)** : même forme qu’en §0, couleurs claires : pill active blanc 22 %, icône + libellé blancs, inactifs SANS fond en blanc 78 %, burger cercle blanc 22 %, barre d’état claire. Dès 8 px de défilement : couleurs §0. (La pill blanche opaque et les ronds gris refusés en B1-bis ne reviennent pas.)
+- **Retour par glissement** : autorisé sur toute route qui n’est pas une racine d’onglet, départ du doigt à moins de 40 px du bord gauche, déclenché à 70 px (ou 30 px si rapide). Exclu : SignSuccess (revenir au formulaire déjà signé n’a pas de sens).
+
 Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
 
 **Règles communes à chaque lot**
@@ -74,6 +80,13 @@ Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfan
 8. Formulaire : 6 pastilles de couleur sur une ligne, l’aperçu rond montre l’initiale du prénom sur la couleur choisie ; « Niveau * » propose PS → Terminale ; « École (facultatif) » ; le bouton reste grisé tant que prénom, date et niveau manquent.
 9. Saisie de la date de naissance (JJ / MM / AAAA) : chiffres lisibles, séparateurs non superposés.
 10. Swipe depuis le bord gauche sur À propos et Ajouter un enfant → retour.
+
+### B1-ter · Corrections du test Redmi B1-bis — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+- [x] 1.1 Header de l’Accueil pleine largeur (remplace la carte 130 px, décision produit) : premier élément du défilement, passe derrière la barre d’état et la top bar, couleur de l’enfant (`children.color`, démo : Léa teal), haut sans arrondi, bas arrondi 28 px, « Bonjour » + prénom en blanc, barre d’état claire au repos ; au défilement il part avec le contenu, le voile apparaît et la top bar repasse en §0. CLAUDE.md (§ Headers d’écran) et COMPONENTS.md (§6) mis à jour.
+- [x] 1.2 Retour par glissement : **cause** — le retour était envoyé à la navigation de l’écran racine (`MainPager`) ; ne sachant pas le traiter, elle le laissait au navigateur d’onglets, qui revenait à l’onglet précédent (s’il y en avait un) au lieu de dépiler la page ; s’y ajoutaient une liste de routes codée en dur et une vitesse minimale. **Correctif** : `navigationRef` unique (App.tsx) → `goBack()` sur le navigateur focalisé le plus profond ; geste capté avant les enfants (ScrollView, Pressable), seulement s’il part du bord ; règle générale `canSwipeBack()` (chrome.ts). En test web, `gestureState.x0` valait 0 avant l’attribution du geste (tout glissement au milieu revenait en arrière) → abscisse de départ mémorisée à part.
+  - Pages profondes vérifiées une par une en web (glissement simulé depuis le bord → retour à la racine de l’onglet), 36/36 OK : **Accueil** SignalerAbsenceScreen, BienEtreScreen, ProfilEnfant, AjouterEnfant, AjouterAnne, MonParcours, FamilleParametres, RGPDScreen, PermissionsRGPD, JournalAcces, TransfertCode, Effacement, ExportDonnees, APropos, AriaHome, AriaConversation, WallpaperPicker, Homework, Timetable, SignDoc, ArchivedYearDetail · **Notes** BulletinScreen, GradeDetail, SubjectDetail · **Agenda** EventDetail · **Messages** SignalerAbsence, MessagesListScreen, AbsencesListScreen, EcoleListScreen, MessagerieAriaScreen, ConversationDetailScreen, MotDetailScreen. Glissement au milieu d’une page : aucun retour. Glissement sur une racine : rien.
+  - Outil de test : `globalThis.__navRef` exposé en développement uniquement (`__DEV__`).
+- [x] 1.3 À propos : ligne contact@scolaria.fr retirée.
 
 ### B2 · Enfant actif — 3 à 4 sessions (le plus gros lot)
 Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.

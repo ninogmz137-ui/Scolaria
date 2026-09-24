@@ -11,7 +11,7 @@ import { MessageCircle, Calendar, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
-import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import Animated from 'react-native-reanimated';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
@@ -45,6 +45,9 @@ const demoGrades = [
 ];
 
 const demoAriaMessage = 'Emma a un contrôle maths demain — veux-tu un résumé du cours ?';
+
+/** Hauteur réservée à la top bar au-dessus du contenu du header (TOPBAR_PADDING_TOP + rangée + marge). */
+const HERO_TOPBAR_RESERVE = 60;
 
 // ─── Sous-composants ──────────────────────────────────────
 
@@ -116,7 +119,8 @@ export default function AccueilScreen() {
 
   const [justifierVisible, setJustifierVisible] = useState(false);
 
-  const prenom = selectedChild?.name?.split(' ')[0] ?? 'Camille';
+  const prenom = selectedChild?.name?.split(' ')[0] ?? '';
+  const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
 
   return (
     <View style={styles.root}>
@@ -127,11 +131,14 @@ export default function AccueilScreen() {
         scrollEventThrottle={16}
         onScroll={scrollHandler}
       >
-        {/* Espace TopBar (position: absolute) */}
-        <View style={{ height: insets.top + 60 }} />
-
-        {/* Header : carte 130 px sous la top bar. Indigo neutre ; couleur / fond de l'enfant en B2. */}
-        <View style={styles.heroCard}>
+        {/* Header pleine largeur : passe derrière la barre d'état et la top bar (transparente au
+            repos), couleur de l'enfant, bas arrondi qui se pose sur #F2F1EE. Part avec le contenu. */}
+        <View
+          style={[
+            styles.hero,
+            { paddingTop: insets.top + HERO_TOPBAR_RESERVE, backgroundColor: heroColor },
+          ]}
+        >
           <Text style={styles.heroHello}>Bonjour</Text>
           <Text style={styles.heroPrenom} numberOfLines={1}>{prenom}</Text>
         </View>
@@ -264,14 +271,16 @@ const styles = StyleSheet.create({
   },
 
   // ── Contenu hero ─────────────────────────────────────
-  heroCard: {
-    height: 130,
-    marginHorizontal: 12,
-    marginBottom: 16,
-    borderRadius: 20,
-    backgroundColor: '#4338CA',
-    paddingHorizontal: 18,
-    paddingBottom: 16,
+  // Pleine largeur, pas d'arrondi en haut ; bas arrondi (plus net qu'un fondu couleur → #F2F1EE,
+  // qui crée une bande terne, et compatible avec une photo de fond).
+  hero: {
+    paddingHorizontal: 20,
+    paddingBottom: 26,
+    marginBottom: 14,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: 'hidden',
+    minHeight: 200,
     justifyContent: 'flex-end',
   },
   heroHello: {

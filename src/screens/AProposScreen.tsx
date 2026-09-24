@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { View, ScrollView, StyleSheet, Linking } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -20,7 +20,6 @@ import {
   Scale,
   Moon,
   LifeBuoy,
-  Mail,
 } from 'lucide-react-native';
 import ScolariaLogo from '../components/ScolariaLogo';
 import ScolariaAppIcon from '../components/ScolariaAppIcon';
@@ -132,15 +131,6 @@ export default function AProposScreen() {
               last={i === PRINCIPES.length - 1}
             />
           ))}
-        </DeepGroup>
-
-        <DeepGroup title="Contact">
-          <DeepRow
-            icon={<Mail {...ICON} />}
-            label="contact@scolaria.fr"
-            onPress={() => Linking.openURL('mailto:contact@scolaria.fr')}
-            last
-          />
         </DeepGroup>
 
         <Text style={st.footer}>© 2026 Scolaria</Text>

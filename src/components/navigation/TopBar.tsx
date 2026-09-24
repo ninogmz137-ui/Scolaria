@@ -6,13 +6,17 @@
  * - Burger 34px gauche → écran unique « Famille & paramètres »
  * - Pill active : icône + libellé, fond rgba(15,23,42,0.08), hauteur 30 (COMPONENTS §0)
  * - Onglet inactif : icône seule, SANS fond, couleur rgba(15,23,42,0.38)
- * - La barre est toujours posée sur #F2F1EE (le header de l'Accueil est une carte SOUS la barre) :
- *   un seul jeu de couleurs, jamais de variante « sur header ».
+ * - Sur #F2F1EE (tous les onglets, et l'Accueil dès que le voile apparaît) : couleurs ci-dessus.
+ * - Sur le header coloré de l'Accueil, au repos : même forme, couleurs claires (pill active
+ *   blanc 22 %, icônes et libellé blancs, inactifs SANS fond) + barre d'état claire.
  * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
  * - Badge rouge 6px sur Messages si hasUnreadMessages
  */
 
 import React, { useState } from 'react';
+import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
+import { StatusBar } from 'expo-status-bar';
+import { useTopbarScrollY } from '../../contexts/TopbarScrollContext';
 import { View, Image, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,6 +60,11 @@ export const TOPBAR_ROW_HEIGHT = 34;
 
 const ICON_ACTIVE = '#0F172A';
 const ICON_INACTIVE = 'rgba(15,23,42,0.38)';
+const ICON_ACTIVE_ON_HEADER = '#FFFFFF';
+const ICON_INACTIVE_ON_HEADER = 'rgba(255,255,255,0.78)';
+
+/** Au-delà de ce défilement, le voile #F2F1EE couvre le header : couleurs sombres. */
+const HEADER_UNTIL_SCROLL = 8;
 
 // ─── Composant ───────────────────────────────────────────
 
@@ -64,6 +73,17 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const navigation = useNavigation<any>();
   const { selectedChild, children } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
+
+  // Accueil au repos : la barre est posée sur le header coloré → couleurs claires.
+  const scrollY = useTopbarScrollY();
+  const [overContent, setOverContent] = useState(false);
+  useAnimatedReaction(
+    () => scrollY.value > HEADER_UNTIL_SCROLL,
+    (next, prev) => {
+      if (next !== prev) runOnJS(setOverContent)(next);
+    },
+  );
+  const onHeader = activeTab === 'accueil' && !overContent;
 
   const isEmoji = selectedChild.avatarType === 'emoji';
   const hasPhoto = selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri;
@@ -88,18 +108,19 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
 
   return (
     <>
+      <StatusBar style={onHeader ? 'light' : 'dark'} />
       <View style={[styles.container, { paddingTop: insets.top + TOPBAR_PADDING_TOP }]}>
 
         {/* Burger — gauche */}
         <Pressable
           onPress={handleBurgerPress}
-          style={styles.burger}
+          style={[styles.burger, onHeader && styles.burgerOnHeader]}
           accessibilityRole="button"
           accessibilityLabel="Famille et paramètres"
         >
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
+          <View style={[styles.burgerLine, onHeader && styles.burgerLineOnHeader]} />
+          <View style={[styles.burgerLine, onHeader && styles.burgerLineOnHeader]} />
+          <View style={[styles.burgerLine, onHeader && styles.burgerLineOnHeader]} />
         </Pressable>
 
         {/* Pills de navigation */}
@@ -115,7 +136,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               onPress={() => handleTabPress(tab)}
               style={[
                 styles.pill,
-                isActive ? styles.pillActive : styles.pillInactive,
+                isActive ? (onHeader ? styles.pillActiveOnHeader : styles.pillActive) : styles.pillInactive,
                 !isLast && styles.pillMargin,
               ]}
               hitSlop={{ top: 7, bottom: 7 }}
@@ -123,9 +144,16 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={tab.label}
             >
-              <Icon size={22} color={isActive ? ICON_ACTIVE : ICON_INACTIVE} />
+              <Icon
+                size={22}
+                color={
+                  onHeader
+                    ? (isActive ? ICON_ACTIVE_ON_HEADER : ICON_INACTIVE_ON_HEADER)
+                    : (isActive ? ICON_ACTIVE : ICON_INACTIVE)
+                }
+              />
               {isActive && (
-                <Text style={styles.pillLabel}>{tab.label}</Text>
+                <Text style={[styles.pillLabel, onHeader && styles.pillLabelOnHeader]}>{tab.label}</Text>
               )}
               {isMessages && hasUnreadMessages && (
                 <View style={styles.badge} />
@@ -144,7 +172,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
           {/* Outer: shadow */}
           <View style={styles.childAvatarOuter}>
             {/* Inner: clip + border */}
-            <View style={styles.childAvatarClip}>
+            <View style={[styles.childAvatarClip, onHeader && styles.childAvatarClipOnHeader]}>
               <View style={[StyleSheet.absoluteFill, { backgroundColor: '#4338CA' }]} />
               {hasPhoto ? (
                 <Image
@@ -220,12 +248,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: 'rgba(15,23,42,0.08)',
   },
+  pillActiveOnHeader: {
+    height: 30,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
   // Onglet inactif : icône seule, sans fond (zone tactile 44 px en hauteur via hitSlop)
   pillInactive: {
     width: 34,
     height: 30,
     justifyContent: 'center',
     backgroundColor: 'transparent',
+  },
+  pillLabelOnHeader: {
+    color: '#FFFFFF',
+  },
+  burgerOnHeader: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
+  burgerLineOnHeader: {
+    backgroundColor: '#FFFFFF',
+  },
+  childAvatarClipOnHeader: {
+    borderColor: 'rgba(255,255,255,0.6)',
   },
   pillMargin: {
     marginRight: 5,
