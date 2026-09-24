@@ -973,16 +973,22 @@ function AgendaScreenContent() {
               style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
             />
           </Pressable>
-          {aUnEmploiDuTemps(selectedChild?.cycle) && (
-          <Pressable
-            onPress={() => navigation.navigate('Timetable')}
-            hitSlop={8}
-            style={({ pressed }) => [st.timetableBtn, pressed && { opacity: 0.6 }]}
-          >
-            <Text style={st.timetableBtnText}>Emploi du temps</Text>
-          </Pressable>
-          )}
         </View>
+        {/* Ligne dédiée : « Septembre 2026 ⌄ » + le bouton ne tiennent pas sur 393 dp (Redmi).
+            Zone tactile 44 px (pill visible de 30 px centrée dedans). */}
+        {aUnEmploiDuTemps(selectedChild?.cycle) && (
+          <View style={st.timetableRow}>
+            <Pressable
+              onPress={() => navigation.navigate('Timetable')}
+              accessibilityRole="button"
+              style={({ pressed }) => [st.timetableHit, pressed && { opacity: 0.6 }]}
+            >
+              <View style={st.timetableBtn}>
+                <Text style={st.timetableBtnText}>Emploi du temps</Text>
+              </View>
+            </Pressable>
+          </View>
+        )}
 
         {/* 2. Collapsible calendar panel */}
         {calendarOpen && (
@@ -1284,9 +1290,20 @@ const st = StyleSheet.create({
     paddingBottom: 12,
     flex: 1,
   },
+  timetableRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginTop: -8,
+    marginBottom: 4,
+  },
+  timetableHit: {
+    minHeight: 44,
+    justifyContent: 'center',
+  },
   timetableBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    height: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
     borderRadius: 999,
     backgroundColor: 'rgba(67,56,202,0.08)',
   },
