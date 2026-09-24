@@ -1,135 +1,62 @@
 /**
- * ChildAvatar — Renders a child's avatar as a themed circle.
- *
- * Supports three modes:
- * - 'initials': Accent-colored circle with white first letter
- * - 'emoji': Lighter accent circle with emoji centered
- * - 'photo': Circular cropped photo with accent border
- *
- * Used in: topbar, burger menu, child selector.
+ * ChildAvatar — avatar d'un enfant : initiale(s) du prénom sur SA couleur (children.color).
+ * Un seul composant pour la top bar, le sélecteur d'enfant, Famille & paramètres et le profil.
+ * Jamais d'emoji ni de photo (décision B2.6).
  */
 
-import { View, Image, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from './ui';
-import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useActiveChild, DEFAULT_CHILD_COLOR, type Child } from '../contexts/ActiveChildContext';
 import { getChildInitials } from '../utils/childInitials';
 
 interface ChildAvatarProps {
-  /** Child's display name (used for initials fallback) */
-  name: string;
-  /** Emoji string (e.g. '👧') — if provided, renders in emoji mode */
-  emoji?: string;
-  /** Photo URI — if provided, renders in photo mode */
-  photoUri?: string;
-  /** Theme accent color */
-  accentColor: string;
-  /** Circle diameter, default 36 */
+  /** null : aucun enfant → « + » neutre. */
+  child: Child | null;
   size?: number;
-  /** Show a small burger indicator overlay */
-  showBurgerBadge?: boolean;
+  /** Bordure fine (top bar) ; sa couleur dépend du fond sur lequel l'avatar est posé. */
+  borderColor?: string;
 }
 
-export default function ChildAvatar({
-  name,
-  emoji,
-  photoUri,
-  accentColor,
-  size = 36,
-  showBurgerBadge = false,
-}: ChildAvatarProps) {
+export default function ChildAvatar({ child, size = 36, borderColor }: ChildAvatarProps) {
   const { children } = useActiveChild();
-  const borderRadius = size / 2;
-  const fontSize = size * 0.42;
-  const emojiSize = size * 0.5;
-
-  // Determine render mode: photo > emoji > initials
-  const mode = photoUri ? 'photo' : emoji ? 'emoji' : 'initials';
+  const initials = child ? getChildInitials(child.name, children.map((c) => c.name)) : '+';
+  const bg = child ? child.color ?? DEFAULT_CHILD_COLOR : 'rgba(15,23,42,0.12)';
 
   return (
-    <View style={{ width: size, height: size, position: 'relative' }}>
-      {mode === 'photo' ? (
-        <Image
-          source={{ uri: photoUri }}
-          style={[
-            styles.circle,
-            {
-              width: size,
-              height: size,
-              borderRadius,
-              borderWidth: 2,
-              borderColor: accentColor,
-            },
-          ]}
-        />
-      ) : mode === 'emoji' ? (
-        <View
-          style={[
-            styles.circle,
-            {
-              width: size,
-              height: size,
-              borderRadius,
-              backgroundColor: accentColor + '20',
-              borderWidth: 2,
-              borderColor: accentColor + '40',
-            },
-          ]}
-        >
-          <Text style={{ fontSize: emojiSize }}>{emoji}</Text>
-        </View>
-      ) : (
-        <View
-          style={[
-            styles.circle,
-            {
-              width: size,
-              height: size,
-              borderRadius,
-              backgroundColor: accentColor,
-            },
-          ]}
-        >
-          <Text style={[styles.initials, { fontSize }]}>
-            {getChildInitials(name, children.map((c) => c.name))}
-          </Text>
-        </View>
-      )}
-
-      {/* Burger badge — small ☰ indicator */}
-      {showBurgerBadge && (
-        <View
-          style={[
-            styles.burgerBadge,
-            {
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              width: size * 0.4,
-              height: size * 0.4,
-              borderRadius: size * 0.2,
-              bottom: -2,
-              right: -2,
-            },
-          ]}
-        >
-          <Text style={{ color: '#FFFFFF', fontSize: size * 0.2, fontFamily: FontFamily.sansBold }}>☰</Text>
-        </View>
-      )}
+    <View
+      style={[
+        st.circle,
+        {
+          width: size,
+          height: size,
+          backgroundColor: bg,
+          borderWidth: borderColor ? 2 : 0,
+          borderColor: borderColor ?? 'transparent',
+        },
+      ]}
+      accessibilityLabel={child ? `Avatar de ${child.name}` : 'Aucun enfant'}
+    >
+      <Text
+        style={[
+          st.initials,
+          { fontSize: Math.round(size * 0.38), color: child ? '#FFFFFF' : '#0F172A' },
+        ]}
+      >
+        {initials}
+      </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const st = StyleSheet.create({
   circle: {
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   initials: {
-    color: '#FFFFFF',
     fontFamily: FontFamily.sansBold,
-  },
-  burgerBadge: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

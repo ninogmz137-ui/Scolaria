@@ -22,13 +22,11 @@ import { Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
-import { getChildren } from '../services/database';
+import { getChildren, updateChild } from '../services/database';
 import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
 import demoChildren from '../data/demo/demo-children.json';
 
 // ─── Types ─────────────────────────────────────────────
-
-export type AvatarType = 'initials' | 'emoji' | 'photo';
 
 export type Child = {
   id: string;
@@ -42,12 +40,10 @@ export type Child = {
   cycle: Cycle | null;
   ecole?: string;
   birthDate?: string;
-  avatar_url?: string;
-  avatarType?: AvatarType;
-  avatarEmoji?: string;
-  avatarPhotoUri?: string;
   /** Couleur personnelle (#RRGGBB) : avatar + header de l'Accueil uniquement (CLAUDE.md). */
   color?: string;
+  /** Fond de l'Accueil choisi pour cet enfant (id d'image intégrée) ; null = sa couleur (M13). */
+  fond?: string | null;
 };
 
 /** Couleur neutre par défaut (identique au défaut en base, migration M3). */
@@ -82,7 +78,10 @@ interface ActiveChildContextValue {
   selectChild: (id: string) => void;
   /** Recharge la liste (après l'ajout d'un enfant) ; `preferId` devient l'enfant actif. */
   reloadChildren: (preferId?: string) => Promise<void>;
-  updateChildAvatar: (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => void;
+  /** Couleur de l'enfant : en base (compte réel) ou sur l'appareil (démo). */
+  setChildColor: (childId: string, color: string) => Promise<void>;
+  /** Fond de l'Accueil de l'enfant (null = sa couleur) : en base (compte réel) ou sur l'appareil (démo). */
+  setChildFond: (childId: string, fond: string | null) => Promise<void>;
   fadeAnim: Animated.Value;
   loading: boolean;
 }
@@ -93,7 +92,8 @@ const ActiveChildContext = createContext<ActiveChildContextValue>({
   selectedChildId: null,
   selectChild: () => {},
   reloadChildren: async () => {},
-  updateChildAvatar: () => {},
+  setChildColor: async () => {},
+  setChildFond: async () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
 });
@@ -106,6 +106,7 @@ type ChildRow = {
   classe?: string;
   school?: string;
   color?: string;
+  fond?: string | null;
 };
 
 function mapRow(row: ChildRow): Child {
@@ -120,7 +121,25 @@ function mapRow(row: ChildRow): Child {
     ecole: row.school || undefined,
     birthDate: row.birth_date,
     color: row.color || DEFAULT_CHILD_COLOR,
+    fond: row.fond ?? null,
   };
+}
+
+/** Démo : couleur / fond modifiés, gardés sur l'appareil (équivalent local de children.color / fond). */
+const demoKey = (childId: string) => `@scolaria:demo_enfant:${childId}`;
+type DemoOverride = { color?: string; fond?: string | null };
+
+async function lireDemoOverrides(list: Child[]): Promise<Child[]> {
+  return Promise.all(
+    list.map(async (c) => {
+      try {
+        const raw = await AsyncStorage.getItem(demoKey(c.id));
+        return raw ? { ...c, ...(JSON.parse(raw) as DemoOverride) } : c;
+      } catch {
+        return c;
+      }
+    }),
+  );
 }
 
 const storageKey = (userId: string) => `@scolaria:enfant_actif:${userId}`;
@@ -138,7 +157,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   // ─── Chargement : démo OU base, jamais les deux ─────────
   const loadChildren = useCallback(async (): Promise<Child[]> => {
     if (!userId) return [];
-    if (isDemo) return DEMO_CHILDREN;
+    if (isDemo) return lireDemoOverrides(DEMO_CHILDREN);
     try {
       const result = await getChildren();
       return ((result?.data ?? []) as ChildRow[]).map(mapRow);
@@ -215,17 +234,32 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
     else if (selectedChild.birthDate) setModeFromBirthDate(selectedChild.birthDate);
   }, [selectedChild, setMode, setModeFromBirthDate]);
 
-  // ─── Avatar (photo) — persisté localement ───────────────
-  const updateChildAvatar = useCallback(
-    (childId: string, avatarType: AvatarType, emoji?: string, photoUri?: string) => {
-      setChildList((prev) =>
-        prev.map((c) =>
-          c.id === childId ? { ...c, avatarType, avatarEmoji: emoji, avatarPhotoUri: photoUri } : c,
-        ),
-      );
+  // ─── Couleur et fond (avatar + header de l'Accueil) ─────
+  const majEnfant = useCallback(
+    async (childId: string, patch: DemoOverride) => {
+      setChildList((prev) => prev.map((c) => (c.id === childId ? { ...c, ...patch } : c)));
+      if (isDemo) {
+        try {
+          const raw = await AsyncStorage.getItem(demoKey(childId));
+          const prev = raw ? (JSON.parse(raw) as DemoOverride) : {};
+          await AsyncStorage.setItem(demoKey(childId), JSON.stringify({ ...prev, ...patch }));
+        } catch {
+          /* réglage local non critique */
+        }
+        return;
+      }
+      const { error } = await updateChild(childId, patch);
+      if (error) {
+        // Échec en base : on recharge la liste pour ne pas afficher une valeur non enregistrée.
+        await reloadChildren(childId);
+        throw error;
+      }
     },
-    [],
+    [isDemo, reloadChildren],
   );
+
+  const setChildColor = useCallback((id: string, color: string) => majEnfant(id, { color }), [majEnfant]);
+  const setChildFond = useCallback((id: string, fond: string | null) => majEnfant(id, { fond }), [majEnfant]);
 
   // ─── Changement d'enfant (fondu) ────────────────────────
   const selectChild = useCallback(
@@ -247,7 +281,8 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         selectedChildId: selectedChild?.id ?? null,
         selectChild,
         reloadChildren,
-        updateChildAvatar,
+        setChildColor,
+        setChildFond,
         fadeAnim,
         loading,
       }}

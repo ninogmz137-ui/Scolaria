@@ -17,15 +17,15 @@ import React, { useState } from 'react';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTopbarScrollY } from '../../contexts/TopbarScrollContext';
-import { View, Image, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Grades, Calendar, TextBubble } from '@getpapillon/papicons';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
-import { getChildInitials } from '../../utils/childInitials';
 import ChildSelectorSheet from '../ChildSelectorSheet';
+import ChildAvatar from '../ChildAvatar';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -85,8 +85,6 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   );
   const onHeader = activeTab === 'accueil' && !overContent;
 
-  const isEmoji = selectedChild?.avatarType === 'emoji';
-  const hasPhoto = selectedChild?.avatarType === 'photo' && !!selectedChild?.avatarPhotoUri;
 
   const handleTabPress = (tab: TabConfig) => {
     if (tab.id === 'accueil') {
@@ -171,22 +169,11 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
         >
           {/* Outer: shadow */}
           <View style={styles.childAvatarOuter}>
-            {/* Inner: clip + border */}
-            <View style={[styles.childAvatarClip, onHeader && styles.childAvatarClipOnHeader]}>
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: '#4338CA' }]} />
-              {hasPhoto ? (
-                <Image
-                  source={{ uri: selectedChild!.avatarPhotoUri! }}
-                  style={styles.childAvatarImage}
-                />
-              ) : isEmoji && selectedChild?.avatarEmoji ? (
-                <Text style={styles.childAvatarEmoji}>{selectedChild.avatarEmoji}</Text>
-              ) : (
-                <Text style={styles.childAvatarInitials}>
-                  {selectedChild ? getChildInitials(selectedChild.name, children.map((c) => c.name)) : '+'}
-                </Text>
-              )}
-            </View>
+            <ChildAvatar
+              child={selectedChild}
+              size={34}
+              borderColor={onHeader ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.15)'}
+            />
           </View>
         </Pressable>
       </View>
@@ -269,9 +256,6 @@ const styles = StyleSheet.create({
   burgerLineOnHeader: {
     backgroundColor: '#FFFFFF',
   },
-  childAvatarClipOnHeader: {
-    borderColor: 'rgba(255,255,255,0.6)',
-  },
   pillMargin: {
     marginRight: 5,
   },
@@ -313,28 +297,5 @@ const styles = StyleSheet.create({
       },
       android: { elevation: 4 },
     }),
-  },
-  childAvatarClip: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(15,23,42,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  childAvatarImage: {
-    width: 34,
-    height: 34,
-  },
-  childAvatarEmoji: {
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  childAvatarInitials: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-    color: '#FFFFFF',
   },
 });

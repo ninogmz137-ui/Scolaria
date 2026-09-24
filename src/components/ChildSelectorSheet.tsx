@@ -6,7 +6,6 @@
 import React from 'react';
 import {
   View,
-  Image,
   Modal,
   TouchableOpacity,
   StyleSheet,
@@ -16,9 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Plus } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { getChildInitials } from '../utils/childInitials';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from './ui';
+import ChildAvatar from './ChildAvatar';
 
 interface Props {
   visible: boolean;
@@ -29,7 +28,6 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { children, selectedChild, selectChild } = useActiveChild();
-  const siblingNames = children.map((c) => c.name);
   const { user } = useAuth();
 
   const handleAddChild = () => {
@@ -62,8 +60,6 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
           {/* Liste enfants */}
           {children.map((child) => {
             const isActive = child.id === selectedChild?.id;
-            const isEmoji = child.avatarType === 'emoji';
-            const hasPhoto = child.avatarType === 'photo' && child.avatarPhotoUri;
             const firstName = child.name.split(' ')[0];
 
             return (
@@ -76,19 +72,8 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
                   onClose();
                 }}
               >
-                <View style={styles.childAvatar}>
-                  {hasPhoto ? (
-                    <Image
-                      source={{ uri: child.avatarPhotoUri! }}
-                      style={styles.childAvatarImage}
-                    />
-                  ) : isEmoji && child.avatarEmoji ? (
-                    <Text style={styles.childAvatarEmoji}>{child.avatarEmoji}</Text>
-                  ) : (
-                    <Text style={styles.childAvatarInitials}>
-                      {getChildInitials(child.name, siblingNames)}
-                    </Text>
-                  )}
+                <View style={{ marginRight: 12 }}>
+                  <ChildAvatar child={child} size={36} />
                 </View>
 
                 <View style={{ flex: 1 }}>
@@ -172,30 +157,6 @@ const styles = StyleSheet.create({
   },
   childRowPressed: {
     backgroundColor: 'rgba(15,23,42,0.03)',
-  },
-  childAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#4338CA',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    overflow: 'hidden',
-  },
-  childAvatarImage: {
-    width: 36,
-    height: 36,
-  },
-  childAvatarEmoji: {
-    fontSize: 20,
-    lineHeight: 24,
-    textAlign: 'center',
-  },
-  childAvatarInitials: {
-    fontFamily: 'Figtree_700Bold',
-    fontSize: 14,
-    color: '#FFFFFF',
   },
   childName: {
     fontFamily: 'Figtree_700Bold',

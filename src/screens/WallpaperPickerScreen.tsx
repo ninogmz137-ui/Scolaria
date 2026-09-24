@@ -1,4 +1,5 @@
 import {
+  Alert,
   View,
   ScrollView,
   StyleSheet,
@@ -7,7 +8,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check } from 'lucide-react-native';
-import { useWallpaper } from '../contexts/WallpaperContext';
+import { WALLPAPERS } from '../contexts/WallpaperContext';
+import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
+import AucunEnfant from '../components/AucunEnfant';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -61,26 +64,68 @@ function WallpaperCard({
 
 // ─── Main screen ──────────────────────────────────────────
 
+/**
+ * Fond de l'Accueil de l'ENFANT ACTIF : sa couleur (par défaut) ou une photo nature intégrée à
+ * l'app. Enregistré par enfant (children.fond, commun aux responsables ; en démo : sur l'appareil).
+ */
 export default function WallpaperPickerScreen() {
   const insets = useSafeAreaInsets();
-  const { wallpaper, setWallpaperId, wallpapers } = useWallpaper();
-  const filtered = wallpapers.filter((w) => w.category === 'nature');
+  const { selectedChild, setChildFond } = useActiveChild();
+  const photos = WALLPAPERS.filter((w) => w.category === 'nature');
+
+  if (!selectedChild) {
+    return (
+      <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
+        <AucunEnfant />
+      </View>
+    );
+  }
+
+  const fond = selectedChild.fond ?? null;
+  const choisir = async (id: string | null) => {
+    try {
+      await setChildFond(selectedChild.id, id);
+    } catch {
+      Alert.alert('Fond non enregistré', 'Vérifiez votre connexion puis réessayez.');
+    }
+  };
+
+  // Deux colonnes sans `gap` (Android) : marge à droite sur la colonne de gauche.
+  const cartes = [
+    <Pressable
+      key="couleur"
+      onPress={() => choisir(null)}
+      style={[styles.card, fond === null && styles.cardActive]}
+      accessibilityRole="radio"
+      accessibilityState={{ selected: fond === null }}
+    >
+      <View style={[styles.cardImage, { backgroundColor: selectedChild.color ?? DEFAULT_CHILD_COLOR }]} />
+      {fond === null && (
+        <View style={styles.checkBadge}>
+          <Check size={14} color="#FFFFFF" strokeWidth={3} />
+        </View>
+      )}
+      <Text style={styles.cardLabel} numberOfLines={1}>Couleur de {selectedChild.name}</Text>
+    </Pressable>,
+    ...photos.map((wp) => (
+      <WallpaperCard key={wp.id} wp={wp} isActive={fond === wp.id} onPress={() => choisir(wp.id)} />
+    )),
+  ];
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 60 }]}>
-      {/* ── Grid ── */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: getBottomBarScrollPadding(insets.bottom) }]}
       >
+        <Text style={styles.intro}>
+          Fond de l’Accueil du carnet de {selectedChild.name}. Il est le même pour tous ses responsables.
+        </Text>
         <View style={styles.grid}>
-          {filtered.map((wp) => (
-            <WallpaperCard
-              key={wp.id}
-              wp={wp}
-              isActive={wallpaper.id === wp.id}
-              onPress={() => setWallpaperId(wp.id)}
-            />
+          {cartes.map((c, i) => (
+            <View key={i} style={[styles.cell, i % 2 === 0 && { marginRight: CARD_GAP }]}>
+              {c}
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -104,7 +149,17 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: CARD_GAP,
+  },
+  cell: {
+    width: CARD_W,
+    marginBottom: CARD_GAP,
+  },
+  intro: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(15,23,42,0.55)',
+    marginBottom: 12,
   },
 
   // ── Card

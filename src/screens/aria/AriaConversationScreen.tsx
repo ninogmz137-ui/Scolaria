@@ -294,7 +294,7 @@ export default function AriaConversationScreen() {
     const result = await executeAriaAction(pendingAction, {
       studentId: childId,
       studentName: selectedChild?.name,
-      studentAvatar: selectedChild?.avatar || selectedChild?.avatarEmoji || '👧',
+      studentAvatar: (selectedChild?.name ?? '').charAt(0).toUpperCase(),
     });
     setActionStatus(result.success ? 'success' : 'error');
     setActionResult(result.message);
@@ -317,7 +317,7 @@ export default function AriaConversationScreen() {
       setPendingAction(null);
       scrollToEnd();
     }, 2000);
-  }, [pendingAction, persist, scrollToEnd, childId, selectedChild?.name, selectedChild?.avatar, selectedChild?.avatarEmoji]);
+  }, [pendingAction, persist, scrollToEnd, childId, selectedChild?.name]);
 
   const handleCancelAction = useCallback(() => {
     setPendingAction(null);

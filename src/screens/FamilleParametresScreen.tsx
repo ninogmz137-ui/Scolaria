@@ -37,6 +37,7 @@ import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text, Pressable } from '../components/ui';
+import ChildAvatar from '../components/ChildAvatar';
 
 // ─── Tokens (COMPONENTS §8) ────────────────────────────
 const NAVY = '#0F172A';
@@ -46,8 +47,6 @@ const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';
 const BORDER_L = 'rgba(15,23,42,0.05)';
 const BG = '#F2F1EE';
-/** Indigo neutre en attendant l'affichage de child.color (Phase B, lot B2). */
-const CHILD_AVATAR_BG = INDIGO;
 
 type Espace = 'famille' | 'enseignant' | 'eleve';
 
@@ -167,7 +166,9 @@ export default function FamilleParametresScreen() {
                 <DeepRow
                   key={child.id}
                   leading={
-                    <DeepAvatar initials={getChildInitials(child.name, siblingNames)} color={CHILD_AVATAR_BG} />
+                    <View style={{ marginRight: 12 }}>
+                      <ChildAvatar child={child} size={32} />
+                    </View>
                   }
                   label={child.name.split(' ')[0]}
                   description={child.classe}

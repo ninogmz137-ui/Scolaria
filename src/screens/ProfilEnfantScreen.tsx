@@ -38,7 +38,8 @@ import {
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import AvatarPicker, { type AvatarSelection } from '../components/AvatarPicker';
+import ChildAvatar from '../components/ChildAvatar';
+import CouleurEnfantSheet from '../components/CouleurEnfantSheet';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
@@ -324,7 +325,7 @@ function SuperPouvoirCard({
 }
 
 function ProfilEnfantScreenContent() {
-  const { selectedChild: enfantActif, updateChildAvatar } = useActiveChild();
+  const { selectedChild: enfantActif } = useActiveChild();
   const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -335,21 +336,10 @@ function ProfilEnfantScreenContent() {
   );
 
   const [data, setData] = useState<ChildProfileData>(profilDeBase);
-  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [couleurVisible, setCouleurVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
 
-  const displayEmoji =
-    selectedChild.avatarType === 'photo'
-      ? undefined
-      : selectedChild.avatarEmoji || data.avatar;
-
-  const handleAvatarSelect = useCallback(
-    (selection: AvatarSelection) => {
-      updateChildAvatar(childId, selection.type, selection.emoji, selection.photoUri);
-    },
-    [childId, updateChildAvatar],
-  );
 
   const loadProfile = useCallback(async () => {
     const mock = profilDeBase();
@@ -500,20 +490,12 @@ function ProfilEnfantScreenContent() {
           </View>
 
           <Pressable
-            onPress={() => setAvatarPickerVisible(true)}
+            onPress={() => setCouleurVisible(true)}
             style={styles.avatarPress}
+            accessibilityRole="button"
+            accessibilityLabel={`Changer la couleur de ${selectedChild.name}`}
           >
-            <View style={styles.avatarRing}>
-              {selectedChild.avatarType === 'photo' && selectedChild.avatarPhotoUri ? (
-                <Image
-                  source={{ uri: selectedChild.avatarPhotoUri }}
-                  style={styles.avatarPhoto}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Text style={styles.avatarEmoji}>{displayEmoji}</Text>
-              )}
-            </View>
+            <ChildAvatar child={selectedChild} size={84} />
             <View style={styles.editBadge}>
               <PenLine size={10} color="#FFFFFF" strokeWidth={2.5} />
             </View>
@@ -616,14 +598,10 @@ function ProfilEnfantScreenContent() {
         </View>
       </ScrollView>
 
-      <AvatarPicker
-        visible={avatarPickerVisible}
-        onClose={() => setAvatarPickerVisible(false)}
-        onSelect={handleAvatarSelect}
-        childName={data.name}
-        accentColor={VIOLET}
-        currentEmoji={selectedChild.avatarEmoji || data.avatar}
-        currentPhotoUri={selectedChild.avatarPhotoUri}
+      <CouleurEnfantSheet
+        child={selectedChild}
+        visible={couleurVisible}
+        onClose={() => setCouleurVisible(false)}
       />
     </View>
   );

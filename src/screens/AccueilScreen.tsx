@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   View,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -13,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
+import { WALLPAPERS } from '../contexts/WallpaperContext';
 import { getDemoCarnet, CARNET_VIDE, NIVEAUX_COMPETENCE, type NiveauCompetence } from '../data/demo/carnet';
 import { aDesNotes } from '../utils/niveau';
 import AucunEnfant from '../components/AucunEnfant';
@@ -157,6 +159,8 @@ export default function AccueilScreen() {
 
   const prenom = selectedChild?.name?.split(' ')[0] ?? '';
   const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
+  // Fond choisi pour CET enfant (image intégrée à l'app) ; sinon sa couleur.
+  const heroPhoto = selectedChild?.fond ? WALLPAPERS.find((w) => w.id === selectedChild.fond) : undefined;
 
   return (
     <View style={styles.root}>
@@ -175,6 +179,13 @@ export default function AccueilScreen() {
             { paddingTop: insets.top + HERO_TOPBAR_RESERVE, backgroundColor: heroColor },
           ]}
         >
+          {heroPhoto && (
+            <>
+              <Image source={heroPhoto.source} style={StyleSheet.absoluteFill} resizeMode="cover" />
+              {/* Voile sombre léger : texte blanc lisible sur toutes les photos */}
+              <View style={[StyleSheet.absoluteFill, styles.heroPhotoVoile]} />
+            </>
+          )}
           <Text style={styles.heroHello}>{selectedChild ? 'Bonjour' : 'Bienvenue'}</Text>
           <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : 'dans Scolaria'}</Text>
         </View>
@@ -354,6 +365,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minHeight: 200,
     justifyContent: 'flex-end',
+  },
+  heroPhotoVoile: {
+    backgroundColor: 'rgba(15,23,42,0.28)',
   },
   heroHello: {
     fontFamily: 'Figtree_500Medium',
