@@ -62,8 +62,8 @@
   {
     "id": "msg-3",
     "childId": "demo-lucas",
-    "sender": "Mme Lambert",
-    "senderRole": "Français",
+    "sender": "Mme Dupont",
+    "senderRole": "Professeur principal",
     "senderClass": "CM2 B",
     "date": "2026-03-31T16:00:00",
     "preview": "Excellent travail sur la rédaction !",
@@ -150,8 +150,8 @@
     "senderRole": "Professeur principal",
     "senderClass": "CM2 B",
     "date": "2025-12-19T16:00:00",
-    "preview": "Bulletins du 1er trimestre disponibles",
-    "content": "Les bulletins du premier trimestre sont disponibles. Lucas a un bon trimestre avec une moyenne générale de 14.2/20. Points forts : Histoire-Géo et Anglais. À renforcer : Sciences.",
+    "preview": "Livret du 1er trimestre disponible",
+    "content": "Le livret du premier trimestre est disponible. Lucas atteint la plupart des objectifs ; à consolider : l’écriture de textes et le calcul avec les décimaux.",
     "isRead": true,
     "type": "conversation"
   },

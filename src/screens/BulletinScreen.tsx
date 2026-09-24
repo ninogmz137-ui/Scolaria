@@ -39,7 +39,7 @@ const DEMO = {
   matieres: [
     {
       nom: 'Mathématiques',
-      prof: 'M. Dupont',
+      prof: 'M. Petit',
       note: '16,5',
       moyClasse: '13,2',
       trend: '↑',
@@ -47,14 +47,14 @@ const DEMO = {
     },
     {
       nom: 'Français',
-      prof: 'Mme Martin',
+      prof: 'Mme Lambert',
       note: '14,0',
       moyClasse: '12,8',
       trend: '→',
     },
     {
       nom: 'Histoire-Géographie',
-      prof: 'M. Bernard',
+      prof: 'M. Durand',
       note: '12,5',
       moyClasse: '12,1',
       trend: '↓',
@@ -62,21 +62,21 @@ const DEMO = {
     },
     {
       nom: 'Anglais',
-      prof: 'Mme Leclerc',
+      prof: 'Mme Bernard',
       note: '15,5',
       moyClasse: '13,0',
       trend: '↑',
     },
     {
       nom: 'Espagnol',
-      prof: 'M. Garcia',
+      prof: 'Mme Ortiz',
       note: '13,5',
       moyClasse: '12,5',
       trend: '→',
     },
     {
       nom: 'SVT',
-      prof: 'Mme Petit',
+      prof: 'M. Martin',
       note: '16,0',
       moyClasse: '13,8',
       trend: '↑',

@@ -39,6 +39,9 @@ type EventDetailParams = {
     eventId?: string;
     eventTitle?: string;
     eventCategory?: string;
+    eventTime?: string;
+    eventLocation?: string;
+    eventDescription?: string;
   };
 };
 
@@ -61,7 +64,7 @@ const EVENT_DEMO = {
   date: 'Ven. 9 mai',
   time: '08:30 – 17:00',
   location: "Musée d'Orsay, Paris 7e",
-  teacher: 'Mme Dupont (Français)',
+  teacher: '',
   participants: '28 élèves',
   description:
     "Visite du musée d'Orsay dans le cadre du cours de Français et d'Histoire de l'art. Les élèves exploreront les collections impressionnistes.",
@@ -114,10 +117,23 @@ const EventDetailScreen: React.FC = () => {
   const route = useRoute<RouteProp<EventDetailParams, 'EventDetail'>>();
   const insets = useSafeAreaInsets();
 
-  const { eventTitle, eventCategory } = route.params ?? {};
-  const event = { ...EVENT_DEMO };
-  if (eventTitle) event.title = eventTitle;
-  if (eventCategory) event.category = eventCategory;
+  const { eventTitle, eventCategory, eventTime, eventLocation, eventDescription } = route.params ?? {};
+  // Un événement ouvert depuis l'Agenda n'affiche QUE ses propres données (jamais la sortie de démo).
+  const event = eventTitle
+    ? {
+        ...EVENT_DEMO,
+        title: eventTitle,
+        category: eventCategory ?? 'Événement',
+        date: '',
+        time: eventTime ?? '',
+        location: eventLocation ?? '',
+        teacher: '',
+        participants: '',
+        description: eventDescription ?? '',
+        checklist: [] as typeof EVENT_DEMO.checklist,
+        aria: '',
+      }
+    : { ...EVENT_DEMO, aria: 'Rappel : prévoir 8 € en espèces. Départ à 08:15, arriver 15 min avant.' };
 
   const categoryColors =
     CATEGORY_COLORS[event.category] ?? DEFAULT_CATEGORY_COLOR;
@@ -157,9 +173,11 @@ const EventDetailScreen: React.FC = () => {
         <Text style={styles.eventTitle}>{event.title}</Text>
 
         {/* Date + time */}
-        <Text style={styles.headerDateTime}>
-          {event.date} · {event.time}
-        </Text>
+        {!!(event.date || event.time) && (
+          <Text style={styles.headerDateTime}>
+            {[event.date, event.time].filter(Boolean).join(' · ')}
+          </Text>
+        )}
       </View>
 
       {/* ── Scrollable body ── */}
@@ -188,7 +206,7 @@ const EventDetailScreen: React.FC = () => {
             <View style={styles.quickRow}>
               <View style={[styles.quickCell, styles.quickCellBorderRight]}>
                 <Users size={14} color={C.text35} strokeWidth={1.8} />
-                <Text style={styles.quickLabel}>{event.participants}</Text>
+                <Text style={styles.quickLabel}>{event.participants || event.location || '—'}</Text>
               </View>
               <View style={[styles.quickCell, styles.quickCellInscrite]}>
                 <View style={styles.inscriteBadge}>
@@ -201,13 +219,18 @@ const EventDetailScreen: React.FC = () => {
         </View>
 
         {/* Description */}
-        <Text style={styles.sectionLabel}>DESCRIPTION</Text>
-        <WhiteCard>
-          <Text style={styles.descriptionText}>{event.description}</Text>
-        </WhiteCard>
+        {!!event.description && (
+          <>
+            <Text style={styles.sectionLabel}>DESCRIPTION</Text>
+            <WhiteCard>
+              <Text style={styles.descriptionText}>{event.description}</Text>
+            </WhiteCard>
+          </>
+        )}
 
         {/* Checklist */}
-        <Text style={styles.sectionLabel}>CHECKLIST PRÉPARATION</Text>
+        {checklist.length > 0 && <Text style={styles.sectionLabel}>CHECKLIST PRÉPARATION</Text>}
+        {checklist.length > 0 && (
         <WhiteCard noPadding>
           {checklist.map((item, idx) => (
             <CheckItem
@@ -219,13 +242,14 @@ const EventDetailScreen: React.FC = () => {
             />
           ))}
         </WhiteCard>
+        )}
 
         {/* Aria suggestion */}
-        <View style={styles.ariaWrapper}>
-          <AriaInlineCard>
-            {"Rappel : prévoir 8€ en espèces. Départ à 08:15 — arrive 15 min avant."}
-          </AriaInlineCard>
-        </View>
+        {!!event.aria && (
+          <View style={styles.ariaWrapper}>
+            <AriaInlineCard>{event.aria}</AriaInlineCard>
+          </View>
+        )}
 
         {/* Spacer pour bottom bar */}
         <View style={{ height: 80 }} />

@@ -11,7 +11,6 @@
     "childId": "demo-lucas",
     "teachers": [
       { "id": "t-lucas-1", "name": "Mme Dupont", "role": "Professeur principal", "class": "CM2 B" },
-      { "id": "t-lucas-2", "name": "Mme Lambert", "role": "Français", "class": "CM2 B" },
       { "id": "t-lucas-3", "name": "M. Garcia", "role": "EPS", "class": "CM2 B" },
       { "id": "t-lucas-4", "name": "M. Faure", "role": "Directeur", "class": "École Voltaire" }
     ]

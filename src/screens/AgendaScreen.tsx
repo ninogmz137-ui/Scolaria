@@ -730,7 +730,16 @@ function AgendaScreenContent() {
     return (
       <TouchableOpacity
         key={event.id}
-        onPress={() => navigation.navigate('EventDetail', { eventId: event.id, eventTitle: event.title, eventCategory: event.type })}
+        onPress={() =>
+          navigation.navigate('EventDetail', {
+            eventId: event.id,
+            eventTitle: event.title,
+            eventCategory: TYPE_LABELS[event.type] ?? event.type,
+            eventTime: event.endTime ? `${event.time} – ${event.endTime}` : event.time,
+            eventLocation: event.location,
+            eventDescription: event.description,
+          })
+        }
         activeOpacity={0.8}
         style={[
           st.eventCard,

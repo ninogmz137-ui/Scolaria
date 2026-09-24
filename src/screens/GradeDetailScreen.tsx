@@ -32,7 +32,7 @@ const DEMO = {
   maxGrade: 20,
   coeff: 3,
   date: '18 avr. 2026',
-  teacher: 'M. Dupont',
+  teacher: 'M. Petit',
   classAvg: 12.8,
   classBest: 19,
   trend: [12.4, 13.1, 12.8, 13.6, 14.2, 14.0, 15],
