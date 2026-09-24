@@ -2,12 +2,27 @@
 
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
-**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi ; B1-ter FAIT ; B2 en cours (autonomie). B3 : NE PAS lancer.**
+**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter et B2 FAITS en autonomie (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
 
 ### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
 - **Header Accueil, bas** : arrondi 28 px plutôt qu’un fondu. Un fondu couleur → #F2F1EE crée une bande terne (teal / indigo mélangés au beige) et marche mal avec une photo ; l’arrondi est net dans les deux cas.
 - **Top bar posée sur le header coloré (au repos)** : même forme qu’en §0, couleurs claires : pill active blanc 22 %, icône + libellé blancs, inactifs SANS fond en blanc 78 %, burger cercle blanc 22 %, barre d’état claire. Dès 8 px de défilement : couleurs §0. (La pill blanche opaque et les ronds gris refusés en B1-bis ne reviennent pas.)
 - **Retour par glissement** : autorisé sur toute route qui n’est pas une racine d’onglet, départ du doigt à moins de 40 px du bord gauche, déclenché à 70 px (ou 30 px si rapide). Exclu : SignSuccess (revenir au formulaire déjà signé n’a pas de sens).
+- **Couleurs d’enfant** : 6 couleurs (Indigo #4338CA, Océan #0369A1, Sarcelle #0F766E, Framboise #BE185D, Ardoise #334155, Pierre #57534E) ; exclus : ambre (Score de Joie), violet, vert, rouge ; toutes lisibles avec une initiale blanche.
+- **Fond photo de l’Accueil** : voile sombre rgba(15,23,42,0.28) sur la photo pour garder « Bonjour + prénom » lisible en blanc.
+- **Emploi du temps, cahier de texte, bulletin de démo** : réservés au collège / lycée (Emma). Lucas (CM2) n’a ni emploi du temps ni devoirs en démo → page vide « Pas d’emploi du temps pour Lucas pour l’instant ». Bouton « Emploi du temps » de l’Agenda masqué hors collège / lycée.
+- **Compétences de démo de Lucas** : intitulés rédigés pour la démo, « dans l’esprit » du LSU ; les intitulés officiels (Éduscol) sont à reprendre en B3.
+- **Compte réel avec enfant** : Accueil, Notes, Agenda, Messages affichent des états vides (« Rien de prévu aujourd’hui », « Aucune note pour l’instant »…) tant que ces données ne sont pas branchées sur la base — jamais de démo.
+- **Aria, compte réel** : le modèle reçoit prénom + niveau seulement (aucune donnée du carnet encore). L’action « signaler une absence » est gardée ; l’action « envoyer un message » est retirée du prompt réel (aucune conversation réelle à cibler).
+- **Profil de l’enfant (écran ancien)** : pour un enfant réel, super-pouvoir, compétences sur 10, Score de Joie et portfolio sont masqués tant qu’ils sont vides (règle « jamais de module vide visible ») ; refonte à prévoir.
+- **Écrans RGPD** (journal, codes, effacement, export) : correctif minimal (démo uniquement, enfant actif, volumes fictifs masqués) ; la refonte RGPD complète reste un chantier à part.
+- **Notifications « Conseil du matin »** : supprimées sans remplacement (le résumé de 18h viendra avec les vraies notifications push).
+
+### Questions pour toi (rien de destructif n’a été nécessaire en B1-ter / B2)
+- Aucune migration destructive requise. M13 (`children.fond`) et M2f sont des ajouts.
+- [UNCLEAR] Détail d’un événement : le badge « Inscrite » (féminin, figé) s’affiche pour tout événement → à revoir avec B6 (Agenda).
+- [UNCLEAR] L’onglet Notes (vue maternelle de démo) garde l’image de fond globale (WallpaperContext) → à retirer en B3 ?
+- [UNCLEAR] Emploi du temps de démo d’Emma : semaine figée « Semaine 18 · 4–10 mai 2026 ».
 
 Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
 
@@ -88,7 +103,8 @@ Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfan
   - Outil de test : `globalThis.__navRef` exposé en développement uniquement (`__DEV__`).
 - [x] 1.3 À propos : ligne contact@scolaria.fr retirée.
 
-### B2 · Enfant actif — EN COURS (autonomie, 24 sept)
+### B2 · Enfant actif — FAIT (autonomie, 24 sept), À VÉRIFIER SUR LE REDMI
+Commits : 4f96a2f (2.1) · 409dba0 (2.2 + 2.5) · b6d1524 (2.3) · 44bcb76 (2.4) · 2604eee (2.6) · 31fb012 (2.7). Advisors : 0 ERROR (WARN voulus uniquement). Migrations : 24/24 alignées.
 - [x] 2.1 Source unique : `ActiveChildContext` réécrit — démo = enfants Moreau (depuis demo-children.json) UNIQUEMENT en mode démo ; compte réel = ses enfants en base ; `selectedChild: Child | null` ; dernier enfant consulté persisté par compte (`@scolaria:enfant_actif:<user>`) ; `niveau` + `cycle` (utils/niveau.ts) ; mode scolaire dérivé du cycle ; `reloadChildren(preferId)` après ajout (et `createChild` : l’erreur n’était pas vérifiée → « Enfant ajouté » affiché même en cas d’échec, corrigé). Supprimés : GlobalChildSwitcher (jamais ouvert), ChildThemeContext (passe-plat). Pages qui exigent un enfant (Profil, Signaler une absence, Mon parcours, Bien-être) : garde → état vide `AucunEnfantPage`. Messages : plus de conversations / mots / enseignants fictifs pour un compte réel. Web : bascule Léa → Emma, rechargement → Emma conservée.
 - [x] 2.2 Démo ou compte réel : Accueil d’un compte sans enfant = « Bienvenue dans Scolaria » + « Ajoutez le carnet de votre premier enfant » + pill « Ajouter un enfant » (`AucunEnfant`) ; Notes, Agenda, Messages : même état vide sous la top bar (`AucunEnfantOnglet`). Données de secours fictives retirées : `MOCK_SUBJECTS` (Notes), `MOCK_EVENTS_BY_DAY` (Agenda), mocks de MessagesList → listes vides pour un compte réel. Contenu de l’Accueil par enfant : `data/demo/carnet.ts` (référence unique de l’univers démo). Devoirs de démo : collège, mode démo uniquement.
   - Non testé en web : compte réel sans enfant (je ne crée pas de compte) → checklist Redmi avec le compte de test.
