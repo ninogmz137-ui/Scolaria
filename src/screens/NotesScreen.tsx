@@ -56,6 +56,7 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
 import { Text, Pressable } from '../components/ui';
+import { AucunEnfantOnglet } from '../components/AucunEnfant';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -171,37 +172,6 @@ function toFrenchDate(iso: string): string {
   const parts = iso.split('-');
   if (parts.length < 3) return iso;
   return `${parseInt(parts[2], 10)} ${FRENCH_MONTHS[parts[1]] ?? parts[1]}`;
-}
-
-const MOCK_SUBJECTS: Subject[] = [
-  {
-    id: '1', name: 'Mathématiques', color: '#4A90D9',
-    average: 15.5, classAvg: 12.3, trend: 'up',
-    grades: [
-      { id: 'g1', value: 17, maxValue: 20, date: '15 mars', type: 'Contrôle', coefficient: 2 },
-      { id: 'g2', value: 14, maxValue: 20, date: '8 mars', type: 'Devoir maison', coefficient: 1 },
-    ],
-  },
-  {
-    id: '2', name: 'Français', color: '#4338CA',
-    average: 14.0, classAvg: 13.1, trend: 'stable',
-    grades: [
-      { id: 'g5', value: 15, maxValue: 20, date: '14 mars', type: 'Rédaction', coefficient: 1 },
-    ],
-  },
-];
-
-function buildYearCurveFromTrims(t1: number, t2: number, t3: number): number[] {
-  return [
-    t1,
-    t1 + (t2 - t1) * (1 / 3),
-    t1 + (t2 - t1) * (2 / 3),
-    t2,
-    t2 + (t3 - t2) * (1 / 3),
-    t2 + (t3 - t2) * (2 / 3),
-    t3,
-    Math.round((t3 + 0.05) * 10) / 10,
-  ];
 }
 
 const DEMO_PROFILES: Record<string, DemoNotesProfile> = {
@@ -1069,7 +1039,7 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
 
 // ─── Main ─────────────────────────────────────────────────
 
-export default function NotesScreen() {
+function NotesScreenContent() {
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
   const { wallpaperSource } = useWallpaper();
@@ -1078,7 +1048,8 @@ export default function NotesScreen() {
   const insets = useSafeAreaInsets();
   const scrollHandler = useTopbarScrollHandler();
 
-  const [subjects, setSubjects] = useState<Subject[]>(MOCK_SUBJECTS);
+  // Jamais de matières fictives : démo = carnet de l'enfant actif, compte réel = la base.
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubjectIdx, setSelectedSubjectIdx] = useState(0);
   const [selectedDomainIdx, setSelectedDomainIdx] = useState(0);
   const [selectedTrimester, setSelectedTrimester] = useState<string>(getCurrentTrimester());
@@ -1193,7 +1164,7 @@ export default function NotesScreen() {
         return;
       }
       setYearMeta(null);
-      setSubjects(MOCK_SUBJECTS);
+      setSubjects([]);
       return;
     }
 
@@ -1205,7 +1176,7 @@ export default function NotesScreen() {
     let rawGrades = (gradesResult.data ?? []) as any[];
     if (rawSubjects.length === 0) {
       setYearMeta(null);
-      setSubjects(MOCK_SUBJECTS);
+      setSubjects([]);
       return;
     }
 
@@ -2420,3 +2391,10 @@ const styles = StyleSheet.create({
   },
   compLabel: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: '#374151', flex: 1, paddingRight: 12 },
 });
+
+/** Garde : compte réel sans enfant → état vide (jamais de données d'un autre carnet). */
+export default function NotesScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantOnglet />;
+  return <NotesScreenContent />;
+}

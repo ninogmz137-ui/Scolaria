@@ -12,6 +12,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
+import { getDemoCarnet, CARNET_VIDE, NIVEAUX_COMPETENCE, type NiveauCompetence } from '../data/demo/carnet';
+import { aDesNotes } from '../utils/niveau';
+import AucunEnfant from '../components/AucunEnfant';
 import Animated from 'react-native-reanimated';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
@@ -27,24 +31,6 @@ const ACTION_PILLS: Record<string, { label: string; bg: string; color: string }>
   lire:      { label: 'LIRE',      bg: '#E0E7FF', color: '#4338CA' },
   justifier: { label: 'JUSTIFIER', bg: '#FEF3C7', color: '#B45309' },
 };
-
-const demoTodo = [
-  { kind: 'signer',    title: 'Sortie Orsay',   deadline: 'Avant jeudi' },
-  { kind: 'justifier', title: 'Absence lundi',  deadline: 'Sous 48h'    },
-];
-
-const demoAujourdhui = [
-  { id: 'controle', title: 'Contrôle Maths',      meta: 'Salle 204',  time: '10h' },
-  { id: 'reunion',  title: 'Réunion parents-prof', meta: 'Mme Dupont', time: '17h' },
-];
-
-const demoGrades = [
-  { subject: 'Mathématiques', grade: '16', scale: '20', date: 'hier'     },
-  { subject: 'Histoire',      grade: '15', scale: '20', date: '22 avril' },
-  { subject: 'Français',      grade: '13', scale: '20', date: '18 avril' },
-];
-
-const demoAriaMessage = 'Emma a un contrôle maths demain — veux-tu un résumé du cours ?';
 
 /** Hauteur réservée à la top bar au-dessus du contenu du header (TOPBAR_PADDING_TOP + rangée + marge). */
 const HERO_TOPBAR_RESERVE = 60;
@@ -91,6 +77,49 @@ function TodayRow({
   );
 }
 
+/** 4 segments : remplis #0F172A, vides rgba(15,23,42,0.12). Jamais de vert / rouge. */
+function NiveauSegments({ niveau }: { niveau: NiveauCompetence }) {
+  return (
+    <View style={styles.segments} accessibilityLabel={NIVEAUX_COMPETENCE[niveau]}>
+      {[1, 2, 3, 4].map((n, i) => (
+        <View
+          key={n}
+          style={[styles.segment, n <= niveau && styles.segmentOn, i < 3 && { marginRight: 3 }]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function ApprentissageRow({
+  domaine, texte, niveau, date, source, last, onPress,
+}: {
+  domaine: string; texte: string; niveau?: NiveauCompetence; date: string; source: string;
+  last?: boolean; onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.apprRow, !last && styles.rowBorder]}
+      activeOpacity={0.75}
+      onPress={onPress}
+    >
+      <Text style={styles.apprDomaine}>{domaine}</Text>
+      <Text style={styles.apprTexte}>{texte}</Text>
+      <View style={styles.apprMetaLine}>
+        {niveau ? (
+          <>
+            <NiveauSegments niveau={niveau} />
+            <Text style={styles.apprNiveau}>{NIVEAUX_COMPETENCE[niveau]}</Text>
+          </>
+        ) : null}
+        <Text style={styles.apprSource}>
+          {niveau ? ' · ' : ''}Saisi par {source} · {date}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 function GradeRow({
   subject, grade, scale, date, last, onPress,
 }: { subject: string; grade: string; scale: string; date: string; last?: boolean; onPress?: () => void }) {
@@ -115,7 +144,14 @@ export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { selectedChild } = useActiveChild();
+  const { isDemo } = useAuth();
   const scrollHandler = useTopbarScrollHandler();
+
+  // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : carnet vide
+  // tant que ces données ne sont pas branchées sur la base (jamais la démo).
+  const carnet = (isDemo ? getDemoCarnet(selectedChild?.id) : null) ?? CARNET_VIDE;
+  const avecNotes = aDesNotes(selectedChild?.cycle);
+  const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
   const [justifierVisible, setJustifierVisible] = useState(false);
 
@@ -139,12 +175,17 @@ export default function AccueilScreen() {
             { paddingTop: insets.top + HERO_TOPBAR_RESERVE, backgroundColor: heroColor },
           ]}
         >
-          <Text style={styles.heroHello}>Bonjour</Text>
-          <Text style={styles.heroPrenom} numberOfLines={1}>{prenom}</Text>
+          <Text style={styles.heroHello}>{selectedChild ? 'Bonjour' : 'Bienvenue'}</Text>
+          <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : 'dans Scolaria'}</Text>
         </View>
 
+        {/* Compte réel sans enfant : état vide, rien d'autre (aucune donnée de démo). */}
+        {!selectedChild && <AucunEnfant />}
+
+        {selectedChild && (<>
+
         {/* À faire */}
-        {demoTodo.length > 0 && (
+        {carnet.todo.length > 0 && (
           <>
             <SectionLabel
               text="À faire"
@@ -152,11 +193,11 @@ export default function AccueilScreen() {
             />
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
-                {demoTodo.map((it, i) => (
+                {carnet.todo.map((it, i) => (
                   <ActionRow
                     key={i}
                     {...it}
-                    last={i === demoTodo.length - 1}
+                    last={i === carnet.todo.length - 1}
                     onPress={
                       it.kind === 'justifier' ? () => setJustifierVisible(true) :
                       it.kind === 'signer' ? () => nav.navigate('SignDoc') :
@@ -171,55 +212,83 @@ export default function AccueilScreen() {
 
         {/* Aujourd'hui */}
         <SectionLabel text="Aujourd'hui" style={styles.sectionLabel} />
-        {demoAujourdhui.length > 0 ? (
+        {carnet.aujourdhui.length > 0 ? (
           <View style={styles.cardOuter}>
             <View style={styles.cardInner}>
-              {demoAujourdhui.map((it, i) => (
+              {carnet.aujourdhui.map((it, i) => (
                 <TodayRow
                   key={it.id}
                   icon={
-                    it.id === 'controle'
+                    it.kind === 'event'
                       ? <Calendar size={14} color="rgba(15,23,42,0.55)" strokeWidth={1.8} />
                       : <MessageCircle size={14} color="rgba(15,23,42,0.55)" strokeWidth={1.8} />
                   }
                   title={it.title}
                   meta={it.meta}
                   time={it.time}
-                  last={i === demoAujourdhui.length - 1}
+                  last={i === carnet.aujourdhui.length - 1}
                   onPress={
-                    it.id === 'controle'
+                    it.kind === 'event'
                       ? () => nav.getParent()?.navigate('Agenda')
-                      : () => nav.getParent()?.navigate('Messagerie')
+                      : () => nav.getParent()?.navigate('MessagerieTab')
                   }
                 />
               ))}
             </View>
           </View>
         ) : (
-          <Text style={styles.emptyState}>Journée tranquille 👌</Text>
+          <Text style={styles.emptyState}>Rien de prévu aujourd’hui.</Text>
         )}
 
-        {/* Dernières notes */}
-        <SectionLabel text="Dernières notes" style={styles.sectionLabel} />
-        <View style={styles.cardOuter}>
-          <View style={styles.cardInner}>
-            {demoGrades.map((it, i) => (
-              <GradeRow
-                key={i}
-                {...it}
-                last={i === demoGrades.length - 1}
-                onPress={() => nav.getParent()?.navigate('Notes')}
-              />
-            ))}
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.ghostLink}
-          activeOpacity={0.7}
-          onPress={() => nav.getParent()?.navigate('Notes')}
-        >
-          <Text style={styles.ghostLinkText}>Voir toutes les notes →</Text>
-        </TouchableOpacity>
+        {avecNotes ? (
+          <>
+            {/* Dernières notes : collège / lycée uniquement */}
+            <SectionLabel text="Dernières notes" style={styles.sectionLabel} />
+            {carnet.notesRecentes.length > 0 ? (
+              <View style={styles.cardOuter}>
+                <View style={styles.cardInner}>
+                  {carnet.notesRecentes.map((it, i) => (
+                    <GradeRow
+                      key={i}
+                      {...it}
+                      last={i === carnet.notesRecentes.length - 1}
+                      onPress={ouvrirSuivi}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.emptyState}>Aucune note pour l’instant.</Text>
+            )}
+            <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
+              <Text style={styles.ghostLinkText}>Voir toutes les notes →</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            {/* Maternelle / primaire : derniers apprentissages, jamais de notes /20 */}
+            <SectionLabel text="Derniers apprentissages" style={styles.sectionLabel} />
+            {carnet.apprentissagesRecents.length > 0 ? (
+              <View style={styles.cardOuter}>
+                <View style={styles.cardInner}>
+                  {carnet.apprentissagesRecents.map((it, i) => (
+                    <ApprentissageRow
+                      key={i}
+                      {...it}
+                      last={i === carnet.apprentissagesRecents.length - 1}
+                      onPress={ouvrirSuivi}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.emptyState}>Aucun apprentissage noté pour l’instant.</Text>
+            )}
+            <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
+              <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         <View style={{ height: 14 }} />
 
@@ -242,10 +311,13 @@ export default function AccueilScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.ariaLabel}>ARIA</Text>
-              <Text style={styles.ariaMessage}>{demoAriaMessage}</Text>
+              <Text style={styles.ariaMessage}>
+                {carnet.aria || `Posez une question à Aria sur le carnet de ${prenom}.`}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
+        </>)}
       </Animated.ScrollView>
 
       <JustifierAbsenceSheet
@@ -468,6 +540,51 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: '#0F172A',
     lineHeight: 18,
+  },
+
+  // ── Apprentissages (maternelle / primaire) ───────────
+  apprRow: {
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  apprDomaine: {
+    fontFamily: 'Figtree_600SemiBold',
+    fontSize: 11,
+    lineHeight: 14,
+    color: 'rgba(15,23,42,0.55)',
+  },
+  apprTexte: {
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 14,
+    lineHeight: 19,
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  apprMetaLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 6,
+  },
+  segments: { flexDirection: 'row', marginRight: 6 },
+  segment: {
+    width: 14,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.12)',
+  },
+  segmentOn: { backgroundColor: '#0F172A' },
+  apprNiveau: {
+    fontFamily: 'Figtree_600SemiBold',
+    fontSize: 11,
+    lineHeight: 14,
+    color: '#0F172A',
+  },
+  apprSource: {
+    fontFamily: 'Figtree_400Regular',
+    fontSize: 11,
+    lineHeight: 14,
+    color: 'rgba(15,23,42,0.55)',
   },
 
   // ── Empty state ──────────────────────────────────────

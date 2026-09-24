@@ -47,6 +47,8 @@ import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { AucunEnfantOnglet } from '../components/AucunEnfant';
+import { aDesNotes } from '../utils/niveau';
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -201,40 +203,6 @@ const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
   activite: 'Activité', reunion: 'Réunion', sortie: 'Sortie',
 };
 
-// ─── Mock data ────────────────────────────────────────────
-
-const MOCK_WEEK_DAYS = buildWeekDays(new Date());
-const MOCK_EVENTS_BY_DAY: Record<number, AgendaEvent[]> = {
-  [MOCK_WEEK_DAYS[0]?.date ?? 0]: [
-    { id: 'e1', title: 'Mathématiques', time: '08:30', endTime: '09:30', type: 'cours', subject: 'Maths', color: Colors.cyan, location: 'Salle 204' },
-    { id: 'e2', title: 'Français', time: '10:00', endTime: '11:00', type: 'cours', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
-    { id: 'e3', title: 'Devoir de géométrie', time: '17:00', type: 'devoir', subject: 'Maths', color: Colors.orange, description: 'Ex. 4, 5, 6 p.142', done: true },
-  ],
-  [MOCK_WEEK_DAYS[1]?.date ?? 0]: [
-    { id: 'e4', title: 'Histoire-Géo', time: '08:30', endTime: '09:30', type: 'cours', subject: 'Histoire', color: Colors.orange, location: 'Salle 305' },
-    { id: 'e5', title: 'Anglais', time: '10:00', endTime: '11:00', type: 'cours', subject: 'Anglais', color: Colors.green, location: 'Salle 201' },
-    { id: 'e6', title: 'Apprendre vocabulaire ch.5', time: '17:00', type: 'devoir', subject: 'Anglais', color: Colors.orange },
-  ],
-  [MOCK_WEEK_DAYS[2]?.date ?? 0]: [
-    { id: 'e7', title: 'Judo', time: '14:00', endTime: '15:30', type: 'activite', color: Colors.warmOrange, location: 'Dojo municipal' },
-    { id: 'e8', title: 'Piano', time: '16:00', endTime: '17:00', type: 'activite', color: Colors.violet, location: 'Conservatoire' },
-  ],
-  [MOCK_WEEK_DAYS[3]?.date ?? 0]: [
-    { id: 'e9', title: 'Sciences', time: '08:30', endTime: '10:00', type: 'cours', subject: 'Sciences', color: Colors.pink, location: 'Labo' },
-    { id: 'e10', title: 'Réunion parents', time: '18:00', endTime: '19:00', type: 'reunion', color: Colors.violet, location: 'Salle polyvalente', description: 'Bilan du 2ème trimestre' },
-  ],
-  [MOCK_WEEK_DAYS[4]?.date ?? 0]: [
-    { id: 'e11', title: 'Contrôle de Maths', time: '08:30', endTime: '09:30', type: 'examen', subject: 'Maths', color: Colors.red, location: 'Salle 204', description: 'Chapitres 7-9 : fractions et proportionnalité' },
-    { id: 'e12', title: 'EPS', time: '10:00', endTime: '11:30', type: 'cours', subject: 'EPS', color: Colors.warmOrange, location: 'Gymnase' },
-    { id: 'e13', title: 'Français', time: '14:00', endTime: '15:00', type: 'cours', subject: 'Français', color: Colors.violet, location: 'Salle 102' },
-    { id: 'e14', title: 'Lire ch.8 du roman', time: '17:00', type: 'devoir', subject: 'Français', color: Colors.orange, description: 'Le Petit Prince, préparer questions' },
-  ],
-  [MOCK_WEEK_DAYS[5]?.date ?? 0]: [
-    { id: 'e15', title: 'Sortie au musée', time: '10:00', endTime: '16:00', type: 'sortie', color: Colors.cyan, location: 'Musée d\'Orsay', description: 'Prévoir pique-nique' },
-  ],
-  [MOCK_WEEK_DAYS[6]?.date ?? 0]: [],
-};
-
 // ─── Animated checkbox ────────────────────────────────────
 
 function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => void }) {
@@ -303,7 +271,7 @@ function HomeworkCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
 
 // ─── Component ────────────────────────────────────────────
 
-export default function AgendaScreen() {
+function AgendaScreenContent() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { selectedChildId, selectedChild, loading: childLoading } = useActiveChild();
@@ -336,7 +304,8 @@ export default function AgendaScreen() {
   }, [weekOffset]);
 
   const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
-  const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>(MOCK_EVENTS_BY_DAY);
+  // Jamais d'événements fictifs : démo = agenda de l'enfant actif, compte réel = la base.
+  const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>({});
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
@@ -418,6 +387,8 @@ export default function AgendaScreen() {
 
   // ─── Demo devoirs data ─────────────────────────────────
   const demoDevoirs = useMemo((): DevoirGroup[] => {
+    // Devoirs de démo : collège / lycée, en mode démo uniquement (jamais pour un compte réel).
+    if (!isDemoMode || !aDesNotes(selectedChild?.cycle)) return [];
     const t = new Date();
     t.setHours(0, 0, 0, 0);
     const tomorrow = new Date(t); tomorrow.setDate(t.getDate() + 1);
@@ -524,7 +495,7 @@ export default function AgendaScreen() {
         }
       }
       if (Object.keys(grouped).length === 0) {
-        setEventsByDay(MOCK_EVENTS_BY_DAY);
+        setEventsByDay({});
       } else {
         setEventsByDay(grouped);
       }
@@ -541,7 +512,7 @@ export default function AgendaScreen() {
       endDate: endOfSunday.toISOString(),
     });
     const rows = result?.data ?? [];
-    if (rows.length === 0) { setEventsByDay(MOCK_EVENTS_BY_DAY); return; }
+    if (rows.length === 0) { setEventsByDay({}); return; }
 
     const grouped: Record<number, AgendaEvent[]> = {};
     for (const row of rows) {
@@ -1743,3 +1714,10 @@ const st = StyleSheet.create({
     marginTop: 1,
   },
 });
+
+/** Garde : compte réel sans enfant → état vide (jamais de données d'un autre carnet). */
+export default function AgendaScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantOnglet />;
+  return <AgendaScreenContent />;
+}

@@ -42,6 +42,7 @@ import type { Conversation } from '../data/messagerieData';
 import { C } from '../constants/design';
 import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { AucunEnfantOnglet } from '../components/AucunEnfant';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -299,7 +300,7 @@ function Section({
 
 // ─── Screen ──────────────────────────────────────────────
 
-export default function MessagerieScreen() {
+function MessagerieScreenContent() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
@@ -1392,3 +1393,10 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 });
+
+/** Garde : compte réel sans enfant → état vide (jamais de données d'un autre carnet). */
+export default function MessagerieScreen() {
+  const { selectedChild } = useActiveChild();
+  if (!selectedChild) return <AucunEnfantOnglet />;
+  return <MessagerieScreenContent />;
+}

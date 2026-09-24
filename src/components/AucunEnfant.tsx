@@ -55,6 +55,16 @@ export function AucunEnfantPage({ title }: { title: string }) {
   );
 }
 
+/** Même état vide, dans un onglet principal (sous la top bar, au-dessus de la bottom bar). */
+export function AucunEnfantOnglet() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: '#F2F1EE', paddingTop: insets.top + 60 }}>
+      <AucunEnfant />
+    </View>
+  );
+}
+
 const st = StyleSheet.create({
   root: {
     alignItems: 'center',
