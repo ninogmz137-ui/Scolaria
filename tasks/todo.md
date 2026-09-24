@@ -158,6 +158,13 @@ Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute 
 
 ### B3 · Suivi (ex-Notes) — 3 à 4 sessions
 Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages · Souvenirs · Livrets, bouton année + Mon parcours.
+
+**Retours terrain (réunion de rentrée, CP, Marseille — 24 sept) à intégrer :**
+- [ ] Primaire : **pas de trimestres**. Découpage par **périodes P1 à P5 ou semestres** selon l’école (LSU remis en janvier et juin). Supprimer le sélecteur « T1 » en maternelle / primaire. [UNCLEAR] où stocker le choix (réglage de l’école / classe, colonne à ajouter) — à voir avec le modèle `ecoles` / `classes`.
+- [ ] **Échelle d’évaluation paramétrable** : 3 niveaux (A / PA / NA, usage quotidien fréquent) OU 4 niveaux LSU (non atteint, partiellement atteint, atteint, dépassé). Affichage adapté (3 ou 4 segments). Impact BDD : `competences.niveau` 1-4 → prévoir l’échelle (ajout non destructif).
+- [ ] **Disciplines officielles du CP (cycle 2)** pour la démo et les listes : Français (lecture, écriture, oral, vocabulaire, grammaire et orthographe) ; Mathématiques (nombres, calcul et résolution de problèmes, grandeurs et mesures, espace et géométrie, organisation et gestion de données) ; Questionner le monde ; EMC ; Langue vivante (anglais) ; Enseignements artistiques ; EPS. (Lucas est en CM2, cycle 3 : disciplines du cycle 3 à reprendre des textes officiels pour lui.)
+- [ ] Suivi › Livrets : type de document **« Évaluations nationales »** (CP : septembre et janvier, français et maths).
+- [ ] Profil de l’enfant : « Compétences clés » retirées en B2-ter → à réintroduire ici avec la même échelle (3 ou 4 niveaux).
 - [ ] Renommer l’onglet Notes → Suivi (pill top bar, icône `trending-up`, routes).
 - [ ] Découper `NotesScreen` (2424 l.) : conteneur Suivi + 3 vues Apprentissages — maternelle (domaines + observations), primaire (compétences LSU, 4 segments #0F172A / rgba 0.12, jamais vert/rouge), collège-lycée (vue notes v7 actuelle, déplacée sans refonte).
 - [ ] Démo (décision Q3) : pas de 4e enfant. **Lucas reste en CM2 (primaire)** : ses données de démo passent des notes /20 à des compétences sur 4 niveaux (livret). **Emma garde les notes** (collège). Léa (GS) : domaines maternelle.
@@ -286,6 +293,10 @@ Migrations prévues : M13 (fond d’Accueil par enfant, B2), M14 (annulation d�
 - [x] Tests SQL (transaction annulée, 0 donnée restante) — 44 vérifications OK : A et B responsables → **ni A ni B ne peuvent supprimer l’enfant** ; A seul responsable de Zoé → suppression OK ; copies classe (2) / fratrie (2) / brouillon (0) ; C ne voit que le carnet de Max ; parent non titulaire ne peut pas envoyer à la classe ; **both : A seul → non signé, A + B → signé** ; one : A seul → signé ; signer au nom de B, double signature, mode none, C sur Léo → refusés ; absences : B voit celle de A, C ne voit rien, B ne modifie pas celle de A ; réponses : 2e réponse refusée, modification par l’auteur OK, B ne modifie pas celle de A, mauvais type / valeur / carnet refusés.
 - [x] Advisors : 0 ERROR. WARN voulus : `distribuer_mot`, `is_mot_teacher`, `nb_responsables_carnet` (points d’entrée contrôlés).
 - [x] Code (services seuls) : `liaisonService` → types DB ↔ types écran (info ↔ information, bon_de_sortie → autorisation ; signature → autorisation, participation → info à l’affichage), `signature_mode` à la création, compteurs enseignant via `mots_liaison_enriched`, non-signés via `mot_carnets_statut`, mots parent via `mot_carnets`, `is_signed` = signé par moi, signature sans nom client. `absenceService` : rien à changer. Démo Moreau : données locales, rien à changer.
+- [ ] Sprint enseignant / Phase 2 · retours terrain (CP, Marseille, 24 sept) :
+  - **« Demander un rendez-vous »** à l’enseignante depuis Messages.
+  - Fiche **« Organisation de la semaine »** par enfant : jours de cantine, étude, garderie ; remplie par les parents, consultable par l’enseignante. Argument mairie (périscolaire).
+  - **Comportement** (croix / point orange / point rouge) : **pas de module en V1** ; passe par un mot à signer. Règle : visible uniquement par les responsables de l’enfant, **jamais de tableau comparatif**.
 - [ ] Sprint enseignant · mode « both » avec UN seul responsable inscrit : l’enseignant voit « signé · 1 responsable inscrit sur 2 attendus », pas simplement « signé » (données : `mot_carnets_statut.nb_responsables`).
 - [ ] Sprint enseignant · direction : rôle directeur, portée école → écrire à toute l’école (mots, publications) ; à modéliser (rôle + `ecoles` ; distribution à toutes les classes de l’école).
 - [ ] Sprint enseignant : choix de la classe **par id** dans le composer (sans `classe_id`, un mot n’est distribué dans aucun carnet) ; création des écoles / classes et rattachement des enfants (`academic_years.classe_id`) ; teacherService (posts / événements) encore filtré par nom côté enseignant ; noms des élèves non lisibles par l’enseignant (RLS children).

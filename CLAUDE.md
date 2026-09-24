@@ -280,14 +280,17 @@ Le contenu s'adapte **automatiquement au niveau de l'enfant sélectionné** :
 | Niveau | Suivi › Apprentissages |
 |--------|------------------------|
 | Maternelle | Carnet de suivi des apprentissages : domaines + observations de l'enseignant |
-| Primaire | Compétences du livret (LSU) sur 4 niveaux : Non atteint · Partiellement · Atteint · Dépassé |
+| Primaire | Compétences par discipline, échelle choisie par l'école : 3 niveaux (A · PA · NA) ou 4 niveaux LSU (Non atteint · Partiellement atteint · Atteint · Dépassé) |
 | Collège / Lycée | **Notes v7 inchangé** (courbe, pills matières, cartes extensibles) |
 
 - Bouton année `2025–2026 · CE1 ⌄` : année en cours + lien vers **Mon parcours**. Pas de frise.
+- **Découpage de l'année** : maternelle / primaire = **périodes P1 à P5** ou **semestres** selon l'école (LSU remis en janvier et juin). **Jamais de trimestres ni de sélecteur « T1 »** en maternelle / primaire. Collège / lycée : trimestres (ou semestres) de l'établissement.
+- **Échelle d'évaluation paramétrable** (par école / classe) : 3 niveaux A / PA / NA (usage quotidien fréquent) ou 4 niveaux LSU ; l'affichage s'adapte (3 ou 4 segments).
+- **Disciplines officielles du CP (cycle 2)**, pour la démo et les listes : Français (lecture, écriture, oral, vocabulaire, grammaire et orthographe) · Mathématiques (nombres, calcul et résolution de problèmes, grandeurs et mesures, espace et géométrie, organisation et gestion de données) · Questionner le monde · EMC · Langue vivante (anglais) · Enseignements artistiques · EPS.
 - Segmented control : **Apprentissages · Souvenirs · Livrets**
   - Souvenirs : albums photos de classe, dessins/travaux ajoutés par la famille, jalons (« premier exposé »)
-  - Livrets : livrets et bulletins (saisis par l'enseignant ou scannés par le parent)
-- Niveaux de compétence : 4 segments, remplis #0F172A, vides rgba(15,23,42,0.12). **Jamais de vert/rouge.**
+  - Livrets : livrets et bulletins (saisis par l'enseignant ou scannés par le parent), et **résultats des évaluations nationales** (CP : septembre et janvier, français et maths) comme type de document
+- Niveaux de compétence : 3 ou 4 segments selon l'échelle, remplis #0F172A, vides rgba(15,23,42,0.12). **Jamais de vert/rouge.**
 - Toujours afficher la source : « Saisi par Mme Durand · 12 déc. » ou « Scanné par vous ».
 
 ---
