@@ -178,6 +178,16 @@ function formatDateFR(date: Date): string {
   return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
 }
 
+/** Échéance d'un devoir (jamais de plage horaire) : « Pour aujourd'hui », « Pour demain », « Pour lundi 28 sept. ». */
+function echeanceDevoir(jour: Date): string {
+  const t = new Date();
+  const aujourdHui = new Date(t.getFullYear(), t.getMonth(), t.getDate()).toDateString();
+  const demain = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1).toDateString();
+  if (jour.toDateString() === aujourdHui) return 'Pour aujourd’hui';
+  if (jour.toDateString() === demain) return 'Pour demain';
+  return `Pour ${formatDateFR(jour)}`;
+}
+
 function buildCalendarGrid(
   year: number,
   month: number,
@@ -789,9 +799,13 @@ function AgendaScreenContent() {
   };
 
   // ─── Render event card ─────────────────────────────────
-  const renderEventCard = (event: AgendaEvent) => {
+  const renderEventCard = (event: AgendaEvent, jour: Date) => {
     const isExam = event.type === 'examen';
     const isDevoir = event.type === 'devoir';
+    // Devoir : une échéance, jamais « 08:30 — 08:30 ». Autres : horaire (et lieu).
+    const quand = isDevoir
+      ? echeanceDevoir(jour)
+      : event.endTime && event.endTime !== event.time ? `${event.time} — ${event.endTime}` : event.time;
 
     return (
       <TouchableOpacity
@@ -801,7 +815,7 @@ function AgendaScreenContent() {
             eventId: event.id,
             eventTitle: event.title,
             eventCategory: TYPE_LABELS[event.type] ?? event.type,
-            eventTime: event.endTime ? `${event.time} – ${event.endTime}` : event.time,
+            eventTime: quand,
             eventLocation: event.location,
             eventDescription: event.description,
           })
@@ -825,7 +839,7 @@ function AgendaScreenContent() {
               {event.title}
             </Text>
             <Text style={st.eventMeta}>
-              {event.time}{event.endTime ? ` — ${event.endTime}` : ''}{event.location ? ` · ${event.location}` : ''}
+              {quand}{event.location ? ` · ${event.location}` : ''}
             </Text>
           </View>
 
@@ -883,7 +897,7 @@ function AgendaScreenContent() {
               <Text style={st.emptySubtitle}>Rien de prévu ce jour</Text>
             </View>
           ) : (
-            dayEvents.map((event) => renderEventCard(event))
+            dayEvents.map((event) => renderEventCard(event, item.fullDate))
           )}
         </Animated.ScrollView>
       </View>
