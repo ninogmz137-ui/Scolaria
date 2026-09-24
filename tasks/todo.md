@@ -4,6 +4,11 @@
 
 **Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2, B2-bis et B2-ter FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
 
+### B3-0 (24 sept) — corrections avant B3
+- Agenda : maternelle et primaire sans créneaux de cours (journée type dans « Emploi du temps », primaire seulement) ; Léa = 3 événements de GS en semaine ; tri par heure tous types, devoirs en tête sans horaire (« Pour aujourd’hui / demain / date ») ; voile du bas toujours visible + élévations Android ; bouton Emploi du temps sur sa ligne (44 px).
+- Docs : Agenda = « + » de la bottom bar, pas de FAB ; §17 échelle 3 niveaux (Non acquis · Partiellement acquis · Acquis) ou 4 LSU ; bouton année « 2026–2027 · CM2 ⌄ » ; VISION : 3114, 3018, 119, 112.
+- [UNCLEAR] **Aria, écart constaté** : la consigne système de l’app contient l’identifiant de l’enfant (UUID) dans la consigne de l’action « signaler une absence » (`ariaApi.ts`, `student_id=${childId}`), donc il est envoyé au modèle — contraire à « jamais l’identifiant ». Correction proposée (code, en attente de ton accord) : le modèle renvoie le tag sans `student_id`, l’app ajoute l’id de l’enfant actif à la réception.
+
 ### B2-ter (24 sept) — règles par niveau et réponses aux 3 questions
 - **Règle corrigée** (l'ancienne « devoirs / emploi du temps réservés au collège » était fausse) : maternelle = ni devoirs ni filtre « Devoirs » ni emploi du temps ; CP à CM2 = filtre « Devoirs » + devoirs de primaire + emploi du temps en journée type ; collège / lycée inchangé. `utils/niveau.ts` : `aDesDevoirs`, `aUnEmploiDuTemps`.
 - Lucas (CM2) : devoirs de démo remis et rendus crédibles (leçon d'histoire, tables de 7 et 8, lecture du Petit Prince, fractions, poésie de La Fontaine, dictée préparée ; « Évaluation de maths »), salles « Classe de CM2 B ». Onglet Devoirs primaire dédié. Échéances toujours sur un jour d'école.

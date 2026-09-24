@@ -38,7 +38,7 @@ BOTTOM BAR (toujours visible, toutes les pages)
   - Action droite selon contexte :
     Accueil → + (Ajouter au carnet)
     Suivi → ⊞ (scanner / Ajouter au carnet)
-    Agenda → rien (FAB suffit)
+    Agenda → + (ajouter un événement) — PAS de FAB sur l'Agenda
     Messages → ✏️ (nouveau message)
     Aria → rien
 ```
@@ -355,6 +355,7 @@ background:     #0F172A · color: #fff · fontSize: 22px
 shadow:         0 6px 20px rgba(15,23,42,0.22) · elevation: 10
 position:       absolute · bottom: 72px · right: 14px · z-index: 15
 ```
+Agenda : **pas de FAB**. L'ajout passe par le « + » de la bottom bar (§0, action droite).
 
 ---
 
@@ -507,7 +508,7 @@ section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
 ```
 height: 34px · borderRadius: 999px · paddingH: 14px
 background: rgba(15,23,42,0.08) · fontSize 13px · fontWeight 600
-Texte: "2025–2026 · CE1 ⌄"
+Texte: "2026–2027 · CM2 ⌄"
 Tap → Dropdown (§12): année en cours (check #4338CA) · séparateur ·
       entête "Archives · lecture seule" · années précédentes + nom de l'école
       → ouvre Mon parcours
@@ -521,11 +522,13 @@ Actif: background #FFFFFF · fontWeight 700 · shadow 0 1px 4px rgba(15,23,42,0.
 Inactif: transparent · fontWeight 500 · color rgba(15,23,42,0.62)
 ```
 
-### Niveau de compétence (4 segments)
+### Niveau de compétence (3 ou 4 segments selon l'échelle)
 ```
-4 barres 22×6px · borderRadius 999px · gap 3px
+3 ou 4 barres 22×6px · borderRadius 999px · gap 3px (échelle choisie par l'école / la classe)
 Rempli: #0F172A · Vide: rgba(15,23,42,0.12)
-Libellé sous la compétence: Non atteint · Partiellement atteint · Atteint · Dépassé
+Libellé sous la compétence :
+  3 niveaux : Non acquis · Partiellement acquis · Acquis
+  4 niveaux LSU : Non atteint · Partiellement atteint · Atteint · Dépassé
 RÈGLE: jamais de vert/rouge
 ```
 

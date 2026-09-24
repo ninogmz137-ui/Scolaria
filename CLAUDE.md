@@ -128,7 +128,7 @@ Pages de navigation principale = glass morphism. Pages profondes = Notion ultra-
   Accueil  → + (Ajouter au carnet)
   Suivi    → ⊞ (scanner / Ajouter au carnet)
   Messages → ✏️ (nouveau message)
-  Agenda   → rien (FAB suffit)
+  Agenda   → + (ajouter un événement) — pas de FAB sur l'Agenda
   Aria     → rien
 ```
 
@@ -221,7 +221,8 @@ JAMAIS de carte-bouton (widget cliquable en card) → pills d'action uniquement
 
 ### FAB
 ```
-Cercle uniquement — borderRadius: 999px — JAMAIS carré ni rectangle arrondi (Agenda compris)
+Cercle uniquement — borderRadius: 999px — JAMAIS carré ni rectangle arrondi
+Agenda : pas de FAB (l'ajout passe par le « + » de la bottom bar)
 width/height: 48px, background #0F172A
 position: absolute, bottom: 72px (au-dessus bottom bar), right: 14px
 ```
@@ -249,7 +250,7 @@ Scale 0.97 sur press
 ### Écrans principaux (top bar) — toujours pour l'enfant sélectionné
 1. **Accueil** — header wallpaper, mots à signer, carte Aria « Votre semaine », « Nouveau dans le carnet »
 2. **Suivi** (ex-Notes) — contenu selon le niveau (voir section Suivi)
-3. **Agenda** — strip semaine + événements du jour (dont ceux créés depuis les mots) + FAB
+3. **Agenda** — strip semaine + événements du jour (dont ceux créés depuis les mots) ; ajout par le « + » de la bottom bar
 4. **Messages** — filtres + liste conversations/mots + FAB
 
 ### Bottom bar (persistant)
@@ -433,7 +434,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
   - Alerte enregistrée (catégorie, enfant, date — **jamais le texte**), **privée à son auteur** : jamais partagée automatiquement avec l'autre responsable ni l'enseignant
 - **Appels au modèle : uniquement via l'Edge Function Supabase « aria »**. La clé Anthropic est un secret Supabase — jamais dans l'app, jamais dans un `.env`, jamais journalisée.
 - Modèle : `claude-sonnet-5` par défaut, via le secret `ARIA_MODEL`. Pas de modèle de repli.
-- Contexte envoyé : **prénom de l'enfant seulement** (jamais le nom, l'école ni l'identifiant)
+- Contexte envoyé : **prénom + niveau scolaire** de l'enfant (ex. « Lucas (CM2) »), construits par l'app (`ariaApi.ts`) ; jamais le nom, l'école ni l'identifiant. L'Edge Function transmet cette consigne et y ajoute une règle fixe (vouvoiement).
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 
 ---
