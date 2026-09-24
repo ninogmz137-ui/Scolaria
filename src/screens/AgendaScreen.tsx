@@ -312,6 +312,8 @@ function AgendaScreenContent() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Tout');
   // Devoirs dès le CP ; jamais en maternelle (pas de filtre « Devoirs »).
   const avecDevoirs = aDesDevoirs(selectedChild?.cycle);
+  // Créneaux de cours dans l'Agenda : collège / lycée seulement.
+  const avecCours = aDesNotes(selectedChild?.cycle);
   const filtres = FILTER_TABS.filter((f) => f !== 'Devoirs' || avecDevoirs);
   // Changement d'enfant vers la maternelle : pas de filtre « Devoirs ».
   useEffect(() => {
@@ -518,9 +520,10 @@ function AgendaScreenContent() {
       for (let i = 0; i < 7; i++) {
         const dayDate = computed[i].fullDate;
         const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
-        // Devoirs : dès le CP, jamais en maternelle.
+        // Devoirs : dès le CP, jamais en maternelle. Créneaux de cours : collège / lycée seulement
+        // (en primaire, la journée type est dans « Emploi du temps »).
         const demoEvents = getDemoAgendaRef.current(selectedChildId, dateStr).filter(
-          (ev) => avecDevoirs || ev.type !== 'devoir',
+          (ev) => (avecDevoirs || ev.type !== 'devoir') && (avecCours || ev.type !== 'cours'),
         );
         if (demoEvents.length > 0) {
           grouped[computed[i].date] = demoEvents.map((e) => ({
@@ -567,6 +570,7 @@ function AgendaScreenContent() {
       const endHH = endDate2 ? String(endDate2.getHours()).padStart(2, '0') : undefined;
       const endMM = endDate2 ? String(endDate2.getMinutes()).padStart(2, '0') : undefined;
       const type = (row.event_type ?? 'cours') as AgendaEvent['type'];
+      if ((type === 'cours' && !avecCours) || (type === 'devoir' && !avecDevoirs)) continue;
       const mapped: AgendaEvent = {
         id: row.id, title: row.title,
         time: `${hh}:${mm}`,
@@ -580,7 +584,7 @@ function AgendaScreenContent() {
       grouped[dayNum].push(mapped);
     }
     setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs]);
+  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
