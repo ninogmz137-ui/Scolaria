@@ -200,7 +200,7 @@ export default function AccueilScreen() {
                     last={i === carnet.todo.length - 1}
                     onPress={
                       it.kind === 'justifier' ? () => setJustifierVisible(true) :
-                      it.kind === 'signer' ? () => nav.navigate('SignDoc') :
+                      it.kind === 'signer' ? () => nav.navigate('SignDoc', { doc: it.doc ?? { title: it.title } }) :
                       undefined
                     }
                   />

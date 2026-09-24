@@ -12,7 +12,9 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import type { DemoDoc } from '../data/demo/carnet';
 import { Clock, Lock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
@@ -20,17 +22,6 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
 import { Text } from '../components/ui';
-
-// ─── Data demo ───────────────────────────────────────────
-
-const DOC = {
-  title: "Sortie Musée d'Orsay",
-  child: 'Emma · 4ᵉB',
-  date: 'Vendredi 9 mai 2026',
-  lieu: 'Paris 7e',
-  montant: '8€ en espèces',
-  deadline: '8 mai 2026',
-};
 
 // ─── RecapRow ────────────────────────────────────────────
 
@@ -62,6 +53,12 @@ export default function SignDocScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [signed, setSigned] = useState(false);
+  const route = useRoute<any>();
+  const { selectedChild } = useActiveChild();
+  const doc: DemoDoc = route.params?.doc ?? { title: route.params?.docTitle ?? 'Document à signer' };
+  const enfant = selectedChild
+    ? [selectedChild.name, selectedChild.niveau].filter(Boolean).join(' · ')
+    : '';
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
@@ -80,33 +77,33 @@ export default function SignDocScreen() {
         contentContainerStyle={{ paddingBottom: getStickyCtaScrollPadding(insets.bottom) }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Bannière urgence */}
-        <View style={styles.bannerOuter}>
-          <View style={styles.bannerInner}>
-            <Clock size={15} color={C.amber} strokeWidth={2} />
-            <Text style={[styles.bannerText, { marginLeft: 8 }]}>
-              À signer avant le {DOC.deadline}
-            </Text>
+        {/* Bannière échéance */}
+        {!!doc.deadline && (
+          <View style={styles.bannerOuter}>
+            <View style={styles.bannerInner}>
+              <Clock size={15} color={C.amber} strokeWidth={2} />
+              <Text style={[styles.bannerText, { marginLeft: 8 }]}>
+                À signer avant le {doc.deadline}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Récap document */}
         <View style={[styles.cardOuter, { marginTop: 8 }]}>
           <View style={styles.cardInner}>
             <View style={{ padding: 14, paddingBottom: 0 }}>
-              <Text style={styles.docTitle}>{DOC.title}</Text>
+              <Text style={styles.docTitle}>{doc.title}</Text>
             </View>
-            <RecapRow label="Enfant" value={DOC.child} />
-            <RecapRow label="Date" value={DOC.date} />
-            <RecapRow label="Lieu" value={DOC.lieu} />
-            <RecapRow label="Montant" value={DOC.montant} last />
+            <RecapRow label="Enfant" value={enfant} last={!doc.date && !doc.lieu && !doc.montant} />
+            {!!doc.date && <RecapRow label="Date" value={doc.date} last={!doc.lieu && !doc.montant} />}
+            {!!doc.lieu && <RecapRow label="Lieu" value={doc.lieu} last={!doc.montant} />}
+            {!!doc.montant && <RecapRow label="Montant" value={doc.montant} last />}
           </View>
         </View>
 
         {/* Aria */}
-        <AriaInlineCard>
-          Sortie art et histoire — légère par rapport aux sorties précédentes. La participation à 8€ est dans la moyenne.
-        </AriaInlineCard>
+        {!!doc.aria && <AriaInlineCard>{doc.aria}</AriaInlineCard>}
 
         {/* Zone signature */}
         <Text style={styles.sectionLabel}>VOTRE SIGNATURE</Text>
@@ -126,7 +123,7 @@ export default function SignDocScreen() {
         <View style={styles.timestampRow}>
           <Lock size={12} color={C.text35} strokeWidth={1.8} />
           <Text style={[styles.timestampText, { marginLeft: 5 }]}>
-            Signature légale · horodatage automatique
+            Horodatage automatique
           </Text>
         </View>
       </ScrollView>
@@ -145,7 +142,7 @@ export default function SignDocScreen() {
         <TouchableOpacity
           style={styles.sendBtn}
           activeOpacity={0.85}
-          onPress={() => navigation.replace('SignSuccess')}
+          onPress={() => navigation.replace('SignSuccess', { doc })}
         >
           <Text style={styles.sendBtnText}>Signer et envoyer</Text>
         </TouchableOpacity>

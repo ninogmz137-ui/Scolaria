@@ -15,6 +15,7 @@ import ScolariaSymbol from './ScolariaSymbol';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -27,16 +28,20 @@ const MOTIF_LABELS: Record<Motif, string> = {
   autre: 'Autre',
 };
 
-const ARIA_TEXTS: Record<Motif, string> = {
-  maladie:
-    "Bonjour, Emma a été absente lundi matin en raison d'un état grippal. Elle a vu le médecin l'après-midi et reprendra les cours mardi. Cordialement, Sophie Martin",
-  rdv_medical:
-    "Bonjour, Emma était absente lundi matin pour un rendez-vous médical programmé. Elle reprendra les cours dès l'après-midi. Cordialement, Sophie Martin",
-  raison_familiale:
-    "Bonjour, Emma était absente lundi matin pour une raison familiale. Nous vous en remercions pour votre compréhension. Cordialement, Sophie Martin",
-  autre:
-    "Bonjour, Emma était absente lundi matin. Nous vous prions d'excuser cette absence et restons disponibles pour tout renseignement. Cordialement, Sophie Martin",
-};
+/** Brouillon d'Aria : prénom de l'enfant actif, jamais un autre enfant ni un nom inventé. */
+function ariaTexte(motif: Motif, prenom: string): string {
+  const qui = prenom || 'mon enfant';
+  switch (motif) {
+    case 'maladie':
+      return `Bonjour, ${qui} a été absent(e) lundi matin en raison d’un état grippal. Reprise des cours prévue mardi. Cordialement.`;
+    case 'rdv_medical':
+      return `Bonjour, ${qui} était absent(e) lundi matin pour un rendez-vous médical programmé. Reprise des cours dès l’après-midi. Cordialement.`;
+    case 'raison_familiale':
+      return `Bonjour, ${qui} était absent(e) lundi matin pour une raison familiale. Merci de votre compréhension. Cordialement.`;
+    default:
+      return `Bonjour, ${qui} était absent(e) lundi matin. Merci d’excuser cette absence ; je reste disponible pour tout renseignement. Cordialement.`;
+  }
+}
 
 // ─── Props ────────────────────────────────────────────────
 
@@ -51,6 +56,7 @@ export default function JustifierAbsenceSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
 
   const [motif, setMotif] = useState<Motif>('maladie');
+  const { selectedChild } = useActiveChild();
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
 
   const handlePickFile = useCallback(async () => {
@@ -171,7 +177,7 @@ export default function JustifierAbsenceSheet({ visible, onClose }: Props) {
                   <Text style={styles.ariaGhostBtn}>Modifier</Text>
                 </Pressable>
               </View>
-              <Text style={styles.ariaText}>{ARIA_TEXTS[motif]}</Text>
+              <Text style={styles.ariaText}>{ariaTexte(motif, selectedChild?.name ?? '')}</Text>
             </View>
 
             {/* Joindre un certificat */}

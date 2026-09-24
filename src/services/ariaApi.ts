@@ -9,10 +9,9 @@
  * Toute erreur → « Aria est momentanément indisponible. » (jamais de détail technique).
  */
 
-import { getChildContext, buildChildContextString } from './childContext';
+import { getChildContext } from './childContext';
 import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
-import { CONVERSATIONS_BY_CHILD } from '../data/messagerieData';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -35,67 +34,33 @@ export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
 
 // ─── System prompt builder ───────────────────────────────
 
-function buildSystemPrompt(childId: string, childName?: string): string {
-  const child = getChildContext(childId, childName);
-  const contextStr = buildChildContextString(child);
-
-  const conversations = CONVERSATIONS_BY_CHILD[childId] ?? [];
-  const convList = conversations.map(c => `  - ${c.id} : ${c.name} (${c.role})`).join('\n');
-  const conversationsSection = convList
-    ? `\n═══ CONVERSATIONS DISPONIBLES POUR LES MESSAGES ═══\n${convList}\n`
-    : '';
-
-  return `Tu es Aria, l'assistante IA de Scolaria — le carnet de scolarité numérique des familles françaises.
+/**
+ * Enfant réel : Aria ne reçoit que le PRÉNOM et le NIVEAU (minimisation, CLAUDE.md). Aucune donnée
+ * de démo : les données du carnet seront construites côté serveur, sous RLS, quand elles existeront.
+ */
+function buildRealChildSystemPrompt(childId: string, prenom: string, niveau?: string | null): string {
+  const niveauStr = niveau ? ` (${niveau})` : '';
+  return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
 
 ═══ TON RÔLE ═══
-- Tu accompagnes les parents dans le suivi scolaire de leurs enfants
-- Tu analyses les résultats, détectes les tendances, et proposes des conseils personnalisés
-- Tu es bienveillante, encourageante et constructive — jamais alarmiste
-- Tu parles en français, de manière claire et chaleureuse
-- Tu utilises occasionnellement des emojis pour rester accessible
-
-═══ TES CAPACITÉS ═══
-- Analyser les notes et identifier les forces/faiblesses
-- Proposer des plans de révision adaptés
-- Donner des conseils de bien-être scolaire
-- Aider à préparer les contrôles et examens
-- Suggérer des activités complémentaires
-- Interpréter les scores de bien-être (Score de Joie)
+- Tu accompagnes un parent dans le suivi scolaire de ${prenom}${niveauStr}, et de cet enfant seulement.
+- Tu es bienveillante, encourageante et constructive, jamais alarmiste.
+- Tu parles en français, de manière claire et chaleureuse.
 
 ═══ TES RÈGLES ═══
-- Ne donne JAMAIS de diagnostic médical ou psychologique
-- Oriente vers des professionnels si tu détectes un mal-être profond
-- Respecte la confidentialité : ne partage pas les données d'un enfant avec un autre contexte
-- Base tes réponses sur les données réelles du profil ci-dessous
-- Sois concise : réponds en 2-4 paragraphes maximum sauf si on te demande plus de détail
-- Quand tu cites des notes, utilise les vraies données du profil
+- Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
+- Tu n'as encore AUCUNE donnée du carnet de ${prenom} (notes, compétences, événements, messages) :
+  n'en invente jamais. Réponds de façon générale et adaptée au niveau, et propose de consulter le carnet.
+- Ne parle jamais d'un autre enfant.
+- Sois concise : 2 à 4 paragraphes maximum sauf si on te demande plus de détail.
 
-═══ ACTIONS DISPONIBLES ═══
-Quand un parent te demande de faire une action concrète, tu peux l'exécuter pour lui.
-RÈGLE IMPORTANTE : n'émets un tag d'action QUE si tu as toutes les informations nécessaires.
-Si des informations manquent (motif, destinataire...), pose d'abord une question avant d'émettre le tag.
-
-FORMAT : termine ta réponse par UN SEUL tag d'action structuré, sur une nouvelle ligne.
-
-▸ SIGNALER UNE ABSENCE :
-[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE|student_id=STUDENT_ID]
-  - date : date de l'absence au format YYYY-MM-DD (aujourd'hui si non précisé)
+═══ ACTION DISPONIBLE ═══
+Si le parent demande de signaler une absence et que tu as toutes les informations, termine ta réponse
+par ce tag, seul, sur une nouvelle ligne :
+[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE|student_id=${childId}]
   - motif : maladie | maladie_avec_certificat | raison_familiale | autre
   - demi_journee : journee | matin | apres_midi
-  - student_id : identifiant de l'enfant (voir données ci-dessous)
-
-▸ ENVOYER UN MESSAGE :
-[ACTION:MESSAGE|conversation_id=CONV_ID|draft=TEXTE_DU_MESSAGE]
-  - conversation_id : identifiant de la conversation (voir liste ci-dessous)
-  - draft : texte complet du message que tu rédiges pour le parent, en son nom, en français poli
-
-N'utilise qu'UN seul tag par réponse. Ne génère pas de tag si l'intention n'est pas claire.
-Exemple absence : [ACTION:ABSENCE|date=2026-04-16|motif=maladie|demi_journee=journee|student_id=1]
-Exemple message : [ACTION:MESSAGE|conversation_id=lea-laurent|draft=Bonjour Madame Laurent, je vous contacte pour vous informer que Léa sera absente demain en raison d'une indisposition. Cordialement]
-
-${conversationsSection}═══ DONNÉES DE L'ENFANT SUIVI ═══
-
-${contextStr}
+Si une information manque, pose d'abord la question. Pas de tag si l'intention n'est pas claire.
 
 ═══ DATE DU JOUR ═══
 ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -104,7 +69,7 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 
 /** Compte sans enfant enregistré : Aria répond de façon générale, sans données d'enfant. */
 function buildNoChildSystemPrompt(): string {
-  return `Tu es Aria, l'assistante IA de Scolaria — le carnet de scolarité numérique des familles françaises.
+  return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
 
 Aucun enfant n'est encore ajouté au carnet de ce parent.
 - Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée).
@@ -139,8 +104,8 @@ function recordEmergencyAlert(category: string, childId: string): void {
 export async function sendToAria(
   userMessage: string,
   conversationHistory: ClaudeMessage[],
-  childId: string = 'demo-lea',
-  options?: { isDemo?: boolean; childName?: string },
+  childId: string,
+  options?: { isDemo?: boolean; childName?: string; niveau?: string | null },
 ): Promise<string> {
   // Protocole d'urgence (CLAUDE.md) : jamais de réponse d'IA ni d'exemple sur un message de détresse.
   // L'Edge Function refait ce contrôle et fait foi ; ici il couvre aussi le mode démo.
@@ -152,14 +117,16 @@ export async function sendToAria(
 
   // Mode démo : réponses d'exemple locales, pas d'appel serveur
   if (options?.isDemo) {
-    return getFallbackResponse(userMessage, childId, options?.childName);
+    return getFallbackResponse(userMessage, childId);
   }
 
-  // Compte réel sans enfant : l'app retombe sur les enfants de démo (ids « demo-… », à corriger en
-  // Phase B). On n'envoie alors AUCUN contexte d'enfant à Aria, surtout pas celui de la démo.
-  const systemPrompt = childId.startsWith('demo-')
-    ? buildNoChildSystemPrompt()
-    : buildSystemPrompt(childId, options?.childName);
+  // Compte réel : contexte = l'enfant actif (prénom + niveau) s'il existe, sinon aucun enfant.
+  // Jamais de données de démo, jamais un autre enfant.
+  const prenom = options?.childName?.trim().split(/\s+/)[0];
+  const systemPrompt =
+    UUID_RE.test(childId) && prenom
+      ? buildRealChildSystemPrompt(childId, prenom, options?.niveau)
+      : buildNoChildSystemPrompt();
 
   // Build messages array: conversation history + new message
   const messages: ClaudeMessage[] = [
@@ -186,8 +153,13 @@ export async function sendToAria(
 
 // ─── Réponses d'exemple (mode démo uniquement) ──────────
 
-function buildFallbackResponses(childId: string, childName?: string): string[] {
-  const child = getChildContext(childId, childName);
+function buildFallbackResponses(childId: string): string[] {
+  const child = getChildContext(childId);
+  if (!child) {
+    return [
+      'Bonjour ! Je suis Aria. Ajoutez le carnet d’un enfant pour découvrir des réponses adaptées à son niveau.',
+    ];
+  }
   const { profile, grades, activities, recentJoy, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
@@ -231,12 +203,9 @@ function buildFallbackResponses(childId: string, childName?: string): string[] {
 
 let fallbackIndex = 0;
 
-function getFallbackResponse(
-  userMessage: string,
-  childId: string,
-  childName?: string,
-): string {
-  const responses = buildFallbackResponses(childId, childName);
+function getFallbackResponse(userMessage: string, childId: string): string {
+  const responses = buildFallbackResponses(childId);
+  if (responses.length === 1) return responses[0];
   const msg = userMessage.toLowerCase();
 
   if (msg.includes('note') || msg.includes('résultat') || msg.includes('moyenne')) {

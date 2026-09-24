@@ -15,10 +15,21 @@
 
 export type TodoKind = 'signer' | 'lire' | 'justifier';
 
+/** Document à signer (démo) : ce que SignDoc affiche. */
+export interface DemoDoc {
+  title: string;
+  date?: string;
+  lieu?: string;
+  montant?: string;
+  deadline?: string;
+  aria?: string;
+}
+
 export interface DemoTodo {
   kind: TodoKind;
   title: string;
   deadline: string;
+  doc?: DemoDoc;
 }
 
 export interface DemoAujourdhui {
@@ -94,7 +105,19 @@ const CARNETS: Record<string, DemoCarnet> = {
   },
   'demo-lucas': {
     todo: [
-      { kind: 'signer', title: 'Sortie au musée', deadline: 'Avant jeudi' },
+      {
+        kind: 'signer',
+        title: 'Sortie au musée',
+        deadline: 'Avant jeudi',
+        doc: {
+          title: 'Sortie au musée d’Orsay',
+          date: 'Vendredi 3 octobre',
+          lieu: 'Paris 7e',
+          montant: '8 € en espèces',
+          deadline: 'jeudi 2 octobre',
+          aria: 'Sortie d’une journée avec la classe de Mme Dupont ; la participation de 8 € est dans la moyenne des sorties.',
+        },
+      },
       { kind: 'justifier', title: 'Absence lundi', deadline: 'Sous 48h' },
     ],
     aujourdhui: [
@@ -121,7 +144,20 @@ const CARNETS: Record<string, DemoCarnet> = {
     aria: 'Lucas a piscine cet après-midi : pense au sac de sport et au bonnet.',
   },
   'demo-emma': {
-    todo: [{ kind: 'signer', title: 'Convention de stage', deadline: 'Avant lundi' }],
+    todo: [
+      {
+        kind: 'signer',
+        title: 'Convention de stage',
+        deadline: 'Avant lundi',
+        doc: {
+          title: 'Convention de stage d’observation',
+          date: 'Du 8 au 12 décembre',
+          lieu: 'Entreprise d’accueil',
+          deadline: 'lundi 29 septembre',
+          aria: 'Stage d’observation de 3e : la convention doit être signée par un responsable avant de revenir au collège.',
+        },
+      },
+    ],
     aujourdhui: [
       { id: 'emma-1', kind: 'event', title: 'Contrôle de maths', meta: 'Salle 204 · M. Petit', time: '10h' },
       { id: 'emma-2', kind: 'message', title: 'Réunion parents-professeurs', meta: 'Mme Rousseau', time: '17h' },

@@ -1,6 +1,6 @@
 /**
  * HomeworkScreen — Cahier de texte
- * Liste des devoirs d'Emma, filtres par matière/statut, AriaInlineCard.
+ * Cahier de texte (démo : élève de collège), filtres par matière/statut, AriaInlineCard.
  *
  * Android rules applied:
  * - No `gap` → marginRight/marginBottom explicit
@@ -24,6 +24,10 @@ import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
 import { Text } from '../components/ui';
+import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
+import { aDesNotes } from '../utils/niveau';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -232,7 +236,8 @@ const DayGroupSection: React.FC<{ group: DayGroup }> = ({ group }) => (
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
-export default function HomeworkScreen() {
+function HomeworkScreenContent() {
+  const { selectedChild } = useActiveChild();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState('Tout');
@@ -242,7 +247,7 @@ export default function HomeworkScreen() {
       <DeepScreenHeader
         onBack={() => navigation.goBack()}
         title="Cahier de texte"
-        subtitle="Emma · 4ᵉB"
+        subtitle={[selectedChild?.name, selectedChild?.niveau].filter(Boolean).join(' · ')}
       />
 
       <ScrollView
@@ -565,3 +570,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.1,
   },
 });
+
+/**
+ * Garde « un enfant = un carnet » : ces données de démo sont celles d'un élève de collège.
+ * Elles ne s'affichent qu'en mode démo, pour un enfant de collège / lycée ; sinon, page vide.
+ */
+export default function HomeworkScreen() {
+  const { selectedChild } = useActiveChild();
+  const { isDemo } = useAuth();
+  if (!selectedChild) return <AucunEnfantPage title="Cahier de texte" />;
+  if (!isDemo || !aDesNotes(selectedChild.cycle)) {
+    return <PageVide title="Cahier de texte" message={`Pas de devoirs pour ${selectedChild.name} pour l’instant.`} />;
+  }
+  return <HomeworkScreenContent />;
+}

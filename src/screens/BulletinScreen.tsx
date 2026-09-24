@@ -20,6 +20,10 @@ import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text } from '../components/ui';
+import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
+import { aDesNotes } from '../utils/niveau';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Constantes ───────────────────────────────────────────
 
@@ -29,7 +33,6 @@ const TRIMESTRES = ['T1', 'T2', 'T3'] as const;
 // ─── Données démo ─────────────────────────────────────────
 
 const DEMO = {
-  childName: 'Emma',
   moyenne: '14,7',
   moyenneClasse: '12,3',
   trend: '+0,4 vs T1',
@@ -113,10 +116,11 @@ function SectionLbl({ children, first = false }: { children: string; first?: boo
 
 // ─── Composant principal ──────────────────────────────────
 
-export default function BulletinScreen() {
+function BulletinScreenContent() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const childName: string = route.params?.childName ?? DEMO.childName;
+  const { selectedChild } = useActiveChild();
+  const childName: string = selectedChild?.name ?? '';
   const [triIdx, setTriIdx] = useState(1); // T2 par défaut
 
   const vieScolaire = [
@@ -541,3 +545,17 @@ const styles = StyleSheet.create({
     color: C.text,
   },
 });
+
+/**
+ * Garde « un enfant = un carnet » : ces données de démo sont celles d'un élève de collège.
+ * Elles ne s'affichent qu'en mode démo, pour un enfant de collège / lycée ; sinon, page vide.
+ */
+export default function BulletinScreen() {
+  const { selectedChild } = useActiveChild();
+  const { isDemo } = useAuth();
+  if (!selectedChild) return <AucunEnfantPage title="Bulletin" />;
+  if (!isDemo || !aDesNotes(selectedChild.cycle)) {
+    return <PageVide title="Bulletin" message={`Aucun bulletin pour ${selectedChild.name} pour l’instant.`} />;
+  }
+  return <BulletinScreenContent />;
+}

@@ -65,6 +65,24 @@ export function AucunEnfantOnglet() {
   );
 }
 
+/** Page profonde sans contenu pour l'enfant actif (ex. emploi du temps en maternelle). */
+export function PageVide({ title, message }: { title: string; message: string }) {
+  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flex: 1, backgroundColor: '#F2F1EE', paddingBottom: insets.bottom }}>
+      <DeepScreenHeader
+        title={title}
+        onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
+        withTopInset
+      />
+      <View style={st.root}>
+        <Text style={st.body}>{message}</Text>
+      </View>
+    </View>
+  );
+}
+
 const st = StyleSheet.create({
   root: {
     alignItems: 'center',

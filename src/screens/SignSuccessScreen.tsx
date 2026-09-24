@@ -12,7 +12,9 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import type { DemoDoc } from '../data/demo/carnet';
 import { Check, Download, Calendar } from 'lucide-react-native';
 import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -35,6 +37,16 @@ function ReceiptRow({ label, value, last }: { label: string; value: string; last
 export default function SignSuccessScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const route = useRoute<any>();
+  const { selectedChild } = useActiveChild();
+  const doc: DemoDoc = route.params?.doc ?? { title: 'Document' };
+  const prenom = selectedChild?.name ?? '';
+  const enfant = selectedChild
+    ? [selectedChild.name, selectedChild.niveau].filter(Boolean).join(' · ')
+    : '';
+  const signeLe = new Date().toLocaleString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
@@ -65,16 +77,18 @@ export default function SignSuccessScreen() {
         </View>
 
         <Text style={styles.successBadge}>DOCUMENT SIGNÉ</Text>
-        <Text style={styles.heroTitle}>Emma est inscrite à la sortie d'Orsay.</Text>
-        <Text style={styles.heroSubtitle}>La classe de 4ᵉB, vendredi 9 mai 2026.</Text>
+        <Text style={styles.heroTitle}>{doc.title}</Text>
+        <Text style={styles.heroSubtitle}>
+          {[prenom, doc.date].filter(Boolean).join(' · ')}
+        </Text>
 
         {/* Reçu */}
         <View style={[styles.cardOuter, { marginTop: 28 }]}>
           <View style={styles.cardInner}>
-            <ReceiptRow label="Signataire" value="M. / Mme Moreau" />
-            <ReceiptRow label="Signé le" value="5 mai 2026 à 10:32" />
-            <ReceiptRow label="Document" value="Autorisation sortie" />
-            <ReceiptRow label="Enfant" value="Emma · 4ᵉB" last />
+            <ReceiptRow label="Signataire" value="Vous" />
+            <ReceiptRow label="Signé le" value={signeLe} />
+            <ReceiptRow label="Document" value={doc.title} />
+            <ReceiptRow label="Enfant" value={enfant} last />
           </View>
         </View>
 
@@ -82,7 +96,7 @@ export default function SignSuccessScreen() {
         <View style={{ marginTop: 8 }}>
           <AriaInlineCard label="Aria">
             <Text style={styles.ariaText}>
-              Veux-tu ajouter la sortie d'Orsay à l'agenda d'Emma avec un rappel la veille ?
+              Veux-tu ajouter « {doc.title} » à l’agenda de {prenom} avec un rappel la veille ?
             </Text>
             <View style={styles.ariaActions}>
               <TouchableOpacity style={styles.ariaPillMain}>

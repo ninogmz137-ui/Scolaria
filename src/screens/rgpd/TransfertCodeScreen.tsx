@@ -22,6 +22,8 @@ import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { Text, Pressable } from '../../components/ui';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -83,16 +85,19 @@ const EXISTING_CODES: TransferCode[] = [
   },
 ];
 
-const CHILDREN = [
-  { id: '1', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire' },
-  { id: '2', name: 'Emma Moreau', avatar: '', classe: '6ème — Collège Hugo' },
-];
 
 // ─── Component ────────────────────────────────────────────
 
 export default function TransfertCodeScreen() {
   const insets = useSafeAreaInsets();
-  const [codes, setCodes] = useState(EXISTING_CODES);
+  const { isDemo } = useAuth();
+  const { children: enfants, selectedChild } = useActiveChild();
+  // Enfants du compte (jamais une liste en dur).
+  const CHILDREN = enfants.map((c) => ({ id: c.id, name: c.name, avatar: '', classe: c.classe }));
+  // Démo : codes fictifs de l'enfant actif seulement. Compte réel : codes en base.
+  const [codes, setCodes] = useState(() =>
+    isDemo ? EXISTING_CODES.filter((c) => c.child.split(' ')[0] === selectedChild?.name) : [],
+  );
   const [showNewCode, setShowNewCode] = useState(false);
   const [generatingFor, setGeneratingFor] = useState<string | null>(null);
   const [newCode, setNewCode] = useState<string | null>(null);

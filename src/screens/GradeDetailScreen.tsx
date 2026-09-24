@@ -22,6 +22,7 @@ import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text } from '../components/ui';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 
 // ─── Demo data ───────────────────────────────────────────
 
@@ -120,6 +121,7 @@ function StatCol({ label, value }: { label: string; value: string }) {
 // ─── Composant principal ─────────────────────────────────
 
 export default function GradeDetailScreen() {
+  const { selectedChild } = useActiveChild();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
@@ -248,7 +250,7 @@ export default function GradeDetailScreen() {
       {/* Bottom bar */}
       <View style={[styles.bottomBar, { bottom: insets.bottom + STICKY_CTA_BOTTOM_GAP }]}>
         <TouchableOpacity style={styles.btnOutline} activeOpacity={0.8}>
-          <Text style={styles.btnOutlineText}>Féliciter Emma</Text>
+          <Text style={styles.btnOutlineText}>Féliciter {selectedChild?.name ?? ''}</Text>
         </TouchableOpacity>
         <View style={{ width: 10 }} />
         <TouchableOpacity style={styles.btnDark} activeOpacity={0.85}>

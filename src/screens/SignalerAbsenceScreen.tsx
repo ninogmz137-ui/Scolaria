@@ -35,6 +35,7 @@ import {
 } from '../services/absenceService';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantPage } from '../components/AucunEnfant';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -69,6 +70,7 @@ function SignalerAbsenceScreenContent() {
   const { selectedChild: enfantActif } = useActiveChild();
   const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
   const selectedChildId = selectedChild.id;
+  const { user } = useAuth();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   // Écran en mode chrome 'none' (chrome.ts) : son mini header remplace la top bar.
@@ -155,8 +157,8 @@ function SignalerAbsenceScreenContent() {
           motif,
           commentaire: commentaire.trim() || null,
         },
-        'Parent Moreau',
-        `${selectedChild.name} Moreau`,
+        user?.user_metadata?.full_name ?? user?.email ?? 'Responsable',
+        selectedChild.name,
         selectedChild.avatar,
       );
 

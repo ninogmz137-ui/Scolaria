@@ -86,7 +86,8 @@ export default function AriaScreen() {
 
   const childName = selectedChild?.name ?? 'votre enfant';
   const firstName = childName.split(' ')[0];
-  const childId = selectedChild?.id ?? 'demo-lea';
+  // Aucun enfant : clé neutre (jamais l'id d'un enfant de démo).
+  const childId = selectedChild?.id ?? 'sans-enfant';
 
   const [messages, setMessages] = useState<Message[]>([makeWelcomeMessage(firstName)]);
   const [input, setInput] = useState('');
@@ -137,7 +138,7 @@ export default function AriaScreen() {
           trimmed,
           conversationHistoryRef.current,
           childId,
-          { isDemo },
+          { isDemo, childName: selectedChild?.name, niveau: selectedChild?.niveau },
         );
 
         // Update conversation history

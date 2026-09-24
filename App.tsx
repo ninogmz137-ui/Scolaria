@@ -20,14 +20,13 @@ import ConnexionScreen from './src/screens/ConnexionScreen';
 import InscriptionScreen from './src/screens/InscriptionScreen';
 import PinScreen from './src/screens/PinScreen';
 /** Kept for future reuse (e.g. Aria) — auto-open on Accueil disabled below. */
-// import ConseilDuMatin from './src/components/ConseilDuMatin';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
 import { WallpaperProvider } from './src/contexts/WallpaperContext';
 import { DemoProvider } from './src/contexts/DemoContext';
-import { scheduleConseilDuMatin } from './src/services/notifications';
+import { cancelConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
@@ -57,9 +56,9 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   }, []);
 
   useEffect(() => {
-    // Schedule morning notifications when user logs in
+    // Nettoyage : annule les anciens « Conseil du matin » (données de démo) encore programmés.
     if (user) {
-      scheduleConseilDuMatin().catch(() => {});
+      cancelConseilDuMatin().catch(() => {});
     }
   }, [user]);
 

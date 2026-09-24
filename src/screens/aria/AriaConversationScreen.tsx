@@ -126,7 +126,8 @@ export default function AriaConversationScreen() {
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
 
-  const childId = selectedChild?.id ?? 'demo-lea';
+  // Aucun enfant : clé neutre (jamais l'id d'un enfant de démo).
+  const childId = selectedChild?.id ?? 'sans-enfant';
   const childFirstName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
   const { conversationId, title, initialMessage } = (route.params ?? {}) as RouteParams;
 
@@ -244,6 +245,7 @@ export default function AriaConversationScreen() {
       const response = await sendToAria(trimmed, historyRef.current, childId, {
         isDemo,
         childName: selectedChild?.name,
+        niveau: selectedChild?.niveau,
       });
 
       // Parse action tag from Aria's response

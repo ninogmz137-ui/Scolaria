@@ -28,6 +28,8 @@ import { ARIA_INDIGO } from '../../constants/theme';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { Text, Pressable } from '../../components/ui';
 import ScolariaSymbol from '../../components/ScolariaSymbol';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -54,6 +56,8 @@ interface ExportHistory {
 
 export default function ExportDonneesScreen() {
   const insets = useSafeAreaInsets();
+  const { isDemo } = useAuth();
+  const { selectedChild } = useActiveChild();
   const [exportFormat, setExportFormat] = useState<'json' | 'pdf' | 'both'>('both');
   const [modules, setModules] = useState<DataModule[]>([
     { key: 'profil', name: 'Profil & identité', Icon: User, color: ARIA_INDIGO, size: '12 Ko', count: '2 profils', selected: true },
@@ -91,9 +95,9 @@ export default function ExportDonneesScreen() {
         status: e.status === 'completed' ? 'completed' : 'pending',
       })));
     } else {
-      setHistory(MOCK_HISTORY);
+      setHistory(isDemo ? MOCK_HISTORY : []);
     }
-  }, []);
+  }, [isDemo]);
 
   useEffect(() => {
     loadHistory();
@@ -228,7 +232,7 @@ export default function ExportDonneesScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.personName}>{mod.name}</Text>
-                  <Text style={styles.personRole}>{mod.count} · {mod.size}</Text>
+                  {isDemo && <Text style={styles.personRole}>{mod.count} · {mod.size}</Text>}
                 </View>
                 <Switch
                   value={mod.selected}
@@ -316,12 +320,12 @@ export default function ExportDonneesScreen() {
     "generated_at": "2026-03-22T14:30:00Z",
     "format": "RGPD Article 20",
     "family": {
-      "name": "Famille Moreau",
+      "name": "Famille",
       "children": [
         {
-          "scolaria_id": "SCA-2026-FR-048721",
-          "name": "Lucas Moreau",
-          "classe": "CM2",
+          "scolaria_id": "SCA-…",
+          "name": "${selectedChild?.name ?? 'Prénom'}",
+          "classe": "${selectedChild?.niveau ?? ''}",
           "competences": [...],
           "notes": [...],
           "joy_history": [...],

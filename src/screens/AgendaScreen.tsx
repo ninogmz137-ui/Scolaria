@@ -884,6 +884,7 @@ function AgendaScreenContent() {
               style={{ transform: [{ rotate: calendarOpen ? '180deg' : '0deg' }] }}
             />
           </Pressable>
+          {aDesNotes(selectedChild?.cycle) && (
           <Pressable
             onPress={() => navigation.navigate('Timetable')}
             hitSlop={8}
@@ -891,6 +892,7 @@ function AgendaScreenContent() {
           >
             <Text style={st.timetableBtnText}>Emploi du temps</Text>
           </Pressable>
+          )}
         </View>
 
         {/* 2. Collapsible calendar panel */}

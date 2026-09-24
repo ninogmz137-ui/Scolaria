@@ -108,9 +108,29 @@ interface ChildProfileData {
   trimesterWeeksLeft: number;
 }
 
-function getChildProfileData(childId: string): ChildProfileData {
+/** Enfant réel (ou inconnu) : profil neutre, jamais celui d'un enfant de démo. */
+function profilNeutre(prenom: string, classe: string): ChildProfileData {
+  return {
+    name: prenom,
+    firstName: prenom,
+    avatar: '',
+    classe,
+    scolariaId: '',
+    age: 0,
+    superPower: '',
+    superPowerEmoji: '',
+    superPowerDescription: '',
+    tags: [],
+    competences: [],
+    portfolio: [],
+    joy30Days: [],
+    lastCheckinMessage: '',
+    trimesterWeeksLeft: 0,
+  };
+}
+
+function getChildProfileData(childId: string, prenom = '', classe = ''): ChildProfileData {
   switch (childId) {
-    case '1':
     case 'demo-lea':
       return {
         name: 'Léa Moreau',
@@ -146,7 +166,6 @@ function getChildProfileData(childId: string): ChildProfileData {
         trimesterWeeksLeft: 6,
       };
 
-    case '2':
     case 'demo-lucas':
       return {
         name: 'Lucas Moreau',
@@ -188,9 +207,7 @@ function getChildProfileData(childId: string): ChildProfileData {
         trimesterWeeksLeft: 6,
       };
 
-    case '3':
     case 'demo-emma':
-    default:
       return {
         name: 'Emma Moreau',
         firstName: 'Emma',
@@ -226,6 +243,8 @@ function getChildProfileData(childId: string): ChildProfileData {
         lastCheckinMessage: '',
         trimesterWeeksLeft: 6,
       };
+    default:
+      return profilNeutre(prenom, classe);
   }
 }
 
@@ -309,9 +328,13 @@ function ProfilEnfantScreenContent() {
   const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const childId = selectedChild?.id ?? '2';
+  const childId = selectedChild.id;
+  const profilDeBase = useCallback(
+    () => getChildProfileData(childId, selectedChild.name, selectedChild.classe),
+    [childId, selectedChild.name, selectedChild.classe],
+  );
 
-  const [data, setData] = useState<ChildProfileData>(() => getChildProfileData(childId));
+  const [data, setData] = useState<ChildProfileData>(profilDeBase);
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
@@ -329,7 +352,7 @@ function ProfilEnfantScreenContent() {
   );
 
   const loadProfile = useCallback(async () => {
-    const mock = getChildProfileData(childId);
+    const mock = profilDeBase();
     const [childResult, checkinsResult] = await Promise.all([
       getChild(childId),
       getCheckins(childId, { days: 30 }),
@@ -381,7 +404,7 @@ function ProfilEnfantScreenContent() {
       ...mock,
       name: `${child.first_name} ${child.last_name ?? ''}`.trim(),
       firstName: child.first_name,
-      avatar: child.avatar_emoji || '👦',
+      avatar: '',
       classe:
         child.classe && child.school ? `${child.classe} — ${child.school}` : mock.classe,
       scolariaId: child.scolaria_id || mock.scolariaId,
@@ -391,12 +414,12 @@ function ProfilEnfantScreenContent() {
       joy30Days,
       lastCheckinMessage,
     });
-  }, [childId]);
+  }, [childId, profilDeBase]);
 
   useEffect(() => {
-    setData(getChildProfileData(childId));
+    setData(profilDeBase());
     loadProfile();
-  }, [childId, loadProfile]);
+  }, [childId, loadProfile, profilDeBase]);
 
   const joyAlert = detectJoyAlert(data.joy30Days);
   const hasCriticalMessage = detectCriticalKeywords(data.lastCheckinMessage);
@@ -520,6 +543,7 @@ function ProfilEnfantScreenContent() {
             </View>
           )}
 
+          {!!data.superPower && (
           <SuperPouvoirCard
             power={data.superPower}
             emoji={data.superPowerEmoji}
@@ -528,22 +552,35 @@ function ProfilEnfantScreenContent() {
             weeks={data.trimesterWeeksLeft}
             onShare={handleShareSuper}
           />
+          )}
 
-          <SectionTitle label="Compétences clés" />
-          <View style={styles.glassCard}>
-            <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
-            <View style={styles.glassInner}>
-              {data.competences.map((c) => (
-                <CompetenceRow key={c.label} label={c.label} value={c.value} />
-              ))}
-            </View>
-          </View>
+          {data.competences.length > 0 && (
+            <>
+              <SectionTitle label="Compétences clés" />
+              <View style={styles.glassCard}>
+                <BlurView intensity={16} tint="light" style={StyleSheet.absoluteFill} />
+                <View style={styles.glassInner}>
+                  {data.competences.map((c) => (
+                    <CompetenceRow key={c.label} label={c.label} value={c.value} />
+                  ))}
+                </View>
+              </View>
+            </>
+          )}
 
-          <SectionTitle label="Score de joie" />
-          <JoyHistory data={data.joy30Days} month="Mars 2026" />
+          {data.joy30Days.length > 0 && (
+            <>
+              <SectionTitle label="Score de joie" />
+              <JoyHistory data={data.joy30Days} month="Mars 2026" />
+            </>
+          )}
 
-          <SectionTitle label="Portfolio extra-scolaire" />
-          <Portfolio activities={data.portfolio} />
+          {data.portfolio.length > 0 && (
+            <>
+              <SectionTitle label="Portfolio extra-scolaire" />
+              <Portfolio activities={data.portfolio} />
+            </>
+          )}
 
           <SectionTitle label="Actions" />
           <View style={styles.actionsRow}>

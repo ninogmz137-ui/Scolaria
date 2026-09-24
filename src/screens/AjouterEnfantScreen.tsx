@@ -292,7 +292,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                 <User size={18} color={TEXT35} strokeWidth={2} />
                 <TextInput
                   style={s.inputText}
-                  placeholder="Lucas"
+                  placeholder="Prénom"
                   placeholderTextColor={PLACEHOLDER}
                   value={firstName}
                   onChangeText={setFirstName}
@@ -306,7 +306,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
                 <User size={18} color={TEXT35} strokeWidth={2} />
                 <TextInput
                   style={s.inputText}
-                  placeholder="Moreau"
+                  placeholder="Nom"
                   placeholderTextColor={PLACEHOLDER}
                   value={lastName}
                   onChangeText={setLastName}

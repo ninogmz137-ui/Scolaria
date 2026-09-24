@@ -144,7 +144,8 @@ export default function AriaHomeScreen() {
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
 
-  const childId = selectedChild?.id ?? 'demo-lea';
+  // Aucun enfant : clé neutre (jamais l'id d'un enfant de démo).
+  const childId = selectedChild?.id ?? 'sans-enfant';
   const childName = (selectedChild?.name ?? 'votre enfant').split(' ')[0];
   const suggestions = useMemo(() => makeSuggestions(childName, mode), [childName, mode]);
 
@@ -258,6 +259,7 @@ export default function AriaHomeScreen() {
         const response = await sendToAria(trimmed, historyRef.current, childId, {
           isDemo,
           childName: selectedChild?.name,
+          niveau: selectedChild?.niveau,
         });
 
         const { cleanText, action } = parseAriaResponse(response);

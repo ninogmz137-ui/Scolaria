@@ -59,73 +59,11 @@ export async function requestNotificationPermissions(): Promise<boolean> {
   return true;
 }
 
-// ─── Conseil du Matin — 7h30 chaque jour ─────────────────
-
-const MORNING_TIPS = [
-  {
-    title: '☀️ Conseil du Matin',
-    body: 'Lucas a un contrôle de maths vendredi. Un peu de révision ce soir ?',
-  },
-  {
-    title: '🌟 Bravo Lucas !',
-    body: '18/20 en anglais ! Son Score de Joie est au beau fixe cette semaine.',
-  },
-  {
-    title: '📈 Tendance positive',
-    body: 'Les notes en histoire sont en hausse. Lucas progresse bien ce trimestre !',
-  },
-  {
-    title: '😊 Bien-être stable',
-    body: 'Le Score de Joie de Lucas est de 7.6/10. Bonne énergie cette semaine !',
-  },
-  {
-    title: '📚 Rappel devoirs',
-    body: "N'oubliez pas : Lucas a un exposé de sciences à préparer pour lundi.",
-  },
-  {
-    title: '🥋 Activité extra-scolaire',
-    body: 'Judo à 14h mercredi au dojo municipal. Le sport booste la concentration !',
-  },
-  {
-    title: '✦ Aria a analysé les résultats',
-    body: 'Ouvrez Scolaria pour découvrir le conseil personnalisé de la journée.',
-  },
-];
-
-/**
- * Schedule the "Conseil du Matin" notification every day at 7:30.
- * Cancels any existing ones first to avoid duplicates.
- */
-export async function scheduleConseilDuMatin(): Promise<void> {
-  // Cancel existing morning notifications
-  await cancelConseilDuMatin();
-
-  const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return;
-
-  // Schedule 7 notifications (one per day of the week) to cycle through tips
-  for (let weekday = 1; weekday <= 7; weekday++) {
-    const tip = MORNING_TIPS[(weekday - 1) % MORNING_TIPS.length];
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: tip.title,
-        body: tip.body,
-        data: { type: 'conseil_matin', day: weekday },
-        sound: 'default',
-        ...(Platform.OS === 'ios' && { categoryIdentifier: 'conseil_matin' }),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-        weekday,
-        hour: 7,
-        minute: 30,
-      },
-    });
-  }
-
-  console.log('[Notifications] Conseil du Matin programmé à 7h30 chaque jour');
-}
+// ─── Conseil du Matin — SUPPRIMÉ (B2.3) ─────────────────
+// Il programmait, pour TOUT compte connecté, 7 notifications hebdomadaires à 7h30 parlant de
+// « Lucas » (données de démo) : contraire à CLAUDE.md (push nommant l'enfant du compte,
+// résumé unique à 18h, silence 20h–7h). Seule l'annulation reste, pour nettoyer les appareils
+// qui les ont déjà programmées.
 
 /**
  * Cancel all scheduled "Conseil du Matin" notifications.

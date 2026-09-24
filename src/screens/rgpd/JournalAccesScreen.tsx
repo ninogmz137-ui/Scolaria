@@ -25,6 +25,8 @@ import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
 import { ARIA_INDIGO } from '../../constants/theme';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { Text, Pressable } from '../../components/ui';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -65,12 +67,6 @@ const ACCESS_LOG: AccessEntry[] = [
     id: '3', person: 'Marc Moreau', avatar: '', role: 'Tuteur légal',
     action: 'Exportation PDF', module: 'Profil complet', moduleIcon: 'document-text',
     child: 'Lucas', date: "Aujourd'hui", time: '12:15', device: 'MacBook Pro', ip: '86.245.12.8',
-    color: ARIA_INDIGO,
-  },
-  {
-    id: '4', person: 'Marie-Claire Moreau', avatar: '', role: 'Grand-mère',
-    action: 'Consultation', module: 'Photos', moduleIcon: 'camera',
-    child: 'Lucas', date: 'Hier', time: '18:45', device: 'iPad Air', ip: '90.112.45.3',
     color: ARIA_INDIGO,
   },
   {
@@ -141,7 +137,12 @@ const ModuleIcon = ({ icon, color, size = 12 }: { icon: string; color: string; s
 export default function JournalAccesScreen() {
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterType>('all');
-  const [log, setLog] = useState<AccessEntry[]>(ACCESS_LOG);
+  const { isDemo } = useAuth();
+  const { selectedChild } = useActiveChild();
+  // Démo : entrées fictives du seul enfant actif. Compte réel : uniquement le journal en base.
+  const [log, setLog] = useState<AccessEntry[]>(() =>
+    isDemo ? ACCESS_LOG.filter((a) => a.child === selectedChild?.name) : [],
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 

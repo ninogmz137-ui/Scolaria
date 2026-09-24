@@ -24,6 +24,10 @@ import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from '../components/ui';
+import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
+import { aDesNotes } from '../utils/niveau';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
 
 // ─── Tokens locaux ────────────────────────────────────────────────────────────
 
@@ -67,7 +71,7 @@ type DayInfo = {
   modified?: boolean;
 };
 
-// ─── Données démo — Mardi 5 mai, Emma 4ème ───────────────────────────────────
+// ─── Données démo — élève de collège (Emma, 3e B) ────────────────────────────
 
 const SCHEDULE: ScheduleItem[] = [
   {
@@ -180,7 +184,7 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
 
 // ─── Écran principal ──────────────────────────────────────────────────────────
 
-export default function TimetableScreen() {
+function TimetableScreenContent() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [selectedDayIdx, setSelectedDayIdx] = useState(1); // Mardi par défaut
@@ -514,3 +518,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+/**
+ * Garde « un enfant = un carnet » : ces données de démo sont celles d'un élève de collège.
+ * Elles ne s'affichent qu'en mode démo, pour un enfant de collège / lycée ; sinon, page vide.
+ */
+export default function TimetableScreen() {
+  const { selectedChild } = useActiveChild();
+  const { isDemo } = useAuth();
+  if (!selectedChild) return <AucunEnfantPage title="Emploi du temps" />;
+  if (!isDemo || !aDesNotes(selectedChild.cycle)) {
+    return <PageVide title="Emploi du temps" message={`Pas d’emploi du temps pour ${selectedChild.name} pour l’instant.`} />;
+  }
+  return <TimetableScreenContent />;
+}

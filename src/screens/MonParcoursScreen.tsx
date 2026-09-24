@@ -36,14 +36,12 @@ interface AcademicYearCard {
 function getMockYears(childId: string): AcademicYearCard[] {
   switch (childId) {
     case 'demo-lea':
-    case '1': // Léa — maternelle
       return [
         { id: 'y1-1', annee_scolaire: '2025-2026', niveau: 'Grande section', etablissement: 'Maternelle Pasteur', statut: 'active', bulletins: 2 },
         { id: 'y1-2', annee_scolaire: '2024-2025', niveau: 'Moyenne section', etablissement: 'Maternelle Pasteur', statut: 'archivée', bulletins: 2 },
         { id: 'y1-3', annee_scolaire: '2023-2024', niveau: 'Petite section', etablissement: 'Maternelle Pasteur', statut: 'importée', bulletins: 1 },
       ];
     case 'demo-lucas':
-    case '2': // Lucas — primaire
       return [
         { id: 'y2-1', annee_scolaire: '2025-2026', niveau: 'CM2', etablissement: 'École Voltaire', statut: 'active', bulletins: 2 },
         { id: 'y2-2', annee_scolaire: '2024-2025', niveau: 'CM1', etablissement: 'École Voltaire', statut: 'archivée', bulletins: 3 },
@@ -53,8 +51,6 @@ function getMockYears(childId: string): AcademicYearCard[] {
         { id: 'y2-6', annee_scolaire: '2020-2021', niveau: 'Grande section', etablissement: 'Maternelle Pasteur', statut: 'importée', bulletins: 1 },
       ];
     case 'demo-emma':
-    case '3': // Emma — collège
-    default:
       return [
         { id: 'y3-1', annee_scolaire: '2025-2026', niveau: '3ème', etablissement: 'Collège Hugo', statut: 'active', bulletins: 2 },
         { id: 'y3-2', annee_scolaire: '2024-2025', niveau: '4ème', etablissement: 'Collège Hugo', statut: 'archivée', bulletins: 3 },
@@ -62,6 +58,9 @@ function getMockYears(childId: string): AcademicYearCard[] {
         { id: 'y3-4', annee_scolaire: '2022-2023', niveau: '6ème', etablissement: 'Collège Hugo', statut: 'importée', bulletins: 3 },
         { id: 'y3-5', annee_scolaire: '2021-2022', niveau: 'CM2', etablissement: 'École Voltaire', statut: 'importée', bulletins: 2 },
       ];
+    default:
+      // Enfant réel : ses années viennent de la base, jamais de la démo.
+      return [];
   }
 }
 
@@ -84,7 +83,7 @@ function MonParcoursScreenContent() {
   const TOPBAR_H = insets.top + 56;
   const accent = '#4338CA';
 
-  const [years, setYears] = useState<AcademicYearCard[]>(() => getMockYears(selectedChild.id));
+  const [years, setYears] = useState<AcademicYearCard[]>(() => (isDemoMode ? getMockYears(selectedChild.id) : []));
 
   const loadYears = useCallback(async () => {
     // ── Demo mode: load from DemoContext ──
@@ -135,7 +134,7 @@ function MonParcoursScreenContent() {
         }))
       );
     }
-    // If empty or error, keep the mock data already in state
+    else setYears([]);
   }, [selectedChild.id, isDemoMode, getDemoParcours]);
 
   useEffect(() => {

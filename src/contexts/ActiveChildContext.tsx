@@ -231,10 +231,10 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   const selectChild = useCallback(
     (id: string) => {
       if (id === selectedChildId || !childList.some((c) => c.id === id)) return;
-      Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-        setSelectedChildId(id);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
-      });
+      // Sélection IMMÉDIATE (tous les écrans suivent sans délai) ; le fondu n'est que visuel.
+      setSelectedChildId(id);
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 250, useNativeDriver: true }).start();
     },
     [selectedChildId, childList, fadeAnim],
   );

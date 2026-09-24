@@ -31,6 +31,8 @@ import GradientButton from '../../components/shared/GradientButton';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import ScolariaSymbol from '../../components/ScolariaSymbol';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -53,6 +55,8 @@ interface DataCategory {
 
 export default function EffacementScreen() {
   const insets = useSafeAreaInsets();
+  const { isDemo } = useAuth();
+  const { children: enfants } = useActiveChild();
   const [currentStep, setCurrentStep] = useState(0);
   const [confirmEmail, setConfirmEmail] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -78,8 +82,7 @@ export default function EffacementScreen() {
   }, []);
 
   const CHILDREN = [
-    { id: '1', name: 'Lucas Moreau', avatar: '', classe: 'CM2 — École Voltaire' },
-    { id: '2', name: 'Emma Moreau', avatar: '', classe: '6ème — Collège Hugo' },
+    ...enfants.map((c) => ({ id: c.id, name: c.name, avatar: '', classe: c.classe })),
     { id: 'all', name: 'Compte entier', avatar: '', classe: 'Suppression totale du compte famille' },
   ];
 
@@ -265,7 +268,7 @@ export default function EffacementScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.personName}>{cat.name}</Text>
-                      <Text style={styles.personRole}>{cat.count}</Text>
+                      {isDemo && <Text style={styles.personRole}>{cat.count}</Text>}
                     </View>
                     <Trash2 size={16} color={Colors.red + '80'} />
                   </View>

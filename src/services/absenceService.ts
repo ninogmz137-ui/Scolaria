@@ -79,7 +79,7 @@ export const DEMI_JOURNEE_LABELS: Record<DemiJournee, string> = {
 const MOCK_ABSENCES: Absence[] = [
   {
     id: 'abs-1',
-    student_id: '2', // Lucas
+    student_id: 'demo-lucas',
     student_name: 'Lucas Moreau',
     student_avatar: '👦',
     academic_year_id: 'ay-2025',
@@ -94,7 +94,7 @@ const MOCK_ABSENCES: Absence[] = [
   },
   {
     id: 'abs-2',
-    student_id: '2', // Lucas
+    student_id: 'demo-lucas',
     student_name: 'Lucas Moreau',
     student_avatar: '👦',
     academic_year_id: 'ay-2025',
@@ -109,7 +109,7 @@ const MOCK_ABSENCES: Absence[] = [
   },
   {
     id: 'abs-3',
-    student_id: '3', // Emma
+    student_id: 'demo-emma',
     student_name: 'Emma Moreau',
     student_avatar: '👩',
     academic_year_id: 'ay-2025',
@@ -124,7 +124,7 @@ const MOCK_ABSENCES: Absence[] = [
   },
   {
     id: 'abs-4',
-    student_id: '1', // Léa
+    student_id: 'demo-lea',
     student_name: 'Léa Moreau',
     student_avatar: '👧',
     academic_year_id: 'ay-2025',
