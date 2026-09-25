@@ -29,6 +29,10 @@
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
 - [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
 
+### B3b.0 — rappels (25 sept)
+- [ ] **Avant le prochain build EAS** : les APK existants pointent vers Londres (en pause). Vérifier que les variables d'environnement EAS (`eas env:list`, profils development / preview / production) donnent l'URL et la clé publique de **Paris** (`nmizwmymhqleasnxcyvu`).
+- [ ] Charte PDF à refaire avec la formulation validée (tasks/infra-1-plan.md § Formulation validée), nommée « Scolaria » (jamais « ScolarIA ») ; mettre à jour le renvoi de VISION.md § 8.
+
 ### Compte sans profil
 - [ ] Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test.
 
