@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -27,6 +27,9 @@ import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
 import { Text } from '../components/ui';
 import { de } from '../utils/francais';
+import { useDemoData } from '../contexts/DemoContext';
+import { getConversations } from '../stores/messagerieStore';
+import { construireAccueilDemo, isoJour } from '../data/demo/accueil';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -180,6 +183,24 @@ export default function AccueilScreen() {
   // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : carnet vide
   // tant que ces données ne sont pas branchées sur la base (jamais la démo).
   const carnet = (isDemo ? getDemoCarnet(selectedChild?.id) : null) ?? CARNET_VIDE;
+
+  // « À faire », « Aujourd'hui » et Aria : mêmes données que l'Agenda, les mots et les Messages de
+  // l'enfant (une seule source de vérité). Compte réel : vide tant que la base n'est pas branchée.
+  const { getAgenda, getMots } = useDemoData();
+  const accueil = useMemo(() => {
+    if (!isDemo || !selectedChild) return { todo: [], aujourdhui: [], aria: '' };
+    const auj = new Date();
+    const demain = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() + 1);
+    return construireAccueilDemo({
+      prenom: selectedChild.name.split(' ')[0],
+      cycle: selectedChild.cycle,
+      aujourdHui: auj,
+      evenementsDuJour: getAgenda(selectedChild.id, isoJour(auj)),
+      evenementsDeDemain: getAgenda(selectedChild.id, isoJour(demain)),
+      mots: getMots(selectedChild.id),
+      conversations: getConversations(selectedChild.id),
+    });
+  }, [isDemo, selectedChild, getAgenda, getMots]);
   const avecNotes = aDesNotes(selectedChild?.cycle);
   const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
@@ -221,18 +242,18 @@ export default function AccueilScreen() {
         {selectedChild && (<>
 
         {/* À faire */}
-        {carnet.todo.length > 0 && (
+        {accueil.todo.length > 0 && (
           <>
             <SurFondu hauteur={hauteurFondu}>
               {(ton) => <SectionLabel text="À faire" style={[styles.sectionLabel, ton]} />}
             </SurFondu>
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
-                {carnet.todo.map((it, i) => (
+                {accueil.todo.map((it, i) => (
                   <ActionRow
                     key={i}
                     {...it}
-                    last={i === carnet.todo.length - 1}
+                    last={i === accueil.todo.length - 1}
                     onPress={
                       it.kind === 'justifier' ? () => setJustifierVisible(true) :
                       it.kind === 'signer' ? () => nav.navigate('SignDoc', { doc: it.doc ?? { title: it.title } }) :
@@ -249,10 +270,10 @@ export default function AccueilScreen() {
         <SurFondu hauteur={hauteurFondu}>
           {(ton) => <SectionLabel text="Aujourd'hui" style={[styles.sectionLabel, ton]} />}
         </SurFondu>
-        {carnet.aujourdhui.length > 0 ? (
+        {accueil.aujourdhui.length > 0 ? (
           <View style={styles.cardOuter}>
             <View style={styles.cardInner}>
-              {carnet.aujourdhui.map((it, i) => (
+              {accueil.aujourdhui.map((it, i) => (
                 <TodayRow
                   key={it.id}
                   icon={
@@ -263,7 +284,7 @@ export default function AccueilScreen() {
                   title={it.title}
                   meta={it.meta}
                   time={it.time}
-                  last={i === carnet.aujourdhui.length - 1}
+                  last={i === accueil.aujourdhui.length - 1}
                   onPress={
                     it.kind === 'event'
                       ? () => nav.getParent()?.navigate('Agenda')
@@ -359,7 +380,7 @@ export default function AccueilScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.ariaLabel}>ARIA</Text>
               <Text style={styles.ariaMessage}>
-                {carnet.aria || `Posez une question à Aria sur le carnet ${de(prenom)}.`}
+                {accueil.aria || `Posez une question à Aria sur le carnet ${de(prenom)}.`}
               </Text>
             </View>
           </TouchableOpacity>

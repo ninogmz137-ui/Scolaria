@@ -1,7 +1,7 @@
 [
-  { "id": "mot-1", "childId": "demo-lucas", "title": "Sortie à la médiathèque", "deadline": "2026-09-26", "isSigned": false },
+  { "id": "mot-1", "childId": "demo-lucas", "title": "Sortie à la médiathèque", "deadline": "2026-10-01", "isSigned": false },
   { "id": "mot-2", "childId": "demo-emma", "title": "Règlement intérieur 2026-2027", "deadline": null, "isSigned": true },
-  { "id": "mot-3", "childId": "demo-lucas", "title": "Fiche de renseignements de rentrée", "deadline": "2026-09-30", "isSigned": false },
+  { "id": "mot-3", "childId": "demo-lucas", "title": "Fiche de renseignements de rentrée", "deadline": null, "isSigned": true },
   { "id": "mot-4", "childId": "demo-lea", "title": "Autorisation sortie au Muséum", "deadline": null, "isSigned": true },
   { "id": "mot-5", "childId": "demo-emma", "title": "Convention de stage d'observation", "deadline": "2026-09-28", "isSigned": false },
   { "id": "mot-6", "childId": "demo-lea", "title": "Autorisation photo de classe", "deadline": null, "isSigned": true }

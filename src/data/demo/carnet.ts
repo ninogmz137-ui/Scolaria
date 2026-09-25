@@ -68,24 +68,19 @@ export interface DemoApprentissage {
   source: string;
 }
 
+/**
+ * « À faire », « Aujourd'hui » et la carte Aria de l'Accueil ne sont PAS ici : ils sont construits
+ * à partir de l'Agenda, des mots et des Messages de l'enfant (src/data/demo/accueil.ts).
+ */
 export interface DemoCarnet {
-  todo: DemoTodo[];
-  aujourdhui: DemoAujourdhui[];
   /** Collège / lycée uniquement. */
   notesRecentes: DemoNoteRecente[];
   /** Maternelle / primaire uniquement. */
   apprentissagesRecents: DemoApprentissage[];
-  /** Phrase de la carte Aria de l'Accueil (prénom de l'enfant seulement). */
-  aria: string;
 }
 
 const CARNETS: Record<string, DemoCarnet> = {
   'demo-lea': {
-    todo: [{ kind: 'lire', title: 'Photo de classe', deadline: 'Avant vendredi' }],
-    aujourdhui: [
-      { id: 'lea-1', kind: 'event', title: 'Atelier peinture', meta: 'Classe de GS', time: '10h' },
-      { id: 'lea-2', kind: 'message', title: 'Mot de Mme Laurent', meta: 'Sortie à la ferme', time: '16h30' },
-    ],
     notesRecentes: [],
     apprentissagesRecents: [
       {
@@ -101,29 +96,8 @@ const CARNETS: Record<string, DemoCarnet> = {
         source: 'Mme Laurent',
       },
     ],
-    aria: 'Léa part à la ferme pédagogique jeudi : voulez-vous la liste des choses à prévoir ?',
   },
   'demo-lucas': {
-    todo: [
-      {
-        kind: 'signer',
-        title: 'Sortie au musée',
-        deadline: 'Avant jeudi',
-        doc: {
-          title: 'Sortie au musée d’Orsay',
-          date: 'Vendredi 3 octobre',
-          lieu: 'Paris 7e',
-          montant: '8 € en espèces',
-          deadline: 'jeudi 2 octobre',
-          aria: 'Sortie d’une journée avec la classe de Mme Dupont ; la participation de 8 € est dans la moyenne des sorties.',
-        },
-      },
-      { kind: 'justifier', title: 'Absence lundi', deadline: 'Sous 48h' },
-    ],
-    aujourdhui: [
-      { id: 'lucas-1', kind: 'event', title: 'Piscine', meta: 'M. Garcia', time: '14h' },
-      { id: 'lucas-2', kind: 'message', title: 'Réunion parents', meta: 'Mme Dupont', time: '17h30' },
-    ],
     notesRecentes: [],
     apprentissagesRecents: [
       {
@@ -141,34 +115,14 @@ const CARNETS: Record<string, DemoCarnet> = {
         source: 'Mme Dupont',
       },
     ],
-    aria: 'Lucas a piscine cet après-midi : pensez au sac de sport et au bonnet.',
   },
   'demo-emma': {
-    todo: [
-      {
-        kind: 'signer',
-        title: 'Convention de stage',
-        deadline: 'Avant lundi',
-        doc: {
-          title: 'Convention de stage d’observation',
-          date: 'Du 8 au 12 décembre',
-          lieu: 'Entreprise d’accueil',
-          deadline: 'lundi 29 septembre',
-          aria: 'Stage d’observation de 3e : la convention doit être signée par un responsable avant de revenir au collège.',
-        },
-      },
-    ],
-    aujourdhui: [
-      { id: 'emma-1', kind: 'event', title: 'Contrôle de maths', meta: 'Salle 204 · M. Petit', time: '10h' },
-      { id: 'emma-2', kind: 'message', title: 'Réunion parents-professeurs', meta: 'Mme Rousseau', time: '17h' },
-    ],
     notesRecentes: [
       { subject: 'Mathématiques', grade: '16', scale: '20', date: 'hier' },
       { subject: 'Histoire-Géo', grade: '15', scale: '20', date: '22 sept.' },
       { subject: 'Français', grade: '13', scale: '20', date: '18 sept.' },
     ],
     apprentissagesRecents: [],
-    aria: 'Emma a un contrôle de maths aujourd’hui : voulez-vous un résumé du chapitre ?',
   },
 };
 
@@ -205,9 +159,6 @@ export function getDemoCarnet(childId: string | null | undefined): DemoCarnet | 
 
 /** Carnet vide : compte réel tant que ces données ne sont pas branchées sur la base. */
 export const CARNET_VIDE: DemoCarnet = {
-  todo: [],
-  aujourdhui: [],
   notesRecentes: [],
   apprentissagesRecents: [],
-  aria: '',
 };
