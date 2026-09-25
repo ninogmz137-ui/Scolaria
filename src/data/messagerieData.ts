@@ -239,7 +239,7 @@ const emmaConversations: Conversation[] = [
     lastTime: '16:30',
     unread: false,
     messages: [
-      { id: 'emma-mt-1', sender: 'other', text: "Interrogation de SVT vendredi sur le chapitre 1 — la génétique.", time: '10:00', date: ilYa(5) },
+      { id: 'emma-mt-1', sender: 'other', text: "Interrogation de SVT cette semaine sur le chapitre 1 — la génétique.", time: '10:00', date: ilYa(5) },
       { id: 'emma-mt-2', sender: 'parent', text: "Merci pour l'information.", time: '10:30', date: ilYa(5) },
       { id: 'emma-mt-3', sender: 'other', text: "Emma a eu 13/20, résultat encourageant !", time: '16:30', date: ilYa(1) },
     ],
