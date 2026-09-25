@@ -1,5 +1,5 @@
 /**
- * ApprentissagesVue — onglet Notes (futur Suivi) pour la maternelle et le primaire.
+ * ApprentissagesVue — onglet Suivi (route 'Notes') pour la maternelle et le primaire.
  *
  * Primaire : compétences sur 4 niveaux (Non atteint · Partiellement atteint · Atteint · Dépassé),
  * 4 segments remplis #0F172A / vides rgba(15,23,42,0.12). JAMAIS de note /20, jamais vert / rouge.

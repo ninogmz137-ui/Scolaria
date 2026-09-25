@@ -1,7 +1,7 @@
 /**
  * TabNavigator — Parent navigation with 4 top tabs.
  *
- * Tabs: Accueil | Notes | Agenda | Messagerie
+ * Tabs: Accueil | Suivi (route 'Notes') | Agenda | Messagerie
  *
  * Top bar + bottom bar :
  *   affichées ou masquées selon `ROUTE_CHROME` (./chrome.ts), lu depuis la route focalisée la
@@ -542,7 +542,7 @@ function TabContent() {
       <Tab.Screen
         name="Notes"
         component={NotesStackScreen}
-        options={{ tabBarLabel: 'Notes' }}
+        options={{ tabBarLabel: 'Suivi' }}
       />
       <Tab.Screen
         name="Agenda"

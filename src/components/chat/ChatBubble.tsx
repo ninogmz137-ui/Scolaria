@@ -17,7 +17,7 @@ import SimpleMarkdown from './SimpleMarkdown';
 const ACTION_BUTTONS: Record<string, { label: string; icon: string; route: string }> = {
   ABSENCE: { label: 'Signaler une absence', icon: '📋', route: 'SignalerAbsenceScreen' },
   MESSAGE: { label: 'Envoyer un message', icon: '💬', route: 'MessagerieHome' },
-  NOTES:   { label: 'Voir les notes', icon: '📊', route: 'Notes' },
+  NOTES:   { label: 'Voir le suivi', icon: '📊', route: 'Notes' },
   AGENDA:  { label: "Voir l'agenda", icon: '📅', route: 'Agenda' },
 };
 

@@ -1,7 +1,7 @@
 /**
  * TopBar — Barre de navigation supérieure Scolaria (pattern Notion)
  *
- * Structure : [Burger ☰] [Pill Accueil] [Pill Notes] [Pill Agenda] [Pill Messages] [Avatar enfant]
+ * Structure : [Burger ☰] [Pill Accueil] [Pill Suivi] [Pill Agenda] [Pill Messages] [Avatar enfant]
  *
  * - Burger 34px gauche → écran unique « Famille & paramètres »
  * - Pill active : icône + libellé, fond rgba(15,23,42,0.08), hauteur 30 (COMPONENTS §0)
@@ -49,7 +49,8 @@ interface TabConfig {
 
 const TABS: TabConfig[] = [
   { id: 'accueil',  label: 'Accueil',   routeName: 'Accueil',       icon: Home },
-  { id: 'notes',    label: 'Notes',     routeName: 'Notes',         icon: Grades },
+  // Libellé « Suivi » (ex-Notes) ; la route interne reste 'Notes'.
+  { id: 'notes',    label: 'Suivi',     routeName: 'Notes',         icon: Grades },
   { id: 'agenda',   label: 'Agenda',    routeName: 'Agenda',        icon: Calendar },
   { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: TextBubble },
 ];

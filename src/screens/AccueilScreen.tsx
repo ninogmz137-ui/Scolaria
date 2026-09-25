@@ -304,7 +304,7 @@ export default function AccueilScreen() {
               </SurFondu>
             )}
             <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
-              <Text style={styles.ghostLinkText}>Voir toutes les notes →</Text>
+              <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
             </TouchableOpacity>
           </>
         ) : (

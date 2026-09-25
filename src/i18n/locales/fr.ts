@@ -2,7 +2,7 @@ export default {
   // ─── Tabs ───────────────────────────────────────────
   tabs: {
     home: 'Accueil',
-    grades: 'Notes',
+    grades: 'Suivi',
     aria: 'Aria',
     agenda: 'Agenda',
     settings: 'Réglages',
@@ -26,7 +26,7 @@ export default {
 
   // ─── Grades ─────────────────────────────────────────
   grades: {
-    title: 'Notes',
+    title: 'Suivi',
     average: 'Moyenne générale',
     bestSubject: 'Meilleure matière',
     totalGrades: 'Notes totales',
