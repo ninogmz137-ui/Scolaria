@@ -593,9 +593,14 @@ export async function inviterResponsable(childId: string, email: string) {
 // ─── Compétences (M9) ────────────────────────────────────
 
 export type CompetenceRow = {
+  id: string;
   domaine: string;
   competence: string;
   niveau: 1 | 2 | 3 | 4;
+  /** Échelle fixée à la saisie (M17) : chaque ligne garde la sienne. */
+  echelle: 3 | 4;
+  /** Période / semestre / trimestre de l'année (M17), ou null. */
+  periode: number | null;
   source: 'ecole' | 'parent';
   date: string;
 };
@@ -605,7 +610,7 @@ export async function getCompetences(childId: string) {
   if (!isSupabaseConfigured()) return { data: [] as CompetenceRow[], error: null };
   const { data, error } = await supabase
     .from('competences')
-    .select('domaine, competence, niveau, source, date')
+    .select('id, domaine, competence, niveau, echelle, periode, source, date')
     .eq('child_id', childId)
     .order('date', { ascending: false });
   return { data: (data ?? []) as CompetenceRow[], error };

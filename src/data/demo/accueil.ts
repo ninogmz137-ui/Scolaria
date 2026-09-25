@@ -11,8 +11,34 @@
 
 import type { DemoAgendaEvent, DemoMot } from '../../contexts/DemoContext';
 import type { Conversation } from '../messagerieData';
-import type { DemoAujourdhui, DemoTodo } from './carnet';
 import type { Cycle } from '../../utils/niveau';
+
+export type TodoKind = 'signer' | 'lire' | 'justifier';
+
+/** Document à signer (démo) : ce que SignDoc affiche. */
+export interface DemoDoc {
+  title: string;
+  date?: string;
+  lieu?: string;
+  montant?: string;
+  deadline?: string;
+  aria?: string;
+}
+
+export interface DemoTodo {
+  kind: TodoKind;
+  title: string;
+  deadline: string;
+  doc?: DemoDoc;
+}
+
+export interface DemoAujourdhui {
+  id: string;
+  kind: 'event' | 'message';
+  title: string;
+  meta: string;
+  time: string;
+}
 
 const JOURS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];

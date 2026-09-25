@@ -77,7 +77,7 @@ type DayInfo = {
 
 // ─── Données démo : cours de l'agenda de démo de l'enfant actif ─────────────
 
-/** Enseignants de l'univers de démo (src/data/demo/carnet.ts). */
+/** Enseignants de l'univers de démo (src/data/demo/suivi.ts, en-tête). */
 const ENSEIGNANT_COLLEGE: Record<string, string> = {
   'Mathématiques': 'M. Petit',
   'Français': 'Mme Lambert',

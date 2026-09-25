@@ -14,7 +14,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import type { DemoDoc } from '../data/demo/carnet';
+import type { DemoDoc } from '../data/demo/accueil';
 import { Clock, Lock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';

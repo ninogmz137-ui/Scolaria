@@ -14,7 +14,8 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { WALLPAPERS } from '../contexts/WallpaperContext';
-import { getDemoCarnet, CARNET_VIDE, NIVEAUX_COMPETENCE, type NiveauCompetence } from '../data/demo/carnet';
+import { getSuiviDemo } from '../data/demo/suivi';
+import { jourMois, libelleNiveau, ligneSource, type Echelle, type ElementSuivi } from '../utils/competences';
 import { aDesNotes } from '../utils/niveau';
 import AucunEnfant from '../components/AucunEnfant';
 import HeaderFondu, { tonSurFondu } from '../components/HeaderFondu';
@@ -110,26 +111,23 @@ function TodayRow({
   );
 }
 
-/** 4 segments : remplis #0F172A, vides rgba(15,23,42,0.12). Jamais de vert / rouge. */
-function NiveauSegments({ niveau }: { niveau: NiveauCompetence }) {
+/** 3 ou 4 segments selon l'échelle de la ligne : remplis #0F172A, vides rgba(15,23,42,0.12). */
+function NiveauSegments({ niveau, echelle }: { niveau: number; echelle: Echelle }) {
   return (
-    <View style={styles.segments} accessibilityLabel={NIVEAUX_COMPETENCE[niveau]}>
-      {[1, 2, 3, 4].map((n, i) => (
+    <View style={styles.segments} accessibilityLabel={libelleNiveau(niveau, echelle)}>
+      {Array.from({ length: echelle }, (_, i) => (
         <View
-          key={n}
-          style={[styles.segment, n <= niveau && styles.segmentOn, i < 3 && { marginRight: 3 }]}
+          key={i}
+          style={[styles.segment, i + 1 <= niveau && styles.segmentOn, i < echelle - 1 && { marginRight: 3 }]}
         />
       ))}
     </View>
   );
 }
 
-function ApprentissageRow({
-  domaine, texte, niveau, date, source, last, onPress,
-}: {
-  domaine: string; texte: string; niveau?: NiveauCompetence; date: string; source: string;
-  last?: boolean; onPress?: () => void;
-}) {
+/** Même élément, même libellé et même ligne source que dans le Suivi (src/data/demo/suivi.ts). */
+function ApprentissageRow({ element, last, onPress }: { element: ElementSuivi; last?: boolean; onPress?: () => void }) {
+  const { domaine, texte, niveau, echelle } = element;
   return (
     <TouchableOpacity
       style={[styles.apprRow, !last && styles.rowBorder]}
@@ -138,17 +136,13 @@ function ApprentissageRow({
     >
       <Text style={styles.apprDomaine}>{domaine}</Text>
       <Text style={styles.apprTexte}>{texte}</Text>
-      <View style={styles.apprMetaLine}>
-        {niveau ? (
-          <>
-            <NiveauSegments niveau={niveau} />
-            <Text style={styles.apprNiveau}>{NIVEAUX_COMPETENCE[niveau]}</Text>
-          </>
-        ) : null}
-        <Text style={styles.apprSource}>
-          {niveau ? ' · ' : ''}Saisi par {source} · {date}
-        </Text>
-      </View>
+      {niveau && echelle ? (
+        <View style={styles.apprMetaLine}>
+          <NiveauSegments niveau={niveau} echelle={echelle} />
+          <Text style={styles.apprNiveau}>{libelleNiveau(niveau, echelle)}</Text>
+        </View>
+      ) : null}
+      <Text style={styles.apprSource}>{ligneSource(element)}</Text>
     </TouchableOpacity>
   );
 }
@@ -180,13 +174,31 @@ export default function AccueilScreen() {
   const { isDemo } = useAuth();
   const scrollHandler = useTopbarScrollHandler();
 
-  // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : carnet vide
-  // tant que ces données ne sont pas branchées sur la base (jamais la démo).
-  const carnet = (isDemo ? getDemoCarnet(selectedChild?.id) : null) ?? CARNET_VIDE;
-
-  // « À faire », « Aujourd'hui » et Aria : mêmes données que l'Agenda, les mots et les Messages de
-  // l'enfant (une seule source de vérité). Compte réel : vide tant que la base n'est pas branchée.
-  const { getAgenda, getMots } = useDemoData();
+  // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : vide tant que
+  // ces données ne sont pas branchées sur la base (jamais la démo).
+  // UNE seule source de vérité : l'Accueil ne possède aucune donnée propre.
+  //  - « Dernières notes » : les notes de l'enfant (mêmes données que le Suivi collège) ;
+  //  - « Derniers apprentissages » : src/data/demo/suivi.ts (même source que le Suivi) ;
+  //  - « À faire », « Aujourd'hui », Aria : Agenda, mots et Messages de l'enfant.
+  const { getAgenda, getMots, getGrades, getSubjects } = useDemoData();
+  const dernieresNotes = useMemo(() => {
+    if (!isDemo || !selectedChild) return [];
+    const matieres = getSubjects(selectedChild.id);
+    return [...getGrades(selectedChild.id)]
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 3)
+      .map((g) => ({
+        id: g.id,
+        subject: matieres.find((m) => m.id === g.subjectId)?.name ?? '',
+        grade: String(g.value),
+        scale: String(g.outOf),
+        date: jourMois(g.date),
+      }));
+  }, [isDemo, selectedChild, getGrades, getSubjects]);
+  const derniersApprentissages = useMemo(
+    () => (isDemo && selectedChild ? getSuiviDemo(selectedChild.id).slice(0, 2) : []),
+    [isDemo, selectedChild],
+  );
   const accueil = useMemo(() => {
     if (!isDemo || !selectedChild) return { todo: [], aujourdhui: [], aria: '' };
     const auj = new Date();
@@ -306,14 +318,17 @@ export default function AccueilScreen() {
             <SurFondu hauteur={hauteurFondu}>
               {(ton) => <SectionLabel text="Dernières notes" style={[styles.sectionLabel, ton]} />}
             </SurFondu>
-            {carnet.notesRecentes.length > 0 ? (
+            {dernieresNotes.length > 0 ? (
               <View style={styles.cardOuter}>
                 <View style={styles.cardInner}>
-                  {carnet.notesRecentes.map((it, i) => (
+                  {dernieresNotes.map((it, i) => (
                     <GradeRow
-                      key={i}
-                      {...it}
-                      last={i === carnet.notesRecentes.length - 1}
+                      key={it.id}
+                      subject={it.subject}
+                      grade={it.grade}
+                      scale={it.scale}
+                      date={it.date}
+                      last={i === dernieresNotes.length - 1}
                       onPress={ouvrirSuivi}
                     />
                   ))}
@@ -334,14 +349,14 @@ export default function AccueilScreen() {
             <SurFondu hauteur={hauteurFondu}>
               {(ton) => <SectionLabel text="Derniers apprentissages" style={[styles.sectionLabel, ton]} />}
             </SurFondu>
-            {carnet.apprentissagesRecents.length > 0 ? (
+            {derniersApprentissages.length > 0 ? (
               <View style={styles.cardOuter}>
                 <View style={styles.cardInner}>
-                  {carnet.apprentissagesRecents.map((it, i) => (
+                  {derniersApprentissages.map((it, i) => (
                     <ApprentissageRow
-                      key={i}
-                      {...it}
-                      last={i === carnet.apprentissagesRecents.length - 1}
+                      key={it.id}
+                      element={it}
+                      last={i === derniersApprentissages.length - 1}
                       onPress={ouvrirSuivi}
                     />
                   ))}
@@ -630,8 +645,8 @@ const styles = StyleSheet.create({
   },
   segments: { flexDirection: 'row', marginRight: 6 },
   segment: {
-    width: 14,
-    height: 5,
+    width: 22,
+    height: 6,
     borderRadius: 999,
     backgroundColor: 'rgba(15,23,42,0.12)',
   },

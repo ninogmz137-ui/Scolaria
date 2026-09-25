@@ -6,7 +6,7 @@
  *   'demo-lea'   — Léa  (Maternelle Pasteur)
  *   'demo-lucas' — Lucas (CM2 B, École Voltaire)
  *   'demo-emma'  — Emma  (3e B, Collège Hugo)
- * Référence unique de l'univers de démo : src/data/demo/carnet.ts
+ * Référence unique de l'univers de démo : src/data/demo/suivi.ts (en-tête)
  *
  * Dates RELATIVES à aujourd'hui (comme l'Agenda de démo) : `ilYa(n)` = il y a n jours, calculé au
  * chargement. Tout tient dans les 2-3 dernières semaines ; contenus de rentrée (réunion de rentrée,

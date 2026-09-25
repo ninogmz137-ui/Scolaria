@@ -208,9 +208,9 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
 // ─── Messages et mots de démo recalés sur aujourd'hui ─────
 
 /**
- * demo-messages.json et demo-mots.json sont écrits comme si aujourd'hui était le 25 sept. 2026
- * (messages des 2-3 dernières semaines, échéances à venir). Chaque date est décalée du même
- * nombre de jours que l'écart entre aujourd'hui et cette référence.
+ * demo-messages.json, demo-mots.json et demo-grades.json sont écrits comme si aujourd'hui était le
+ * 25 sept. 2026 (2-3 dernières semaines, échéances à venir). Chaque date est décalée du même nombre
+ * de jours que l'écart entre aujourd'hui et cette référence (comme messagerieData.ts, en « il y a n jours »).
  */
 const REFERENCE_MESSAGES_DEMO = new Date(2026, 8, 25);
 
@@ -242,7 +242,12 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
   }, []);
 
   const getGrades = useCallback((childId: string, trimester?: number): DemoGrade[] => {
-    let grades = (demoGrades as DemoGrade[]).filter((g) => g.childId === childId);
+    // Notes datées comme les messages (référence du 25 sept. 2026) : mêmes jours dans l'Accueil,
+    // le Suivi et les Messages.
+    const decal = decalageMessages(new Date());
+    let grades = (demoGrades as DemoGrade[])
+      .filter((g) => g.childId === childId)
+      .map((g) => ({ ...g, date: decalerDate(g.date, decal) }));
     if (trimester !== undefined) {
       grades = grades.filter((g) => g.trimester === trimester);
     }

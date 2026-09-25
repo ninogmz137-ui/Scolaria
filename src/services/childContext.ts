@@ -73,7 +73,7 @@ export const MOCK_CHILDREN: ChildContext[] = [
       school: 'École Voltaire',
       superPower: 'Curiosité',
     },
-    // Primaire : pas de notes /20 (compétences du livret, cf. carnet.ts).
+    // Primaire : pas de notes /20 (compétences du livret, cf. src/data/demo/suivi.ts).
     grades: [],
     activities: [
       { name: 'Judo', category: 'Sport', level: 'Ceinture verte' },
