@@ -25,6 +25,9 @@
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
 - [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
 
+### Compte sans profil
+- [ ] Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test.
+
 ### BLOQUANT avant toute famille réelle
 - [ ] Emails : fournisseur Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement).
 
