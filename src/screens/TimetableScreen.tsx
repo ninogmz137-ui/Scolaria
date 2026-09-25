@@ -141,9 +141,11 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
           </Text>
           {item.alert ? <AlertBadge label={item.alert} /> : null}
         </View>
-        <Text style={styles.courseMeta} numberOfLines={1}>
-          {[item.teacher, item.room].filter(Boolean).join(' · ')}
-        </Text>
+        {(item.teacher || item.room) ? (
+          <Text style={styles.courseMeta} numberOfLines={1}>
+            {[item.teacher, item.room].filter(Boolean).join(' · ')}
+          </Text>
+        ) : null}
       </View>
     </View>
   </View>
@@ -173,19 +175,28 @@ function TimetableScreenContent({ childId, college }: { childId: string; college
   const cours = getAgenda(childId, isoLocal(jours[selectedDayIdx]))
     .filter((c) => c.type === 'cours' || c.type === 'examen')
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  // Primaire : l'enseignant titulaire et la salle de classe sont affichés UNE fois sous la bande
+  // des jours ; chaque ligne ne montre que les exceptions (EPS : M. Garcia · Gymnase).
+  // Collège : enseignant + salle sur chaque ligne.
+  const titulaire = college ? '' : enseignant('', false);
+  const salles = cours.map((c) => c.room).filter(Boolean);
+  const salleClasse = college
+    ? ''
+    : salles.sort((a, b) => salles.filter((s) => s === b).length - salles.filter((s) => s === a).length)[0] ?? '';
   const SCHEDULE: ScheduleItem[] = [];
   cours.forEach((c, i) => {
     const precedent = cours[i - 1];
     if (precedent && precedent.endTime <= '12:00' && c.startTime >= '13:00') {
       SCHEDULE.push({ id: `pause-${c.id}`, type: 'break', label: 'Pause déjeuner · cantine' });
     }
+    const prof = enseignant(c.subject, college);
     SCHEDULE.push({
       id: c.id,
       start: c.startTime,
       end: c.endTime,
       subject: c.title,
-      teacher: enseignant(c.subject, college),
-      room: c.room,
+      teacher: college || prof !== titulaire ? prof : '',
+      room: college || c.room !== salleClasse ? c.room : '',
       color: c.color || INDIGO,
     });
   });
@@ -276,6 +287,13 @@ function TimetableScreenContent({ childId, college }: { childId: string; college
           );
         })}
       </ScrollView>
+
+      {/* Primaire : titulaire + salle de classe, une seule fois */}
+      {!college && cours.length > 0 && (
+        <Text style={styles.classeLine} numberOfLines={1}>
+          {[titulaire, salleClasse].filter(Boolean).join(' · ')}
+        </Text>
+      )}
 
       {/* ── Timeline du jour ── */}
       <ScrollView
@@ -426,6 +444,15 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     marginTop: 3,
+  },
+
+  classeLine: {
+    fontFamily: FontFamily.sansMedium,
+    fontSize: 13,
+    color: TEXT55,
+    paddingHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 4,
   },
 
   // ── Timeline ──
