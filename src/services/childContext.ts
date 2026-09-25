@@ -1,9 +1,7 @@
 /**
- * Child context provider for Aria conversations.
- *
- * Builds a rich context string from the child's profile,
- * grades, activities, and emotional check-ins so that
- * Claude can give personalised, informed answers.
+ * Données de démo des enfants pour les réponses d'exemple d'Aria (mode démo, local).
+ * Rien de ce fichier n'est envoyé au modèle : en compte réel, seuls prénom + niveau partent
+ * (ariaApi.ts).
  */
 
 // ─── Types ────────────────────────────────────────────────
@@ -32,18 +30,10 @@ export interface Activity {
   level: string;
 }
 
-export interface JoyCheckIn {
-  date: string;
-  score: number; // 1-10
-  energy?: number;
-  stress?: number;
-}
-
 export interface ChildContext {
   profile: ChildProfile;
   grades: SubjectGrade[];
   activities: Activity[];
-  recentJoy: JoyCheckIn[];
   upcomingEvents: string[];
 }
 
@@ -67,13 +57,6 @@ export const MOCK_CHILDREN: ChildContext[] = [
       { name: 'Bébé nageur', category: 'Sport', level: 'Étoile de mer' },
       { name: 'Peinture', category: 'Art', level: 'Découverte' },
     ],
-    recentJoy: [
-      { date: '27 mars', score: 9, energy: 8, stress: 1 },
-      { date: '26 mars', score: 8, energy: 7, stress: 2 },
-      { date: '25 mars', score: 9, energy: 9, stress: 1 },
-      { date: '24 mars', score: 7, energy: 6, stress: 3 },
-      { date: '23 mars', score: 8, energy: 7, stress: 2 },
-    ],
     upcomingEvents: [
       'Atelier peinture — vendredi 28 mars 10h',
       'Sortie au parc — lundi 31 mars',
@@ -96,13 +79,6 @@ export const MOCK_CHILDREN: ChildContext[] = [
       { name: 'Judo', category: 'Sport', level: 'Ceinture verte' },
       { name: 'Piano', category: 'Musique', level: '3ème année' },
       { name: 'Robotique', category: 'Tech', level: 'Intermédiaire' },
-    ],
-    recentJoy: [
-      { date: '27 mars', score: 8, energy: 7, stress: 3 },
-      { date: '26 mars', score: 7, energy: 6, stress: 4 },
-      { date: '25 mars', score: 9, energy: 8, stress: 2 },
-      { date: '24 mars', score: 6, energy: 5, stress: 5 },
-      { date: '23 mars', score: 8, energy: 7, stress: 3 },
     ],
     upcomingEvents: [
       'Contrôle de Maths — vendredi 28 mars (fractions et proportionnalité)',
@@ -158,93 +134,12 @@ export const MOCK_CHILDREN: ChildContext[] = [
       { name: 'Danse', category: 'Sport', level: '4ème année' },
       { name: 'Écriture créative', category: 'Littérature', level: 'Club ado' },
     ],
-    recentJoy: [
-      { date: '27 mars', score: 7, energy: 6, stress: 4 },
-      { date: '26 mars', score: 8, energy: 7, stress: 3 },
-      { date: '25 mars', score: 7, energy: 7, stress: 3 },
-    ],
     upcomingEvents: [
       'Contrôle d\'anglais — lundi 31 mars',
       'Brevet blanc — 14-15 avril',
     ],
   },
 ];
-
-// ─── Build context string for Claude system prompt ───────
-
-/**
- * Minimisation (RGPD) : Aria ne reçoit que le PRÉNOM — jamais le nom de famille,
- * l'école ni l'identifiant Scolaria.
- */
-function firstNameOnly(name: string): string {
-  return name.trim().split(/\s+/)[0] ?? '';
-}
-
-export function buildChildContextString(child: ChildContext): string {
-  const { profile, grades, activities, recentJoy, upcomingEvents } = child;
-
-  const activitiesStr = activities
-    .map((a) => `  - ${a.name} (${a.category}) — niveau: ${a.level}`)
-    .join('\n');
-
-  const joyStr = recentJoy
-    .map((j) => {
-      let details = `Score: ${j.score}/10`;
-      if (j.energy !== undefined) details += `, Énergie: ${j.energy}/10`;
-      if (j.stress !== undefined) details += `, Stress: ${j.stress}/10`;
-      return `  - ${j.date}: ${details}`;
-    })
-    .join('\n');
-
-  const eventsStr = upcomingEvents.map((e) => `  - ${e}`).join('\n');
-
-  // Handle maternelle (no grades)
-  let gradesSection: string;
-  if (grades.length === 0) {
-    gradesSection = `═══ RÉSULTATS SCOLAIRES ═══
-Niveau: Maternelle — pas de notation chiffrée
-Suivi basé sur le bien-être, les activités et les observations enseignantes.`;
-  } else {
-    const overallAvg = grades.reduce((s, g) => s + g.average, 0) / grades.length;
-    const bestSubject = grades.reduce((best, g) => (g.average > best.average ? g : best));
-    const weakestSubject = grades.reduce((worst, g) => (g.average < worst.average ? g : worst));
-
-    const gradesStr = grades
-      .map((g) => {
-        const trendEmoji = g.trend === 'up' ? '📈' : g.trend === 'down' ? '📉' : '➡️';
-        const recent = g.recentGrades.map((r) => `${r.value}/${r.maxValue} (${r.type}, ${r.date})`).join(', ');
-        return `  - ${g.subject}: moyenne ${g.average}/20 (classe: ${g.classAvg}/20) ${trendEmoji}\n    Notes récentes: ${recent}`;
-      })
-      .join('\n');
-
-    gradesSection = `═══ RÉSULTATS SCOLAIRES ═══
-Moyenne générale: ${overallAvg.toFixed(1)}/20
-Meilleure matière: ${bestSubject.subject} (${bestSubject.average}/20)
-Matière à renforcer: ${weakestSubject.subject} (${weakestSubject.average}/20)
-
-Détail par matière:
-${gradesStr}`;
-  }
-
-  return `
-═══ PROFIL ENFANT ═══
-Prénom: ${firstNameOnly(profile.name)}
-Âge: ${profile.age} ans
-Classe: ${profile.classe}
-Super-pouvoir identifié: ${profile.superPower}
-
-${gradesSection}
-
-═══ ACTIVITÉS EXTRA-SCOLAIRES ═══
-${activitiesStr}
-
-═══ BIEN-ÊTRE RÉCENT (Score de Joie) ═══
-${joyStr}
-
-═══ ÉVÉNEMENTS À VENIR ═══
-${eventsStr}
-`.trim();
-}
 
 // ─── Get active child context ───────────────────────────
 
