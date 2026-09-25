@@ -293,7 +293,7 @@ export default function AriaConversationScreen() {
     if (!pendingAction) return;
     setActionStatus('loading');
     const result = await executeAriaAction(pendingAction, {
-      studentId: childId,
+      studentId: selectedChild?.id,
       studentName: selectedChild?.name,
       studentAvatar: (selectedChild?.name ?? '').charAt(0).toUpperCase(),
     });

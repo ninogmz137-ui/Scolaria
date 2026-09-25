@@ -314,7 +314,7 @@ export default function AriaHomeScreen() {
     if (!pendingAction || !conversationId) return;
     setActionStatus('loading');
     const result = await executeAriaAction(pendingAction, {
-      studentId: childId,
+      studentId: selectedChild?.id,
       studentName: selectedChild?.name,
       studentAvatar: (selectedChild?.name ?? '').charAt(0).toUpperCase(),
     });

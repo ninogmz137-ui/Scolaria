@@ -39,7 +39,7 @@ export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
  * Enfant réel : Aria ne reçoit que le PRÉNOM et le NIVEAU (minimisation, CLAUDE.md). Aucune donnée
  * de démo : les données du carnet seront construites côté serveur, sous RLS, quand elles existeront.
  */
-function buildRealChildSystemPrompt(childId: string, prenom: string, niveau?: string | null): string {
+function buildRealChildSystemPrompt(prenom: string, niveau?: string | null): string {
   const niveauStr = niveau ? ` (${niveau})` : '';
   return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
 
@@ -58,7 +58,7 @@ function buildRealChildSystemPrompt(childId: string, prenom: string, niveau?: st
 ═══ ACTION DISPONIBLE ═══
 Si le parent demande de signaler une absence et que tu as toutes les informations, termine ta réponse
 par ce tag, seul, sur une nouvelle ligne :
-[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE|student_id=${childId}]
+[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE]
   - motif : maladie | maladie_avec_certificat | raison_familiale | autre
   - demi_journee : journee | matin | apres_midi
 Si une information manque, pose d'abord la question. Pas de tag si l'intention n'est pas claire.
@@ -126,7 +126,7 @@ export async function sendToAria(
   const prenom = options?.childName?.trim().split(/\s+/)[0];
   const systemPrompt =
     UUID_RE.test(childId) && prenom
-      ? buildRealChildSystemPrompt(childId, prenom, options?.niveau)
+      ? buildRealChildSystemPrompt(prenom, options?.niveau)
       : buildNoChildSystemPrompt();
 
   // Build messages array: conversation history + new message

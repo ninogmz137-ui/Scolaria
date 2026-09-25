@@ -2,10 +2,14 @@
  * ariaActions — Parse and execute action tags emitted by Aria (Claude).
  *
  * Format in Aria responses:
- *   [ACTION:ABSENCE|date=YYYY-MM-DD|motif=maladie|demi_journee=journee|student_id=1]
+ *   [ACTION:ABSENCE|date=YYYY-MM-DD|motif=maladie|demi_journee=journee]
  *   [ACTION:MESSAGE|conversation_id=lea-laurent|draft=Bonjour Madame, ...]
  *
  * Flow: parse → confirm with parent → execute
+ *
+ * Aucun identifiant ne vient du modèle (CLAUDE.md : prénom + niveau seulement). L'enfant visé
+ * est TOUJOURS l'enfant affiché, fourni par l'app à l'exécution ; un éventuel `student_id`
+ * écrit par le modèle est ignoré.
  */
 
 import {
@@ -27,7 +31,6 @@ export interface AriaAbsenceAction {
   date: string;           // YYYY-MM-DD
   motif: AbsenceMotif;
   demi_journee: DemiJournee;
-  student_id: string;
 }
 
 export interface AriaMessageAction {
@@ -120,7 +123,6 @@ export function parseAriaResponse(rawText: string): ParseResult {
         date: params['date'] ?? todayISO(),
         motif: toMotif(params['motif']),
         demi_journee: toDemiJournee(params['demi_journee']),
-        student_id: params['student_id'] ?? '',
       };
       return { cleanText, action };
     }
@@ -150,7 +152,7 @@ export function parseAriaResponse(rawText: string): ParseResult {
  * appeared as "Élève" / 👧 regardless of which child the parent had selected.
  */
 export interface AriaActionContext {
-  /** Fallback student_id if Aria omits it in the tag */
+  /** Id de l'enfant affiché : SEULE source de l'enfant visé (jamais le modèle). */
   studentId?: string;
   studentName?: string;
   studentAvatar?: string;
@@ -169,8 +171,11 @@ export async function executeAriaAction(
 ): Promise<{ success: boolean; message: string }> {
   switch (action.type) {
     case 'ABSENCE': {
+      if (!context?.studentId) {
+        return { success: false, message: "Impossible de signaler l'absence : aucun enfant sélectionné." };
+      }
       const payload: CreateAbsencePayload = {
-        student_id: action.student_id || context?.studentId || '',
+        student_id: context.studentId,
         date_debut: action.date,
         date_fin: null,
         demi_journee: action.demi_journee,

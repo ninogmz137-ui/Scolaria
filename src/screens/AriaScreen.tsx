@@ -20,6 +20,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from '../components/ui';
 import { de } from '../utils/francais';
+import { parseAriaResponse } from '../services/ariaActions';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
@@ -146,7 +147,8 @@ export default function AriaScreen() {
         conversationHistoryRef.current = [
           ...conversationHistoryRef.current,
           { role: 'user', content: trimmed },
-          { role: 'assistant', content: response },
+          // Sans balise d'action : l'historique repart au modèle, rien de technique n'y remonte.
+          { role: 'assistant', content: parseAriaResponse(response).cleanText },
         ];
 
         // Keep last 20 messages to stay within context limits
