@@ -48,6 +48,8 @@ type EventDetailParams = {
 // ─── Category colours ────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, { main: string; bg: string }> = {
   'Contrôle': { main: '#EF4444', bg: 'rgba(239,68,68,0.08)' },
+  // Maternelle / primaire : tag neutre, jamais rouge
+  'Évaluation': { main: 'rgba(15,23,42,0.62)', bg: 'rgba(15,23,42,0.06)' },
   'Sortie':   { main: '#0891B2', bg: '#CFFAFE' },
   'Cours':    { main: '#4338CA', bg: '#EEF2FF' },
   'Devoir':   { main: '#D97706', bg: '#FEF3C7' },

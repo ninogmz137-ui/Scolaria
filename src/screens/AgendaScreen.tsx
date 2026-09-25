@@ -802,6 +802,9 @@ function AgendaScreenContent() {
   const renderEventCard = (event: AgendaEvent, jour: Date) => {
     const isExam = event.type === 'examen';
     const isDevoir = event.type === 'devoir';
+    // Maternelle / primaire : « Évaluation », tag neutre (jamais « Examen », jamais rouge).
+    // Collège / lycée : inchangé.
+    const evaluationPremierDegre = isExam && !avecCours;
     // Devoir : une échéance, jamais « 08:30 — 08:30 ». Autres : horaire (et lieu).
     const quand = isDevoir
       ? echeanceDevoir(jour)
@@ -814,7 +817,7 @@ function AgendaScreenContent() {
           navigation.navigate('EventDetail', {
             eventId: event.id,
             eventTitle: event.title,
-            eventCategory: TYPE_LABELS[event.type] ?? event.type,
+            eventCategory: evaluationPremierDegre ? 'Évaluation' : TYPE_LABELS[event.type] ?? event.type,
             eventTime: quand,
             eventLocation: event.location,
             eventDescription: event.description,
@@ -845,8 +848,10 @@ function AgendaScreenContent() {
 
           {/* Right: exam badge or devoir checkbox */}
           {isExam && (
-            <View style={st.examBadge}>
-              <Text style={st.examBadgeText}>Examen</Text>
+            <View style={evaluationPremierDegre ? st.evalBadge : st.examBadge}>
+              <Text style={evaluationPremierDegre ? st.evalBadgeText : st.examBadgeText}>
+                {evaluationPremierDegre ? 'Évaluation' : 'Examen'}
+              </Text>
             </View>
           )}
           {isDevoir && (
@@ -1512,6 +1517,18 @@ const st = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 11,
     color: '#EF4444',
+  },
+  // Maternelle / primaire : tag neutre
+  evalBadge: {
+    backgroundColor: 'rgba(15,23,42,0.06)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  evalBadgeText: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.62)',
   },
   checkboxWrap: {
     width: 24,
