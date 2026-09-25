@@ -463,7 +463,8 @@ export async function createAcademicYear(year: {
   niveau: Niveau;
   etablissement?: string;
   classe?: string;
-  statut: AcademicYearStatut;
+  /** M19 : l'app ne crée qu'une année passée, recopiée par le parent. */
+  statut: 'importée';
   score_joie_moyen?: number;
 }) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
@@ -477,7 +478,8 @@ export async function createAcademicYear(year: {
 
 export async function updateAcademicYear(
   yearId: string,
-  updates: Partial<Pick<AcademicYear, 'niveau' | 'etablissement' | 'classe' | 'statut' | 'score_joie_moyen'>>,
+  // Jamais le statut (M19, serveur uniquement) ni le rattachement à une classe (M18).
+  updates: Partial<Pick<AcademicYear, 'niveau' | 'etablissement' | 'classe' | 'score_joie_moyen'>>,
 ) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
 
@@ -504,33 +506,8 @@ export async function deleteAcademicYear(yearId: string) {
     .eq('id', yearId);
 }
 
-export async function archiveAndRotateYears(studentId: string) {
-  if (!isSupabaseConfigured()) return { error: null };
-
-  // 1. Archive all active years
-  await supabase
-    .from('academic_years')
-    .update({ statut: 'archivée', updated_at: new Date().toISOString() })
-    .eq('student_id', studentId)
-    .eq('statut', 'active');
-
-  // 2. Determine next school year
-  const now = new Date();
-  const nextYearStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
-  const nextAnneeScolaire = `${nextYearStart}-${nextYearStart + 1}`;
-
-  // 3. Create new active year (niveau must be set by user later)
-  return supabase
-    .from('academic_years')
-    .insert({
-      student_id: studentId,
-      annee_scolaire: nextAnneeScolaire,
-      niveau: 'CP', // placeholder — user will update
-      statut: 'active',
-    })
-    .select()
-    .single();
-}
+// Passage d'année (archiver l'année active, créer la suivante) : opération SERVEUR uniquement (M19).
+// L'app ne crée que des années « importées » et ne change jamais le statut d'une année.
 
 // ═══════════════════════════════════════════════════════════
 // CHILD OVERVIEW (for dashboard)

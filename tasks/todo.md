@@ -29,6 +29,9 @@
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
 - [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
 
+### BLOQUANT avant la rentrée 2027
+- [ ] **Passage d'année par une tâche serveur planifiée** (plus rien dans l'app ne le fait depuis M19) : pour chaque enfant, archiver l'année active et créer la suivante (niveau suivant, sans classe_id), en une transaction ; date à fixer (fin août) ; testée comme M19 T15 (une seule année active, unicité du millésime).
+
 ### B3b.0 — rappels (25 sept)
 - [ ] **Avant le prochain build EAS** : les APK existants pointent vers Londres (en pause). Vérifier que les variables d'environnement EAS (`eas env:list`, profils development / preview / production) donnent l'URL et la clé publique de **Paris** (`nmizwmymhqleasnxcyvu`).
 - [ ] Charte PDF à refaire avec la formulation validée (tasks/infra-1-plan.md § Formulation validée), nommée « Scolaria » (jamais « ScolarIA ») ; mettre à jour le renvoi de VISION.md § 8.

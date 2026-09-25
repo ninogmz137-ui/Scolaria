@@ -64,8 +64,9 @@ DO $$ BEGIN
     RAISE EXCEPTION 'ÉCHEC T4a parent a créé une année déjà rattachée';
   EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'OK T4a parent refusé : créer une année déjà rattachée';
   END;
-  INSERT INTO public.academic_years (student_id, annee_scolaire, niveau)
-    VALUES (current_setting('test.emma')::uuid, '2025-2026', '4ème');
+  -- Depuis M19 : une année créée depuis l'app est toujours « importée ».
+  INSERT INTO public.academic_years (student_id, annee_scolaire, niveau, statut)
+    VALUES (current_setting('test.emma')::uuid, '2025-2026', '4ème', 'importée');
   RAISE NOTICE 'OK T4b parent : créer une année sans classe (import) reste possible';
   BEGIN
     UPDATE public.academic_years SET student_id = current_setting('test.emma')::uuid WHERE id = current_setting('test.ay_lucas')::uuid;
