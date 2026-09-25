@@ -434,7 +434,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
   - Numéros **cliquables** (tel:)
   - Alerte enregistrée (catégorie, enfant, date — **jamais le texte**), **privée à son auteur** : jamais partagée automatiquement avec l'autre responsable ni l'enseignant
 - **Appels au modèle : uniquement via l'Edge Function Supabase « aria »**. La clé Anthropic est un secret Supabase — jamais dans l'app, jamais dans un `.env`, jamais journalisée.
-- Modèle : `claude-sonnet-5` par défaut, via le secret `ARIA_MODEL`. Pas de modèle de repli.
+- Modèle : `claude-sonnet-5`, écrit dans l'Edge Function `aria`. Le secret facultatif `ARIA_MODEL` le remplace sans redéployer (il n'existe pas aujourd'hui). Pas de modèle de repli : un refus ou une erreur = « Aria indisponible », jamais un autre modèle.
 - Contexte envoyé : **prénom + niveau scolaire** de l'enfant (ex. « Lucas (CM2) »), construits par l'app (`ariaApi.ts`) ; jamais le nom, l'école ni l'identifiant. L'Edge Function transmet cette consigne et y ajoute une règle fixe (vouvoiement).
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 

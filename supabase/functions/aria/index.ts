@@ -3,8 +3,11 @@
  *
  * - La clé API vit UNIQUEMENT dans les secrets Supabase (ANTHROPIC_API_KEY). Jamais dans l'app.
  * - Appelable seulement avec une session Supabase valide (JWT vérifié par la plateforme + getUser ici).
- * - Modèle et max_tokens sont fixés ici, pas par le client. Modèle changeable sans redéployer
- *   via le secret ARIA_MODEL. Pas de repli automatique : un refus = « indisponible ».
+ * - Modèle et max_tokens sont fixés ici, pas par le client. Modèle : 'claude-sonnet-5' par défaut ;
+ *   le secret facultatif ARIA_MODEL le remplace sans redéployer. Pas de repli : un refus = « indisponible ».
+ * - Journaux : un texte fixe + des champs choisis (statut, type, modèle…). JAMAIS la clé, les en-têtes,
+ *   le corps de la requête ni l'objet d'erreur brut ; journaux internes du SDK coupés (logLevel 'off').
+ *   Garanti par `npm run test:journaux` (supabase/functions/_shared/journaux.test.mts).
  * - Protocole d'urgence AVANT tout appel au modèle : mot-clé critique → message fixe
  *   (3114 / 3018 / 119 + 112), aucun appel Anthropic, alerte signalée (catégorie seule).
  * - Réponse au client : { text } | { text, alert } | { error: 'unavailable' } — jamais de détail technique.
@@ -15,7 +18,7 @@
  * de `system` venant du client.
  */
 
-import Anthropic from 'npm:@anthropic-ai/sdk';
+import Anthropic from 'npm:@anthropic-ai/sdk@0.128.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { buildEmergencyMessage, detectEmergency } from '../_shared/emergency.ts';
 
@@ -116,7 +119,8 @@ Deno.serve(async (req) => {
   }
 
   // 5. Appel Anthropic (SDK officiel). Règle fixe ajoutée par le serveur au prompt du client.
-  const client = new Anthropic({ apiKey });
+  // logLevel 'off' : le SDK n'écrit rien lui-même (ses journaux de débogage contiennent les requêtes).
+  const client = new Anthropic({ apiKey, logLevel: 'off' });
   try {
     const response = await client.messages.create({
       model: MODEL,

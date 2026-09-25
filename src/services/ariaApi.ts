@@ -10,6 +10,7 @@
  */
 
 import { getChildContext } from './childContext';
+import { FunctionRegion } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { de } from '../utils/francais';
@@ -137,8 +138,11 @@ export async function sendToAria(
 
   try {
     // invoke() joint automatiquement le JWT de la session Supabase en cours
+    // Région imposée : Paris, comme la base. Sans elle, la fonction s'exécute dans la région la plus
+    // proche de l'utilisateur, pas forcément dans l'UE (doc Supabase « Regional Invocations »).
     const { data, error } = await supabase.functions.invoke<AriaFunctionResponse>('aria', {
       body: { system: systemPrompt, messages },
+      region: FunctionRegion.EuWest3,
     });
 
     if (error || !data?.text) {
