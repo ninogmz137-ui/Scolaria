@@ -301,7 +301,7 @@ function TimetableScreenContent({ childId, college }: { childId: string; college
         contentContainerStyle={styles.timelineContent}
       >
         {SCHEDULE.length === 0 && (
-          <Text style={styles.breakText}>{selectedDayIdx >= 5 ? 'Pas d’école ce jour-là' : 'Pas de cours ce jour-là'}</Text>
+          <Text style={styles.breakText}>{selectedDayIdx >= 5 || !college ? 'Pas d’école ce jour-là' : 'Pas de cours ce jour-là'}</Text>
         )}
         {SCHEDULE.map((item) => {
           if (item.type === 'break') {

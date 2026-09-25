@@ -11,9 +11,6 @@
   {"id":"agenda-lucas-tue-4","childId":"demo-lucas","title":"Sciences","type":"cours","date":"2026-03-31","startTime":"13:30","endTime":"14:30","subject":"Sciences","room":"Classe de CM2 B","description":"Expérience : circuits électriques","is_completed":false,"color":"#EC4899"},
   {"id":"agenda-lucas-tue-5","childId":"demo-lucas","title":"Histoire","type":"cours","date":"2026-03-31","startTime":"14:30","endTime":"15:30","subject":"Histoire-Géo","room":"Classe de CM2 B","description":"La Renaissance","is_completed":false,"color":"#F59E0B"},
 
-  {"id":"agenda-lucas-wed-1","childId":"demo-lucas","title":"Français","type":"cours","date":"2026-04-01","startTime":"08:30","endTime":"09:30","subject":"Français","room":"Classe de CM2 B","description":"Dictée préparée","is_completed":false,"color":"#4338CA"},
-  {"id":"agenda-lucas-wed-2","childId":"demo-lucas","title":"Mathématiques","type":"cours","date":"2026-04-01","startTime":"09:30","endTime":"10:30","subject":"Mathématiques","room":"Classe de CM2 B","description":"Géométrie : les angles","is_completed":false,"color":"#4F46E5"},
-
   {"id":"agenda-lucas-thu-1","childId":"demo-lucas","title":"Histoire","type":"cours","date":"2026-04-02","startTime":"08:30","endTime":"09:30","subject":"Histoire-Géo","room":"Classe de CM2 B","description":"Géographie : les continents","is_completed":false,"color":"#F59E0B"},
   {"id":"agenda-lucas-thu-2","childId":"demo-lucas","title":"Anglais","type":"cours","date":"2026-04-02","startTime":"09:30","endTime":"10:30","subject":"Anglais","room":"Classe de CM2 B","description":"Vocabulary : daily routine","is_completed":false,"color":"#10B981"},
   {"id":"agenda-lucas-thu-3","childId":"demo-lucas","title":"Français","type":"cours","date":"2026-04-02","startTime":"10:30","endTime":"11:30","subject":"Français","room":"Classe de CM2 B","description":"Conjugaison : le passé composé","is_completed":false,"color":"#4338CA"},
@@ -87,7 +84,7 @@
   {"id":"agenda-emma-devoir-5","childId":"demo-emma","title":"Rédaction anglais","type":"devoir","date":"2026-04-03","startTime":"13:30","endTime":"13:30","subject":"Anglais","room":"","description":"Write a 200-word opinion essay about social media","is_completed":false,"color":"#10B981"},
 
   {"id":"agenda-lucas-devoir-5","childId":"demo-lucas","title":"Leçon d'histoire à apprendre","type":"devoir","date":"2026-03-30","startTime":"08:30","endTime":"08:30","subject":"Histoire-Géo","room":"","description":"Apprendre la leçon sur la Renaissance (cahier d'histoire)","is_completed":true,"color":"#F59E0B"},
-  {"id":"agenda-lucas-devoir-6","childId":"demo-lucas","title":"Lecture","type":"devoir","date":"2026-04-01","startTime":"08:30","endTime":"08:30","subject":"Français","room":"","description":"Lire le chapitre 3 du Petit Prince","is_completed":false,"color":"#4338CA"},
+  {"id":"agenda-lucas-devoir-6","childId":"demo-lucas","title":"Lecture","type":"devoir","date":"2026-03-31","startTime":"08:30","endTime":"08:30","subject":"Français","room":"","description":"Lire le chapitre 3 du Petit Prince","is_completed":false,"color":"#4338CA"},
 
   {"id":"agenda-emma-mon-8","childId":"demo-emma","title":"Vie de classe","type":"cours","date":"2026-03-30","startTime":"16:30","endTime":"17:00","subject":"Vie de classe","room":"Salle 105","description":"Élection des délégués au conseil de classe","is_completed":false,"color":"#6366F1"},
   {"id":"agenda-emma-thu-8","childId":"demo-emma","title":"Permanence","type":"cours","date":"2026-04-02","startTime":"16:30","endTime":"17:30","subject":"Permanence","room":"CDI","description":"Travail personnel au CDI","is_completed":false,"color":"#94A3B8"},

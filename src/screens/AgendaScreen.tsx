@@ -425,8 +425,10 @@ function AgendaScreenContent() {
     const college = aDesNotes(selectedChild?.cycle);
     const t = new Date();
     t.setHours(0, 0, 0, 0);
-    // Échéances sur des jours d'école (jamais un samedi ou un dimanche).
-    const ecole = (d: Date, sens: 1 | -1) => { while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + sens); return d; };
+    // Échéances sur des jours d'école : jamais le week-end ; en primaire (démo : semaine de 4 jours),
+    // jamais le mercredi non plus.
+    const sansEcole = (d: Date) => d.getDay() === 0 || d.getDay() === 6 || (!college && d.getDay() === 3);
+    const ecole = (d: Date, sens: 1 | -1) => { while (sansEcole(d)) d.setDate(d.getDate() + sens); return d; };
     const tomorrow = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), 1);
     const inThreeDays = ecole(new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 2), 1);
     const fourDaysAgo = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() - 4), -1);
