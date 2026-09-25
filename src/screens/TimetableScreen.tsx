@@ -27,6 +27,7 @@ import { Text } from '../components/ui';
 import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
 import { aDesNotes, aUnEmploiDuTemps } from '../utils/niveau';
 import { useDemoData } from '../contexts/DemoContext';
+import { withAlpha } from '../utils/couleur';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -55,6 +56,8 @@ type CourseItem = {
   subject: string;
   teacher: string;
   room: string;
+  /** Couleur de la matière : même source que l'Agenda (couleur de l'événement de démo). */
+  color: string;
   alert?: AlertKind;
 };
 
@@ -126,9 +129,9 @@ const CourseRow: React.FC<{ item: CourseItem }> = ({ item }) => (
     </View>
 
     {/* Bloc cours */}
-    <View style={styles.courseCard}>
-      {/* Barre accent gauche */}
-      <View style={styles.courseBar} />
+    <View style={[styles.courseCard, { backgroundColor: withAlpha(item.color, 0.08) }]}>
+      {/* Barre gauche : couleur de la matière, comme les cartes de l'Agenda */}
+      <View style={[styles.courseBar, { backgroundColor: item.color }]} />
 
       {/* Contenu */}
       <View style={styles.courseContent}>
@@ -183,6 +186,7 @@ function TimetableScreenContent({ childId, college }: { childId: string; college
       subject: c.title,
       teacher: enseignant(c.subject, college),
       room: c.room,
+      color: c.color || INDIGO,
     });
   });
   return (
@@ -394,7 +398,7 @@ const styles = StyleSheet.create({
   dayCircle: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
