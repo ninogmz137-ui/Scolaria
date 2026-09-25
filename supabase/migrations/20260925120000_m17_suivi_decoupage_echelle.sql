@@ -5,20 +5,25 @@
 -- Le carnet suit l'enfant d'une école à l'autre : chaque année garde SON découpage et chaque
 -- évaluation SON échelle, pour rester lisibles dans les archives.
 --
---  - academic_years.decoupage / echelle_competences : nullables. NULL = pas de réglage propre ;
---    copiés depuis la classe au rattachement (classe_id posé ou changé).
---  - classes.decoupage / echelle_competences : réglages par défaut de l'enseignant, nullables,
---    SANS valeur par défaut (NULL = « pas encore choisi »). Pas d'écriture depuis l'app dans ce lot.
---  - Résolution à un seul endroit (fonctions SQL) :
---      decoupage_annee(année)           : année → classe → selon le niveau (collège/lycée :
---                                         trimestres ; sinon : périodes)
---      echelle_competences_annee(année) : année → classe → 4 (LSU)
+--  - classes.decoupage / echelle_competences : réglages de l'enseignant, nullables, SANS valeur
+--    par défaut (NULL = « pas encore choisi »). Pas d'écriture depuis l'app dans ce lot.
+--  - academic_years.decoupage / echelle_competences : réglages propres à une année SANS classe
+--    (école hors Scolaria, année importée), nullables. Ignorés dès que l'année est rattachée.
+--  - Résolution à un seul endroit (fonctions SQL), selon le rattachement — aucune copie, donc
+--    aucune valeur périmée :
+--      · année AVEC classe_id : classe → défaut
+--      · année SANS classe_id : année → défaut
+--    Défauts : découpage = trimestres (collège / lycée) sinon périodes ; échelle = 4 (LSU).
 --    L'app s'en sert pour PRÉ-REMPLIR la saisie ; la base ne complète jamais une échelle.
+--  - Verrou : un utilisateur de l'app ne modifie decoupage / echelle_competences d'une année que
+--    si elle n'est rattachée à aucune classe (ni avant, ni après la modification).
 --  - competences.echelle (3 | 4) : NOT NULL, toujours explicite, figée à la saisie (non modifiable).
 --    Lignes existantes : 4. niveau BETWEEN 1 AND echelle.
 --  - competences.periode : numéro de période / semestre / trimestre (1-5), cohérent avec le
 --    découpage résolu de l'année (P1-P5, S1-S2, T1-T3).
---  - RLS : inchangée (les politiques portent sur les lignes, donc sur les nouvelles colonnes).
+--  - RLS : politiques inchangées (elles portent sur les lignes, donc sur les nouvelles colonnes) ;
+--    la règle « colonne modifiable seulement si … » est portée par un trigger (une politique ne
+--    voit pas l'ancienne valeur).
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ─── 1. Colonnes ────────────────────────────────────────────────────────────
@@ -54,8 +59,8 @@ ALTER TABLE public.competences
   ADD CONSTRAINT competences_niveau_check CHECK (niveau BETWEEN 1 AND echelle);
 
 -- ─── 2. Résolution (un seul endroit) ────────────────────────────────────────
-
 -- Accès : responsables de l'enfant, titulaire de la classe, ou appel serveur (pas d'utilisateur).
+
 CREATE OR REPLACE FUNCTION public.decoupage_annee(p_academic_year_id uuid)
  RETURNS text
  LANGUAGE sql
@@ -64,8 +69,7 @@ CREATE OR REPLACE FUNCTION public.decoupage_annee(p_academic_year_id uuid)
  SET search_path = public, pg_temp
 AS $function$
   SELECT COALESCE(
-    ay.decoupage,
-    c.decoupage,
+    CASE WHEN ay.classe_id IS NOT NULL THEN c.decoupage ELSE ay.decoupage END,
     CASE
       WHEN ay.niveau ~* '^(6|5|4|3)(e|è|ème|eme)?$|^(2nde|seconde|1(re|ère)|premi|term)' THEN 'trimestres'
       ELSE 'periodes'
@@ -86,7 +90,10 @@ CREATE OR REPLACE FUNCTION public.echelle_competences_annee(p_academic_year_id u
  SECURITY DEFINER
  SET search_path = public, pg_temp
 AS $function$
-  SELECT COALESCE(ay.echelle_competences, c.echelle_competences, 4)::smallint
+  SELECT COALESCE(
+    CASE WHEN ay.classe_id IS NOT NULL THEN c.echelle_competences ELSE ay.echelle_competences END,
+    4
+  )::smallint
   FROM public.academic_years ay
   LEFT JOIN public.classes c ON c.id = ay.classe_id
   WHERE ay.id = p_academic_year_id
@@ -95,32 +102,29 @@ $function$;
 REVOKE EXECUTE ON FUNCTION public.echelle_competences_annee(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.echelle_competences_annee(uuid) TO authenticated;
 
--- ─── 3. Copie des réglages de la classe au rattachement ─────────────────────
+-- ─── 3. Verrou : réglages d'une année modifiables seulement sans classe ─────
 
-CREATE OR REPLACE FUNCTION public.copie_reglages_classe()
+CREATE OR REPLACE FUNCTION public.verrou_reglages_annee()
  RETURNS trigger
  LANGUAGE plpgsql
- SECURITY DEFINER
+ SECURITY INVOKER
  SET search_path = public, pg_temp
 AS $function$
-DECLARE
-  v_decoupage text;
-  v_echelle smallint;
 BEGIN
-  IF NEW.classe_id IS NOT NULL
-     AND (TG_OP = 'INSERT' OR NEW.classe_id IS DISTINCT FROM OLD.classe_id) THEN
-    SELECT c.decoupage, c.echelle_competences INTO v_decoupage, v_echelle
-    FROM public.classes c WHERE c.id = NEW.classe_id;
-    -- Réglage de la classe s'il existe ; sinon on garde celui de l'année (NULL = pas encore choisi).
-    NEW.decoupage := COALESCE(v_decoupage, NEW.decoupage);
-    NEW.echelle_competences := COALESCE(v_echelle, NEW.echelle_competences);
+  -- Appels via l'API uniquement ; service_role / postgres gardent la main (imports serveur).
+  IF current_user IN ('anon', 'authenticated')
+     AND (NEW.decoupage IS DISTINCT FROM OLD.decoupage
+          OR NEW.echelle_competences IS DISTINCT FROM OLD.echelle_competences)
+     AND (OLD.classe_id IS NOT NULL OR NEW.classe_id IS NOT NULL) THEN
+    RAISE EXCEPTION 'année rattachée à une classe : le découpage et l''échelle sont ceux de la classe'
+      USING ERRCODE = '42501';
   END IF;
   RETURN NEW;
 END;
 $function$;
-REVOKE EXECUTE ON FUNCTION public.copie_reglages_classe() FROM PUBLIC, anon, authenticated;
-CREATE TRIGGER copie_reglages_classe BEFORE INSERT OR UPDATE ON public.academic_years
-  FOR EACH ROW EXECUTE FUNCTION public.copie_reglages_classe();
+REVOKE EXECUTE ON FUNCTION public.verrou_reglages_annee() FROM PUBLIC, anon, authenticated;
+CREATE TRIGGER verrou_reglages_annee BEFORE UPDATE ON public.academic_years
+  FOR EACH ROW EXECUTE FUNCTION public.verrou_reglages_annee();
 
 -- ─── 4. Échelle figée, période cohérente avec le découpage ──────────────────
 -- Nommé « valider_… » : s'exécute après set_academic_year (année connue).

@@ -3,8 +3,8 @@
 
 DROP TRIGGER IF EXISTS valider_echelle_periode ON public.competences;
 DROP FUNCTION IF EXISTS public.valider_echelle_periode();
-DROP TRIGGER IF EXISTS copie_reglages_classe ON public.academic_years;
-DROP FUNCTION IF EXISTS public.copie_reglages_classe();
+DROP TRIGGER IF EXISTS verrou_reglages_annee ON public.academic_years;
+DROP FUNCTION IF EXISTS public.verrou_reglages_annee();
 DROP FUNCTION IF EXISTS public.echelle_competences_annee(uuid);
 DROP FUNCTION IF EXISTS public.decoupage_annee(uuid);
 
