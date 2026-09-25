@@ -9,13 +9,13 @@
 
 -- ─── Extensions présentes ────────────────────────────────
 -- pg_graphql 1.5.11, pg_stat_statements 1.11, pgcrypto 1.3, plpgsql 1.0, supabase_vault 0.3.1, uuid-ossp 1.1
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
 
 -- ─── Tables (sans FK) ────────────────────────────────────
 
 CREATE TABLE public.absences (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   student_id uuid NOT NULL,
   student_name text DEFAULT ''::text NOT NULL,
   student_avatar text DEFAULT '👦'::text NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE public.absences (
 );
 
 CREATE TABLE public.academic_years (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   student_id uuid NOT NULL,
   annee_scolaire text NOT NULL,
   niveau text NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE public.academic_years (
 );
 
 CREATE TABLE public.access_journal (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   family_id uuid NOT NULL,
   person_name text NOT NULL,
   person_avatar text DEFAULT '👤'::text NOT NULL,
@@ -67,7 +67,7 @@ CREATE TABLE public.access_journal (
 );
 
 CREATE TABLE public.agenda_events (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   child_id uuid NOT NULL,
   parent_id uuid NOT NULL,
   title text NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE public.appreciations (
 );
 
 CREATE TABLE public.aria_conversations (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   parent_id uuid NOT NULL,
   child_id uuid NOT NULL,
   title text DEFAULT 'Nouvelle conversation'::text NOT NULL,
@@ -117,7 +117,7 @@ CREATE TABLE public.aria_conversations (
 );
 
 CREATE TABLE public.aria_messages (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   conversation_id uuid NOT NULL,
   role text NOT NULL,
   content text NOT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE public.aria_messages (
 );
 
 CREATE TABLE public.bulletins (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   child_id uuid NOT NULL,
   academic_year_id uuid NOT NULL,
   period text DEFAULT 'Trimestre 1'::text NOT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE public.bulletins (
 );
 
 CREATE TABLE public.checkins (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   child_id uuid NOT NULL,
   mode text DEFAULT 'primaire'::text NOT NULL,
   emotion text,
@@ -167,7 +167,7 @@ CREATE TABLE public.checkins (
 );
 
 CREATE TABLE public.children (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   parent_id uuid NOT NULL,
   scolaria_id text DEFAULT ''::text NOT NULL,
   first_name text NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE public.class_posts (
 );
 
 CREATE TABLE public.deletion_requests (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   family_id uuid NOT NULL,
   child_id uuid,
   scope text DEFAULT 'child'::text NOT NULL,
@@ -249,7 +249,7 @@ CREATE TABLE public.deletion_requests (
 );
 
 CREATE TABLE public.export_history (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   family_id uuid NOT NULL,
   format text DEFAULT 'json'::text NOT NULL,
   modules jsonb DEFAULT '[]'::jsonb NOT NULL,
@@ -263,7 +263,7 @@ CREATE TABLE public.export_history (
 );
 
 CREATE TABLE public.grades (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   child_id uuid NOT NULL,
   subject_id uuid NOT NULL,
   value numeric(4,2) NOT NULL,
@@ -283,7 +283,7 @@ CREATE TABLE public.grades (
 );
 
 CREATE TABLE public.messages (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   sender_id uuid NOT NULL,
   receiver_id uuid NOT NULL,
   subject text DEFAULT ''::text NOT NULL,
@@ -300,7 +300,7 @@ CREATE TABLE public.messages (
 );
 
 CREATE TABLE public.mots_liaison (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   teacher_id uuid NOT NULL,
   classe text NOT NULL,
   type text NOT NULL,
@@ -317,7 +317,7 @@ CREATE TABLE public.mots_liaison (
 );
 
 CREATE TABLE public.person_permissions (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   family_id uuid NOT NULL,
   name text NOT NULL,
   email text,
@@ -350,7 +350,7 @@ CREATE TABLE public.profiles (
 );
 
 CREATE TABLE public.read_receipts (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   mot_id uuid NOT NULL,
   parent_id uuid NOT NULL,
   read_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -359,7 +359,7 @@ CREATE TABLE public.read_receipts (
 );
 
 CREATE TABLE public.signatures (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   mot_id uuid NOT NULL,
   parent_id uuid NOT NULL,
   student_id uuid NOT NULL,
@@ -371,7 +371,7 @@ CREATE TABLE public.signatures (
 );
 
 CREATE TABLE public.subjects (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   child_id uuid NOT NULL,
   name text NOT NULL,
   color text DEFAULT '#22D3EE'::text NOT NULL,
@@ -410,7 +410,7 @@ CREATE TABLE public.teacher_messages (
 );
 
 CREATE TABLE public.transfer_codes (
-  id uuid DEFAULT uuid_generate_v4() NOT NULL,
+  id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
   family_id uuid NOT NULL,
   child_id uuid NOT NULL,
   child_name text DEFAULT ''::text NOT NULL,

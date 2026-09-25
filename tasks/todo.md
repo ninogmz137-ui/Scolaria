@@ -20,6 +20,7 @@
 - [ ] Activer « Leaked password protection » (HaveIBeenPwned) : Pro et au-dessus seulement (doc « Password security »). Dashboard → Authentication → Providers → Email.
 
 ### INFRA-1 — migration Paris (validée le 25 sept, plan : tasks/infra-1-plan.md)
+- [x] Étapes 0 à 4 FAITES (25 sept) : sauvegarde ; projet Paris nmizwmymhqleasnxcyvu (eu-west-3) ; 26 migrations (baseline corrigée) ; schéma identique à Londres hors pg_graphql (non activé, inutilisé) et un commentaire ; données transférées (2 comptes, 2 enfants ; compte du 21 mars resté à Londres) ; RLS vérifiée ; Storage vide. CLI liée à PARIS.
 - [ ] Étape 10 : RAPPELER à l'utilisateur de révoquer l'ancienne clé Anthropic (projet Londres) après la bascule réussie ; la nouvelle clé est dédiée au projet Paris.
 - [ ] Après migration réussie : remplacer « OVH France » et « aucun transit hors UE » dans CLAUDE.md, VISION.md et la charte par la formulation validée (texte exact dans tasks/infra-1-plan.md § « Formulation validée »).
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
