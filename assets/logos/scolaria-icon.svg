@@ -1,0 +1,15 @@
+<svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="s-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="spark-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="60" height="60" rx="13" fill="#1A2340"/>
+  <text x="30" y="46" text-anchor="middle" font-family="DM Serif Display, Georgia, serif" font-size="44" fill="url(#s-g)">S</text>
+  <text x="40" y="17" font-size="13" fill="url(#spark-g)">✦</text>
+</svg>

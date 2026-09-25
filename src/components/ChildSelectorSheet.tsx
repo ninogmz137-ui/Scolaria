@@ -1,0 +1,193 @@
+/**
+ * ChildSelectorSheet — sélecteur d’enfant (COMPONENTS §13), ouvert par l’avatar de la top bar.
+ * Liste des enfants + « Ajouter un enfant ». Rien d’autre : réglages et déconnexion sont dans
+ * « Famille & paramètres » (☰).
+ */
+import React from 'react';
+import {
+  View,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Check, Plus } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useAuth } from '../contexts/AuthContext';
+import { Text, Pressable } from './ui';
+import ChildAvatar from './ChildAvatar';
+
+interface Props {
+  visible: boolean;
+  onClose: () => void;
+}
+
+export default function ChildSelectorSheet({ visible, onClose }: Props) {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
+  const { children, selectedChild, selectChild } = useActiveChild();
+  const { user } = useAuth();
+
+  const handleAddChild = () => {
+    onClose();
+    setTimeout(() => {
+      navigation.navigate('MainPager', {
+        screen: 'Accueil',
+        params: { screen: 'AjouterEnfant', initial: false },
+      });
+    }, 150);
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === 'android'}
+    >
+      <View style={styles.overlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + 12 }]}>
+          {/* Handle */}
+          <View style={styles.handle} />
+
+          {/* Email compte parent */}
+          <Text style={styles.email}>{user?.email ?? ''}</Text>
+
+          {/* Liste enfants */}
+          {children.map((child) => {
+            const isActive = child.id === selectedChild?.id;
+            const firstName = child.name.split(' ')[0];
+
+            return (
+              <TouchableOpacity
+                key={child.id}
+                activeOpacity={0.75}
+                style={styles.childRow}
+                onPress={() => {
+                  selectChild(child.id);
+                  onClose();
+                }}
+              >
+                <View style={{ marginRight: 12 }}>
+                  <ChildAvatar child={child} size={36} />
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.childName}>{firstName}</Text>
+                  <Text style={styles.childNiveau} numberOfLines={1}>
+                    {child.classe}
+                  </Text>
+                </View>
+
+                {isActive && (
+                  <Check size={18} color="#4338CA" strokeWidth={2.5} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Ajouter un enfant */}
+          <TouchableOpacity
+            activeOpacity={0.75}
+            style={styles.addRow}
+            onPress={handleAddChild}
+            accessibilityRole="button"
+          >
+            <View style={styles.addIcon}>
+              <Plus size={18} color="#4338CA" strokeWidth={2.2} />
+            </View>
+            <Text style={styles.addLabel}>Ajouter un enfant</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.16)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOpacity: 0.10,
+        shadowRadius: 32,
+        shadowOffset: { width: 0, height: -4 },
+      },
+      android: { elevation: 16 },
+    }),
+  },
+  handle: {
+    width: 34,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.14)',
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  email: {
+    fontFamily: 'Figtree_400Regular',
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.45)',
+    paddingTop: 4,
+    paddingBottom: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(15,23,42,0.05)',
+  },
+  childRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(15,23,42,0.05)',
+  },
+  childRowPressed: {
+    backgroundColor: 'rgba(15,23,42,0.03)',
+  },
+  childName: {
+    fontFamily: 'Figtree_700Bold',
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  childNiveau: {
+    fontFamily: 'Figtree_400Regular',
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.55)',
+    marginTop: 1,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 48,
+  },
+  addIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(67,56,202,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  addLabel: {
+    fontFamily: 'Figtree_600SemiBold',
+    fontSize: 13,
+    color: '#4338CA',
+  },
+});

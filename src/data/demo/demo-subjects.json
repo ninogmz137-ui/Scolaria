@@ -1,0 +1,17 @@
+[
+  { "id": "lea-lang", "childId": "demo-lea", "name": "Mobiliser le langage", "color": "#4F46E5", "acquis": 3, "total": 4 },
+  { "id": "lea-art", "childId": "demo-lea", "name": "Activités artistiques", "color": "#EC4899", "acquis": 2, "total": 3 },
+  { "id": "lea-phys", "childId": "demo-lea", "name": "Activités physiques", "color": "#06B6D4", "acquis": 2, "total": 3 },
+  { "id": "lea-math", "childId": "demo-lea", "name": "Structurer sa pensée", "color": "#F59E0B", "acquis": 2, "total": 4 },
+  { "id": "lea-monde", "childId": "demo-lea", "name": "Explorer le monde", "color": "#10B981", "acquis": 1, "total": 3 },
+  { "id": "emma-math", "childId": "demo-emma", "name": "Mathématiques", "color": "#4F46E5", "average": 13.5, "classAverage": 12.1, "trend": "up" },
+  { "id": "emma-fr", "childId": "demo-emma", "name": "Français", "color": "#4338CA", "average": 15.0, "classAverage": 13.4, "trend": "up" },
+  { "id": "emma-hist", "childId": "demo-emma", "name": "Histoire-Géo", "color": "#F59E0B", "average": 14.5, "classAverage": 12.0, "trend": "stable" },
+  { "id": "emma-ang", "childId": "demo-emma", "name": "Anglais", "color": "#10B981", "average": 16.0, "classAverage": 14.2, "trend": "up" },
+  { "id": "emma-svt", "childId": "demo-emma", "name": "SVT", "color": "#EC4899", "average": 12.0, "classAverage": 11.5, "trend": "down" },
+  { "id": "emma-phys", "childId": "demo-emma", "name": "Physique-Chimie", "color": "#06B6D4", "average": 11.5, "classAverage": 11.0, "trend": "stable" },
+  { "id": "emma-eps", "childId": "demo-emma", "name": "EPS", "color": "#F97316", "average": 16.0, "classAverage": 14.8, "trend": "stable" },
+  { "id": "emma-tech", "childId": "demo-emma", "name": "Technologie", "color": "#6366F1", "average": 14.0, "classAverage": 12.3, "trend": "up" },
+  { "id": "emma-musique", "childId": "demo-emma", "name": "Musique", "color": "#A855F7", "average": 15.5, "classAverage": 13.9, "trend": "up" },
+  { "id": "emma-arts", "childId": "demo-emma", "name": "Arts plastiques", "color": "#F43F5E", "average": 14.0, "classAverage": 13.5, "trend": "stable" }
+]
