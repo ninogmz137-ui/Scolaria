@@ -241,7 +241,7 @@ Document public complet : ScolarIA_Charte_Ethique_v1.pdf
 **7 principes fondateurs :**
 1. **Non-Substitution** — Aria ne remplace jamais un professionnel
 2. **Transparence Algorithmique** — Aria explique toujours pourquoi
-3. **Souveraineté des données** — hébergement OVH France, zéro revente, zéro pub
+3. **Souveraineté des données** — zéro revente, zéro pub. « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. Aria s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez Aria, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
 4. **Gradation & Anti-Panique** — cinétique sur 5 jours, jamais sur signal isolé
 5. **Neutralité & Anti-Biais** — aucune comparaison entre enfants, filières pro = filières générales. La comparaison d'un enfant avec lui-même sur plusieurs années est autorisée (Aria stade 2+), en tendance, sources citées
 6. **Protection Hyper-Connexion** — mode sommeil 20h-7h, max 1 alerte non urgente / 48h
@@ -310,7 +310,7 @@ Interface parent complète : Accueil, Notes, Agenda, Messagerie, Aria chat, desi
 - **Un enfant = un carnet** — jamais de vue mélangeant plusieurs enfants
 - **Pas d'ads, jamais**
 - **Pas de comparaison entre enfants**
-- **Données hébergées en France** (OVH), jamais hors UE
+- **Données du carnet hébergées dans l'UE, à Paris** ; ce qui part hors UE (Aria) est dit en toutes lettres (charte, principe 3)
 - **Aria propose, l'humain décide** — pour tout acte irréversible
 - **"Scolaria"** — jamais ScolarIA, jamais avec IA en majuscules
 - **Pas de full-width buttons** dans le design system

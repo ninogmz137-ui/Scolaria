@@ -482,8 +482,10 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Conversations privées parent ↔ enseignant : lisibles uniquement par leurs participants
 
 ### Règles RGPD
-- Chiffrement AES-256 at-rest
-- Hébergement OVH France — aucun transit hors UE
+- Chiffrement AES-256 au repos et TLS en transit (source : https://supabase.com/security — « All customer data is encrypted at rest with AES-256 and in transit via TLS », lu le 25 sept 2026)
+- Hébergement : Supabase, région eu-west-3 (Paris), depuis la migration INFRA-1 du 25 sept 2026. Formulation publique, exacte (validée le 25 sept 2026) :
+  > « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. Aria s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez Aria, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
+- L'Edge Function `aria` est appelée avec la région `eu-west-3` imposée (sinon : région la plus proche, parfois hors UE)
 - Export JSON complet disponible (par carnet d'enfant)
 - Droit à l'effacement en cascade sous 30 jours
 - Journal d'accès consultable par le parent

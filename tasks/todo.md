@@ -21,8 +21,11 @@
 
 ### INFRA-1 — migration Paris (validée le 25 sept, plan : tasks/infra-1-plan.md)
 - [x] Étapes 0 à 4 FAITES (25 sept) : sauvegarde ; projet Paris nmizwmymhqleasnxcyvu (eu-west-3) ; 26 migrations (baseline corrigée) ; schéma identique à Londres hors pg_graphql (non activé, inutilisé) et un commentaire ; données transférées (2 comptes, 2 enfants ; compte du 21 mars resté à Londres) ; RLS vérifiée ; Storage vide. CLI liée à PARIS.
-- [ ] Étape 10 : RAPPELER à l'utilisateur de révoquer l'ancienne clé Anthropic (projet Londres) après la bascule réussie ; la nouvelle clé est dédiée au projet Paris.
-- [ ] Après migration réussie : remplacer « OVH France » et « aucun transit hors UE » dans CLAUDE.md, VISION.md et la charte par la formulation validée (texte exact dans tasks/infra-1-plan.md § « Formulation validée »).
+- [ ] **Utilisateur : révoquer l'ancienne clé Anthropic de Londres** (rappel fait à l'étape 10, 25 sept). La clé …3dh6HAAA est déjà absente de la console (vérifié par l'utilisateur).
+- [x] Formulation validée appliquée (25 sept) : CLAUDE.md § Règles RGPD, VISION.md § 8 (charte, principe 3) et § 10. AES-256 gardé avec sa source.
+- [x] Étapes 5 à 10 FAITES (25 sept) : aria sur Paris (région eu-west-3 vérifiée), Auth identique, app basculée et testée sur le Redmi (connexion, Aria claude-sonnet-5, alerte « harcèlement » sans texte), 36/36 tests, advisors 0 ERROR, Londres EN PAUSE.
+- [ ] **9 oct 2026 (J+14)** : suppression du projet de Londres (eklpzspvfjfqgqgugmxl) — UNIQUEMENT avec l'accord de l'utilisateur. Ses journaux du 23 sept contiennent une clé Anthropic en clair (déjà révoquée) : ils disparaissent avec le projet.
+- [ ] Textes de l'app à aligner (hors périmètre de la charte, à valider) : RGPDScreen « chiffrées (AES-256) et hébergées en France » (exact, mais sans la mention d'Aria), i18n `encryptionSub` × 10 langues, AProposScreen (aucune mention d'hébergement), scolaria_website.html. VISION.md cite encore « ScolarIA_Charte_Ethique_v1.pdf » (absent du dépôt).
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
 - [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
 
