@@ -205,6 +205,29 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
   return [...semaine, ...suivante];
 }
 
+// ─── Messages et mots de démo recalés sur aujourd'hui ─────
+
+/**
+ * demo-messages.json et demo-mots.json sont écrits comme si aujourd'hui était le 25 sept. 2026
+ * (messages des 2-3 dernières semaines, échéances à venir). Chaque date est décalée du même
+ * nombre de jours que l'écart entre aujourd'hui et cette référence.
+ */
+const REFERENCE_MESSAGES_DEMO = new Date(2026, 8, 25);
+
+function decalageMessages(aujourdHui: Date): number {
+  const jour = new Date(aujourdHui.getFullYear(), aujourdHui.getMonth(), aujourdHui.getDate());
+  return Math.round((jour.getTime() - REFERENCE_MESSAGES_DEMO.getTime()) / 86400000);
+}
+
+/** « YYYY-MM-DD » ou « YYYY-MM-DDTHH:MM:SS » décalé de `jours` jours (heure locale conservée). */
+function decalerDate(date: string, jours: number): string {
+  const [jourIso, heure] = date.split('T');
+  const [a, m, j] = jourIso.split('-').map(Number);
+  const d = new Date(a, m - 1, j + jours);
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return heure ? `${iso}T${heure}` : iso;
+}
+
 // ─── Provider ────────────────────────────────────────────
 
 export function DemoProvider({ children: reactChildren }: { children: ReactNode }) {
@@ -240,18 +263,22 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     }));
   }, [agenda, agendaState]);
 
+  const decalage = useMemo(() => decalageMessages(new Date()), []);
+
   const getMessages = useCallback((childId: string): DemoMessage[] => {
     return (demoMessages as DemoMessage[])
       .filter((m) => m.childId === childId)
+      .map((m) => ({ ...m, date: decalerDate(m.date, decalage) }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, []);
+  }, [decalage]);
 
   const getMots = useCallback((childId: string): DemoMot[] => {
     return (demoMots as DemoMot[]).map((m) => ({
       ...m,
+      deadline: m.deadline ? decalerDate(m.deadline, decalage) : m.deadline,
       isSigned: motsState[m.id] !== undefined ? motsState[m.id] : m.isSigned,
     })).filter((m) => m.childId === childId);
-  }, [motsState]);
+  }, [motsState, decalage]);
 
   const getParcours = useCallback((childId: string): DemoParcours | null => {
     return (demoParcours as DemoParcours[]).find((p) => p.childId === childId) || null;

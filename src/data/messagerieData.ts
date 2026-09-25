@@ -8,13 +8,20 @@
  *   'demo-emma'  — Emma  (3e B, Collège Hugo)
  * Référence unique de l'univers de démo : src/data/demo/carnet.ts
  *
- * Dates use ISO "YYYY-MM-DD" (today = 2026-04-11 Saturday):
- *   Lundi  = 2026-04-06
- *   Mardi  = 2026-04-07
- *   Mercredi = 2026-04-08
- *   Jeudi  = 2026-04-09
- *   Vendredi = 2026-04-10
+ * Dates RELATIVES à aujourd'hui (comme l'Agenda de démo) : `ilYa(n)` = il y a n jours, calculé au
+ * chargement. Tout tient dans les 2-3 dernières semaines ; contenus de rentrée (réunion de rentrée,
+ * fournitures, sortie à venir). Emma est en 3e : brevet en juin prochain.
  */
+
+/** Date ISO (YYYY-MM-DD, heure locale) d'il y a `jours` jours. */
+function ilYa(jours: number): string {
+  const t = new Date();
+  const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - jours);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Année du brevet d'Emma (3e) : juin prochain. */
+const ANNEE_BREVET = new Date().getMonth() >= 6 ? new Date().getFullYear() + 1 : new Date().getFullYear();
 
 export type MessageSender = 'parent' | 'other';
 export type AvatarType = 'initials' | 'school' | 'absence';
@@ -68,15 +75,15 @@ const leaConversations: Conversation[] = [
     avatarType: 'initials',
     initials: 'ML',
     lastMessage: 'Léa a oublié son doudou ce matin, il est en sécurité dans la classe.',
-    lastDate: '2026-04-10',
+    lastDate: ilYa(1),
     lastTime: '09:12',
     unread: true,
     messages: [
-      { id: 'lea-l-1', sender: 'other', text: "Bonjour, Léa a passé une très belle journée ! Elle a bien participé en atelier.", time: '16:30', date: '2026-04-08' },
-      { id: 'lea-l-2', sender: 'parent', text: "Merci Madame, ravie de l'entendre !", time: '17:45', date: '2026-04-08' },
-      { id: 'lea-l-3', sender: 'other', text: "Rappel : photos de classe lundi, pensez à la tenue soignée 😊", time: '08:15', date: '2026-04-09' },
-      { id: 'lea-l-4', sender: 'parent', text: "Noté, merci pour le rappel !", time: '08:32', date: '2026-04-09' },
-      { id: 'lea-l-5', sender: 'other', text: "Léa a oublié son doudou ce matin, il est en sécurité dans la classe.", time: '09:12', date: '2026-04-10' },
+      { id: 'lea-l-1', sender: 'other', text: "Bonjour, Léa s'est très bien adaptée à la grande section, elle a retrouvé ses copains !", time: '16:30', date: ilYa(12) },
+      { id: 'lea-l-2', sender: 'parent', text: "Merci Madame, ravie de l'entendre !", time: '17:45', date: ilYa(12) },
+      { id: 'lea-l-3', sender: 'other', text: "Rappel : photo de classe vendredi, pensez à une tenue soignée 😊", time: '08:15', date: ilYa(4) },
+      { id: 'lea-l-4', sender: 'parent', text: "Noté, merci pour le rappel !", time: '08:32', date: ilYa(4) },
+      { id: 'lea-l-5', sender: 'other', text: "Léa a oublié son doudou ce matin, il est en sécurité dans la classe.", time: '09:12', date: ilYa(1) },
     ],
   },
   {
@@ -86,13 +93,13 @@ const leaConversations: Conversation[] = [
     role: 'Établissement',
     avatarType: 'school',
     lastMessage: 'La cantine sera fermée jeudi, merci de prévoir un repas.',
-    lastDate: '2026-04-08',
+    lastDate: ilYa(3),
     lastTime: '10:00',
     unread: false,
     messages: [
-      { id: 'lea-e-1', sender: 'other', text: "Fermeture exceptionnelle vendredi 14 mars — journée pédagogique.", time: '09:00', date: '2026-04-06' },
-      { id: 'lea-e-2', sender: 'other', text: "Spectacle de fin d'année le 20 juin à 18h, réservez la date !", time: '11:00', date: '2026-04-07' },
-      { id: 'lea-e-3', sender: 'other', text: "La cantine sera fermée jeudi, merci de prévoir un repas.", time: '10:00', date: '2026-04-08' },
+      { id: 'lea-e-1', sender: 'other', text: "Bonne rentrée à tous ! La réunion de rentrée des GS aura lieu jeudi à 17h30.", time: '09:00', date: ilYa(17) },
+      { id: 'lea-e-2', sender: 'other', text: "Fournitures : une boîte de mouchoirs, un tablier de peinture et une paire de chaussons.", time: '11:00', date: ilYa(15) },
+      { id: 'lea-e-3', sender: 'other', text: "La cantine sera fermée jeudi, merci de prévoir un repas.", time: '10:00', date: ilYa(3) },
     ],
   },
   {
@@ -102,13 +109,13 @@ const leaConversations: Conversation[] = [
     role: 'Suivi des absences',
     avatarType: 'absence',
     lastMessage: 'Léa est de retour, merci.',
-    lastDate: '2026-04-09',
+    lastDate: ilYa(7),
     lastTime: '08:00',
     unread: false,
     messages: [
-      { id: 'lea-a-1', sender: 'parent', text: "Bonjour, Léa sera absente ce matin, rendez-vous médical.", time: '07:45', date: '2026-04-07' },
-      { id: 'lea-a-2', sender: 'other', text: "Absence bien notée, merci.", time: '08:30', date: '2026-04-07' },
-      { id: 'lea-a-3', sender: 'parent', text: "Léa est de retour, merci.", time: '08:00', date: '2026-04-09' },
+      { id: 'lea-a-1', sender: 'parent', text: "Bonjour, Léa sera absente ce matin, rendez-vous médical.", time: '07:45', date: ilYa(9) },
+      { id: 'lea-a-2', sender: 'other', text: "Absence bien notée, merci.", time: '08:30', date: ilYa(9) },
+      { id: 'lea-a-3', sender: 'parent', text: "Léa est de retour, merci.", time: '08:00', date: ilYa(7) },
     ],
   },
 ];
@@ -119,7 +126,7 @@ const lucasConversations: Conversation[] = [
   {
     tag: 'sortie' as const,
     urgency: 'signer' as const,
-    ariaSummary: 'Autorisation sortie médiathèque à signer avant vendredi.',
+    ariaSummary: 'Autorisation pour la sortie à la médiathèque à signer avant vendredi.',
     avatarColor: '#059669',
     id: 'lucas-moreau',
     childId: 'demo-lucas',
@@ -128,15 +135,15 @@ const lucasConversations: Conversation[] = [
     avatarType: 'initials',
     initials: 'MD',
     lastMessage: 'Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.',
-    lastDate: '2026-04-08',
+    lastDate: ilYa(2),
     lastTime: '14:20',
     unread: true,
     messages: [
-      { id: 'lucas-m-1', sender: 'other', text: "Bonjour, Lucas a atteint l'objectif en dictée, très beau progrès !", time: '16:15', date: '2026-04-06' },
-      { id: 'lucas-m-2', sender: 'parent', text: "Super, on est très contents !", time: '17:30', date: '2026-04-06' },
-      { id: 'lucas-m-3', sender: 'other', text: "N'oubliez pas la sortie à la médiathèque vendredi, autorisation à signer.", time: '09:00', date: '2026-04-07' },
-      { id: 'lucas-m-4', sender: 'parent', text: "Autorisation signée dans le cahier.", time: '09:45', date: '2026-04-07' },
-      { id: 'lucas-m-5', sender: 'other', text: "Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.", time: '14:20', date: '2026-04-08' },
+      { id: 'lucas-m-1', sender: 'other', text: "Bonjour, belle rentrée pour Lucas : il s'est vite installé en CM2.", time: '16:15', date: ilYa(11) },
+      { id: 'lucas-m-2', sender: 'parent', text: "Merci, il est content de sa classe !", time: '17:30', date: ilYa(11) },
+      { id: 'lucas-m-3', sender: 'other', text: "Sortie à la médiathèque vendredi : l'autorisation est à signer dans le carnet.", time: '09:00', date: ilYa(5) },
+      { id: 'lucas-m-4', sender: 'parent', text: "Bien noté, nous la signons ce soir.", time: '09:45', date: ilYa(5) },
+      { id: 'lucas-m-5', sender: 'other', text: "Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.", time: '14:20', date: ilYa(2) },
     ],
   },
   {
@@ -146,13 +153,13 @@ const lucasConversations: Conversation[] = [
     role: 'Établissement',
     avatarType: 'school',
     lastMessage: 'Collecte alimentaire la semaine prochaine — participation bienvenue.',
-    lastDate: '2026-04-10',
+    lastDate: ilYa(1),
     lastTime: '08:00',
     unread: false,
     messages: [
-      { id: 'lucas-e-1', sender: 'other', text: "Réunion de rentrée des CM2 jeudi 17h30 en salle polyvalente.", time: '09:00', date: '2026-04-06' },
-      { id: 'lucas-e-2', sender: 'other', text: "Les photos de classe sont disponibles sur l'espace famille.", time: '10:00', date: '2026-04-08' },
-      { id: 'lucas-e-3', sender: 'other', text: "Collecte alimentaire la semaine prochaine — participation bienvenue.", time: '08:00', date: '2026-04-10' },
+      { id: 'lucas-e-1', sender: 'other', text: "Réunion de rentrée des CM2 jeudi 17h30 en salle polyvalente.", time: '09:00', date: ilYa(16) },
+      { id: 'lucas-e-2', sender: 'other', text: "La liste des fournitures de CM2 est collée dans le cahier de liaison.", time: '10:00', date: ilYa(14) },
+      { id: 'lucas-e-3', sender: 'other', text: "Collecte alimentaire la semaine prochaine — participation bienvenue.", time: '08:00', date: ilYa(1) },
     ],
   },
   {
@@ -162,12 +169,12 @@ const lucasConversations: Conversation[] = [
     role: 'Suivi des absences',
     avatarType: 'absence',
     lastMessage: 'Merci du signalement, bon rétablissement à Lucas.',
-    lastDate: '2026-04-10',
+    lastDate: ilYa(8),
     lastTime: '08:30',
     unread: false,
     messages: [
-      { id: 'lucas-a-1', sender: 'parent', text: "Bonjour, Lucas est fiévreux ce matin, il sera absent aujourd'hui.", time: '07:50', date: '2026-04-10' },
-      { id: 'lucas-a-2', sender: 'other', text: "Merci du signalement, bon rétablissement à Lucas.", time: '08:30', date: '2026-04-10' },
+      { id: 'lucas-a-1', sender: 'parent', text: "Bonjour, Lucas est fiévreux ce matin, il sera absent aujourd'hui.", time: '07:50', date: ilYa(8) },
+      { id: 'lucas-a-2', sender: 'other', text: "Merci du signalement, bon rétablissement à Lucas.", time: '08:30', date: ilYa(8) },
     ],
   },
 ];
@@ -184,15 +191,15 @@ const emmaConversations: Conversation[] = [
     initials: 'ML',
     avatarColor: '#EF4444',
     tag: 'controle',
-    ariaSummary: 'Brevet blanc le 2 mai. Révisions prioritaires.',
-    lastMessage: 'Le brevet blanc de français est fixé au 2 mai, révisions à prévoir.',
-    lastDate: '2026-04-09',
+    ariaSummary: 'Premier devoir sur table jeudi prochain (récit autobiographique).',
+    lastMessage: 'Premier devoir sur table jeudi prochain : le récit autobiographique.',
+    lastDate: ilYa(3),
     lastTime: '11:00',
     unread: false,
     messages: [
-      { id: 'emma-d-1', sender: 'other', text: "Emma a rendu une très belle rédaction, 17/20. Continuez ainsi !", time: '17:00', date: '2026-04-07' },
-      { id: 'emma-d-2', sender: 'parent', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: '2026-04-07' },
-      { id: 'emma-d-3', sender: 'other', text: "Le brevet blanc de français est fixé au 2 mai, révisions à prévoir.", time: '11:00', date: '2026-04-09' },
+      { id: 'emma-d-1', sender: 'other', text: "Emma a rendu une très belle première rédaction, 17/20. Continuez ainsi !", time: '17:00', date: ilYa(9) },
+      { id: 'emma-d-2', sender: 'parent', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: ilYa(9) },
+      { id: 'emma-d-3', sender: 'other', text: "Premier devoir sur table jeudi prochain : le récit autobiographique.", time: '11:00', date: ilYa(3) },
     ],
   },
   {
@@ -204,17 +211,17 @@ const emmaConversations: Conversation[] = [
     initials: 'MP',
     avatarColor: '#4338CA',
     tag: 'devoir',
-    ariaSummary: 'Note 8/20. Fiche de révisions à venir cette semaine.',
+    ariaSummary: 'Note 8/20 au premier contrôle. Fiche de révisions à venir cette semaine.',
     lastMessage: 'Je vous envoie une fiche par cahier de liaison cette semaine.',
-    lastDate: '2026-04-09',
+    lastDate: ilYa(2),
     lastTime: '15:00',
     unread: true,
     messages: [
-      { id: 'emma-g-1', sender: 'other', text: "Les résultats du contrôle sont décevants pour Emma — 8/20. Des difficultés sur les équations.", time: '16:00', date: '2026-04-06' },
-      { id: 'emma-g-2', sender: 'parent', text: "Merci pour le retour. On va mettre en place du soutien.", time: '17:00', date: '2026-04-06' },
-      { id: 'emma-g-3', sender: 'other', text: "N'hésitez pas à me contacter si vous avez des questions.", time: '09:00', date: '2026-04-08' },
-      { id: 'emma-g-4', sender: 'parent', text: "Pouvez-vous nous conseiller des exercices de révision ?", time: '09:30', date: '2026-04-08' },
-      { id: 'emma-g-5', sender: 'other', text: "Je vous envoie une fiche par cahier de liaison cette semaine.", time: '15:00', date: '2026-04-09' },
+      { id: 'emma-g-1', sender: 'other', text: "Le premier contrôle est décevant pour Emma — 8/20. Des difficultés sur le calcul littéral.", time: '16:00', date: ilYa(6) },
+      { id: 'emma-g-2', sender: 'parent', text: "Merci pour le retour. On va mettre en place du soutien.", time: '17:00', date: ilYa(6) },
+      { id: 'emma-g-3', sender: 'other', text: "N'hésitez pas à me contacter si vous avez des questions.", time: '09:00', date: ilYa(4) },
+      { id: 'emma-g-4', sender: 'parent', text: "Pouvez-vous nous conseiller des exercices de révision ?", time: '09:30', date: ilYa(4) },
+      { id: 'emma-g-5', sender: 'other', text: "Je vous envoie une fiche par cahier de liaison cette semaine.", time: '15:00', date: ilYa(2) },
     ],
   },
   {
@@ -226,15 +233,15 @@ const emmaConversations: Conversation[] = [
     initials: 'MT',
     avatarColor: '#059669',
     tag: 'controle',
-    ariaSummary: 'Note 13/20. Chapitre écosystèmes — résultat encourageant.',
+    ariaSummary: 'Note 13/20. Chapitre 1 (génétique) — résultat encourageant.',
     lastMessage: 'Emma a eu 13/20, résultat encourageant !',
-    lastDate: '2026-04-10',
+    lastDate: ilYa(1),
     lastTime: '16:30',
     unread: false,
     messages: [
-      { id: 'emma-mt-1', sender: 'other', text: "Contrôle SVT vendredi sur le chapitre 3 — écosystèmes.", time: '10:00', date: '2026-04-08' },
-      { id: 'emma-mt-2', sender: 'parent', text: "Merci pour l'information.", time: '10:30', date: '2026-04-08' },
-      { id: 'emma-mt-3', sender: 'other', text: "Emma a eu 13/20, résultat encourageant !", time: '16:30', date: '2026-04-10' },
+      { id: 'emma-mt-1', sender: 'other', text: "Interrogation de SVT vendredi sur le chapitre 1 — la génétique.", time: '10:00', date: ilYa(5) },
+      { id: 'emma-mt-2', sender: 'parent', text: "Merci pour l'information.", time: '10:30', date: ilYa(5) },
+      { id: 'emma-mt-3', sender: 'other', text: "Emma a eu 13/20, résultat encourageant !", time: '16:30', date: ilYa(1) },
     ],
   },
   {
@@ -244,15 +251,15 @@ const emmaConversations: Conversation[] = [
     role: 'Direction',
     avatarType: 'school',
     tag: 'admin',
-    ariaSummary: 'Réunion parents-profs 15 mai 17h–19h. Brevet 23–25 juin.',
+    ariaSummary: `Réunion de rentrée des 3e jeudi 17h30. Brevet fin juin ${ANNEE_BREVET}.`,
     lastMessage: "Rappel : le règlement intérieur est dans le carnet.",
-    lastDate: '2026-04-09',
+    lastDate: ilYa(10),
     lastTime: '14:00',
     unread: false,
     messages: [
-      { id: 'emma-dir-1', sender: 'other', text: "Dates du brevet 2026 confirmées : 23, 24 et 25 juin.", time: '09:00', date: '2026-04-06' },
-      { id: 'emma-dir-2', sender: 'other', text: "Réunion parents-professeurs le 15 mai de 17h à 19h.", time: '10:00', date: '2026-04-07' },
-      { id: 'emma-dir-3', sender: 'other', text: "Rappel : le règlement intérieur est dans le carnet.", time: '14:00', date: '2026-04-09' },
+      { id: 'emma-dir-1', sender: 'other', text: `Réunion de rentrée des parents de 3e jeudi à 17h30 : présentation de l'année et du brevet (fin juin ${ANNEE_BREVET}).`, time: '09:00', date: ilYa(18) },
+      { id: 'emma-dir-2', sender: 'other', text: "Les manuels scolaires sont à couvrir avant la fin du mois.", time: '10:00', date: ilYa(15) },
+      { id: 'emma-dir-3', sender: 'other', text: "Rappel : le règlement intérieur est dans le carnet.", time: '14:00', date: ilYa(10) },
     ],
   },
   {
@@ -262,16 +269,16 @@ const emmaConversations: Conversation[] = [
     role: 'Suivi des absences',
     avatarType: 'absence',
     tag: 'vie',
-    ariaSummary: '2 absences justifiées ce trimestre. RAS.',
+    ariaSummary: '2 absences justifiées depuis la rentrée. RAS.',
     lastMessage: 'Bien noté, merci.',
-    lastDate: '2026-04-09',
+    lastDate: ilYa(7),
     lastTime: '09:00',
     unread: false,
     messages: [
-      { id: 'emma-a-1', sender: 'parent', text: "Bonjour, Emma a un rendez-vous orthodontiste ce matin, arrivée vers 10h.", time: '07:30', date: '2026-04-07' },
-      { id: 'emma-a-2', sender: 'other', text: "Noté, merci de l'avoir signalé.", time: '08:00', date: '2026-04-07' },
-      { id: 'emma-a-3', sender: 'parent', text: "Emma sera absente vendredi après-midi — rendez-vous médical.", time: '08:45', date: '2026-04-09' },
-      { id: 'emma-a-4', sender: 'other', text: "Bien noté, merci.", time: '09:00', date: '2026-04-09' },
+      { id: 'emma-a-1', sender: 'parent', text: "Bonjour, Emma a un rendez-vous orthodontiste ce matin, arrivée vers 10h.", time: '07:30', date: ilYa(13) },
+      { id: 'emma-a-2', sender: 'other', text: "Noté, merci de l'avoir signalé.", time: '08:00', date: ilYa(13) },
+      { id: 'emma-a-3', sender: 'parent', text: "Emma sera absente vendredi après-midi — rendez-vous médical.", time: '08:45', date: ilYa(7) },
+      { id: 'emma-a-4', sender: 'other', text: "Bien noté, merci.", time: '09:00', date: ilYa(7) },
     ],
   },
 ];
