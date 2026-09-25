@@ -9,8 +9,15 @@
 - B3a.2 référentiels (d84dd53) ; B3a.3 démo + Accueil branché, carnet.ts supprimé (2135ea7) ; B3a.4 UI (1a265cd) ; B3a.5 couleur (a801271).
 - Vérifié sur le web (393 dp) : Emma 8/20 le 19, 17/20 le 16, 13/20 le 24 identiques Accueil / Suivi / Messages ; Lucas et Léa : mêmes éléments Accueil / Suivi.
 - [ ] Redmi : Léa (6 domaines, aucun niveau), Lucas P1 (barres 3 segments, recopie « Atteint » en 4), Emma inchangée. PRÉVENIR avant de prendre la main.
-- [ ] À décider : segmented control Apprentissages · Souvenirs · Livrets (absent ; Souvenirs/Livrets vides = module grisé ?).
+- Primaire en trimestres (choix de l'école, jamais par défaut) : libellé « 1er trimestre » en toutes lettres, jamais « T1 » (décision du 25 sept ; pas d'interdiction serveur).
 - [ ] Compte réel : découpage non résolu côté app (défaut « périodes ») → appeler decoupage_annee() quand le Suivi réel sera branché.
+
+### B3b — à faire (décidé le 25 sept)
+- [ ] Segmented control Apprentissages · Souvenirs · Livrets, avec le contenu de Souvenirs et Livrets.
+- [ ] M19 : `academic_years.statut` modifiable uniquement par le serveur (le passage d'année est une opération serveur). Tests comme M18 (parent refusé ; postgres / service_role autorisés ; création d'enfant intacte).
+
+### Plan payant Supabase (à faire au passage en Pro)
+- [ ] Activer « Leaked password protection » (HaveIBeenPwned) : Pro et au-dessus seulement (doc « Password security »). Dashboard → Authentication → Providers → Email.
 
 ### B3-0 (24 sept) — corrections avant B3
 - Agenda : maternelle et primaire sans créneaux de cours (journée type dans « Emploi du temps », primaire seulement) ; Léa = 3 événements de GS en semaine ; tri par heure tous types, devoirs en tête sans horaire (« Pour aujourd’hui / demain / date ») ; voile du bas toujours visible + élévations Android ; bouton Emploi du temps sur sa ligne (44 px).

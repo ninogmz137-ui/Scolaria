@@ -3,7 +3,7 @@
  *
  * Maternelle : domaines du programme (ordre officiel) → observations : texte, ligne source.
  *              AUCUN niveau, aucune barre, aucun score, aucune comparaison.
- * Primaire   : sélecteur de période (P1…P5 ou S1/S2 selon le découpage ; jamais « T1 »), puis
+ * Primaire   : sélecteur de période (P1…P5, S1/S2 ou « 1er trimestre » en toutes lettres ; jamais « T1 »), puis
  *              disciplines → compétences. Barre à 3 OU 4 segments selon l'échelle de CHAQUE ligne,
  *              libellé sous la barre, ligne source obligatoire. Jamais de vert / rouge, jamais de /20.
  * Empty state si rien pour la période.

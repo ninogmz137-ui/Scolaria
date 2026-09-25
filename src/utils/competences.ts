@@ -59,9 +59,13 @@ export function nombrePeriodes(decoupage: Decoupage): number {
   return decoupage === 'semestres' ? 2 : decoupage === 'trimestres' ? 3 : 5;
 }
 
-/** Libellé court d'une période : « P1 », « S2 »… (« T » réservé au collège / lycée). */
+/**
+ * Libellé d'une période au Suivi maternelle / primaire : « P1 », « S2 »… Trimestres (seulement si
+ * l'école les a choisis, jamais par défaut) : en toutes lettres, « 1er trimestre » — jamais « T1 ».
+ */
 export function libellePeriode(decoupage: Decoupage, n: number): string {
-  return `${decoupage === 'semestres' ? 'S' : decoupage === 'trimestres' ? 'T' : 'P'}${n}`;
+  if (decoupage === 'trimestres') return `${n === 1 ? '1er' : `${n}e`} trimestre`;
+  return `${decoupage === 'semestres' ? 'S' : 'P'}${n}`;
 }
 
 /**

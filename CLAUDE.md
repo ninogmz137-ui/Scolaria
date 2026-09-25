@@ -286,7 +286,7 @@ Le contenu s'adapte **automatiquement au niveau de l'enfant sélectionné** :
 | Collège / Lycée | **Notes v7 inchangé** (courbe, pills matières, cartes extensibles) |
 
 - Bouton année `2025–2026 · CE1 ⌄` : année en cours + lien vers **Mon parcours**. Pas de frise.
-- **Découpage de l'année** : maternelle / primaire = **périodes P1 à P5** ou **semestres** selon l'école (LSU remis en janvier et juin). **Jamais de trimestres ni de sélecteur « T1 »** en maternelle / primaire. Collège / lycée : trimestres (ou semestres) de l'établissement.
+- **Découpage de l'année** : maternelle / primaire = **périodes P1 à P5** ou **semestres** selon l'école (LSU remis en janvier et juin). **Jamais de trimestres par défaut** en maternelle / primaire ; si l'école a choisi les trimestres (certaines rendent le LSU par trimestre), libellé **en toutes lettres** (« 1er trimestre »), **jamais l'abréviation « T1 »**. Collège / lycée : trimestres (ou semestres) de l'établissement.
 - **Échelle d'évaluation paramétrable** (par école / classe) : 3 niveaux A / PA / NA (usage quotidien fréquent) ou 4 niveaux LSU ; l'affichage s'adapte (3 ou 4 segments).
 - **Disciplines officielles du CP (cycle 2)**, pour la démo et les listes : Français (lecture, écriture, oral, vocabulaire, grammaire et orthographe) · Mathématiques (nombres, calcul et résolution de problèmes, grandeurs et mesures, espace et géométrie, organisation et gestion de données) · Questionner le monde · EMC · Langue vivante (anglais) · Enseignements artistiques · EPS.
 - Segmented control : **Apprentissages · Souvenirs · Livrets**
