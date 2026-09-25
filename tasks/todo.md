@@ -30,7 +30,11 @@
 - [ ] Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test.
 
 ### BLOQUANT avant toute famille réelle
-- [ ] Emails : fournisseur Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement).
+- [ ] **Lot « Emails et liens Auth »** (un seul lot) :
+  - Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement) ;
+  - modèles d'email en français : confirmation, invitation, réinitialisation, changement d'email (aujourd'hui : textes Supabase par défaut, en anglais) ;
+  - Site URL + Redirect URL vers l'app (`scolaria://`) (aujourd'hui : Site URL `http://localhost:3000`, aucune Redirect URL, Londres = Paris) ;
+  - test de bout en bout : inscription → email → lien qui ouvre l'app → compte confirmé → invitation du second responsable acceptée.
 
 ### Aria
 - [ ] Écran d'information Aria à la première utilisation (ce qui part chez Anthropic, où, combien de temps).
