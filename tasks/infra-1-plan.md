@@ -106,7 +106,16 @@ Nouveau projet en **eu-west-3 (Paris)**. Doc Supabase « Change Project Region �
 - Google Cloud : points de terminaison multi-région `eu`, +10 %. Claude Sonnet 5 listé ; « specific regional endpoints support Claude Sonnet 4.6 and earlier ». [à vérifier : quelles régions compose `eu`, et si Londres / Zurich en font partie]. — https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai
 - Amazon Bedrock : Claude Sonnet 5 ouvert à tous ; le profil d'inférence « EU » couvre aussi **Londres (eu-west-2) et Zurich (eu-central-2)**, qui ne sont pas dans l'UE ; routage dans une seule région (« In-region only ») dans l'UE : Irlande (eu-west-1) et Stockholm (eu-north-1). [à vérifier dans la console AWS : Sonnet 5 disponible en point de terminaison régional à Dublin]. — https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock
 
-## Formulation proposée (non appliquée ; CLAUDE.md, VISION.md et la charte non modifiés)
+## Formulation validée (25 sept) — à appliquer APRÈS la migration réussie
+> « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. Aria s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez Aria, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
+
+Remplace « OVH France » et « aucun transit hors UE » dans CLAUDE.md, VISION.md et la charte.
+
+AES-256 : **confirmé**, à garder avec sa source — « All customer data is encrypted at rest with AES-256 and in transit via TLS. » (https://supabase.com/security, lu le 25 sept 2026).
+
+Étape 1 vérifiée (25 sept) : plan gratuit = 2 projets actifs, comptés sur toutes les organisations dont on est propriétaire ou administrateur ; les projets en pause ne comptent pas (docs « About billing on Supabase » et « Billing FAQ »). Situation : 1 organisation (plan free), 1 projet actif (Londres) → le projet Paris peut être créé sans mettre Londres en pause.
+
+## Formulation proposée initialement (remplacée par la version validée ci-dessus)
 > « Les données du carnet de votre enfant (comptes, mots, messages, compétences, documents) sont hébergées dans l'Union européenne, à Paris. Aria, l'assistante, s'appuie sur un modèle d'intelligence artificielle d'Anthropic, société américaine : quand vous lui posez une question, votre question, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne, puis effacés par Anthropic sous 30 jours au plus. Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
 
 Si Aria passe par un point de terminaison UE (Bedrock en Irlande, par exemple, vérifié), la 2e phrase devient : « … sont traités dans l'Union européenne ; Anthropic, société américaine, n'y a pas accès. »

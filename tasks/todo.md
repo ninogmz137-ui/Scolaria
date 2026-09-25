@@ -19,6 +19,22 @@
 ### Plan payant Supabase (à faire au passage en Pro)
 - [ ] Activer « Leaked password protection » (HaveIBeenPwned) : Pro et au-dessus seulement (doc « Password security »). Dashboard → Authentication → Providers → Email.
 
+### INFRA-1 — migration Paris (validée le 25 sept, plan : tasks/infra-1-plan.md)
+- [ ] Étape 10 : RAPPELER à l'utilisateur de révoquer l'ancienne clé Anthropic (projet Londres) après la bascule réussie ; la nouvelle clé est dédiée au projet Paris.
+- [ ] Après migration réussie : remplacer « OVH France » et « aucun transit hors UE » dans CLAUDE.md, VISION.md et la charte par la formulation validée (texte exact dans tasks/infra-1-plan.md § « Formulation validée »).
+- [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
+- [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
+
+### BLOQUANT avant toute famille réelle
+- [ ] Emails : fournisseur Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement).
+
+### Aria
+- [ ] Écran d'information Aria à la première utilisation (ce qui part chez Anthropic, où, combien de temps).
+- [ ] Aria désactivable (Famille & paramètres) : désactivée = aucun appel au modèle.
+
+### Avant le premier contrat école / mairie
+- [ ] Aria via Amazon Bedrock en Irlande (eu-west-1), point de terminaison régional unique — PAS le profil « EU » (inclut Londres et Zurich). Changement de fournisseur isolé dans l'Edge Function `aria` (l'app ne change pas).
+
 ### B3-0 (24 sept) — corrections avant B3
 - Agenda : maternelle et primaire sans créneaux de cours (journée type dans « Emploi du temps », primaire seulement) ; Léa = 3 événements de GS en semaine ; tri par heure tous types, devoirs en tête sans horaire (« Pour aujourd’hui / demain / date ») ; voile du bas toujours visible + élévations Android ; bouton Emploi du temps sur sa ligne (44 px).
 - Docs : Agenda = « + » de la bottom bar, pas de FAB ; §17 échelle 3 niveaux (Non acquis · Partiellement acquis · Acquis) ou 4 LSU ; bouton année « 2026–2027 · CM2 ⌄ » ; VISION : 3114, 3018, 119, 112.
