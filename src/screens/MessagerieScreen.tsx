@@ -276,14 +276,17 @@ function Section({
   label,
   conversations,
   onPress,
+  first,
 }: {
   label: string;
   conversations: Conversation[];
   onPress: (conv: Conversation) => void;
+  /** Première section affichée : pas de marge haute (elle sépare deux sections, pas la toolbar). */
+  first?: boolean;
 }) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionLabel}>{label}</Text>
+      <Text style={[styles.sectionLabel, first && styles.sectionLabelFirst]}>{label}</Text>
       <View style={styles.sectionCard}>
         {conversations.map((conv, idx) => (
           <ConvRow
@@ -719,6 +722,7 @@ function MessagerieScreenContent() {
                 label="Cette semaine"
                 conversations={thisWeek}
                 onPress={handlePress}
+                first
               />
             )}
             {earlier.length > 0 && (
@@ -726,6 +730,7 @@ function MessagerieScreenContent() {
                 label="Plus tôt"
                 conversations={earlier}
                 onPress={handlePress}
+                first={thisWeek.length === 0}
               />
             )}
           </>
@@ -1162,6 +1167,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     marginTop: 24,
     marginBottom: 10,
+  },
+  sectionLabelFirst: {
+    marginTop: 4,
   },
   sectionCard: {
     backgroundColor: 'transparent',

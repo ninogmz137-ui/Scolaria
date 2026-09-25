@@ -360,7 +360,12 @@ const styles = StyleSheet.create({
   },
 
   // ── Day strip ──
+  // Un ScrollView (même horizontal) a flexGrow: 1 par défaut : dans la colonne `root`, la bande
+  // se partageait l'espace libre avec la timeline → grand vide sous les jours (Android). Hauteur
+  // de la bande = son contenu, rien de plus.
   dayStrip: {
+    flexGrow: 0,
+    flexShrink: 0,
     marginBottom: 4,
   },
   dayStripContent: {
