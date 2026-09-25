@@ -72,7 +72,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 // ─── Palette (mockup + violet polish) ─────────────────────
 
 const C = {
-  ink: '#1A2340',
+  ink: '#0F172A',
   violet: '#4338CA',
   cyan: '#06B6D4',
   violetDeep: '#3730A3',
@@ -339,7 +339,7 @@ function BulletinImportSheet({
             }}
           >
             <View style={[styles.bulletinIconWrap, { backgroundColor: 'rgba(26,35,64,0.06)' }]}>
-              <FileText size={22} color="#1A2340" strokeWidth={1.8} />
+              <FileText size={22} color="#0F172A" strokeWidth={1.8} />
             </View>
             <View style={styles.bulletinRowText}>
               <Text style={styles.bulletinRowTitle}>Importer un PDF</Text>
@@ -1263,7 +1263,7 @@ function NotesScreenContent() {
                 <View style={styles.trimPillInner}>
                   {selectedTrimester === 'ANNEE' ? (
                     <>
-                      <CalendarDays size={16} color="#1A2340" strokeWidth={1.8} />
+                      <CalendarDays size={16} color="#0F172A" strokeWidth={1.8} />
                       <Text style={[styles.trimPillText, { marginLeft: 4 }]}>▾</Text>
                     </>
                   ) : (
@@ -1666,7 +1666,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 17,
     fontWeight: '600',
-    color: '#1A2340',
+    color: '#0F172A',
     paddingHorizontal: 24,
     marginBottom: 8,
   },
@@ -1693,7 +1693,7 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansSemiBold,
     fontSize: 16,
     fontWeight: '600',
-    color: '#1A2340',
+    color: '#0F172A',
   },
   bulletinRowSub: {
     fontFamily: FontFamily.sansRegular,
