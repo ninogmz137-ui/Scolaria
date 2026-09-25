@@ -57,9 +57,11 @@ import { C as DC } from '../constants/design';
 import { nativeGlassCardShadow } from '../constants/theme';
 import { Text, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
-import ApprentissagesVue, { type ApprentissageItem } from './suivi/ApprentissagesVue';
-import { getDemoCompetences } from '../data/demo/carnet';
+import ApprentissagesVue from './suivi/ApprentissagesVue';
+import { getSuiviDemo, REGLAGES_DEMO } from '../data/demo/suivi';
 import { getCompetences } from '../services/database';
+import { referentielDuNiveau } from '../data/referentiels';
+import type { Decoupage, ElementSuivi } from '../utils/competences';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -127,21 +129,12 @@ interface CompetencyDomain {
   competencies: Competency[];
 }
 
+/**
+ * Démo : seul l'ordre d'affichage des matières est fixé ici. Moyennes, tendance, dernière note,
+ * points forts et faibles sont CALCULÉS à partir des notes (demo-grades.json), comme en compte réel.
+ */
 interface DemoNotesProfile {
-  childId: string;
-  overallAverage: number;
-  overallTrend: number;
-  graph: number[];
-  /** Moyennes par trimestre (démo) pour vue Année */
-  trimAverages: [number, number, number];
-  yearOverallAverage: number;
-  lastNote: { value: number; max: number; label: string; date: string };
-  strong: { label: string; score: string };
-  weak: { label: string; score: string };
-  observation: string;
   subjectOrder: string[];
-  emmaMathNotes?: Grade[];
-  lucasFrNotes?: Grade[];
 }
 
 // ─── Constants ────────────────────────────────────────────
@@ -179,102 +172,10 @@ function toFrenchDate(iso: string): string {
 
 const DEMO_PROFILES: Record<string, DemoNotesProfile> = {
   'demo-emma': {
-    childId: 'demo-emma',
-    overallAverage: 14.2,
-    overallTrend: 0.3,
-    trimAverages: [13.1, 13.8, 14.2],
-    yearOverallAverage: 13.7,
-    graph: [12.8, 13.1, 13.6, 14.0, 14.1, 14.2],
-    lastNote: { value: 14, max: 20, label: "Géométrie dans l'espace", date: '12 mars' },
-    strong: { label: 'Anglais', score: '16/20' },
-    weak: { label: 'Physique-Chimie', score: '11.5/20' },
-    observation:
-      "Emma progresse bien en algèbre. Les fractions restent un point à consolider avant le brevet.",
     subjectOrder: ['Mathématiques', 'Français', 'Histoire-Géo', 'Anglais', 'Physique-Chimie', 'SVT'],
-    emmaMathNotes: [
-      {
-        id: 'e1',
-        value: 14,
-        maxValue: 20,
-        date: '12 mars',
-        type: "Géométrie dans l'espace",
-        coefficient: 2,
-        sortDate: '2026-03-12',
-        trimester: 3,
-      },
-      {
-        id: 'e2',
-        value: 12,
-        maxValue: 20,
-        date: '28 fév',
-        type: 'Fractions avancées',
-        coefficient: 1,
-        sortDate: '2026-02-28',
-        trimester: 3,
-      },
-      {
-        id: 'e3',
-        value: 15,
-        maxValue: 20,
-        date: '14 fév',
-        type: 'Statistiques',
-        coefficient: 1,
-        sortDate: '2026-02-14',
-        trimester: 3,
-      },
-    ],
   },
 };
 
-/** 17 compétences · 10 acquis · 5 en cours · 2 non travaillés — 4 domaines (pilules) */
-const LE_DOMAINS: CompetencyDomain[] = [
-  {
-    id: 'd1',
-    name: 'Mobiliser le langage',
-    competencies: [
-      { id: 'c1', name: 'Communiquer avec les adultes', level: 'acquis' },
-      { id: 'c2', name: "S'exprimer en langage oral", level: 'acquis' },
-      { id: 'c3', name: 'Écouter et comprendre une histoire', level: 'en_cours' },
-      { id: 'c4', name: 'Reconnaître les lettres de son prénom', level: 'acquis' },
-      { id: 'c5', name: 'Identifier des écrits du quotidien', level: 'acquis' },
-      { id: 'c6', name: 'Écrire son prénom en majuscules', level: 'en_cours' },
-      { id: 'c7', name: 'Copier des mots simples', level: 'non_travaille' },
-    ],
-  },
-  {
-    id: 'd2',
-    name: 'Activités artistiques',
-    competencies: [
-      { id: 'c8', name: 'Dessiner et représenter', level: 'acquis' },
-      { id: 'c9', name: 'Chanter et rythmer', level: 'en_cours' },
-      { id: 'c10', name: 'Explorer différents matériaux', level: 'acquis' },
-    ],
-  },
-  {
-    id: 'd3',
-    name: 'Agir dans le monde',
-    competencies: [
-      { id: 'c11', name: 'Respecter les règles de la classe', level: 'acquis' },
-      { id: 'c12', name: 'Participer aux routines', level: 'en_cours' },
-      { id: 'c13', name: 'Partager le matériel', level: 'acquis' },
-    ],
-  },
-  {
-    id: 'd4',
-    name: 'Explorer le monde',
-    competencies: [
-      { id: 'c14', name: 'Observer le vivant', level: 'acquis' },
-      { id: 'c15', name: 'Se repérer dans l’espace', level: 'acquis' },
-      { id: 'c16', name: 'Expérimenter avec l’eau', level: 'en_cours' },
-      { id: 'c17', name: 'Nommer les saisons', level: 'non_travaille' },
-    ],
-  },
-];
-
-const LE_OBSERVATION =
-  "Léa est une élève curieuse et sociable. Elle progresse bien en langage oral et adore les activités artistiques. Un beau trimestre !";
-
-const LE_ANNEE_COMPARE = 'T1 : 8 acquis → T2 : 9 → T3 : 10';
 
 function parseGradeDateLoose(d: string): number {
   if (/^\d{4}-\d{2}-\d{2}/.test(d)) return new Date(d).getTime();
@@ -1032,34 +933,47 @@ function NotesScreenContent() {
   const isMaternelle = cycle ? cycle === 'maternelle' : schoolMode === 'maternelle';
   const isPrimaire = cycle ? cycle === 'primaire' : schoolMode === 'primaire';
 
-  // Primaire : compétences sur 4 niveaux. Démo = enfant de démo ; compte réel = table competences.
-  const [competences, setCompetences] = useState<ApprentissageItem[]>([]);
+  // Maternelle (observations) et primaire (compétences) : démo = src/data/demo/suivi.ts (même source
+  // que l'Accueil) ; compte réel = table competences (échelle et période de chaque ligne).
+  const [competences, setCompetences] = useState<ElementSuivi[]>([]);
+  // Découpage de l'année : démo = réglage de l'école de démo ; compte réel : défaut du niveau
+  // (périodes) tant que la résolution serveur (decoupage_annee) n'est pas branchée côté app.
+  const decoupageSuivi: Decoupage =
+    (isDemoMode && selectedChild ? REGLAGES_DEMO[selectedChild.id]?.decoupage : undefined) ?? 'periodes';
   useEffect(() => {
     let annule = false;
-    if (!isPrimaire || !selectedChild) {
+    if (!(isPrimaire || isMaternelle) || !selectedChild) {
       setCompetences([]);
       return;
     }
     if (isDemoMode) {
-      setCompetences(getDemoCompetences(selectedChild.id));
+      setCompetences(getSuiviDemo(selectedChild.id));
+      return;
+    }
+    if (isMaternelle) {
+      // Pas encore de table d'observations : état vide (jamais de donnée inventée).
+      setCompetences([]);
       return;
     }
     getCompetences(selectedChild.id).then(({ data }) => {
       if (annule) return;
       setCompetences(
         data.map((c) => ({
+          id: c.id,
           domaine: c.domaine,
           texte: c.competence,
           niveau: c.niveau,
-          date: new Date(c.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
-          source: c.source === 'ecole' ? 'l’école' : 'un responsable',
+          echelle: c.echelle,
+          periode: c.periode ?? undefined,
+          date: c.date,
+          source: c.source,
         })),
       );
     });
     return () => {
       annule = true;
     };
-  }, [isPrimaire, isDemoMode, selectedChild]);
+  }, [isPrimaire, isMaternelle, isDemoMode, selectedChild]);
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
@@ -1093,11 +1007,15 @@ function NotesScreenContent() {
             trimester: g.trimester,
             sortDate: g.date,
           }));
-          const avg =
-            sub.average ??
-            (grades.length > 0
-              ? grades.reduce((s, g) => s + (g.value / g.maxValue) * 20, 0) / grades.length
-              : 0);
+          // Moyenne (pondérée) et tendance calculées à partir des notes : une seule source de vérité.
+          const poids = subGrades.reduce((s, g) => s + (g.coefficient || 1), 0);
+          const avg = poids > 0
+            ? subGrades.reduce((s, g) => s + (g.value / g.outOf) * 20 * (g.coefficient || 1), 0) / poids
+            : 0;
+          const chrono = [...subGrades].sort((a, b) => a.date.localeCompare(b.date));
+          const ecart = chrono.length >= 2
+            ? chrono[chrono.length - 1].value / chrono[chrono.length - 1].outOf - chrono[0].value / chrono[0].outOf
+            : 0;
           return {
             id: sub.id,
             name: sub.name,
@@ -1105,7 +1023,7 @@ function NotesScreenContent() {
             grades,
             average: Math.round(avg * 10) / 10,
             classAvg: Math.round((sub.classAverage ?? 0) * 10) / 10,
-            trend: (sub.trend as Subject['trend']) || 'stable',
+            trend: (ecart > 0.05 ? 'up' : ecart < -0.05 ? 'down' : 'stable') as Subject['trend'],
           };
         });
 
@@ -1115,22 +1033,6 @@ function NotesScreenContent() {
           mapped = mapped
             .filter((s) => order.includes(s.name))
             .sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
-        }
-
-        if (!yearView && selectedChild.id === 'demo-emma' && prof?.emmaMathNotes) {
-          mapped = mapped.map((s) => {
-            if (s.name === 'Mathématiques') {
-              return {
-                ...s,
-                average: 13.5,
-                trend: 'up' as const,
-                grades: prof.emmaMathNotes!.map((g) => ({ ...g })),
-              };
-            }
-            if (s.name === 'Anglais') return { ...s, average: 16 };
-            if (s.name === 'Physique-Chimie') return { ...s, average: 11.5 };
-            return s;
-          });
         }
 
         setYearMeta(null);
@@ -1234,44 +1136,28 @@ function NotesScreenContent() {
     setSelectedDomainIdx(0);
   }, [selectedChild?.id, selectedTrimester]);
 
-  const trimesterDelta = isAnnee
-    ? 0
-    : selectedTrimester === 'T1'
-      ? -0.4
-      : selectedTrimester === 'T2'
-        ? -0.2
-        : 0;
-
+  // Moyenne et tendance générales : calculées à partir des notes affichées (démo comme compte réel).
+  const avecNotesSaisies = subjects.filter((s) => s.grades.length > 0);
   const overallAvg = useMemo(() => {
-    if (isAnnee && demoProfile && isDemoMode) {
-      return demoProfile.yearOverallAverage;
-    }
     if (isAnnee && !isDemoMode && yearMeta) {
       return yearMeta.overall;
     }
-    if (demoProfile && isDemoMode) {
-      return Math.round((demoProfile.overallAverage + trimesterDelta) * 10) / 10;
-    }
-    if (subjects.length === 0) return 0;
-    return subjects.reduce((s, sub) => s + sub.average, 0) / subjects.length;
-  }, [subjects, demoProfile, isDemoMode, trimesterDelta, isAnnee, yearMeta]);
+    if (avecNotesSaisies.length === 0) return 0;
+    return avecNotesSaisies.reduce((s, sub) => s + sub.average, 0) / avecNotesSaisies.length;
+  }, [avecNotesSaisies, isDemoMode, isAnnee, yearMeta]);
 
   const overallTrendNum = useMemo(() => {
-    if (isAnnee && demoProfile && isDemoMode) {
-      const [a, , c] = demoProfile.trimAverages;
-      return Math.round(((c - a) / 2) * 10) / 10;
-    }
     if (isAnnee && !isDemoMode && yearMeta) {
       const [a, , c] = yearMeta.trimAvgs;
       return Math.round(((c - a) / 2) * 10) / 10;
     }
-    if (demoProfile && isDemoMode) {
-      const base = demoProfile.overallTrend;
-      const t = selectedTrimester === 'T1' ? -0.1 : selectedTrimester === 'T2' ? 0.1 : base;
-      return Math.round(t * 10) / 10;
-    }
-    return 0.3;
-  }, [demoProfile, isDemoMode, selectedTrimester, isAnnee, yearMeta]);
+    const ecarts = subjects
+      .map((s) => [...s.grades].sort((a, b) => gradeSortTime(a) - gradeSortTime(b)))
+      .filter((g) => g.length >= 2)
+      .map((g) => (g[g.length - 1].value / g[g.length - 1].maxValue - g[0].value / g[0].maxValue) * 20);
+    if (ecarts.length === 0) return 0;
+    return Math.round((ecarts.reduce((s, e) => s + e, 0) / ecarts.length) * 10) / 10;
+  }, [subjects, isDemoMode, isAnnee, yearMeta]);
 
   const activeSubject = subjects[Math.min(selectedSubjectIdx, subjects.length - 1)] ?? null;
 
@@ -1281,38 +1167,18 @@ function NotesScreenContent() {
   }, [activeSubject]);
 
   const lastGradeDisplay = useMemo(() => {
-    if (demoProfile && isDemoMode && isAnnee) {
-      const allGrades = subjects.flatMap((sub) => sub.grades.map((g) => ({ ...g })));
-      const sorted = [...allGrades].sort((a, b) => gradeSortTime(b) - gradeSortTime(a));
-      const g = sorted[0];
-      if (!g) return null;
-      return { value: g.value, max: g.maxValue, type: g.type, date: g.date };
-    }
-    if (demoProfile && isDemoMode) {
-      return {
-        value: demoProfile.lastNote.value,
-        max: demoProfile.lastNote.max,
-        type: demoProfile.lastNote.label,
-        date: demoProfile.lastNote.date,
-      };
-    }
     const allGrades = subjects.flatMap((sub) => sub.grades.map((g) => ({ ...g })));
     const sorted = [...allGrades].sort((a, b) => gradeSortTime(b) - gradeSortTime(a));
     const g = sorted[0];
     if (!g) return null;
     return { value: g.value, max: g.maxValue, type: g.type, date: g.date };
-  }, [subjects, demoProfile, isDemoMode, isAnnee]);
+  }, [subjects]);
 
   const bestWorst = useMemo(() => {
-    if (demoProfile && isDemoMode && !isAnnee) {
-      return {
-        best: { name: subjectNamePlain(demoProfile.strong.label), score: demoProfile.strong.score },
-        worst: { name: subjectNamePlain(demoProfile.weak.label), score: demoProfile.weak.score },
-      };
-    }
-    if (subjects.length === 0) return { best: null, worst: null };
-    const best = subjects.reduce((a, b) => (a.average > b.average ? a : b), subjects[0]);
-    const worst = subjects.reduce((a, b) => (a.average < b.average ? a : b), subjects[0]);
+    const notees = subjects.filter((s) => s.grades.length > 0);
+    if (notees.length === 0) return { best: null, worst: null };
+    const best = notees.reduce((a, b) => (a.average > b.average ? a : b), notees[0]);
+    const worst = notees.reduce((a, b) => (a.average < b.average ? a : b), notees[0]);
     return {
       best: { name: subjectNamePlain(best.name), score: `${best.average.toFixed(1)}/20` },
       worst:
@@ -1320,7 +1186,7 @@ function NotesScreenContent() {
           ? { name: subjectNamePlain(worst.name), score: `${worst.average.toFixed(1)}/20` }
           : null,
     };
-  }, [subjects, demoProfile, isDemoMode, isAnnee]);
+  }, [subjects]);
 
   const gradesGroupedForSubject = useMemo(() => {
     if (!activeSubject) return [];
@@ -1336,257 +1202,36 @@ function NotesScreenContent() {
     return lb?.grades[lb.grades.length - 1]?.id ?? '';
   }, [activeSubject, isAnnee, gradesGroupedForSubject]);
 
-  const observationText = useMemo(() => {
-    if (!isMaternelle && isAnnee) {
-      return 'Vue annuelle — moyenne sur 3 trimestres';
-    }
-    if (isMaternelle && isAnnee) {
-      return 'Vue annuelle — progression sur les 3 trimestres.';
-    }
-    if (isDemoMode && selectedChild?.id === 'demo-lea') return LE_OBSERVATION;
-    if (demoProfile && isDemoMode) return demoProfile.observation;
-    // Jamais d'observation inventée : sans donnée, rien.
-    return '';
-  }, [selectedChild, demoProfile, isDemoMode, isAnnee, isMaternelle]);
+  // Collège / lycée uniquement (la maternelle et le primaire ont leur propre vue).
+  // Jamais d'observation inventée : sans donnée, rien.
+  const observationText = isAnnee ? 'Vue annuelle — moyenne sur 3 trimestres' : '';
 
-  // ─── PRIMAIRE : compétences sur 4 niveaux, jamais de notes /20 ─────
+  // ─── MATERNELLE : domaines → observations (texte, date, source), sans niveau ni score ─────
+  // ─── PRIMAIRE : disciplines → compétences, barre à 3 ou 4 segments selon CHAQUE ligne,
+  //     sélecteur de période (P1…P5 ou S1/S2), jamais de trimestre ni de note /20 ─────
 
-  if (isPrimaire) {
+  if (isPrimaire || isMaternelle) {
     return (
       <ApprentissagesVue
-        titre={`Compétences du livret · ${selectedChild?.niveau ?? ''}`}
+        mode={isMaternelle ? 'maternelle' : 'primaire'}
+        titre={
+          isMaternelle
+            ? `Carnet de suivi des apprentissages · ${selectedChild?.niveau ?? ''}`
+            : `Compétences · ${selectedChild?.niveau ?? ''}`
+        }
         items={competences}
-        vide={`Aucune compétence saisie pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`}
+        decoupage={decoupageSuivi}
+        referentiel={referentielDuNiveau(selectedChild?.niveau)}
+        vide={
+          isMaternelle
+            ? `Aucune observation pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`
+            : `Aucune compétence pour ${selectedChild?.name ?? 'cet enfant'} sur cette période.`
+        }
       />
     );
   }
 
-  // ─── MATERNELLE : domaines + observations (démo : Léa uniquement) ─────
-
-  if (isMaternelle && !(isDemoMode && selectedChild?.id === 'demo-lea')) {
-    return (
-      <ApprentissagesVue
-        titre={`Carnet de suivi des apprentissages · ${selectedChild?.niveau ?? ''}`}
-        items={[]}
-        vide={`Aucune observation pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`}
-      />
-    );
-  }
-
-  if (isMaternelle) {
-    const domains = LE_DOMAINS;
-    const totalCompetencies = domains.reduce((s, d) => s + d.competencies.length, 0);
-    const acquired = domains.reduce(
-      (s, d) => s + d.competencies.filter((c) => c.level === 'acquis').length,
-      0,
-    );
-    const inProgress = domains.reduce(
-      (s, d) => s + d.competencies.filter((c) => c.level === 'en_cours').length,
-      0,
-    );
-    const pctAcquis = totalCompetencies > 0 ? Math.round((acquired / totalCompetencies) * 100) : 0;
-    const activeDomain = domains[selectedDomainIdx] ?? domains[0];
-    const domainAcquired = activeDomain.competencies.filter((c) => c.level === 'acquis').length;
-    const domainTotal = activeDomain.competencies.length;
-    const domainPct = domainTotal > 0 ? Math.round((domainAcquired / domainTotal) * 100) : 0;
-
-    return (
-      <View style={styles.root}>
-        <View style={styles.wallpaperClip} pointerEvents="none">
-          <Image source={wallpaperSource.source} style={styles.wallpaperFill} resizeMode="cover" />
-          <View style={styles.wallpaperFade} />
-        </View>
-
-        <Reanimated.ScrollView
-          style={styles.mainScroll}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scroll,
-            { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
-          ]}
-          scrollEventThrottle={16}
-          onScroll={scrollHandler}
-        >
-          <View style={styles.titleRow}>
-            <View style={styles.titleActions}>
-              <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
-                <LiquidGlass style={styles.trimPill}>
-                  <View style={styles.trimPillInner}>
-                    {selectedTrimester === 'ANNEE' ? (
-                      <>
-                        <CalendarDays size={16} color="#1A2340" strokeWidth={1.8} />
-                        <Text style={[styles.trimPillText, { marginLeft: 4 }]}>▾</Text>
-                      </>
-                    ) : (
-                      <Text style={styles.trimPillText}>
-                        {trimesterPillLabel(selectedTrimester)} ▾
-                      </Text>
-                    )}
-                  </View>
-                </LiquidGlass>
-              </Pressable>
-            </View>
-          </View>
-
-          <Modal visible={showTrimesterPicker} transparent animationType="fade">
-            <View style={styles.modalRoot} pointerEvents="box-none">
-              <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowTrimesterPicker(false)} />
-              <View style={[styles.trimesterDropdownWrap, { top: insets.top + 52 }]}>
-                <View style={styles.trimesterDropdown}>
-                  {TRIMESTER_OPTIONS.map((opt) => {
-                    const isActive = opt.value === selectedTrimester;
-                    return (
-                      <Pressable
-                        key={opt.value}
-                        style={[styles.trimesterOption, isActive && styles.trimesterOptionActive]}
-                        onPress={() => {
-                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                          setSelectedTrimester(opt.value);
-                          setShowTrimesterPicker(false);
-                        }}
-                      >
-                        <View style={styles.trimesterOptionRow}>
-                          <View style={styles.trimesterOptionLabelWrap}>
-                            {opt.value === 'ANNEE' ? (
-                              <CalendarDays
-                                size={16}
-                                color={isActive ? C.violet : C.label}
-                                strokeWidth={1.8}
-                              />
-                            ) : null}
-                            <Text style={[styles.trimesterOptionText, isActive && styles.trimesterOptionTextActive]}>
-                              {opt.label}
-                            </Text>
-                          </View>
-                          {isActive ? <Check size={16} color={C.violet} strokeWidth={2.5} /> : null}
-                        </View>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          {/* Overview */}
-          <GlassPanel style={{ padding: 18, paddingHorizontal: 20, marginBottom: 12 }}>
-            <View style={styles.maternelleStatsRow}>
-              <View style={styles.maternelleStat}>
-                <Text style={[styles.bigNum, { fontSize: 44 }]}>{acquired}</Text>
-                <Text style={styles.maternelleStatLabel}>Acquis</Text>
-              </View>
-              <View style={styles.maternelleStat}>
-                <Text style={[styles.bigNum, { fontSize: 44 }]}>{inProgress}</Text>
-                <Text style={styles.maternelleStatLabel}>En cours</Text>
-              </View>
-              <View style={styles.maternelleStat}>
-                <Text style={[styles.bigNum, { fontSize: 44 }]}>{totalCompetencies}</Text>
-                <Text style={styles.maternelleStatLabel}>Total</Text>
-              </View>
-            </View>
-            <View style={{ marginTop: 14 }}>
-              <GradientTrack height={4} pct={pctAcquis} />
-            </View>
-            <Text style={styles.captionViolet}>{pctAcquis}% des compétences acquises</Text>
-          </GlassPanel>
-
-          {isAnnee ? (
-            <Text style={styles.anneeCompare}>{LE_ANNEE_COMPARE}</Text>
-          ) : null}
-
-          {/* Domain pills */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.pillRow}
-            style={{ marginBottom: 14 }}
-          >
-            {domains.map((domain, idx) => {
-              const isActive = selectedDomainIdx === idx;
-              return (
-                <Pressable
-                  key={domain.id}
-                  onPress={() => setSelectedDomainIdx(idx)}
-                  style={({ pressed }) => [pressed && { opacity: 0.92 }]}
-                >
-                  {isActive ? (
-                    <View style={[styles.pill, styles.pillActive]}>
-                      <Text style={[styles.pillTxt, styles.pillTxtOn]} numberOfLines={1}>
-                        {domain.name}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={[styles.pill, styles.pillGlass]}>
-                      <Text style={styles.pillTxt} numberOfLines={1}>
-                        {domain.name}
-                      </Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-
-          {/* Legend */}
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: C.ink }]} />
-              <Text style={styles.legendLabel}>Acquis</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={{ width: 10, height: 10, borderRadius: 5, overflow: 'hidden' }}>
-                <View style={[{ flex: 1 }, { backgroundColor: 'rgba(26,35,64,0.6)' }]} />
-              </View>
-              <Text style={styles.legendLabel}>En cours</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: 'rgba(26,35,64,0.14)',
-                }}
-              />
-              <Text style={styles.legendLabel}>Non travaillé</Text>
-            </View>
-          </View>
-
-          {/* Domain card */}
-          <GlassPanel smallRadius style={{ padding: 16, marginBottom: 12 }}>
-            <View style={styles.domainHead}>
-              <Text style={styles.domainTitle}>{activeDomain.name}</Text>
-              <Text style={styles.domainMetaViolet}>
-                {domainAcquired}/{domainTotal} acquis
-              </Text>
-            </View>
-            <GradientTrack height={4} pct={domainPct} />
-            {activeDomain.competencies.map((comp, i) => (
-              <View
-                key={comp.id}
-                style={[styles.compRow, i > 0 && { borderTopWidth: 1, borderTopColor: C.rowSep }]}
-              >
-                <Text style={styles.compLabel}>{comp.name}</Text>
-                <CompetencyDot level={comp.level} />
-              </View>
-            ))}
-          </GlassPanel>
-
-          <View style={[styles.obsCardGrad, { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(15,23,42,0.06)' }]}>
-            <Text style={styles.obsLabelViolet}>OBSERVATION ENSEIGNANT</Text>
-            <Text style={styles.obsQuote}>{observationText}</Text>
-          </View>
-        </Reanimated.ScrollView>
-        <BulletinImportSheet
-          visible={showBulletinImport}
-          onClose={() => setShowBulletinImport(false)}
-          bottomInset={insets.bottom}
-        />
-      </View>
-    );
-  }
-
-  // ─── PRIMAIRE / COLLÈGE / LYCÉE ──────────────────────────
+  // ─── COLLÈGE / LYCÉE (notes v7) ──────────────────────────
 
   function trendArrow(t: 'up' | 'down' | 'stable') {
     if (t === 'up') return '↗';
