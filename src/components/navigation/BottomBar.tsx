@@ -6,8 +6,8 @@
  * - Bouton Recherche (gauche) : rond 34px
  * - Pill Aria (centre, flex:1) : ScolariaSymbol 14px + texte placeholder
  * - Bouton action droite (contextuel) :
- *     Accueil  → Edit
- *     Notes    → ScanLine
+ *     Accueil  → Plus (Ajouter au carnet)
+ *     Suivi    → ScanLine
  *     Agenda   → Plus (ouvre formulaire ajout événement)
  *     Messages → Edit
  *     Aria     → invisible (espace gardé)
@@ -71,10 +71,11 @@ type LucideIcon = typeof Edit;
 
 function getActionIcon(activeTab: ActiveTab): LucideIcon | null {
   switch (activeTab) {
+    case 'accueil':  return Plus;      // Ajouter au carnet (CLAUDE.md : « + »)
     case 'notes':    return ScanLine;
     case 'agenda':   return Plus;
     case 'aria':     return null;
-    default:         return Edit; // accueil + messages
+    default:         return Edit;      // messages : nouveau message
   }
 }
 
@@ -139,7 +140,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
           onPress={handleActionPress}
           style={styles.roundBtn}
           accessibilityRole="button"
-          accessibilityLabel="Action"
+          accessibilityLabel={activeTab === 'accueil' ? 'Ajouter au carnet' : 'Action'}
         >
           <ActionIcon size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
         </Pressable>
