@@ -50,7 +50,8 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 - NativeWind (Tailwind CSS pour React Native)
 
 ### Librairies clés
-- `lucide-react-native` — toutes les icônes (size 20-24, strokeWidth 2)
+- `@getpapillon/papicons` — icônes de navigation de la top bar (Accueil, Suivi, Agenda, Messages)
+- `lucide-react-native` — toutes les autres icônes (size 20-24, strokeWidth 2)
 - `expo-linear-gradient` — dégradés natifs (obligatoire — backgroundColor ne supporte pas les dégradés sur native)
 - `react-native-reanimated` — animations
 - `expo-speech` — voice input Aria (à venir)
@@ -114,7 +115,7 @@ Pages de navigation principale = glass morphism. Pages profondes = Notion ultra-
 - Onglet actif : pill rgba(15,23,42,0.08), icône + label, height 30px, borderRadius 999px
 - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
 - Badge non-lu : point rouge 6px, position absolute
-- Icône Suivi : lucide `trending-up`
+- Icônes des onglets : papicons (Home, Grades pour Suivi, Calendar, TextBubble)
 ```
 
 **Bottom bar (toujours visible)**
@@ -229,7 +230,7 @@ position: absolute, bottom: 72px (au-dessus bottom bar), right: 14px
 
 ### Icônes
 ```
-lucide-react-native — partout dans l'UI
+Icônes de navigation (top bar) = papicons ; lucide-react-native partout ailleurs
 Taille : 20px listes, 22-24px navigation
 strokeWidth: 2
 Emoji : autorisés dans le contenu (messages, Score de Joie) — jamais comme icône UI

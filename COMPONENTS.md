@@ -20,7 +20,8 @@ TOP BAR (toujours visible, toutes les pages)
   - Fond : JAMAIS opaque, jamais BlurView. Transparente au repos ;
     fondu #F2F1EE dont l'opacité suit le défilement (ScrollVeil, même composant
     que le voile de la bottom bar — src/components/navigation/ScrollVeil.tsx)
-  - Icône Suivi : lucide trending-up
+  - Icônes des onglets : papicons (Home, Grades pour Suivi, Calendar, TextBubble).
+    Règle : icônes de navigation (top bar) = papicons ; lucide partout ailleurs.
   - Onglet actif : pill grise background rgba(15,23,42,0.08), icône + label
   - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
   - Pill height : 30px, borderRadius 999px, padding 0 10px
