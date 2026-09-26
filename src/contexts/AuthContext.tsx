@@ -10,7 +10,7 @@
  * If Supabase is not configured, auto-enters demo mode as parent.
  */
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { ENV } from '../services/getEnv';
@@ -66,6 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  // Lu par l'écouteur Supabase (abonné une seule fois) : un state capturé y resterait figé à false.
+  const isDemoModeRef = useRef(false);
+  isDemoModeRef.current = isDemoMode;
 
   const isSupabaseConfigured =
     !!ENV.SUPABASE_URL &&
@@ -101,10 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes — but never override demo users
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, s) => {
+      (event, s) => {
         setSession(s);
-        if (isDemoMode) return; // never wipe demo user on Supabase events
-        setUser(s?.user ?? null);
+        if (__DEV__) console.log('[session]', event);
+        if (isDemoModeRef.current) return; // never wipe demo user on Supabase events
+        // Même compte (rafraîchissement du jeton, INITIAL_SESSION…) : on garde le MÊME objet user,
+        // sinon tout ce qui dépend de user se rejoue (redirection, rechargements) à chaque jeton.
+        // Seuls un changement de compte ou une mise à jour du profil (USER_UPDATED) le remplacent.
+        const suivant = s?.user ?? null;
+        setUser((actuel) =>
+          actuel && suivant && actuel.id === suivant.id && event !== 'USER_UPDATED' ? actuel : suivant,
+        );
       },
     );
 
@@ -204,7 +214,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { error } = await supabase.auth.signOut();
+    // Portée « local » : ne ferme que la session de CET appareil. La portée par défaut (« global »)
+    // révoque toutes les sessions du compte, sur tous les appareils (diagnostic du 26 sept 2026 :
+    // tasks/lessons.md, déconnexion du Redmi).
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     setRole(null);
     setIsDemoMode(false);

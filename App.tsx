@@ -80,12 +80,14 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
 
   useEffect(() => {
     // Nettoyage : annule les anciens « Conseil du matin » (données de démo) encore programmés.
-    if (user) {
+    if (idCompte) {
       cancelConseilDuMatin().catch(() => {});
     }
-  }, [user]);
+  }, [idCompte]);
 
-  // ─── Redirect on auth state changes ────────────────────
+  // ─── Redirection : uniquement sur un CHANGEMENT de compte ou de rôle ───
+  // (connexion, déconnexion, démo, mode enfant). Dépend de l'id du compte, jamais de l'objet user :
+  // un rafraîchissement du jeton ne doit pas réinitialiser la navigation (formulaire en cours perdu).
   useEffect(() => {
     if (loading || etatProfil !== 'ok') return;
 
@@ -101,7 +103,7 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
               : 'Login';
 
     // If not authenticated, always keep auth stack entrypoint.
-    const next = !role || !user ? 'Login' : target;
+    const next = !role || !idCompte ? 'Login' : target;
 
     if (!navigationRef.isReady()) return;
 
@@ -109,7 +111,7 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
       index: 0,
       routes: [{ name: next as keyof RootStackParamList }],
     });
-  }, [navigationRef, loading, role, user, etatProfil]);
+  }, [navigationRef, loading, role, idCompte, etatProfil]);
 
   if (loading || (user && !isDemo && etatProfil === 'verification')) {
     return (
