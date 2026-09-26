@@ -50,6 +50,14 @@ export function markConversationRead(conversationId: string): void {
   if (changed) notify();
 }
 
+/** « Tout marquer comme lu » (menu « Tout ⌄ » de Messages) : toutes les conversations de l'enfant. */
+export function markAllConversationsRead(childId: string): void {
+  const liste = store[childId];
+  if (!liste?.some((c) => c.unread)) return;
+  store[childId] = liste.map((c) => (c.unread ? { ...c, unread: false } : c));
+  notify();
+}
+
 export function sendMessage(conversationId: string, text: string): void {
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;

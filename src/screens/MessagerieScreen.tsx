@@ -1,35 +1,24 @@
 /**
- * MessagerieScreen — WhatsApp-style conversation list.
+ * MessagerieScreen — onglet « Messages » (B4, décisions du 26 sept 2026 : tasks/b4-decisions.md ;
+ * COMPONENTS §6 « Messages » et §7 « Card message »).
  *
- * - Active child from ActiveChildContext determines which conversations show.
- * - Sections: "Cette semaine" / "Plus tôt" based on lastDate.
- * - Tap a row → ConversationDetailScreen (thread).
- * - Mark as read when tapped, unread blue dot on right.
- * - Zero Aria content, no Supabase, local store only.
+ * - Segmented « Général · [prénom] » : Général par défaut, puis retour au dernier segment consulté.
+ *   · Général : le collectif (établissement, direction, mairie).
+ *   · [Prénom] : ce qui concerne seulement cet enfant (fils avec les enseignants, absences).
+ *     Le modèle par foyer, les options d'envoi et « Envoyé aussi à » arrivent en B4b.
+ * - Barre : recherche en pill pleine largeur + menu « Tout ⌄ » (Tout · Non lus · Tout marquer comme lu).
+ * - Liste à plat façon X (LigneMessage) : pas de bandeau, pas de rouge, pas de résumé Aria, pas de rôle,
+ *   pas de tag de catégorie.
+ * - Un enfant = un carnet : uniquement les données de l'enfant sélectionné.
  */
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Platform,
-  Modal,
-  Dimensions,
-} from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, Platform, Modal, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  runOnJS,
-  Easing,
-  cancelAnimation,
-} from 'react-native-reanimated';
-import { School, CalendarX, Search, ChevronDown } from 'lucide-react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated from 'react-native-reanimated';
+import { School, CalendarX, Search, ChevronDown, Check } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -37,1374 +26,301 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   getConversations,
   markConversationRead,
+  markAllConversationsRead,
+  subscribe,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
 import { C } from '../constants/design';
-import { androidFloatingWhitePill, nativeWhiteInteractiveShadow } from '../constants/theme';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
-
-// ─── Constants ────────────────────────────────────────────
+import Segmented from '../components/Segmented';
+import LigneMessage, { SEPARATEURS_MESSAGES } from '../components/messages/LigneMessage';
 
 const NAVY = '#0F172A';
-const INDIGO = '#4338CA';
-const BORDER_L = 'rgba(15,23,42,0.06)';
 const TEXT55 = 'rgba(15,23,42,0.55)';
-const TEXT35 = 'rgba(15,23,42,0.35)';
 
-const TAG_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  sortie:   { bg: '#CFFAFE', text: '#155E75', label: 'Sortie' },
-  devoir:   { bg: '#FEF3C7', text: '#92400E', label: 'Devoir' },
-  vie:      { bg: '#EEF2FF', text: '#4338CA', label: 'Vie scolaire' },
-  cantine:  { bg: '#D1FAE5', text: '#065F46', label: 'Cantine' },
-  admin:    { bg: '#E2E8F0', text: '#334155', label: 'Administratif' },
-  controle: { bg: '#FCE7F3', text: '#9D174D', label: 'Contrôle' },
-  rdv:      { bg: '#FFEDD5', text: '#9A3412', label: 'Rendez-vous' },
-};
+// ─── Segment : Général par défaut, puis le dernier consulté ─────────────
 
-const URGENCY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  signer:   { bg: 'rgba(239,68,68,0.10)', text: '#EF4444', label: 'À SIGNER' },
-  repondre: { bg: 'rgba(15,23,42,0.07)',  text: 'rgba(15,23,42,0.55)', label: 'À RÉPONDRE' },
-};
+type Segment = 'general' | 'enfant';
+const CLE_SEGMENT = 'messages.segment';
+let dernierSegment: Segment | null = null;
 
-// ─── Filter types ─────────────────────────────────────────
+function memoriserSegment(s: Segment) {
+  dernierSegment = s;
+  AsyncStorage.setItem(CLE_SEGMENT, s).catch(() => {});
+}
 
-type FilterId = 'all' | 'unread' | 'teachers' | 'school' | 'absences';
+// ─── Filtre (menu « Tout ⌄ ») ────────────────────────────
 
-const FILTER_OPTIONS: { id: FilterId; label: string }[] = [
-  { id: 'all', label: 'Tout' },
-  { id: 'unread', label: 'Non lus' },
-  { id: 'teachers', label: 'Messages' },
-  { id: 'school', label: 'École' },
-  { id: 'absences', label: 'Absences' },
-];
+type Filtre = 'tout' | 'non_lus';
+const LIBELLES_FILTRE: Record<Filtre, string> = { tout: 'Tout', non_lus: 'Non lus' };
 
-/** Single pill: collapsed width → expanded (same component) */
-const HEADER_ACTION_GAP = 8;
-const SEARCH_PILL_MIN_W = 40;
-const SEARCH_PILL_MAX_W = Math.round(Dimensions.get('window').width * 0.4);
+// ─── Dates ───────────────────────────────────────────────
 
-// ─── Helpers ─────────────────────────────────────────────
-
-function formatLastDate(dateStr: string): string {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-  if (dateStr === todayStr) return "Aujourd'hui";
-  if (dateStr === yesterdayStr) return 'Hier';
-
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return dateStr;
-
-  const diffDays = Math.floor((today.getTime() - d.getTime()) / 86400000);
-  if (diffDays < 7) {
-    const DAY = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
-    return DAY[d.getDay()];
-  }
+/** « Aujourd'hui », « Hier », « Mar. », puis « 12 sept. ». */
+export function dateCourte(iso: string): string {
+  const aujourdHui = new Date();
+  const j0 = new Date(aujourdHui.getFullYear(), aujourdHui.getMonth(), aujourdHui.getDate());
+  const [a, m, j] = iso.split('T')[0].split('-').map(Number);
+  const d = new Date(a, m - 1, j);
+  if (isNaN(d.getTime())) return iso;
+  const ecart = Math.round((j0.getTime() - d.getTime()) / 86400000);
+  if (ecart === 0) return 'Aujourd’hui';
+  if (ecart === 1) return 'Hier';
+  if (ecart > 1 && ecart < 7) return ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'][d.getDay()];
   return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
-function isThisWeek(dateStr: string): boolean {
-  const d = new Date(dateStr + 'T00:00:00');
-  if (isNaN(d.getTime())) return false;
-  const diffDays = Math.floor((Date.now() - d.getTime()) / 86400000);
-  return diffDays <= 7;
+function initialesDe(nom: string): string {
+  const mots = nom.replace(/^(Mme|M\.|Mlle)\s+/, '').split(/\s+/).filter(Boolean);
+  return mots.map((p) => p[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
-// ─── Avatar ───────────────────────────────────────────────
+// ─── Écran ───────────────────────────────────────────────
 
-function ConvAvatar({ conv }: { conv: Conversation }) {
-  if (conv.avatarType === 'school') {
-    return (
-      <View style={[styles.avatar, { backgroundColor: '#DBEAFE' }]}>
-        <School size={22} color="#2563EB" strokeWidth={1.8} />
-      </View>
-    );
-  }
-  if (conv.avatarType === 'absence') {
-    return (
-      <View style={[styles.avatar, { backgroundColor: '#FEF3C7' }]}>
-        <CalendarX size={22} color="#D97706" strokeWidth={1.8} />
-      </View>
-    );
-  }
-  // initials
-  const initials = conv.initials ?? conv.name.split(' ').map((p) => p[0]).join('').toUpperCase().slice(0, 2);
-  const color = conv.avatarColor ?? NAVY;
-  return (
-    <View style={[styles.avatar, { backgroundColor: color }]}>
-      <Text style={styles.avatarInitials}>{initials}</Text>
-    </View>
-  );
-}
-
-// ─── Row ─────────────────────────────────────────────────
-
-function ConvRow({
-  conv,
-  onPress,
-  isLast,
-}: {
-  conv: Conversation;
-  onPress: () => void;
-  isLast: boolean;
-}) {
-  const tagStyle = conv.tag ? TAG_STYLES[conv.tag] : null;
-  const urgStyle = conv.urgency ? URGENCY_STYLES[conv.urgency] : null;
-
-  return (
-    <View style={styles.rowShadowWrap}>
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.row,
-          conv.unread && styles.rowUnread,
-          pressed && styles.rowPressed,
-        ]}
-        accessibilityRole="button"
-      >
-        <View style={styles.rowInner}>
-          <ConvAvatar conv={conv} />
-
-          <View style={styles.rowBody}>
-            {/* Name + role + timestamp */}
-            <View style={styles.rowTop}>
-              <Text
-                style={[
-                  styles.rowName,
-                  { fontFamily: conv.unread ? FontFamily.sansBold : FontFamily.sansSemiBold },
-                ]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {conv.name}
-              </Text>
-              <Text style={styles.rowRole} numberOfLines={1}>· {conv.role}</Text>
-              <View style={{ flex: 1 }} />
-              <Text style={[styles.rowTime, conv.unread && styles.rowTimeUnread]} numberOfLines={1}>
-                {formatLastDate(conv.lastDate)}
-              </Text>
-            </View>
-
-            {/* Tags row */}
-            {(tagStyle || urgStyle) && (
-              <View style={styles.tagsRow}>
-                {tagStyle && (
-                  <View style={[styles.tagPill, { backgroundColor: tagStyle.bg }]}>
-                    <Text style={[styles.tagPillText, { color: tagStyle.text }]}>{tagStyle.label}</Text>
-                  </View>
-                )}
-                {urgStyle && (
-                  <View style={[styles.tagPill, { backgroundColor: urgStyle.bg }]}>
-                    <Text style={[styles.urgencyPillText, { color: urgStyle.text }]}>{urgStyle.label}</Text>
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Last message */}
-            <Text
-              style={[
-                styles.rowPreview,
-                {
-                  fontFamily: conv.unread ? FontFamily.sansSemiBold : FontFamily.sansMedium,
-                  color: conv.unread ? NAVY : TEXT55,
-                },
-              ]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {conv.lastMessage}
-            </Text>
-
-            {/* Aria summary */}
-            {!!conv.ariaSummary && (
-              <Text style={styles.ariaSummary} numberOfLines={2}>
-                {conv.ariaSummary}
-              </Text>
-            )}
-          </View>
-
-          {conv.unread && <View style={styles.unreadDot} />}
-        </View>
-      </Pressable>
-    </View>
-  );
-}
-
-// ─── UrgentBanner ────────────────────────────────────────
-
-function UrgentBanner({
-  signerCount,
-  repondreCount,
-}: {
-  signerCount: number;
-  repondreCount: number;
-}) {
-  if (signerCount === 0 && repondreCount === 0) return null;
-  const total = signerCount + repondreCount;
-  return (
-    <View style={styles.urgentOuter}>
-      <View style={styles.urgentInner}>
-        <View style={styles.urgentIconBox}>
-          <Text style={styles.urgentCount}>{total}</Text>
-        </View>
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          {signerCount > 0 && (
-            <Text style={styles.urgentLineRed}>
-              {signerCount} mot{signerCount > 1 ? 's' : ''} à signer
-            </Text>
-          )}
-          {repondreCount > 0 && (
-            <Text style={styles.urgentLineDark}>
-              {repondreCount} RDV à confirmer
-            </Text>
-          )}
-          <Text style={styles.urgentAria}>Aria peut vous aider à répondre rapidement.</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-// ─── Section ─────────────────────────────────────────────
-
-function Section({
-  label,
-  conversations,
-  onPress,
-  first,
-}: {
-  label: string;
-  conversations: Conversation[];
-  onPress: (conv: Conversation) => void;
-  /** Première section affichée : pas de marge haute (elle sépare deux sections, pas la toolbar). */
-  first?: boolean;
-}) {
-  return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionLabel, first && styles.sectionLabelFirst]}>{label}</Text>
-      <View style={styles.sectionCard}>
-        {conversations.map((conv, idx) => (
-          <ConvRow
-            key={conv.id}
-            conv={conv}
-            onPress={() => onPress(conv)}
-            isLast={idx === conversations.length - 1}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-// ─── Screen ──────────────────────────────────────────────
-
-function MessagerieScreenContent() {
+function MessagerieContenu() {
   const navigation = useNavigation<any>();
-  const { selectedChild } = useActiveChild();
   const insets = useSafeAreaInsets();
   const scrollHandler = useTopbarScrollHandler();
-  // ── Focus refresh ────────────────────────────────────────
-  const [tick, setTick] = useState(0);
+  const { selectedChild } = useActiveChild();
+  const prenom = selectedChild?.name.split(' ')[0] ?? '';
+  const childId = selectedChild?.id ?? '';
 
-  // ── Search: one white pill expands in-place (width + input opacity); filter always visible ──
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-  const [headerBlockH, setHeaderBlockH] = useState(72);
-  const [dropdownWin, setDropdownWin] = useState<{ left: number; top: number; width: number } | null>(null);
-  /**
-   * Android : marge écran (safe area) + marge 20 comme le ressenti web : évite le panneau collé
-   * au bord (Modal plein écran, repères = mesure `measureInWindow` sur la pill).
-   */
-  const dropdownLayout = useMemo(() => {
-    if (!dropdownWin) return null;
-    return {
-      left: dropdownWin.left,
-      top: dropdownWin.top,
-      width: dropdownWin.width,
-    };
-  }, [dropdownWin]);
-
-  const searchInputRef = useRef<any>(null);
-  const filterPillRef = useRef<View | null>(null);
-  const searchWidthSV = useSharedValue(SEARCH_PILL_MIN_W);
-  const inputOpacitySV = useSharedValue(0);
-  const isSearchOpenSV = useSharedValue(0);
-  const ddTranslateYSV = useSharedValue(-4);
-
-  const SEARCH_TIMING_MS = 220;
-
-  const focusSearchInput = useCallback(() => {
-    searchInputRef.current?.focus();
-  }, []);
-
-  const finishCloseSearch = useCallback(() => {
-    setSearchOpen(false);
-    setSearchQuery('');
-  }, []);
-
-  const openSearch = useCallback(() => {
-    setFilterDropdownVisible(false);
-    setDropdownWin(null);
-    setSearchOpen(true);
-    isSearchOpenSV.value = 1;
-    inputOpacitySV.value = 0;
-    searchWidthSV.value = withTiming(
-      SEARCH_PILL_MAX_W,
-      { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) },
-      (finished) => {
-        if (finished) runOnJS(focusSearchInput)();
-      },
-    );
-    inputOpacitySV.value = withDelay(
-      100,
-      withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) }),
-    );
-  }, [focusSearchInput, isSearchOpenSV, inputOpacitySV, searchWidthSV]);
-
-  const closeSearch = useCallback(() => {
-    searchInputRef.current?.blur();
-    isSearchOpenSV.value = 0;
-    inputOpacitySV.value = withTiming(0, { duration: 120, easing: Easing.out(Easing.cubic) });
-    searchWidthSV.value = withTiming(
-      SEARCH_PILL_MIN_W,
-      { duration: SEARCH_TIMING_MS, easing: Easing.out(Easing.cubic) },
-      (finished) => {
-        if (finished) runOnJS(finishCloseSearch)();
-      },
-    );
-  }, [finishCloseSearch, inputOpacitySV, isSearchOpenSV, searchWidthSV]);
-
-  const onSearchIconPress = useCallback(() => {
-    if (searchOpen) {
-      closeSearch();
-    } else {
-      openSearch();
-    }
-  }, [searchOpen, openSearch, closeSearch]);
-
-  const searchPillWidthStyle = useAnimatedStyle(() => ({
-    width: searchWidthSV.value,
-  }));
-
-  const searchInputOpacityStyle = useAnimatedStyle(() => ({
-    opacity: inputOpacitySV.value,
-  }));
-
-  // Android: never animate `opacity` on the whole card — the white background becomes
-  // translucent and list text shows through. Only translate; menu stays 100% opaque.
-  const dropdownEnterStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: ddTranslateYSV.value }],
-  }));
-
+  const [segment, setSegment] = useState<Segment>(dernierSegment ?? 'general');
   useEffect(() => {
-    if (filterDropdownVisible) {
-      ddTranslateYSV.value = withTiming(0, { duration: 150, easing: Easing.out(Easing.cubic) });
-    } else {
-      ddTranslateYSV.value = withTiming(-4, { duration: 150, easing: Easing.in(Easing.cubic) });
-    }
-  }, [filterDropdownVisible, ddTranslateYSV]);
-
-  /**
-   * Toutes plateformes : `Modal` plein écran + mesure de la pill dans la fenêtre (mêmes repères).
-   * L’overlay in-tree Android cassait le layout au retour sur l’onglet (stack / focus).
-   */
-  const openFilterDropdown = useCallback(() => {
-    const pill = filterPillRef.current;
-    if (!pill) return;
-    pill.measureInWindow((x, y, w, h) => {
-      // Aligner le bord droit du dropdown avec le bord droit de la pill
-      const dropW = Math.min(220, x + w - 16);
-      const dropLeft = x + w - dropW;
-      setDropdownWin({
-        left: Math.max(16, dropLeft),
-        top: y + h + 4,
-        width: dropW,
-      });
-      setFilterDropdownVisible(true);
-    });
+    if (dernierSegment) return;
+    AsyncStorage.getItem(CLE_SEGMENT)
+      .then((v) => {
+        if (v === 'general' || v === 'enfant') {
+          dernierSegment = v;
+          setSegment(v);
+        }
+      })
+      .catch(() => {});
   }, []);
+  const changerSegment = (s: Segment) => {
+    memoriserSegment(s);
+    setSegment(s);
+  };
 
-  const closeFilterDropdown = useCallback(() => {
-    setFilterDropdownVisible(false);
-    setDropdownWin(null);
-  }, []);
-
-  /**
-   * Interrompt les withTiming (recherche / filtre) puis remet l’UI dans un état cohérent.
-   * Sans `cancelAnimation`, un reset concurrent peut laisser la largeur de pill ou le layout
-   * dans un état corrompu au retour (stack / onglet / web).
-   */
-  const resetMessagerieTransientState = useCallback(() => {
-    setFilterDropdownVisible(false);
-    setDropdownWin(null);
-    setSearchOpen(false);
-    setSearchQuery('');
-    searchInputRef.current?.blur();
-    cancelAnimation(searchWidthSV);
-    cancelAnimation(inputOpacitySV);
-    cancelAnimation(ddTranslateYSV);
-    searchWidthSV.value = SEARCH_PILL_MIN_W;
-    inputOpacitySV.value = 0;
-    isSearchOpenSV.value = 0;
-    ddTranslateYSV.value = -4;
-  }, [searchWidthSV, inputOpacitySV, isSearchOpenSV, ddTranslateYSV]);
-
-  // ── Filter state ─────────────────────────────────────────
-  const [activeFilter, setActiveFilter] = useState<FilterId>('all');
-  const filterLabel = useMemo(
-    () => FILTER_OPTIONS.find((o) => o.id === activeFilter)?.label ?? 'Tout',
-    [activeFilter],
-  );
-
+  // Rafraîchissement : au focus et à chaque changement du store.
+  const [version, setVersion] = useState(0);
+  useEffect(() => subscribe(() => setVersion((v) => v + 1)), []);
+  const [recherche, setRecherche] = useState('');
+  const [filtre, setFiltre] = useState<Filtre>('tout');
+  const [menu, setMenu] = useState<{ top: number; right: number } | null>(null);
+  const boutonFiltre = useRef<View | null>(null);
   useFocusEffect(
     useCallback(() => {
-      setTick((t) => t + 1);
-      return () => {
-        resetMessagerieTransientState();
-      };
-    }, [resetMessagerieTransientState]),
+      setVersion((v) => v + 1);
+      return () => setMenu(null);
+    }, []),
   );
 
-  // ── Data ─────────────────────────────────────────────────
-  const conversations = selectedChild ? getConversations(selectedChild.id) : [];
-  const unreadCount = conversations.filter((c) => c.unread).length;
-  const signerCount = conversations.filter((c) => c.urgency === 'signer').length;
-  const repondreCount = conversations.filter((c) => c.urgency === 'repondre').length;
-
-  const filtered = useMemo(() => {
-    let result = conversations;
-    switch (activeFilter) {
-      case 'unread':    result = result.filter((c) => c.unread); break;
-      case 'teachers':  result = result.filter((c) => c.avatarType === 'initials'); break;
-      case 'school':    result = result.filter((c) => c.avatarType === 'school'); break;
-      case 'absences':  result = result.filter((c) => c.avatarType === 'absence'); break;
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.lastMessage.toLowerCase().includes(q),
-      );
-    }
-    return result;
-  }, [conversations, activeFilter, searchQuery, tick]); // tick keeps it fresh on focus
-
-  const thisWeek = filtered.filter((c) => isThisWeek(c.lastDate));
-  const earlier  = filtered.filter((c) => !isThisWeek(c.lastDate));
-
-  const handlePress = useCallback(
-    (conv: Conversation) => {
-      markConversationRead(conv.id);
-      setTick((t) => t + 1);
-      if (conv.urgency === 'signer') {
-        navigation.navigate('SignDoc', { conversationId: conv.id, docTitle: conv.name });
-      } else {
-        navigation.navigate('ConversationDetailScreen', { conversationId: conv.id });
-      }
-    },
-    [navigation],
+  const conversations = useMemo(() => (childId ? getConversations(childId) : []), [childId, version]);
+  // Général = le collectif (établissement, direction, mairie) ; [prénom] = enseignants et absences.
+  const duSegment = conversations.filter((c) =>
+    segment === 'general' ? c.avatarType === 'school' : c.avatarType !== 'school',
   );
+  const q = recherche.trim().toLowerCase();
+  const visibles = duSegment
+    .filter((c) => filtre !== 'non_lus' || c.unread)
+    .filter((c) => !q || c.name.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q))
+    .sort((a, b) => `${b.lastDate}${b.lastTime}`.localeCompare(`${a.lastDate}${a.lastTime}`));
 
-  const filterMenuCard = (sheetStyle: object) => (
-    <Animated.View
-      style={[styles.filterDropdownCard, dropdownEnterStyle, { position: 'absolute' as const }, sheetStyle]}
-    >
-      <Text style={styles.filterModalTitle}>AFFICHER</Text>
-      {FILTER_OPTIONS.map((opt) => {
-        const active = opt.id === activeFilter;
-        return (
-          <Pressable
-            key={opt.id}
-            onPress={() => {
-              setActiveFilter(opt.id);
-              closeFilterDropdown();
-            }}
-            style={({ pressed }) => [styles.filterModalRow, pressed && { opacity: 0.88 }]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-          >
-            <Text
-              style={[
-                styles.filterModalCheck,
-                active ? styles.filterModalCheckOn : styles.filterModalCheckOff,
-              ]}
-            >
-              {active ? '✓' : ' '}
-            </Text>
-            <Text
-              style={[styles.filterModalRowText, active && styles.filterModalRowTextActive]}
-            >
-              {opt.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </Animated.View>
-  );
+  const ouvrirConversation = (c: Conversation) => {
+    markConversationRead(c.id);
+    navigation.navigate('ConversationDetailScreen', { conversationId: c.id });
+  };
+
+  // Menu « Tout ⌄ » : Modal plein écran bord à bord → + hauteur de la barre d'état sur Android
+  // (measureInWindow mesure depuis le bas de la barre d'état ; tasks/lessons.md, 26 sept).
+  const ouvrirMenu = () => {
+    boutonFiltre.current?.measureInWindow((x, y, w, h) => {
+      const decalage = Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0;
+      setMenu({ top: y + h + 6 + decalage, right: 16 });
+    });
+  };
+  const choisirFiltre = (f: Filtre) => {
+    setFiltre(f);
+    setMenu(null);
+  };
+  const toutMarquerLu = () => {
+    if (childId) markAllConversationsRead(childId);
+    setMenu(null);
+  };
+
+  const Separe = SEPARATEURS_MESSAGES;
 
   return (
-    <View style={styles.screenShell}>
-    <View style={[styles.root, { paddingTop: insets.top + 64 }]}>
-      <View
-        style={[styles.headerWrap, styles.screenHorizontalPad]}
-        onLayout={(e) => setHeaderBlockH(e.nativeEvent.layout.height)}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.headerTextArea}>
-            {/* Title is in TopBar pill — no repetition in body (CLAUDE.md) */}
-            {unreadCount > 0 ? (
-              <Text style={styles.headerSub}>
-                {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
-              </Text>
-            ) : null}
+    <View style={st.racine}>
+      <View style={[st.entete, { paddingTop: insets.top + 64 }]}>
+        <Segmented
+          options={[
+            { id: 'general', libelle: 'Général' },
+            { id: 'enfant', libelle: prenom || 'Enfant' },
+          ]}
+          valeur={segment}
+          onChange={changerSegment}
+        />
+        <View style={st.barre}>
+          <View style={st.recherche}>
+            <Search size={18} color={TEXT55} strokeWidth={2} />
+            <TextInput
+              value={recherche}
+              onChangeText={setRecherche}
+              placeholder="Rechercher"
+              placeholderTextColor="rgba(15,23,42,0.35)"
+              style={st.rechercheTexte}
+              returnKeyType="search"
+              autoCorrect={false}
+              accessibilityLabel="Rechercher dans les messages"
+            />
           </View>
-
-          <View style={styles.headerActionsCluster}>
-            <Animated.View style={[styles.searchPillShadowWrap, searchPillWidthStyle]}>
-              <View style={styles.searchPillShell}>
-                <View
-                  style={[
-                    styles.searchPillInnerRow,
-                    searchOpen ? styles.searchPillInnerRowOpen : styles.searchPillInnerRowClosed,
-                  ]}
-                >
-                  <Animated.View
-                    style={[
-                      styles.searchInputOpaqueWrap,
-                      searchInputOpacityStyle,
-                      !searchOpen && styles.searchInputOpaqueWrapCollapsed,
-                    ]}
-                    pointerEvents={searchOpen ? 'auto' : 'none'}
-                  >
-                    <TextInput
-                      ref={searchInputRef}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholder="Rechercher…"
-                      placeholderTextColor="#94A3B8"
-                      style={styles.searchInputField}
-                      returnKeyType="search"
-                      onSubmitEditing={() => searchInputRef.current?.blur()}
-                      autoCorrect={false}
-                      editable={searchOpen}
-                      pointerEvents={searchOpen ? 'auto' : 'none'}
-                    />
-                  </Animated.View>
-                  <Pressable
-                    onPress={onSearchIconPress}
-                    style={({ pressed }) => [styles.searchIconHit, pressed && { opacity: 0.75 }]}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    accessibilityRole="button"
-                    accessibilityLabel={searchOpen ? 'Fermer la recherche' : 'Rechercher'}
-                  >
-                    <Search size={20} color={NAVY} strokeWidth={1.5} />
-                  </Pressable>
-                </View>
-              </View>
-            </Animated.View>
-
-            <View style={styles.filterPillSlot}>
-              <View ref={filterPillRef} collapsable={false}>
-                {activeFilter === 'all' ? (
-                  <View style={styles.filterToutOuterWrap}>
-                    <Pressable
-                      onPress={openFilterDropdown}
-                      style={({ pressed }) => [
-                        styles.filterPillPressableNoBg,
-                        pressed && { opacity: 0.92 },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Filtrer : ${filterLabel}`}
-                    >
-                      <View style={styles.filterPillContentRow}>
-                        <Text
-                          style={[
-                            styles.filterSelectorPillText,
-                            Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                          {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
-                        >
-                          {filterLabel}
-                        </Text>
-                        <View style={styles.filterPillChevronWrap} pointerEvents="none">
-                          <ChevronDown size={14} color={NAVY} strokeWidth={2} />
-                        </View>
-                      </View>
-                    </Pressable>
-                  </View>
-                ) : (
-                  <View style={[styles.filterPillShadowWrap, styles.filterPillShadowWrapNavy]}>
-                    <Pressable
-                      onPress={openFilterDropdown}
-                      style={({ pressed }) => [
-                        styles.filterPillInner,
-                        pressed && { opacity: 0.92 },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Filtrer : ${filterLabel}`}
-                    >
-                      <View style={styles.filterPillContentRow}>
-                        <Text
-                          style={[
-                            styles.filterSelectorPillText,
-                            styles.filterSelectorPillTextOnNavy,
-                            Platform.OS === 'android' && styles.filterSelectorPillTextAndroid,
-                          ]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                          {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
-                        >
-                          {filterLabel}
-                        </Text>
-                        <View style={styles.filterPillChevronWrap} pointerEvents="none">
-                          <ChevronDown size={14} color="#FFFFFF" strokeWidth={2} />
-                        </View>
-                      </View>
-                    </Pressable>
-                  </View>
-                )}
-              </View>
-            </View>
+          <View ref={boutonFiltre} collapsable={false}>
+            <Pressable
+              onPress={ouvrirMenu}
+              style={st.filtre}
+              accessibilityRole="button"
+              accessibilityLabel={`Afficher : ${LIBELLES_FILTRE[filtre]}`}
+            >
+              <Text style={st.filtreTexte}>{LIBELLES_FILTRE[filtre]}</Text>
+              <ChevronDown size={16} color={NAVY} strokeWidth={2} />
+            </Pressable>
           </View>
         </View>
       </View>
 
-      {searchOpen ? (
-        <Pressable
-          style={[styles.searchDismissLayer, { top: insets.top + headerBlockH }]}
-          onPress={closeSearch}
-          accessibilityLabel="Fermer la recherche"
-        />
-      ) : null}
-
-      {/* ── Conversation list ── */}
       <Animated.ScrollView
-        style={[
-          styles.conversationScroll,
-          Platform.OS === 'android' && styles.conversationScrollAndroid,
-        ]}
+        style={st.defilement}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onScroll={scrollHandler}
-        contentContainerStyle={[
-          styles.scrollContent,
-          styles.screenHorizontalPad,
-          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
-        ]}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
-        <UrgentBanner signerCount={signerCount} repondreCount={repondreCount} />
-        {filtered.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>
-              {searchQuery.trim()
-                ? 'Aucun résultat'
-                : 'Aucune conversation'}
-            </Text>
-            <Text style={styles.emptyText}>
-              {searchQuery.trim()
-                ? 'Modifiez votre recherche ou changez de filtre.'
-                : 'Sélectionnez un autre enfant ou revenez plus tard.'}
+        {visibles.length === 0 ? (
+          <View style={st.vide}>
+            <Text style={st.videTitre}>{q ? 'Aucun résultat' : filtre === 'non_lus' ? 'Tout est lu' : 'Rien pour l’instant'}</Text>
+            <Text style={st.videTexte}>
+              {q
+                ? 'Modifiez votre recherche.'
+                : segment === 'general'
+                  ? `Les messages de l’école ${prenom ? `de ${prenom} ` : ''}arriveront ici.`
+                  : `Les échanges avec les enseignants ${prenom ? `de ${prenom} ` : ''}arriveront ici.`}
             </Text>
           </View>
         ) : (
-          <>
-            {thisWeek.length > 0 && (
-              <Section
-                label="Cette semaine"
-                conversations={thisWeek}
-                onPress={handlePress}
-                first
-              />
-            )}
-            {earlier.length > 0 && (
-              <Section
-                label="Plus tôt"
-                conversations={earlier}
-                onPress={handlePress}
-                first={thisWeek.length === 0}
-              />
-            )}
-          </>
+          visibles.map((c, i) => (
+            <LigneMessage
+              key={c.id}
+              nom={c.name}
+              date={dateCourte(c.lastDate)}
+              apercu={c.lastMessage}
+              nonLu={c.unread}
+              initiales={c.avatarType === 'initials' ? c.initials ?? initialesDe(c.name) : undefined}
+              Icone={c.avatarType === 'school' ? School : c.avatarType === 'absence' ? CalendarX : undefined}
+              separateur={Separe && i < visibles.length - 1}
+              onPress={() => ouvrirConversation(c)}
+            />
+          ))
         )}
-
-        <View style={{ height: 24 }} />
       </Animated.ScrollView>
 
-    </View>
-
-    <Modal
-      visible={!!(filterDropdownVisible && dropdownLayout)}
-      transparent
-      animationType="none"
-      onRequestClose={closeFilterDropdown}
-      statusBarTranslucent={Platform.OS === 'android'}
-    >
-      <View style={styles.filterDropdownModalRoot} pointerEvents="box-none">
-        <Pressable
-          onPress={closeFilterDropdown}
-          style={[StyleSheet.absoluteFill, styles.filterDropdownScrim]}
-          accessibilityLabel="Fermer le filtre"
-        />
-        {dropdownLayout
-          ? filterMenuCard({
-              left: dropdownLayout.left,
-              top: dropdownLayout.top,
-              width: dropdownLayout.width,
-            })
-          : null}
-      </View>
-    </Modal>
+      <Modal
+        visible={!!menu}
+        transparent
+        animationType="none"
+        onRequestClose={() => setMenu(null)}
+        statusBarTranslucent={Platform.OS === 'android'}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenu(null)} accessibilityLabel="Fermer le menu" />
+        {menu && (
+          <View style={[st.menu, { top: menu.top, right: menu.right }]}>
+            {(Object.keys(LIBELLES_FILTRE) as Filtre[]).map((f) => (
+              <Pressable key={f} onPress={() => choisirFiltre(f)} style={st.menuLigne} accessibilityRole="button">
+                <View style={st.menuCoche}>{filtre === f && <Check size={16} color={NAVY} strokeWidth={2} />}</View>
+                <Text style={[st.menuTexte, filtre === f && st.menuTexteActif]}>{LIBELLES_FILTRE[f]}</Text>
+              </Pressable>
+            ))}
+            <View style={st.menuSeparateur} />
+            <Pressable onPress={toutMarquerLu} style={st.menuLigne} accessibilityRole="button">
+              <View style={st.menuCoche} />
+              <Text style={st.menuTexte}>Tout marquer comme lu</Text>
+            </Pressable>
+          </View>
+        )}
+      </Modal>
     </View>
   );
 }
-
-// ─── Styles ──────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  /**
-   * Un seul hôte natif (pas de Fragment) : évite des mesures de largeur 0 / flex cassés sur Android
-   * quand l’écran n’est pas le composant direct du navigateur.
-   */
-  screenShell: {
-    flex: 1,
-    minHeight: 0,
-    backgroundColor: C.bg,
-    ...Platform.select({
-      web: { width: '100%' as const, minWidth: 0 },
-      android: { alignSelf: 'stretch' },
-      default: {},
-    }),
-  },
-  root: {
-    flex: 1,
-    backgroundColor: C.bg,
-    ...Platform.select({
-      /**
-       * Web : `minHeight`/`minWidth`/`width` aident le flex au retour d’onglet.
-       * Android : pas de `width: '100%'` sur l’hôte (souvent largeur 0% si le parent n’a pas de base explicite) ;
-       * `overflow: visible` casse fréquemment le moteur de layout (Yoga) sur vues `flex:1` + `ScrollView`.
-       */
-      web: { minHeight: 0, minWidth: 0, width: '100%' as const },
-      android: { minHeight: 0, overflow: 'hidden' as const },
-      default: { minHeight: 0 },
-    }),
-  },
-  /** Shared horizontal inset for header + conversation list (Android overflow). */
-  screenHorizontalPad: {
-    paddingHorizontal: 16,
-  },
-
-  // ── Header ────────────────────────────────────────────
-  headerWrap: {
-    paddingTop: 10,
-    paddingBottom: 16,
-    zIndex: 100,
-    maxWidth: '100%',
-  },
-  headerRow: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 0,
-    minHeight: 52,
-  },
-  headerActionsCluster: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: HEADER_ACTION_GAP,
-    flexShrink: 0,
-    minHeight: 40,
-    zIndex: 6,
-    ...Platform.select({
-      android: { elevation: 4 },
-      default: {},
-    }),
-  },
-  searchPillShadowWrap: {
-    height: 40,
-    minHeight: 40,
-    maxHeight: 40,
-    alignSelf: 'center',
-    borderRadius: 20,
-    ...nativeWhiteInteractiveShadow,
-    ...androidFloatingWhitePill,
-  },
-  /** Single expanding pill — width 40 → 220; inner clips content */
-  searchPillShell: {
-    height: 40,
-    minHeight: 40,
-    maxHeight: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    maxWidth: SEARCH_PILL_MAX_W,
-    width: '100%',
-  },
-  /**
-   * Android : `flex:1` sur la rangée interne (parent en colonne) peut absorber toute la
-   * hauteur disponible dès qu’un enchaînement flex est ambigu — hauteur fixe obligatoire.
-   */
-  searchPillInnerRow: {
-    height: 40,
-    minHeight: 40,
-    maxHeight: 40,
-    width: '100%' as const,
-    flexDirection: 'row',
-    alignItems: 'center',
-    ...Platform.select({
-      android: { flex: 0, flexBasis: 40, flexGrow: 0, flexShrink: 0 },
-      default: { flex: 1, minHeight: 40 },
-    }),
-  },
-  /** Champ visible — padding horizontal symétrique */
-  searchPillInnerRowOpen: {
-    justifyContent: 'flex-start',
-    paddingHorizontal: 10,
-  },
-  /** État fermé (pill 40px) — icône seule, centrée */
-  searchPillInnerRowClosed: {
-    justifyContent: 'center',
-    paddingHorizontal: 0,
-  },
-  searchInputOpaqueWrap: {
-    flex: 1,
-    minWidth: 0,
-    justifyContent: 'center',
-  },
-  searchInputOpaqueWrapCollapsed: {
-    flex: 0,
-    width: 0,
-    minWidth: 0,
-    overflow: 'hidden',
-  },
-  searchInputField: {
-    flex: 1,
-    height: 40,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: NAVY,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-  },
-  /** Zone tactile icône — carré égal à la hauteur de la pill */
-  searchIconHit: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterPillSlot: {
-    zIndex: 2,
-    flexShrink: 1,
-    minWidth: 72,
-    maxWidth: 200,
-  },
-  filterToutOuterWrap: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 1 },
-    flexShrink: 1,
-    minWidth: 0,
-    maxWidth: '100%',
-    alignSelf: 'flex-start',
-    ...androidFloatingWhitePill,
-    ...Platform.select({
-      web: { minWidth: 120, width: '100%' as any },
-    }),
-  },
-  /* Ligne texte + chevron — ne pas inverser en RTL (chevron seule à gauche). */
-  filterPillContentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minWidth: 0,
-    ...Platform.select({
-      /** Web: sans largeur, flex shrink peut réduire le Text à 0. */
-      web: { alignSelf: 'stretch' as const, width: '100%' as any },
-      default: {},
-    }),
-  },
-  filterPillPressableNoBg: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'nowrap',
-    minWidth: 0,
-    ...Platform.select({
-      web: { width: '100%' as any },
-    }),
-  },
-  filterPillChevronWrap: {
-    flexShrink: 0,
-    justifyContent: 'center',
-    marginLeft: 0,
-  },
-  filterPillShadowWrap: {
-    borderRadius: 18,
-    flexShrink: 1,
-    minWidth: 0,
-    maxWidth: '100%',
-    alignSelf: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    ...androidFloatingWhitePill,
-    ...Platform.select({
-      web: { minWidth: 120, width: '100%' as any },
-    }),
-  },
-  filterPillShadowWrapNavy: {
-    backgroundColor: '#0F1B2D',
-  },
-  filterPillInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'nowrap',
-    minWidth: 0,
-    maxHeight: 40,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    ...Platform.select({
-      web: { width: '100%' as any },
-    }),
-  },
-  searchDismissLayer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 40,
-    backgroundColor: 'transparent',
-    ...Platform.select({
-      android: { elevation: 32 },
-      default: {},
-    }),
-  },
-  filterDropdownModalRoot: {
-    flex: 1,
-  },
-  /** Dims the screen so list text is not visually merged with the menu. */
-  filterDropdownScrim: {
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
-  },
-  headerTextArea: {
-    flex: 1,
-    minWidth: 0,
-    flexShrink: 1,
-    paddingLeft: 4,
-    paddingRight: 8,
-    marginRight: 8,
-  },
-  filterSelectorPillText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
-    color: NAVY,
-    marginRight: 4,
-    ...Platform.select({
-      web: {
-        maxWidth: 200,
-        flexGrow: 1,
-        flexShrink: 0,
-        minWidth: 40,
-        overflow: 'visible' as const,
-      } as any,
-      default: {
-        flex: 0,
-        flexGrow: 0,
-        flexShrink: 1,
-        minWidth: 0,
-        maxWidth: 148,
-      },
-    }),
-  },
-  filterSelectorPillTextAndroid: {
-    lineHeight: 20,
-  },
-  filterSelectorPillTextOnNavy: {
-    color: '#FFFFFF',
-  },
-  headerTitle: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 26,
-    color: NAVY,
-    letterSpacing: -0.6,
-  },
-  /** Shrink title when search pill is expanded so it never gets truncated. */
-  headerTitleCompact: {
-    fontSize: 22,
-  },
-  headerSub: {
-    marginTop: 2,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#94A3B8',
-  },
-
-  filterDropdownCard: {
-    zIndex: 2,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 6,
-    overflow: 'hidden',
-    ...Platform.select({
-      android: { elevation: 10 },
-    }),
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: 'rgba(15, 23, 42, 0.08)',
-      },
-      default: {
-        ...(Platform.OS === 'web'
-          ? ({ boxShadow: '0 4px 16px rgba(0,0,0,0.12)' } as object)
-          : {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 12,
-            }),
-      },
-    }),
-  },
-  filterModalTitle: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    color: '#8E8E93',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    paddingTop: 10,
-    paddingBottom: 6,
-    ...Platform.select({
-      android: { paddingHorizontal: 20 },
-      default: { paddingHorizontal: 16 },
-    }),
-  },
-  filterModalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    gap: 8,
-    ...Platform.select({
-      android: { paddingHorizontal: 20 },
-      default: { paddingHorizontal: 16 },
-    }),
-  },
-  filterModalCheck: {
-    width: 22,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  filterModalCheckOn: {
-    color: NAVY,
-    fontFamily: FontFamily.sansBold,
-  },
-  filterModalCheckOff: {
-    color: 'transparent',
-  },
-  filterModalRowText: {
-    flex: 1,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 16,
-    color: NAVY,
-  },
-  filterModalRowTextActive: {
-    fontFamily: FontFamily.sansSemiBold,
-  },
-
-  conversationScroll: {
-    flex: 1,
-    ...Platform.select({
-      web: { minHeight: 0, minWidth: 0 },
-      android: { minHeight: 0 },
-      default: { minHeight: 0 },
-    }),
-  },
-  /** Keep list layer under overlays on Android (stacking + elevation interop). */
-  conversationScrollAndroid: {
-    zIndex: 0,
-    elevation: 0,
-  },
-
-  // Scroll
-  scrollContent: {
-    paddingTop: 8,
-    maxWidth: '100%',
-  },
-
-  // Section
-  section: {
-    marginBottom: 16,
-  },
-  sectionLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 8.5,
-    color: NAVY,
-    opacity: 0.28,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    paddingHorizontal: 0,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  sectionLabelFirst: {
-    marginTop: 4,
-  },
-  sectionCard: {
-    backgroundColor: 'transparent',
-    maxWidth: '100%',
-  },
-
-  // Row — outer View carries shadow (overflow:visible), inner Pressable clips content
-  rowShadowWrap: {
-    marginHorizontal: 14,
-    marginBottom: 6,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  row: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    maxWidth: '100%',
-  },
-  rowInner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  rowUnread: {
-    backgroundColor: 'rgba(67,56,202,0.025)',
-  },
-  rowPressed: {
-    backgroundColor: 'rgba(15,23,42,0.04)',
-  },
-
-  // Avatar
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-    marginRight: 12,
-  },
-  avatarInitials: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-
-  // Row body
-  rowBody: {
-    flex: 1,
-    minWidth: 0,
-  },
-  rowTop: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
-    marginBottom: 4,
-    minWidth: 0,
-  },
-  rowName: {
-    fontSize: 14.5,
-    color: NAVY,
-    letterSpacing: -0.2,
-    flexShrink: 0,
-  },
-  rowRole: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: TEXT35,
-    letterSpacing: -0.05,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  rowTime: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: TEXT35,
-    flexShrink: 0,
-  },
-  rowTimeUnread: {
-    color: INDIGO,
-  },
-  tagsRow: {
-    flexDirection: 'row',
-    gap: 5,
-    marginBottom: 5,
-    flexWrap: 'wrap',
-  },
-  tagPill: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-  },
-  tagPillText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    letterSpacing: -0.05,
-  },
-  urgencyPillText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 11,
-    letterSpacing: 0.2,
-  },
-  rowBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minWidth: 0,
-    maxWidth: '100%',
-  },
-  rowPreview: {
-    minWidth: 0,
-    fontSize: 13.5,
-    lineHeight: 18,
-    letterSpacing: -0.15,
-  },
-  ariaSummary: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12.5,
-    color: INDIGO,
-    fontStyle: 'italic',
-    letterSpacing: -0.1,
-    lineHeight: 17,
-    marginTop: 3,
-    opacity: 0.85,
-  },
-  unreadDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: INDIGO,
-    flexShrink: 0,
-    marginTop: 4,
-    marginLeft: 6,
-  },
-
-  // Hairline separator between rows
-  separator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 16,
-    right: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: BORDER_L,
-  },
-
-  // Empty
-  empty: {
-    paddingVertical: 60,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 16,
-    color: '#0F172A',
-  },
-  emptyText: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
-
-  // UrgentBanner
-  urgentOuter: {
-    marginBottom: 12,
-    borderRadius: 14,
-    backgroundColor: C.white,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-      },
-      android: { elevation: 0 },
-      default: {},
-    }),
-  },
-  urgentInner: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.12)',
-  },
-  urgentIconBox: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    backgroundColor: 'rgba(239,68,68,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  urgentCount: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    color: '#EF4444',
-  },
-  urgentLineRed: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-    color: '#EF4444',
-  },
-  urgentLineDark: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-    color: 'rgba(15,23,42,0.70)',
-    marginTop: 2,
-  },
-  urgentAria: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: TEXT55,
-    marginTop: 3,
-  },
-});
 
 /** Garde : compte réel sans enfant → état vide (jamais de données d'un autre carnet). */
 export default function MessagerieScreen() {
   const { selectedChild } = useActiveChild();
   if (!selectedChild) return <AucunEnfantOnglet />;
-  return <MessagerieScreenContent />;
+  return <MessagerieContenu />;
 }
+
+const st = StyleSheet.create({
+  racine: { flex: 1, backgroundColor: C.bg },
+  entete: { paddingHorizontal: 16, paddingBottom: 6 },
+  barre: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  recherche: {
+    flex: 1,
+    height: 36,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.06)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  rechercheTexte: {
+    flex: 1,
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    color: NAVY,
+    paddingVertical: 0,
+    ...Platform.select({ android: { includeFontPadding: false }, default: {} }),
+  },
+  filtre: {
+    height: 36,
+    minWidth: 44,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(15,23,42,0.06)',
+  },
+  filtreTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: NAVY },
+  defilement: { flex: 1 },
+  vide: { paddingHorizontal: 24, paddingTop: 40, alignItems: 'center' },
+  videTitre: { fontFamily: FontFamily.sansBold, fontSize: 16, color: NAVY, textAlign: 'center' },
+  videTexte: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: TEXT55,
+    textAlign: 'center',
+    marginTop: 6,
+  },
+  menu: {
+    position: 'absolute',
+    minWidth: 220,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 4,
+    shadowColor: '#000000',
+    shadowOpacity: 0.12,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
+  menuLigne: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 14, minHeight: 44 },
+  menuCoche: { width: 18, alignItems: 'center' },
+  menuTexte: { fontFamily: FontFamily.sansMedium, fontSize: 14, color: NAVY },
+  menuTexteActif: { fontFamily: FontFamily.sansBold },
+  menuSeparateur: { height: 1, backgroundColor: 'rgba(15,23,42,0.08)', marginVertical: 3 },
+});

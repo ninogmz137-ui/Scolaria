@@ -11,6 +11,7 @@
  */
 
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { Linking, Platform } from 'react-native';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { ENV } from '../services/getEnv';
@@ -120,6 +121,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [isSupabaseConfigured]);
+
+  // Développement uniquement : basculer en démo et revenir au compte réel SANS se déconnecter
+  // (la session réelle reste dans le stockage ; captures de démo sur le téléphone de test).
+  //   adb shell am start -d "scolaria://dev/demo"  ·  adb shell am start -d "scolaria://dev/reel"
+  useEffect(() => {
+    if (!__DEV__ || Platform.OS === 'web') return;
+    const sub = Linking.addEventListener('url', async ({ url }) => {
+      if (url.includes('dev/demo')) {
+        setUser(DEMO_USER);
+        setRole('parent');
+        setIsDemoMode(true);
+      } else if (url.includes('dev/reel')) {
+        const { data } = await supabase.auth.getSession();
+        setIsDemoMode(false);
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        setRole(data.session?.user ? 'parent' : null);
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const handleSignIn = async (email: string, password: string) => {
     if (!isSupabaseConfigured) {
