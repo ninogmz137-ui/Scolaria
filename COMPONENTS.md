@@ -259,10 +259,19 @@ Suivi: bouton année (§17) + segmented Apprentissages · Souvenirs · Livrets
 Agenda: mois + année + strip 7 jours
 ```
 
-### Messages
+### Messages (décisions B4 du 26 sept 2026 — tasks/b4-decisions.md)
 ```
-Toolbar uniquement (recherche + filtre "Tout ⌄")
-PAS de titre — déjà dans la pill active de la top bar
+PAS de titre — déjà dans la pill active de la top bar ; onglet nommé « Messages »
+Segmented (§17) : « Général · [prénom] » — Général par défaut, puis dernier segment consulté
+Barre : recherche en pill pleine largeur (height 36, radius 999, rgba(15,23,42,0.06))
+        + menu « Tout ⌄ » (§12) : Tout · Non lus · À signer · Tout marquer comme lu
+Général : carte « À traiter » en tête (SEULE carte de l'écran) :
+          mot à signer + bouton pill « Signer » (confirmation obligatoire)
+          + statuts par responsable « Sophie ✓ · Vous » (§17 Statut de signature)
+          + « À prévoir » en pastilles ; puis la liste à plat (§7 Card message)
+[Prénom] : fils de l'enfant (fil famille par foyer ; fil individuel si l'enseignant a choisi
+          « un seul parent ») et absences ; mention « Envoyé aussi à [prénom] » si l'autre foyer l'a reçu
+Interdits : bandeau « N mots à signer », rouge, résumé Aria, rôle de l'expéditeur, tags de catégorie
 ```
 
 ### Pages profondes
@@ -301,13 +310,18 @@ border: 1px solid rgba(15,23,42,0.06) · borderRadius: 16px · padding: 12px 14p
 Symbole Scolaria: 18px · color #4338CA · alignSelf flex-start · marginTop: 2px
 ```
 
-### Card message (liste)
+### Card message (liste) — liste à plat façon X, PAS une carte (B4, 26 sept 2026)
 ```
-display: flex · alignItems: flex-start · gap: 10px · padding: 11px 14px
-border-bottom: 1px solid rgba(15,23,42,0.05)
-Non lu: border-left: 2.5px solid #4338CA · paddingLeft: 11.5px
-Avatar: 38×38px cercle · initiales fontWeight 700
-Preview: fontSize 11px · 1 ligne · ellipsis
+Ligne : display flex · alignItems flex-start · gap 12px · paddingVertical ~14px · paddingHorizontal 14px
+Séparateur : AUCUN par défaut (à trancher sur le Redmi : capture avec / sans 1px rgba(15,23,42,0.05))
+Avatar : 44×44px cercle · initiales fontWeight 700
+Ligne 1 : nom de l'expéditeur lisible (« Mme Dupont », « Direction », « Mairie · Cantine » —
+          jamais de code administratif) + date à droite (fontSize 12, rgba(15,23,42,0.55))
+Ligne 2 : aperçu · 1 ligne · ellipsis · fontSize 14
+Non lu : nom + aperçu en gras (700) + point indigo #4338CA 8px à droite
+         (plus de bordure gauche indigo)
+Jamais : rôle de l'expéditeur, tag de catégorie, résumé Aria, rouge
+Auteur visible sur chaque message d'un fil famille (« Sophie », « Vous »)
 ```
 
 ---
