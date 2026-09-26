@@ -97,7 +97,7 @@ export default {
     privacyPolicySub: 'RGPD · Protection des données',
     terms: "Conditions d'utilisation",
     encryption: 'Chiffrement des données',
-    encryptionSub: 'AES-256 · Vos données sont sécurisées',
+    encryptionSub: 'AES-256 · Données hébergées dans l’UE, à Paris',
     encryptionActive: 'Actif ✓',
     exportData: 'Exporter mes données',
     exportDataSub: 'Télécharger toutes vos données (RGPD)',

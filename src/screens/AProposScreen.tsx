@@ -2,8 +2,8 @@
  * AProposScreen — À propos : mission, engagements, charte éthique (7 principes, VISION.md §8).
  *
  * Page profonde (en-tête ‹ retour + titre centré, sans top bar ni bottom bar, COMPONENTS §8).
- * N'affirme que ce qui est vrai aujourd'hui : aucune mention d'hébergement, de chiffrement
- * ou de conformité tant que ce n'est pas vérifié (Aria appelle un modèle hébergé hors UE).
+ * N'affirme que ce qui est vrai et vérifié : hébergement et Aria = formulation validée le
+ * 25 sept 2026 (CLAUDE.md, règles RGPD), mot pour mot ; aucune mention de « conformité ».
  */
 
 import { useState } from 'react';
@@ -47,7 +47,11 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
   {
     titre: 'Souveraineté des données',
     texte:
-      'Les données du carnet appartiennent à la famille. Elles ne sont jamais revendues et ne servent à aucune publicité.',
+      'Les données du carnet appartiennent à la famille. Elles ne sont jamais revendues et ne servent à aucune publicité. ' +
+      'Les données du carnet de votre enfant sont hébergées dans l’Union européenne, à Paris. Aria s’appuie sur un modèle d’Anthropic, société américaine. ' +
+      'Quand vous utilisez Aria, vos messages, l’historique de la conversation, le prénom et le niveau scolaire de l’enfant sont traités hors de l’Union européenne. ' +
+      'Anthropic les efface sous 30 jours, sauf s’ils sont signalés pour non-respect de ses règles d’utilisation (conservation jusqu’à 2 ans). ' +
+      'Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d’autre du carnet. En cas de message de détresse, rien n’est envoyé à Aria.',
     Icon: ShieldCheck,
   },
   {

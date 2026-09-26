@@ -27,7 +27,10 @@
 - [x] Formulation validée appliquée (25 sept) : CLAUDE.md § Règles RGPD, VISION.md § 8 (charte, principe 3) et § 10. AES-256 gardé avec sa source.
 - [x] Étapes 5 à 10 FAITES (25 sept) : aria sur Paris (région eu-west-3 vérifiée), Auth identique, app basculée et testée sur le Redmi (connexion, Aria claude-sonnet-5, alerte « harcèlement » sans texte), 36/36 tests, advisors 0 ERROR, Londres EN PAUSE.
 - [ ] **9 oct 2026 (J+14)** : suppression du projet de Londres (eklpzspvfjfqgqgugmxl) — UNIQUEMENT avec l'accord de l'utilisateur. Ses journaux du 23 sept contiennent une clé Anthropic en clair (déjà révoquée) : ils disparaissent avec le projet.
-- [ ] Textes de l'app à aligner (hors périmètre de la charte, à valider) : RGPDScreen « chiffrées (AES-256) et hébergées en France » (exact, mais sans la mention d'Aria), i18n `encryptionSub` × 10 langues, AProposScreen (aucune mention d'hébergement), scolaria_website.html. VISION.md cite encore « ScolarIA_Charte_Ethique_v1.pdf » (absent du dépôt).
+- [x] (R3, 26 sept) Textes FRANÇAIS alignés sur la formulation validée : RGPDScreen (formulation mot pour mot + AES-256 au repos / TLS), AProposScreen (principe 3 « Souveraineté des données »), i18n fr `encryptionSub` (« AES-256 · Données hébergées dans l’UE, à Paris »).
+- [ ] **Traduction à faire valider** (texte juridique : NE PAS traduire sans validation) : `encryptionSub` dans ar, en, es, it, pt, ro, tr, wo, zh (encore « AES-256 · vos données sont sécurisées »). NB : cette clé n'est affichée par AUCUN écran aujourd'hui (clé morte) ; la formulation longue (RGPD, À propos) n'existe qu'en français, écrite en dur dans les écrans.
+- [ ] À vérifier ou retirer : i18n `rgpdNote` (« conformes au RGPD ») et `slide1Feature1` (« Données sécurisées (RGPD) ») = affirmations de conformité non vérifiées ; « journal d'accès » de l'écran RGPD (chaque consultation journalisée ?) à confirmer côté base.
+- [ ] scolaria_website.html (« Chiffrement AES-256 ») à aligner ; VISION.md cite encore « ScolarIA_Charte_Ethique_v1.pdf » (absent du dépôt, voir B3b.0).
 - [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
 - [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
 
