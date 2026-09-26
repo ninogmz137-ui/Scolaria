@@ -39,7 +39,7 @@
 - [ ] Charte PDF à refaire avec la formulation validée (tasks/infra-1-plan.md § Formulation validée), nommée « Scolaria » (jamais « ScolarIA ») ; mettre à jour le renvoi de VISION.md § 8.
 
 ### Compte sans profil
-- [ ] Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test.
+- [x] (R2, 26 sept) Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test. → FAIT : parent sans profil = inscription terminée automatiquement (profil « parent ») ; enseignant / élève / échec = écran « Votre inscription n’est pas terminée » (Réessayer, Se déconnecter). Tests : npm run test:profil (8/8), supabase/tests/r2_profil_manquant.sql (6/6, local).
 
 ### BLOQUANT avant toute famille réelle
 - [ ] **Nettoyage des fichiers orphelins du bucket « carnet »** (tâche SERVEUR via l'API Storage — jamais de DELETE SQL direct, storage.protect_delete l'interdit à raison) déclenché par : la suppression d'un enfant (tous ses fichiers), la suppression d'un élément (son fichier, si l'app n'a pas pu le supprimer), le départ d'un responsable (ses éléments PRIVÉS et leurs fichiers). Test : après suppression d'un enfant, plus aucun fichier sous `<child_id>/` dans le bucket.

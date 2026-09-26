@@ -1,5 +1,5 @@
 import './src/global.css';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import {
@@ -19,6 +19,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import ConnexionScreen from './src/screens/ConnexionScreen';
 import InscriptionScreen from './src/screens/InscriptionScreen';
 import PinScreen from './src/screens/PinScreen';
+import ProfilIncompletScreen from './src/screens/ProfilIncompletScreen';
+import { assurerProfil, type EtatProfil } from './src/services/profilService';
 /** Kept for future reuse (e.g. Aria) — auto-open on Accueil disabled below. */
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { I18nProvider } from './src/contexts/I18nContext';
@@ -48,7 +50,28 @@ type RootStackParamList = {
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<RootStackParamList> }) {
-  const { user, loading, role } = useAuth();
+  const { user, loading, role, isDemo, signOut } = useAuth();
+
+  // Compte réel sans profil (inscription interrompue) : l'app termine l'inscription d'un parent,
+  // sinon écran clair — jamais d'écran blanc (R2, 26 sept 2026).
+  // Vérifié une fois par COMPTE (user.id) : l'objet user change à chaque rafraîchissement du jeton,
+  // ce qui ne doit ni rejouer la vérification ni démonter la navigation.
+  const [etatProfil, setEtatProfil] = useState<'verification' | EtatProfil>('verification');
+  const userRef = useRef(user);
+  userRef.current = user;
+  const idCompte = user?.id ?? null;
+  const verifierProfil = useCallback(async () => {
+    const u = userRef.current;
+    if (!u || isDemo) {
+      setEtatProfil('ok');
+      return;
+    }
+    setEtatProfil(await assurerProfil(u));
+  }, [idCompte, isDemo]);
+  useEffect(() => {
+    setEtatProfil('verification');
+    verifierProfil();
+  }, [verifierProfil]);
 
   useEffect(() => {
     // Hide the native splash screen once our custom one is ready
@@ -64,7 +87,7 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
 
   // ─── Redirect on auth state changes ────────────────────
   useEffect(() => {
-    if (loading) return;
+    if (loading || etatProfil !== 'ok') return;
 
     const target =
       role === 'enseignant'
@@ -86,14 +109,18 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
       index: 0,
       routes: [{ name: next as keyof RootStackParamList }],
     });
-  }, [navigationRef, loading, role, user]);
+  }, [navigationRef, loading, role, user, etatProfil]);
 
-  if (loading) {
+  if (loading || (user && !isDemo && etatProfil === 'verification')) {
     return (
       <View style={{ flex: 1, backgroundColor: '#F2F1EE', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#4338CA" />
       </View>
     );
+  }
+
+  if (user && !isDemo && etatProfil === 'incomplet') {
+    return <ProfilIncompletScreen onReessayer={verifierProfil} onDeconnecter={() => signOut()} />;
   }
 
   return (
