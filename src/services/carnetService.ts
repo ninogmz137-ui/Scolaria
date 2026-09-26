@@ -4,7 +4,7 @@
  *
  * Compte réel : table `carnet_items` (M10) lue sous RLS (foyer = responsables de l'enfant ;
  * « prive » = son auteur seul) ; fichiers dans le bucket PRIVÉ « carnet » (M20), lus uniquement par
- * URL signée de 24 h. ⚠ M20 n'est pas encore appliquée à Paris : l'envoi d'un fichier échoue avec un
+ * URL signée d’1 h. ⚠ M20 n'est pas encore appliquée à Paris : l'envoi d'un fichier échoue avec un
  * message clair tant que le bucket n'existe pas (les jalons, sans fichier, fonctionnent).
  * Démo : ajouts gardés EN MÉMOIRE pour la session, rien en base ; données de démo fixes dans
  * src/data/demo/livrets.ts et souvenirs.ts.
@@ -272,10 +272,10 @@ export async function supprimerAjout(e: ElementCarnet, modeDemo: boolean, childI
   prevenir();
 }
 
-/** Lien de lecture d'un fichier : URL signée de 24 h (CLAUDE.md, règles RGPD). Démo : URI locale. */
+/** Lien de lecture d'un fichier pour l'affichage : URL signée d'1 h (CLAUDE.md, règles RGPD). Démo : URI locale. */
 export async function lienFichier(e: ElementCarnet, modeDemo: boolean): Promise<string | null> {
   if (!e.fichier) return null;
   if (modeDemo) return e.fichier;
-  const { data, error } = await supabase.storage.from('carnet').createSignedUrl(e.fichier, 60 * 60 * 24);
+  const { data, error } = await supabase.storage.from('carnet').createSignedUrl(e.fichier, 60 * 60);
   return error ? null : data.signedUrl;
 }

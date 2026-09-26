@@ -43,7 +43,7 @@ export const LIBELLES_TYPE: Record<TypeCarnet, string> = {
   mot: 'Mot',
 };
 
-/** Aperçu d'une image ajoutée (démo : fichier local ; compte réel : URL signée de 24 h). */
+/** Aperçu d'une image ajoutée (démo : fichier local ; compte réel : URL signée d’1 h). */
 function Apercu({ e }: { e: ElementCarnet }) {
   const { isDemoMode } = useDemoData();
   const [uri, setUri] = useState<string | null>(null);

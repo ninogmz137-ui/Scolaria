@@ -489,7 +489,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Export JSON complet disponible (par carnet d'enfant)
 - Droit à l'effacement en cascade sous 30 jours
 - Journal d'accès consultable par le parent
-- URLs signées 24h pour pièces jointes
+- URL signées d’1 h pour l’affichage des fichiers dans l’app (bucket privé « carnet », M20) ; jamais de lien public
 - Zéro revente — zéro profilage publicitaire
 
 ---

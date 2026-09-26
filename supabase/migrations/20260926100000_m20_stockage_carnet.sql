@@ -13,7 +13,7 @@
 --  - Suppression : son auteur. Pas de remplacement (aucune politique UPDATE).
 --  - Une ligne ne peut référencer qu'un fichier déposé par son auteur, jamais celui d'un autre
 --    (sinon un co-responsable pourrait « rendre public » un fichier privé en le référençant).
---  - Lecture côté app : uniquement par URL signée de 24 h (createSignedUrl), bucket non public.
+--  - Lecture côté app : uniquement par URL signée d'1 h (createSignedUrl), bucket non public.
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ─── 1. Bucket privé ────────────────────────────────────────────────────────

@@ -1016,7 +1016,7 @@ function NotesScreenContent() {
     ? [...carnetDemo(selectedChild?.id), ...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
         .sort((a, b) => b.date.localeCompare(a.date))
     : carnetReel;
-  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier (URL signée 24 h).
+  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier (URL signée d’1 h).
   const ouvrirElement = async (e: ElementCarnet) => {
     if (e.deMoi) {
       navigation.navigate('AjouterAuCarnet', { element: e });

@@ -5,7 +5,7 @@
  *          Souvenir · Jalon), date, année du carnet (en cours ou une autre de ses années), visibilité
  *          (foyer par défaut, « Visible par vous seul » en option), note facultative.
  * Modifier (élément ajouté par le parent connecté) : catégorie, date, titre, visibilité ; ouvrir le
- *          fichier (URL signée de 24 h) ; supprimer (Alert native ; le fichier est supprimé aussi).
+ *          fichier (URL signée d’1 h) ; supprimer (Alert native ; le fichier est supprimé aussi).
  * Rangé dans le carnet de l'enfant SÉLECTIONNÉ. Démo : en mémoire pour la session, rien en base.
  */
 

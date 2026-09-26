@@ -188,5 +188,23 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 
+-- ─── T13-T14 · remplacement d'un fichier existant : refusé pour tous, auteur compris ─
+-- Aucune politique UPDATE : ni modification directe, ni « upsert » de l'API Storage
+-- (INSERT … ON CONFLICT DO UPDATE, qui exige le droit UPDATE).
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN
+  UPDATE storage.objects SET metadata = '{"remplace":true}'::jsonb WHERE name = current_setting('test.f_foyer');
+  IF FOUND THEN RAISE EXCEPTION 'ÉCHEC T13 l''auteur a modifié son fichier (UPDATE)'; END IF;
+  RAISE NOTICE 'OK T13 remplacement direct refusé, même pour l''auteur (UPDATE : 0 ligne)';
+  BEGIN
+    INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('carnet', current_setting('test.f_foyer'), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+      ON CONFLICT (bucket_id, name COLLATE "C", version) DO UPDATE SET metadata = '{"remplace":true}'::jsonb;
+    RAISE EXCEPTION 'ÉCHEC T14 upsert accepté';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'OK T14 upsert (remplacement par l''API Storage) refusé, même pour l''auteur';
+  END;
+END $$;
+RESET ROLE;
+
 \echo '── Tous les tests M20 sont passés ──'
 ROLLBACK;

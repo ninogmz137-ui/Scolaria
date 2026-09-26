@@ -42,6 +42,7 @@
 - [ ] Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test.
 
 ### BLOQUANT avant toute famille réelle
+- [ ] **Nettoyage des fichiers orphelins du bucket « carnet »** (tâche SERVEUR via l'API Storage — jamais de DELETE SQL direct, storage.protect_delete l'interdit à raison) déclenché par : la suppression d'un enfant (tous ses fichiers), la suppression d'un élément (son fichier, si l'app n'a pas pu le supprimer), le départ d'un responsable (ses éléments PRIVÉS et leurs fichiers). Test : après suppression d'un enfant, plus aucun fichier sous `<child_id>/` dans le bucket.
 - [ ] **Lot « Emails et liens Auth »** (un seul lot) :
   - Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement) ;
   - modèles d'email en français : confirmation, invitation, réinitialisation, changement d'email (aujourd'hui : textes Supabase par défaut, en anglais) ;
@@ -248,7 +249,8 @@ Objectif : types de mots et signature par responsable, filtres Tout / À signer 
 - [x] B5.1 M20 (5a3ba05) : 70/70 tests en local, script inverse vérifié. **NON APPLIQUÉE À PARIS** : l'utilisateur relit le SQL.
 - [x] B5.2 flux (b76c54f) ; B5.3 affichage (Accueil « Nouveau dans le carnet »).
 - [ ] **B4 (Messages)** : afficher aussi les mots importés par la famille (carnet_items categorie « mot ») dans Messages de l'enfant.
-- [ ] Questions ouvertes (rapport B5) : HEIC refusé faute de conversion (ajouter expo-image-manipulator au prochain build ? permettrait aussi de redimensionner) ; 10 Mo à confirmer ; « Actions rapides » (écrire / nouvel événement / absence) n'est plus ouvert par le « + » de l'Accueil (remplacé par « Ajouter au carnet ») : garder ou supprimer QuickActionsSheet ?
+- Décisions du 26 sept : 10 Mo validés ; HEIC refusé pour l'instant ; URL signées d'1 h pour l'affichage ; « Actions rapides » gardée (écrire / absence → ✏️ de Messages, masqués sans enseignant rattaché ; nouvel événement → « + » de l'Agenda).
+- [ ] **Au prochain build EAS** : ajouter `expo-image-manipulator` — redimensionnement ~1600 px, < 500 Ko par photo, métadonnées supprimées au réencodage, HEIC converti en JPEG (puis accepté) ; garder le nettoyage JS (metadonneesImage.ts) en seconde sécurité. Raison : 1 Go de stockage sur le plan gratuit Supabase (une photo de téléphone brute = 3 à 5 Mo).
 - [ ] Après application de M20 à Paris : tester sur le Redmi (compte réel) photo → souvenir visible chez A et B ; même photo en « Visible par vous seul » → invisible pour B ; PDF ouvert par URL signée ; permissions refusées → message clair.
 
 ### B5 · Ajouter au carnet — 2 à 3 sessions — **À FAIRE JUSTE APRÈS B3b, AVANT B4** (décision du 26 sept 2026)
