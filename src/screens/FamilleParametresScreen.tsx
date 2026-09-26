@@ -23,8 +23,6 @@ import {
   Moon,
   Mic,
   Shield,
-  Download,
-  Trash2,
   Info,
   LogOut,
 } from 'lucide-react-native';
@@ -280,27 +278,19 @@ export default function FamilleParametresScreen() {
           </DeepGroup>
         )}
 
-        <DeepGroup title="Confidentialité & données">
-          {isFamille && (
+        {/* Export et effacement : MASQUÉS tant qu'ils ne produisent pas un vrai fichier / une vraie
+            suppression (constat du 26 sept 2026 : écrans factices). Bloquant avant toute famille réelle (todo). */}
+        {isFamille && (
+          <DeepGroup title="Confidentialité & données">
             <DeepRow
               icon={<Shield size={20} color={TEXT55} strokeWidth={2} />}
               label="Autorisations"
               description="Qui a accès au carnet de l’enfant"
+              last
               onPress={() => navigation.navigate('PermissionsRGPD')}
             />
-          )}
-          <DeepRow
-            icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
-            label="Exporter mes données"
-            onPress={() => navigation.navigate('ExportDonnees')}
-          />
-          <DeepRow
-            icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}
-            label="Droit à l’effacement"
-            last
-            onPress={() => navigation.navigate('Effacement')}
-          />
-        </DeepGroup>
+          </DeepGroup>
+        )}
 
         <DeepGroup title="Compte">
           <DeepRow

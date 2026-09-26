@@ -3,9 +3,6 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Shield,
-  ArrowRightLeft,
-  Download,
-  Trash2,
   ShieldCheck,
 } from 'lucide-react-native';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -21,27 +18,11 @@ const RGPD_ITEMS = [
   {
     Icon: Shield,
     label: "Permissions d'accès",
-    sublabel: 'Niveaux et modules autorisés',
+    sublabel: 'Qui a accès au carnet de l’enfant',
     screen: 'PermissionsRGPD',
   },
-  {
-    Icon: ArrowRightLeft,
-    label: 'Code de transfert',
-    sublabel: 'Transférer un dossier scolaire (90 jours)',
-    screen: 'TransfertCode',
-  },
-  {
-    Icon: Download,
-    label: 'Export intégral',
-    sublabel: 'Portabilité JSON + PDF',
-    screen: 'ExportDonnees',
-  },
-  {
-    Icon: Trash2,
-    label: "Droit à l'effacement",
-    sublabel: 'Suppression définitive (Art. 17)',
-    screen: 'Effacement',
-  },
+  // Code de transfert, export intégral, droit à l'effacement : MASQUÉS tant qu'ils ne fonctionnent
+  // pas réellement (constat du 26 sept 2026 : écrans factices, aucun fichier, aucune suppression).
 ] as const;
 
 export default function RGPDScreen({ navigation }: { navigation: any }) {
