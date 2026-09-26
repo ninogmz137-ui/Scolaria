@@ -22,6 +22,38 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// ─── Règles (B4a, 26 sept 2026 — tasks/b4-decisions.md §5) ─────────────
+// - Chaque notification commence par le PRÉNOM de l'enfant et porte un contenu utile.
+// - Elle ouvre EXACTEMENT l'élément concerné, dans le carnet du bon enfant (données : childId + id).
+// - Élément retiré : l'écran l'indique (« Mme Dupont a retiré ce mot »), jamais d'erreur.
+// - Une modification ne renvoie jamais de nouvelle notification.
+
+/** Ce qu'une notification doit ouvrir (lu par NotificationsRouteur). */
+export type CibleNotification =
+  | { type: 'mot'; childId: string; motId: string; expediteur?: string }
+  | { type: 'agenda'; childId: string; date?: string };
+
+/** Nouveau mot dans le carnet d'un enfant : « Lucas · Mme Dupont a publié un mot à signer ». */
+export async function notifierMot(p: {
+  prenom: string;
+  childId: string;
+  motId: string;
+  expediteur: string;
+  titre: string;
+  aSigner: boolean;
+}): Promise<string | null> {
+  if (!(await requestNotificationPermissions())) return null;
+  const cible: CibleNotification = { type: 'mot', childId: p.childId, motId: p.motId, expediteur: p.expediteur };
+  return Notifications.scheduleNotificationAsync({
+    content: {
+      title: `${p.prenom} · ${p.expediteur} a publié un mot${p.aSigner ? ' à signer' : ''}`,
+      body: p.titre,
+      data: cible,
+    },
+    trigger: null,
+  });
+}
+
 // ─── Permissions ─────────────────────────────────────────
 
 export async function requestNotificationPermissions(): Promise<boolean> {
@@ -87,6 +119,7 @@ interface ExamReminder {
   subject: string;
   date: Date;
   childName: string;
+  childId: string;
 }
 
 /**
@@ -106,9 +139,9 @@ export async function scheduleExamReminder(exam: ExamReminder): Promise<string |
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: `📝 ${exam.subject} demain`,
-      body: `${exam.childName} a « ${exam.title} » demain. Pensez à réviser ce soir !`,
-      data: { type: 'exam_reminder', subject: exam.subject },
+      title: `${exam.childName} · ${exam.subject} demain`,
+      body: `« ${exam.title} » demain.`,
+      data: { type: 'agenda', childId: exam.childId, date: exam.date.toISOString().slice(0, 10) } satisfies CibleNotification,
       sound: 'default',
     },
     trigger: {
@@ -128,6 +161,7 @@ export async function scheduleExamReminder(exam: ExamReminder): Promise<string |
  */
 export async function scheduleHomeworkReminder(
   childName: string,
+  childId: string,
   subject: string,
   dueDate: Date,
 ): Promise<string | null> {
@@ -142,9 +176,9 @@ export async function scheduleHomeworkReminder(
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: `📚 Devoir de ${subject}`,
-      body: `${childName} a un devoir de ${subject} à rendre demain. Tout est prêt ?`,
-      data: { type: 'homework_reminder', subject },
+      title: `${childName} · devoir de ${subject} pour demain`,
+      body: `À rendre demain.`,
+      data: { type: 'agenda', childId, date: dueDate.toISOString().slice(0, 10) } satisfies CibleNotification,
       sound: 'default',
     },
     trigger: {

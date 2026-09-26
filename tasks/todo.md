@@ -239,6 +239,17 @@ Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages
 - Test Redmi : Léa (GS) → domaines ; Lucas (CM2) → 4 segments, aucune note /20 ; Emma (4ème) → notes v7 identiques à avant ; segmented et bouton année ; archive en lecture seule.
 - Risques : régression de la vue notes v7 lors du découpage (le fichier mélange les 2 modes) ; les notes /20 de Lucas sont lues ailleurs (Accueil, GradeDetail, Bulletin, Aria) → grep avant de les retirer ; nomenclature maternelle / LSU à valider (domaines et intitulés officiels à reprendre des textes Éduscol, pas inventés).
 
+### B4a — Messages › Général (26 sept, 7671d2a → B4a.4)
+- [x] B4a.1 structure (segmented Général · prénom, liste à plat, recherche + menu « Tout ⌄ »).
+- [x] B4a.2 Général : carte « À traiter », signature / réponses avec confirmation, mots importés, état vide réel.
+- [x] B4a.3 même donnée Accueil « À faire » ↔ Général « À traiter » (motsService + useMotsEnfant) ; démo cohérente Agenda / Accueil / Messages (événements liés : Muséum, médiathèque, réunion 3e).
+- [x] B4a.4 notifications locales : ouverture exacte (NotificationsRouteur), « [Expéditeur] a retiré ce mot ».
+- [ ] **M21 (mots_carnet_expediteurs) : locale 6/6, NON appliquée à Paris — attente validation.** Sans elle, un compte réel affiche « Enseignant » comme expéditeur (le parent ne lit pas le profil de l'enseignant).
+- [ ] À trancher sur captures : séparateurs de la liste (avec / sans) — SEPARATEURS_MESSAGES dans LigneMessage.tsx.
+- [ ] Vérif utilisateur (mes scripts adb ne peuvent pas appuyer sur Signer / Oui / Non) : confirmation « Signer au nom de Claire Moreau ? », puis le mot disparaît de l'Accueil ET de Général.
+- [ ] Hors lot, relevé : fil de conversation « Aria peut résumer ce message » (affirmation à vérifier, règle « rien qui ne soit vrai aujourd'hui ») ; read_receipts sans contrôle de responsable (un parent peut marquer lu un mot d'un autre carnet s'il en connaît l'id — sans lecture de contenu).
+- **Notifications distantes (règles, pour le lot notifications)** : titre = PRÉNOM de l'enfant + contenu utile (« Lucas · Mme Dupont a publié un mot à signer ») ; données = { type, childId, id } pour ouvrir EXACTEMENT l'élément dans le bon carnet ; élément retiré → message clair, jamais d'erreur ; une MODIFICATION ne renvoie JAMAIS de notification ; silence 20h-7h sauf urgence ; résumé unique à 18h (CLAUDE.md, Notifications).
+
 ### B4 · Mots et Messages — 3 à 4 sessions
 Objectif : types de mots et signature par responsable, filtres Tout / À signer / École / Privés, invitations d’un responsable.
 - [ ] Mots : 4 types (information / signature / autorisation / participation) ; statut par responsable (« Signé par vous · en attente de Marc ») via `mot_carnets_statut` ; réponses autorisation (oui/non) et participation (oui / peut-être / non) via `reponses_mot` ; signature en son nom (déjà côté service, `liaisonService`).

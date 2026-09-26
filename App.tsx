@@ -32,6 +32,7 @@ import { cancelConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import NotificationsRouteur from './src/components/NotificationsRouteur';
 
 // Prevent native splash from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -126,6 +127,9 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   }
 
   return (
+    <>
+    {/* Appui sur une notification → l'élément exact, dans le carnet du bon enfant (B4a). */}
+    <NotificationsRouteur />
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {/* ── Auth ── */}
       <RootStack.Screen name="Login" component={LoginScreen} />
@@ -139,6 +143,7 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
       <RootStack.Screen name="EleveSpace" component={EleveTabNavigator} />
       <RootStack.Screen name="Sandbox" component={SandboxNavigator} />
     </RootStack.Navigator>
+    </>
   );
 }
 
