@@ -5,7 +5,7 @@
  */
 
 import { useRef, useState } from 'react';
-import { Modal, View, StyleSheet, Platform } from 'react-native';
+import { Modal, View, StyleSheet, Platform, StatusBar } from 'react-native';
 import { Check, ChevronDown } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../../components/ui';
@@ -26,7 +26,10 @@ export default function BoutonAnnee({
 
   const ouvrir = () => {
     bouton.current?.measureInWindow((x, y, _w, h) => {
-      setPos({ x, y: y + h + 6 });
+      // Android (bord à bord) : le Modal couvre tout l'écran, mais measureInWindow mesure depuis le
+      // bas de la barre d'état → on rajoute sa hauteur (mesuré sur le Redmi : menu 33 dp trop haut).
+      const barre = Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0;
+      setPos({ x, y: y + h + 6 + barre });
       setOuvert(true);
     });
   };
@@ -50,7 +53,10 @@ export default function BoutonAnnee({
         </Pressable>
       </View>
 
-      <Modal visible={ouvert} transparent animationType="fade" onRequestClose={() => setOuvert(false)} statusBarTranslucent={Platform.OS === 'android'}>
+      {/* Pas de statusBarTranslucent : measureInWindow mesure depuis le bas de la barre d'état (Android) ;
+          un Modal translucide commencerait en haut de l'écran → menu décalé de la hauteur de la barre
+          (mesuré sur le Redmi : 36 dp, le menu recouvrait le bouton). */}
+      <Modal visible={ouvert} transparent animationType="fade" onRequestClose={() => setOuvert(false)}>
         <Pressable style={StyleSheet.absoluteFill} onPress={() => setOuvert(false)} accessibilityLabel="Fermer" />
         <View style={[st.menu, { top: pos.y, left: pos.x }]}>
           <View style={st.ligne}>
