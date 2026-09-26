@@ -243,6 +243,14 @@ Objectif : types de mots et signature par responsable, filtres Tout / À signer 
 - Test Redmi + SQL : 2 comptes de test (A, B) sur le même enfant : A signe → A voit « en attente de B » ; B signe → « signé » ; B ne voit pas les conversations privées de A ; invitation acceptée seulement avec email confirmé.
 - Risques : mode démo sans deuxième compte réel → statuts simulés à écrire ; email de confirmation Supabase (SMTP par défaut limité) pour tester l’invitation ; mapping types DB ↔ types écran déjà ambigu (info ↔ information, bon_de_sortie → autorisation) ; migration M14 (annulation d’invitation).
 
+### B5 — état (26 sept, autonomie)
+- [x] B5.0 prérequis : image-picker, document-picker, file-system et permission CAMERA déjà dans le dev client (installé le 18 sept) ; expo-image-manipulator ABSENT (non ajouté : il faudrait un build).
+- [x] B5.1 M20 (5a3ba05) : 70/70 tests en local, script inverse vérifié. **NON APPLIQUÉE À PARIS** : l'utilisateur relit le SQL.
+- [x] B5.2 flux (b76c54f) ; B5.3 affichage (Accueil « Nouveau dans le carnet »).
+- [ ] **B4 (Messages)** : afficher aussi les mots importés par la famille (carnet_items categorie « mot ») dans Messages de l'enfant.
+- [ ] Questions ouvertes (rapport B5) : HEIC refusé faute de conversion (ajouter expo-image-manipulator au prochain build ? permettrait aussi de redimensionner) ; 10 Mo à confirmer ; « Actions rapides » (écrire / nouvel événement / absence) n'est plus ouvert par le « + » de l'Accueil (remplacé par « Ajouter au carnet ») : garder ou supprimer QuickActionsSheet ?
+- [ ] Après application de M20 à Paris : tester sur le Redmi (compte réel) photo → souvenir visible chez A et B ; même photo en « Visible par vous seul » → invisible pour B ; PDF ouvert par URL signée ; permissions refusées → message clair.
+
 ### B5 · Ajouter au carnet — 2 à 3 sessions — **À FAIRE JUSTE APRÈS B3b, AVANT B4** (décision du 26 sept 2026)
 Objectif : les 4 actions d’import, rangées dans le carnet de l’enfant actif, fichiers dans un stockage privé.
 Périmètre validé : bucket Storage à **Paris** (M15) ; envoi de photos, captures et PDF ; catégorie et date choisies par le parent ; visibilité foyer ou privée ; **réactivation du ⊞ de Suivi et du « + »** (masqués en B3b tant qu'ils ne font rien). Ne pas commencer avant la fin de B3b.

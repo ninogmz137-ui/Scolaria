@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MessageCircle, Calendar, ChevronRight } from 'lucide-react-native';
@@ -31,6 +32,8 @@ import { de } from '../utils/francais';
 import { useDemoData } from '../contexts/DemoContext';
 import { getConversations } from '../stores/messagerieStore';
 import { construireAccueilDemo, isoJour } from '../data/demo/accueil';
+import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -199,6 +202,34 @@ export default function AccueilScreen() {
     () => (isDemo && selectedChild ? getSuiviDemo(selectedChild.id).slice(0, 2) : []),
     [isDemo, selectedChild],
   );
+
+  // « Nouveau dans le carnet » : mots importés par la famille (lot B5). Démo : ajouts de la session ;
+  // compte réel : carnet_items. Livrets → Suivi › Livrets ; souvenirs et jalons → Suivi › Souvenirs.
+  const [versionCarnet, setVersionCarnet] = useState(0);
+  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
+  const [motsReels, setMotsReels] = useState<ElementCarnet[]>([]);
+  useEffect(() => {
+    let annule = false;
+    if (isDemo || !selectedChild) {
+      setMotsReels([]);
+      return;
+    }
+    getCarnetItems(selectedChild.id).then((items) => {
+      if (!annule) setMotsReels(items.filter((e) => e.categorie === 'mot'));
+    });
+    return () => {
+      annule = true;
+    };
+  }, [isDemo, selectedChild?.id, versionCarnet]);
+  const nouveauxMots = (isDemo ? carnetDemo(selectedChild?.id).filter((e) => e.categorie === 'mot') : motsReels).slice(0, 3);
+  const ouvrirAjout = async (e: ElementCarnet) => {
+    if (e.deMoi) {
+      nav.navigate('AjouterAuCarnet', { element: e });
+      return;
+    }
+    const url = await lienFichier(e, isDemo);
+    if (url) Linking.openURL(url);
+  };
   const accueil = useMemo(() => {
     if (!isDemo || !selectedChild) return { todo: [], aujourdhui: [], aria: '' };
     const auj = new Date();
@@ -372,6 +403,33 @@ export default function AccueilScreen() {
             </TouchableOpacity>
           </>
         )}
+
+        {/* Nouveau dans le carnet : mots importés (section absente tant qu'il n'y en a pas) */}
+        {nouveauxMots.length > 0 ? (
+          <>
+            <SurFondu hauteur={hauteurFondu}>
+              {(ton) => <SectionLabel text="Nouveau dans le carnet" style={[styles.sectionLabel, ton]} />}
+            </SurFondu>
+            <View style={styles.cardOuter}>
+              <View style={styles.cardInner}>
+                {nouveauxMots.map((e, i) => (
+                  <TouchableOpacity
+                    key={e.id}
+                    style={[styles.apprRow, i < nouveauxMots.length - 1 && styles.rowBorder]}
+                    activeOpacity={0.75}
+                    onPress={() => ouvrirAjout(e)}
+                  >
+                    <Text style={styles.apprDomaine}>{LIBELLES_TYPE[e.type]}</Text>
+                    <Text style={styles.apprTexte}>{e.titre}</Text>
+                    <Text style={styles.apprSource}>
+                      {`${ligneSourceCarnet(e)}${e.visibilite === 'prive' ? ' · visible par vous seul' : ''}`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </>
+        ) : null}
 
         <View style={{ height: 14 }} />
 
