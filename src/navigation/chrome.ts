@@ -25,6 +25,7 @@ export const ROUTE_CHROME = {
   ProfilEnfant: 'none',
   AjouterEnfant: 'none',
   AjouterAnne: 'full',
+  AjouterAuCarnet: 'none', // formulaire « Ajouter au carnet » (piles Accueil et Suivi)
   MonParcours: 'full',
   FamilleParametres: 'none',
   RGPDScreen: 'full',

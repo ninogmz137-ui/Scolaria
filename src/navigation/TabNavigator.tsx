@@ -67,7 +67,8 @@ import AProposScreen from '../screens/AProposScreen';
 
 // Quick overlays (BottomBar)
 import QuickSearchScreen from '../screens/QuickSearchScreen';
-import QuickActionsSheet from '../components/QuickActionsSheet';
+import AjouterAuCarnetSheet from '../components/AjouterAuCarnetSheet';
+import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
 
 // RGPD hub
 import RGPDScreen from '../screens/RGPDScreen';
@@ -209,6 +210,11 @@ function AccueilStackScreen() {
         name="AjouterAnne"
         component={AjouterAnneScreen}
         options={{ title: 'Ajouter une année' }}
+      />
+      <AccueilStack.Screen
+        name="AjouterAuCarnet"
+        component={AjouterAuCarnetScreen}
+        options={{ headerShown: false }}
       />
       <AccueilStack.Screen
         name="MonParcours"
@@ -404,6 +410,11 @@ function NotesStackScreen() {
         name="AjouterAnne"
         component={AjouterAnneScreen}
         options={{ title: 'Ajouter une année' }}
+      />
+      <NotesStack.Screen
+        name="AjouterAuCarnet"
+        component={AjouterAuCarnetScreen}
+        options={{ headerShown: false }}
       />
     </NotesStack.Navigator>
   );
@@ -638,7 +649,8 @@ export default function TabNavigator() {
   const [stackTitle, setStackTitle] = useState('');
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
   const [searchVisible, setSearchVisible] = useState(false);
-  const [quickActionsVisible, setQuickActionsVisible] = useState(false);
+  // Onglet d'où « Ajouter au carnet » a été ouvert (null = feuille fermée).
+  const [carnetDepuis, setCarnetDepuis] = useState<'Accueil' | 'Notes' | null>(null);
 
   // ── Défilement de l'écran visible → voiles haut/bas (ScrollVeil) ────
   const scrollY = useSharedValue(0);
@@ -740,8 +752,9 @@ export default function TabNavigator() {
                     actionNavRef.current?.();
                   } else if (navActiveTab === 'agenda') {
                     agendaActionRef.current?.();
-                  } else if (navActiveTab !== 'notes') {
-                    setQuickActionsVisible(true);
+                  } else if (navActiveTab === 'accueil' || navActiveTab === 'notes') {
+                    // « + » (Accueil) et ⊞ (Suivi) : Ajouter au carnet (lot B5).
+                    setCarnetDepuis(navActiveTab === 'notes' ? 'Notes' : 'Accueil');
                   }
                 }}
               />
@@ -751,9 +764,10 @@ export default function TabNavigator() {
               visible={searchVisible}
               onClose={() => setSearchVisible(false)}
             />
-            <QuickActionsSheet
-              visible={quickActionsVisible}
-              onClose={() => setQuickActionsVisible(false)}
+            <AjouterAuCarnetSheet
+              visible={carnetDepuis !== null}
+              onglet={carnetDepuis ?? 'Accueil'}
+              onClose={() => setCarnetDepuis(null)}
             />
 
       </View>

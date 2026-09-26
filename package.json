@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test:emergency": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/emergency.test.mts",
-    "test:journaux": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/journaux.test.mts"
+    "test:journaux": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/journaux.test.mts",
+    "test:exif": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/metadonneesImage.test.mts"
   },
   "dependencies": {
     "@expo-google-fonts/figtree": "^0.4.1",

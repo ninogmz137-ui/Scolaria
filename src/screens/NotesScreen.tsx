@@ -16,6 +16,7 @@ import {
   PanResponder,
   Animated,
   Alert,
+  Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -64,7 +65,7 @@ import { referentielDuNiveau } from '../data/referentiels';
 import type { Decoupage, ElementSuivi } from '../utils/competences';
 import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
 import CarnetVue from './suivi/CarnetVue';
-import { getCarnetItems, type ElementCarnet } from '../services/carnetService';
+import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { videLivrets } from '../utils/livrets';
 import { getLivretsDemo } from '../data/demo/livrets';
 import { getSouvenirsDemo } from '../data/demo/souvenirs';
@@ -991,8 +992,13 @@ function NotesScreenContent() {
   // permet d'en ajouter (lot B5), la barre n'apparaît que s'il en existe déjà (jamais de module grisé).
   const [onglet, setOnglet] = useState<OngletSuivi>('apprentissages');
   const [carnetReel, setCarnetReel] = useState<ElementCarnet[]>([]);
+  // Ajout / modification / suppression (B5) : on relit la liste.
+  const [versionCarnet, setVersionCarnet] = useState(0);
+  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
   useEffect(() => {
     setOnglet('apprentissages');
+  }, [selectedChild?.id]);
+  useEffect(() => {
     let annule = false;
     if (isDemoMode || !selectedChild) {
       setCarnetReel([]);
@@ -1004,10 +1010,21 @@ function NotesScreenContent() {
     return () => {
       annule = true;
     };
-  }, [selectedChild?.id, isDemoMode]);
+  }, [selectedChild?.id, isDemoMode, versionCarnet]);
+  // Démo : ajouts de la session (en mémoire) + données de démo fixes.
   const carnet: ElementCarnet[] = isDemoMode
-    ? [...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
+    ? [...carnetDemo(selectedChild?.id), ...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
+        .sort((a, b) => b.date.localeCompare(a.date))
     : carnetReel;
+  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier (URL signée 24 h).
+  const ouvrirElement = async (e: ElementCarnet) => {
+    if (e.deMoi) {
+      navigation.navigate('AjouterAuCarnet', { element: e });
+      return;
+    }
+    const url = await lienFichier(e, isDemoMode);
+    if (url) Linking.openURL(url);
+  };
   const livrets = carnet.filter((e) => e.categorie === 'livret');
   const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
   const afficherBarre = isDemoMode || carnet.length > 0;
@@ -1318,7 +1335,8 @@ function NotesScreenContent() {
         mode="souvenirs"
         entete={entete}
         items={souvenirs}
-        vide="Aucun souvenir pour l’instant cette année."
+        vide="Aucun souvenir pour l’instant cette année. Ajoutez un dessin, une photo ou une première fois avec ⊞."
+        onOuvrir={ouvrirElement}
       />
     );
   }
@@ -1330,6 +1348,7 @@ function NotesScreenContent() {
         items={livrets}
         vide={videLivrets(selectedChild?.niveau, cycle, isMaternelle || isPrimaire ? decoupageSuivi : 'trimestres')}
         onParcours={ouvrirParcours}
+        onOuvrir={ouvrirElement}
       />
     );
   }

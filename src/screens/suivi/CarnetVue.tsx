@@ -8,11 +8,13 @@
  * État vide informatif + lien vers Mon parcours (livrets des années précédentes).
  */
 
-import type { ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Image, View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Award, BookOpen, ClipboardCheck, FileText, Flag, Images, Lock, Palette, Users } from 'lucide-react-native';
+import { Award, BookOpen, ClipboardCheck, FileText, Flag, Images, Lock, Mail, Palette, Users } from 'lucide-react-native';
+import { useDemoData } from '../../contexts/DemoContext';
+import { lienFichier } from '../../services/carnetService';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useTopbarScrollHandler } from '../../contexts/TopbarScrollContext';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -28,16 +30,36 @@ const ICONES: Record<TypeCarnet, typeof FileText> = {
   album: Images,
   dessin: Palette,
   jalon: Flag,
+  mot: Mail,
 };
 
-const LIBELLES_TYPE: Record<TypeCarnet, string> = {
+export const LIBELLES_TYPE: Record<TypeCarnet, string> = {
   livret: 'Livret',
   bulletin: 'Bulletin',
   evaluation_nationale: 'Évaluation nationale',
   album: 'Album de classe',
-  dessin: 'Dessin, travail',
+  dessin: 'Souvenir',
   jalon: 'Première fois',
+  mot: 'Mot',
 };
+
+/** Aperçu d'une image ajoutée (démo : fichier local ; compte réel : URL signée de 24 h). */
+function Apercu({ e }: { e: ElementCarnet }) {
+  const { isDemoMode } = useDemoData();
+  const [uri, setUri] = useState<string | null>(null);
+  useEffect(() => {
+    let annule = false;
+    if (!e.fichier || !e.mime?.startsWith('image/')) return;
+    lienFichier(e, isDemoMode).then((u) => {
+      if (!annule) setUri(u);
+    });
+    return () => {
+      annule = true;
+    };
+  }, [e.fichier, e.mime, isDemoMode]);
+  if (!uri) return null;
+  return <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />;
+}
 
 /** « Saisi par Mme Dupont · 2 oct. », « Scanné par vous · 12 sept. », « Ajouté par vous · 3 sept. » */
 export function ligneSourceCarnet(e: ElementCarnet): string {
@@ -61,13 +83,20 @@ function Visibilite({ e }: { e: ElementCarnet }) {
 }
 
 /** Carte des livrets (onglet Livrets, et livrets d'une année archivée). */
-export function ListeLivrets({ items }: { items: ElementCarnet[] }) {
+export function ListeLivrets({ items, onOuvrir }: { items: ElementCarnet[]; onOuvrir?: (e: ElementCarnet) => void }) {
   return (
     <View style={st.card}>
       {items.map((e, i) => {
         const Icone = ICONES[e.type] ?? Award;
+        const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier);
         return (
-          <View key={e.id} style={[st.row, i < items.length - 1 && st.rowBorder]}>
+          <Pressable
+            key={e.id}
+            disabled={!ouvrable}
+            onPress={() => onOuvrir?.(e)}
+            accessibilityRole={ouvrable ? 'button' : undefined}
+            style={[st.row, i < items.length - 1 && st.rowBorder]}
+          >
             <View style={st.rowIcone}>
               <Icone size={20} color="#0F172A" strokeWidth={2} />
             </View>
@@ -78,7 +107,7 @@ export function ListeLivrets({ items }: { items: ElementCarnet[] }) {
               <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
               <Visibilite e={e} />
             </View>
-          </View>
+          </Pressable>
         );
       })}
     </View>
@@ -91,7 +120,10 @@ export default function CarnetVue({
   items,
   vide,
   onParcours,
+  onOuvrir,
 }: {
+  /** Élément ajouté par le parent (modifier / supprimer) ou fichier à ouvrir. */
+  onOuvrir?: (e: ElementCarnet) => void;
   mode: 'souvenirs' | 'livrets';
   entete: ReactNode;
   items: ElementCarnet[];
@@ -121,14 +153,22 @@ export default function CarnetVue({
         <View style={st.grille}>
           {items.map((e) => {
             const Icone = ICONES[e.type];
+            const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier);
             return (
-              <View key={e.id} style={st.tuile}>
+              <Pressable
+                key={e.id}
+                style={st.tuile}
+                disabled={!ouvrable}
+                onPress={() => onOuvrir?.(e)}
+                accessibilityRole={ouvrable ? 'button' : undefined}
+              >
                 <View style={st.visuel}>
                   {e.illustration ? (
                     <IllustrationSouvenir sujet={e.illustration} />
                   ) : (
                     <Icone size={28} color="rgba(15,23,42,0.35)" strokeWidth={1.8} />
                   )}
+                  <Apercu e={e} />
                 </View>
                 <View style={st.tuileTexte}>
                   <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
@@ -137,12 +177,12 @@ export default function CarnetVue({
                   <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
                   <Visibilite e={e} />
                 </View>
-              </View>
+              </Pressable>
             );
           })}
         </View>
       ) : (
-        <ListeLivrets items={items} />
+        <ListeLivrets items={items} onOuvrir={onOuvrir} />
       )}
 
       {onParcours ? (

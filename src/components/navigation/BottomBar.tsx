@@ -7,7 +7,7 @@
  * - Pill Aria (centre, flex:1) : ScolariaSymbol 14px + texte placeholder
  * - Bouton action droite (contextuel) :
  *     Accueil  → Plus (Ajouter au carnet)
- *     Suivi    → rien (⊞ masqué jusqu'au lot B5 « Ajouter au carnet »)
+ *     Suivi    → ScanLine ⊞ (Ajouter au carnet)
  *     Agenda   → Plus (ouvre formulaire ajout événement)
  *     Messages → rien (✏️ masqué : aucun écran de rédaction ne le lit encore)
  *     Aria     → invisible (espace gardé)
@@ -24,7 +24,7 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Edit, Plus } from 'lucide-react-native';
+import { Search, Edit, Plus, ScanLine } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';
@@ -72,10 +72,9 @@ type LucideIcon = typeof Edit;
 function getActionIcon(activeTab: ActiveTab): LucideIcon | null {
   switch (activeTab) {
     case 'accueil':  return Plus;      // Ajouter au carnet (CLAUDE.md : « + »)
-    // Suivi ⊞ (ScanLine) et Messages ✏️ (Edit) : MASQUÉS tant qu'ils ne font rien (audit B3b,
-    // 26 sept 2026 — jamais de bouton inactif). ⊞ revient avec le lot B5 « Ajouter au carnet » ;
-    // ✏️ quand un écran de rédaction lira `openNewMessage`.
-    case 'notes':    return null;
+    // Messages ✏️ (Edit) : MASQUÉ tant qu'il ne fait rien (audit B3b, 26 sept 2026 — jamais de
+    // bouton inactif) ; il reviendra quand un écran de rédaction lira `openNewMessage`.
+    case 'notes':    return ScanLine;  // ⊞ Ajouter au carnet (réactivé au lot B5)
     case 'agenda':   return Plus;
     case 'aria':     return null;
     default:         return null;      // messages
@@ -143,7 +142,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
           onPress={handleActionPress}
           style={styles.roundBtn}
           accessibilityRole="button"
-          accessibilityLabel={activeTab === 'accueil' ? 'Ajouter au carnet' : 'Action'}
+          accessibilityLabel={activeTab === 'accueil' || activeTab === 'notes' ? 'Ajouter au carnet' : 'Action'}
         >
           <ActionIcon size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
         </Pressable>
