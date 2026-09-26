@@ -69,6 +69,8 @@ export async function getCarnetItems(childId: string): Promise<ElementCarnet[]> 
     note: r.note ?? undefined,
     date: r.date,
     source: 'parent',
+    // Un livret ajouté par la famille est un document papier numérisé : « Scanné par vous ».
+    scanne: r.categorie === 'livret',
     auteur: r.ajoute_par === moi ? undefined : 'un autre responsable',
     visibilite: r.visibilite,
   }));

@@ -66,6 +66,7 @@ import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
 import CarnetVue from './suivi/CarnetVue';
 import { getCarnetItems, type ElementCarnet } from '../services/carnetService';
 import { videLivrets } from '../utils/livrets';
+import { getLivretsDemo } from '../data/demo/livrets';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -1000,7 +1001,7 @@ function NotesScreenContent() {
       annule = true;
     };
   }, [selectedChild?.id, isDemoMode]);
-  const carnet: ElementCarnet[] = isDemoMode ? [] : carnetReel;
+  const carnet: ElementCarnet[] = isDemoMode ? getLivretsDemo(selectedChild?.id) : carnetReel;
   const livrets = carnet.filter((e) => e.categorie === 'livret');
   const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
   const afficherBarre = isDemoMode || carnet.length > 0;
