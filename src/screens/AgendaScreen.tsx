@@ -35,7 +35,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronDown, CalendarCheck } from 'lucide-react-native';
+import { Check, ChevronDown, CalendarCheck, CalendarDays } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 import { C } from '../constants/design';
@@ -1215,7 +1215,7 @@ function AgendaScreenContent() {
 
               {/* Date indicator */}
               <View style={st.modalDateRow}>
-                <Text style={{ fontSize: 15 }}>📅</Text>
+                <CalendarDays size={20} color="rgba(15,23,42,0.55)" strokeWidth={2} />
                 <Text style={st.modalDateText}>
                   {selectedDayLabel?.day} {selectedDay} {selectedDayLabel?.month}
                 </Text>
