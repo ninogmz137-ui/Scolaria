@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Benvenuto in',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'Il passaporto scolastico digitale che accompagna i tuoi figli durante tutto il percorso scolastico.',
-    slide1Feature1: 'Dati protetti (GDPR)',
     slide1Feature2: 'Multi-bambino',
     slide1Feature3: 'Tutto su mobile',
     slide2Title: 'Incontra',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Si prega di compilare il nome, la data di nascita e la classe.',
     invalidDate: 'Data non valida',
     invalidDateMessage: 'Si prega di verificare la data di nascita.',
-    rgpdNote: 'I dati sono protetti e conformi al GDPR. L\'identificativo Scolaria è unico e non modificabile.',
     years: 'anni',
     sections: {
       maternelle: 'Scuola materna',

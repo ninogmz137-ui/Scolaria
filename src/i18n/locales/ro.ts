@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Bine ai venit în',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'Pașaportul școlar digital care îți însoțește copiii de-a lungul întregii școlarități.',
-    slide1Feature1: 'Date securizate (RGPD)',
     slide1Feature2: 'Multi-copii',
     slide1Feature3: 'Totul pe mobil',
     slide2Title: 'Cunoaște-o pe',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Te rugăm să completezi prenumele, data nașterii și clasa.',
     invalidDate: 'Dată invalidă',
     invalidDateMessage: 'Te rugăm să verifici data nașterii.',
-    rgpdNote: 'Datele sunt protejate și conforme cu RGPD. Identificatorul Scolaria este unic și nu poate fi modificat.',
     years: 'ani',
     sections: {
       maternelle: 'Grădiniță',

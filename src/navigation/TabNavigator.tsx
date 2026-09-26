@@ -77,7 +77,6 @@ import RGPDScreen from '../screens/RGPDScreen';
 
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
-import JournalAccesScreen from '../screens/rgpd/JournalAccesScreen';
 import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
@@ -109,7 +108,6 @@ const SCREEN_TITLES: Record<string, string> = {
   FamilleParametres: 'Famille & paramètres',
   RGPDScreen: 'RGPD & Confidentialité',
   PermissionsRGPD: 'Permissions',
-  JournalAcces: "Journal d'accès",
   TransfertCode: 'Code de transfert',
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
@@ -145,7 +143,6 @@ function AccueilStackScreen() {
           const isReglagesModal =
             routeName === 'FamilleParametres' ||
             routeName === 'PermissionsRGPD' ||
-            routeName === 'JournalAcces' ||
             routeName === 'TransfertCode' ||
             routeName === 'ExportDonnees' ||
             routeName === 'Effacement';
@@ -238,17 +235,6 @@ function AccueilStackScreen() {
         component={PermissionsScreen}
         options={{
           title: 'Permissions',
-          headerShown: false,
-          presentation: 'transparentModal',
-          animation: 'slide_from_bottom',
-          contentStyle: { backgroundColor: 'transparent', flex: 1 },
-        }}
-      />
-      <AccueilStack.Screen
-        name="JournalAcces"
-        component={JournalAccesScreen}
-        options={{
-          title: "Journal d'accès",
           headerShown: false,
           presentation: 'transparentModal',
           animation: 'slide_from_bottom',

@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Dalal-jàmm ci',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'Passeport bu numérique bu jàng bi muy indi sa xale yi ci seen jàng gépp.',
-    slide1Feature1: 'Xam-xam yi aar nañu leen (RGPD)',
     slide1Feature2: 'Xale yu bari',
     slide1Feature3: 'Lépp ci sa téléphone',
     slide2Title: 'Xamal',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Joxal tur bi, bésu juddu bi ak kalaas bi.',
     invalidDate: 'Bésu baaxul',
     invalidDateMessage: 'Saytul bésu juddu bi.',
-    rgpdNote: 'Xam-xam yi aar nañu leen ci yoon wi RGPD. Karangë Scolaria bi benneen la te soppal nañu ko.',
     years: 'at',
     sections: {
       maternelle: 'Maternelle',

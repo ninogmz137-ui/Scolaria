@@ -1,7 +1,7 @@
 /**
  * RGPD Service — CRUD operations for all 5 RGPD screens.
  *
- * Tables: person_permissions, access_journal, deletion_requests,
+ * Tables: person_permissions, deletion_requests,
  *         export_history, transfer_codes
  *
  * Falls back to mock data when Supabase is not configured.
@@ -25,64 +25,6 @@ async function getUserId(): Promise<string> {
 // 1. (supprimé en B1-bis) Permissions par personne : rôles fictifs retirés. Les accès au carnet
 //    = les responsables légaux (table responsables, RPC responsables_enfant). Accès partiels des
 //    proches : idée future (VISION), table person_permissions conservée mais inutilisée.
-
-// ═══════════════════════════════════════════════════════════
-// 2. ACCESS JOURNAL
-// ═══════════════════════════════════════════════════════════
-
-export interface AccessEntry {
-  id: string;
-  person_name: string;
-  person_avatar: string;
-  person_role: string;
-  action: string;
-  module: string;
-  module_icon: string;
-  child_name: string | null;
-  ip_address: string | null;
-  device: string | null;
-  color: string;
-  created_at: string;
-}
-
-export async function getAccessJournal(filter: 'all' | 'today' | 'week' | 'month' = 'all'): Promise<AccessEntry[]> {
-  if (!isSupabaseConfigured()) return [];
-
-  let query = supabase
-    .from('access_journal')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  const now = new Date();
-  if (filter === 'today') {
-    const today = now.toISOString().split('T')[0];
-    query = query.gte('created_at', today);
-  } else if (filter === 'week') {
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    query = query.gte('created_at', weekAgo);
-  } else if (filter === 'month') {
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    query = query.gte('created_at', monthAgo);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.warn('[RGPD] getAccessJournal error:', error.message);
-    return [];
-  }
-  return data ?? [];
-}
-
-export async function logAccess(entry: Omit<AccessEntry, 'id' | 'created_at'>): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const userId = await getUserId();
-  const { error } = await supabase
-    .from('access_journal')
-    .insert({ ...entry, family_id: userId });
-
-  if (error) console.warn('[RGPD] logAccess error:', error.message);
-}
 
 // ═══════════════════════════════════════════════════════════
 // 3. DELETION REQUESTS
@@ -292,10 +234,6 @@ export async function buildExportData(familyId: string, moduleKeys: string[]): P
   if (moduleKeys.includes('permissions')) {
     const { data } = await supabase.from('person_permissions').select('*').eq('family_id', familyId);
     exportData.scolaria_export.family.permissions = data ?? [];
-  }
-  if (moduleKeys.includes('journal')) {
-    const { data } = await supabase.from('access_journal').select('*').eq('family_id', familyId);
-    exportData.scolaria_export.family.access_journal = data ?? [];
   }
 
   return exportData;

@@ -3,7 +3,6 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Shield,
-  ListChecks,
   ArrowRightLeft,
   Download,
   Trash2,
@@ -24,12 +23,6 @@ const RGPD_ITEMS = [
     label: "Permissions d'accès",
     sublabel: 'Niveaux et modules autorisés',
     screen: 'PermissionsRGPD',
-  },
-  {
-    Icon: ListChecks,
-    label: "Journal d'accès",
-    sublabel: 'Consultations, modifications et exports',
-    screen: 'JournalAcces',
   },
   {
     Icon: ArrowRightLeft,
@@ -102,8 +95,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
                 d’autre du carnet. En cas de message de détresse, rien n’est envoyé à Aria.
               </Text>
               <Text style={[styles.noticeText, { marginTop: 8 }]}>
-                Les données sont chiffrées au repos (AES-256) et pendant leur transfert (TLS). Chaque
-                consultation, modification et export est journalisé et visible dans le journal d’accès.
+                Les données sont chiffrées au repos (AES-256) et pendant leur transfert (TLS).
               </Text>
             </View>
           </View>

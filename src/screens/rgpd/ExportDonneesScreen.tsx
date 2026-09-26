@@ -10,7 +10,6 @@ import {
   Calendar,
   Camera,
   Heart,
-  List,
   Lock,
   PieChart,
   Star,
@@ -68,7 +67,6 @@ export default function ExportDonneesScreen() {
     { key: 'portfolio', name: 'Portfolio extra-scolaire', Icon: Star, color: ARIA_INDIGO, size: '15 Ko', count: '5 activités', selected: true },
     { key: 'photos', name: 'Photos & médias', Icon: Camera, color: ARIA_INDIGO, size: '4.2 Mo', count: '24 photos', selected: false },
     { key: 'conversations', name: 'Conversations Aria', Icon: ScolariaSymbol, color: ARIA_INDIGO, size: '234 Ko', count: '34 conversations', selected: true },
-    { key: 'journal', name: "Journal d'accès", Icon: List, color: ARIA_INDIGO, size: '56 Ko', count: '210 entrées', selected: true },
     { key: 'permissions', name: 'Permissions', Icon: Lock, color: ARIA_INDIGO, size: '3 Ko', count: '5 personnes', selected: true },
   ]);
   const [exporting, setExporting] = useState(false);
@@ -344,8 +342,8 @@ export default function ExportDonneesScreen() {
                 <Info size={16} color={ARIA_INDIGO} />
               </View>
               <Text style={styles.noticeText}>
-                Conformément à l’article 20 du RGPD, vos données sont fournies dans un format structuré,
-                couramment utilisé et lisible par machine (JSON). Le PDF offre une version lisible par humain.
+                Le JSON est un format structuré, lisible par machine. Le PDF offre une version lisible
+                par humain.
               </Text>
             </View>
           </GlassCard>

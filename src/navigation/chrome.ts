@@ -30,7 +30,6 @@ export const ROUTE_CHROME = {
   FamilleParametres: 'none',
   RGPDScreen: 'full',
   PermissionsRGPD: 'none',
-  JournalAcces: 'none',
   TransfertCode: 'none',
   Effacement: 'none',
   ExportDonnees: 'none',

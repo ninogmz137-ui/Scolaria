@@ -5,7 +5,6 @@ import {
   Check,
   X,
   ExternalLink,
-  Lock,
   Key,
   Info,
   Bell,
@@ -411,15 +410,6 @@ export default function TransfertCodeScreen() {
             );
           })}
 
-          {/* Security notice */}
-          <GlassCard style={[styles.cardBorder, { marginBottom: 8 }]}>
-            <View style={styles.noticeRow}>
-              <Lock size={16} color={ARIA_INDIGO} />
-              <Text style={styles.noticeText}>
-                Les codes de transfert sont chiffrés de bout en bout. Seul l'établissement destinataire peut lire les données transmises. Le transfert est journalisé et visible dans le journal d'accès.
-              </Text>
-            </View>
-          </GlassCard>
           </ScrollView>
         </RgpdBottomSheet>
       </View>

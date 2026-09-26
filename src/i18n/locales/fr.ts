@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Bienvenue dans',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'Le carnet de scolarité numérique qui accompagne vos enfants tout au long de leur scolarité.',
-    slide1Feature1: 'Données sécurisées (RGPD)',
     slide1Feature2: 'Multi-enfants',
     slide1Feature3: 'Tout sur mobile',
     slide2Title: 'Rencontrez',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Veuillez remplir le prénom, la date de naissance et la classe.',
     invalidDate: 'Date invalide',
     invalidDateMessage: 'Veuillez vérifier la date de naissance.',
-    rgpdNote: 'Les données sont protégées et conformes au RGPD. L\'identifiant Scolaria est unique et non modifiable.',
     years: 'ans',
     sections: {
       maternelle: 'Maternelle',

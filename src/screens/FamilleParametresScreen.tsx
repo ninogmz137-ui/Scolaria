@@ -23,7 +23,6 @@ import {
   Moon,
   Mic,
   Shield,
-  FileText,
   Download,
   Trash2,
   Info,
@@ -290,11 +289,6 @@ export default function FamilleParametresScreen() {
               onPress={() => navigation.navigate('PermissionsRGPD')}
             />
           )}
-          <DeepRow
-            icon={<FileText size={20} color={TEXT55} strokeWidth={2} />}
-            label="Journal d’accès"
-            onPress={() => navigation.navigate('JournalAcces')}
-          />
           <DeepRow
             icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
             label="Exporter mes données"

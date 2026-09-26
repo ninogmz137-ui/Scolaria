@@ -20,7 +20,6 @@ import AProposScreen from '../screens/AProposScreen';
 
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
-import JournalAccesScreen from '../screens/rgpd/JournalAccesScreen';
 import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
@@ -122,11 +121,6 @@ function ReglagesEleveStackScreen() {
         name="PermissionsRGPD"
         component={PermissionsScreen}
         options={{ title: "Permissions d'accès" }}
-      />
-      <ReglagesEleveStack.Screen
-        name="JournalAcces"
-        component={JournalAccesScreen}
-        options={{ title: "Journal d'accès" }}
       />
       <ReglagesEleveStack.Screen
         name="TransfertCode"

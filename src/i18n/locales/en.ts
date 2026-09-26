@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Welcome to',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'The digital school passport that supports your children throughout their education.',
-    slide1Feature1: 'Secure data (GDPR)',
     slide1Feature2: 'Multi-child',
     slide1Feature3: 'Everything on mobile',
     slide2Title: 'Meet',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Please fill in the first name, date of birth and class.',
     invalidDate: 'Invalid date',
     invalidDateMessage: 'Please check the date of birth.',
-    rgpdNote: 'Data is protected and GDPR compliant. The Scolaria ID is unique and cannot be modified.',
     years: 'years',
     sections: {
       maternelle: 'Kindergarten',

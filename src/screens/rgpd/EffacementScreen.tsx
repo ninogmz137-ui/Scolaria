@@ -14,7 +14,6 @@ import {
   Calendar,
   Camera,
   Heart,
-  List,
   Lock,
   Home,
 } from 'lucide-react-native';
@@ -93,7 +92,6 @@ export default function EffacementScreen() {
     { name: 'Profil & compétences', Icon: User, count: '5 compétences, 5 activités', color: ARIA_INDIGO },
     { name: 'Photos & médias', Icon: Camera, count: '24 photos', color: ARIA_INDIGO },
     { name: 'Conversations Aria', Icon: ScolariaSymbol, count: '34 conversations', color: ARIA_INDIGO },
-    { name: "Journal d'accès", Icon: List, count: '210 entrées', color: ARIA_INDIGO },
     { name: 'Permissions & partages', Icon: Lock, count: '5 personnes', color: ARIA_INDIGO },
   ];
 
@@ -344,15 +342,6 @@ export default function EffacementScreen() {
                 />
               </View>
 
-              {/* Legal notice */}
-              <GlassCard style={[styles.cardBorder, { marginBottom: 16 }]}>
-                <View style={styles.infoRow}>
-                  <Info size={18} color={ARIA_INDIGO} />
-                  <Text style={[styles.noticeText, { flex: 1, marginLeft: 10 }]}>
-                    Conformément à l'article 17 du RGPD, votre demande sera traitée sous 72 heures. Un email de confirmation sera envoyé à l'adresse du compte. Vous disposez de 48h pour annuler la demande après réception de l'email.
-                  </Text>
-                </View>
-              </GlassCard>
 
               <View style={styles.navRow}>
                 <Pressable style={styles.backBtn} onPress={() => setCurrentStep(1)}>

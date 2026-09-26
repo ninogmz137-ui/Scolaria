@@ -488,7 +488,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - L'Edge Function `aria` est appelée avec la région `eu-west-3` imposée (sinon : région la plus proche, parfois hors UE)
 - Export JSON complet disponible (par carnet d'enfant)
 - Droit à l'effacement en cascade sous 30 jours
-- Journal d'accès consultable par le parent
+- Journal d'accès : **pas construit** → aucune mention dans l'app tant qu'il n'existe pas (retiré le 26 sept 2026)
 - URL signées d’1 h pour l’affichage des fichiers dans l’app (bucket privé « carnet », M20) ; jamais de lien public
 - Zéro revente — zéro profilage publicitaire
 
@@ -550,6 +550,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ✓ Retour par glissement depuis le bord gauche sur TOUTE page profonde (géré par l'app, navigation 3 boutons)
 ✗ Jamais de Pressable importé de react-native → `src/components/ui`
 ✗ Jamais de clé API dans l'app ou un .env → secret Supabase + Edge Function
+✗ Aucune affirmation dans l'app qui ne soit vraie aujourd'hui (sécurité, RGPD, hébergement, fonctionnalités)
 ✗ Jamais le texte d'un message de détresse stocké ou journalisé
 ✗ Jamais fond blanc pur #FFFFFF comme background de page → #F2F1EE
 ✗ Jamais font système → Figtree partout (Rufina = wordmark uniquement)

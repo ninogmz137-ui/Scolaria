@@ -182,7 +182,7 @@ function generateHTML(data: PDFExportData): string {
   <div class="footer">
     <div class="logo">Scolaria</div>
     <div>Le carnet de scolarité numérique — Généré le ${data.generatedDate}</div>
-    <div style="margin-top:4px;">Ce document est confidentiel et protégé par le RGPD.</div>
+    <div style="margin-top:4px;">Ce document est confidentiel.</div>
   </div>
 </body>
 </html>`;

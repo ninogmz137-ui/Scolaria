@@ -139,7 +139,6 @@ export default {
     slide1Title: 'مرحباً بكم في',
     slide1Highlight: 'سكولاريا',
     slide1Desc: 'جواز السفر المدرسي الرقمي الذي يرافق أبناءكم طوال مسيرتهم الدراسية.',
-    slide1Feature1: 'بيانات محمية (RGPD)',
     slide1Feature2: 'دعم عدة أبناء',
     slide1Feature3: 'كل شيء على الهاتف',
     slide2Title: 'تعرّفوا على',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'يرجى ملء الاسم الأول وتاريخ الميلاد والقسم.',
     invalidDate: 'تاريخ غير صالح',
     invalidDateMessage: 'يرجى التحقق من تاريخ الميلاد.',
-    rgpdNote: 'البيانات محمية ومتوافقة مع RGPD. معرّف سكولاريا فريد وغير قابل للتعديل.',
     years: 'سنوات',
     sections: {
       maternelle: 'الروضة',

@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Hoş geldiniz',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'Çocuklarınızın tüm öğrenim hayatı boyunca onlara eşlik eden dijital okul pasaportu.',
-    slide1Feature1: 'Güvenli veriler (KVKK)',
     slide1Feature2: 'Çoklu çocuk',
     slide1Feature3: 'Her şey mobilde',
     slide2Title: 'Tanışın',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Lütfen adı, doğum tarihini ve sınıfı doldurun.',
     invalidDate: 'Geçersiz tarih',
     invalidDateMessage: 'Lütfen doğum tarihini kontrol edin.',
-    rgpdNote: 'Veriler korunmakta ve KVKK\'ya uygundur. Scolaria kimliği benzersizdir ve değiştirilemez.',
     years: 'yaş',
     sections: {
       maternelle: 'Anaokulu',

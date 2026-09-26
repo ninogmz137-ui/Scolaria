@@ -139,7 +139,6 @@ export default {
     slide1Title: '欢迎来到',
     slide1Highlight: 'Scolaria',
     slide1Desc: '陪伴孩子整个学习旅程的数字学业护照。',
-    slide1Feature1: '数据安全（GDPR）',
     slide1Feature2: '多孩子管理',
     slide1Feature3: '全部在手机上',
     slide2Title: '认识',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: '请填写名字、出生日期和班级。',
     invalidDate: '日期无效',
     invalidDateMessage: '请检查出生日期。',
-    rgpdNote: '数据受到保护并符合GDPR规定。Scolaria标识号是唯一的且不可修改。',
     years: '岁',
     sections: {
       maternelle: '幼儿园',

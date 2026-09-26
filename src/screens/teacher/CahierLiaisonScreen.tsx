@@ -538,13 +538,6 @@ export default function CahierLiaisonScreen() {
           <Text className="text-sm font-semibold" style={{ color: TEACHER_ORANGE }}>Nouveau mot de liaison</Text>
         </Pressable>
 
-        {/* RGPD notice */}
-        <HStack className="items-start gap-2 mx-5 p-3 rounded-xl" style={{ backgroundColor: Colors.green + '08' }}>
-          <Ionicons name="shield-checkmark" size={14} color={Colors.green} />
-          <Text className="flex-1 text-[11px] leading-4" style={{ color: '#64748B' }}>
-            Les mots et signatures sont conservés 3 ans conformément aux obligations scolaires. Les parents peuvent exporter leurs données via l'export RGPD.
-          </Text>
-        </HStack>
 
         <Box className="h-10" />
       </ScrollView>

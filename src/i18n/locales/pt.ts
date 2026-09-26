@@ -139,7 +139,6 @@ export default {
     slide1Title: 'Bem-vindo ao',
     slide1Highlight: 'Scolaria',
     slide1Desc: 'O passaporte escolar digital que acompanha seus filhos ao longo de toda a vida escolar.',
-    slide1Feature1: 'Dados seguros (LGPD)',
     slide1Feature2: 'Múltiplos filhos',
     slide1Feature3: 'Tudo no celular',
     slide2Title: 'Conheça a',
@@ -222,7 +221,6 @@ export default {
     missingFieldsMessage: 'Por favor, preencha o nome, a data de nascimento e a turma.',
     invalidDate: 'Data inválida',
     invalidDateMessage: 'Por favor, verifique a data de nascimento.',
-    rgpdNote: 'Os dados são protegidos e estão em conformidade com a LGPD. O identificador Scolaria é único e não pode ser alterado.',
     years: 'anos',
     sections: {
       maternelle: 'Educação Infantil',

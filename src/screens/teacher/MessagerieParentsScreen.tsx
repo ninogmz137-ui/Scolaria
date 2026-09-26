@@ -387,13 +387,6 @@ export default function MessagerieParentsScreen() {
           <Text className="text-sm font-semibold" style={{ color: TEACHER_ORANGE }}>Nouvelle conversation</Text>
         </Pressable>
 
-        {/* RGPD notice */}
-        <HStack className="items-start gap-2 mx-5 p-3 rounded-xl" style={{ backgroundColor: Colors.green + '08' }}>
-          <Ionicons name="shield-checkmark" size={14} color={Colors.green} />
-          <Text className="flex-1 text-[11px] leading-4" style={{ color: '#64748B' }}>
-            Les messages sont chiffrés et conservés 12 mois. Les parents peuvent exporter leurs conversations via l'export RGPD.
-          </Text>
-        </HStack>
 
         <Box className="h-10" />
       </ScrollView>
