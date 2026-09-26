@@ -9,7 +9,7 @@
  *     Accueil  → Plus (Ajouter au carnet)
  *     Suivi    → ScanLine ⊞ (Ajouter au carnet)
  *     Agenda   → Plus (ouvre formulaire ajout événement)
- *     Messages → rien (✏️ masqué : aucun écran de rédaction ne le lit encore)
+ *     Messages → Edit ✏️ (écrire à un enseignant, signaler une absence) si un enseignant est rattaché
  *     Aria     → invisible (espace gardé)
  *
  * - Position : absolute bottom, respecte insets.bottom
@@ -63,31 +63,33 @@ export interface BottomBarProps {
   activeTab: ActiveTab;
   onSearchPress: () => void;
   onActionPress?: () => void;
+  /** Messages : ✏️ affiché seulement si l'enfant a un enseignant rattaché (sinon, rien à ouvrir). */
+  actionMessages?: boolean;
 }
 
 // ─── Action contextuelle par onglet ─────────────────────
 
 type LucideIcon = typeof Edit;
 
-function getActionIcon(activeTab: ActiveTab): LucideIcon | null {
+function getActionIcon(activeTab: ActiveTab, actionMessages: boolean): LucideIcon | null {
   switch (activeTab) {
     case 'accueil':  return Plus;      // Ajouter au carnet (CLAUDE.md : « + »)
-    // Messages ✏️ (Edit) : MASQUÉ tant qu'il ne fait rien (audit B3b, 26 sept 2026 — jamais de
-    // bouton inactif) ; il reviendra quand un écran de rédaction lira `openNewMessage`.
     case 'notes':    return ScanLine;  // ⊞ Ajouter au carnet (réactivé au lot B5)
-    case 'agenda':   return Plus;
+    case 'agenda':   return Plus;      // Nouvel événement
     case 'aria':     return null;
-    default:         return null;      // messages
+    // ✏️ : « Écrire à un enseignant » · « Signaler une absence » — seulement si l'enfant a un
+    // enseignant rattaché (sinon ces actions n'atteignent personne : jamais de bouton inactif).
+    default:         return actionMessages ? Edit : null;
   }
 }
 
 // ─── Composant ───────────────────────────────────────────
 
-export default function BottomBar({ activeTab, onSearchPress, onActionPress }: BottomBarProps) {
+export default function BottomBar({ activeTab, onSearchPress, onActionPress, actionMessages = false }: BottomBarProps) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
 
-  const ActionIcon = getActionIcon(activeTab);
+  const ActionIcon = getActionIcon(activeTab, actionMessages);
 
   const handleAriaPress = () => {
     // useNavigation() ici = RootStack → passer par MainPager
@@ -97,18 +99,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
     });
   };
 
-  const handleActionPress = () => {
-    switch (activeTab) {
-      case 'messages':
-        (navigation as any).navigate('MainPager', {
-          screen: 'MessagerieTab',
-          params: { openNewMessage: true },
-        });
-        break;
-      default:
-        onActionPress?.();
-    }
-  };
+  const handleActionPress = () => onActionPress?.();
 
   return (
     <View style={[styles.container, { bottom: getBottomBarOffset(insets.bottom) }]}>
@@ -142,7 +133,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress }: B
           onPress={handleActionPress}
           style={styles.roundBtn}
           accessibilityRole="button"
-          accessibilityLabel={activeTab === 'accueil' || activeTab === 'notes' ? 'Ajouter au carnet' : 'Action'}
+          accessibilityLabel={activeTab === 'accueil' || activeTab === 'notes' ? 'Ajouter au carnet' : activeTab === 'agenda' ? 'Nouvel événement' : 'Écrire ou signaler une absence'}
         >
           <ActionIcon size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
         </Pressable>

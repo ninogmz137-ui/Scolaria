@@ -68,6 +68,8 @@ import AProposScreen from '../screens/AProposScreen';
 // Quick overlays (BottomBar)
 import QuickSearchScreen from '../screens/QuickSearchScreen';
 import AjouterAuCarnetSheet from '../components/AjouterAuCarnetSheet';
+import QuickActionsSheet from '../components/QuickActionsSheet';
+import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
 
 // RGPD hub
@@ -598,7 +600,6 @@ const SWIPE_DISTANCE = 70;
 
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const searchNavRef: { current: (() => void) | null } = { current: null };
-const actionNavRef: { current: (() => void) | null } = { current: null };
 const agendaActionRef: { current: (() => void) | null } = { current: null };
 const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
@@ -623,13 +624,6 @@ function TabContentWithNav() {
     } as any);
   };
 
-  actionNavRef.current = () => {
-    navigation.navigate('MainPager', {
-      screen: 'MessagerieTab',
-      params: { screen: 'MessagerieAriaScreen' },
-    } as any);
-  };
-
   agendaActionRef.current = () => {
     navigation.navigate('MainPager', {
       screen: 'Agenda',
@@ -651,6 +645,9 @@ export default function TabNavigator() {
   const [searchVisible, setSearchVisible] = useState(false);
   // Onglet d'où « Ajouter au carnet » a été ouvert (null = feuille fermée).
   const [carnetDepuis, setCarnetDepuis] = useState<'Accueil' | 'Notes' | null>(null);
+  // ✏️ de Messages : actions rapides, seulement si l'enfant a un enseignant rattaché.
+  const [actionsMessagesVisible, setActionsMessagesVisible] = useState(false);
+  const enseignantRattache = useEnseignantRattache();
 
   // ── Défilement de l'écran visible → voiles haut/bas (ScrollVeil) ────
   const scrollY = useSharedValue(0);
@@ -747,9 +744,11 @@ export default function TabNavigator() {
               <BottomBar
                 activeTab={navActiveTab}
                 onSearchPress={() => setSearchVisible(true)}
+                actionMessages={enseignantRattache}
                 onActionPress={() => {
                   if (navActiveTab === 'messages') {
-                    actionNavRef.current?.();
+                    // ✏️ : écrire à un enseignant / signaler une absence (masqué sans enseignant rattaché).
+                    setActionsMessagesVisible(true);
                   } else if (navActiveTab === 'agenda') {
                     agendaActionRef.current?.();
                   } else if (navActiveTab === 'accueil' || navActiveTab === 'notes') {
@@ -763,6 +762,10 @@ export default function TabNavigator() {
             <QuickSearchScreen
               visible={searchVisible}
               onClose={() => setSearchVisible(false)}
+            />
+            <QuickActionsSheet
+              visible={actionsMessagesVisible}
+              onClose={() => setActionsMessagesVisible(false)}
             />
             <AjouterAuCarnetSheet
               visible={carnetDepuis !== null}
