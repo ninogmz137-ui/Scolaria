@@ -29,7 +29,7 @@ import {
   type ElementSuivi,
 } from '../../utils/competences';
 
-function Segments({ niveau, echelle }: { niveau: number; echelle: Echelle }) {
+export function Segments({ niveau, echelle }: { niveau: number; echelle: Echelle }) {
   return (
     <View style={st.segments} accessibilityLabel={libelleNiveau(niveau, echelle)}>
       {Array.from({ length: echelle }, (_, i) => (

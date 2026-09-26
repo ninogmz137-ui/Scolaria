@@ -6,6 +6,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
+import type { LigneSuiviExport } from './suiviService';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -20,9 +21,35 @@ interface ChildData {
   superPowerDescription: string;
 }
 
-interface Competence {
-  label: string;
-  value: number;
+/** Observations (maternelle) ou compétences (primaire) : échelle de CHAQUE ligne, jamais « /10 ». */
+type Competence = LigneSuiviExport;
+
+function echapper(t: string): string {
+  return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/** Bloc « Compétences » / « Observations » : 3 ou 4 cases selon l'échelle, libellé, source. */
+function suiviHTML(items: Competence[], titre: string): string {
+  if (items.length === 0) return '';
+  const lignes = items.map((c) => {
+    const cases = c.niveau && c.echelle
+      ? `<div style="display:flex;gap:3px;margin-top:6px;">${Array.from({ length: c.echelle }, (_, i) =>
+          `<div style="width:22px;height:6px;border-radius:3px;background:${i < c.niveau! ? '#0F172A' : '#E2E2E0'};"></div>`).join('')}
+          <span style="margin-left:8px;font-size:12px;font-weight:600;color:#0F172A;">${echapper(c.libelle ?? '')}</span></div>`
+      : '';
+    return `
+    <div style="padding:10px 0;border-bottom:1px solid #F0EEED;">
+      <div style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:#787774;">${echapper(c.domaine)}</div>
+      <div style="font-size:14px;font-weight:600;color:#0F172A;margin-top:2px;">${echapper(c.texte)}</div>
+      ${cases}
+      <div style="font-size:11px;color:#787774;margin-top:4px;">${echapper(c.source)}</div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="section">
+      <div class="section-title">${titre}</div>
+      ${lignes}
+    </div>`;
 }
 
 interface Activity {
@@ -51,7 +78,8 @@ export interface PDFExportData {
 
 function generateHTML(data: PDFExportData): string {
   // Jamais de Score de Joie dans un export (CLAUDE.md : tendance seulement, jamais de chiffre brut).
-  const { child, activities } = data;
+  const { child, activities, competences } = data;
+  const titreSuivi = competences.some((c) => c.niveau) ? 'Compétences' : 'Observations';
 
   const actRows = activities.map(a => `
     <tr>
@@ -118,6 +146,8 @@ function generateHTML(data: PDFExportData): string {
         </div>
       </div>
     </div>
+
+    ${suiviHTML(competences, titreSuivi)}
 
     <!-- Stats overview -->
     <div class="section">
@@ -203,8 +233,10 @@ export interface TransitionMemoData {
 }
 
 function generateMemoHTML(data: TransitionMemoData): string {
-  // Jamais de Score de Joie ni de compétence notée sur 10 dans un mémo (CLAUDE.md ; refonte B3).
-  const { child, activities, fromSchool, toSchool, teacherName, personalNote } = data;
+  // Jamais de Score de Joie ni de note sur 10 dans un mémo : compétences / observations avec l'échelle
+  // de chaque ligne et leur source (B3b.6).
+  const { child, activities, fromSchool, toSchool, teacherName, personalNote, competences } = data;
+  const titreSuivi = competences.some((c) => c.niveau) ? 'Compétences récentes' : 'Observations récentes';
 
   const actList = activities.slice(0, 4).map(a => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0EEED;">
@@ -258,6 +290,8 @@ function generateMemoHTML(data: TransitionMemoData): string {
         pour faciliter son accueil dans sa nouvelle classe.
       </p>
     </div>
+
+    ${suiviHTML(competences.slice(0, 6), titreSuivi)}
 
     <!-- Activités -->
     <div class="section">

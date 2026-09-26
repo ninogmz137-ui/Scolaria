@@ -23,18 +23,6 @@ import {
   ChevronLeft,
   Info,
   Share2,
-  MessageCircle,
-  Activity,
-  Sparkles,
-  Users,
-  Clock,
-  BookOpen,
-  Shield,
-  GitBranch,
-  Mic,
-  BarChart2,
-  ClipboardList,
-  Search,
 } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -55,27 +43,15 @@ import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
 import { Text, Pressable } from '../components/ui';
 import { AucunEnfantPage } from '../components/AucunEnfant';
 import { de } from '../utils/francais';
+import { useDemoData } from '../contexts/DemoContext';
+import { chargerSuivi, versExport } from '../services/suiviService';
+import { libelleNiveau, ligneSource, type ElementSuivi } from '../utils/competences';
+import { Segments } from './suivi/ApprentissagesVue';
 
 const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
 const VIOLET = '#4338CA';
 const CYAN = '#06B6D4';
-const COMPETENCE_ICON = '#6B7280';
-
-const COMPETENCE_ICONS: Record<string, typeof MessageCircle> = {
-  Langage: MessageCircle,
-  Motricité: Activity,
-  Créativité: Sparkles,
-  Sociabilité: Users,
-  Autonomie: Clock,
-  Connaissances: BookOpen,
-  Confiance: Shield,
-  Logique: GitBranch,
-  Expression: Mic,
-  Analyse: BarChart2,
-  Organisation: ClipboardList,
-  Curiosité: Search,
-};
 
 interface ChildProfileData {
   name: string;
@@ -88,7 +64,6 @@ interface ChildProfileData {
   superPowerEmoji: string;
   superPowerDescription: string;
   tags: ProfileTag[];
-  competences: { label: string; value: number }[];
   portfolio: {
     id: string;
     name: string;
@@ -118,7 +93,6 @@ function profilNeutre(prenom: string, classe: string): ChildProfileData {
     superPowerEmoji: '',
     superPowerDescription: '',
     tags: [],
-    competences: [],
     portfolio: [],
     joy30Days: [],
     lastCheckinMessage: '',
@@ -145,13 +119,6 @@ function getChildProfileData(childId: string, prenom = '', classe = ''): ChildPr
           { label: 'Sociale', emoji: '🤝', color: Colors.green },
           { label: 'Curieuse', emoji: '🔍', color: Colors.cyan },
           { label: 'Expressive', emoji: '🗣️', color: Colors.orange },
-        ],
-        competences: [
-          { label: 'Langage', value: 7 },
-          { label: 'Motricité', value: 8 },
-          { label: 'Créativité', value: 9 },
-          { label: 'Sociabilité', value: 8 },
-          { label: 'Autonomie', value: 6 },
         ],
         portfolio: [
           { id: '1', name: 'Éveil musical', emoji: '🎵', category: 'Musique', level: '1ère année', color: Colors.violet, hoursPerWeek: 1, progressPercent: 60, since: '2025' },
@@ -181,13 +148,6 @@ function getChildProfileData(childId: string, prenom = '', classe = ''): ChildPr
           { label: 'Logique', emoji: '🧠', color: Colors.violet },
           { label: 'Méthodique', emoji: '📋', color: '#38BDF8' },
           { label: 'Persévérant', emoji: '💪', color: Colors.orange },
-        ],
-        competences: [
-          { label: 'Connaissances', value: 8 },
-          { label: 'Créativité', value: 7 },
-          { label: 'Confiance', value: 6 },
-          { label: 'Logique', value: 8 },
-          { label: 'Curiosité', value: 7 },
         ],
         portfolio: [
           { id: '1', name: 'Judo', emoji: '🥋', category: 'Sport', level: 'Ceinture verte', color: Colors.green, hoursPerWeek: 3, progressPercent: 65, since: '2023' },
@@ -222,13 +182,6 @@ function getChildProfileData(childId: string, prenom = '', classe = ''): ChildPr
           { label: 'Sensible', emoji: '💜', color: '#818CF8' },
           { label: 'Autonome', emoji: '🚀', color: Colors.cyan },
           { label: 'Littéraire', emoji: '📖', color: Colors.green },
-        ],
-        competences: [
-          { label: 'Expression', value: 9 },
-          { label: 'Créativité', value: 9 },
-          { label: 'Analyse', value: 7 },
-          { label: 'Organisation', value: 7 },
-          { label: 'Autonomie', value: 8 },
         ],
         portfolio: [
           { id: '1', name: 'Dessin', emoji: '✏️', category: 'Art', level: 'Avancé', color: Colors.pink, hoursPerWeek: 3, progressPercent: 85, since: '2021' },
@@ -273,19 +226,19 @@ function SectionTitle({ label }: { label: string }) {
   return <Text style={styles.sectionTitle}>{label}</Text>;
 }
 
-function CompetenceRow({ label, value }: { label: string; value: number }) {
-  const pct = Math.min(100, Math.max(0, value * 10));
-  const Icon = COMPETENCE_ICONS[label] ?? Sparkles;
+/** Compétence (primaire) ou observation (maternelle) : échelle de la ligne, libellé, source. */
+function LigneSuiviProfil({ e, last }: { e: ElementSuivi; last: boolean }) {
   return (
-    <View style={styles.compRow}>
-      <View style={styles.compIconSq}>
-        <Icon size={14} color={COMPETENCE_ICON} strokeWidth={1.5} />
-      </View>
-      <Text style={styles.compLabel}>{label}</Text>
-      <View style={styles.compTrack}>
-        <View style={[styles.compFill, { width: `${pct}%`, backgroundColor: '#4338CA' }]} />
-      </View>
-      <Text style={styles.compScore}>{value}</Text>
+    <View style={[styles.suiviRow, !last && styles.suiviRowBorder]}>
+      <Text style={styles.suiviDomaine}>{e.domaine.toUpperCase()}</Text>
+      <Text style={styles.suiviTexte}>{e.texte}</Text>
+      {e.niveau && e.echelle ? (
+        <View style={styles.suiviNiveau}>
+          <Segments niveau={e.niveau} echelle={e.echelle} />
+          <Text style={styles.suiviLibelle}>{libelleNiveau(e.niveau, e.echelle)}</Text>
+        </View>
+      ) : null}
+      <Text style={styles.suiviSource}>{ligneSource(e)}</Text>
     </View>
   );
 }
@@ -355,6 +308,19 @@ function ProfilEnfantScreenContent() {
   const [couleurVisible, setCouleurVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
+
+  // Compétences (primaire) / observations (maternelle) : mêmes données que Suivi › Apprentissages.
+  const { isDemoMode } = useDemoData();
+  const [suivi, setSuivi] = useState<ElementSuivi[]>([]);
+  useEffect(() => {
+    let annule = false;
+    chargerSuivi(childId, isDemoMode, selectedChild.cycle).then((items) => {
+      if (!annule) setSuivi(items);
+    });
+    return () => {
+      annule = true;
+    };
+  }, [childId, isDemoMode, selectedChild.cycle]);
 
 
   const loadProfile = useCallback(async () => {
@@ -432,7 +398,7 @@ function ProfilEnfantScreenContent() {
     setExporting(true);
     const pdfData: PDFExportData = {
       child: data,
-      competences: data.competences,
+      competences: versExport(suivi),
       activities: data.portfolio,
       joyHistory: data.joy30Days,
       generatedDate: new Date().toLocaleDateString('fr-FR', {
@@ -453,7 +419,7 @@ function ProfilEnfantScreenContent() {
     const joyAvg = data.joy30Days.reduce((s, d) => s + d.score, 0) / data.joy30Days.length;
     const memoData: TransitionMemoData = {
       child: data,
-      competences: data.competences,
+      competences: versExport(suivi),
       activities: data.portfolio,
       joyAverage: joyAvg,
       fromSchool: data.classe.split('—')[1]?.trim() ?? 'École',
@@ -538,7 +504,17 @@ function ProfilEnfantScreenContent() {
           />
           )}
 
-          {/* Compétences : plus de notation sur 10 — à refondre en B3 avec le Suivi (4 niveaux LSU en primaire). */}
+          {/* Compétences / observations récentes : échelle de chaque ligne (3 ou 4), source ; jamais « /10 ». */}
+          {suivi.length > 0 && (
+            <>
+              <SectionTitle label={suivi.some((e) => e.niveau) ? 'Compétences récentes' : 'Observations récentes'} />
+              <View style={styles.suiviGroupe}>
+                {suivi.slice(0, 4).map((e, i, liste) => (
+                  <LigneSuiviProfil key={e.id} e={e} last={i === liste.length - 1} />
+                ))}
+              </View>
+            </>
+          )}
 
           {/* Score de Joie : tendance neutre uniquement, jamais de chiffre ni d'alerte (alertes =
               Aria stade 3, Phase 3). Rien s'il n'y a pas assez de relevés. */}
@@ -846,42 +822,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   glassInner: { padding: 16 },
-  compRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
-  },
-  compIconSq: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: '#F8F9FC',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  compLabel: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    fontWeight: '500',
-    color: NAVY,
-    width: 96,
-  },
-  compTrack: {
-    flex: 1,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    overflow: 'hidden',
-  },
-  compFill: { height: '100%', borderRadius: 2 },
-  compScore: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 12,
-    color: NAVY,
-    width: 22,
-    textAlign: 'right',
-  },
+  // Page profonde : rows sur fond blanc (COMPONENTS §8), jamais de glass card.
+  suiviGroupe: { backgroundColor: '#FFFFFF', borderRadius: 14, marginBottom: 8, overflow: 'hidden' },
+  suiviRow: { paddingHorizontal: 14, paddingVertical: 12 },
+  suiviRowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(15,23,42,0.05)' },
+  suiviDomaine: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, lineHeight: 14, letterSpacing: 0.8, color: 'rgba(15,23,42,0.45)' },
+  suiviTexte: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: '#0F172A', marginTop: 2 },
+  suiviNiveau: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  suiviLibelle: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, lineHeight: 15, color: '#0F172A' },
+  suiviSource: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 14, color: 'rgba(15,23,42,0.6)', marginTop: 6 },
   actionsRow: {
     flexDirection: 'row',
     justifyContent: 'center',

@@ -1218,6 +1218,33 @@ function NotesScreenContent() {
     setSelectedDomainIdx(0);
   }, [selectedChild?.id, selectedTrimester]);
 
+  // Courbe « MOYENNE GÉNÉRALE » : à chaque date où une note arrive, moyenne générale calculée à cette
+  // date = moyenne des matières déjà notées, chacune pondérée par ses coefficients (même calcul que le
+  // grand chiffre : le dernier point lui est égal). Avant B3b.6, la courbe montrait les notes de la
+  // 1re matière (maths chez Emma).
+  const courbeMoyenneGenerale = useMemo((): Grade[] => {
+    const toutes = subjects.flatMap((s) => s.grades.map((g) => ({ g, sujet: s.id })));
+    if (toutes.length === 0) return [];
+    toutes.sort((a, b) => gradeSortTime(a.g) - gradeSortTime(b.g));
+    const cumul = new Map<string, { somme: number; coefs: number }>();
+    const points: Grade[] = [];
+    for (let i = 0; i < toutes.length; i++) {
+      const { g, sujet } = toutes[i];
+      const coef = g.coefficient ?? 1;
+      const c = cumul.get(sujet) ?? { somme: 0, coefs: 0 };
+      c.somme += (g.value / (g.maxValue || 20)) * 20 * coef;
+      c.coefs += coef;
+      cumul.set(sujet, c);
+      const suivante = toutes[i + 1];
+      // Un point par date (les notes d'un même jour comptent ensemble).
+      if (suivante && gradeSortTime(suivante.g) === gradeSortTime(g)) continue;
+      const moyennes = [...cumul.values()].map((m) => m.somme / m.coefs);
+      const valeur = moyennes.reduce((s, m) => s + m, 0) / moyennes.length;
+      points.push({ ...g, id: `moy-${g.id}`, value: Math.round(valeur * 100) / 100, maxValue: 20, type: 'Moyenne générale' });
+    }
+    return points;
+  }, [subjects]);
+
   // Moyenne et tendance générales : calculées à partir des notes affichées (démo comme compte réel).
   const avecNotesSaisies = subjects.filter((s) => s.grades.length > 0);
   const overallAvg = useMemo(() => {
@@ -1233,20 +1260,13 @@ function NotesScreenContent() {
       const [a, , c] = yearMeta.trimAvgs;
       return Math.round(((c - a) / 2) * 10) / 10;
     }
-    const ecarts = subjects
-      .map((s) => [...s.grades].sort((a, b) => gradeSortTime(a) - gradeSortTime(b)))
-      .filter((g) => g.length >= 2)
-      .map((g) => (g[g.length - 1].value / g[g.length - 1].maxValue - g[0].value / g[0].maxValue) * 20);
-    if (ecarts.length === 0) return 0;
-    return Math.round((ecarts.reduce((s, e) => s + e, 0) / ecarts.length) * 10) / 10;
-  }, [subjects, isDemoMode, isAnnee, yearMeta]);
+    // Tendance = évolution de la courbe de moyenne générale (dernier point − premier point).
+    const c = courbeMoyenneGenerale;
+    if (c.length < 2) return 0;
+    return Math.round((c[c.length - 1].value - c[0].value) * 10) / 10;
+  }, [courbeMoyenneGenerale, isDemoMode, isAnnee, yearMeta]);
 
   const activeSubject = subjects[Math.min(selectedSubjectIdx, subjects.length - 1)] ?? null;
-
-  const graphGradesForSelectedSubject = useMemo(() => {
-    if (!activeSubject) return [];
-    return activeSubject.grades;
-  }, [activeSubject]);
 
   const lastGradeDisplay = useMemo(() => {
     const allGrades = subjects.flatMap((sub) => sub.grades.map((g) => ({ ...g })));
@@ -1439,7 +1459,7 @@ function NotesScreenContent() {
             </View>
             <View style={styles.graphZone}>
               <NotesProgressGraph
-                grades={graphGradesForSelectedSubject}
+                grades={courbeMoyenneGenerale}
                 width={graphW - 8}
                 height={GRAPH_H}
                 gradKey={`${selectedChild?.id ?? 'x'}-${selectedTrimester}-${activeSubject?.id ?? 'none'}`}
