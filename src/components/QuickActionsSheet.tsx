@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useDemoData } from '../contexts/DemoContext';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { getAcademicYears } from '../services/database';
 import {
   View,
   StyleSheet,
@@ -43,6 +46,34 @@ interface Props {
 export default function QuickActionsSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { isDemoMode } = useDemoData();
+  const { selectedChild } = useActiveChild();
+
+  // Audit B3b (26 sept 2026) : « Écrire à un enseignant » et « Déclarer une absence » n'atteignent
+  // personne si l'école n'est pas sur Scolaria (année active sans classe_id) → masquées, jamais
+  // affichées inactives. « Nouvel événement » fonctionne toujours (agenda de la famille).
+  const [ecoleSurScolaria, setEcoleSurScolaria] = useState(false);
+  useEffect(() => {
+    let annule = false;
+    if (!visible) return;
+    if (isDemoMode) {
+      setEcoleSurScolaria(true);
+      return;
+    }
+    if (!selectedChild) {
+      setEcoleSurScolaria(false);
+      return;
+    }
+    getAcademicYears(selectedChild.id).then(({ data }) => {
+      if (annule) return;
+      const active = (data ?? []).find((a) => a.statut === 'active');
+      setEcoleSurScolaria(!!active?.classe_id);
+    });
+    return () => {
+      annule = true;
+    };
+  }, [visible, isDemoMode, selectedChild?.id]);
+  const actions = ACTIONS.filter((a) => a.id === 'agenda' || ecoleSurScolaria);
 
   const handleAction = (id: string) => {
     onClose();
@@ -83,7 +114,7 @@ export default function QuickActionsSheet({ visible, onClose }: Props) {
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
           <View style={styles.handle} />
           <Text style={styles.title}>Actions rapides</Text>
-          {ACTIONS.map(action => {
+          {actions.map(action => {
             const Icon = action.icon;
             return (
               <Pressable

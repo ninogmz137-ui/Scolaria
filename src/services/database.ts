@@ -10,7 +10,7 @@ import { ENV } from './getEnv';
 
 // ─── Helper: check if Supabase is configured ───────────
 
-function isSupabaseConfigured(): boolean {
+export function isSupabaseConfigured(): boolean {
   const url = ENV.SUPABASE_URL;
   return !!url && url.length > 0 && !url.includes('your-');
 }
@@ -431,6 +431,8 @@ export interface AcademicYear {
   niveau: Niveau;
   etablissement: string | null;
   classe: string | null;     // e.g. "CM2 B"
+  /** Classe Scolaria (M5a) : posée par le serveur seulement (M18). NULL = école hors Scolaria. */
+  classe_id: string | null;
   statut: AcademicYearStatut;
   score_joie_moyen: number | null;
   created_at: string;

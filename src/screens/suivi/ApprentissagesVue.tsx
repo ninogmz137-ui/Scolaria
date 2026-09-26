@@ -7,10 +7,10 @@
  *              disciplines → compétences. Barre à 3 OU 4 segments selon l'échelle de CHAQUE ligne,
  *              libellé sous la barre, ligne source obligatoire. Jamais de vert / rouge, jamais de /20.
  * Empty state si rien pour la période.
- * Le segmented control Apprentissages · Souvenirs · Livrets n'est pas encore là (décision en attente).
+ * `entete` : bouton année + segmented Apprentissages · Souvenirs · Livrets (SuiviEntete), en tête.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,7 +46,9 @@ export default function ApprentissagesVue({
   decoupage,
   referentiel,
   vide,
+  entete,
 }: {
+  entete?: ReactNode;
   mode: 'maternelle' | 'primaire';
   titre: string;
   items: ElementSuivi[];
@@ -93,6 +95,7 @@ export default function ApprentissagesVue({
       scrollEventThrottle={16}
       onScroll={scrollHandler}
     >
+      {entete}
       <Text style={st.titre}>{titre}</Text>
 
       {primaire && (

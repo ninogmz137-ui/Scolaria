@@ -62,6 +62,10 @@ import { getSuiviDemo, REGLAGES_DEMO } from '../data/demo/suivi';
 import { getCompetences } from '../services/database';
 import { referentielDuNiveau } from '../data/referentiels';
 import type { Decoupage, ElementSuivi } from '../utils/competences';
+import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
+import CarnetVue from './suivi/CarnetVue';
+import { getCarnetItems, type ElementCarnet } from '../services/carnetService';
+import { videLivrets } from '../utils/livrets';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -977,6 +981,34 @@ function NotesScreenContent() {
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
+  // ─── Onglets Apprentissages · Souvenirs · Livrets (B3b) ──────────────────
+  // Démo : livrets et souvenirs de l'univers de démo. Compte réel : carnet_items ; tant que rien ne
+  // permet d'en ajouter (lot B5), la barre n'apparaît que s'il en existe déjà (jamais de module grisé).
+  const [onglet, setOnglet] = useState<OngletSuivi>('apprentissages');
+  const [carnetReel, setCarnetReel] = useState<ElementCarnet[]>([]);
+  useEffect(() => {
+    setOnglet('apprentissages');
+    let annule = false;
+    if (isDemoMode || !selectedChild) {
+      setCarnetReel([]);
+      return;
+    }
+    getCarnetItems(selectedChild.id).then((items) => {
+      if (!annule) setCarnetReel(items);
+    });
+    return () => {
+      annule = true;
+    };
+  }, [selectedChild?.id, isDemoMode]);
+  const carnet: ElementCarnet[] = isDemoMode ? [] : carnetReel;
+  const livrets = carnet.filter((e) => e.categorie === 'livret');
+  const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
+  const afficherBarre = isDemoMode || carnet.length > 0;
+  const entete = (
+    <SuiviEntete onglet={onglet} onChange={setOnglet} afficherBarre={afficherBarre} />
+  );
+  const ouvrirParcours = () => navigation.navigate('MonParcours');
+
   const loadNotes = useCallback(async () => {
     if (!selectedChild?.id) return;
 
@@ -1210,9 +1242,32 @@ function NotesScreenContent() {
   // ─── PRIMAIRE : disciplines → compétences, barre à 3 ou 4 segments selon CHAQUE ligne,
   //     sélecteur de période (P1…P5 ou S1/S2), jamais de trimestre ni de note /20 ─────
 
+  if (afficherBarre && onglet === 'souvenirs') {
+    return (
+      <CarnetVue
+        mode="souvenirs"
+        entete={entete}
+        items={souvenirs}
+        vide="Aucun souvenir pour l’instant cette année."
+      />
+    );
+  }
+  if (afficherBarre && onglet === 'livrets') {
+    return (
+      <CarnetVue
+        mode="livrets"
+        entete={entete}
+        items={livrets}
+        vide={videLivrets(selectedChild?.niveau, cycle, isMaternelle || isPrimaire ? decoupageSuivi : 'trimestres')}
+        onParcours={ouvrirParcours}
+      />
+    );
+  }
+
   if (isPrimaire || isMaternelle) {
     return (
       <ApprentissagesVue
+        entete={entete}
         mode={isMaternelle ? 'maternelle' : 'primaire'}
         titre={
           isMaternelle
@@ -1256,6 +1311,7 @@ function NotesScreenContent() {
           { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
+        <View style={styles.enteteCollege}>{entete}</View>
         <View style={styles.titleRow}>
           <View style={styles.titleActions}>
             <Pressable onPress={() => setShowTrimesterPicker((v) => !v)}>
@@ -1594,6 +1650,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F1EE',
   },
   scroll: { paddingHorizontal: 18 },
+  // L'en-tête Suivi a ses propres marges (14) : on annule celles du défilement collège (18).
+  enteteCollege: { marginHorizontal: -18, marginTop: -4 },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',

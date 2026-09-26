@@ -354,6 +354,8 @@ function NotesStackScreen() {
             const params = routes[index].params as any;
             if (screenName === 'SubjectDetail' && params?.subjectName) {
               stackTitleRef.current?.setTitle(params.subjectName);
+            } else if (screenName === 'ArchivedYearDetail' && params?.year && params?.niveau) {
+              stackTitleRef.current?.setTitle(`${params.year} · ${params.niveau}`);
             } else {
               stackTitleRef.current?.setTitle(SCREEN_TITLES[screenName] || screenName);
             }
@@ -385,6 +387,17 @@ function NotesStackScreen() {
       <NotesStack.Screen
         name="BulletinScreen"
         component={BulletinScreen}
+        options={{ headerShown: false }}
+      />
+      {/* Bouton année et lien « Livrets des années précédentes » : retour vers Suivi. */}
+      <NotesStack.Screen
+        name="MonParcours"
+        component={MonParcoursScreen}
+        options={{ title: 'Mon parcours' }}
+      />
+      <NotesStack.Screen
+        name="ArchivedYearDetail"
+        component={ArchivedYearDetailScreen}
         options={{ headerShown: false }}
       />
     </NotesStack.Navigator>

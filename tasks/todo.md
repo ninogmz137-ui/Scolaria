@@ -241,8 +241,9 @@ Objectif : types de mots et signature par responsable, filtres Tout / À signer 
 - Test Redmi + SQL : 2 comptes de test (A, B) sur le même enfant : A signe → A voit « en attente de B » ; B signe → « signé » ; B ne voit pas les conversations privées de A ; invitation acceptée seulement avec email confirmé.
 - Risques : mode démo sans deuxième compte réel → statuts simulés à écrire ; email de confirmation Supabase (SMTP par défaut limité) pour tester l’invitation ; mapping types DB ↔ types écran déjà ambigu (info ↔ information, bon_de_sortie → autorisation) ; migration M14 (annulation d’invitation).
 
-### B5 · Ajouter au carnet — 2 à 3 sessions
+### B5 · Ajouter au carnet — 2 à 3 sessions — **À FAIRE JUSTE APRÈS B3b, AVANT B4** (décision du 26 sept 2026)
 Objectif : les 4 actions d’import, rangées dans le carnet de l’enfant actif, fichiers dans un stockage privé.
+Périmètre validé : bucket Storage à **Paris** (M15) ; envoi de photos, captures et PDF ; catégorie et date choisies par le parent ; visibilité foyer ou privée ; **réactivation du ⊞ de Suivi et du « + »** (masqués en B3b tant qu'ils ne font rien). Ne pas commencer avant la fin de B3b.
 - [ ] Migration M15 : bucket Storage **privé** `carnet` ; chemin `{child_id}/{item_id}` ; policies calquées sur `carnet_items` (foyer = responsables, privé = auteur seul) ; URLs signées 24 h ; tests SQL sous rôle authenticated.
 - [ ] Sheet « Ajouter au carnet » (+ Accueil, ⊞ Suivi) : Photographier · Importer une capture · Ajouter un document (PDF) · Noter une première fois (jalon, sans fichier).
 - [ ] Formulaire V1 : catégorie (Mot / Livret / Souvenir / Jalon), date, visibilité (Foyer par défaut / Privé), enfant = enfant actif affiché, source « Ajouté par vous ».
@@ -273,7 +274,7 @@ Objectif : suggestions en pills horizontales, contexte = enfant actif uniquement
 - Risques : le prompt système est encore construit côté app (temporaire, voir S2) → ne pas l’étendre, le passage côté serveur reste à planifier ; ne pas toucher au protocole d’urgence sans relancer les 22 cas.
 
 ### Dépendances et ordre
-B1 → B2 (bloquant pour tous les autres) → B3 → B4 → B5 (affichage dans B3) → B6 (utilise les mots de B4) → B7 (peut passer juste après B2 si besoin).
+B1 → B2 (bloquant pour tous les autres) → B3 → B5 (avant B4, décision du 26 sept) → B4 → B6 (utilise les mots de B4) → B7 (peut passer juste après B2 si besoin).
 Migrations prévues : M13 (fond d’Accueil par enfant, B2), M14 (annulation d’invitation, B4), M15 (bucket carnet, B5), M16 (agenda ↔ mots + À prévoir, B6).
 
 ### Décisions du 24 sept (6 questions)
