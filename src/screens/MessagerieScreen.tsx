@@ -13,12 +13,12 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Platform, Modal, StatusBar } from 'react-native';
+import { View, StyleSheet, Platform, Modal, StatusBar, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated from 'react-native-reanimated';
-import { School, CalendarX, Search, ChevronDown, Check } from 'lucide-react-native';
+import { School, CalendarX, Search, ChevronDown, Check, FileText } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -34,7 +34,14 @@ import { C } from '../constants/design';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
 import Segmented from '../components/Segmented';
-import LigneMessage, { SEPARATEURS_MESSAGES } from '../components/messages/LigneMessage';
+import LigneMessage, { SEPARATEURS_MESSAGES, type LigneMessageProps } from '../components/messages/LigneMessage';
+import CarteATraiter from '../components/messages/CarteATraiter';
+import { useMotsEnfant } from '../hooks/useMotsEnfant';
+import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
+import { aTraiter, marquerTousMotsLus, monNomComplet, type MotCarnet } from '../services/motsService';
+import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import { demanderAjoutCarnet } from '../services/ouvertureAjout';
+import { de } from '../utils/francais';
 
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
@@ -52,8 +59,11 @@ function memoriserSegment(s: Segment) {
 
 // ─── Filtre (menu « Tout ⌄ ») ────────────────────────────
 
-type Filtre = 'tout' | 'non_lus';
-const LIBELLES_FILTRE: Record<Filtre, string> = { tout: 'Tout', non_lus: 'Non lus' };
+type Filtre = 'tout' | 'non_lus' | 'a_signer';
+const LIBELLES_FILTRE: Record<Filtre, string> = { tout: 'Tout', non_lus: 'Non lus', a_signer: 'À signer' };
+
+/** Une ligne de la liste à plat (conversation, mot ou mot importé). */
+type Ligne = { cle: string; tri: string; props: Omit<LigneMessageProps, 'separateur'> };
 
 // ─── Dates ───────────────────────────────────────────────
 
@@ -72,7 +82,8 @@ export function dateCourte(iso: string): string {
 }
 
 function initialesDe(nom: string): string {
-  const mots = nom.replace(/^(Mme|M\.|Mlle)\s+/, '').split(/\s+/).filter(Boolean);
+  // Même convention que les conversations : « Mme Laurent » → « ML », « M. Petit » → « MP ».
+  const mots = nom.split(/\s+/).filter(Boolean);
   return mots.map((p) => p[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
@@ -118,20 +129,124 @@ function MessagerieContenu() {
   );
 
   const conversations = useMemo(() => (childId ? getConversations(childId) : []), [childId, version]);
-  // Général = le collectif (établissement, direction, mairie) ; [prénom] = enseignants et absences.
-  const duSegment = conversations.filter((c) =>
-    segment === 'general' ? c.avatarType === 'school' : c.avatarType !== 'school',
-  );
-  const q = recherche.trim().toLowerCase();
-  const visibles = duSegment
-    .filter((c) => filtre !== 'non_lus' || c.unread)
-    .filter((c) => !q || c.name.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q))
-    .sort((a, b) => `${b.lastDate}${b.lastTime}`.localeCompare(`${a.lastDate}${a.lastTime}`));
+
+  // Mots du carnet : la MÊME donnée que l'Accueil (« À faire »).
+  const { mots, charge, isDemo } = useMotsEnfant(childId);
+  const [monNom, setMonNom] = useState('vous');
+  useEffect(() => {
+    if (childId) monNomComplet(childId, isDemo).then(setMonNom);
+  }, [childId, isDemo]);
+  const enseignantRattache = useEnseignantRattache();
+
+  // Mots importés par la famille (carnet_items, catégorie « mot ») : « Visible par vous seul »
+  // respecté par la base (RLS : privé = auteur seul) et affiché.
+  const [versionCarnet, setVersionCarnet] = useState(0);
+  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
+  const [importsReels, setImportsReels] = useState<ElementCarnet[]>([]);
+  useEffect(() => {
+    let annule = false;
+    if (isDemo || !childId) {
+      setImportsReels([]);
+      return;
+    }
+    getCarnetItems(childId).then((items) => {
+      if (!annule) setImportsReels(items.filter((e) => e.categorie === 'mot'));
+    });
+    return () => {
+      annule = true;
+    };
+  }, [isDemo, childId, versionCarnet, version]);
+  const imports = isDemo ? carnetDemo(childId).filter((e) => e.categorie === 'mot') : importsReels;
 
   const ouvrirConversation = (c: Conversation) => {
     markConversationRead(c.id);
     navigation.navigate('ConversationDetailScreen', { conversationId: c.id });
   };
+  const ouvrirMot = (m: MotCarnet) =>
+    navigation.navigate('MotDetailScreen', { motId: m.id, childId: m.childId, expediteur: m.expediteur });
+  const ouvrirImport = async (e: ElementCarnet) => {
+    if (e.deMoi) {
+      navigation.navigate('AjouterAuCarnet', { element: e });
+      return;
+    }
+    const url = await lienFichier(e, isDemo);
+    if (url) Linking.openURL(url);
+  };
+
+  const q = recherche.trim().toLowerCase();
+  const correspond = (...textes: (string | undefined)[]) => !q || textes.some((t) => t?.toLowerCase().includes(q));
+
+  // Général = le collectif (établissement, direction, mairie, mots, mots importés) ;
+  // [prénom] = enseignants et absences. Liste à plat, de la plus récente à la plus ancienne.
+  const convsDuSegment = conversations.filter((c) =>
+    segment === 'general' ? c.avatarType === 'school' : c.avatarType !== 'school',
+  );
+  const lignesConvs: Ligne[] = convsDuSegment
+    .filter((c) => correspond(c.name, c.lastMessage))
+    .map((c) => ({
+      cle: `c-${c.id}`,
+      tri: `${c.lastDate}T${c.lastTime}`,
+      props: {
+        nom: c.name,
+        date: dateCourte(c.lastDate),
+        apercu: c.lastMessage,
+        nonLu: c.unread,
+        initiales: c.avatarType === 'initials' ? c.initials ?? initialesDe(c.name) : undefined,
+        Icone: c.avatarType === 'school' ? School : c.avatarType === 'absence' ? CalendarX : undefined,
+        onPress: () => ouvrirConversation(c),
+      },
+    }));
+  // Les mots « à traiter » sont dans la carte en tête ; la liste garde les autres.
+  const lignesMots: Ligne[] =
+    segment !== 'general'
+      ? []
+      : mots
+          .filter((m) => !aTraiter(m) && correspond(m.titre, m.expediteur, m.contenu))
+          .map((m) => {
+            const personne = /^(Mme|M\.|Mlle)\s/.test(m.expediteur);
+            return {
+              cle: `m-${m.id}`,
+              tri: `${m.date}T00:00`,
+              props: {
+                nom: m.expediteur,
+                date: dateCourte(m.date),
+                apercu: m.titre,
+                nonLu: !m.lu,
+                initiales: personne ? initialesDe(m.expediteur) : undefined,
+                Icone: personne ? undefined : School,
+                onPress: () => ouvrirMot(m),
+              },
+            };
+          });
+  const lignesImports: Ligne[] =
+    segment !== 'general'
+      ? []
+      : imports
+          .filter((e) => correspond(e.titre, e.note))
+          .map((e) => ({
+            cle: `i-${e.id}`,
+            tri: `${e.date}T00:00`,
+            props: {
+              nom: e.titre,
+              date: dateCourte(e.date),
+              apercu: e.note || 'Mot reçu ailleurs',
+              nonLu: false,
+              Icone: FileText,
+              source: `Importé par ${e.deMoi === false ? e.auteur ?? 'un responsable' : 'vous'}`,
+              prive: e.visibilite === 'prive',
+              onPress: () => ouvrirImport(e),
+            },
+          }));
+  const visibles =
+    filtre === 'a_signer'
+      ? []
+      : [...lignesConvs, ...lignesMots, ...lignesImports]
+          .filter((l) => filtre !== 'non_lus' || l.props.nonLu)
+          .sort((a, b) => b.tri.localeCompare(a.tri));
+  const carte = segment === 'general' ? mots.filter((m) => aTraiter(m) && correspond(m.titre, m.expediteur, m.contenu)) : [];
+  // Compte réel dont l'école n'est pas (encore) sur Scolaria : état vide informatif.
+  const ecoleAbsente =
+    segment === 'general' && !isDemo && !enseignantRattache && mots.length === 0 && convsDuSegment.length === 0 && !q && filtre === 'tout';
 
   // Menu « Tout ⌄ » : Modal plein écran bord à bord → + hauteur de la barre d'état sur Android
   // (measureInWindow mesure depuis le bas de la barre d'état ; tasks/lessons.md, 26 sept).
@@ -147,6 +262,7 @@ function MessagerieContenu() {
   };
   const toutMarquerLu = () => {
     if (childId) markAllConversationsRead(childId);
+    marquerTousMotsLus(mots, isDemo);
     setMenu(null);
   };
 
@@ -199,31 +315,35 @@ function MessagerieContenu() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
-        {visibles.length === 0 ? (
+        {carte.length > 0 && <CarteATraiter mots={carte} monNom={monNom} demo={isDemo} onOuvrir={ouvrirMot} />}
+        {ecoleAbsente ? (
           <View style={st.vide}>
-            <Text style={st.videTitre}>{q ? 'Aucun résultat' : filtre === 'non_lus' ? 'Tout est lu' : 'Rien pour l’instant'}</Text>
+            <Text style={st.videTexte}>{`Les mots de l’école ${de(prenom)} arriveront ici quand elle utilisera Scolaria.`}</Text>
+            <Pressable
+              onPress={() => demanderAjoutCarnet({ onglet: 'MessagerieTab', categorie: 'mot' })}
+              style={({ pressed }) => [st.pill, pressed && { opacity: 0.85 }]}
+              accessibilityRole="button"
+            >
+              <Text style={st.pillTexte}>Ajouter un mot reçu ailleurs</Text>
+            </Pressable>
+          </View>
+        ) : visibles.length === 0 && carte.length === 0 && charge ? (
+          <View style={st.vide}>
+            <Text style={st.videTitre}>
+              {q ? 'Aucun résultat' : filtre === 'non_lus' ? 'Tout est lu' : filtre === 'a_signer' ? 'Rien à signer' : 'Rien pour l’instant'}
+            </Text>
             <Text style={st.videTexte}>
               {q
                 ? 'Modifiez votre recherche.'
-                : segment === 'general'
-                  ? `Les messages de l’école ${prenom ? `de ${prenom} ` : ''}arriveront ici.`
-                  : `Les échanges avec les enseignants ${prenom ? `de ${prenom} ` : ''}arriveront ici.`}
+                : filtre === 'a_signer'
+                  ? 'Les mots à signer apparaissent en tête de Général.'
+                  : segment === 'general'
+                    ? `Les messages de l’école ${de(prenom)} arriveront ici.`
+                    : `Les échanges avec les enseignants ${de(prenom)} arriveront ici.`}
             </Text>
           </View>
         ) : (
-          visibles.map((c, i) => (
-            <LigneMessage
-              key={c.id}
-              nom={c.name}
-              date={dateCourte(c.lastDate)}
-              apercu={c.lastMessage}
-              nonLu={c.unread}
-              initiales={c.avatarType === 'initials' ? c.initials ?? initialesDe(c.name) : undefined}
-              Icone={c.avatarType === 'school' ? School : c.avatarType === 'absence' ? CalendarX : undefined}
-              separateur={Separe && i < visibles.length - 1}
-              onPress={() => ouvrirConversation(c)}
-            />
-          ))
+          visibles.map((l, i) => <LigneMessage key={l.cle} {...l.props} separateur={Separe && i < visibles.length - 1} />)
         )}
       </Animated.ScrollView>
 
@@ -296,6 +416,18 @@ const st = StyleSheet.create({
   },
   filtreTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: NAVY },
   defilement: { flex: 1 },
+  pill: {
+    marginTop: 18,
+    height: 52,
+    maxWidth: 280,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    backgroundColor: NAVY,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillTexte: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
   vide: { paddingHorizontal: 24, paddingTop: 40, alignItems: 'center' },
   videTitre: { fontFamily: FontFamily.sansBold, fontSize: 16, color: NAVY, textAlign: 'center' },
   videTexte: {

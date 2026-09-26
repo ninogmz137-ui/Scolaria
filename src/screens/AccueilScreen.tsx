@@ -31,14 +31,16 @@ import { Text } from '../components/ui';
 import { de } from '../utils/francais';
 import { useDemoData } from '../contexts/DemoContext';
 import { getConversations } from '../stores/messagerieStore';
-import { construireAccueilDemo, isoJour } from '../data/demo/accueil';
+import { construireAccueilDemo, isoJour, todoDepuisMots } from '../data/demo/accueil';
+import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 
 // ─── Data démo ────────────────────────────────────────────
 
 const ACTION_PILLS: Record<string, { label: string; bg: string; color: string }> = {
-  signer:    { label: 'SIGNER',    bg: '#FEE2E2', color: '#B91C1C' },
+  signer:    { label: 'SIGNER',    bg: 'rgba(67,56,202,0.10)', color: '#4338CA' },
+  repondre:  { label: 'RÉPONDRE',  bg: 'rgba(67,56,202,0.10)', color: '#4338CA' },
   lire:      { label: 'LIRE',      bg: '#E0E7FF', color: '#4338CA' },
   justifier: { label: 'JUSTIFIER', bg: '#FEF3C7', color: '#B45309' },
 };
@@ -183,7 +185,9 @@ export default function AccueilScreen() {
   //  - « Dernières notes » : les notes de l'enfant (mêmes données que le Suivi collège) ;
   //  - « Derniers apprentissages » : src/data/demo/suivi.ts (même source que le Suivi) ;
   //  - « À faire », « Aujourd'hui », Aria : Agenda, mots et Messages de l'enfant.
-  const { getAgenda, getMots, getGrades, getSubjects } = useDemoData();
+  const { getAgenda, getGrades, getSubjects } = useDemoData();
+  // Mots du carnet : la MÊME donnée que Messages › Général « À traiter » (démo et compte réel).
+  const { mots } = useMotsEnfant(selectedChild?.id);
   const dernieresNotes = useMemo(() => {
     if (!isDemo || !selectedChild) return [];
     const matieres = getSubjects(selectedChild.id);
@@ -231,7 +235,8 @@ export default function AccueilScreen() {
     if (url) Linking.openURL(url);
   };
   const accueil = useMemo(() => {
-    if (!isDemo || !selectedChild) return { todo: [], aujourdhui: [], aria: '' };
+    if (!selectedChild) return { todo: [], aujourdhui: [], aria: '' };
+    if (!isDemo) return { todo: todoDepuisMots(mots), aujourdhui: [], aria: '' };
     const auj = new Date();
     const demain = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() + 1);
     return construireAccueilDemo({
@@ -240,10 +245,10 @@ export default function AccueilScreen() {
       aujourdHui: auj,
       evenementsDuJour: getAgenda(selectedChild.id, isoJour(auj)),
       evenementsDeDemain: getAgenda(selectedChild.id, isoJour(demain)),
-      mots: getMots(selectedChild.id),
+      mots,
       conversations: getConversations(selectedChild.id),
     });
-  }, [isDemo, selectedChild, getAgenda, getMots]);
+  }, [isDemo, selectedChild, getAgenda, mots]);
   const avecNotes = aDesNotes(selectedChild?.cycle);
   const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
@@ -299,7 +304,7 @@ export default function AccueilScreen() {
                     last={i === accueil.todo.length - 1}
                     onPress={
                       it.kind === 'justifier' ? () => setJustifierVisible(true) :
-                      it.kind === 'signer' ? () => nav.navigate('SignDoc', { doc: it.doc ?? { title: it.title } }) :
+                      it.motId ? () => nav.navigate('MotDetailScreen', { motId: it.motId, childId: selectedChild.id }) :
                       undefined
                     }
                   />

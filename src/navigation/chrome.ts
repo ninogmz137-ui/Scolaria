@@ -59,7 +59,7 @@ export const ROUTE_CHROME = {
   EcoleListScreen: 'full',
   MessagerieAriaScreen: 'none',
   ConversationDetailScreen: 'full',
-  MotDetailScreen: 'full',
+  MotDetailScreen: 'none', // détail d'un mot (page profonde, B4a)
 } as const satisfies Record<string, ChromeMode>;
 
 export type AppRouteName = keyof typeof ROUTE_CHROME;

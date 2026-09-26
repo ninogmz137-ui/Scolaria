@@ -1,147 +1,78 @@
 /**
- * MotDetailScreen — Detail view for a mot du cahier de liaison.
- * Shows content + sign button for unsigned mots.
+ * MotDetailScreen — un mot du carnet, ouvert EXACTEMENT depuis la liste Général, la carte « À traiter »,
+ * l'Accueil (« À faire ») ou une notification (B4a). Page profonde (‹ Retour + titre centré).
+ *
+ * Params : { motId, childId, expediteur? }. Le mot est lu dans le carnet de childId (motsService) ;
+ * s'il n'existe plus : « [Expéditeur] a retiré ce mot », jamais d'erreur.
  */
 
-import { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FileText, Check } from 'lucide-react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
-import { SCREEN_BACKGROUND } from '../../constants/colors';
-import { Text, Pressable } from '../../components/ui';
+import { DeepScreenHeader } from '../../components/DeepScreenHeader';
+import { Text } from '../../components/ui';
+import { useMotsEnfant } from '../../hooks/useMotsEnfant';
+import { marquerMotLu, monNomComplet } from '../../services/motsService';
+import ActionsMot from '../../components/messages/ActionsMot';
+import { PastillesAPrevoir, jourCourt, heureCourte } from '../../components/messages/CarteATraiter';
+import { C } from '../../constants/design';
 
-export default function MotDetailScreen({ route, navigation }: { route: any; navigation: any }) {
+const NAVY = '#0F172A';
+const TEXT55 = 'rgba(15,23,42,0.55)';
+
+export default function MotDetailScreen() {
   const insets = useSafeAreaInsets();
-  const { title = 'Mot', signed: initialSigned = false, deadline } = route.params ?? {};
-  const [signed, setSigned] = useState(initialSigned);
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { motId, childId, expediteur } = (route.params ?? {}) as { motId?: string; childId?: string; expediteur?: string };
+  const { mots, charge, isDemo } = useMotsEnfant(childId);
+  const mot = mots.find((m) => m.id === motId);
+  const [monNom, setMonNom] = useState('vous');
 
-  const handleSign = () => {
-    Alert.alert(
-      'Signer ce mot',
-      `Confirmez-vous la signature de "${title}" ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Signer',
-          onPress: () => {
-            setSigned(true);
-          },
-        },
-      ],
-    );
-  };
+  useEffect(() => {
+    if (childId) monNomComplet(childId, isDemo).then(setMonNom);
+  }, [childId, isDemo]);
+  useEffect(() => {
+    if (mot && !mot.lu) marquerMotLu(mot, isDemo);
+  }, [mot?.id, mot?.lu, isDemo]);
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.content, { paddingTop: insets.top + 70 }]}>
-        <View style={styles.iconCircle}>
-          <FileText size={28} color="#FF8C42" strokeWidth={1.5} />
+    <View style={[st.racine, { paddingBottom: insets.bottom }]}>
+      <DeepScreenHeader title="Mot" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} withTopInset />
+      {!charge ? null : !mot ? (
+        <View style={st.retire}>
+          <Text style={st.retireTitre}>{`${expediteur ?? 'L’école'} a retiré ce mot`}</Text>
+          <Text style={st.retireTexte}>Il n’apparaît plus dans le carnet.</Text>
         </View>
-
-        <Text style={styles.title}>{title}</Text>
-
-        {deadline && !signed && (
-          <Text style={styles.deadline}>À signer avant le {deadline}</Text>
-        )}
-
-        <View style={styles.card}>
-          <Text style={styles.cardText}>
-            Chers parents, nous vous informons de l'organisation de cet événement.
-            Merci de bien vouloir signer ce mot pour confirmer que vous en avez pris connaissance.
-          </Text>
-        </View>
-
-        {signed ? (
-          <View style={styles.signedBadge}>
-            <Check size={16} color="#10B981" strokeWidth={2.5} />
-            <Text style={styles.signedText}>Signé</Text>
-          </View>
-        ) : (
-          <Pressable
-            onPress={handleSign}
-            style={({ pressed }) => [styles.signButton, pressed && { opacity: 0.85 }]}
-          >
-            <Text style={styles.signButtonText}>Signer ce mot</Text>
-          </Pressable>
-        )}
-      </View>
+      ) : (
+        <ScrollView contentContainerStyle={st.contenu} showsVerticalScrollIndicator={false}>
+          <Text style={st.titre}>{mot.titre}</Text>
+          <Text style={st.meta}>{`${mot.expediteur} · ${jourCourt(mot.date)}`}</Text>
+          {mot.evenement && (
+            <Text style={st.ligne}>
+              {`${mot.evenement.titre} · ${jourCourt(mot.evenement.date)}${mot.evenement.heure ? ` ${heureCourte(mot.evenement.heure)}` : ''}`}
+            </Text>
+          )}
+          {mot.echeance && <Text style={st.ligne}>{`Avant le ${jourCourt(mot.echeance)}`}</Text>}
+          <Text style={st.corps}>{mot.contenu}</Text>
+          <PastillesAPrevoir items={mot.aPrevoir} />
+          <ActionsMot mot={mot} monNom={monNom} demo={isDemo} />
+        </ScrollView>
+      )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: SCREEN_BACKGROUND,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    gap: 12,
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FF8C4215',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 20,
-    color: '#0F172A',
-    textAlign: 'center',
-  },
-  deadline: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#F59E0B',
-  },
-  card: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    width: '100%',
-    marginTop: 8,
-  },
-  cardText: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 22,
-  },
-  signButton: {
-    backgroundColor: '#4338CA',
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    marginTop: 16,
-  },
-  signButtonText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-  signedBadge: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    marginTop: 16,
-    gap: 4,
-  },
-  signedText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
-    color: '#10B981',
-  },
+const st = StyleSheet.create({
+  racine: { flex: 1, backgroundColor: C.bg },
+  contenu: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+  titre: { fontFamily: FontFamily.displayBold, fontSize: 20, lineHeight: 26, letterSpacing: -0.5, color: NAVY },
+  meta: { fontFamily: FontFamily.sansRegular, fontSize: 13, lineHeight: 18, color: TEXT55, marginTop: 4 },
+  ligne: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: NAVY, marginTop: 4 },
+  corps: { fontFamily: FontFamily.sansRegular, fontSize: 15, lineHeight: 22, color: NAVY, marginTop: 16 },
+  retire: { paddingHorizontal: 24, paddingTop: 48, alignItems: 'center' },
+  retireTitre: { fontFamily: FontFamily.sansBold, fontSize: 16, lineHeight: 22, color: NAVY, textAlign: 'center' },
+  retireTexte: { fontFamily: FontFamily.sansRegular, fontSize: 14, lineHeight: 20, color: TEXT55, textAlign: 'center', marginTop: 6 },
 });

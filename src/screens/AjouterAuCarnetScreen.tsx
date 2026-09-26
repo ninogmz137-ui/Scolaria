@@ -34,7 +34,7 @@ import {
 import { jourMois } from '../utils/competences';
 import { de } from '../utils/francais';
 
-type Params = { source?: SourceAjout; element?: ElementCarnet };
+type Params = { source?: SourceAjout; element?: ElementCarnet; categorie?: CategorieCarnet };
 
 const CATEGORIES: { id: CategorieCarnet; libelle: string }[] = [
   { id: 'mot', libelle: 'Mot' },
@@ -71,7 +71,9 @@ export default function AjouterAuCarnetScreen() {
   const aujourdHui = isoLocal(new Date());
   const [titre, setTitre] = useState(element?.titre ?? '');
   const [note, setNote] = useState(element?.note ?? '');
-  const [categorie, setCategorie] = useState<CategorieCarnet>(element?.categorieCarnet ?? CATEGORIE_PAR_DEFAUT[source]);
+  const [categorie, setCategorie] = useState<CategorieCarnet>(
+    element?.categorieCarnet ?? route.params?.categorie ?? CATEGORIE_PAR_DEFAUT[source],
+  );
   const [date, setDate] = useState(element?.date ?? aujourdHui);
   const [prive, setPrive] = useState(element?.visibilite === 'prive');
   const [annees, setAnnees] = useState<AnneeParcours[]>([]);

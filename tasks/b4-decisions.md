@@ -54,5 +54,5 @@ Règle de visibilité **par FOYER** :
 - **Historique du fil famille quand un parent quitte le foyer** : garder la lecture de l'historique ? le retirer ? le partager ?
 
 ## 7. Déjà noté pour B4
-- Les **mots importés par la famille** (carnet_items, catégorie « mot », lot B5) s'affichent aussi dans le segment [prénom].
+- Les **mots importés par la famille** (carnet_items, catégorie « mot », lot B5) s'affichent dans **Général** (décision B4a du 26 sept 2026, remplace « segment [prénom] »), avec la ligne source « Importé par vous » ; « Visible par vous seul » respecté.
 - Le ✏️ de la bottom bar ouvre aujourd'hui « Écrire à un enseignant » et « Signaler une absence » (masqués sans enseignant rattaché) ; B4 le raccordera à la rédaction réelle.

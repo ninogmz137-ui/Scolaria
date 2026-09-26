@@ -3,7 +3,7 @@
  *
  * Sections:
  *   1. Conversations — mock teacher threads
- *   2. Mots à signer — liaison items from mock data
+ *   (les mots du cahier de liaison sont dans Messages › Général, B4a)
  *
  */
 
@@ -97,7 +97,6 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
   const {
     isDemoMode,
     getTeachers: getDemoTeachers,
-    getMots: getDemoMots,
     getMessages: getDemoMessages,
   } = useDemoData();
   const [teacherModalVisible, setTeacherModalVisible] = useState(false);
@@ -118,16 +117,6 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
         id: t.id,
         name: t.name,
         subject: `${t.role} — ${t.class}`,
-      }))
-    : [];
-
-  // In demo mode, use filtered mots for the selected child
-  const mots = isDemoMode && selectedChild
-    ? getDemoMots(selectedChild.id).map((m) => ({
-        id: m.id,
-        title: m.title,
-        deadline: m.deadline,
-        signed: m.isSigned,
       }))
     : [];
 
@@ -226,56 +215,6 @@ export default function MessagesListScreen({ navigation }: { navigation: any }) 
           </Pressable>
         ))}
 
-        {/* ── Section: Mots à signer ── */}
-        <View style={[styles.sectionHeaderRow, styles.sectionSecond]}>
-          <View style={[styles.sectionAccentBar, { backgroundColor: '#FF8C42' }]} />
-          <Text style={styles.sectionLabel}>Mots à signer</Text>
-        </View>
-
-        {mots.map((mot) => (
-          <Pressable
-            key={mot.id}
-            onPress={() => navigation.navigate('MotDetailScreen', { title: mot.title, signed: mot.signed, deadline: mot.deadline })}
-            style={({ pressed }) => [styles.card, { opacity: pressed ? 0.8 : 1 }]}
-            accessibilityRole="button"
-          >
-            {/* Icon circle using neutral bg */}
-            <View style={styles.motIconContainer}>
-              <Text style={styles.motIconText}>✉</Text>
-            </View>
-
-            {/* Text */}
-            <View style={styles.motBody}>
-              <Text
-                style={styles.motTitle}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {mot.title}
-              </Text>
-              {mot.deadline && !mot.signed && (
-                <Text style={styles.motDeadline}>À signer avant le {mot.deadline}</Text>
-              )}
-            </View>
-
-            {/* Status badge */}
-            <View
-              style={[
-                styles.motBadge,
-                { backgroundColor: mot.signed ? '#10B98126' : '#F59E0B26' },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.motBadgeText,
-                  { color: mot.signed ? '#10B981' : '#F59E0B' },
-                ]}
-              >
-                {mot.signed ? 'Signé ✓' : 'À signer'}
-              </Text>
-            </View>
-          </Pressable>
-        ))}
       </ScrollView>
 
       {/* ── Teacher selection modal ── */}

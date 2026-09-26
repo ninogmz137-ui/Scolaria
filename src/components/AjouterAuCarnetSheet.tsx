@@ -14,7 +14,8 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { choisirFichier, mettreEnAttente, type SourceAjout } from '../services/carnetImport';
-import { ErreurCarnet } from '../services/carnetService';
+import { ErreurCarnet, type CategorieCarnet } from '../services/carnetService';
+import type { OngletAjout } from '../services/ouvertureAjout';
 import { de } from '../utils/francais';
 
 const ACTIONS: { id: SourceAjout; libelle: string; detail: string; Icone: typeof Camera }[] = [
@@ -28,11 +29,14 @@ export default function AjouterAuCarnetSheet({
   visible,
   onClose,
   onglet,
+  categorie,
 }: {
   visible: boolean;
   onClose: () => void;
   /** Onglet d'où l'on vient : le formulaire s'empile dans sa pile (retour au même endroit). */
-  onglet: 'Accueil' | 'Notes';
+  onglet: OngletAjout;
+  /** Catégorie pré-remplie (ex. « mot » depuis Messages). */
+  categorie?: CategorieCarnet;
 }) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
@@ -50,7 +54,7 @@ export default function AjouterAuCarnetSheet({
       }
       navigation.navigate('MainPager', {
         screen: onglet,
-        params: { screen: 'AjouterAuCarnet', params: { source }, initial: false },
+        params: { screen: 'AjouterAuCarnet', params: { source, categorie }, initial: false },
       });
     } catch (e) {
       Alert.alert('Ajouter au carnet', e instanceof ErreurCarnet ? e.message : 'Action impossible. Réessayez.');

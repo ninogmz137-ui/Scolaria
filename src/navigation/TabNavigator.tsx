@@ -12,7 +12,7 @@
  * swipe : le seul geste horizontal géré ici est le retour arrière depuis une page profonde.
  */
 
-import { useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { View, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
@@ -68,6 +68,8 @@ import AProposScreen from '../screens/AProposScreen';
 // Quick overlays (BottomBar)
 import QuickSearchScreen from '../screens/QuickSearchScreen';
 import AjouterAuCarnetSheet from '../components/AjouterAuCarnetSheet';
+import { surDemandeAjout, type OngletAjout } from '../services/ouvertureAjout';
+import type { CategorieCarnet } from '../services/carnetService';
 import QuickActionsSheet from '../components/QuickActionsSheet';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
@@ -319,6 +321,11 @@ function AccueilStackScreen() {
       {/* « À faire → Signer » part d'Accueil : l'écran reste dans l'onglet Accueil
           (enregistré aussi dans la pile Messagerie pour les mots du cahier de liaison). */}
       <AccueilStack.Screen
+        name="MotDetailScreen"
+        component={MotDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <AccueilStack.Screen
         name="SignDoc"
         component={SignDocScreen}
         options={{ headerShown: false }}
@@ -496,6 +503,11 @@ function MessagerieStackScreen() {
         options={{ headerShown: false }}
       />
       <MessagerieStack.Screen
+        name="AjouterAuCarnet"
+        component={AjouterAuCarnetScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
         name="MotDetailScreen"
         component={MotDetailScreen}
         options={{ headerShown: false }}
@@ -630,7 +642,17 @@ export default function TabNavigator() {
   const [currentAccueilRoute, setCurrentAccueilRoute] = useState('AccueilHome');
   const [searchVisible, setSearchVisible] = useState(false);
   // Onglet d'où « Ajouter au carnet » a été ouvert (null = feuille fermée).
-  const [carnetDepuis, setCarnetDepuis] = useState<'Accueil' | 'Notes' | null>(null);
+  const [carnetDepuis, setCarnetDepuis] = useState<OngletAjout | null>(null);
+  const [carnetCategorie, setCarnetCategorie] = useState<CategorieCarnet | undefined>(undefined);
+  // Ouverture demandée par un écran (Messages › « Ajouter un mot reçu ailleurs », catégorie Mot).
+  useEffect(
+    () =>
+      surDemandeAjout(({ onglet, categorie }) => {
+        setCarnetCategorie(categorie);
+        setCarnetDepuis(onglet);
+      }),
+    [],
+  );
   // ✏️ de Messages : actions rapides, seulement si l'enfant a un enseignant rattaché.
   const [actionsMessagesVisible, setActionsMessagesVisible] = useState(false);
   const enseignantRattache = useEnseignantRattache();
@@ -739,6 +761,7 @@ export default function TabNavigator() {
                     agendaActionRef.current?.();
                   } else if (navActiveTab === 'accueil' || navActiveTab === 'notes') {
                     // « + » (Accueil) et ⊞ (Suivi) : Ajouter au carnet (lot B5).
+                    setCarnetCategorie(undefined);
                     setCarnetDepuis(navActiveTab === 'notes' ? 'Notes' : 'Accueil');
                   }
                 }}
@@ -756,6 +779,7 @@ export default function TabNavigator() {
             <AjouterAuCarnetSheet
               visible={carnetDepuis !== null}
               onglet={carnetDepuis ?? 'Accueil'}
+              categorie={carnetCategorie}
               onClose={() => setCarnetDepuis(null)}
             />
 

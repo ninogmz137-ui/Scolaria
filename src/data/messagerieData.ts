@@ -125,7 +125,6 @@ const leaConversations: Conversation[] = [
 const lucasConversations: Conversation[] = [
   {
     tag: 'sortie' as const,
-    urgency: 'signer' as const,
     ariaSummary: 'Autorisation pour la sortie à la médiathèque à signer avant jeudi.',
     avatarColor: '#059669',
     id: 'lucas-moreau',
@@ -251,7 +250,6 @@ const emmaConversations: Conversation[] = [
     role: 'Direction',
     avatarType: 'school',
     tag: 'admin',
-    urgency: 'signer' as const,
     ariaSummary: 'Convention de stage d’observation à signer avant lundi.',
     lastMessage: "Convention de stage d'observation de 3e : merci de la signer dans le carnet avant lundi.",
     lastDate: ilYa(4),

@@ -17,7 +17,6 @@ import demoSubjects from '../data/demo/demo-subjects.json';
 import demoGrades from '../data/demo/demo-grades.json';
 import demoAgenda from '../data/demo/demo-agenda.json';
 import demoMessages from '../data/demo/demo-messages.json';
-import demoMots from '../data/demo/demo-mots.json';
 import demoParcours from '../data/demo/demo-parcours.json';
 import demoDashboard from '../data/demo/demo-dashboard.json';
 import demoTeachers from '../data/demo/demo-teachers.json';
@@ -89,14 +88,6 @@ export interface DemoMessage {
   type: string;
 }
 
-export interface DemoMot {
-  id: string;
-  childId: string;
-  title: string;
-  deadline: string | null;
-  isSigned: boolean;
-}
-
 export interface DemoParcours {
   childId: string;
   currentYear: any;
@@ -147,13 +138,11 @@ interface DemoContextValue {
   getGrades: (childId: string, trimester?: number) => DemoGrade[];
   getAgenda: (childId: string, date?: string) => DemoAgendaEvent[];
   getMessages: (childId: string) => DemoMessage[];
-  getMots: (childId: string) => DemoMot[];
   getParcours: (childId: string) => DemoParcours | null;
   getDashboard: (childId: string) => DemoDashboard | null;
   getTeachers: (childId: string) => DemoTeacher[];
   getArchivedGrades: (childId: string, year: string) => DemoArchivedBulletin[];
   toggleAgendaDone: (eventId: string) => void;
-  signMot: (motId: string) => void;
 }
 
 const DemoContext = createContext<DemoContextValue>({
@@ -163,13 +152,11 @@ const DemoContext = createContext<DemoContextValue>({
   getGrades: () => [],
   getAgenda: () => [],
   getMessages: () => [],
-  getMots: () => [],
   getParcours: () => null,
   getDashboard: () => null,
   getTeachers: () => [],
   getArchivedGrades: () => [],
   toggleAgendaDone: () => {},
-  signMot: () => {},
 });
 
 // ─── Agenda de démo recalé sur aujourd'hui ───────────────
@@ -198,11 +185,23 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
     const [a, m, j] = date.split('-').map(Number);
     return isoLocal(new Date(a, m - 1, j + jours));
   };
-  const semaine = (demoAgenda as DemoAgendaEvent[]).map((e) => ({ ...e, date: deplacer(e.date, decalage) }));
+  // Sorties, réunions et événements (souvent liés à un mot à signer, B4a) : jamais dans le passé, sinon
+  // un mot « à traiter » renverrait à un événement déjà passé → reportés à la semaine suivante.
+  const aujourdHuiIso = isoLocal(aujourdHui);
+  const semaine = (demoAgenda as DemoAgendaEvent[]).map((e) => {
+    const date = deplacer(e.date, decalage);
+    const aVenir = ['sortie', 'reunion', 'evenement', 'activite'].includes(e.type) && date < aujourdHuiIso;
+    return { ...e, date: aVenir ? deplacer(date, 7) : date };
+  });
   const suivante = semaine
     .filter((e) => e.type === 'cours')
     .map((e) => ({ ...e, id: `${e.id}-s2`, date: deplacer(e.date, 7) }));
   return [...semaine, ...suivante];
+}
+
+/** Un événement de l'Agenda de démo (recalé sur aujourd'hui) par son id : mots liés à un événement (B4a). */
+export function evenementDemoParId(id: string): DemoAgendaEvent | undefined {
+  return agendaRecale(new Date()).find((e) => e.id === id);
 }
 
 // ─── Messages et mots de démo recalés sur aujourd'hui ─────
@@ -235,7 +234,6 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
 
   // Local state for interactive demo data (agenda done, mots signed)
   const [agendaState, setAgendaState] = useState<Record<string, boolean>>({});
-  const [motsState, setMotsState] = useState<Record<string, boolean>>({});
 
   const getSubjects = useCallback((childId: string): DemoSubject[] => {
     return (demoSubjects as DemoSubject[]).filter((s) => s.childId === childId);
@@ -277,14 +275,6 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [decalage]);
 
-  const getMots = useCallback((childId: string): DemoMot[] => {
-    return (demoMots as DemoMot[]).map((m) => ({
-      ...m,
-      deadline: m.deadline ? decalerDate(m.deadline, decalage) : m.deadline,
-      isSigned: motsState[m.id] !== undefined ? motsState[m.id] : m.isSigned,
-    })).filter((m) => m.childId === childId);
-  }, [motsState, decalage]);
-
   const getParcours = useCallback((childId: string): DemoParcours | null => {
     return (demoParcours as DemoParcours[]).find((p) => p.childId === childId) || null;
   }, []);
@@ -309,10 +299,6 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     }));
   }, []);
 
-  const signMot = useCallback((motId: string) => {
-    setMotsState((prev) => ({ ...prev, [motId]: true }));
-  }, []);
-
   return (
     <DemoContext.Provider
       value={{
@@ -322,13 +308,11 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
         getGrades,
         getAgenda,
         getMessages,
-        getMots,
         getParcours,
         getDashboard,
         getTeachers,
         getArchivedGrades,
         toggleAgendaDone,
-        signMot,
       }}
     >
       {reactChildren}

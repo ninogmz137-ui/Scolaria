@@ -4,16 +4,17 @@
  * « À faire », « Aujourd'hui » et la carte Aria ne contiennent AUCUNE donnée propre : ils sont
  * construits à partir des mêmes données que les autres écrans, pour l'enfant sélectionné :
  *  - Agenda (DemoContext.getAgenda, mêmes filtres par niveau que l'écran Agenda) ;
- *  - mots (DemoContext.getMots, comme la liste des mots) ;
+ *  - mots (motsService, la MÊME source que Messages › Général « À traiter », démo et compte réel) ;
  *  - Messages (messagerieStore.getConversations, comme l'onglet Messages).
  * Aria ne cite que ce qui existe dans ces données.
  */
 
-import type { DemoAgendaEvent, DemoMot } from '../../contexts/DemoContext';
+import type { DemoAgendaEvent } from '../../contexts/DemoContext';
+import { aTraiter, type MotCarnet } from '../../services/motsService';
 import type { Conversation } from '../messagerieData';
 import type { Cycle } from '../../utils/niveau';
 
-export type TodoKind = 'signer' | 'lire' | 'justifier';
+export type TodoKind = 'signer' | 'repondre' | 'lire' | 'justifier';
 
 /** Document à signer (démo) : ce que SignDoc affiche. */
 export interface DemoDoc {
@@ -30,6 +31,8 @@ export interface DemoTodo {
   title: string;
   deadline: string;
   doc?: DemoDoc;
+  /** Mot du carnet à ouvrir (signature, réponse). */
+  motId?: string;
 }
 
 export interface DemoAujourdhui {
@@ -63,6 +66,20 @@ function jourCourt(iso: string): string {
 /** Types d'événement de l'Agenda repris dans « Aujourd'hui » (ni cours, ni devoirs). */
 const TYPES_AUJOURDHUI = new Set(['evenement', 'sortie', 'examen', 'reunion', 'activite']);
 
+/** « À faire » de l'Accueil : les mots qui attendent une action de MOI (démo et compte réel). */
+export function todoDepuisMots(mots: MotCarnet[]): DemoTodo[] {
+  return mots.filter(aTraiter).map((m) => ({
+    kind: m.type === 'autorisation' || m.type === 'participation' ? ('repondre' as const) : ('signer' as const),
+    title: m.titre,
+    deadline: m.echeance
+      ? `Avant le ${jourCourt(m.echeance)}`
+      : m.type === 'autorisation' || m.type === 'participation'
+        ? 'À répondre'
+        : 'À signer',
+    motId: m.id,
+  }));
+}
+
 export interface AccueilDemo {
   todo: DemoTodo[];
   aujourdhui: DemoAujourdhui[];
@@ -77,22 +94,15 @@ export function construireAccueilDemo(params: {
   evenementsDuJour: DemoAgendaEvent[];
   /** Événements de l'Agenda de demain (pour les devoirs cités par Aria). */
   evenementsDeDemain: DemoAgendaEvent[];
-  mots: DemoMot[];
+  mots: MotCarnet[];
   conversations: Conversation[];
 }): AccueilDemo {
   const { prenom, cycle, aujourdHui, evenementsDuJour, evenementsDeDemain, mots, conversations } = params;
   const jour = isoJour(aujourdHui);
   const premierDegre = cycle === 'maternelle' || cycle === 'primaire';
 
-  // À faire : mots non signés de l'enfant (même source que la liste des mots).
-  const todo: DemoTodo[] = mots
-    .filter((m) => !m.isSigned)
-    .map((m) => ({
-      kind: 'signer' as const,
-      title: m.title,
-      deadline: m.deadline ? `Avant le ${jourCourt(m.deadline)}` : 'À signer',
-      doc: { title: m.title, deadline: m.deadline ? jourCourt(m.deadline) : undefined },
-    }));
+  // À faire : les mots qui attendent une action de moi (même donnée que Messages › « À traiter »).
+  const todo = todoDepuisMots(mots);
 
   // Aujourd'hui : événements du jour de l'Agenda (hors cours et devoirs) + messages reçus aujourd'hui.
   const evenements: DemoAujourdhui[] = evenementsDuJour
