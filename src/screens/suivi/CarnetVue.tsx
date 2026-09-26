@@ -60,6 +60,31 @@ function Visibilite({ e }: { e: ElementCarnet }) {
   );
 }
 
+/** Carte des livrets (onglet Livrets, et livrets d'une année archivée). */
+export function ListeLivrets({ items }: { items: ElementCarnet[] }) {
+  return (
+    <View style={st.card}>
+      {items.map((e, i) => {
+        const Icone = ICONES[e.type] ?? Award;
+        return (
+          <View key={e.id} style={[st.row, i < items.length - 1 && st.rowBorder]}>
+            <View style={st.rowIcone}>
+              <Icone size={20} color="#0F172A" strokeWidth={2} />
+            </View>
+            <View style={st.rowTexte}>
+              <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
+              <Text style={st.titre}>{e.titre}</Text>
+              {e.note ? <Text style={st.note}>{e.note}</Text> : null}
+              <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
+              <Visibilite e={e} />
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function CarnetVue({
   mode,
   entete,
@@ -117,25 +142,7 @@ export default function CarnetVue({
           })}
         </View>
       ) : (
-        <View style={st.card}>
-          {items.map((e, i) => {
-            const Icone = e.type === 'evaluation_nationale' ? ClipboardCheck : e.type === 'bulletin' ? FileText : ICONES[e.type] ?? Award;
-            return (
-              <View key={e.id} style={[st.row, i < items.length - 1 && st.rowBorder]}>
-                <View style={st.rowIcone}>
-                  <Icone size={20} color="#0F172A" strokeWidth={2} />
-                </View>
-                <View style={st.rowTexte}>
-                  <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
-                  <Text style={st.titre}>{e.titre}</Text>
-                  {e.note ? <Text style={st.note}>{e.note}</Text> : null}
-                  <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
-                  <Visibilite e={e} />
-                </View>
-              </View>
-            );
-          })}
-        </View>
+        <ListeLivrets items={items} />
       )}
 
       {onParcours ? (

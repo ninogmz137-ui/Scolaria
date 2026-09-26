@@ -68,6 +68,9 @@ import { getCarnetItems, type ElementCarnet } from '../services/carnetService';
 import { videLivrets } from '../utils/livrets';
 import { getLivretsDemo } from '../data/demo/livrets';
 import { getSouvenirsDemo } from '../data/demo/souvenirs';
+import { getAnneesDemo, type AnneeParcours } from '../data/demo/parcours';
+import BoutonAnnee from './suivi/BoutonAnnee';
+import { getAcademicYears } from '../services/database';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -1008,10 +1011,53 @@ function NotesScreenContent() {
   const livrets = carnet.filter((e) => e.categorie === 'livret');
   const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
   const afficherBarre = isDemoMode || carnet.length > 0;
-  const entete = (
-    <SuiviEntete onglet={onglet} onChange={setOnglet} afficherBarre={afficherBarre} />
-  );
   const ouvrirParcours = () => navigation.navigate('MonParcours');
+
+  // Bouton année : démo = parcours de démo ; compte réel = academic_years (année active + archives).
+  const [annees, setAnnees] = useState<AnneeParcours[]>([]);
+  useEffect(() => {
+    let annule = false;
+    if (!selectedChild) {
+      setAnnees([]);
+      return;
+    }
+    if (isDemoMode) {
+      setAnnees(getAnneesDemo(selectedChild.id));
+      return;
+    }
+    getAcademicYears(selectedChild.id).then(({ data }) => {
+      if (annule) return;
+      setAnnees(
+        (data ?? []).map((a) => ({
+          id: a.id,
+          annee: a.annee_scolaire,
+          niveau: a.niveau,
+          etablissement: a.etablissement ?? '',
+          statut: a.statut,
+        })),
+      );
+    });
+    return () => {
+      annule = true;
+    };
+  }, [selectedChild?.id, isDemoMode]);
+  const anneeEnCours = annees.find((a) => a.statut === 'active');
+  const anneesArchives = annees
+    .filter((a) => a.statut !== 'active')
+    .sort((a, b) => b.annee.localeCompare(a.annee));
+
+  const entete = (
+    <SuiviEntete
+      onglet={onglet}
+      onChange={setOnglet}
+      afficherBarre={afficherBarre}
+      boutonAnnee={
+        anneeEnCours ? (
+          <BoutonAnnee enCours={anneeEnCours} archives={anneesArchives} onParcours={ouvrirParcours} />
+        ) : undefined
+      }
+    />
+  );
 
   const loadNotes = useCallback(async () => {
     if (!selectedChild?.id) return;

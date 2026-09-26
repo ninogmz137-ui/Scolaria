@@ -47,8 +47,14 @@ export default function ApprentissagesVue({
   referentiel,
   vide,
   entete,
+  pied,
+  periodeInitiale,
 }: {
   entete?: ReactNode;
+  /** Sous la liste (ex. livrets d'une année archivée). */
+  pied?: ReactNode;
+  /** Période ouverte au départ (archive : la dernière) ; par défaut, la période en cours. */
+  periodeInitiale?: number;
   mode: 'maternelle' | 'primaire';
   titre: string;
   items: ElementSuivi[];
@@ -61,9 +67,9 @@ export default function ApprentissagesVue({
   const scrollHandler = useTopbarScrollHandler();
   const primaire = mode === 'primaire';
 
-  const courante = periodeCourante(decoupage);
+  const courante = periodeInitiale ?? periodeCourante(decoupage);
   const [periode, setPeriode] = useState(courante);
-  useEffect(() => setPeriode(periodeCourante(decoupage)), [decoupage]);
+  useEffect(() => setPeriode(periodeInitiale ?? periodeCourante(decoupage)), [decoupage, periodeInitiale]);
 
   const visibles = primaire ? items.filter((it) => (it.periode ?? courante) === periode) : items;
 
@@ -143,6 +149,7 @@ export default function ApprentissagesVue({
           </View>
         ))
       )}
+      {pied}
     </Reanimated.ScrollView>
   );
 }

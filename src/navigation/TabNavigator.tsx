@@ -400,6 +400,11 @@ function NotesStackScreen() {
         component={ArchivedYearDetailScreen}
         options={{ headerShown: false }}
       />
+      <NotesStack.Screen
+        name="AjouterAnne"
+        component={AjouterAnneScreen}
+        options={{ title: 'Ajouter une année' }}
+      />
     </NotesStack.Navigator>
   );
 }
