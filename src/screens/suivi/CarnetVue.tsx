@@ -19,6 +19,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../../components/ui';
 import { jourMois } from '../../utils/competences';
 import type { ElementCarnet, TypeCarnet } from '../../services/carnetService';
+import IllustrationSouvenir from './IllustrationSouvenir';
 
 const ICONES: Record<TypeCarnet, typeof FileText> = {
   livret: BookOpen,
@@ -98,7 +99,11 @@ export default function CarnetVue({
             return (
               <View key={e.id} style={st.tuile}>
                 <View style={st.visuel}>
-                  <Icone size={28} color="rgba(15,23,42,0.35)" strokeWidth={1.8} />
+                  {e.illustration ? (
+                    <IllustrationSouvenir sujet={e.illustration} />
+                  ) : (
+                    <Icone size={28} color="rgba(15,23,42,0.35)" strokeWidth={1.8} />
+                  )}
                 </View>
                 <View style={st.tuileTexte}>
                   <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
