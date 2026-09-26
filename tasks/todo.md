@@ -12,9 +12,11 @@
 - Primaire en trimestres (choix de l'école, jamais par défaut) : libellé « 1er trimestre » en toutes lettres, jamais « T1 » (décision du 25 sept ; pas d'interdiction serveur).
 - [ ] Compte réel : découpage non résolu côté app (défaut « périodes ») → appeler decoupage_annee() quand le Suivi réel sera branché.
 
-### B3b — à faire (décidé le 25 sept)
-- [ ] Segmented control Apprentissages · Souvenirs · Livrets, avec le contenu de Souvenirs et Livrets.
-- [ ] M19 : `academic_years.statut` modifiable uniquement par le serveur (le passage d'année est une opération serveur). Tests comme M18 (parent refusé ; postgres / service_role autorisés ; création d'enfant intacte).
+### B3b — FAIT (25-26 sept, 2314393 → 31e8c26)
+- [x] M19 (9b22c7f, appliquée à Paris, 54/54 tests) ; barre Apprentissages · Souvenirs · Livrets (a3ebb78) ; Livrets (ecc4ffb) ; Souvenirs (87a6181) ; bouton année + Mon parcours + année archivée (be6720e, correctif Redmi 31e8c26) ; courbe Emma + compétences profil/PDF/mémo (cbe9a26).
+- Vérifié : démo sur le web (3 enfants × 3 onglets, bouton année, Mon parcours, CM1 de Lucas) ; Redmi sur le compte RÉEL de l'utilisateur (barre masquée, bouton année mesuré, ⊞ absent). Captures démo sur le Redmi non faites : le téléphone est connecté au compte réel (pas de déconnexion sans l'utilisateur).
+- [ ] Profil enfant : la page utilise encore des glass cards et un fond d'écran (règle « pages profondes ») — hors périmètre B3b.
+- [ ] TeacherDashboardScreen : commentaire « joyScore /10 » dans le type (l'affichage est en mots depuis B2-ter).
 
 ### Plan payant Supabase (à faire au passage en Pro)
 - [ ] Activer « Leaked password protection » (HaveIBeenPwned) : Pro et au-dessus seulement (doc « Password security »). Dashboard → Authentication → Providers → Email.
