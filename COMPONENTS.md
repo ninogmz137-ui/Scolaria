@@ -313,7 +313,7 @@ Symbole Scolaria: 18px · color #4338CA · alignSelf flex-start · marginTop: 2p
 ### Card message (liste) — liste à plat façon X, PAS une carte (B4, 26 sept 2026)
 ```
 Ligne : display flex · alignItems flex-start · gap 12px · paddingVertical ~14px · paddingHorizontal 14px
-Séparateur : AUCUN par défaut (à trancher sur le Redmi : capture avec / sans 1px rgba(15,23,42,0.05))
+Séparateur : AUCUN (décision du 27 sept 2026 après captures Redmi avec / sans ; révisable)
 Avatar : 44×44px cercle · initiales fontWeight 700
 Ligne 1 : nom de l'expéditeur lisible (« Mme Dupont », « Direction », « Mairie · Cantine » —
           jamais de code administratif) + date à droite (fontSize 12, rgba(15,23,42,0.55))

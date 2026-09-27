@@ -37,7 +37,7 @@ Règle de visibilité **par FOYER** :
 ## 4. Liste « à plat », façon X
 - Avatar **44 px** · nom + date · aperçu sur **une ligne**.
 - **Gras si non lu** + **point indigo**.
-- Séparateurs : **à trancher sur le Redmi** (capture avec et sans). **Sans séparateur par défaut**, marge verticale ~**14 px**.
+- Séparateurs : **SANS** (décidé le 27 sept 2026 après captures Redmi avec / sans ; révisable), marge verticale ~**14 px**.
 - Barre : **recherche en pill pleine largeur** + menu **« Tout ⌄ »** (Tout · Non lus · À signer · Tout marquer comme lu).
 
 ### Supprimés de la liste

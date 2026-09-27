@@ -15,7 +15,7 @@ import { Text, Pressable } from '../ui';
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 
-/** Séparateur entre les lignes : AUCUN par défaut (décision à trancher sur le Redmi, captures avec / sans). */
+/** Séparateur entre les lignes : AUCUN (décision du 27 sept 2026 après captures Redmi ; révisable). */
 export const SEPARATEURS_MESSAGES = false;
 
 export interface LigneMessageProps {
