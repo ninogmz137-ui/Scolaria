@@ -28,18 +28,35 @@ function quandPret(action: () => void, essais = 20) {
   if (essais > 0) setTimeout(() => quandPret(action, essais - 1), 300);
 }
 
+/** Réponses de notification déjà traitées (identifiant de la notification) : jamais rejouées. */
+const traitees = new Set<string>();
+
 export default function NotificationsRouteur() {
   const { children, selectChild } = useActiveChild();
   const enfantsRef = useRef(children);
   enfantsRef.current = children;
+  // selectChild change d'identité à CHAQUE changement d'enfant : lu par référence, jamais en dépendance
+  // de l'effet (sinon l'effet se relance, relit la dernière notification et réimpose son enfant —
+  // bug du 27 sept 2026 : impossible de quitter Emma depuis le sélecteur).
+  const selectChildRef = useRef(selectChild);
+  selectChildRef.current = selectChild;
 
   useEffect(() => {
+    const traiter = (r: Notifications.NotificationResponse | null) => {
+      if (!r) return;
+      const id = r.notification.request.identifier;
+      if (traitees.has(id)) return;
+      traitees.add(id);
+      // La « dernière réponse » est consommée : un redémarrage ne la rejoue pas non plus.
+      Notifications.clearLastNotificationResponse();
+      ouvrir(r.notification.request.content.data);
+    };
     const ouvrir = (data: unknown) => {
       const cible = data as CibleNotification | undefined;
       if (!cible?.childId) return;
       quandPret(() => {
         if (!enfantsRef.current.some((c) => c.id === cible.childId)) return;
-        selectChild(cible.childId);
+        selectChildRef.current(cible.childId);
         if (cible.type === 'mot') {
           navigationRef.navigate('MainPager', {
             screen: 'MessagerieTab',
@@ -55,11 +72,9 @@ export default function NotificationsRouteur() {
       });
     };
 
-    // Démarrage à froid : la notification qui a ouvert l'app.
-    Notifications.getLastNotificationResponseAsync()
-      .then((r) => r && ouvrir(r.notification.request.content.data))
-      .catch(() => {});
-    const sub = Notifications.addNotificationResponseReceivedListener((r) => ouvrir(r.notification.request.content.data));
+    // Démarrage à froid : la notification qui a ouvert l'app (une seule fois).
+    Notifications.getLastNotificationResponseAsync().then(traiter).catch(() => {});
+    const sub = Notifications.addNotificationResponseReceivedListener(traiter);
 
     let lien: { remove: () => void } | undefined;
     if (__DEV__ && Platform.OS !== 'web') {
@@ -80,7 +95,7 @@ export default function NotificationsRouteur() {
       sub.remove();
       lien?.remove();
     };
-  }, [selectChild]);
+  }, []);
 
   return null;
 }
