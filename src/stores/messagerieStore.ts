@@ -99,7 +99,7 @@ export function envoyerSeulementMoi(conversationId: string, text: string): strin
   if (!liste.some((c) => c.id === idIndividuel)) {
     store[fil.childId] = [
       ...liste,
-      { ...fil, id: idIndividuel, portee: 'individuel', messages: [], unread: false, lastMessage: '', ariaSummary: undefined },
+      { ...fil, id: idIndividuel, portee: 'individuel', messages: [], unread: false, lastMessage: '' },
     ];
   }
   sendMessage(idIndividuel, text);

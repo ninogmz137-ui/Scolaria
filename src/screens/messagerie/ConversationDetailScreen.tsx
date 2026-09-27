@@ -20,12 +20,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { School, CalendarX } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import UniversalInputBar from '../../components/UniversalInputBar';
-import ScolariaSymbol from '../../components/ScolariaSymbol';
 import {
   getConversation,
   sendMessage as storeSendMessage,
@@ -71,33 +69,6 @@ function groupByDate(messages: Message[]): BubbleGroup[] {
     }
   }
   return groups;
-}
-
-// ─── AriaThreadSummary ───────────────────────────────────
-
-function AriaThreadSummary({ conv }: { conv: Conversation }) {
-  if (!conv.ariaSummary) return null;
-  return (
-    <LinearGradient
-      colors={['#EEF2FF', '#F0FDFA']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.ariaSummaryCard}
-    >
-      <View style={styles.ariaSummaryHeader}>
-        <ScolariaSymbol size={14} color="#4338CA" />
-        <Text style={styles.ariaSummaryLabel}>ARIA</Text>
-      </View>
-      <Text style={styles.ariaSummaryText}>{conv.ariaSummary}</Text>
-      {conv.urgency === 'signer' && (
-        <View style={styles.ariaChipRow}>
-          <View style={styles.ariaChipRed}>
-            <Text style={styles.ariaChipRedText}>À signer avant vendredi</Text>
-          </View>
-        </View>
-      )}
-    </LinearGradient>
-  );
 }
 
 // ─── StickyCTA ────────────────────────────────────────────
@@ -274,7 +245,6 @@ export default function ConversationDetailScreen({
             // Only auto-scroll if near bottom (avoid interrupting user scrolling up)
           }}
         >
-          {conv && <AriaThreadSummary conv={conv} />}
           {groups.map((group) => (
             <View key={group.date}>
               {/* Date separator */}
@@ -569,49 +539,6 @@ const styles = StyleSheet.create({
   bubbleTimeOther: {
     fontFamily: FontFamily.sansRegular,
     color: '#94A3B8',
-  },
-
-  // AriaThreadSummary
-  ariaSummaryCard: {
-    marginHorizontal: 12,
-    marginBottom: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(67,56,202,0.10)',
-    padding: 12,
-  },
-  ariaSummaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  ariaSummaryLabel: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 11,
-    color: '#4338CA',
-    letterSpacing: 0.6,
-    marginLeft: 7,
-  },
-  ariaSummaryText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    color: '#0F172A',
-    lineHeight: 19,
-  },
-  ariaChipRow: {
-    flexDirection: 'row',
-    marginTop: 8,
-  },
-  ariaChipRed: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(239,68,68,0.10)',
-  },
-  ariaChipRedText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    color: '#EF4444',
   },
 
   // StickyCTA

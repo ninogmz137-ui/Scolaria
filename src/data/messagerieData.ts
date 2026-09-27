@@ -64,8 +64,6 @@ export interface Conversation {
   tag?: ConvTag;
   /** Action required */
   urgency?: ConvUrgency;
-  /** Short Aria-generated summary */
-  ariaSummary?: string;
   /**
    * Fil avec un enseignant (B4b, M22) : « foyer » = fil famille partagé par les responsables du foyer ;
    * « individuel » = un seul responsable (« Seulement moi »), invisible pour l'autre. Absent : collectif / absences.
@@ -135,7 +133,6 @@ const leaConversations: Conversation[] = [
 const lucasConversations: Conversation[] = [
   {
     tag: 'sortie' as const,
-    ariaSummary: 'Autorisation pour la sortie à la médiathèque à signer avant jeudi.',
     avatarColor: '#059669',
     id: 'lucas-moreau',
     portee: 'foyer',
@@ -202,7 +199,6 @@ const emmaConversations: Conversation[] = [
     initials: 'ML',
     avatarColor: '#EF4444',
     tag: 'controle',
-    ariaSummary: 'Premier devoir sur table jeudi prochain (récit autobiographique).',
     lastMessage: 'Premier devoir sur table jeudi prochain : le récit autobiographique.',
     lastDate: ilYa(3),
     lastTime: '11:00',
@@ -223,7 +219,6 @@ const emmaConversations: Conversation[] = [
     initials: 'MP',
     avatarColor: '#4338CA',
     tag: 'devoir',
-    ariaSummary: 'Note 8/20 au premier contrôle. Fiche de révisions à venir cette semaine.',
     lastMessage: 'Je vous envoie une fiche par cahier de liaison cette semaine.',
     lastDate: ilYa(2),
     lastTime: '15:00',
@@ -246,7 +241,6 @@ const emmaConversations: Conversation[] = [
     initials: 'MT',
     avatarColor: '#059669',
     tag: 'controle',
-    ariaSummary: 'Note 13/20. Chapitre 1 (génétique) — résultat encourageant.',
     lastMessage: 'Emma a eu 13/20, résultat encourageant !',
     lastDate: ilYa(1),
     lastTime: '16:30',
@@ -264,7 +258,6 @@ const emmaConversations: Conversation[] = [
     role: 'Direction',
     avatarType: 'school',
     tag: 'admin',
-    ariaSummary: 'Convention de stage d’observation à signer avant lundi.',
     lastMessage: "Convention de stage d'observation de 3e : merci de la signer dans le carnet avant lundi.",
     lastDate: ilYa(4),
     lastTime: '14:00',
@@ -283,7 +276,6 @@ const emmaConversations: Conversation[] = [
     role: 'Suivi des absences',
     avatarType: 'absence',
     tag: 'vie',
-    ariaSummary: '2 absences justifiées depuis la rentrée. RAS.',
     lastMessage: 'Bien noté, merci.',
     lastDate: ilYa(7),
     lastTime: '09:00',
