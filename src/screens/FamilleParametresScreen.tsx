@@ -25,6 +25,7 @@ import {
   Shield,
   Info,
   LogOut,
+  Wrench,
 } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -101,7 +102,7 @@ export default function FamilleParametresScreen() {
   const espace: Espace = route.params?.espace ?? 'famille';
   const isFamille = espace === 'famille';
 
-  const { user, signOut, isDemo } = useAuth();
+  const { user, signOut, isDemo, demoDev } = useAuth();
   const { children: childList, selectChild } = useActiveChild();
   const { prefs, update } = usePrefs();
 
@@ -298,6 +299,24 @@ export default function FamilleParametresScreen() {
             label="À propos"
             onPress={() => navigation.navigate('APropos')}
           />
+          {/* Développement uniquement (__DEV__) : démo SANS déconnecter le compte réel. Retiré du
+              bundle de production (preuve : tasks/lessons.md, 27 sept 2026). */}
+          {__DEV__ && demoDev && !isDemo && (
+            <DeepRow
+              icon={<Wrench size={20} color={TEXT55} strokeWidth={2} />}
+              label="Passer en démo"
+              description="Développement : le compte réel reste connecté"
+              onPress={demoDev.passer}
+            />
+          )}
+          {__DEV__ && demoDev && isDemo && demoDev.compteReelEnAttente && (
+            <DeepRow
+              icon={<Wrench size={20} color={TEXT55} strokeWidth={2} />}
+              label="Revenir à mon compte"
+              description="Développement : retour à la session réelle"
+              onPress={demoDev.revenir}
+            />
+          )}
           <DeepRow
             icon={<LogOut size={20} color={RED} strokeWidth={2} />}
             label={isDemo ? 'Quitter la démo' : 'Se déconnecter'}

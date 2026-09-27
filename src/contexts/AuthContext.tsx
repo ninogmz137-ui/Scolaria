@@ -31,6 +31,8 @@ interface AuthContextType {
   signUp: (email: string, password: string, familyName: string) => Promise<void>;
   signOut: () => Promise<void>;
   enterDemoMode: () => void;
+  /** Développement uniquement (undefined hors __DEV__) : démo sans déconnecter le compte réel. */
+  demoDev?: { passer: () => void; revenir: () => Promise<void>; compteReelEnAttente: boolean };
   enterChildMode: () => void;
   exitChildMode: () => void;
   verifyParentPassword: (password: string) => Promise<boolean>;
@@ -122,23 +124,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [isSupabaseConfigured]);
 
-  // Développement uniquement : basculer en démo et revenir au compte réel SANS se déconnecter
-  // (la session réelle reste dans le stockage ; captures de démo sur le téléphone de test).
+  // ─── Développement uniquement : démo SANS déconnecter le compte réel ─────────
+  // La session réelle reste dans le stockage ; « Revenir à mon compte » la relit. Hors développement
+  // (__DEV__ faux), ni les liens ni l'entrée de Famille & paramètres n'existent (code retiré du bundle).
+  //   Famille & paramètres › « Passer en démo » / « Revenir à mon compte »
   //   adb shell am start -d "scolaria://dev/demo"  ·  adb shell am start -d "scolaria://dev/reel"
+  const [compteReelEnAttente, setCompteReelEnAttente] = useState(false);
+  const passerEnDemoDev = () => {
+    setCompteReelEnAttente(!!session);
+    setUser(DEMO_USER);
+    setRole('parent');
+    setIsDemoMode(true);
+  };
+  const revenirAuCompteDev = async () => {
+    const { data } = await supabase.auth.getSession();
+    const u = data.session?.user ?? null;
+    setCompteReelEnAttente(false);
+    setIsDemoMode(false);
+    setSession(data.session);
+    setUser(u);
+    const metaRole = u?.user_metadata?.role;
+    setRole(!u ? null : metaRole === 'enseignant' ? 'enseignant' : metaRole === 'eleve' ? 'eleve' : 'parent');
+  };
+  const basculeRef = useRef({ passerEnDemoDev, revenirAuCompteDev });
+  basculeRef.current = { passerEnDemoDev, revenirAuCompteDev };
   useEffect(() => {
     if (!__DEV__ || Platform.OS === 'web') return;
-    const sub = Linking.addEventListener('url', async ({ url }) => {
-      if (url.includes('dev/demo')) {
-        setUser(DEMO_USER);
-        setRole('parent');
-        setIsDemoMode(true);
-      } else if (url.includes('dev/reel')) {
-        const { data } = await supabase.auth.getSession();
-        setIsDemoMode(false);
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
-        setRole(data.session?.user ? 'parent' : null);
-      }
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (url.includes('dev/demo')) basculeRef.current.passerEnDemoDev();
+      else if (url.includes('dev/reel')) basculeRef.current.revenirAuCompteDev();
     });
     return () => sub.remove();
   }, []);
@@ -258,6 +272,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp: handleSignUp,
         signOut: handleSignOut,
         enterDemoMode,
+        demoDev: __DEV__
+          ? { passer: passerEnDemoDev, revenir: revenirAuCompteDev, compteReelEnAttente }
+          : undefined,
         enterChildMode,
         exitChildMode,
         verifyParentPassword,
