@@ -25,7 +25,7 @@ try {
 
   const interdits = ['dev/demo', 'dev/reel', 'dev/notif-mot', 'rafraichir-session', 'Passer en démo', 'Revenir à mon compte'];
   // Témoins : le test sait lire le bundle (chaînes ASCII et accentuées).
-  const temoins = ['mots_carnet_expediteurs', 'Se déconnecter', 'Ajouter un mot reçu ailleurs'];
+  const temoins = ['mot_expediteur', 'Se déconnecter', 'Ajouter un mot reçu ailleurs'];
 
   let echecs = 0;
   for (const t of temoins) {

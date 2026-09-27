@@ -145,7 +145,7 @@ type MotRow = {
 async function motsReels(childId: string): Promise<MotCarnet[]> {
   const { data: auth } = await supabase.auth.getUser();
   const moi = auth.user?.id ?? '';
-  const [carnet, resp, sigs, reps, lus, exp] = await Promise.all([
+  const [carnet, resp, sigs, reps, lus] = await Promise.all([
     supabase
       .from('mot_carnets')
       .select('mots_liaison(id, titre, contenu, date_envoi, date_limite, statut, type, signature_mode, a_prevoir, created_at)')
@@ -154,8 +154,6 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
     supabase.from('signatures').select('mot_id, parent_id').eq('student_id', childId),
     supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation').eq('child_id', childId),
     supabase.from('read_receipts').select('mot_id').eq('parent_id', moi),
-    // M21 : nom lisible de l'expéditeur (le parent ne peut pas lire le profil de l'enseignant).
-    supabase.rpc('mots_carnet_expediteurs', { p_child_id: childId }),
   ]);
   if (carnet.error) return [];
   const responsables = ((resp.data ?? []) as { user_id: string; prenom: string; nom: string; est_moi: boolean }[]);
@@ -165,12 +163,15 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
     if (r.responsable_id === moi) mesReponses.set(r.mot_id, r.autorisation ?? (r.participation as Participation));
   }
   const motsLus = new Set(((lus.data ?? []) as { mot_id: string }[]).map((r) => r.mot_id));
-  const expediteurs = new Map(((exp.data ?? []) as { mot_id: string; expediteur: string }[]).map((e) => [e.mot_id, e.expediteur]));
-
-  return ((carnet.data ?? []) as unknown as { mots_liaison: MotRow | null }[])
+  const lignes = ((carnet.data ?? []) as unknown as { mots_liaison: MotRow | null }[])
     .map((c) => c.mots_liaison)
-    .filter((m): m is MotRow => !!m && (m.statut === 'envoyé' || m.statut === 'clos'))
-    .map((m) => ({
+    .filter((m): m is MotRow => !!m && (m.statut === 'envoyé' || m.statut === 'clos'));
+  // M21 : nom lisible de l'expéditeur, mot par mot (le parent ne peut pas lire le profil de l'enseignant ;
+  // la fonction ne renvoie QUE le nom affichable).
+  const noms = await Promise.all(lignes.map((m) => supabase.rpc('mot_expediteur', { p_mot_id: m.id })));
+  const expediteurs = new Map(lignes.map((m, i) => [m.id, (noms[i].data as string | null) ?? '']));
+
+  return lignes.map((m) => ({
       id: m.id,
       childId,
       titre: m.titre,

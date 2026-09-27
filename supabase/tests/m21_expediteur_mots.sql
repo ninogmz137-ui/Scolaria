@@ -1,4 +1,4 @@
--- Tests M21 · expéditeur lisible des mots du carnet (mots_carnet_expediteurs).
+-- Tests M21 · expéditeur lisible d'un mot (mot_expediteur : le nom affichable SEUL).
 -- À lancer sur une base LOCALE : données de test, transaction annulée.
 --   docker exec -i supabase_db_Scolaria psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/tests/m21_expediteur_mots.sql
 
@@ -38,21 +38,35 @@ INSERT INTO public.mots_liaison (teacher_id, classe, type, titre, contenu, statu
 INSERT INTO public.mot_carnets (mot_id, child_id) VALUES (:'m1', :'lucas'), (:'m2', :'lucas'), (:'m3', :'lucas');
 SELECT set_config('test.lucas', :'lucas', true), set_config('test.m1', :'m1', true), set_config('test.m3', :'m3', true) \gset
 
--- T1-T3 · responsables A et B : le nom de l'enseignante, jamais le brouillon ; « Enseignant » sans nom.
+-- T0 · la fonction ne renvoie QU'UN texte (le nom affichable) : ni e-mail, ni identifiant.
+DO $$
+DECLARE r record;
+BEGIN
+  SELECT p.prorettype::regtype::text AS type, p.proretset AS ensemble INTO r
+  FROM pg_proc p WHERE p.proname = 'mot_expediteur' AND p.pronamespace = 'public'::regnamespace;
+  IF r.type <> 'text' OR r.ensemble THEN RAISE EXCEPTION 'ÉCHEC T0 type renvoyé % (ensemble %)', r.type, r.ensemble; END IF;
+  IF to_regprocedure('public.mots_carnet_expediteurs(uuid)') IS NOT NULL THEN
+    RAISE EXCEPTION 'ÉCHEC T0b l''ancienne fonction (avec mot_id) existe encore';
+  END IF;
+  RAISE NOTICE 'OK T0 un seul texte renvoyé (pas de ligne, pas d''identifiant) ; ancienne version supprimée';
+END $$;
+
+-- T1-T3 · responsable A : le nom de l'enseignante ; rien pour un brouillon ; « Enseignant » sans nom.
+SELECT set_config('test.m2', :'m2', true) \gset
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$
-DECLARE n int; e text;
+DECLARE e text; n int;
 BEGIN
-  SELECT count(*) INTO n FROM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid);
-  IF n <> 2 THEN RAISE EXCEPTION 'ÉCHEC T1 % lignes (attendu 2, brouillon exclu)', n; END IF;
-  SELECT expediteur INTO e FROM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid) WHERE mot_id = current_setting('test.m1')::uuid;
-  IF e <> 'Claire Dupont' THEN RAISE EXCEPTION 'ÉCHEC T1b expéditeur = %', e; END IF;
-  RAISE NOTICE 'OK T1 responsable A : « Claire Dupont », brouillon exclu';
-  SELECT expediteur INTO e FROM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid) WHERE mot_id = current_setting('test.m3')::uuid;
-  IF e <> 'Enseignant' THEN RAISE EXCEPTION 'ÉCHEC T2 expéditeur sans nom = %', e; END IF;
+  e := public.mot_expediteur(current_setting('test.m1')::uuid);
+  IF e IS DISTINCT FROM 'Claire Dupont' THEN RAISE EXCEPTION 'ÉCHEC T1 expéditeur = %', e; END IF;
+  RAISE NOTICE 'OK T1 responsable A : « Claire Dupont »';
+  e := public.mot_expediteur(current_setting('test.m2')::uuid);
+  IF e IS NOT NULL THEN RAISE EXCEPTION 'ÉCHEC T1b brouillon renvoyé : %', e; END IF;
+  RAISE NOTICE 'OK T1b brouillon : rien';
+  e := public.mot_expediteur(current_setting('test.m3')::uuid);
+  IF e IS DISTINCT FROM 'Enseignant' THEN RAISE EXCEPTION 'ÉCHEC T2 expéditeur sans nom = %', e; END IF;
   RAISE NOTICE 'OK T2 enseignant sans nom : « Enseignant » (jamais un code)';
-  -- Le profil de l'enseignante reste illisible directement (seul le nom passe par la fonction).
   SELECT count(*) INTO n FROM public.profiles WHERE id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
   IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T3 profil de l''enseignante lisible'; END IF;
   RAISE NOTICE 'OK T3 le profil de l''enseignante (e-mail, téléphone) reste illisible';
@@ -62,11 +76,9 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$
-DECLARE n int;
 BEGIN
-  SELECT count(*) INTO n FROM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid);
-  IF n <> 2 THEN RAISE EXCEPTION 'ÉCHEC T4 % lignes pour B', n; END IF;
-  RAISE NOTICE 'OK T4 second responsable B : mêmes expéditeurs';
+  IF public.mot_expediteur(current_setting('test.m1')::uuid) IS DISTINCT FROM 'Claire Dupont' THEN RAISE EXCEPTION 'ÉCHEC T4'; END IF;
+  RAISE NOTICE 'OK T4 second responsable B : même expéditeur';
 END $$;
 RESET ROLE;
 
@@ -74,11 +86,9 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims', '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$
-DECLARE n int;
 BEGIN
-  SELECT count(*) INTO n FROM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid);
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T5 un non-responsable voit % expéditeurs', n; END IF;
-  RAISE NOTICE 'OK T5 non-responsable (autre foyer) : aucun résultat';
+  IF public.mot_expediteur(current_setting('test.m1')::uuid) IS NOT NULL THEN RAISE EXCEPTION 'ÉCHEC T5 un non-responsable voit l''expéditeur'; END IF;
+  RAISE NOTICE 'OK T5 non-responsable (autre foyer) : rien';
 END $$;
 RESET ROLE;
 
@@ -86,7 +96,7 @@ RESET ROLE;
 SET LOCAL ROLE anon;
 DO $$
 BEGIN
-  PERFORM public.mots_carnet_expediteurs(current_setting('test.lucas')::uuid);
+  PERFORM public.mot_expediteur(current_setting('test.m1')::uuid);
   RAISE EXCEPTION 'ÉCHEC T6 anon a exécuté la fonction';
 EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'OK T6 anonyme : exécution refusée';
 END $$;

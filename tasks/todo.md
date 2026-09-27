@@ -244,7 +244,7 @@ Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages
 - [x] B4a.2 Général : carte « À traiter », signature / réponses avec confirmation, mots importés, état vide réel.
 - [x] B4a.3 même donnée Accueil « À faire » ↔ Général « À traiter » (motsService + useMotsEnfant) ; démo cohérente Agenda / Accueil / Messages (événements liés : Muséum, médiathèque, réunion 3e).
 - [x] B4a.4 notifications locales : ouverture exacte (NotificationsRouteur), « [Expéditeur] a retiré ce mot ».
-- [ ] **M21 (mots_carnet_expediteurs) : locale 6/6, NON appliquée à Paris — attente validation.** Sans elle, un compte réel affiche « Enseignant » comme expéditeur (le parent ne lit pas le profil de l'enseignant).
+- [ ] **M21 NON appliquée à Paris (27 sept, session de nuit).** La 1re version (mots_carnet_expediteurs) renvoyait aussi mot_id : condition « ni e-mail ni identifiant, seulement le nom » non remplie → rien appliqué, corrigée en local : mot_expediteur(p_mot_id) → text (le nom SEUL), 8/8 local. **À valider par l'utilisateur, puis application (dump, essai à blanc, application, advisors).** D'ici là, un compte réel affiche « Enseignant » comme expéditeur.
 - [ ] À trancher sur captures : séparateurs de la liste (avec / sans) — SEPARATEURS_MESSAGES dans LigneMessage.tsx.
 - [ ] Vérif utilisateur (mes scripts adb ne peuvent pas appuyer sur Signer / Oui / Non) : confirmation « Signer au nom de Claire Moreau ? », puis le mot disparaît de l'Accueil ET de Général.
 - [ ] Hors lot, relevé : fil de conversation « Aria peut résumer ce message » (affirmation à vérifier, règle « rien qui ne soit vrai aujourd'hui ») ; read_receipts sans contrôle de responsable (un parent peut marquer lu un mot d'un autre carnet s'il en connaît l'id — sans lecture de contenu).
