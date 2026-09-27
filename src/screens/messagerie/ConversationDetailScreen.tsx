@@ -31,7 +31,7 @@ import {
   sendMessage as storeSendMessage,
   envoyerSeulementMoi,
 } from '../../stores/messagerieStore';
-import { AUTRE_DEMO } from '../../services/motsService';
+import { autreResponsableDemo } from '../../data/demo/responsables';
 import { Pressable } from '../../components/ui';
 import { Lock, Check } from 'lucide-react-native';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
@@ -169,8 +169,11 @@ export default function ConversationDetailScreen({
   const [inputText, setInputText] = useState('');
   // « Seulement moi » (B4b) : depuis le fil famille, envoyer dans MON fil individuel avec l'enseignant.
   const [seulementMoi, setSeulementMoi] = useState(false);
-  // L'autre responsable du foyer (démo : famille Moreau). Compte réel : fils branchés après M22.
-  const autre = AUTRE_DEMO.prenom;
+  // L'autre responsable de l'enfant (démo). Même foyer : il partage le fil famille (« Seulement moi »
+  // possible). Autre foyer (Emma, famille recomposée) : il a ses propres fils, ne voit rien des vôtres.
+  const autreResp = autreResponsableDemo(conv?.childId);
+  const autre = autreResp.prenom;
+  const memeFoyer = autreResp.memeFoyer;
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToBottom = useCallback((animated = true) => {
@@ -233,11 +236,11 @@ export default function ConversationDetailScreen({
               {conv.name}
             </Text>
             {conv.portee === 'foyer' ? (
-              <Text style={styles.participantRole} numberOfLines={1}>{`Fil famille · vous et ${autre}`}</Text>
+              <Text style={styles.participantRole} numberOfLines={1}>{memeFoyer ? `Fil famille · vous et ${autre}` : 'Fil famille · votre foyer'}</Text>
             ) : conv.portee === 'individuel' ? (
               <View style={styles.porteeLigne}>
                 <Lock size={12} color="#64748B" strokeWidth={2} />
-                <Text style={styles.participantRole} numberOfLines={1}>{`Seulement vous · ${autre} ne voit pas ce fil`}</Text>
+                <Text style={styles.participantRole} numberOfLines={1}>{memeFoyer ? `Seulement vous · ${autre} ne voit pas ce fil` : 'Seulement vous'}</Text>
               </View>
             ) : conv.role ? (
               <Text
@@ -342,7 +345,8 @@ export default function ConversationDetailScreen({
               onPress={() => navigation.navigate('SignDoc', { conversationId: conv.id, docTitle: conv.name })}
             />
           )}
-          {conv?.portee === 'foyer' && (
+          {/* « Seulement moi » : utile seulement si un autre responsable partage VOTRE fil famille. */}
+          {conv?.portee === 'foyer' && memeFoyer && (
             <View style={styles.optionEnvoi}>
               <Pressable
                 onPress={() => setSeulementMoi((v) => !v)}

@@ -4,13 +4,14 @@
  *
  * Compte réel : mot_carnets (une copie par enfant, M5) + mots_liaison, signatures (une par
  * responsable et par carnet, M6), reponses_mot (M8), read_receipts. Démo : demo-mots.json + état
- * en mémoire (signature, réponse, lu), deux responsables (vous, Marc).
+ * en mémoire (signature, réponse, lu), deux responsables (data/demo/responsables.ts).
  * Une signature faite n'importe où prévient tous les écrans (surChangementMots).
  */
 
 import { supabase } from './supabase';
 import demoMotsJson from '../data/demo/demo-mots.json';
 import { evenementDemoParId } from '../contexts/DemoContext';
+import { MOI_DEMO, autreResponsableDemo } from '../data/demo/responsables';
 
 export type TypeMot = 'information' | 'signature' | 'autorisation' | 'participation';
 export type SignatureMode = 'none' | 'one' | 'both';
@@ -68,9 +69,7 @@ function prevenir() {
 
 // ─── Démo ───────────────────────────────────────────────────────────────────
 
-/** Les deux responsables de la famille Moreau (démo). */
-export const MOI_DEMO = { prenom: 'Claire', nom: 'Moreau' };
-export const AUTRE_DEMO = { prenom: 'Marc', nom: 'Moreau' };
+export { MOI_DEMO } from '../data/demo/responsables';
 
 type MotDemoJson = {
   id: string;
@@ -117,7 +116,7 @@ function motsDemo(childId: string): MotCarnet[] {
         aPrevoir: m.aPrevoir,
         responsables: [
           { id: 'demo-moi', prenom: MOI_DEMO.prenom, estMoi: true, aSigne: maSignature },
-          { id: 'demo-marc', prenom: AUTRE_DEMO.prenom, estMoi: false, aSigne: m.autreSigne },
+          { id: autreResponsableDemo(m.childId).id, prenom: autreResponsableDemo(m.childId).prenom, estMoi: false, aSigne: m.autreSigne },
         ],
         maSignature,
         maReponse: etat.reponse ?? null,

@@ -137,7 +137,9 @@ export function construireAccueilDemo(params: {
     aria = `Aujourd’hui pour ${prenom} : ${titre.toLowerCase()} à ${heure(premier.startTime)}.`;
     if (/prévoir/i.test(premier.description)) aria += ' Voulez-vous la liste des choses à prévoir ?';
   } else if (todo.length > 0) {
-    aria = `Un mot est à signer pour ${prenom} : « ${todo[0].title} » (${todo[0].deadline.toLowerCase()}).`;
+    // « à signer » seulement pour une signature ; un mot d'autorisation / participation attend une réponse.
+    const attente = todo[0].kind === 'repondre' ? 'attend votre réponse' : 'est à signer';
+    aria = `Un mot ${attente} pour ${prenom} : « ${todo[0].title} » (${todo[0].deadline.toLowerCase()}).`;
   } else if (devoirsDemain.length > 0) {
     const n = devoirsDemain.length;
     aria = `${prenom} a ${n} devoir${n > 1 ? 's' : ''} pour demain : ${devoirsDemain.map((d) => d.title.toLowerCase()).join(', ')}.`;

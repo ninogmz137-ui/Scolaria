@@ -208,9 +208,9 @@ const emmaConversations: Conversation[] = [
     lastTime: '11:00',
     unread: false,
     messages: [
-      { id: 'emma-d-1', sender: 'other', text: "Emma a rendu une très belle première rédaction, 17/20. Continuez ainsi !", time: '17:00', date: ilYa(9) },
-      { id: 'emma-d-2', sender: 'parent', auteur: 'autre', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: ilYa(9) },
-      { id: 'emma-d-3', sender: 'other', text: "Premier devoir sur table jeudi prochain : le récit autobiographique.", time: '11:00', date: ilYa(3) },
+      { id: 'emma-d-1', sender: 'other', envoyeAussiA: ['Julien'], text: "Emma a rendu une très belle première rédaction, 17/20. Continuez ainsi !", time: '17:00', date: ilYa(9) },
+      { id: 'emma-d-2', sender: 'parent', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: ilYa(9) },
+      { id: 'emma-d-3', sender: 'other', envoyeAussiA: ['Julien'], text: "Premier devoir sur table jeudi prochain : le récit autobiographique.", time: '11:00', date: ilYa(3) },
     ],
   },
   {

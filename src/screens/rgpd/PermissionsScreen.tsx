@@ -27,6 +27,7 @@ import {
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
+import { MOI_DEMO, autreResponsableDemo } from '../../data/demo/responsables';
 
 const LIENS: Record<ResponsableEnfant['lien'], string> = {
   parent: 'Parent',
@@ -57,11 +58,13 @@ export default function PermissionsScreen() {
     if (!selectedChild?.id) return;
     setChargement(true);
     if (isDemo) {
-      // Démo : famille Moreau, deux responsables.
-      const moi = (user?.user_metadata?.family_name as string | undefined) ?? 'Moreau';
+      // Démo : vous + l'autre responsable (Marc, même foyer ; Julien, autre foyer pour Emma).
       setResponsables([
-        { user_id: 'demo-moi', prenom: '', nom: moi, lien: 'parent', est_moi: true, depuis: '' },
-        { user_id: 'demo-marc', prenom: 'Marc', nom: 'Moreau', lien: 'parent', est_moi: false, depuis: '' },
+        { user_id: 'demo-moi', prenom: MOI_DEMO.prenom, nom: MOI_DEMO.nom, lien: 'parent', est_moi: true, depuis: '' },
+        (() => {
+          const autre = autreResponsableDemo(selectedChild.id);
+          return { user_id: autre.id, prenom: autre.prenom, nom: autre.nom, lien: 'parent' as const, est_moi: false, depuis: '' };
+        })(),
       ]);
       setInvitations([]);
     } else {
