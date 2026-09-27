@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AriaGarde from '../../components/aria/AriaGarde';
 import {
   View,
   ScrollView,
@@ -118,7 +119,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
 }
 
 // ─── Component ───────────────────────────────────────────────
-export default function AriaConversationScreen() {
+function AriaConversationScreenContenu() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -956,3 +957,12 @@ const styles = StyleSheet.create({
     flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#374151', paddingVertical: 0,
   },
 });
+
+/** Garde Aria (L10) : information à la 1re utilisation, état désactivé, sinon l'écran. */
+export default function AriaConversationScreen() {
+  return (
+    <AriaGarde>
+      <AriaConversationScreenContenu />
+    </AriaGarde>
+  );
+}

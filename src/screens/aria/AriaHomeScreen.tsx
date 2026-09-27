@@ -9,6 +9,7 @@
  * La sidebar charge les conversations existantes via loadConversation().
  */
 
+import AriaGarde from '../../components/aria/AriaGarde';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
@@ -138,7 +139,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
 }
 
 // ─── Component ───────────────────────────────────────────────
-export default function AriaHomeScreen() {
+function AriaHomeScreenContenu() {
   const insets = useSafeAreaInsets();
   const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { selectedChild } = useActiveChild();
@@ -969,3 +970,12 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
 });
+
+/** Garde Aria (L10) : information à la 1re utilisation, état désactivé, sinon l'écran. */
+export default function AriaHomeScreen() {
+  return (
+    <AriaGarde>
+      <AriaHomeScreenContenu />
+    </AriaGarde>
+  );
+}

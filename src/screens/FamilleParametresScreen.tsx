@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { enregistrerPreferencesAria } from '../services/ariaPreferences';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -49,8 +50,8 @@ const BG = '#F2F1EE';
 type Espace = 'famille' | 'enseignant' | 'eleve';
 
 // ─── Préférences locales ───────────────────────────────
-// Enregistrées sur l'appareil ; appliquées quand les notifications push et les réglages
-// d'Aria côté serveur existeront.
+// Enregistrées sur l'appareil. « Aria activée » est APPLIQUÉE (ariaPreferences : aucun appel au modèle
+// si désactivée) ; les réglages de notifications le seront avec les notifications distantes.
 const PREFS_KEY = '@scolaria:prefs';
 
 type Prefs = {
@@ -244,7 +245,10 @@ export default function FamilleParametresScreen() {
               icon={<ScolariaSymbol size={18} color={TEXT55} />}
               label="Aria activée"
               toggle={prefs.ariaActive}
-              onToggle={(v) => update('ariaActive', v)}
+              onToggle={(v) => {
+                update('ariaActive', v);
+                enregistrerPreferencesAria({ ariaActive: v });
+              }}
             />
             <View style={[st.tonesBlock, st.rowBorder]}>
               <Text style={st.rowLabel}>Personnalité</Text>

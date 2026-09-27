@@ -14,6 +14,7 @@ import { FunctionRegion } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { de } from '../utils/francais';
+import { ariaAutorisee } from './ariaPreferences';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -33,6 +34,8 @@ interface AriaFunctionResponse {
 
 /** Seul message d'erreur montré à l'utilisateur. */
 export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
+/** Aria désactivée dans Famille & paramètres (ou information pas encore lue) : rien n'a été envoyé. */
+export const ARIA_DESACTIVEE = 'Aria est désactivée. Aucun message n’a été envoyé.';
 
 // ─── System prompt builder ───────────────────────────────
 
@@ -115,6 +118,11 @@ export async function sendToAria(
   if (emergency) {
     if (!options?.isDemo) recordEmergencyAlert(emergency, childId);
     return buildEmergencyMessage(emergency);
+  }
+
+  // Aria désactivée, ou information pas encore lue (L10, D8) : AUCUN appel au modèle.
+  if (!(await ariaAutorisee())) {
+    return ARIA_DESACTIVEE;
   }
 
   // Mode démo : réponses d'exemple locales, pas d'appel serveur

@@ -13,6 +13,7 @@ import RgpdHero from '../components/rgpd/RgpdHero';
 import RgpdRow from '../components/rgpd/RgpdRow';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from '../components/ui';
+import { FORMULATION_HEBERGEMENT_ARIA } from '../constants/textesLegaux';
 
 const RGPD_ITEMS = [
   {
@@ -66,15 +67,7 @@ export default function RGPDScreen({ navigation }: { navigation: any }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.noticeTitle}>Sécurité & transparence</Text>
               {/* Formulation validée le 25 sept 2026 (CLAUDE.md, règles RGPD) — ne pas reformuler. */}
-              <Text style={styles.noticeText}>
-                Les données du carnet de votre enfant sont hébergées dans l’Union européenne, à Paris.
-                Aria s’appuie sur un modèle d’Anthropic, société américaine. Quand vous utilisez Aria,
-                vos messages, l’historique de la conversation, le prénom et le niveau scolaire de
-                l’enfant sont traités hors de l’Union européenne. Anthropic les efface sous 30 jours,
-                sauf s’ils sont signalés pour non-respect de ses règles d’utilisation (conservation
-                jusqu’à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien
-                d’autre du carnet. En cas de message de détresse, rien n’est envoyé à Aria.
-              </Text>
+              <Text style={styles.noticeText}>{FORMULATION_HEBERGEMENT_ARIA}</Text>
               <Text style={[styles.noticeText, { marginTop: 8 }]}>
                 Les données sont chiffrées au repos (AES-256) et pendant leur transfert (TLS).
               </Text>
