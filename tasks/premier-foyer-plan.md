@@ -91,7 +91,7 @@ Durées = temps de travail estimé, hors attentes externes (DNS, Apple).
 - **Toi** : compte Brevo (gratuit, 300 emails/jour) ; ajouter le domaine d'envoi dans Brevo ; créer dans ta zone
   DNS les enregistrements SPF, DKIM, DMARC que Brevo affiche (je les relis) ; créer une clé SMTP Brevo ;
   la saisir dans Supabase (Dashboard › Authentication › SMTP) : hôte, port, identifiant, clé, expéditeur
-  (ex. `ne-pas-repondre@<domaine>`), nom « Scolaria ».
+  `notifications@<domaine>` (réponse vers `contact@<domaine>`, D10 : jamais de no-reply), nom « Scolaria ».
 - **Moi** : modèles d'email EN FRANÇAIS (confirmation, invitation Auth, réinitialisation, changement d'email)
   prêts à coller ; vérification des en-têtes d'un email reçu (SPF/DKIM « pass »).
 - Durée : 1 h pour toi (+ validation Brevo du domaine, souvent < 1 h) ; 1 h pour moi. Risque : **moyen**
@@ -182,6 +182,16 @@ Durées = temps de travail estimé, hors attentes externes (DNS, Apple).
   Famille & paramètres (désactivée = aucun appel au modèle, vérifié dans les journaux de l'Edge Function).
 - Durée : 1 session. Risque : **faible**. Test / prêt : désactivée → la pill Aria ne l'appelle plus (0 appel).
 
+### L-SAUV — Sauvegarde hebdomadaire automatique (décision D2 du 27 sept : pas de Supabase Pro pour l'instant)
+- **Toi** : laisser le PC allumé le jour choisi (ou accepter le rattrapage au démarrage) ; valider le dossier de destination.
+- **Moi** : script (Planificateur de tâches Windows) : `supabase db dump --linked` (schéma, rôles, données) + copie de TOUS les
+  fichiers du bucket « carnet » (API Storage, clé de service lue dans un fichier local hors dépôt, jamais commité) vers
+  `C:/Users/admin/ScolariaBackups/hebdo/AAAA-MM-JJ/` ; rotation (garder les 8 dernières) ; journal d'exécution ;
+  **script de restauration testé** sur le Supabase LOCAL (base + fichiers), avec comparaison des comptes de lignes et des fichiers.
+- Durée : 1 session. Risque : **moyen** (PC éteint = pas de sauvegarde ; perte possible d'une semaine au pire).
+- Test / prêt : une sauvegarde complète produite par la tâche planifiée ; restauration sur le local : mêmes lignes, mêmes fichiers.
+- **Supabase Pro** : avant la première famille EXTÉRIEURE ou la première école (D2).
+
 ### L11 — Répétition générale sur Android
 - **Toi** : 2 adresses email (A et B), le Redmi ; jouer le parcours avec moi.
 - **Moi** : le script du parcours complet (inscription A, enfant, invitation B, acceptation, ajouts photo HEIC /
@@ -246,32 +256,35 @@ Durées = temps de travail estimé, hors attentes externes (DNS, Apple).
 | Brevo | 0 € (300 emails/jour) | L2 |
 | Apple Developer (individuel) | 99 €/an (à vérifier) | L12 |
 | EAS (plan Starter actuel) | inchangé ; builds iOS décomptés du quota (à vérifier) | L9, L13 |
-| Supabase Pro (option D2) | ~25 $/mois | avant L15 si décidé |
+| Supabase Pro | ~25 $/mois | PAS pour le premier foyer (D2) : avant la première famille extérieure ou école |
 
 ---
 
-## 6. Décisions à prendre AVANT de commencer (référencées dans les lots)
+## 6. Décisions (prises le 27 sept 2026)
 
-| # | Décision | Ma recommandation | Bloque |
-|---|---|---|---|
-| D1 | **Nom de domaine** et registrar | un domaine court au nom de Scolaria, registrar européen | L1 → tout le reste |
-| D2 | **Supabase gratuit ou Pro** pour une famille réelle (le gratuit n'a pas de sauvegarde quotidienne ; « Leaked password protection » réservée au Pro) | Pro avant L15 (données réelles d'un enfant) | L15 |
-| D3 | **Identifiant de l'app** `com.scolaria.app` (définitif sur l'App Store) ; **iPhone seulement** (pas d'iPad) pour ce test | garder l'identifiant ; iPhone seulement | L8, L13 |
-| D4 | **Textes des demandes d'autorisation** (appareil photo, photos) | ceux proposés en L8 | L8 |
-| D5 | **Page web sur le domaine** : repli quand un lien d'email est ouvert sur un ordinateur + politique de confidentialité et mentions légales publiques | une page simple, avant L15 | L3, L15 |
-| D6 | **Effacement RGPD** : immédiat après confirmation, ou différé 30 jours avec annulation possible (CLAUDE.md : « sous 30 jours ») | différé 30 jours, annulable | L7 |
-| D7 | **Photo HEIC réelle** pour les tests (prise sur ton iPhone, envoyée telle quelle, sans visage d'enfant) | oui, avant L5 | L5 |
-| D8 | **Aria pour le premier foyer** : activée (avec écran d'information + interrupteur, L10) ou masquée pour ce test | activée avec L10 | L10 |
-| D9 | **TestFlight** : testeurs **internes** (les 2 parents deviennent utilisateurs de ton App Store Connect, rôle limité, pas de revue Apple, 100 max) ou **externes** (lien ou email, revue Apple de la version, 1-2 jours) | internes pour ce test [à revérifier sur App Store Connect au moment de L13] | L13 |
-| D10 | **Adresses** : expéditeur (`ne-pas-repondre@…`), adresse de contact/support affichée dans l'app | à choisir avec D1 | L2 |
+| # | Décision |
+|---|---|
+| D1 | Nom de domaine : **acheté par toi après vérification INPI. En attente.** |
+| D2 | **Pas de Supabase Pro pour l'instant** → lot **L-SAUV** (sauvegarde hebdomadaire base + fichiers sur ton PC, hors dépôt, restauration testée). Pro avant la première famille extérieure ou la première école. |
+| D3 | `com.scolaria.app`, **iPhone uniquement**. |
+| D4 | Textes des autorisations validés, **précis sur l'usage** (dessins, cahiers, documents scolaires). |
+| D5 | **Une page simple** sur le domaine : politique de confidentialité, mentions légales, repli des liens ouverts sur ordinateur. |
+| D6 | Effacement **différé de 30 jours avec annulation**, MAIS **compte désactivé et données invisibles immédiatement**. |
+| D7 | Photo HEIC **d'un dessin**, envoyée par toi. |
+| D8 | **Aria activée**, écran d'information + interrupteur (L10). |
+| D9 | TestFlight : **testeurs internes**. |
+| D10 | Envoi depuis **notifications@<domaine>**, réponses vers **contact@<domaine>**. **Jamais de no-reply.** |
+
+Lancés le 27 sept sans attendre les achats : L3, L4, L6, L7, L10 et le code de L5 (emails testés avec le SMTP par défaut de
+Supabase, qui n'envoie qu'aux membres de l'équipe). Migrations locales, arrêt avant Paris.
 
 ## 7. Tes achats et actions, dans l'ordre
-1. Décisions D1 à D10 (ci-dessus).
+1. ~~Décisions D1 à D10~~ (prises le 27 sept ; D1 en attente de ta vérification INPI).
 2. **Acheter le nom de domaine** (L1).
 3. **Créer le compte Brevo**, ajouter le domaine, créer les enregistrements DNS (SPF, DKIM, DMARC), créer la clé
    SMTP et la **saisir dans Supabase** ; créer la clé API transactionnelle et la **saisir comme secret Supabase** (L2, L4).
 4. **Régler Site URL / Redirect URLs** dans Supabase (L3).
-5. (Si D2 = Pro) **Passer Supabase en Pro**, activer « Leaked password protection ».
+5. (Plus tard, D2) Supabase Pro avant la première famille extérieure ou école. Pour le premier foyer : sauvegarde hebdomadaire (L-SAUV).
 6. Fournir 2 adresses email de test et la photo HEIC (L4, L5, L11) ; jouer la répétition générale sur le Redmi (L11).
 7. **Acheter Apple Developer (individuel)** — seulement après L11 réussi (L12).
 8. **Première connexion Apple dans EAS** (identifiant + code 2FA, par toi), fiche App Store Connect, **inviter les
