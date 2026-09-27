@@ -29,7 +29,11 @@ import ScolariaSymbol from '../../components/ScolariaSymbol';
 import {
   getConversation,
   sendMessage as storeSendMessage,
+  envoyerSeulementMoi,
 } from '../../stores/messagerieStore';
+import { AUTRE_DEMO } from '../../services/motsService';
+import { Pressable } from '../../components/ui';
+import { Lock, Check } from 'lucide-react-native';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import type { Conversation, Message } from '../../data/messagerieData';
 import { Text } from '../../components/ui';
@@ -163,6 +167,10 @@ export default function ConversationDetailScreen({
   // Local message state — starts from store, appends on send
   const [messages, setMessages] = useState<Message[]>(conv?.messages ?? []);
   const [inputText, setInputText] = useState('');
+  // « Seulement moi » (B4b) : depuis le fil famille, envoyer dans MON fil individuel avec l'enseignant.
+  const [seulementMoi, setSeulementMoi] = useState(false);
+  // L'autre responsable du foyer (démo : famille Moreau). Compte réel : fils branchés après M22.
+  const autre = AUTRE_DEMO.prenom;
   const scrollRef = useRef<ScrollView>(null);
 
   const scrollToBottom = useCallback((animated = true) => {
@@ -191,10 +199,16 @@ export default function ConversationDetailScreen({
       date,
     };
 
+    if (seulementMoi && conv?.portee === 'foyer') {
+      const idIndividuel = envoyerSeulementMoi(conversationId, text);
+      setSeulementMoi(false);
+      if (idIndividuel) navigation.replace('ConversationDetailScreen', { conversationId: idIndividuel });
+      return;
+    }
     setMessages((prev) => [...prev, newMsg]);
     storeSendMessage(conversationId, text);
     scrollToBottom(true);
-  }, [inputText, conversationId, scrollToBottom]);
+  }, [inputText, conversationId, scrollToBottom, seulementMoi, conv?.portee, navigation]);
 
   const groups = groupByDate(messages);
 
@@ -218,7 +232,14 @@ export default function ConversationDetailScreen({
             >
               {conv.name}
             </Text>
-            {conv.role ? (
+            {conv.portee === 'foyer' ? (
+              <Text style={styles.participantRole} numberOfLines={1}>{`Fil famille · vous et ${autre}`}</Text>
+            ) : conv.portee === 'individuel' ? (
+              <View style={styles.porteeLigne}>
+                <Lock size={12} color="#64748B" strokeWidth={2} />
+                <Text style={styles.participantRole} numberOfLines={1}>{`Seulement vous · ${autre} ne voit pas ce fil`}</Text>
+              </View>
+            ) : conv.role ? (
               <Text
                 style={styles.participantRole}
                 numberOfLines={1}
@@ -265,9 +286,12 @@ export default function ConversationDetailScreen({
               {/* Bubbles */}
               {group.messages.map((msg) => {
                 const isParent = msg.sender === 'parent';
+                // Fil famille : chaque message de parent affiche son auteur (« Vous », « Marc »).
+                const auteur = isParent && conv?.portee === 'foyer' ? (msg.auteur === 'autre' ? autre : 'Vous') : null;
                 return (
+                  <View key={msg.id}>
+                  {auteur && <Text style={styles.auteur}>{auteur}</Text>}
                   <View
-                    key={msg.id}
                     style={[
                       styles.bubbleRow,
                       isParent ? styles.bubbleRowRight : styles.bubbleRowLeft,
@@ -301,6 +325,10 @@ export default function ConversationDetailScreen({
                       </Text>
                     </View>
                   </View>
+                  {!isParent && !!msg.envoyeAussiA?.length && (
+                    <Text style={styles.envoyeAussi}>{`Envoyé aussi à ${msg.envoyeAussiA.join(', ')}`}</Text>
+                  )}
+                  </View>
                 );
               })}
             </View>
@@ -313,6 +341,22 @@ export default function ConversationDetailScreen({
               conv={conv}
               onPress={() => navigation.navigate('SignDoc', { conversationId: conv.id, docTitle: conv.name })}
             />
+          )}
+          {conv?.portee === 'foyer' && (
+            <View style={styles.optionEnvoi}>
+              <Pressable
+                onPress={() => setSeulementMoi((v) => !v)}
+                style={[styles.seulementMoi, seulementMoi && styles.seulementMoiActif]}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: seulementMoi }}
+              >
+                {seulementMoi ? <Check size={14} color="#FFFFFF" strokeWidth={2.5} /> : <Lock size={14} color={NAVY} strokeWidth={2} />}
+                <Text style={[styles.seulementMoiTexte, seulementMoi && styles.seulementMoiTexteActif]}>Seulement moi</Text>
+              </Pressable>
+              <Text style={styles.optionTexte} numberOfLines={1}>
+                {seulementMoi ? `${autre} ne verra pas ce message` : `Envoyé au fil famille (vous et ${autre})`}
+              </Text>
+            </View>
           )}
           <UniversalInputBar
             placeholder="Écrire un message…"
@@ -381,6 +425,40 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: NAVY,
   },
+  porteeLigne: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  auteur: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    lineHeight: 14,
+    color: 'rgba(15,23,42,0.55)',
+    textAlign: 'right',
+    marginTop: 6,
+    marginBottom: 2,
+    marginRight: 4,
+  },
+  envoyeAussi: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    lineHeight: 14,
+    color: 'rgba(15,23,42,0.55)',
+    marginLeft: 4,
+    marginBottom: 4,
+  },
+  optionEnvoi: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 8 },
+  seulementMoi: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    minWidth: 44,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.06)',
+  },
+  seulementMoiActif: { backgroundColor: NAVY },
+  seulementMoiTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, color: NAVY },
+  seulementMoiTexteActif: { color: '#FFFFFF' },
+  optionTexte: { flex: 1, fontFamily: FontFamily.sansRegular, fontSize: 12, color: 'rgba(15,23,42,0.62)' },
   participantRole: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,

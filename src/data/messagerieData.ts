@@ -34,6 +34,10 @@ export interface Message {
   time: string;
   /** YYYY-MM-DD — used for date-separator grouping */
   date: string;
+  /** Fil famille : auteur d'un message de parent (absent = vous). « autre » = l'autre responsable du foyer. */
+  auteur?: 'moi' | 'autre';
+  /** Message de l'enseignant reçu aussi par l'autre foyer : prénoms (« Envoyé aussi à … »). */
+  envoyeAussiA?: string[];
 }
 
 export type ConvTag = 'sortie' | 'devoir' | 'vie' | 'cantine' | 'admin' | 'controle' | 'rdv';
@@ -62,6 +66,11 @@ export interface Conversation {
   urgency?: ConvUrgency;
   /** Short Aria-generated summary */
   ariaSummary?: string;
+  /**
+   * Fil avec un enseignant (B4b, M22) : « foyer » = fil famille partagé par les responsables du foyer ;
+   * « individuel » = un seul responsable (« Seulement moi »), invisible pour l'autre. Absent : collectif / absences.
+   */
+  portee?: 'foyer' | 'individuel';
 }
 
 // ─── Léa — Maternelle Pasteur ───────────────────────────
@@ -69,6 +78,7 @@ export interface Conversation {
 const leaConversations: Conversation[] = [
   {
     id: 'lea-laurent',
+    portee: 'foyer',
     childId: 'demo-lea',
     name: 'Mme Laurent',
     role: 'Maîtresse MS/GS',
@@ -80,7 +90,7 @@ const leaConversations: Conversation[] = [
     unread: true,
     messages: [
       { id: 'lea-l-1', sender: 'other', text: "Bonjour, Léa s'est très bien adaptée à la grande section, elle a retrouvé ses copains !", time: '16:30', date: ilYa(12) },
-      { id: 'lea-l-2', sender: 'parent', text: "Merci Madame, ravie de l'entendre !", time: '17:45', date: ilYa(12) },
+      { id: 'lea-l-2', sender: 'parent', auteur: 'autre', text: "Merci Madame, ravie de l'entendre !", time: '17:45', date: ilYa(12) },
       { id: 'lea-l-3', sender: 'other', text: "Rappel : photo de classe vendredi, pensez à une tenue soignée 😊", time: '08:15', date: ilYa(4) },
       { id: 'lea-l-4', sender: 'parent', text: "Noté, merci pour le rappel !", time: '08:32', date: ilYa(4) },
       { id: 'lea-l-5', sender: 'other', text: "Léa a oublié son doudou ce matin, il est en sécurité dans la classe.", time: '09:12', date: ilYa(1) },
@@ -128,6 +138,7 @@ const lucasConversations: Conversation[] = [
     ariaSummary: 'Autorisation pour la sortie à la médiathèque à signer avant jeudi.',
     avatarColor: '#059669',
     id: 'lucas-moreau',
+    portee: 'foyer',
     childId: 'demo-lucas',
     name: 'Mme Dupont',
     role: 'Maîtresse CM2 B',
@@ -139,7 +150,7 @@ const lucasConversations: Conversation[] = [
     unread: true,
     messages: [
       { id: 'lucas-m-1', sender: 'other', text: "Bonjour, belle rentrée pour Lucas : il s'est vite installé en CM2.", time: '16:15', date: ilYa(11) },
-      { id: 'lucas-m-2', sender: 'parent', text: "Merci, il est content de sa classe !", time: '17:30', date: ilYa(11) },
+      { id: 'lucas-m-2', sender: 'parent', auteur: 'autre', text: "Merci, il est content de sa classe !", time: '17:30', date: ilYa(11) },
       { id: 'lucas-m-3', sender: 'other', text: "Sortie à la médiathèque la semaine prochaine : l'autorisation est à signer dans le carnet avant jeudi.", time: '09:00', date: ilYa(5) },
       { id: 'lucas-m-4', sender: 'parent', text: "Bien noté, nous la signons ce soir.", time: '09:45', date: ilYa(5) },
       { id: 'lucas-m-5', sender: 'other', text: "Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.", time: '14:20', date: ilYa(2) },
@@ -183,6 +194,7 @@ const lucasConversations: Conversation[] = [
 const emmaConversations: Conversation[] = [
   {
     id: 'emma-dupont',
+    portee: 'foyer',
     childId: 'demo-emma',
     name: 'Mme Lambert',
     role: 'Professeure de français',
@@ -197,12 +209,13 @@ const emmaConversations: Conversation[] = [
     unread: false,
     messages: [
       { id: 'emma-d-1', sender: 'other', text: "Emma a rendu une très belle première rédaction, 17/20. Continuez ainsi !", time: '17:00', date: ilYa(9) },
-      { id: 'emma-d-2', sender: 'parent', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: ilYa(9) },
+      { id: 'emma-d-2', sender: 'parent', auteur: 'autre', text: "Merci Madame, elle a beaucoup travaillé.", time: '17:30', date: ilYa(9) },
       { id: 'emma-d-3', sender: 'other', text: "Premier devoir sur table jeudi prochain : le récit autobiographique.", time: '11:00', date: ilYa(3) },
     ],
   },
   {
     id: 'emma-garcia',
+    portee: 'individuel',
     childId: 'demo-emma',
     name: 'M. Petit',
     role: 'Professeur de mathématiques',
@@ -225,6 +238,7 @@ const emmaConversations: Conversation[] = [
   },
   {
     id: 'emma-martin',
+    portee: 'foyer',
     childId: 'demo-emma',
     name: 'M. Martin',
     role: 'Professeur de SVT',

@@ -250,6 +250,15 @@ Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages
 - [ ] Hors lot, relevé : fil de conversation « Aria peut résumer ce message » (affirmation à vérifier, règle « rien qui ne soit vrai aujourd'hui ») ; read_receipts sans contrôle de responsable (un parent peut marquer lu un mot d'un autre carnet s'il en connaît l'id — sans lecture de contenu).
 - **Notifications distantes (règles, pour le lot notifications)** : titre = PRÉNOM de l'enfant + contenu utile (« Lucas · Mme Dupont a publié un mot à signer ») ; données = { type, childId, id } pour ouvrir EXACTEMENT l'élément dans le bon carnet ; élément retiré → message clair, jamais d'erreur ; une MODIFICATION ne renvoie JAMAIS de notification ; silence 20h-7h sauf urgence ; résumé unique à 18h (CLAUDE.md, Notifications).
 
+### B4b — segment [prénom], modèle par foyer (27 sept, session de nuit)
+- [x] B4b.1 M22 (fils par foyer) LOCALE : 21/21 + toutes les suites ; script inverse vérifié. **NON appliquée à Paris : attente validation.**
+- [x] B4b.2 app (démo) : fil famille (auteur de chaque message : « Vous », « Marc »), fil individuel (« Seulement vous · Marc ne voit pas ce fil », « Visible par vous seul » dans la liste), option « Seulement moi » (« Marc ne verra pas ce message ») → le message part dans le fil individuel (créé si besoin), absences dans le segment [prénom].
+- [ ] **Branchement réel des fils** (teacher_conversations / teacher_messages, fil_enseignant, envoye_aussi_a) : APRÈS application de M22 à Paris (sans M22, les colonnes n'existent pas). Aujourd'hui : fils de démo seulement ; absences réelles (table absences) non affichées.
+- [ ] « Envoyé aussi à » : prêt côté données (M22, envoye_aussi_a, testé T14-T15) et affiché s'il est présent, mais la démo n'a qu'UN foyer (famille Moreau) : aucun exemple visible. Ajouter un enfant de démo à deux foyers ? (question)
+- [ ] **À TRANCHER (ne pas décider seul)** : historique du fil famille quand un parent quitte le foyer (garder la lecture ? la retirer ? la partager ?).
+- [ ] Question : résumés « ARIA » dans le fil (AriaThreadSummary) = textes de démo écrits à la main présentés comme d'Aria (règle « rien qui ne soit vrai aujourd'hui ») : retirer ?
+- [ ] Côté enseignant (lot à venir) : écran d'envoi « Tous les représentants » (défaut, envoyer_a_tous_les_representants) / « Un seul parent » (fil individuel).
+
 ### B4 · Mots et Messages — 3 à 4 sessions
 Objectif : types de mots et signature par responsable, filtres Tout / À signer / École / Privés, invitations d’un responsable.
 - [ ] Mots : 4 types (information / signature / autorisation / participation) ; statut par responsable (« Signé par vous · en attente de Marc ») via `mot_carnets_statut` ; réponses autorisation (oui/non) et participation (oui / peut-être / non) via `reponses_mot` ; signature en son nom (déjà côté service, `liaisonService`).

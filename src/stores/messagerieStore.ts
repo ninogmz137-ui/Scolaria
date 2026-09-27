@@ -87,6 +87,31 @@ export function sendMessage(conversationId: string, text: string): void {
   notify();
 }
 
+/**
+ * « Seulement moi » (B4b) : depuis un fil FAMILLE, envoie le message dans MON fil individuel avec le
+ * même enseignant (créé s'il n'existe pas), invisible pour l'autre responsable. Renvoie l'id de ce fil.
+ */
+export function envoyerSeulementMoi(conversationId: string, text: string): string | undefined {
+  const fil = getConversation(conversationId);
+  if (!fil || fil.portee !== 'foyer') return undefined;
+  const idIndividuel = `${fil.id}~moi`;
+  const liste = store[fil.childId] ?? [];
+  if (!liste.some((c) => c.id === idIndividuel)) {
+    store[fil.childId] = [
+      ...liste,
+      { ...fil, id: idIndividuel, portee: 'individuel', messages: [], unread: false, lastMessage: '', ariaSummary: undefined },
+    ];
+  }
+  sendMessage(idIndividuel, text);
+  return idIndividuel;
+}
+
+/** Le fil individuel (« Seulement moi ») déjà ouvert avec l'enseignant d'un fil famille, s'il existe. */
+export function filIndividuelDe(conversationId: string): string | undefined {
+  const id = `${conversationId}~moi`;
+  return getConversation(id) ? id : undefined;
+}
+
 export function subscribe(listener: () => void): () => void {
   listeners.push(listener);
   return () => {

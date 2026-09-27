@@ -193,6 +193,8 @@ function MessagerieContenu() {
         nonLu: c.unread,
         initiales: c.avatarType === 'initials' ? c.initials ?? initialesDe(c.name) : undefined,
         Icone: c.avatarType === 'school' ? School : c.avatarType === 'absence' ? CalendarX : undefined,
+        // Fil individuel (« Seulement moi », B4b) : invisible pour l'autre responsable.
+        prive: c.portee === 'individuel',
         onPress: () => ouvrirConversation(c),
       },
     }));
