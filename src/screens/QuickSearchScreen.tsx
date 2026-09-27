@@ -12,6 +12,7 @@ import { Search, X, Settings, Heart, GraduationCap,
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { NOM_APP } from '../constants/marque';
 
 const QUICK_LINKS = [
   { id: 'profil',    icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },
@@ -66,7 +67,7 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
             <Search size={18} color="rgba(15,23,42,0.40)" strokeWidth={2} />
             <TextInput
               style={[styles.input, { marginLeft: 8 }]}
-              placeholder="Rechercher dans Scolaria…"
+              placeholder={`Rechercher dans ${NOM_APP}…`}
               placeholderTextColor="rgba(15,23,42,0.35)"
               value={query}
               onChangeText={setQuery}

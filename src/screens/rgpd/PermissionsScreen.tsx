@@ -28,6 +28,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
 import { MOI_DEMO, autreResponsableDemo } from '../../data/demo/responsables';
+import { NOM_APP } from '../../constants/marque';
 
 const LIENS: Record<ResponsableEnfant['lien'], string> = {
   parent: 'Parent',
@@ -167,7 +168,7 @@ export default function PermissionsScreen() {
             <View style={st.form}>
               <Text style={st.formHint}>
                 L’autre responsable reçoit l’accès au carnet {de(prenomEnfant)} après avoir accepté,
-                depuis un compte Scolaria à cette adresse.
+                {`depuis un compte ${NOM_APP} à cette adresse.`}
               </Text>
               <TextInput
                 style={st.input}

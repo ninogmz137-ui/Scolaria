@@ -15,6 +15,7 @@ import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { de } from '../utils/francais';
 import { ariaAutorisee } from './ariaPreferences';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ export const ARIA_DESACTIVEE = 'Aria est désactivée. Aucun message n’a été
  */
 function buildRealChildSystemPrompt(prenom: string, niveau?: string | null): string {
   const niveauStr = niveau ? ` (${niveau})` : '';
-  return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
+  return `Tu es Aria, l'assistante IA de ${NOM_APP}, le carnet de scolarité numérique.
 
 ═══ TON RÔLE ═══
 - Tu accompagnes un parent dans le suivi scolaire de ${prenom}${niveauStr}, et de cet enfant seulement.
@@ -74,7 +75,7 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 
 /** Compte sans enfant enregistré : Aria répond de façon générale, sans données d'enfant. */
 function buildNoChildSystemPrompt(): string {
-  return `Tu es Aria, l'assistante IA de Scolaria, le carnet de scolarité numérique.
+  return `Tu es Aria, l'assistante IA de ${NOM_APP}, le carnet de scolarité numérique.
 
 Aucun enfant n'est encore ajouté au carnet de ce parent.
 - Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée), en vouvoyant toujours le parent.
@@ -176,7 +177,7 @@ function buildFallbackResponses(childId: string): string[] {
   const { profile, grades, activities, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
-  const intro = `Bonjour ! Je suis Aria. En mode démo, je vous propose des exemples adaptés à ${name} pour découvrir Scolaria.`;
+  const intro = `Bonjour ! Je suis Aria. En mode démo, je vous propose des exemples adaptés à ${name} pour découvrir ${NOM_APP}.`;
 
   if (grades.length === 0) {
     // Maternelle — no grades

@@ -8,6 +8,7 @@ import { Box, Text, Pressable, HStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import ScolariaSymbol from '../ScolariaSymbol';
+import { NOM_APP } from '../../constants/marque';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -100,7 +101,7 @@ export default function SuperPowerBadge({
   }, []);
 
   const handleShare = async () => {
-    const shareText = `${emoji} ${childName} — ${power}\n\n${description ?? ''}\n\n${tags.map((t) => `${t.emoji} ${t.label}`).join(' · ')}\n\n— Profil Scolaria`;
+    const shareText = `${emoji} ${childName} — ${power}\n\n${description ?? ''}\n\n${tags.map((t) => `${t.emoji} ${t.label}`).join(' · ')}\n\n— Profil ${NOM_APP}`;
     try {
       await Share.share({
         message: shareText,

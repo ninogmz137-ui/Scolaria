@@ -137,7 +137,7 @@ export default {
     next: 'İleri',
     start: 'Başla',
     slide1Title: 'Hoş geldiniz',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'Çocuklarınızın tüm öğrenim hayatı boyunca onlara eşlik eden dijital okul pasaportu.',
     slide1Feature2: 'Çoklu çocuk',
     slide1Feature3: 'Her şey mobilde',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Çocuk ekle',
     subtitle: 'Okul pasaportunu oluşturmak için çocuğunuzun bilgilerini doldurun',
-    scolariaId: 'Scolaria Kimliği',
+    scolariaId: '%{app} Kimliği',
     auto: 'Otomatik',
     avatar: 'Avatar',
     firstName: 'Ad',

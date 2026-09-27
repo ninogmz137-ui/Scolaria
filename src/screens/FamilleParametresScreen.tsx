@@ -37,6 +37,7 @@ import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text, Pressable } from '../components/ui';
 import ChildAvatar from '../components/ChildAvatar';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Tokens (COMPONENTS §8) ────────────────────────────
 const NAVY = '#0F172A';
@@ -330,7 +331,7 @@ export default function FamilleParametresScreen() {
           />
         </DeepGroup>
 
-        <Text style={st.footer}>Scolaria · Le carnet de scolarité numérique · Version 1.0.0</Text>
+        <Text style={st.footer}>{`${NOM_APP} · Le carnet de scolarité numérique · Version 1.0.0`}</Text>
       </ScrollView>
     </View>
   );

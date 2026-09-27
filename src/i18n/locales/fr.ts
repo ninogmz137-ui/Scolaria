@@ -137,7 +137,7 @@ export default {
     next: 'Suivant',
     start: 'Commencer',
     slide1Title: 'Bienvenue dans',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'Le carnet de scolarité numérique qui accompagne vos enfants tout au long de leur scolarité.',
     slide1Feature2: 'Multi-enfants',
     slide1Feature3: 'Tout sur mobile',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Ajouter un enfant',
     subtitle: 'Remplissez les informations de votre enfant pour créer son carnet de scolarité',
-    scolariaId: 'Identifiant Scolaria',
+    scolariaId: 'Identifiant %{app}',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'Prénom',

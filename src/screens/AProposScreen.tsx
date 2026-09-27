@@ -28,6 +28,7 @@ import { DeepGroup, DeepRow, DEEP } from '../components/DeepList';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from '../components/ui';
 import { FORMULATION_HEBERGEMENT_ARIA } from '../constants/textesLegaux';
+import { NOM_APP } from '../constants/marque';
 
 const ICON = { size: 20, color: DEEP.text55, strokeWidth: 2 } as const;
 
@@ -111,7 +112,7 @@ export default function AProposScreen() {
             <Text style={st.body}>
               Comme le carnet de santé, le carnet de scolarité appartient à la famille. Il suit
               l’enfant de la maternelle au bac, quel que soit l’établissement, et se remplit même
-              si l’école n’utilise pas Scolaria.
+              {`si l’école n’utilise pas ${NOM_APP}.`}
             </Text>
           </View>
         </DeepGroup>
@@ -135,7 +136,7 @@ export default function AProposScreen() {
           ))}
         </DeepGroup>
 
-        <Text style={st.footer}>© 2026 Scolaria</Text>
+        <Text style={st.footer}>{`© 2026 ${NOM_APP}`}</Text>
       </ScrollView>
     </View>
   );

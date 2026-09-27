@@ -35,6 +35,7 @@ import { construireAccueilDemo, isoJour, todoDepuisMots } from '../data/demo/acc
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -275,7 +276,7 @@ export default function AccueilScreen() {
         <HeaderFondu couleur={heroColor} photo={heroPhoto?.source} hauteur={hauteurFondu} />
         <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
           <Text style={styles.heroHello}>{selectedChild ? 'Bonjour' : 'Bienvenue'}</Text>
-          <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : 'dans Scolaria'}</Text>
+          <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : `dans ${NOM_APP}`}</Text>
         </View>
 
         {/* Compte réel sans enfant : état vide, rien d'autre (aucune donnée de démo). */}

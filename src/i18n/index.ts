@@ -20,6 +20,7 @@ import ro from './locales/ro';
 import zh from './locales/zh';
 import wo from './locales/wo';
 import it from './locales/it';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Supported languages ─────────────────────────────────
 
@@ -119,7 +120,8 @@ export function isRTL(): boolean {
 // ─── Translation helper ──────────────────────────────────
 
 export function t(key: string, options?: Record<string, any>): string {
-  return i18n.t(key, options);
+  // %{app} = nom affiché de l'application (constants/marque) : renommage à un seul endroit.
+  return i18n.t(key, { app: NOM_APP, ...options });
 }
 
 export default i18n;

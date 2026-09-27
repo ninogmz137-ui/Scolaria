@@ -137,7 +137,7 @@ export default {
     next: 'Următorul',
     start: 'Începe',
     slide1Title: 'Bine ai venit în',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'Pașaportul școlar digital care îți însoțește copiii de-a lungul întregii școlarități.',
     slide1Feature2: 'Multi-copii',
     slide1Feature3: 'Totul pe mobil',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Adaugă un copil',
     subtitle: 'Completează informațiile copilului tău pentru a crea pașaportul său școlar',
-    scolariaId: 'Identificator Scolaria',
+    scolariaId: 'Identificator %{app}',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'Prenume',

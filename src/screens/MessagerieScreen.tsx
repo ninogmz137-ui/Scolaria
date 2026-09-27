@@ -42,6 +42,7 @@ import { aTraiter, marquerTousMotsLus, monNomComplet, type MotCarnet } from '../
 import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { demanderAjoutCarnet } from '../services/ouvertureAjout';
 import { de } from '../utils/francais';
+import { NOM_APP } from '../constants/marque';
 
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
@@ -320,7 +321,7 @@ function MessagerieContenu() {
         {carte.length > 0 && <CarteATraiter mots={carte} monNom={monNom} demo={isDemo} onOuvrir={ouvrirMot} />}
         {ecoleAbsente ? (
           <View style={st.vide}>
-            <Text style={st.videTexte}>{`Les mots de l’école ${de(prenom)} arriveront ici quand elle utilisera Scolaria.`}</Text>
+            <Text style={st.videTexte}>{`Les mots de l’école ${de(prenom)} arriveront ici quand elle utilisera ${NOM_APP}.`}</Text>
             <Pressable
               onPress={() => demanderAjoutCarnet({ onglet: 'MessagerieTab', categorie: 'mot' })}
               style={({ pressed }) => [st.pill, pressed && { opacity: 0.85 }]}

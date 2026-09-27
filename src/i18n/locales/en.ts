@@ -137,7 +137,7 @@ export default {
     next: 'Next',
     start: 'Get started',
     slide1Title: 'Welcome to',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'The digital school passport that supports your children throughout their education.',
     slide1Feature2: 'Multi-child',
     slide1Feature3: 'Everything on mobile',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Add a child',
     subtitle: 'Fill in your child\'s information to create their school passport',
-    scolariaId: 'Scolaria ID',
+    scolariaId: '%{app} ID',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'First name',

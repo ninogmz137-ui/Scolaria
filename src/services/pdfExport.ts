@@ -7,6 +7,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import type { LigneSuiviExport } from './suiviService';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -180,7 +181,7 @@ function generateHTML(data: PDFExportData): string {
   </div>
 
   <div class="footer">
-    <div class="logo">Scolaria</div>
+    <div class="logo">${NOM_APP}</div>
     <div>Le carnet de scolarité numérique — Généré le ${data.generatedDate}</div>
     <div style="margin-top:4px;">Ce document est confidentiel.</div>
   </div>
@@ -320,7 +321,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
   </div>
 
   <div class="footer">
-    <div style="font-size:14px;font-weight:800;color:#4338CA;">Scolaria</div>
+    <div style="font-size:14px;font-weight:800;color:#4338CA;">${NOM_APP}</div>
     <div>Le carnet de scolarité numérique — Document de transition</div>
     <div style="margin-top:4px;">Confidentiel — Transmis avec le consentement de la famille.</div>
   </div>

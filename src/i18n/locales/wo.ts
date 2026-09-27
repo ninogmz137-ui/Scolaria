@@ -137,7 +137,7 @@ export default {
     next: 'Bi ci topp',
     start: 'Tàmbalee',
     slide1Title: 'Dalal-jàmm ci',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'Passeport bu numérique bu jàng bi muy indi sa xale yi ci seen jàng gépp.',
     slide1Feature2: 'Xale yu bari',
     slide1Feature3: 'Lépp ci sa téléphone',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Yokk xale',
     subtitle: 'Fésal xam-xam yi ci sa xale bi ngir sos passeport scolaire bi',
-    scolariaId: 'Karangë Scolaria',
+    scolariaId: 'Karangë %{app}',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'Tur',

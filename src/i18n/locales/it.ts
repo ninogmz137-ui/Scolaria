@@ -137,7 +137,7 @@ export default {
     next: 'Avanti',
     start: 'Inizia',
     slide1Title: 'Benvenuto in',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'Il passaporto scolastico digitale che accompagna i tuoi figli durante tutto il percorso scolastico.',
     slide1Feature2: 'Multi-bambino',
     slide1Feature3: 'Tutto su mobile',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Aggiungi un bambino',
     subtitle: 'Compila le informazioni del tuo bambino per creare il suo passaporto scolastico',
-    scolariaId: 'Identificativo Scolaria',
+    scolariaId: 'Identificativo %{app}',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'Nome',

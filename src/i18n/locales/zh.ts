@@ -137,7 +137,7 @@ export default {
     next: '下一步',
     start: '开始',
     slide1Title: '欢迎来到',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: '陪伴孩子整个学习旅程的数字学业护照。',
     slide1Feature2: '多孩子管理',
     slide1Feature3: '全部在手机上',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: '添加孩子',
     subtitle: '填写孩子的信息以创建学业护照',
-    scolariaId: 'Scolaria 标识号',
+    scolariaId: '%{app} 标识号',
     auto: '自动',
     avatar: '头像',
     firstName: '名',

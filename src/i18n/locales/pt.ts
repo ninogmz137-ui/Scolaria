@@ -137,7 +137,7 @@ export default {
     next: 'Próximo',
     start: 'Começar',
     slide1Title: 'Bem-vindo ao',
-    slide1Highlight: 'Scolaria',
+    slide1Highlight: '%{app}',
     slide1Desc: 'O passaporte escolar digital que acompanha seus filhos ao longo de toda a vida escolar.',
     slide1Feature2: 'Múltiplos filhos',
     slide1Feature3: 'Tudo no celular',
@@ -203,7 +203,7 @@ export default {
   addChild: {
     title: 'Adicionar um filho',
     subtitle: 'Preencha as informações do seu filho para criar o passaporte escolar dele',
-    scolariaId: 'Identificador Scolaria',
+    scolariaId: 'Identificador %{app}',
     auto: 'Auto',
     avatar: 'Avatar',
     firstName: 'Nome',

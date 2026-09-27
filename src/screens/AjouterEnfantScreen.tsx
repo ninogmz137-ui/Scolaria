@@ -37,6 +37,7 @@ import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors';
 import { Text, TextInput } from '../components/ui';
 import { de } from '../utils/francais';
+import { NOM_APP } from '../constants/marque';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -242,7 +243,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           <Animated.View style={[s.idCard, { transform: [{ scale: idPulse }] }]}>
             <Fingerprint size={20} color={INDIGO} strokeWidth={2} />
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={s.idLabel}>Identifiant Scolaria</Text>
+              <Text style={s.idLabel}>{`Identifiant ${NOM_APP}`}</Text>
               <Text style={s.idValue}>{scolariaId}</Text>
             </View>
             <View style={s.tag}>
@@ -492,7 +493,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
           <View style={s.footer}>
             <Fingerprint size={14} color={TEXT35} strokeWidth={2} />
             <Text style={s.footerText}>
-              L'identifiant Scolaria est unique et non modifiable.
+              {`L'identifiant ${NOM_APP} est unique et non modifiable.`}
             </Text>
           </View>
         </Animated.View>

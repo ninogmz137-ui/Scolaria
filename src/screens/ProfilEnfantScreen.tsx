@@ -47,6 +47,7 @@ import { useDemoData } from '../contexts/DemoContext';
 import { chargerSuivi, versExport } from '../services/suiviService';
 import { libelleNiveau, ligneSource, type ElementSuivi } from '../utils/competences';
 import { Segments } from './suivi/ApprentissagesVue';
+import { NOM_APP } from '../constants/marque';
 
 const PAGE_BG = '#F2F1EE';
 const NAVY = '#1A2340';
@@ -438,7 +439,7 @@ function ProfilEnfantScreenContent() {
     const tagLine = data.tags.map((t) => t.label).join(' · ');
     try {
       await Share.share({
-        message: `${data.superPowerEmoji} ${data.firstName} — ${data.superPower}\n\n${data.superPowerDescription}\n\n${tagLine}\n\n— Profil Scolaria`,
+        message: `${data.superPowerEmoji} ${data.firstName} — ${data.superPower}\n\n${data.superPowerDescription}\n\n${tagLine}\n\n— Profil ${NOM_APP}`,
         title: `Super-pouvoir ${de(data.firstName)}`,
       });
     } catch {
