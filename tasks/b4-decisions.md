@@ -50,8 +50,10 @@ Règle de visibilité **par FOYER** :
 - Élément retiré : **message clair** (« Mme Dupont a retiré ce devoir »), jamais d'erreur.
 - Une **modification ne renvoie pas** de nouvelle notification.
 
-## 6. Hors périmètre de B4 (à trancher en B4b)
-- **Historique du fil famille quand un parent quitte le foyer** : garder la lecture de l'historique ? le retirer ? le partager ?
+## 6. Parent qui quitte le foyer (décision du 27 sept 2026)
+- Le parent qui part **garde l'accès en LECTURE SEULE** aux messages du fil famille **jusqu'à la date de son départ**, et **plus rien après**.
+- Il ne peut plus écrire dans ce fil ni le marquer lu ; ses nouveaux messages arrivent dans le **fil de son nouveau foyer**.
+- Implémentation : M23 (départs enregistrés automatiquement, lecture bornée à la date de départ).
 
 ## 7. Déjà noté pour B4
 - Les **mots importés par la famille** (carnet_items, catégorie « mot », lot B5) s'affichent dans **Général** (décision B4a du 26 sept 2026, remplace « segment [prénom] »), avec la ligne source « Importé par vous » ; « Visible par vous seul » respecté.
