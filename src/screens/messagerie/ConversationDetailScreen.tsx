@@ -314,10 +314,6 @@ export default function ConversationDetailScreen({
               onPress={() => navigation.navigate('SignDoc', { conversationId: conv.id, docTitle: conv.name })}
             />
           )}
-          <View style={styles.ariaHint}>
-            <ScolariaSymbol size={12} color="#4338CA" />
-            <Text style={styles.ariaHintText}>Aria peut résumer ce message</Text>
-          </View>
           <UniversalInputBar
             placeholder="Écrire un message…"
             value={inputText}
@@ -573,21 +569,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.sansBold,
     fontSize: 13,
     color: '#FFFFFF',
-  },
-
-  // Aria hint below input
-  ariaHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 6,
-    paddingBottom: 4,
-  },
-  ariaHintText: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11.5,
-    color: '#4338CA',
-    marginLeft: 5,
   },
 
 });
