@@ -5,6 +5,7 @@ import {
   Shield,
   ShieldCheck,
   Trash2,
+  Download,
 } from 'lucide-react-native';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
@@ -24,13 +25,19 @@ const RGPD_ITEMS = [
     screen: 'PermissionsRGPD',
   },
   {
+    Icon: Download,
+    label: 'Télécharger le carnet',
+    sublabel: 'Données, photos et documents, dans une archive',
+    screen: 'ExportDonnees',
+  },
+  {
     Icon: Trash2,
     label: 'Effacer des données',
     sublabel: 'Un carnet ou votre compte, annulable 30 jours',
     screen: 'Effacement',
   },
-  // Code de transfert, export intégral : MASQUÉS tant qu'ils ne fonctionnent pas réellement (constat du
-  // 26 sept 2026 : écrans factices). Effacement : réel depuis L7 (M25).
+  // Code de transfert : MASQUÉ tant qu'il ne fonctionne pas réellement (constat du 26 sept 2026 : écran
+  // factice). Export et effacement : réels depuis L7.
 ] as const;
 
 export default function RGPDScreen({ navigation }: { navigation: any }) {

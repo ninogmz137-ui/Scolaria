@@ -25,6 +25,7 @@ import {
   Mic,
   Shield,
   Trash2,
+  Download,
   Info,
   LogOut,
   Wrench,
@@ -285,8 +286,8 @@ export default function FamilleParametresScreen() {
           </DeepGroup>
         )}
 
-        {/* Effacement : RÉEL depuis L7 (M25, exécution serveur). Export : masqué tant qu'il ne produit pas
-            un vrai fichier (constat du 26 sept 2026 : écran factice). */}
+        {/* Export et effacement : RÉELS depuis L7 (archive .zip partagée ; M25, exécution serveur).
+            Code de transfert : toujours masqué (aucun mécanisme). */}
         {isFamille && (
           <DeepGroup title="Confidentialité & données">
             <DeepRow
@@ -294,6 +295,12 @@ export default function FamilleParametresScreen() {
               label="Autorisations"
               description="Qui a accès au carnet de l’enfant"
               onPress={() => navigation.navigate('PermissionsRGPD')}
+            />
+            <DeepRow
+              icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
+              label="Télécharger le carnet"
+              description="Données, photos et documents, dans une archive"
+              onPress={() => navigation.navigate('ExportDonnees')}
             />
             <DeepRow
               icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}

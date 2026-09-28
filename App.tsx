@@ -34,6 +34,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NotificationsRouteur from './src/components/NotificationsRouteur';
 import { viderFichiersOuverts } from './src/services/ouvertureFichier';
+import { viderExport } from './src/services/exportCarnet';
 import LiensAuthRouteur from './src/components/LiensAuthRouteur';
 import MotDePasseOublieScreen from './src/screens/auth/MotDePasseOublieScreen';
 import NouveauMotDePasseScreen from './src/screens/auth/NouveauMotDePasseScreen';
@@ -88,6 +89,7 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   // Fichiers du carnet ouverts à la session précédente (cache privé, L6) : effacés au démarrage.
   useEffect(() => {
     viderFichiersOuverts();
+    viderExport();
   }, []);
 
   useEffect(() => {
