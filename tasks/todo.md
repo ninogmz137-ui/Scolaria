@@ -47,6 +47,7 @@
 
 ### BLOQUANT avant toute famille réelle
 - [ ] **PDF / fichiers du carnet : jamais de copie dans un dossier public** (constat Redmi 26 sept : « Voir le fichier » ouvrait l'URL signée dans Chrome, qui téléchargeait le document dans les Téléchargements publics). Télécharger dans le stockage PRIVÉ de l'app, ouvrir avec la visionneuse du système (intent), sans aucune copie publique.
+- [x] (28 sept) **M24 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-09-28_avant_M24, essai à blanc M24 seule, advisors : 0 ERROR, +1 WARN attendu `mes_invitations` exécutable par authenticated) ; **invitation-responsable DÉPLOYÉE** (appel sans compte → 401 ; sans secrets Brevo → « email non configuré », l'app le dit). Variables EAS development + preview → Paris (URL + clé publique), production vide ; build de dev Android lancé (7b1d3f58).
 - [ ] **L7a EFFACEMENT (28 sept) : code FAIT, local seulement.** M25 `20260928100000_m25_effacement_differe.sql` (24/24 `supabase/tests/m25_effacement_differe.sql`, inverse testé), Edge Function `executer-effacements` (`npm run test:effacement-local` 18/18), écran Effacement réel + écran bloquant « compte en cours d'effacement ». **Pour Paris (sur validation)** : sauvegarde → M25 → `functions deploy executer-effacements --no-verify-jwt` (région Paris) → tâche quotidienne (TOI : clé service dans le Vault ; MOI : le reste) :
   ```sql
   create extension if not exists pg_cron; create extension if not exists pg_net;
