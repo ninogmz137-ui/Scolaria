@@ -25,6 +25,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false, // Not needed in React Native
+    // Flux PKCE (L3) : les liens des emails renvoient un `code` échangé dans l'app (LiensAuthRouteur).
+    flowType: 'pkce',
   },
 });
 

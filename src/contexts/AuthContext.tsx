@@ -15,6 +15,7 @@ import { Linking, Platform } from 'react-native';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { ENV } from '../services/getEnv';
+import { urlRetourAuth } from '../services/liensAuthApp';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -198,7 +199,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { family_name: familyName, role: 'parent' } },
+      // Le lien de confirmation revient dans l'app (L3 : LiensAuthRouteur échange le code).
+      options: { data: { family_name: familyName, role: 'parent' }, emailRedirectTo: urlRetourAuth() },
     });
     if (error) throw error;
   };

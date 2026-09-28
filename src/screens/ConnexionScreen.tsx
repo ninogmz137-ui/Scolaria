@@ -184,7 +184,7 @@ export default function ConnexionScreen() {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => {}}
+          onPress={() => navigation.navigate('MotDePasseOublie')}
           style={styles.forgotWrap}
           accessibilityRole="button"
         >

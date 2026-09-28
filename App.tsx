@@ -34,6 +34,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NotificationsRouteur from './src/components/NotificationsRouteur';
 import { viderFichiersOuverts } from './src/services/ouvertureFichier';
+import LiensAuthRouteur from './src/components/LiensAuthRouteur';
+import MotDePasseOublieScreen from './src/screens/auth/MotDePasseOublieScreen';
+import NouveauMotDePasseScreen from './src/screens/auth/NouveauMotDePasseScreen';
 
 // Prevent native splash from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -41,6 +44,8 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
 type RootStackParamList = {
   Login: undefined;
   Connexion: undefined;
+  MotDePasseOublie: undefined;
+  NouveauMotDePasse: undefined;
   Inscription: undefined;
   Pin: undefined;
   MainPager: undefined;
@@ -136,10 +141,14 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
     <>
     {/* Appui sur une notification → l'élément exact, dans le carnet du bon enfant (B4a). */}
     <NotificationsRouteur />
+    {/* Liens des emails (confirmation, mot de passe oublié) → l'app (L3). */}
+    <LiensAuthRouteur />
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {/* ── Auth ── */}
       <RootStack.Screen name="Login" component={LoginScreen} />
       <RootStack.Screen name="Connexion" component={ConnexionScreen} />
+      <RootStack.Screen name="MotDePasseOublie" component={MotDePasseOublieScreen} />
+      <RootStack.Screen name="NouveauMotDePasse" component={NouveauMotDePasseScreen} />
       <RootStack.Screen name="Inscription" component={InscriptionScreen} />
       <RootStack.Screen name="Pin" component={PinScreen as any} />
 
