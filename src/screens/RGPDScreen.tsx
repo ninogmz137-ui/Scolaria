@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Shield,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react-native';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { Colors, SCREEN_BACKGROUND } from '../constants/colors';
@@ -22,8 +23,14 @@ const RGPD_ITEMS = [
     sublabel: 'Qui a accès au carnet de l’enfant',
     screen: 'PermissionsRGPD',
   },
-  // Code de transfert, export intégral, droit à l'effacement : MASQUÉS tant qu'ils ne fonctionnent
-  // pas réellement (constat du 26 sept 2026 : écrans factices, aucun fichier, aucune suppression).
+  {
+    Icon: Trash2,
+    label: 'Effacer des données',
+    sublabel: 'Un carnet ou votre compte, annulable 30 jours',
+    screen: 'Effacement',
+  },
+  // Code de transfert, export intégral : MASQUÉS tant qu'ils ne fonctionnent pas réellement (constat du
+  // 26 sept 2026 : écrans factices). Effacement : réel depuis L7 (M25).
 ] as const;
 
 export default function RGPDScreen({ navigation }: { navigation: any }) {

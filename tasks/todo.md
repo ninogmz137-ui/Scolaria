@@ -47,8 +47,22 @@
 
 ### BLOQUANT avant toute famille réelle
 - [ ] **PDF / fichiers du carnet : jamais de copie dans un dossier public** (constat Redmi 26 sept : « Voir le fichier » ouvrait l'URL signée dans Chrome, qui téléchargeait le document dans les Téléchargements publics). Télécharger dans le stockage PRIVÉ de l'app, ouvrir avec la visionneuse du système (intent), sans aucune copie publique.
+- [ ] **L7a EFFACEMENT (28 sept) : code FAIT, local seulement.** M25 `20260928100000_m25_effacement_differe.sql` (24/24 `supabase/tests/m25_effacement_differe.sql`, inverse testé), Edge Function `executer-effacements` (`npm run test:effacement-local` 18/18), écran Effacement réel + écran bloquant « compte en cours d'effacement ». **Pour Paris (sur validation)** : sauvegarde → M25 → `functions deploy executer-effacements --no-verify-jwt` (région Paris) → tâche quotidienne (TOI : clé service dans le Vault ; MOI : le reste) :
+  ```sql
+  create extension if not exists pg_cron; create extension if not exists pg_net;
+  -- par toi, dans le SQL editor : select vault.create_secret('<clé service_role>', 'cle_service_effacements');
+  select cron.schedule('executer-effacements', '30 3 * * *', $$
+    select net.http_post(
+      url := 'https://nmizwmymhqleasnxcyvu.supabase.co/functions/v1/executer-effacements',
+      headers := jsonb_build_object('Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cle_service_effacements')),
+      timeout_milliseconds := 60000);
+  $$);
+  ```
+  Puis test sur Paris avec un enfant de test créé pour l'occasion (échéance avancée à la main).
+  **Questions ouvertes (effacement d'un compte, comportement actuel = tout ce qui est à lui part)** : (1) ses ajouts « foyer » au carnet d'un enfant GARDÉ par l'autre responsable sont effacés (FK ajoute_par CASCADE) — ou les garder ? (2) ses signatures et réponses aux mots sont effacées → le mot peut redevenir « à signer » côté école — ou les garder ? (3) ses messages dans un fil « foyer » sont effacés. (4) Côté enseignant, un enfant en cours d'effacement reste visible dans sa classe jusqu'à l'exécution. (5) Compte enseignant : effacement pas encore possible dans l'app (mots et classes à traiter à part).
+- [ ] **Bouton « Me retirer de ce carnet »** (responsable parmi plusieurs) : la règle existe côté serveur (M2e, responsables_delete_self ; M25 supprime alors ses ajouts privés) mais AUCUN bouton dans l'app. L'écran Effacement ne le promet pas.
 - [ ] **Rendre RÉELS l'export et l'effacement (droits RGPD)** — écrans MASQUÉS le 26 sept 2026 (factices). Export = vrai fichier (JSON + PDF) avec les vraies données du carnet, fichiers du bucket compris. Effacement = vraie suppression en cascade, fichiers du bucket « carnet » compris (via l'API Storage), sous 30 jours. Code de transfert : masqué aussi, à concevoir (aucun mécanisme). Tables deletion_requests / export_history / transfer_codes / access_journal existent sans usage réel.
-- [ ] **Nettoyage des fichiers orphelins du bucket « carnet »** (tâche SERVEUR via l'API Storage — jamais de DELETE SQL direct, storage.protect_delete l'interdit à raison) déclenché par : la suppression d'un enfant (tous ses fichiers), la suppression d'un élément (son fichier, si l'app n'a pas pu le supprimer), le départ d'un responsable (ses éléments PRIVÉS et leurs fichiers). Test : après suppression d'un enfant, plus aucun fichier sous `<child_id>/` dans le bucket.
+- [~] **Nettoyage des fichiers orphelins du bucket « carnet »** — FAIT en local (L7a : fichiers_orphelins > 1 jour, Edge Function quotidienne ; départ d'un responsable → ses ajouts privés supprimés par déclencheur) ; reste l'application à Paris. (tâche SERVEUR via l'API Storage — jamais de DELETE SQL direct, storage.protect_delete l'interdit à raison) déclenché par : la suppression d'un enfant (tous ses fichiers), la suppression d'un élément (son fichier, si l'app n'a pas pu le supprimer), le départ d'un responsable (ses éléments PRIVÉS et leurs fichiers). Test : après suppression d'un enfant, plus aucun fichier sous `<child_id>/` dans le bucket.
 - [ ] **Lot « Emails et liens Auth »** (un seul lot) :
   - Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement) ;
   - modèles d'email en français : confirmation, invitation, réinitialisation, changement d'email (aujourd'hui : textes Supabase par défaut, en anglais) ;

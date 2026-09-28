@@ -1,485 +1,226 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Animated, Alert } from 'react-native';
-import {
-  Trash2,
-  Check,
-  ArrowRight,
-  ArrowLeft,
-  AlertTriangle,
-  Info,
-  Mail,
-  ArrowDown,
-  X,
-  User,
-  Calendar,
-  Camera,
-  Heart,
-  Lock,
-  Home,
-} from 'lucide-react-native';
-import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
+/**
+ * EffacementScreen — droit à l'effacement, RÉEL (L7, M25, décision D6).
+ *
+ * - Effacer le carnet de l'enfant affiché : seulement si vous êtes son unique responsable (M2e). Le bouton
+ *   « me retirer de ce carnet » n'existe pas encore dans l'app (todo) : l'écran ne le promet pas.
+ * - Effacer mon compte : aperçu des carnets effacés (seul responsable) / gardés (autre responsable).
+ * - Effacement 30 jours après la demande, annulable jusque-là ; invisible dès la demande.
+ * - L'exécution est faite par le serveur (Edge Function « executer-effacements ») : l'app ne supprime rien
+ *   elle-même.
+ * Remplace l'écran factice (fausses quantités, « exécution sous 72 h », demande que rien ne traitait).
+ */
+
+import { useCallback, useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
-import { FontFamily } from '../../hooks/useSolariaFonts';
-import { createDeletionRequest, cancelDeletionRequest, getDeletionRequests } from '../../services/rgpdService';
-import GlassCard from '../../components/GlassCard';
-import RgpdHero from '../../components/rgpd/RgpdHero';
-import RgpdSectionLabel from '../../components/rgpd/RgpdSectionLabel';
-import { ARIA_INDIGO } from '../../constants/theme';
-import GradientButton from '../../components/shared/GradientButton';
+import { Trash2, UserX, RotateCcw } from 'lucide-react-native';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
-import { Text, TextInput, Pressable } from '../../components/ui';
-import ScolariaSymbol from '../../components/ScolariaSymbol';
+import { DeepGroup, DeepRow, DEEP } from '../../components/DeepList';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { getResponsablesEnfant } from '../../services/database';
+import {
+  mesEffacements,
+  apercuEffacementCompte,
+  demanderEffacementEnfant,
+  demanderEffacementCompte,
+  annulerEffacement,
+  dateEffacement,
+  type Effacement,
+} from '../../services/effacement';
+import { FontFamily } from '../../hooks/useSolariaFonts';
+import { Text } from '../../components/ui';
+import { de } from '../../utils/francais';
 
-// ─── Types ────────────────────────────────────────────────
-
-interface DeletionStep {
-  id: number;
-  title: string;
-  description: string;
-  Icon: React.ComponentType<{ size?: number; color?: string }>;
-  completed: boolean;
-}
-
-interface DataCategory {
-  name: string;
-  Icon: React.ComponentType<{ size?: number; color?: string }>;
-  count: string;
-  color: string;
-}
-
-// ─── Component ────────────────────────────────────────────
+const MESSAGE_ERREUR: Record<string, string> = {
+  plusieurs_responsables: 'Ce carnet a plusieurs responsables : il ne peut être effacé que par son unique responsable.',
+  compte_non_famille: 'L’effacement d’un compte enseignant n’est pas encore disponible dans l’app.',
+  deja_demande: 'Un effacement est déjà demandé.',
+  indisponible: 'La demande n’a pas pu être enregistrée. Réessayez.',
+};
 
 export default function EffacementScreen() {
   const insets = useSafeAreaInsets();
-  const { isDemo } = useAuth();
-  const { children: enfants } = useActiveChild();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [confirmEmail, setConfirmEmail] = useState('');
-  const [confirmText, setConfirmText] = useState('');
-  const [selectedChild, setSelectedChild] = useState<string | null>(null);
-  const [requestSent, setRequestSent] = useState(false);
-  const [requestId, setRequestId] = useState<string | null>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const shakeAnim = useRef(new Animated.Value(0)).current;
+  const { isDemo, role } = useAuth();
+  const { selectedChild, reloadChildren } = useActiveChild();
+  const prenom = selectedChild?.name?.split(' ')[0] ?? '';
 
-  const loadExistingRequests = useCallback(async () => {
-    const requests = await getDeletionRequests();
-    const pending = requests.find((r) => r.status === 'pending' || r.status === 'confirmed');
-    if (pending) {
-      setRequestSent(true);
-      setRequestId(pending.id);
-      setCurrentStep(4);
+  const [demandes, setDemandes] = useState<Effacement[]>([]);
+  const [nbResponsables, setNbResponsables] = useState<number | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+
+  const charger = useCallback(async () => {
+    if (isDemo) {
+      setNbResponsables(2); // démo : chaque enfant a deux responsables (vous + Marc / Julien)
+      return;
     }
-  }, []);
+    setDemandes(await mesEffacements());
+    if (selectedChild?.id) {
+      const { data } = await getResponsablesEnfant(selectedChild.id);
+      setNbResponsables(data.length);
+    }
+  }, [isDemo, selectedChild?.id]);
 
   useEffect(() => {
-    loadExistingRequests();
-    Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, []);
+    charger();
+  }, [charger]);
 
-  const CHILDREN = [
-    ...enfants.map((c) => ({ id: c.id, name: c.name, avatar: '', classe: c.classe })),
-    { id: 'all', name: 'Compte entier', avatar: '', classe: 'Suppression totale du compte famille' },
-  ];
+  const demo = () => Alert.alert('Mode démo', 'Rien n’est effacé en mode démo.');
 
-  const DATA_CATEGORIES: DataCategory[] = [
-    { name: 'Notes & bulletins', Icon: Check, count: '47 notes, 3 bulletins', color: ARIA_INDIGO },
-    { name: 'Agenda & événements', Icon: Calendar, count: '156 événements', color: ARIA_INDIGO },
-    { name: 'Ressenti & bien-être', Icon: Heart, count: '89 check-ins', color: ARIA_INDIGO },
-    { name: 'Profil & compétences', Icon: User, count: '5 compétences, 5 activités', color: ARIA_INDIGO },
-    { name: 'Photos & médias', Icon: Camera, count: '24 photos', color: ARIA_INDIGO },
-    { name: 'Conversations Aria', Icon: ScolariaSymbol, count: '34 conversations', color: ARIA_INDIGO },
-    { name: 'Permissions & partages', Icon: Lock, count: '5 personnes', color: ARIA_INDIGO },
-  ];
-
-  const STEPS: DeletionStep[] = [
-    { id: 1, title: 'Sélection', description: 'Choisissez le profil à supprimer', Icon: User, completed: currentStep > 0 },
-    { id: 2, title: 'Aperçu', description: 'Vérifiez les données concernées', Icon: Info, completed: currentStep > 1 },
-    { id: 3, title: 'Confirmation', description: 'Confirmez par email', Icon: Mail, completed: currentStep > 2 },
-    { id: 4, title: 'Suppression', description: 'Exécution sous 72h', Icon: Trash2, completed: requestSent },
-  ];
-
-  const initials = (fullName: string) => {
-    const parts = fullName.trim().split(/\s+/).filter(Boolean);
-    const first = parts[0]?.[0] ?? '';
-    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
-    return (first + last).toUpperCase();
-  };
-
-  const shakeError = () => {
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 10, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const handleSubmitRequest = () => {
-    if (confirmEmail !== 'moreau.famille@email.fr') {
-      shakeError();
-      Alert.alert('Email incorrect', 'L\'email ne correspond pas à celui du compte.');
-      return;
-    }
-    if (confirmText !== 'SUPPRIMER') {
-      shakeError();
-      Alert.alert('Confirmation requise', 'Veuillez saisir SUPPRIMER en majuscules.');
-      return;
-    }
-
+  const effacerCarnet = () => {
+    if (isDemo) return demo();
+    if (!selectedChild) return;
     Alert.alert(
-      'Dernière confirmation',
-      'Cette action est IRRÉVERSIBLE. Un email de confirmation vous sera envoyé. La suppression sera effective sous 72 heures.\n\nVoulez-vous continuer ?',
+      `Effacer le carnet ${de(prenom)} ?`,
+      `Tout le carnet ${de(prenom)} sera effacé dans 30 jours : années, mots, souvenirs, livrets, photos et documents. ` +
+        `Il disparaît de l’app dès maintenant. Vous pourrez annuler pendant 30 jours.`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Confirmer la suppression',
+          text: 'Effacer',
           style: 'destructive',
           onPress: async () => {
-            const result = await createDeletionRequest({
-              child_id: selectedChild === 'all' ? null : selectedChild,
-              scope: selectedChild === 'all' ? 'account' : 'child',
-              confirm_email: confirmEmail,
-            });
-            if (result) setRequestId(result.id);
-            setRequestSent(true);
-            setCurrentStep(4);
+            setEnvoi(true);
+            const r = await demanderEffacementEnfant(selectedChild.id);
+            setEnvoi(false);
+            if (r.erreur) return Alert.alert('Effacement', MESSAGE_ERREUR[r.erreur]);
+            await reloadChildren();
+            Alert.alert(
+              'Effacement demandé',
+              `Le carnet ${de(prenom)} sera effacé le ${dateEffacement(r.executionLe)}. D’ici là, vous pouvez annuler depuis cet écran.`,
+            );
+            charger();
           },
         },
-      ]
+      ],
     );
   };
 
+  const effacerCompte = async () => {
+    if (isDemo) return demo();
+    const apercu = await apercuEffacementCompte();
+    if (!apercu) return Alert.alert('Effacement', MESSAGE_ERREUR.indisponible);
+    const effaces = apercu.filter((a) => a.carnet_efface).map((a) => a.prenom_enfant);
+    const gardes = apercu.filter((a) => !a.carnet_efface).map((a) => a.prenom_enfant);
+    const lignes = [
+      effaces.length ? `Carnets effacés (vous en êtes le seul responsable) : ${effaces.join(', ')}.` : '',
+      gardes.length ? `Carnets gardés par l’autre responsable : ${gardes.join(', ')}.` : '',
+      'Vos ajouts au carnet (y compris ceux partagés avec le foyer), vos signatures et réponses aux mots, vos conversations Aria et vos messages seront effacés.',
+      'Votre compte est désactivé dès maintenant et effacé dans 30 jours. Vous pourrez annuler jusque-là.',
+    ].filter(Boolean);
+    Alert.alert('Effacer votre compte ?', lignes.join('\n\n'), [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Effacer mon compte',
+        style: 'destructive',
+        onPress: async () => {
+          setEnvoi(true);
+          const r = await demanderEffacementCompte();
+          setEnvoi(false);
+          if (r.erreur) return Alert.alert('Effacement', MESSAGE_ERREUR[r.erreur]);
+          // L'écran « compte en cours d'effacement » prend le relais (surChangementEffacement).
+        },
+      },
+    ]);
+  };
+
+  const annuler = (d: Effacement) =>
+    Alert.alert(
+      'Annuler l’effacement ?',
+      d.portee === 'enfant' ? `Le carnet ${de(d.prenom_enfant ?? '')} redeviendra visible, intact.` : 'Votre compte sera réactivé, intact.',
+      [
+        { text: 'Non', style: 'cancel' },
+        {
+          text: 'Annuler l’effacement',
+          onPress: async () => {
+            const ok = await annulerEffacement(d.demande_id);
+            if (!ok) return Alert.alert('Effacement', MESSAGE_ERREUR.indisponible);
+            await reloadChildren();
+            charger();
+          },
+        },
+      ],
+    );
+
+  const demandesEnfant = demandes.filter((d) => d.portee === 'enfant');
+  const famille = isDemo || role === 'parent';
+
   return (
     <RgpdBottomSheet>
-      <Animated.View style={{ opacity: fadeAnim }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingTop: 56,
-            paddingBottom: getBottomBarScrollPadding(insets.bottom),
-            paddingHorizontal: 18,
-          }}
-        >
-          <RgpdHero
-            Icon={AlertTriangle}
-            title="Droit à l’effacement"
-            subtitle="Article 17 — suppression définitive et irréversible des données personnelles sélectionnées."
-          />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 56, paddingBottom: insets.bottom + 24 }}
+      >
+        <Text style={st.title}>Effacer des données</Text>
+        <Text style={st.subtitle}>
+          L’effacement a lieu 30 jours après votre demande. Les données disparaissent de l’app dès la demande, et vous
+          pouvez annuler pendant ces 30 jours.
+        </Text>
 
-          {/* Steps progress */}
-          <GlassCard style={[styles.cardBorder, { marginTop: 14, marginBottom: 24 }]}>
-            <View style={[styles.stepsRow, { marginBottom: 0 }]}>
-              {STEPS.map((step, i) => (
-                <View key={step.id} style={styles.stepItem}>
-                  <View
-                    style={[
-                      styles.stepCircle,
-                      step.completed && { backgroundColor: ARIA_INDIGO, borderColor: ARIA_INDIGO },
-                      currentStep === i && !step.completed && { backgroundColor: ARIA_INDIGO, borderColor: ARIA_INDIGO },
-                    ]}
-                  >
-                    {step.completed ? (
-                      <Check size={14} color="#fff" />
-                    ) : (
-                      <Text style={[styles.stepNum, { color: currentStep === i ? '#fff' : Colors.textMuted }]}>{step.id}</Text>
-                    )}
-                  </View>
-                  <Text style={[styles.stepLabel, { color: currentStep >= i ? Colors.textPrimary : Colors.textMuted }]}>
-                    {step.title}
-                  </Text>
-                  {i < STEPS.length - 1 && (
-                    <View style={[styles.stepConnector, { backgroundColor: step.completed ? ARIA_INDIGO : '#E2E8F0' }]} />
-                  )}
-                </View>
-              ))}
-            </View>
-          </GlassCard>
+        {demandesEnfant.length > 0 && (
+          <DeepGroup title="Effacements demandés" first>
+            {demandesEnfant.map((d, i) => (
+              <DeepRow
+                key={d.demande_id}
+                icon={<RotateCcw size={20} color={DEEP.indigo} strokeWidth={2} />}
+                label={`Carnet ${de(d.prenom_enfant ?? '')}`}
+                description={`Effacé le ${dateEffacement(d.execution_prevue_le)} · toucher pour annuler`}
+                accent
+                last={i === demandesEnfant.length - 1}
+                onPress={() => annuler(d)}
+              />
+            ))}
+          </DeepGroup>
+        )}
 
-          {/* Step 1: Select child */}
-          {currentStep === 0 && (
-            <View>
-              <RgpdSectionLabel style={{ marginBottom: 10 }}>Sélection</RgpdSectionLabel>
-              <Text style={[styles.stepHeading, { marginBottom: 12 }]}>Quel profil supprimer ?</Text>
-              <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 14 }]}>
-                {CHILDREN.map((child, i) => (
-                  <Pressable
-                    key={child.id}
-                    style={[
-                      styles.childRow,
-                      i < CHILDREN.length - 1 && styles.rowBorder,
-                      selectedChild === child.id && { backgroundColor: 'rgba(67,56,202,0.05)' },
-                    ]}
-                    onPress={() => setSelectedChild(child.id)}
-                  >
-                    <View style={[styles.childAvatar, { backgroundColor: 'rgba(255,255,255,0.92)' }]}>
-                      {child.id === 'all' ? (
-                        <Home size={18} color={Colors.textPrimary} />
-                      ) : (
-                        <Text style={styles.childAvatarText}>{initials(child.name)}</Text>
-                      )}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.personName}>{child.name}</Text>
-                      <Text style={styles.personRole}>{child.classe}</Text>
-                    </View>
-                    <View style={[styles.radioOuter, { borderColor: selectedChild === child.id ? ARIA_INDIGO : '#CBD5E1' }]}>
-                      {selectedChild === child.id && (
-                        <View style={[styles.radioInner, { backgroundColor: ARIA_INDIGO }]} />
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </GlassCard>
-              <Pressable
-                onPress={() => selectedChild && setCurrentStep(1)}
-                disabled={!selectedChild}
-                style={({ pressed }) => [
-                  styles.darkBtn,
-                  (!selectedChild || pressed) && { opacity: !selectedChild ? 0.45 : 0.9 },
-                ]}
-              >
-                <Text style={styles.darkBtnText}>Suivant</Text>
-                <ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />
-              </Pressable>
-            </View>
+        {famille && selectedChild && (
+          <DeepGroup title={`Carnet ${de(prenom)}`} first={demandesEnfant.length === 0}>
+            {nbResponsables === 1 ? (
+              <DeepRow
+                icon={<Trash2 size={20} color="#EF4444" strokeWidth={2} />}
+                label={`Effacer le carnet ${de(prenom)}`}
+                description="Vous en êtes le seul responsable"
+                danger
+                last
+                onPress={envoi ? undefined : effacerCarnet}
+              />
+            ) : (
+              <DeepRow
+                label={nbResponsables === null ? 'Chargement…' : `Le carnet ${de(prenom)} a ${nbResponsables} responsables`}
+                description={nbResponsables === null ? undefined : 'Un carnet ne peut être effacé que par son unique responsable.'}
+                last
+              />
+            )}
+          </DeepGroup>
+        )}
+
+        <DeepGroup title="Mon compte">
+          {famille ? (
+            <DeepRow
+              icon={<UserX size={20} color="#EF4444" strokeWidth={2} />}
+              label="Effacer mon compte"
+              description="Désactivé tout de suite, effacé dans 30 jours"
+              danger
+              last
+              onPress={envoi ? undefined : effacerCompte}
+            />
+          ) : (
+            <DeepRow label="Effacement du compte" description={MESSAGE_ERREUR.compte_non_famille} last />
           )}
-
-          {/* Step 2: Data preview */}
-          {currentStep === 1 && (
-            <View>
-              <RgpdSectionLabel style={{ marginBottom: 10 }}>Aperçu</RgpdSectionLabel>
-              <Text style={[styles.stepHeading, { marginBottom: 4 }]}>Données qui seront supprimées</Text>
-              <Text style={styles.stepSubheading}>Toutes les données suivantes seront définitivement effacées :</Text>
-
-              <GlassCard noPadding style={[styles.cardBorder, { marginBottom: 14 }]}>
-                {DATA_CATEGORIES.map((cat, i) => (
-                  <View
-                    key={cat.name}
-                    style={[styles.catRow, i < DATA_CATEGORIES.length - 1 && styles.rowBorder]}
-                  >
-                    <View style={[styles.catIcon, { backgroundColor: cat.color + '20' }]}>
-                      <cat.Icon size={18} color={cat.color} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.personName}>{cat.name}</Text>
-                      {isDemo && <Text style={styles.personRole}>{cat.count}</Text>}
-                    </View>
-                    <Trash2 size={16} color={Colors.red + '80'} />
-                  </View>
-                ))}
-              </GlassCard>
-
-              {/* Export suggestion */}
-              <GlassCard style={[styles.cardBorder, { borderColor: 'rgba(67,56,202,0.16)', marginBottom: 14 }]}>
-                <View style={styles.infoRow}>
-                  <ArrowDown size={20} color={ARIA_INDIGO} />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.personName}>Exporter avant de supprimer</Text>
-                    <Text style={styles.personRole}>Téléchargez une copie JSON + PDF avant la suppression.</Text>
-                  </View>
-                </View>
-              </GlassCard>
-
-              <View style={styles.navRow}>
-                <Pressable style={styles.backBtn} onPress={() => setCurrentStep(0)}>
-                  <ArrowLeft size={18} color="#1A2340" />
-                  <Text style={styles.backBtnText}>Retour</Text>
-                </Pressable>
-                <View style={{ flex: 1 }}>
-                  <Pressable
-                    onPress={() => setCurrentStep(2)}
-                    style={({ pressed }) => [styles.darkBtn, pressed && { opacity: 0.9 }]}
-                  >
-                    <Text style={styles.darkBtnText}>Continuer</Text>
-                    <ArrowRight size={18} color="#FFFFFF" strokeWidth={2} />
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Step 3: Email confirmation */}
-          {currentStep === 2 && (
-            <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
-              <RgpdSectionLabel style={{ marginBottom: 10 }}>Confirmation</RgpdSectionLabel>
-              <Text style={[styles.stepHeading, { marginBottom: 4 }]}>Confirmation de suppression</Text>
-              <Text style={[styles.stepSubheading, { marginBottom: 16 }]}>
-                Pour des raisons de sécurité, confirmez votre identité.
-              </Text>
-
-              {/* Email input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email du compte</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="votre@email.fr"
-                  placeholderTextColor="#CBD5E1"
-                  value={confirmEmail}
-                  onChangeText={setConfirmEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Confirm text */}
-              <View style={[styles.inputGroup, { marginBottom: 14 }]}>
-                <Text style={styles.inputLabel}>
-                  Tapez{' '}
-                  <Text style={{ color: Colors.red, fontFamily: FontFamily.sansBold }}>SUPPRIMER</Text>
-                  {' '}pour confirmer
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="SUPPRIMER"
-                  placeholderTextColor="#CBD5E1"
-                  value={confirmText}
-                  onChangeText={setConfirmText}
-                  autoCapitalize="characters"
-                />
-              </View>
-
-
-              <View style={styles.navRow}>
-                <Pressable style={styles.backBtn} onPress={() => setCurrentStep(1)}>
-                  <ArrowLeft size={18} color="#1A2340" />
-                  <Text style={styles.backBtnText}>Retour</Text>
-                </Pressable>
-                <View style={{ flex: 1 }}>
-                  <GradientButton
-                    label="Demander la suppression"
-                    variant="destructive"
-                    onPress={handleSubmitRequest}
-                    leftIcon={<Trash2 size={18} color={Colors.red} strokeWidth={2} />}
-                  />
-                </View>
-              </View>
-            </Animated.View>
-          )}
-
-          {/* Step 4: Confirmation sent */}
-          {currentStep === 4 && requestSent && (
-            <View style={styles.successState}>
-              <View style={[styles.successIcon, { backgroundColor: Colors.cyan + '15' }]}>
-                <Mail size={40} color={Colors.cyan} />
-              </View>
-              <Text style={styles.successTitle}>Demande envoyée</Text>
-              <Text style={styles.successSubtitle}>
-                Un email de confirmation a été envoyé à{'\n'}
-                <Text style={{ color: Colors.cyan, fontFamily: FontFamily.sansBold }}>moreau.famille@email.fr</Text>
-              </Text>
-
-              <GlassCard style={[styles.cardBorder, { width: '100%', marginBottom: 20 }]}>
-                {[
-                  { color: Colors.green, label: 'Demande reçue', sub: 'Maintenant' },
-                  { color: Colors.orange, label: 'Email de confirmation', sub: 'Dans quelques minutes' },
-                  { color: Colors.violet, label: 'Période d\'annulation (48h)', sub: 'Vous pouvez encore annuler' },
-                  { color: Colors.red, label: 'Suppression définitive', sub: 'Sous 72 heures' },
-                ].map((item, i) => (
-                  <View key={i}>
-                    <View style={styles.timelineRow}>
-                      <View style={[styles.timelineDot, { backgroundColor: item.color }]} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.personName}>{item.label}</Text>
-                        <Text style={styles.personRole}>{item.sub}</Text>
-                      </View>
-                    </View>
-                    {i < 3 && (
-                      <View style={[styles.timelineLine, { borderLeftColor: '#E2E8F0' }]} />
-                    )}
-                  </View>
-                ))}
-              </GlassCard>
-
-              <Pressable
-                style={[styles.cancelBtn, { borderColor: ARIA_INDIGO }]}
-                onPress={async () => {
-                  if (requestId) await cancelDeletionRequest(requestId);
-                  Alert.alert('Annulation', 'Demande de suppression annulée avec succès.');
-                  setRequestSent(false);
-                  setRequestId(null);
-                  setCurrentStep(0);
-                  setConfirmEmail('');
-                  setConfirmText('');
-                  setSelectedChild(null);
-                }}
-              >
-                <X size={18} color={ARIA_INDIGO} />
-                <Text style={[styles.cancelBtnText, { color: ARIA_INDIGO }]}>Annuler la demande</Text>
-              </Pressable>
-            </View>
-          )}
-        </ScrollView>
-      </Animated.View>
+        </DeepGroup>
+      </ScrollView>
     </RgpdBottomSheet>
   );
 }
 
-const styles = StyleSheet.create({
-  cardBorder: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.cardBorder,
-  },
-  infoRow: { flexDirection: 'row', alignItems: 'center' },
-  stepsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, marginBottom: 24 },
-  stepItem: { alignItems: 'center', flex: 1, position: 'relative' },
-  stepCircle: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center', marginBottom: 4, backgroundColor: 'transparent' },
-  stepNum: { fontFamily: FontFamily.sansBold, fontSize: 12 },
-  stepLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 10, textAlign: 'center' },
-  stepConnector: { position: 'absolute', top: 14, left: '60%', right: '-40%', height: 2 },
-  stepHeading: { fontFamily: FontFamily.sansBold, fontSize: 18, color: '#1A2340' },
-  stepSubheading: { fontFamily: FontFamily.sansRegular, fontSize: 13, color: '#94A3B8', marginBottom: 14, lineHeight: 19 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  childRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  childAvatar: { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(67,56,202,0.14)' },
-  childAvatarText: { fontFamily: FontFamily.sansBold, fontSize: 14, color: Colors.textPrimary },
-  personName: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: Colors.textPrimary },
-  personRole: { fontFamily: FontFamily.sansRegular, fontSize: 12, color: Colors.textSecondary, marginTop: 1 },
-  radioOuter: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 12, height: 12, borderRadius: 6 },
-  navRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  backBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 20, paddingVertical: 16, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
-  backBtnText: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, color: '#1A2340' },
-  catRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
-  catIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  inputGroup: { marginBottom: 14 },
-  inputLabel: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#1A2340', marginBottom: 8 },
-  input: {
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    fontSize: 16,
+const st = StyleSheet.create({
+  title: { fontFamily: FontFamily.sansBold, fontSize: 20, lineHeight: 26, color: DEEP.navy, paddingHorizontal: 16 },
+  subtitle: {
     fontFamily: FontFamily.sansRegular,
-    backgroundColor: '#F8FAFC',
-    color: '#1A2340',
-    borderColor: '#E2E8F0',
-  },
-  noticeText: { fontFamily: FontFamily.sansRegular, fontSize: 11.5, lineHeight: 16, color: Colors.textSecondary },
-  successState: { alignItems: 'center', paddingTop: 8 },
-  successIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  successTitle: { fontFamily: FontFamily.sansBold, fontSize: 22, color: '#1A2340', marginBottom: 8 },
-  successSubtitle: { fontFamily: FontFamily.sansRegular, fontSize: 14, color: '#94A3B8', textAlign: 'center', lineHeight: 20, marginBottom: 24 },
-  timelineRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  timelineDot: { width: 12, height: 12, borderRadius: 6 },
-  timelineLine: { marginLeft: 5, height: 24, borderLeftWidth: 2 },
-  cancelBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5 },
-  cancelBtnText: { fontFamily: FontFamily.sansBold, fontSize: 15 },
-  darkBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: '#0F172A',
-    paddingVertical: 16,
-    borderRadius: 14,
-  },
-  darkBtnText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 15,
-    color: '#FFFFFF',
+    fontSize: 13,
+    lineHeight: 18,
+    color: DEEP.text55,
+    paddingHorizontal: 16,
+    marginTop: 6,
   },
 });

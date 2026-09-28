@@ -24,6 +24,7 @@ import {
   Moon,
   Mic,
   Shield,
+  Trash2,
   Info,
   LogOut,
   Wrench,
@@ -284,16 +285,22 @@ export default function FamilleParametresScreen() {
           </DeepGroup>
         )}
 
-        {/* Export et effacement : MASQUÉS tant qu'ils ne produisent pas un vrai fichier / une vraie
-            suppression (constat du 26 sept 2026 : écrans factices). Bloquant avant toute famille réelle (todo). */}
+        {/* Effacement : RÉEL depuis L7 (M25, exécution serveur). Export : masqué tant qu'il ne produit pas
+            un vrai fichier (constat du 26 sept 2026 : écran factice). */}
         {isFamille && (
           <DeepGroup title="Confidentialité & données">
             <DeepRow
               icon={<Shield size={20} color={TEXT55} strokeWidth={2} />}
               label="Autorisations"
               description="Qui a accès au carnet de l’enfant"
-              last
               onPress={() => navigation.navigate('PermissionsRGPD')}
+            />
+            <DeepRow
+              icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}
+              label="Effacer des données"
+              description="Un carnet ou votre compte, annulable 30 jours"
+              last
+              onPress={() => navigation.navigate('Effacement')}
             />
           </DeepGroup>
         )}

@@ -17,7 +17,8 @@
     "test:liens-auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/lienAuth.test.mts",
     "test:liens-auth-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-liens-auth-local.mts",
     "test:email-invitation": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/emailInvitation.test.mts",
-    "test:invitation-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-invitation-local.mts"
+    "test:invitation-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-invitation-local.mts",
+    "test:effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-effacement-local.mts"
   },
   "dependencies": {
     "@expo-google-fonts/figtree": "^0.4.1",

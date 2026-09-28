@@ -69,6 +69,7 @@ import AProposScreen from '../screens/AProposScreen';
 import QuickSearchScreen from '../screens/QuickSearchScreen';
 import AjouterAuCarnetSheet from '../components/AjouterAuCarnetSheet';
 import InvitationsRecues from '../components/InvitationsRecues';
+import CompteEnEffacement from '../components/CompteEnEffacement';
 import { surDemandeAjout, type OngletAjout } from '../services/ouvertureAjout';
 import type { CategorieCarnet } from '../services/carnetService';
 import QuickActionsSheet from '../components/QuickActionsSheet';
@@ -795,6 +796,7 @@ export default function TabNavigator() {
             />
             {/* Invitations reçues par ce compte (L4) : Accepter / Refuser. */}
             <InvitationsRecues />
+            <CompteEnEffacement />
             <AjouterAuCarnetSheet
               visible={carnetDepuis !== null}
               onglet={carnetDepuis ?? 'Accueil'}
