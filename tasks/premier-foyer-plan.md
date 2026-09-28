@@ -278,6 +278,19 @@ Durées = temps de travail estimé, hors attentes externes (DNS, Apple).
 Lancés le 27 sept sans attendre les achats : L3, L4, L6, L7, L10 et le code de L5 (emails testés avec le SMTP par défaut de
 Supabase, qui n'envoie qu'aux membres de l'équipe). Migrations locales, arrêt avant Paris.
 
+**État au 28 sept (code fait, local, rien sur Paris)** :
+| Lot | Commit | Tests | Reste |
+|---|---|---|---|
+| L6 fichiers en privé | ce9f06b | web | vérifier sur appareil (build de dev) |
+| L5 photos / HEIC (code) | f13c7e5, 24b7711 | test:photo 10/10, test:exif | build de dev + ta photo HEIC |
+| L10 Aria info + interrupteur | b5d2f0c | web | — |
+| L3 liens Auth + mot de passe oublié | 8176e64 | 11/11 + local 13/13 | Redirect URLs sur Paris (toi) |
+| L4 invitation (email + acceptation) | 698fcfd | 8/8, M24 7/7, local 12/12 | M24 + fonction sur Paris ; Brevo (après le nom) |
+| L7a effacement différé | 775a17b | M25 24/24, local 18/18 | M25 + fonction + tâche quotidienne sur Paris |
+| L7b export .zip | 2807978 | 11/11, bundle-prod 9/9 | test sur appareil |
+Build de dev Android BLOQUÉ : variables EAS pas sur Paris (preview = ancien projet, development/production vides).
+ARRÊT sur le nom (28 sept) : rien de lié au nom (domaine, Brevo, Apple, EAS iOS, adresses) ; inventaire : tasks/renommage.md.
+
 ## 7. Tes achats et actions, dans l'ordre
 1. ~~Décisions D1 à D10~~ (prises le 27 sept ; D1 en attente de ta vérification INPI).
 2. **Acheter le nom de domaine** (L1).

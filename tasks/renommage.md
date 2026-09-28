@@ -5,12 +5,17 @@
 > En attendant : aucun achat, compte ou configuration lié au nom ; bundle id et nom NON changés.
 
 ## Déjà fait (27 sept)
-- **Textes affichés : une seule constante** `NOM_APP` dans `src/constants/marque.ts`. Tous les textes visibles
+- **Textes affichés : une seule constante** `NOM_APP`, définie dans `supabase/functions/_shared/marque.ts`
+  (source unique pour l'app ET les emails des Edge Functions) ; `src/constants/marque.ts` la ré-exporte. Tous les textes visibles
   l'utilisent : Accueil (« dans … »), Ajouter un enfant (« Identifiant … »), À propos (principe, ©), pied de
   Famille & paramètres, Messages (état vide), Autorisations, Recherche (placeholder), textes de partage du
   super-pouvoir, PDF (logo texte), prompts d'Aria (« l'assistante IA de … ») et intro démo.
 - **Traductions** : le nom est `%{app}` dans les 10 langues ; `t()` l'injecte depuis `NOM_APP`.
 - Règle : **le nouveau code n'écrit jamais le nom en dur** (utiliser `NOM_APP`).
+
+- Depuis le 28 sept, le nouveau code (L3, L4, L7, L10) n'écrit pas le nom : liens `<schéma>://…` lus dans la config,
+  emails et export par `NOM_APP`, archive nommée « carnet-<prénom>-<date>.zip ». Seuls les tests locaux citent le
+  conteneur Docker `supabase_db_Scolaria` (nom dérivé de `project_id` dans `supabase/config.toml`, à renommer avec lui).
 
 → Renommer les TEXTES = changer `NOM_APP`. Le reste ci-dessous est un lot dédié, après le choix du nom.
 
