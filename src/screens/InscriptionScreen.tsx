@@ -208,10 +208,7 @@ export default function InscriptionScreen() {
                 : <Text style={styles.primaryBtnText}>Créer mon compte</Text>}
             </TouchableOpacity>
 
-            <Text style={styles.legal}>
-              En créant un compte, vous acceptez nos conditions d'utilisation
-              et notre politique de confidentialité.
-            </Text>
+            {/* « vous acceptez nos conditions… » RETIRÉ tant que la page D5 n'existe pas (documents inexistants). */}
           </>
         )}
       </ScrollView>

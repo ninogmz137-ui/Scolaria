@@ -63,11 +63,8 @@ export default function LoginScreen() {
         </View>
       </View>
 
-      {/* Legal mentions */}
-      <Text style={[styles.legal, { bottom: insets.bottom + 16 }]}>
-        En continuant, vous acceptez les conditions{'\n'}
-        et la politique de confidentialité.
-      </Text>
+      {/* Mentions légales : RETIRÉES tant que la page « politique de confidentialité / mentions légales »
+          (D5) n'existe pas — le texte renvoyait à des documents inexistants. À remettre avec un lien réel. */}
     </View>
   );
 }
