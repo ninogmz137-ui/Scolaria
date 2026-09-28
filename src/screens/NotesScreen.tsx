@@ -72,6 +72,7 @@ import { getSouvenirsDemo } from '../data/demo/souvenirs';
 import { getAnneesDemo, type AnneeParcours } from '../data/demo/parcours';
 import BoutonAnnee from './suivi/BoutonAnnee';
 import { getAcademicYears } from '../services/database';
+import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -1016,14 +1017,14 @@ function NotesScreenContent() {
     ? [...carnetDemo(selectedChild?.id), ...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
         .sort((a, b) => b.date.localeCompare(a.date))
     : carnetReel;
-  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier (URL signée d’1 h).
+  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier sans copie publique (L6).
+  const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirElement = async (e: ElementCarnet) => {
     if (e.deMoi) {
       navigation.navigate('AjouterAuCarnet', { element: e });
       return;
     }
-    const url = await lienFichier(e, isDemoMode);
-    if (url) Linking.openURL(url);
+    await ouvrirFichierCarnet(e);
   };
   const livrets = carnet.filter((e) => e.categorie === 'livret');
   const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');

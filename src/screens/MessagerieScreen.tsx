@@ -43,6 +43,7 @@ import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type Elem
 import { demanderAjoutCarnet } from '../services/ouvertureAjout';
 import { de } from '../utils/francais';
 import { NOM_APP } from '../constants/marque';
+import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
@@ -165,13 +166,13 @@ function MessagerieContenu() {
   };
   const ouvrirMot = (m: MotCarnet) =>
     navigation.navigate('MotDetailScreen', { motId: m.id, childId: m.childId, expediteur: m.expediteur });
+  const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirImport = async (e: ElementCarnet) => {
     if (e.deMoi) {
       navigation.navigate('AjouterAuCarnet', { element: e });
       return;
     }
-    const url = await lienFichier(e, isDemo);
-    if (url) Linking.openURL(url);
+    await ouvrirFichierCarnet(e);
   };
 
   const q = recherche.trim().toLowerCase();

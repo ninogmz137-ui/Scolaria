@@ -33,6 +33,7 @@ import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NotificationsRouteur from './src/components/NotificationsRouteur';
+import { viderFichiersOuverts } from './src/services/ouvertureFichier';
 
 // Prevent native splash from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
@@ -77,6 +78,11 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   useEffect(() => {
     // Hide the native splash screen once our custom one is ready
     ExpoSplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  // Fichiers du carnet ouverts à la session précédente (cache privé, L6) : effacés au démarrage.
+  useEffect(() => {
+    viderFichiersOuverts();
   }, []);
 
   useEffect(() => {

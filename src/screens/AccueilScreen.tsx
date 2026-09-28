@@ -36,6 +36,7 @@ import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 import { NOM_APP } from '../constants/marque';
+import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
 // ─── Data démo ────────────────────────────────────────────
 
@@ -227,13 +228,13 @@ export default function AccueilScreen() {
     };
   }, [isDemo, selectedChild?.id, versionCarnet]);
   const nouveauxMots = (isDemo ? carnetDemo(selectedChild?.id).filter((e) => e.categorie === 'mot') : motsReels).slice(0, 3);
+  const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirAjout = async (e: ElementCarnet) => {
     if (e.deMoi) {
       nav.navigate('AjouterAuCarnet', { element: e });
       return;
     }
-    const url = await lienFichier(e, isDemo);
-    if (url) Linking.openURL(url);
+    await ouvrirFichierCarnet(e);
   };
   const accueil = useMemo(() => {
     if (!selectedChild) return { todo: [], aujourdhui: [], aria: '' };

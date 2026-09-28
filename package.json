@@ -12,7 +12,8 @@
     "test:journaux": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/journaux.test.mts",
     "test:exif": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/metadonneesImage.test.mts",
     "test:profil": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/profilService.test.mts",
-    "test:bundle-prod": "node scripts/test-bundle-prod.mjs"
+    "test:bundle-prod": "node scripts/test-bundle-prod.mjs",
+    "test:photo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/redimension.test.mts"
   },
   "dependencies": {
     "@expo-google-fonts/figtree": "^0.4.1",
@@ -35,7 +36,9 @@
     "expo-document-picker": "~55.0.9",
     "expo-file-system": "~55.0.11",
     "expo-font": "~55.0.4",
+    "expo-image-manipulator": "~55.0.21",
     "expo-image-picker": "~55.0.13",
+    "expo-intent-launcher": "~55.0.16",
     "expo-linear-gradient": "~55.0.9",
     "expo-localization": "~55.0.9",
     "expo-notifications": "~55.0.13",

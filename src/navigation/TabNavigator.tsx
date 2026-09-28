@@ -73,6 +73,7 @@ import type { CategorieCarnet } from '../services/carnetService';
 import QuickActionsSheet from '../components/QuickActionsSheet';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
+import VisionneuseImageScreen from '../screens/VisionneuseImageScreen';
 
 // RGPD hub
 import RGPDScreen from '../screens/RGPDScreen';
@@ -211,6 +212,11 @@ function AccueilStackScreen() {
         name="AjouterAnne"
         component={AjouterAnneScreen}
         options={{ title: 'Ajouter une année' }}
+      />
+      <AccueilStack.Screen
+        name="VisionneuseImage"
+        component={VisionneuseImageScreen}
+        options={{ headerShown: false }}
       />
       <AccueilStack.Screen
         name="AjouterAuCarnet"
@@ -407,6 +413,11 @@ function NotesStackScreen() {
         options={{ title: 'Ajouter une année' }}
       />
       <NotesStack.Screen
+        name="VisionneuseImage"
+        component={VisionneuseImageScreen}
+        options={{ headerShown: false }}
+      />
+      <NotesStack.Screen
         name="AjouterAuCarnet"
         component={AjouterAuCarnetScreen}
         options={{ headerShown: false }}
@@ -500,6 +511,11 @@ function MessagerieStackScreen() {
       <MessagerieStack.Screen
         name="ConversationDetailScreen"
         component={ConversationDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="VisionneuseImage"
+        component={VisionneuseImageScreen}
         options={{ headerShown: false }}
       />
       <MessagerieStack.Screen

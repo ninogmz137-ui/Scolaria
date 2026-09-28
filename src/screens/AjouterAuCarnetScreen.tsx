@@ -33,6 +33,7 @@ import {
 } from '../services/carnetService';
 import { jourMois } from '../utils/competences';
 import { de } from '../utils/francais';
+import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
 type Params = { source?: SourceAjout; element?: ElementCarnet; categorie?: CategorieCarnet };
 
@@ -153,11 +154,11 @@ export default function AjouterAuCarnetScreen() {
     );
   };
 
+  // Sans copie publique (L6) : photo dans la visionneuse de l'app, PDF dans le cache privé.
+  const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirFichier = async () => {
     if (!element) return;
-    const url = await lienFichier(element, isDemoMode);
-    if (url) Linking.openURL(url);
-    else Alert.alert('Fichier', 'Ouverture impossible pour l’instant.');
+    await ouvrirFichierCarnet(element);
   };
 
   const apercuUri = fichier?.mime.startsWith('image/') ? fichier.uriLocale : null;

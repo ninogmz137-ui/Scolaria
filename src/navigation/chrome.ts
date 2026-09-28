@@ -25,6 +25,7 @@ export const ROUTE_CHROME = {
   ProfilEnfant: 'none',
   AjouterEnfant: 'none',
   AjouterAnne: 'full',
+  VisionneuseImage: 'none', // photo du carnet affichée dans l'app (L6, sans copie publique)
   AjouterAuCarnet: 'none', // formulaire « Ajouter au carnet » (piles Accueil et Suivi)
   MonParcours: 'full',
   FamilleParametres: 'none',
