@@ -13,7 +13,6 @@
 
 import { Platform } from 'react-native';
 import { Directory, File, Paths } from 'expo-file-system';
-import * as IntentLauncher from 'expo-intent-launcher';
 import * as Sharing from 'expo-sharing';
 import { lienFichier, type ElementCarnet } from './carnetService';
 
@@ -59,6 +58,8 @@ export async function ouvrirFichierCarnet(e: ElementCarnet, demo: boolean): Prom
       fichier = await File.downloadFileAsync(url, new File(dossier, `${e.id}.${extension(e)}`));
     }
     if (Platform.OS === 'android') {
+      // Module natif chargé à la demande (une app installée avant L6 ne plante pas au démarrage).
+      const IntentLauncher: typeof import('expo-intent-launcher') = require('expo-intent-launcher');
       await IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
         data: fichier.contentUri,
         flags: FLAG_GRANT_READ_URI_PERMISSION,

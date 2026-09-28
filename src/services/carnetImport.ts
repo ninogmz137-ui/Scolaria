@@ -14,7 +14,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { dimensionsCibles, QUALITE_JPEG } from '../utils/redimension';
 import { estJpeg, estPng, retirerMetadonnees } from '../utils/metadonneesImage';
 import { ErreurCarnet, TAILLE_MAX_OCTETS } from './carnetService';
@@ -77,6 +76,15 @@ export async function choisirFichier(source: Exclude<SourceAjout, 'jalon'>): Pro
  * (cache privé de l'app). Échec du décodage → message clair.
  */
 export async function convertirEnJpeg(uri: string, largeur?: number, hauteur?: number): Promise<string> {
+  // Module natif chargé À LA DEMANDE : une app installée avant L5 (sans le module) ne plante pas au
+  // démarrage ; elle affiche un message clair au moment d'ajouter une photo.
+  let ImageManipulator: typeof import('expo-image-manipulator').ImageManipulator;
+  let SaveFormat: typeof import('expo-image-manipulator').SaveFormat;
+  try {
+    ({ ImageManipulator, SaveFormat } = require('expo-image-manipulator'));
+  } catch {
+    throw new ErreurCarnet('Cette version de l’app ne sait pas encore préparer les photos : mettez-la à jour.');
+  }
   try {
     const contexte = ImageManipulator.manipulate(uri);
     let l = largeur ?? 0;
