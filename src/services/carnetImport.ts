@@ -1,19 +1,21 @@
 /**
  * carnetImport — choisir un fichier pour « Ajouter au carnet » et le préparer AVANT l'envoi.
  *
- * Modules natifs utilisés (déjà dans le dev client du 18 sept. 2026) : expo-image-picker (appareil
- * photo, galerie), expo-document-picker (PDF), expo-file-system (lecture des octets).
- * Confidentialité :
- *  - photos compressées par le sélecteur (quality 0,7, rééncodage JPEG) ;
- *  - métadonnées (EXIF, dont la position GPS ; XMP ; IPTC ; commentaires) retirées en JavaScript
- *    AVANT l'envoi (src/utils/metadonneesImage.ts, prouvé par `npm run test:exif`) ;
- *  - HEIC refusé : ses métadonnées ne peuvent pas être retirées sans module natif de conversion
- *    (expo-image-manipulator, absent du dev client installé → question ouverte, voir le rapport B5).
+ * Modules natifs : expo-image-picker (appareil photo, galerie), expo-document-picker (PDF),
+ * expo-file-system (lecture des octets), expo-image-manipulator (L5, 27 sept 2026 — nouveau build requis).
+ * Confidentialité et poids (L5, OBLIGATOIRE, iOS et Android) :
+ *  - TOUTE image (JPEG, PNG, HEIC/HEIF de l'iPhone) est réencodée en JPEG par expo-image-manipulator :
+ *    HEIC → JPEG, plus grand côté ramené à 2048 px (utils/redimension, `npm run test:photo`), qualité 0,8 ;
+ *    le réencodage ne recopie aucune métadonnée ;
+ *  - double sécurité : métadonnées (EXIF dont GPS, XMP, IPTC, commentaires) retirées en JavaScript AVANT
+ *    l'envoi (src/utils/metadonneesImage.ts, `npm run test:exif`).
  */
 
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { dimensionsCibles, QUALITE_JPEG } from '../utils/redimension';
 import { estJpeg, estPng, retirerMetadonnees } from '../utils/metadonneesImage';
 import { ErreurCarnet, TAILLE_MAX_OCTETS } from './carnetService';
 
@@ -59,16 +61,39 @@ export async function choisirFichier(source: Exclude<SourceAjout, 'jalon'>): Pro
           : 'L’accès aux photos est refusé. Autorisez-le dans les réglages du téléphone.',
       );
     }
-    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.7, exif: false, allowsEditing: false };
+    // Qualité 1 : la seule compression est celle du réencodage JPEG ci-dessous (pas de double perte).
+    const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 1, exif: false, allowsEditing: false };
     const r = source === 'photo' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
     if (r.canceled || !r.assets?.[0]) return null;
-    uri = r.assets[0].uri;
-    nom = r.assets[0].fileName ?? 'image.jpg';
-    if (/\.hei[cf]$/i.test(nom) || r.assets[0].mimeType === 'image/heic') {
-      throw new ErreurCarnet('Format HEIC non pris en charge pour l’instant : choisissez une photo JPEG ou PNG.');
-    }
+    const a = r.assets[0];
+    nom = (a.fileName ?? 'photo').replace(/\.[a-z0-9]+$/i, '') + '.jpg';
+    uri = await convertirEnJpeg(a.uri, a.width, a.height);
   }
   return preparer(uri, nom);
+}
+
+/**
+ * Photo → JPEG sans métadonnées, plus grand côté ≤ 2048 px (HEIC compris). Renvoie l'URI du JPEG produit
+ * (cache privé de l'app). Échec du décodage → message clair.
+ */
+export async function convertirEnJpeg(uri: string, largeur?: number, hauteur?: number): Promise<string> {
+  try {
+    const contexte = ImageManipulator.manipulate(uri);
+    let l = largeur ?? 0;
+    let h = hauteur ?? 0;
+    if (!(l > 0 && h > 0)) {
+      const brute = await ImageManipulator.manipulate(uri).renderAsync();
+      l = brute.width;
+      h = brute.height;
+    }
+    const cible = dimensionsCibles(l, h);
+    if (cible) contexte.resize(cible);
+    const image = await contexte.renderAsync();
+    const resultat = await image.saveAsync({ format: SaveFormat.JPEG, compress: QUALITE_JPEG });
+    return resultat.uri;
+  } catch {
+    throw new ErreurCarnet('Cette photo n’a pas pu être préparée. Essayez une autre photo.');
+  }
 }
 
 /** Lit le fichier, vérifie son type réel (octets, pas l'extension), retire les métadonnées, contrôle la taille. */
