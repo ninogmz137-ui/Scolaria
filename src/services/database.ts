@@ -7,6 +7,7 @@
 
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
+import { FunctionRegion } from '@supabase/supabase-js';
 
 // ─── Helper: check if Supabase is configured ───────────
 
@@ -562,11 +563,47 @@ export async function inviterResponsable(childId: string, email: string) {
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id;
   if (!userId) return { error: new Error('not_authenticated') };
-  return supabase.from('invitations_responsable').insert({
-    child_id: childId,
-    invited_by: userId,
-    invited_email: email.trim().toLowerCase(),
+  const { data, error } = await supabase
+    .from('invitations_responsable')
+    .insert({ child_id: childId, invited_by: userId, invited_email: email.trim().toLowerCase() })
+    .select('id')
+    .single();
+  return { data: data as { id: string } | null, error };
+}
+
+/**
+ * Envoie l'email d'invitation (Edge Function « invitation-responsable », L4). `envoye: false` tant que
+ * l'envoi n'est pas configuré (Brevo, adresses) ou en cas d'échec : l'app le dit, jamais « envoyé » à tort.
+ */
+export async function envoyerEmailInvitation(invitationId: string): Promise<{ envoye: boolean; raison?: string }> {
+  if (!isSupabaseConfigured()) return { envoye: false, raison: 'demo' };
+  const { data, error } = await supabase.functions.invoke<{ envoye: boolean; raison?: string }>('invitation-responsable', {
+    body: { invitation_id: invitationId },
+    region: FunctionRegion.EuWest3,
   });
+  if (error || !data) return { envoye: false, raison: 'indisponible' };
+  return data;
+}
+
+export type InvitationRecue = {
+  invitation_id: string;
+  prenom_enfant: string;
+  prenom_invitant: string;
+  lien: string;
+  expire_le: string;
+  email_confirme: boolean;
+};
+
+/** Invitations reçues par le compte connecté (M24 : prénoms seulement). */
+export async function mesInvitations(): Promise<InvitationRecue[]> {
+  if (!isSupabaseConfigured()) return [];
+  const { data, error } = await supabase.rpc('mes_invitations');
+  return error ? [] : ((data ?? []) as InvitationRecue[]);
+}
+
+/** Accepter / refuser (M2c : email du compte confirmé exigé). */
+export async function repondreInvitation(invitationId: string, accepter: boolean) {
+  return supabase.rpc('respond_invitation', { p_invitation_id: invitationId, p_accept: accepter });
 }
 
 // ─── Compétences (M9) ────────────────────────────────────

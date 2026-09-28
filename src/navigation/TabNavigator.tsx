@@ -68,6 +68,7 @@ import AProposScreen from '../screens/AProposScreen';
 // Quick overlays (BottomBar)
 import QuickSearchScreen from '../screens/QuickSearchScreen';
 import AjouterAuCarnetSheet from '../components/AjouterAuCarnetSheet';
+import InvitationsRecues from '../components/InvitationsRecues';
 import { surDemandeAjout, type OngletAjout } from '../services/ouvertureAjout';
 import type { CategorieCarnet } from '../services/carnetService';
 import QuickActionsSheet from '../components/QuickActionsSheet';
@@ -792,6 +793,8 @@ export default function TabNavigator() {
               visible={actionsMessagesVisible}
               onClose={() => setActionsMessagesVisible(false)}
             />
+            {/* Invitations reçues par ce compte (L4) : Accepter / Refuser. */}
+            <InvitationsRecues />
             <AjouterAuCarnetSheet
               visible={carnetDepuis !== null}
               onglet={carnetDepuis ?? 'Accueil'}

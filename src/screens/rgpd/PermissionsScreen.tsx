@@ -22,6 +22,7 @@ import {
   getResponsablesEnfant,
   getInvitationsEnAttente,
   inviterResponsable,
+  envoyerEmailInvitation,
   type ResponsableEnfant,
 } from '../../services/database';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -95,20 +96,25 @@ export default function PermissionsScreen() {
     }
     if (!selectedChild) return;
     setEnvoi(true);
-    const { error } = await inviterResponsable(selectedChild.id, adresse);
-    setEnvoi(false);
-    if (error) {
+    const { data: invitation, error } = await inviterResponsable(selectedChild.id, adresse);
+    if (error || !invitation) {
+      setEnvoi(false);
       Alert.alert(
         'Invitation impossible',
         'Une invitation est peut-être déjà en attente pour cette adresse. Réessayez plus tard.',
       );
       return;
     }
+    // Email d'invitation (L4) : message FIDÈLE au résultat, jamais « envoyé » si rien n'est parti.
+    const { envoye } = await envoyerEmailInvitation(invitation.id);
+    setEnvoi(false);
     setEmail('');
     setFormOuvert(false);
     Alert.alert(
-      'Invitation envoyée',
-      `${adresse} devra se connecter avec cette adresse (confirmée) et accepter l’invitation dans les 7 jours.`,
+      envoye ? 'Invitation envoyée' : 'Invitation enregistrée',
+      envoye
+        ? `Un email a été envoyé à ${adresse}. Cette personne devra se connecter avec cette adresse (confirmée) et accepter l’invitation dans les 7 jours.`
+        : `L’email n’a pas pu être envoyé. Prévenez ${adresse} : en se connectant à ${NOM_APP} avec cette adresse (confirmée) dans les 7 jours, l’invitation l’attendra.`,
     );
     charger();
   };
