@@ -105,7 +105,8 @@ export default function EffacementScreen() {
     const lignes = [
       effaces.length ? `Carnets effacés (vous en êtes le seul responsable) : ${effaces.join(', ')}.` : '',
       gardes.length ? `Carnets gardés par l’autre responsable : ${gardes.join(', ')}.` : '',
-      'Vos ajouts au carnet (y compris ceux partagés avec le foyer), vos signatures et réponses aux mots, vos conversations Aria et vos messages seront effacés.',
+      'Effacés : vos ajouts privés, vos conversations Aria, vos messages privés avec l’enseignant, vos réponses aux mots.',
+      'Gardés dans le carnet de l’enfant, sans votre nom : vos ajouts partagés avec le foyer (« Ajouté par un ancien responsable »), vos signatures (« Signé par un responsable (compte supprimé) ») et vos messages du fil famille (« Ancien responsable »).',
       'Votre compte est désactivé dès maintenant et effacé dans 30 jours. Vous pourrez annuler jusque-là.',
     ].filter(Boolean);
     Alert.alert('Effacer votre compte ?', lignes.join('\n\n'), [

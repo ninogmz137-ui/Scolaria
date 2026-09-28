@@ -35,21 +35,44 @@ SELECT id AS ay_lea FROM public.academic_years WHERE student_id = :'lea' \gset
 SELECT id AS ay_emma FROM public.academic_years WHERE student_id = :'emma' \gset
 SELECT :'lea' || '/' || :'ay_lea' || '/11111111-1111-4111-8111-111111111111.jpg' AS f_lea,
        :'emma' || '/' || :'ay_emma' || '/22222222-2222-4222-8222-222222222222.jpg' AS f_emma_b,
-       :'emma' || '/' || :'ay_emma' || '/33333333-3333-4333-8333-333333333333.jpg' AS f_orphelin \gset
+       :'emma' || '/' || :'ay_emma' || '/33333333-3333-4333-8333-333333333333.jpg' AS f_orphelin,
+       :'emma' || '/' || :'ay_emma' || '/44444444-4444-4444-8444-444444444444.jpg' AS f_emma_b_prive \gset
 -- Fichiers : A sous Léa ; B sous Emma (avec sa ligne, partagée au foyer) ; un fichier orphelin ancien.
 INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES
   ('carnet', :'f_lea', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
-  ('carnet', :'f_emma_b', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+  ('carnet', :'f_emma_b', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),
+  ('carnet', :'f_emma_b_prive', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
 INSERT INTO storage.objects (bucket_id, name, owner_id, created_at) VALUES
   ('carnet', :'f_orphelin', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', now() - interval '3 days');
 INSERT INTO public.carnet_items (child_id, categorie, titre, fichier, ajoute_par, visibilite) VALUES
   (:'lea', 'souvenir', 'Dessin de Léa', :'f_lea', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'foyer'),
-  (:'emma', 'souvenir', 'Photo par Marc', :'f_emma_b', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'foyer');
+  (:'emma', 'souvenir', 'Photo par Marc', :'f_emma_b', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'foyer'),
+  (:'emma', 'livret', 'Note privée de Marc', :'f_emma_b_prive', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'prive');
+
+-- Un mot signé par B (Emma, une signature suffit) ; un fil famille et un fil individuel avec l'enseignant D.
+INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, email_confirmed_at) VALUES
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'd@test.local', 'authenticated', 'authenticated', '{"role":"enseignant"}', now());
+INSERT INTO public.mots_liaison (teacher_id, type, titre, contenu, statut, signature_mode)
+  VALUES ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'signature', 'Sortie', 'Merci de signer', 'envoyé', 'one') RETURNING id AS mot \gset
+INSERT INTO public.mot_carnets (mot_id, child_id, academic_year_id) VALUES (:'mot', :'emma', :'ay_emma');
+INSERT INTO public.signatures (mot_id, student_id, parent_id) VALUES (:'mot', :'emma', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+INSERT INTO public.teacher_conversations (teacher_id, student_id, portee, foyer_id)
+  SELECT 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', :'emma', 'foyer', foyer_id FROM public.responsables WHERE child_id = :'emma' LIMIT 1
+  RETURNING id AS fil_foyer \gset
+INSERT INTO public.teacher_conversations (teacher_id, student_id, portee, parent_id)
+  VALUES ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', :'emma', 'individuel', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb') RETURNING id AS fil_indiv \gset
+INSERT INTO public.teacher_messages (conversation_id, sender_role, sender_id, text) VALUES
+  (:'fil_foyer', 'parent', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Emma sera absente lundi'),
+  (:'fil_indiv', 'parent', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Message privé');
+SELECT signed_at AS signe_le FROM public.signatures WHERE mot_id = :'mot' \gset
 INSERT INTO public.alertes_urgence (auteur_id, child_id, categorie) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', :'lea', 'harcelement');
 
 SELECT set_config('test.lea', :'lea', true), set_config('test.emma', :'emma', true), set_config('test.tom', :'tom', true),
        set_config('test.inv_lea', :'inv_lea', true), set_config('test.f_lea', :'f_lea', true),
-       set_config('test.f_emma_b', :'f_emma_b', true), set_config('test.f_orphelin', :'f_orphelin', true) \gset
+       set_config('test.f_emma_b', :'f_emma_b', true), set_config('test.f_orphelin', :'f_orphelin', true),
+       set_config('test.f_emma_b_prive', :'f_emma_b_prive', true), set_config('test.mot', :'mot', true),
+       set_config('test.fil_foyer', :'fil_foyer', true), set_config('test.fil_indiv', :'fil_indiv', true),
+       set_config('test.signe_le', :'signe_le', true) \gset
 
 -- ─── A (seule responsable de Léa, co-responsable d'Emma) ─────────────────────
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","email":"a@test.local","role":"authenticated"}', true) \gset
@@ -200,12 +223,14 @@ DO $$
 DECLARE n int;
 BEGIN
   SELECT count(*) INTO n FROM public.carnet_items WHERE child_id = current_setting('test.emma')::uuid;
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T15 A voit encore l''ajout de B'; END IF;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T15 A voit % ajout(s) de B (attendu 1 : le « foyer », pas le privé)', n; END IF;
   SELECT count(*) INTO n FROM storage.objects WHERE name = current_setting('test.f_emma_b');
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T15b A lit encore le fichier de B'; END IF;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T15b A ne lit plus le fichier « foyer » de B'; END IF;
+  SELECT count(*) INTO n FROM storage.objects WHERE name = current_setting('test.f_emma_b_prive');
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T15d A lit le fichier privé de B'; END IF;
   SELECT count(*) INTO n FROM public.children WHERE id IN (current_setting('test.emma')::uuid, current_setting('test.tom')::uuid);
   IF n <> 2 THEN RAISE EXCEPTION 'ÉCHEC T15c A ne voit plus Emma / Tom'; END IF;
-  RAISE NOTICE 'OK T15 les ajouts de B sont invisibles pour A ; A garde Emma et Tom';
+  RAISE NOTICE 'OK T15 pendant les 30 jours : l''ajout « foyer » de B reste visible pour A (il sera conservé), pas son privé ; A garde Emma et Tom';
 END $$;
 RESET ROLE;
 
@@ -243,10 +268,11 @@ BEGIN
   SELECT demande_id INTO v_b FROM public.effacements_dus() WHERE portee = 'compte';
   PERFORM set_config('test.dem_b', v_b::text, true);
   SELECT array_agg(x) INTO f FROM public.fichiers_a_effacer(v_b) x;
-  IF f IS NULL OR NOT (current_setting('test.f_emma_b') = ANY (f)) OR current_setting('test.f_lea') = ANY (f) THEN
+  IF f IS NULL OR NOT (current_setting('test.f_emma_b_prive') = ANY (f)) OR current_setting('test.f_emma_b') = ANY (f)
+     OR current_setting('test.f_lea') = ANY (f) THEN
     RAISE EXCEPTION 'ÉCHEC T17c fichiers compte B : %', f;
   END IF;
-  RAISE NOTICE 'OK T17 fichiers à supprimer : dossier de Léa ; dépôts de B (et rien d''autre)';
+  RAISE NOTICE 'OK T17 fichiers à supprimer : dossier de Léa ; fichier PRIVÉ de B (son fichier « foyer » est gardé)';
 
   PERFORM public.executer_effacement(current_setting('test.dem_lea2')::uuid);
   SELECT count(*) INTO n FROM public.children WHERE id = current_setting('test.lea')::uuid;
@@ -278,11 +304,33 @@ BEGIN
   SELECT count(*) INTO n FROM public.children WHERE id IN (current_setting('test.emma')::uuid, current_setting('test.tom')::uuid);
   IF n <> 2 THEN RAISE EXCEPTION 'ÉCHEC T20 Emma / Tom perdus avec le compte B (% restant)', n; END IF;
   SELECT count(*) INTO n FROM public.carnet_items WHERE ajoute_par = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20b ajouts de B conservés'; END IF;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20b un ajout porte encore l''identifiant de B'; END IF;
+  SELECT count(*) INTO n FROM public.carnet_items WHERE titre = 'Photo par Marc' AND ajoute_par IS NULL AND fichier = current_setting('test.f_emma_b');
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20d ajout « foyer » de B non conservé (sans auteur)'; END IF;
+  SELECT count(*) INTO n FROM public.carnet_items WHERE titre = 'Note privée de Marc';
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20e ajout privé de B conservé'; END IF;
+  SELECT count(*) INTO n FROM storage.objects WHERE name = current_setting('test.f_emma_b') AND owner_id IS NULL;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20f fichier « foyer » perdu, ou propriétaire encore renseigné'; END IF;
+  RAISE NOTICE 'OK T20a ajouts : « foyer » conservé sans auteur (fichier gardé, sans propriétaire), privé supprimé';
+
+  SELECT count(*) INTO n FROM public.signatures
+  WHERE mot_id = current_setting('test.mot')::uuid AND parent_id IS NULL AND parent_name = 'Responsable (compte supprimé)'
+    AND signed_at = current_setting('test.signe_le')::timestamptz;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20g signature de B non conservée / non anonymisée'; END IF;
+  IF NOT (SELECT est_signe FROM public.mot_carnets_statut WHERE mot_id = current_setting('test.mot')::uuid) THEN
+    RAISE EXCEPTION 'ÉCHEC T20h le mot repasse « à signer »';
+  END IF;
+  RAISE NOTICE 'OK T20b signature conservée : « Responsable (compte supprimé) », même date ; le mot reste signé';
+
+  SELECT count(*) INTO n FROM public.teacher_messages WHERE conversation_id = current_setting('test.fil_foyer')::uuid AND sender_id IS NULL;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20i message du fil famille non conservé sans auteur'; END IF;
+  SELECT count(*) INTO n FROM public.teacher_conversations WHERE id = current_setting('test.fil_indiv')::uuid;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20j fil individuel de B conservé'; END IF;
+  RAISE NOTICE 'OK T20c fil famille : message conservé sans auteur ; fil individuel de B supprimé';
   PERFORM public.marquer_effacement_execute(current_setting('test.dem_b')::uuid);
   SELECT count(*) INTO n FROM public.effacements_dus();
   IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20c demande encore due'; END IF;
-  RAISE NOTICE 'OK T20 compte B supprimé : Emma et Tom intacts pour A, ajouts de B effacés, demande close';
+  RAISE NOTICE 'OK T20 compte B supprimé : Emma et Tom intacts pour A, demande close';
 
   SELECT count(*) INTO n FROM public.fichiers_orphelins() x WHERE x = current_setting('test.f_orphelin');
   IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T21 orphelin ancien non listé'; END IF;

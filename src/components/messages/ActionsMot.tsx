@@ -18,7 +18,7 @@ const NAVY = '#0F172A';
 const LIBELLE_REPONSE: Record<string, string> = { true: 'Oui', false: 'Non', oui: 'Oui', peut_etre: 'Peut-être', non: 'Non' };
 
 export function StatutsSignature({ mot }: { mot: MotCarnet }) {
-  if (mot.signatureMode === 'none' || mot.responsables.length === 0) return null;
+  if (mot.signatureMode === 'none' || (mot.responsables.length === 0 && mot.signaturesAnciens.length === 0)) return null;
   // Les autres d'abord, « Vous » en dernier (« Marc ✓ · Vous »).
   const ordre = [...mot.responsables].sort((a, b) => Number(a.estMoi) - Number(b.estMoi));
   return (
@@ -29,6 +29,11 @@ export function StatutsSignature({ mot }: { mot: MotCarnet }) {
             {`${r.estMoi ? 'Vous' : r.prenom}${r.aSigne ? ' ✓' : ''}`}
           </Text>
         </View>
+      ))}
+      {mot.signaturesAnciens.map((d, i) => (
+        <Text key={`ancien-${i}`} style={st.statutTexte}>
+          {`Signé par un responsable (compte supprimé) le ${new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+        </Text>
       ))}
     </View>
   );
@@ -97,7 +102,7 @@ export default function ActionsMot({ mot, monNom, demo }: { mot: MotCarnet; monN
         ) : (
           <Text style={st.reponse}>{`Votre réponse : ${LIBELLE_REPONSE[String(mot.maReponse)]}`}</Text>
         )
-      ) : mot.signatureMode !== 'none' && !mot.maSignature ? (
+      ) : mot.signatureMode !== 'none' && !mot.maSignature && !mot.signeParAncien ? (
         <Pressable
           disabled={envoi}
           onPress={signer}

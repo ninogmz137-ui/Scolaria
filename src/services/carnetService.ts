@@ -86,7 +86,8 @@ type CarnetItemRow = {
   note: string | null;
   fichier: string | null;
   date: string;
-  ajoute_par: string;
+  /** NULL : compte de l'auteur supprimé (M25) — l'ajout « foyer » reste au carnet de l'enfant. */
+  ajoute_par: string | null;
   visibilite: 'foyer' | 'prive';
   academic_year_id: string | null;
 };
@@ -128,7 +129,11 @@ export async function getCarnetItems(childId: string): Promise<ElementCarnet[]> 
       source: 'parent' as const,
       // Un livret ajouté par la famille est un document papier numérisé : « Scanné par vous ».
       scanne: r.categorie === 'livret',
-      auteur: deMoi ? undefined : prenoms.get(r.ajoute_par) || 'un autre responsable',
+      auteur: deMoi
+        ? undefined
+        : r.ajoute_par === null
+          ? 'un ancien responsable'
+          : prenoms.get(r.ajoute_par) || 'un autre responsable',
       visibilite: r.visibilite,
       categorieCarnet: r.categorie,
       fichier: r.fichier ?? undefined,

@@ -12,6 +12,15 @@
 -- Suppression directe d'un enfant (policy children_delete, M2e) RETIRÉE : elle effaçait sur-le-champ, sans
 -- délai ni fichiers du bucket. Elle passe désormais par demander_effacement_enfant().
 --
+-- Suppression d'un COMPTE (décision du 28 sept 2026, principe : le carnet appartient à l'enfant) :
+--   · ajouts « foyer » au carnet d'un enfant gardé : CONSERVÉS, auteur effacé (ajoute_par NULL →
+--     « Ajouté par un ancien responsable ») ; ajouts « privés » : supprimés avec leurs fichiers ;
+--   · signatures : CONSERVÉES, signataire effacé (parent_id NULL, « Responsable (compte supprimé) »),
+--     date gardée : un mot signé ne repasse jamais « à signer » ;
+--   · messages du fil famille : CONSERVÉS, auteur effacé (sender_id NULL → « Ancien responsable ») ;
+--     fils individuels avec l'enseignant : supprimés.
+--   Pendant les 30 jours, ses ajouts « foyer » restent visibles pour l'autre responsable (ils seront gardés).
+--
 -- Registre : une demande exécutée garde ses identifiants et ses dates (aucun nom, aucun texte), comme preuve
 -- de l'effacement. Pas de clé étrangère : l'enfant et le compte n'existent plus après exécution.
 
@@ -42,6 +51,59 @@ ALTER TABLE public.demandes_effacement ENABLE ROW LEVEL SECURITY;
 CREATE POLICY demandes_effacement_select ON public.demandes_effacement
   FOR SELECT TO authenticated USING (user_id = (select auth.uid()));
 REVOKE INSERT, UPDATE, DELETE ON public.demandes_effacement FROM anon, authenticated;
+
+-- ─── Ce qui survit à la suppression d'un compte ──────────────────────────────
+ALTER TABLE public.carnet_items ALTER COLUMN ajoute_par DROP NOT NULL;
+ALTER TABLE public.carnet_items DROP CONSTRAINT carnet_items_ajoute_par_fkey;
+ALTER TABLE public.carnet_items ADD CONSTRAINT carnet_items_ajoute_par_fkey
+  FOREIGN KEY (ajoute_par) REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+ALTER TABLE public.signatures ALTER COLUMN parent_id DROP NOT NULL;
+ALTER TABLE public.signatures DROP CONSTRAINT signatures_parent_id_fkey;
+ALTER TABLE public.signatures ADD CONSTRAINT signatures_parent_id_fkey
+  FOREIGN KEY (parent_id) REFERENCES public.profiles(id) ON DELETE SET NULL;
+
+ALTER TABLE public.teacher_messages ALTER COLUMN sender_id DROP NOT NULL;
+
+-- Une signature reste non modifiable, SAUF l'effacement de son signataire (compte supprimé) : le nom est
+-- alors remplacé, la date et le mot restent.
+CREATE OR REPLACE FUNCTION public.signatures_remplir()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path = public, pg_temp
+AS $function$
+DECLARE
+  v_mot public.mots_liaison%ROWTYPE;
+BEGIN
+  IF TG_OP = 'UPDATE' THEN
+    IF OLD.parent_id IS NOT NULL AND NEW.parent_id IS NULL
+       AND NEW.id = OLD.id AND NEW.mot_id = OLD.mot_id AND NEW.student_id = OLD.student_id
+       AND NEW.signed_at = OLD.signed_at THEN
+      NEW.parent_name := 'Responsable (compte supprimé)';
+      RETURN NEW;
+    END IF;
+    RAISE EXCEPTION 'une signature ne peut pas être modifiée' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT * INTO v_mot FROM public.mots_liaison WHERE id = NEW.mot_id;
+  IF v_mot.statut IS DISTINCT FROM 'envoyé' THEN
+    RAISE EXCEPTION 'ce mot n''est pas ouvert à la signature' USING ERRCODE = '23514';
+  END IF;
+  IF v_mot.signature_mode = 'none' THEN
+    RAISE EXCEPTION 'ce mot ne demande pas de signature' USING ERRCODE = '23514';
+  END IF;
+
+  SELECT btrim(p.first_name || ' ' || p.family_name) INTO NEW.parent_name FROM public.profiles p WHERE p.id = NEW.parent_id;
+  NEW.parent_name := COALESCE(NEW.parent_name, '');
+  SELECT c.first_name INTO NEW.student_name FROM public.children c WHERE c.id = NEW.student_id;
+  NEW.student_name := COALESCE(NEW.student_name, '');
+  NEW.signed_at := now();
+  SELECT mc.academic_year_id INTO NEW.academic_year_id
+  FROM public.mot_carnets mc WHERE mc.mot_id = NEW.mot_id AND mc.child_id = NEW.student_id;
+  RETURN NEW;
+END;
+$function$;
 
 -- ─── Accès coupés dès la demande ─────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.compte_en_effacement(p_user_id uuid)
@@ -107,18 +169,8 @@ AS $function$
   AND NOT public.compte_en_effacement(auth.uid());
 $function$;
 
--- Ajouts au carnet d'un compte en cours d'effacement : invisibles pour l'autre responsable aussi.
-DROP POLICY carnet_items_select ON public.carnet_items;
-CREATE POLICY carnet_items_select ON public.carnet_items
-  FOR SELECT TO authenticated
-  USING (
-    is_responsable(child_id)
-    AND (visibilite = 'foyer' OR ajoute_par = (select auth.uid()))
-    AND NOT compte_en_effacement(ajoute_par)
-  );
-
--- Fichiers du bucket : même règle ; l'auteur en cours d'effacement ne relit plus ses propres fichiers,
--- et personne ne relit le dossier d'un enfant en cours d'effacement.
+-- Fichiers du bucket : l'auteur en cours d'effacement ne relit plus ses propres fichiers, et personne ne
+-- relit le dossier d'un enfant en cours d'effacement.
 DROP POLICY carnet_fichiers_lecture ON storage.objects;
 CREATE POLICY carnet_fichiers_lecture ON storage.objects
   FOR SELECT TO authenticated
@@ -135,7 +187,6 @@ CREATE POLICY carnet_fichiers_lecture ON storage.objects
         WHERE ci.fichier = objects.name
           AND public.is_responsable(ci.child_id)
           AND (ci.visibilite = 'foyer' OR ci.ajoute_par = (select auth.uid()))
-          AND NOT public.compte_en_effacement(ci.ajoute_par)
       )
     )
   );
@@ -337,10 +388,16 @@ AS $function$
   WHERE o.bucket_id = 'carnet'
     AND split_part(o.name, '/', 1) IN (SELECT e::text FROM public.enfants_a_effacer(p_demande_id) e)
   UNION
-  -- compte : tout ce que ce compte a déposé
+  -- compte : fichiers de ses ajouts PRIVÉS (ses ajouts « foyer » et leurs fichiers sont conservés)
+  SELECT ci.fichier FROM public.carnet_items ci
+  JOIN public.demandes_effacement d ON d.id = p_demande_id AND d.portee = 'compte'
+  WHERE ci.ajoute_par = d.user_id AND ci.visibilite = 'prive' AND ci.fichier IS NOT NULL
+  UNION
+  -- compte : ses dépôts qu'aucun ajout ne référence
   SELECT o.name FROM storage.objects o
   JOIN public.demandes_effacement d ON d.id = p_demande_id AND d.portee = 'compte'
-  WHERE o.bucket_id = 'carnet' AND o.owner_id = d.user_id::text;
+  WHERE o.bucket_id = 'carnet' AND o.owner_id = d.user_id::text
+    AND NOT EXISTS (SELECT 1 FROM public.carnet_items ci WHERE ci.fichier = o.name);
 $function$;
 
 -- Lignes : à appeler APRÈS la suppression des fichiers. Idempotente.
@@ -383,9 +440,15 @@ BEGIN
     )
     WHERE c.parent_id = d.user_id
       AND EXISTS (SELECT 1 FROM public.responsables r WHERE r.child_id = c.id AND r.user_id <> d.user_id);
-    -- 3. Données du compte sans clé étrangère vers profiles.
+    -- 3. Ajouts privés : supprimés (leurs fichiers l'ont été avant). Ajouts « foyer » : gardés, auteur
+    --    effacé par la clé étrangère (SET NULL) à la suppression du compte. Fichiers gardés : propriétaire effacé.
+    DELETE FROM public.carnet_items WHERE ajoute_par = d.user_id AND visibilite = 'prive';
+    UPDATE storage.objects SET owner = NULL, owner_id = NULL
+    WHERE bucket_id = 'carnet' AND owner_id = d.user_id::text;
+    -- 4. Fils avec l'enseignant : individuels supprimés ; messages du fil famille gardés, auteur effacé.
     DELETE FROM public.teacher_conversations WHERE portee = 'individuel' AND parent_id = d.user_id;
-    DELETE FROM public.teacher_messages WHERE sender_id = d.user_id;
+    UPDATE public.teacher_messages SET sender_id = NULL WHERE sender_id = d.user_id;
+    -- 5. Données du compte sans clé étrangère vers profiles.
     DELETE FROM public.class_post_reactions WHERE user_id = d.user_id;
     DELETE FROM public.class_post_seen WHERE parent_id = d.user_id;
     DELETE FROM public.access_journal WHERE family_id = d.user_id;
@@ -394,8 +457,8 @@ BEGIN
     DELETE FROM public.person_permissions WHERE family_id = d.user_id;
     DELETE FROM public.transfer_codes WHERE family_id = d.user_id;
     DELETE FROM public.responsables WHERE user_id = d.user_id;
-    -- Le reste (profil, ajouts au carnet, signatures, réponses, Aria, agenda, départs…) part en cascade
-    -- avec le compte Auth.
+    -- Suppression du compte Auth ensuite : profil, réponses aux mots, Aria, agenda, départs… en cascade ;
+    -- signatures et ajouts « foyer » gardés sans auteur (SET NULL).
   ELSE
     UPDATE public.demandes_effacement SET executee_le = now() WHERE id = p_demande_id;
   END IF;

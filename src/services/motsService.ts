@@ -41,6 +41,10 @@ export interface MotCarnet {
   aPrevoir: string[];
   responsables: ResponsableMot[];
   maSignature: boolean;
+  /** Signatures d'un responsable dont le compte a été supprimé (M25) : dates ISO. Conservées. */
+  signaturesAnciens: string[];
+  /** Le mot est signé (règle serveur) GRÂCE à une signature conservée : il ne repasse jamais « à signer ». */
+  signeParAncien: boolean;
   maReponse: Reponse | null;
   lu: boolean;
   /** Événement de l'Agenda lié au mot (date YYYY-MM-DD). */
@@ -49,7 +53,7 @@ export interface MotCarnet {
 
 /** Le mot attend encore une action de MOI (signature, réponse). */
 export function aTraiter(m: MotCarnet): boolean {
-  const signature = m.signatureMode !== 'none' && !m.maSignature;
+  const signature = m.signatureMode !== 'none' && !m.maSignature && !m.signeParAncien;
   const reponse = (m.type === 'autorisation' || m.type === 'participation') && m.maReponse === null;
   return signature || reponse;
 }
@@ -119,6 +123,8 @@ function motsDemo(childId: string): MotCarnet[] {
           { id: autreResponsableDemo(m.childId).id, prenom: autreResponsableDemo(m.childId).prenom, estMoi: false, aSigne: m.autreSigne },
         ],
         maSignature,
+        signaturesAnciens: [],
+        signeParAncien: false,
         maReponse: etat.reponse ?? null,
         lu: etat.lu ?? m.lu,
         evenement: ev ? { id: ev.id, titre: ev.title, date: ev.date, heure: ev.startTime } : undefined,
@@ -150,13 +156,16 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
       .select('mots_liaison(id, titre, contenu, date_envoi, date_limite, statut, type, signature_mode, a_prevoir, created_at)')
       .eq('child_id', childId),
     supabase.rpc('responsables_enfant', { p_child_id: childId }),
-    supabase.from('signatures').select('mot_id, parent_id').eq('student_id', childId),
+    supabase.from('signatures').select('mot_id, parent_id, signed_at').eq('student_id', childId),
     supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation').eq('child_id', childId),
     supabase.from('read_receipts').select('mot_id').eq('parent_id', moi),
   ]);
   if (carnet.error) return [];
   const responsables = ((resp.data ?? []) as { user_id: string; prenom: string; nom: string; est_moi: boolean }[]);
-  const signes = new Set(((sigs.data ?? []) as { mot_id: string; parent_id: string }[]).map((s) => `${s.mot_id}|${s.parent_id}`));
+  const lignesSig = (sigs.data ?? []) as { mot_id: string; parent_id: string | null; signed_at: string }[];
+  const signes = new Set(lignesSig.filter((s) => s.parent_id).map((s) => `${s.mot_id}|${s.parent_id}`));
+  const anciens = (motId: string) => lignesSig.filter((s) => s.mot_id === motId && !s.parent_id).map((s) => s.signed_at);
+  const nbSignatures = (motId: string) => lignesSig.filter((s) => s.mot_id === motId).length;
   const mesReponses = new Map<string, Reponse>();
   for (const r of (reps.data ?? []) as { mot_id: string; responsable_id: string; autorisation: boolean | null; participation: Participation | null }[]) {
     if (r.responsable_id === moi) mesReponses.set(r.mot_id, r.autorisation ?? (r.participation as Participation));
@@ -188,6 +197,13 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
         aSigne: signes.has(`${m.id}|${r.user_id}`),
       })),
       maSignature: signes.has(`${m.id}|${moi}`),
+      signaturesAnciens: anciens(m.id),
+      // Même règle que la vue mot_carnets_statut : une (one) ou min(2, responsables) (both).
+      signeParAncien:
+        anciens(m.id).length > 0 &&
+        (m.signature_mode === 'one'
+          ? nbSignatures(m.id) >= 1
+          : m.signature_mode === 'both' && nbSignatures(m.id) >= Math.min(2, Math.max(1, responsables.length))),
       maReponse: mesReponses.get(m.id) ?? null,
       lu: motsLus.has(m.id),
     }));

@@ -63,6 +63,18 @@ verifier('A crée la ligne du carnet', !ciErr, ciErr?.message ?? '');
 // B : seul responsable de Tom.
 const B = await session(comptes.b);
 const tom = await creerEnfant(B, 'Tom');
+// B est aussi responsable de Zoé (foyer de A) : il y dépose un ajout « foyer » et un ajout privé.
+sql(`insert into public.responsables (foyer_id, user_id, child_id, lien)
+     select foyer_id, '${ids.b}', child_id, 'parent' from public.responsables where child_id = '${zoe}'`);
+const fFoyer = `${zoe}/${ayZ!.id}/${randomUUID()}.jpg`;
+const fPrive = `${zoe}/${ayZ!.id}/${randomUUID()}.jpg`;
+const upB1 = await B.storage.from('carnet').upload(fFoyer, jpeg, { contentType: 'image/jpeg' });
+const upB2 = await B.storage.from('carnet').upload(fPrive, jpeg, { contentType: 'image/jpeg' });
+const { error: ciB } = await B.from('carnet_items').insert([
+  { child_id: zoe, categorie: 'souvenir', titre: 'Photo de Marc', fichier: fFoyer, ajoute_par: ids.b, visibilite: 'foyer' },
+  { child_id: zoe, categorie: 'livret', titre: 'Note privée de Marc', fichier: fPrive, ajoute_par: ids.b, visibilite: 'prive' },
+]);
+verifier('B dépose un ajout « foyer » et un ajout privé sous Zoé', !upB1.error && !upB2.error && !ciB, upB1.error?.message ?? upB2.error?.message ?? ciB?.message ?? '');
 
 // Demandes
 const { error: dA } = await A.rpc('demander_effacement_enfant', { p_child_id: lea });
@@ -96,6 +108,10 @@ verifier('fichier orphelin (Zoé, sans ligne, > 1 jour) nettoyé', r1.orphelins 
 verifier('Zoé gardée', sql(`select count(*) from public.children where id='${zoe}'`) === '1');
 verifier('compte B supprimé (Auth + profil)', sql(`select count(*) from auth.users where id='${ids.b}'`) === '0' && sql(`select count(*) from public.profiles where id='${ids.b}'`) === '0');
 verifier('Tom (seul responsable B) effacé', sql(`select count(*) from public.children where id='${tom}'`) === '0');
+verifier('ajout « foyer » de B conservé, sans auteur', sql(`select count(*) from public.carnet_items where fichier = '${fFoyer}' and ajoute_par is null`) === '1');
+verifier('ajout privé de B supprimé, fichier compris', sql(`select count(*) from public.carnet_items where fichier = '${fPrive}'`) === '0' && sql(`select count(*) from storage.objects where name = '${fPrive}'`) === '0');
+const lienFoyer = await A.storage.from('carnet').createSignedUrl(fFoyer, 60);
+verifier('A ouvre encore la photo « foyer » de B', !lienFoyer.error && !!lienFoyer.data?.signedUrl && (await fetch(lienFoyer.data!.signedUrl)).ok, lienFoyer.error?.message ?? '');
 verifier('compte A intact', sql(`select count(*) from auth.users where id='${ids.a}'`) === '1');
 verifier('registre : 2 demandes exécutées', sql(`select count(*) from public.demandes_effacement where user_id in ('${ids.a}','${ids.b}') and executee_le is not null`) === '2');
 
