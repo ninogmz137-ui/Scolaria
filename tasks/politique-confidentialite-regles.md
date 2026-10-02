@@ -24,8 +24,9 @@ Le carnet appartient à l'enfant, pas au compte qui l'a rempli.
 | **Signatures** de mots | **conservées** : « Signé par un responsable (compte supprimé) le [date] » ; un mot signé ne repasse jamais « à signer » |
 | Messages du **fil famille** avec l'enseignant | **conservés**, auteur « Ancien responsable » |
 | Conversations **privées** avec l'enseignant | supprimées |
-| Réponses aux mots (autorisation, participation) | supprimées (comportement actuel — voir question ouverte) |
-| Conversations Aria, profil, agenda personnel, alertes | supprimés |
+| Réponses aux mots (autorisation, participation) | **conservées** : « Répondu par un responsable (compte supprimé) » [M27] |
+| Événements d'**agenda** | **conservés** sans auteur [M27] : l'agenda n'a pas de notion de « privé » (tous les événements sont partagés avec les responsables du carnet) ; si des événements privés sont créés un jour, ils seront supprimés |
+| Conversations Aria, profil, alertes d'urgence | supprimés |
 | Compte de connexion | supprimé |
 Aucun nom ni adresse n'est conservé ; un registre garde seulement la date de la demande et de l'exécution.
 
@@ -41,6 +42,5 @@ Aucun nom ni adresse n'est conservé ; un registre garde seulement la date de la
 Formulation validée le 25 sept 2026 : `FORMULATION_HEBERGEMENT_ARIA` (src/constants/textesLegaux.ts), à reprendre telle quelle.
 
 ## Questions ouvertes (à trancher avant publication)
-- Réponses aux mots (autorisation / participation) d'un compte supprimé : effacées aujourd'hui ; les garder comme les signatures ?
-- Événements d'agenda créés par le compte supprimé pour l'enfant : effacés aujourd'hui.
-- Mode « une signature suffit » : l'app demande quand même à chaque responsable de signer en son nom (sauf mot signé par un compte supprimé).
+- (tranché le 2 oct 2026) Réponses aux mots et événements d'agenda d'un compte supprimé : conservés sans auteur (M27).
+- (tranché le 2 oct 2026) Mode « une signature suffit » (« one ») : dès qu'un responsable a signé, le mot est traité pour tout le foyer (« Signé par [prénom] ») ; seul « both » attend chaque responsable.
