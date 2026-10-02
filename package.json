@@ -19,6 +19,7 @@
     "test:liens-auth-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-liens-auth-local.mts",
     "test:email-invitation": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/emailInvitation.test.mts",
     "test:invitation-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-invitation-local.mts",
+    "test:tache-effacements-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-tache-effacements-local.mts",
     "test:effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-effacement-local.mts"
   },
   "dependencies": {

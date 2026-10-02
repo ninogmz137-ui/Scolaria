@@ -2,9 +2,9 @@
  * Edge Function « executer-effacements » (L7, D6) — exécute les effacements échus (30 jours après la demande)
  * et nettoie les fichiers orphelins du bucket « carnet ».
  *
- * - Appelée UNIQUEMENT par la tâche planifiée (pg_cron + pg_net, une fois par jour), avec la clé service en
+ * - Appelée UNIQUEMENT par la tâche planifiée (pg_cron + pg_net, une fois par jour), avec une clé service en
  *   Authorization : tout autre appelant → 401, rien n'est fait. Déployée avec --no-verify-jwt : la
- *   vérification est faite ici (comparaison à SUPABASE_SERVICE_ROLE_KEY), pas par la passerelle.
+ *   vérification est faite ici (cleServiceValide : ancienne clé service_role OU sb_secret_), pas par la passerelle.
  * - Pour chaque demande échue (M25, effacements_dus) :
  *     1. fichiers du bucket (fichiers_a_effacer) supprimés par l'API Storage (le SQL direct est interdit) ;
  *     2. lignes : executer_effacement (enfants effacés, rattachements, données sans clé étrangère) ;
@@ -19,6 +19,24 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+}
+
+/**
+ * La clé reçue est-elle une clé SERVICE ? (ancienne `service_role` JWT ou nouvelle `sb_secret_…`, sans dépendre
+ * du format injecté dans SUPABASE_SERVICE_ROLE_KEY.) Comparaison à temps constant avec la clé de la fonction ;
+ * sinon, validation par l'EFFET : seule une clé service peut appeler `effacements_dus` (réservée à service_role).
+ * Une clé anon, un compte connecté ou une chaîne quelconque échouent. Rien n'est journalisé.
+ */
+async function cleServiceValide(recue: string, cleFonction: string): Promise<boolean> {
+  if (!recue) return false;
+  if (egal(recue, cleFonction)) return true;
+  try {
+    const client = createClient(Deno.env.get('SUPABASE_URL') ?? '', recue, { auth: { persistSession: false } });
+    const { error } = await client.rpc('effacements_dus');
+    return !error;
+  } catch {
+    return false;
+  }
 }
 
 /** Comparaison à temps constant (la clé attendue n'est jamais journalisée). */
@@ -43,7 +61,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ raison: 'methode' }, 405);
   const cle = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const recue = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!egal(recue, cle)) return json({ raison: 'non_autorise' }, 401);
+  if (!(await cleServiceValide(recue, cle))) return json({ raison: 'non_autorise' }, 401);
 
   const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', cle, { auth: { persistSession: false } });
   const bilan = { dues: 0, executees: 0, echecs: 0, fichiers: 0, orphelins: 0 };
