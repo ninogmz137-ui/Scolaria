@@ -48,3 +48,6 @@ Formulation validée le 25 sept 2026 : `FORMULATION_HEBERGEMENT_ARIA` (src/const
 ## Questions ouvertes (à trancher avant publication)
 - (tranché le 2 oct 2026) Réponses aux mots et événements d'agenda d'un compte supprimé : conservés sans auteur (M27).
 - (tranché le 2 oct 2026) Mode « une signature suffit » (« one ») : dès qu'un responsable a signé, le mot est traité pour tout le foyer (« Signé par [prénom] ») ; seul « both » attend chaque responsable.
+
+## Sécurité (audit du 2 oct 2026)
+- Cloisonnement testé : un parent d'un autre foyer, un enseignant non rattaché et un compte anonyme n'ont aucun accès aux données d'un enfant (670 tests, voir tasks/audit-securite.md). À ne présenter dans la page publique que ce qui est vrai au moment de la publication (M30 à appliquer d'abord).
