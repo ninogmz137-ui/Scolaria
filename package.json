@@ -13,6 +13,7 @@
     "test:exif": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/metadonneesImage.test.mts",
     "test:profil": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/profilService.test.mts",
     "test:bundle-prod": "node scripts/test-bundle-prod.mjs",
+    "test:mots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/motsRegles.test.mts",
     "test:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/archiveCarnet.test.mts",
     "test:photo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/redimension.test.mts",
     "test:liens-auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/lienAuth.test.mts",

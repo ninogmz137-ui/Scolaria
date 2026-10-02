@@ -17,8 +17,36 @@ const NAVY = '#0F172A';
 
 const LIBELLE_REPONSE: Record<string, string> = { true: 'Oui', false: 'Non', oui: 'Oui', peut_etre: 'Peut-être', non: 'Non' };
 
+const dateLongue = (iso: string) => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** « Signé par Marc le 3 octobre 2026 » / « Répondu par Marc : Oui » — mode « one » : un signataire suffit. */
+export function libelleTraitement(mot: MotCarnet): string | null {
+  const t = mot.traitePar;
+  if (!t) return null;
+  const qui = t.estMoi ? 'vous' : t.prenom;
+  const reponse = (mot.type === 'autorisation' || mot.type === 'participation') && t.reponse !== null
+    ? `Répondu par ${qui} : ${LIBELLE_REPONSE[String(t.reponse)]}`
+    : `Signé par ${qui}`;
+  return t.le ? `${reponse} le ${dateLongue(t.le)}` : reponse;
+}
+
 export function StatutsSignature({ mot }: { mot: MotCarnet }) {
-  if (mot.signatureMode === 'none' || (mot.responsables.length === 0 && mot.signaturesAnciens.length === 0)) return null;
+  if (mot.signatureMode === 'none') return null;
+  if (mot.signatureMode === 'one') {
+    const l = libelleTraitement(mot);
+    return (
+      <View style={st.statuts} accessibilityLabel={l ?? 'Une seule signature suffit'}>
+        <Text style={st.statutTexte}>{l ? `✓ ${l}` : 'Une seule signature suffit'}</Text>
+        {l && !mot.traitePar?.estMoi ? <Text style={st.statutTexte}>· traité pour tout le foyer</Text> : null}
+        {mot.reponsesAnciennes.length > 0 && mot.traitePar?.ancien !== true
+          ? mot.reponsesAnciennes.map((r, i) => (
+              <Text key={`rep-ancien-${i}`} style={st.statutTexte}>{`Répondu par un responsable (compte supprimé) : ${LIBELLE_REPONSE[String(r.reponse)]}`}</Text>
+            ))
+          : null}
+      </View>
+    );
+  }
+  if (mot.responsables.length === 0 && mot.signaturesAnciens.length === 0) return null;
   // Les autres d'abord, « Vous » en dernier (« Marc ✓ · Vous »).
   const ordre = [...mot.responsables].sort((a, b) => Number(a.estMoi) - Number(b.estMoi));
   return (
@@ -32,7 +60,12 @@ export function StatutsSignature({ mot }: { mot: MotCarnet }) {
       ))}
       {mot.signaturesAnciens.map((d, i) => (
         <Text key={`ancien-${i}`} style={st.statutTexte}>
-          {`Signé par un responsable (compte supprimé) le ${new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+          {`Signé par un responsable (compte supprimé) le ${dateLongue(d)}`}
+        </Text>
+      ))}
+      {mot.reponsesAnciennes.map((r, i) => (
+        <Text key={`rep-ancien-${i}`} style={st.statutTexte}>
+          {`Répondu par un responsable (compte supprimé) : ${LIBELLE_REPONSE[String(r.reponse)]}`}
         </Text>
       ))}
     </View>
@@ -84,7 +117,7 @@ export default function ActionsMot({ mot, monNom, demo }: { mot: MotCarnet; monN
   return (
     <View>
       <StatutsSignature mot={mot} />
-      {choix ? (
+      {mot.signatureMode === 'one' && mot.traitePar ? null : choix ? (
         mot.maReponse === null ? (
           <View style={st.choix}>
             {choix.map((c) => (

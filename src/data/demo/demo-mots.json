@@ -89,8 +89,8 @@
     "type": "signature",
     "signatureMode": "one",
     "aPrevoir": [],
-    "autreSigne": false,
-    "maSignature": true,
+    "autreSigne": true,
+    "maSignature": false,
     "lu": true
   },
   {

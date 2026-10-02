@@ -12,6 +12,7 @@ import { supabase } from './supabase';
 import demoMotsJson from '../data/demo/demo-mots.json';
 import { evenementDemoParId } from '../contexts/DemoContext';
 import { MOI_DEMO, autreResponsableDemo } from '../data/demo/responsables';
+import { aTraiter, premierSignataire } from './motsRegles';
 
 export type TypeMot = 'information' | 'signature' | 'autorisation' | 'participation';
 export type SignatureMode = 'none' | 'one' | 'both';
@@ -23,6 +24,22 @@ export interface ResponsableMot {
   prenom: string;
   estMoi: boolean;
   aSigne: boolean;
+}
+
+/**
+ * Mot en mode « une signature suffit » (signature_mode « one ») : dès qu'UN responsable a signé (ou répondu,
+ * la réponse valant signature), le mot est traité pour TOUT le foyer. Seul « both » attend chaque responsable.
+ */
+export interface TraitementMot {
+  /** Prénom du signataire ; « un responsable (compte supprimé) » ou « un autre responsable » sinon. */
+  prenom: string;
+  estMoi: boolean;
+  /** Compte du signataire supprimé (M25) : la signature est conservée sans nom. */
+  ancien: boolean;
+  /** Date de la signature (ISO), si connue. */
+  le: string | null;
+  /** Sa réponse (autorisation / participation), si le mot en attend une et qu'elle est lisible. */
+  reponse: Reponse | null;
 }
 
 export interface MotCarnet {
@@ -41,8 +58,12 @@ export interface MotCarnet {
   aPrevoir: string[];
   responsables: ResponsableMot[];
   maSignature: boolean;
+  /** Mode « one » : qui a traité le mot pour le foyer (null tant que personne). */
+  traitePar: TraitementMot | null;
   /** Signatures d'un responsable dont le compte a été supprimé (M25) : dates ISO. Conservées. */
   signaturesAnciens: string[];
+  /** Réponses d'un responsable dont le compte a été supprimé (M27) : conservées, sans nom. */
+  reponsesAnciennes: { reponse: Reponse; le: string | null }[];
   /** Le mot est signé (règle serveur) GRÂCE à une signature conservée : il ne repasse jamais « à signer ». */
   signeParAncien: boolean;
   maReponse: Reponse | null;
@@ -51,12 +72,7 @@ export interface MotCarnet {
   evenement?: { id: string; titre: string; date: string; heure?: string };
 }
 
-/** Le mot attend encore une action de MOI (signature, réponse). */
-export function aTraiter(m: MotCarnet): boolean {
-  const signature = m.signatureMode !== 'none' && !m.maSignature && !m.signeParAncien;
-  const reponse = (m.type === 'autorisation' || m.type === 'participation') && m.maReponse === null;
-  return signature || reponse;
-}
+export { aTraiter };
 
 // ─── Événements ─────────────────────────────────────────────────────────────
 
@@ -123,7 +139,14 @@ function motsDemo(childId: string): MotCarnet[] {
           { id: autreResponsableDemo(m.childId).id, prenom: autreResponsableDemo(m.childId).prenom, estMoi: false, aSigne: m.autreSigne },
         ],
         maSignature,
+        traitePar:
+          m.signatureMode === 'one' && (maSignature || m.autreSigne)
+            ? maSignature
+              ? { prenom: MOI_DEMO.prenom, estMoi: true, ancien: false, le: null, reponse: etat.reponse ?? null }
+              : { prenom: autreResponsableDemo(m.childId).prenom, estMoi: false, ancien: false, le: null, reponse: null }
+            : null,
         signaturesAnciens: [],
+        reponsesAnciennes: [],
         signeParAncien: false,
         maReponse: etat.reponse ?? null,
         lu: etat.lu ?? m.lu,
@@ -157,7 +180,7 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
       .eq('child_id', childId),
     supabase.rpc('responsables_enfant', { p_child_id: childId }),
     supabase.from('signatures').select('mot_id, parent_id, signed_at').eq('student_id', childId),
-    supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation').eq('child_id', childId),
+    supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation, updated_at').eq('child_id', childId),
     supabase.from('read_receipts').select('mot_id').eq('parent_id', moi),
   ]);
   if (carnet.error) return [];
@@ -167,9 +190,16 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
   const anciens = (motId: string) => lignesSig.filter((s) => s.mot_id === motId && !s.parent_id).map((s) => s.signed_at);
   const nbSignatures = (motId: string) => lignesSig.filter((s) => s.mot_id === motId).length;
   const mesReponses = new Map<string, Reponse>();
-  for (const r of (reps.data ?? []) as { mot_id: string; responsable_id: string; autorisation: boolean | null; participation: Participation | null }[]) {
-    if (r.responsable_id === moi) mesReponses.set(r.mot_id, r.autorisation ?? (r.participation as Participation));
+  const reponseDe = new Map<string, Reponse>(); // `${mot}|${responsable}`
+  const anciennes = new Map<string, { reponse: Reponse; le: string | null }[]>();
+  for (const r of (reps.data ?? []) as { mot_id: string; responsable_id: string | null; autorisation: boolean | null; participation: Participation | null; updated_at: string | null }[]) {
+    const valeur = (r.autorisation ?? r.participation) as Reponse;
+    if (r.responsable_id === moi) mesReponses.set(r.mot_id, valeur);
+    if (r.responsable_id) reponseDe.set(`${r.mot_id}|${r.responsable_id}`, valeur);
+    else anciennes.set(r.mot_id, [...(anciennes.get(r.mot_id) ?? []), { reponse: valeur, le: r.updated_at }]);
   }
+  const traiteur = (motId: string) =>
+    premierSignataire(motId, lignesSig, responsables, moi, reponseDe, anciennes.get(motId)?.[0]?.reponse ?? null);
   const motsLus = new Set(((lus.data ?? []) as { mot_id: string }[]).map((r) => r.mot_id));
   const lignes = ((carnet.data ?? []) as unknown as { mots_liaison: MotRow | null }[])
     .map((c) => c.mots_liaison)
@@ -197,7 +227,9 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
         aSigne: signes.has(`${m.id}|${r.user_id}`),
       })),
       maSignature: signes.has(`${m.id}|${moi}`),
+      traitePar: m.signature_mode === 'one' ? traiteur(m.id) : null,
       signaturesAnciens: anciens(m.id),
+      reponsesAnciennes: anciennes.get(m.id) ?? [],
       // Même règle que la vue mot_carnets_statut : une (one) ou min(2, responsables) (both).
       signeParAncien:
         anciens(m.id).length > 0 &&
