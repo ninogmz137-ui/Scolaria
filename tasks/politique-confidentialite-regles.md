@@ -7,6 +7,9 @@
 ## Principe
 Le carnet appartient à l'enfant, pas au compte qui l'a rempli.
 
+**Règle générale (2 oct 2026)** : **supprimé = ce que personne d'autre ne détient** (ajouts privés, conversations Aria, profil) ;
+**conservé = ce qu'un tiers détient aussi** (le foyer, l'enseignant), sans le nom du responsable parti ou supprimé.
+
 ## Droit à l'effacement [M25, décision D6 du 27 sept 2026]
 - Demande depuis l'app (Famille & paramètres › Effacer des données), pour un carnet ou pour le compte.
 - Exécution **30 jours** après la demande ; **annulable** jusque-là. Dès la demande, les données concernées ne sont
@@ -23,7 +26,7 @@ Le carnet appartient à l'enfant, pas au compte qui l'a rempli.
 | Ajouts **privés** | supprimés, fichiers compris |
 | **Signatures** de mots | **conservées** : « Signé par un responsable (compte supprimé) le [date] » ; un mot signé ne repasse jamais « à signer » |
 | Messages du **fil famille** avec l'enseignant | **conservés**, auteur « Ancien responsable » |
-| Conversations **privées** avec l'enseignant | supprimées |
+| Conversations **individuelles** avec l'enseignant | **conservées** côté enseignant, nom affiché « Ancien responsable », messages sans auteur ; le partant n'y a plus accès [M29] |
 | Réponses aux mots (autorisation, participation) | **conservées** : « Répondu par un responsable (compte supprimé) » [M27] |
 | Événements d'**agenda** | **conservés** sans auteur [M27] : l'agenda n'a pas de notion de « privé » (tous les événements sont partagés avec les responsables du carnet) ; si des événements privés sont créés un jour, ils seront supprimés |
 | Conversations Aria, profil, alertes d'urgence | supprimés |
@@ -32,7 +35,7 @@ Aucun nom ni adresse n'est conservé ; un registre garde seulement la date de la
 
 ## Départ d'un responsable (il se retire d'un carnet)
 - Ses ajouts **privés** à ce carnet sont supprimés ; ses ajouts « foyer » restent au carnet [M25, déclencheur].
-- Il perd tout accès au carnet [décision du 27 sept, M23].
+- Il perd tout accès au carnet [décision du 27 sept, M23]. Ses fils individuels avec l'enseignant pour cet enfant restent côté enseignant (« Ancien responsable ») ; réinvité plus tard, il ne les retrouve pas [M29].
 - Action « Me retirer de ce carnet » (Autorisations) : un responsable ne retire que lui-même, jamais le dernier [M28]. Ses signatures et réponses aux mots restent (« un ancien responsable »), ses invitations en attente pour ce carnet sont annulées.
 
 ## Export (portabilité) [L7b]

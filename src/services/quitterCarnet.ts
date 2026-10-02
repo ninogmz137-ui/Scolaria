@@ -2,6 +2,7 @@
  * « Me retirer de ce carnet » (M28) : un responsable ne peut retirer que LUI-MÊME, jamais le dernier.
  * Conséquences (appliquées par le serveur) : ses ajouts PRIVÉS à ce carnet sont supprimés avec leurs fichiers ;
  * ses ajouts partagés restent (« Ajouté par un ancien responsable ») ; ses signatures et réponses aux mots restent ;
+ * ses fils individuels avec l'enseignant sont conservés côté enseignant (« Ancien responsable ») ;
  * ses invitations en attente pour ce carnet sont annulées ; il perd tout accès à ce carnet.
  */
 
@@ -47,7 +48,7 @@ export function texteConfirmationDepart(prenom: string, a: ApercuDepart | null):
   } else {
     lignes.push('Vos ajouts privés seront supprimés ; vos ajouts partagés restent, « Ajoutés par un ancien responsable ».');
   }
-  lignes.push('Vos signatures et vos réponses aux mots restent aussi dans le carnet.');
+  lignes.push('Vos signatures et vos réponses aux mots restent aussi dans le carnet. Vos conversations avec l’enseignant sont gardées par l’enseignant, sous le nom « Ancien responsable » : vous n’y avez plus accès.');
   lignes.push('Vos invitations en attente pour ce carnet sont annulées.');
   lignes.push(`Pour revenir, un responsable de ${prenom} devra vous inviter de nouveau.`);
   return lignes.join('\n\n');

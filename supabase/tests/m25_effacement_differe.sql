@@ -324,9 +324,11 @@ BEGIN
 
   SELECT count(*) INTO n FROM public.teacher_messages WHERE conversation_id = current_setting('test.fil_foyer')::uuid AND sender_id IS NULL;
   IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20i message du fil famille non conservé sans auteur'; END IF;
-  SELECT count(*) INTO n FROM public.teacher_conversations WHERE id = current_setting('test.fil_indiv')::uuid;
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20j fil individuel de B conservé'; END IF;
-  RAISE NOTICE 'OK T20c fil famille : message conservé sans auteur ; fil individuel de B supprimé';
+  -- (M29, 2 oct) fil individuel : CONSERVÉ pour l'enseignant, anonymisé (avant M29 : supprimé)
+  SELECT count(*) INTO n FROM public.teacher_conversations
+  WHERE id = current_setting('test.fil_indiv')::uuid AND parent_id IS NULL AND parent_parti AND parent_name = 'Ancien responsable';
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T20j fil individuel de B non conservé / non anonymisé'; END IF;
+  RAISE NOTICE 'OK T20c fil famille : message conservé sans auteur ; fil individuel de B conservé, « Ancien responsable »';
   PERFORM public.marquer_effacement_execute(current_setting('test.dem_b')::uuid);
   SELECT count(*) INTO n FROM public.effacements_dus();
   IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T20c demande encore due'; END IF;
