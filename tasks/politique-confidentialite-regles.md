@@ -33,6 +33,7 @@ Aucun nom ni adresse n'est conservé ; un registre garde seulement la date de la
 ## Départ d'un responsable (il se retire d'un carnet)
 - Ses ajouts **privés** à ce carnet sont supprimés ; ses ajouts « foyer » restent au carnet [M25, déclencheur].
 - Il perd tout accès au carnet [décision du 27 sept, M23].
+- Action « Me retirer de ce carnet » (Autorisations) : un responsable ne retire que lui-même, jamais le dernier [M28]. Ses signatures et réponses aux mots restent (« un ancien responsable »), ses invitations en attente pour ce carnet sont annulées.
 
 ## Export (portabilité) [L7b]
 - Archive .zip du carnet de l'enfant affiché : données (JSON), photos et documents, notice en français.

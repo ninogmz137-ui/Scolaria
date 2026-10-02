@@ -133,7 +133,7 @@ export async function getCarnetItems(childId: string): Promise<ElementCarnet[]> 
         ? undefined
         : r.ajoute_par === null
           ? 'un ancien responsable'
-          : prenoms.get(r.ajoute_par) || 'un autre responsable',
+          : prenoms.get(r.ajoute_par) || 'un ancien responsable',
       visibilite: r.visibilite,
       categorieCarnet: r.categorie,
       fichier: r.fichier ?? undefined,

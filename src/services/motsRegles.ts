@@ -43,7 +43,7 @@ export function premierSignataire(
   }
   const r = responsables.find((x) => x.user_id === premiere.parent_id);
   return {
-    prenom: r ? r.prenom || r.nom || 'Responsable' : 'un autre responsable',
+    prenom: r ? r.prenom || r.nom || 'Responsable' : 'un ancien responsable',
     estMoi: premiere.parent_id === moi,
     ancien: false,
     le: premiere.signed_at,

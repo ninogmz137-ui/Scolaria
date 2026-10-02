@@ -47,7 +47,7 @@ verifier('le premier signataire (par date) traite le mot : Marc', [p?.prenom, p?
 verifier('si c’est moi : estMoi', premierSignataire('m2', sigs, resp, 'u-claire', rep, null)?.estMoi, true);
 verifier('personne n’a signé : null', premierSignataire('m3', sigs, resp, 'u-claire', rep, null), null);
 verifier('signature d’un compte supprimé : conservée, sans nom', premierSignataire('m4', [{ mot_id: 'm4', parent_id: null, signed_at: '2026-10-01T08:00:00Z' }], resp, 'u-claire', rep, false), { prenom: 'un responsable (compte supprimé)', estMoi: false, ancien: true, le: '2026-10-01T08:00:00Z', reponse: false });
-verifier('signataire inconnu (a quitté le carnet) : « un autre responsable »', premierSignataire('m5', [{ mot_id: 'm5', parent_id: 'u-x', signed_at: '2026-10-01T08:00:00Z' }], resp, 'u-claire', rep, null)?.prenom, 'un autre responsable');
+verifier('signataire qui a quitté le carnet : « un ancien responsable »', premierSignataire('m5', [{ mot_id: 'm5', parent_id: 'u-x', signed_at: '2026-10-01T08:00:00Z' }], resp, 'u-claire', rep, null)?.prenom, 'un ancien responsable');
 
 console.log(echecs === 0 ? `── ${ok}/${ok} ──` : `── ${echecs} échec(s) ──`);
 process.exitCode = echecs === 0 ? 0 : 1;

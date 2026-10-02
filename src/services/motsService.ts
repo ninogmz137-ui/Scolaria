@@ -31,7 +31,7 @@ export interface ResponsableMot {
  * la réponse valant signature), le mot est traité pour TOUT le foyer. Seul « both » attend chaque responsable.
  */
 export interface TraitementMot {
-  /** Prénom du signataire ; « un responsable (compte supprimé) » ou « un autre responsable » sinon. */
+  /** Prénom du signataire ; « un responsable (compte supprimé) » ou « un ancien responsable » (a quitté le carnet) sinon. */
   prenom: string;
   estMoi: boolean;
   /** Compte du signataire supprimé (M25) : la signature est conservée sans nom. */

@@ -12,8 +12,9 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Mail, UserPlus } from 'lucide-react-native';
+import { Mail, UserPlus, LogOut } from 'lucide-react-native';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { DeepGroup, DeepRow, DeepAvatar, DEEP } from '../../components/DeepList';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
@@ -30,6 +31,7 @@ import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
 import { MOI_DEMO, autreResponsableDemo } from '../../data/demo/responsables';
 import { NOM_APP } from '../../constants/marque';
+import { apercuDepartCarnet, quitterCarnet, texteConfirmationDepart } from '../../services/quitterCarnet';
 
 const LIENS: Record<ResponsableEnfant['lien'], string> = {
   parent: 'Parent',
@@ -45,8 +47,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function PermissionsScreen() {
   const insets = useSafeAreaInsets();
-  const { selectedChild } = useActiveChild();
+  const navigation = useNavigation<any>();
+  const { selectedChild, reloadChildren } = useActiveChild();
   const { isDemo, user } = useAuth();
+  const [retrait, setRetrait] = useState(false);
   const prenomEnfant = selectedChild?.name?.split(' ')[0] ?? '';
 
   const [responsables, setResponsables] = useState<ResponsableEnfant[]>([]);
@@ -83,6 +87,37 @@ export default function PermissionsScreen() {
   useEffect(() => {
     charger();
   }, [charger]);
+
+  // « Me retirer de ce carnet » (M28) : moi seul, jamais le dernier responsable.
+  const seulResponsable = !isDemo && !chargement && responsables.length <= 1;
+  const retirer = async () => {
+    if (!selectedChild || retrait) return;
+    if (isDemo) {
+      Alert.alert('Mode démo', 'Aucun retrait n’est enregistré en mode démo.');
+      return;
+    }
+    const apercu = await apercuDepartCarnet(selectedChild.id);
+    Alert.alert(`Vous retirer du carnet ${de(prenomEnfant)} ?`, texteConfirmationDepart(prenomEnfant, apercu), [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Me retirer',
+        style: 'destructive',
+        onPress: async () => {
+          setRetrait(true);
+          const erreur = await quitterCarnet(selectedChild.id);
+          setRetrait(false);
+          if (erreur === 'dernier_responsable') {
+            Alert.alert('Retrait impossible', 'Vous êtes le seul responsable de ce carnet : invitez un autre responsable d’abord, ou effacez le carnet.');
+          } else if (erreur) {
+            Alert.alert('Retrait impossible', 'Le retrait n’a pas pu être enregistré. Réessayez.');
+          } else {
+            await reloadChildren();
+            navigation.goBack();
+          }
+        },
+      },
+    ]);
+  };
 
   const envoyer = async () => {
     const adresse = email.trim().toLowerCase();
@@ -196,6 +231,25 @@ export default function PermissionsScreen() {
                 <Text style={st.primaryText}>{envoi ? 'Envoi…' : 'Envoyer l’invitation'}</Text>
               </Pressable>
             </View>
+          )}
+        </DeepGroup>
+
+        <DeepGroup title="Quitter ce carnet">
+          {seulResponsable ? (
+            <DeepRow
+              label="Me retirer de ce carnet"
+              description="Vous êtes le seul responsable : invitez un autre responsable d’abord, ou effacez le carnet (Effacer des données)."
+              last
+            />
+          ) : (
+            <DeepRow
+              icon={<LogOut size={20} color="#EF4444" strokeWidth={2} />}
+              label="Me retirer de ce carnet"
+              description="Vous perdez l’accès ; vos ajouts privés sont supprimés, vos ajouts partagés restent"
+              danger
+              last
+              onPress={retrait ? undefined : retirer}
+            />
           )}
         </DeepGroup>
       </ScrollView>
