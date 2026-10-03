@@ -1,0 +1,3 @@
+-- Migration appliquée le 2026-03-29 (historique distant « add_teacher_tables »).
+-- Son SQL d'origine n'était pas versionné ; son effet est intégré à 20260923140000_baseline.sql.
+-- Fichier-repère uniquement, pour que l'historique local et distant concordent.

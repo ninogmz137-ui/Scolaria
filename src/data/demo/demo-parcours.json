@@ -1,0 +1,193 @@
+[
+  {
+    "childId": "demo-lucas",
+    "currentYear": {
+      "year": "2025-2026",
+      "class": "CM2",
+      "school": "École Voltaire",
+      "status": "current",
+      "bulletins": 2,
+      "averageT1": 14.2,
+      "averageT2": 14.8,
+      "averageT3": null
+    },
+    "archives": [
+      {
+        "year": "2024-2025",
+        "class": "CM1",
+        "school": "École Voltaire",
+        "status": "archived",
+        "bulletins": 3,
+        "averageT1": 13.5,
+        "averageT2": 13.8,
+        "averageT3": 14.1,
+        "averageAnnuelle": 13.8,
+        "appreciation": "Bon élève, sérieux et participatif. Lucas progresse régulièrement et montre un réel intérêt pour les sciences et l'histoire."
+      },
+      {
+        "year": "2023-2024",
+        "class": "CE2",
+        "school": "École Voltaire",
+        "status": "archived",
+        "bulletins": 3,
+        "averageT1": 12.8,
+        "averageT2": 13.2,
+        "averageT3": 13.5,
+        "averageAnnuelle": 13.2,
+        "appreciation": "Lucas est un élève agréable qui fournit un travail régulier. Il doit gagner en confiance à l'oral."
+      },
+      {
+        "year": "2022-2023",
+        "class": "CE1",
+        "school": "École Voltaire",
+        "status": "imported",
+        "bulletins": 2,
+        "averageT1": 12.0,
+        "averageT2": 12.5,
+        "averageT3": 13.0,
+        "averageAnnuelle": 12.5,
+        "appreciation": "Bonne année. Lucas a acquis les fondamentaux en lecture et calcul."
+      },
+      {
+        "year": "2021-2022",
+        "class": "CP",
+        "school": "École Voltaire",
+        "status": "imported",
+        "bulletins": 2,
+        "appreciation": "Lucas a appris à lire avec aisance et montre de bonnes capacités en numération. Élève curieux et appliqué."
+      },
+      {
+        "year": "2020-2021",
+        "class": "Grande section",
+        "school": "Maternelle Pasteur",
+        "status": "imported",
+        "bulletins": 1,
+        "appreciation": "Lucas est bien préparé pour le CP. Bonne maîtrise du langage oral et des premiers gestes d'écriture."
+      }
+    ],
+    "superPouvoirs": [
+      { "name": "Sport", "type": "Judo", "level": "Ceinture verte", "progress": 65, "hoursPerWeek": 3, "since": 2023 },
+      { "name": "Musique", "type": "Piano", "level": "3ème année", "progress": 45, "hoursPerWeek": 2, "since": 2024 },
+      { "name": "Langue", "type": "Anglais renforcé", "level": "A2", "progress": 55, "hoursPerWeek": 1, "since": 2022 },
+      { "name": "Sport", "type": "Natation", "level": "Dauphin", "progress": 80, "hoursPerWeek": 1.5, "since": 2024 }
+    ],
+    "scoreDeJoie": {
+      "month": "Mars 2026",
+      "average": 6.1,
+      "bestStreak": 6,
+      "happyDays": 12,
+      "dailyScores": [7, 6, 7, 5, 6, 8, 7, 6, 5, 8, 8, 7, 8, 7, 8, 7, 6]
+    }
+  },
+  {
+    "childId": "demo-emma",
+    "currentYear": {
+      "year": "2025-2026",
+      "class": "3ème",
+      "school": "Collège Hugo",
+      "status": "current",
+      "bulletins": 2,
+      "averageT1": 13.8,
+      "averageT2": 14.0,
+      "averageT3": null
+    },
+    "archives": [
+      {
+        "year": "2024-2025",
+        "class": "4ème",
+        "school": "Collège Hugo",
+        "status": "archived",
+        "bulletins": 3,
+        "averageT1": 13.2,
+        "averageT2": 13.5,
+        "averageT3": 13.9,
+        "averageAnnuelle": 13.5,
+        "appreciation": "Emma est une élève sérieuse qui progresse dans toutes les matières. Elle s'est particulièrement distinguée en Français et en Langues vivantes."
+      },
+      {
+        "year": "2023-2024",
+        "class": "5ème",
+        "school": "Collège Hugo",
+        "status": "archived",
+        "bulletins": 3,
+        "averageT1": 12.5,
+        "averageT2": 12.8,
+        "averageT3": 13.2,
+        "averageAnnuelle": 12.8,
+        "appreciation": "Bonne élève, Emma doit veiller à maintenir ses efforts en sciences. Excellents résultats en Français."
+      },
+      {
+        "year": "2022-2023",
+        "class": "6ème",
+        "school": "Collège Hugo",
+        "status": "imported",
+        "bulletins": 3,
+        "averageT1": 12.0,
+        "averageT2": 12.3,
+        "averageT3": 12.5,
+        "averageAnnuelle": 12.3,
+        "appreciation": "Bonne adaptation au collège. Emma est une élève discrète mais appliquée qui a trouvé ses marques rapidement."
+      },
+      {
+        "year": "2021-2022",
+        "class": "CM2",
+        "school": "École Voltaire",
+        "status": "imported",
+        "bulletins": 2,
+        "averageAnnuelle": 13.0,
+        "appreciation": "Très bonne année de CM2. Emma est prête pour le collège."
+      }
+    ],
+    "superPouvoirs": [
+      { "name": "Sport", "type": "Danse classique", "level": "Intermédiaire", "progress": 70, "hoursPerWeek": 4, "since": 2019 },
+      { "name": "Langue", "type": "Espagnol LV2", "level": "A2+", "progress": 60, "hoursPerWeek": 3, "since": 2023 },
+      { "name": "Art", "type": "Dessin", "level": "Confirmé", "progress": 75, "hoursPerWeek": 2, "since": 2021 }
+    ],
+    "scoreDeJoie": {
+      "month": "Mars 2026",
+      "average": 7.2,
+      "bestStreak": 8,
+      "happyDays": 15,
+      "dailyScores": [7, 8, 7, 6, 7, 8, 8, 7, 8, 9, 7, 6, 7, 8, 7, 8, 7]
+    }
+  },
+  {
+    "childId": "demo-lea",
+    "currentYear": {
+      "year": "2025-2026",
+      "class": "Grande section",
+      "school": "Maternelle Pasteur",
+      "status": "current",
+      "bulletins": 2
+    },
+    "archives": [
+      {
+        "year": "2024-2025",
+        "class": "Moyenne section",
+        "school": "Maternelle Pasteur",
+        "status": "archived",
+        "bulletins": 2,
+        "appreciation": "Léa est une petite fille joyeuse et sociable. Elle progresse bien dans tous les domaines, avec un goût particulier pour les activités artistiques et le langage."
+      },
+      {
+        "year": "2023-2024",
+        "class": "Petite section",
+        "school": "Maternelle Pasteur",
+        "status": "imported",
+        "bulletins": 1,
+        "appreciation": "Première année de maternelle réussie. Léa s'est bien adaptée à la vie en collectivité et participe avec enthousiasme aux activités proposées."
+      }
+    ],
+    "superPouvoirs": [
+      { "name": "Sport", "type": "Baby gym", "level": "2ème année", "progress": 60, "hoursPerWeek": 1, "since": 2024 },
+      { "name": "Art", "type": "Éveil musical", "level": "Découverte", "progress": 30, "hoursPerWeek": 0.5, "since": 2025 }
+    ],
+    "scoreDeJoie": {
+      "month": "Mars 2026",
+      "average": 8.4,
+      "bestStreak": 12,
+      "happyDays": 20,
+      "dailyScores": [9, 8, 9, 8, 7, 9, 8, 9, 8, 9, 8, 7, 9, 8, 9, 8, 9]
+    }
+  }
+]
