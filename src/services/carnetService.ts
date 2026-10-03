@@ -11,6 +11,7 @@
  */
 
 import { supabase } from './supabase';
+import { classerErreur, leverSiErreur } from './erreurs';
 import { isSupabaseConfigured } from './database';
 
 /** Catégorie choisie par le parent (CLAUDE.md, « Ajouter au carnet »). */
@@ -104,7 +105,7 @@ function extensionMime(chemin: string | null): string | undefined {
 /** Ajouts de la famille pour l'enfant (compte réel), les plus récents d'abord. */
 export async function getCarnetItems(childId: string): Promise<ElementCarnet[]> {
   if (!isSupabaseConfigured()) return [];
-  const [{ data: auth }, { data, error }, { data: resp }] = await Promise.all([
+  const [{ data: auth, error: erreurAuth }, { data, error }, { data: resp }] = await Promise.all([
     supabase.auth.getUser(),
     supabase
       .from('carnet_items')
@@ -113,7 +114,10 @@ export async function getCarnetItems(childId: string): Promise<ElementCarnet[]> 
       .order('date', { ascending: false }),
     supabase.rpc('responsables_enfant', { p_child_id: childId }),
   ]);
-  if (error || !data) return [];
+  // Échec de chargement ≠ « carnet vide » : l'écran affiche « Réessayer » (erreurs.ts).
+  leverSiErreur(erreurAuth);
+  leverSiErreur(error);
+  if (!data) return [];
   const moi = auth.user?.id;
   const prenoms = new Map<string, string>(
     ((resp ?? []) as { user_id: string; prenom: string }[]).map((r) => [r.user_id, r.prenom]),
@@ -175,6 +179,17 @@ function uuid(): string {
 /** Message clair pour l'écran (jamais de détail technique). */
 export class ErreurCarnet extends Error {}
 
+/**
+ * Message d'une écriture en échec : réseau coupé et session expirée sont dits clairement
+ * (la saisie de l'écran est conservée), sinon le message par défaut de l'action.
+ */
+function erreurEcriture(error: unknown, defaut: string): ErreurCarnet {
+  const type = classerErreur(error);
+  if (type === 'reseau') return new ErreurCarnet('Pas de connexion : rien n’a été enregistré, votre saisie est conservée. Réessayez quand le réseau est revenu.');
+  if (type === 'session') return new ErreurCarnet('Votre session a expiré : reconnectez-vous, puis recommencez.');
+  return new ErreurCarnet(defaut);
+}
+
 export async function ajouterAuCarnet(a: NouvelAjout, modeDemo: boolean): Promise<void> {
   if (modeDemo) {
     const liste = demo.get(a.childId) ?? [];
@@ -198,7 +213,8 @@ export async function ajouterAuCarnet(a: NouvelAjout, modeDemo: boolean): Promis
     return;
   }
 
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: erreurAuth } = await supabase.auth.getUser();
+  if (erreurAuth) throw erreurEcriture(erreurAuth, 'Ajout impossible. Réessayez.');
   const moi = auth.user?.id;
   if (!moi) throw new ErreurCarnet('Session expirée : reconnectez-vous.');
 
@@ -212,11 +228,9 @@ export async function ajouterAuCarnet(a: NouvelAjout, modeDemo: boolean): Promis
       upsert: false,
     });
     if (error) {
-      throw new ErreurCarnet(
-        /bucket/i.test(error.message)
-          ? 'L’envoi de fichiers n’est pas encore ouvert sur votre compte.'
-          : 'Envoi du fichier impossible. Réessayez.',
-      );
+      throw /bucket/i.test(error.message)
+        ? new ErreurCarnet('L’envoi de fichiers n’est pas encore ouvert sur votre compte.')
+        : erreurEcriture(error, 'Envoi du fichier impossible. Réessayez.');
     }
   }
 
@@ -234,7 +248,7 @@ export async function ajouterAuCarnet(a: NouvelAjout, modeDemo: boolean): Promis
   if (error) {
     // La ligne n'a pas pu être créée : on ne laisse pas de fichier orphelin.
     if (chemin) await supabase.storage.from('carnet').remove([chemin]);
-    throw new ErreurCarnet('Ajout impossible. Réessayez.');
+    throw erreurEcriture(error, 'Ajout impossible. Réessayez.');
   }
   prevenir();
 }
@@ -257,7 +271,7 @@ export async function modifierAjout(
     .from('carnet_items')
     .update({ categorie: changements.categorie, date: changements.date, titre: changements.titre, visibilite: changements.visibilite })
     .eq('id', e.id);
-  if (error) throw new ErreurCarnet('Modification impossible. Réessayez.');
+  if (error) throw erreurEcriture(error, 'Modification impossible. Réessayez.');
   prevenir();
 }
 
@@ -270,10 +284,10 @@ export async function supprimerAjout(e: ElementCarnet, modeDemo: boolean, childI
   }
   if (e.fichier) {
     const { error } = await supabase.storage.from('carnet').remove([e.fichier]);
-    if (error) throw new ErreurCarnet('Suppression du fichier impossible. Réessayez.');
+    if (error) throw erreurEcriture(error, 'Suppression du fichier impossible. Réessayez.');
   }
   const { error } = await supabase.from('carnet_items').delete().eq('id', e.id);
-  if (error) throw new ErreurCarnet('Suppression impossible. Réessayez.');
+  if (error) throw erreurEcriture(error, 'Suppression impossible. Réessayez.');
   prevenir();
 }
 

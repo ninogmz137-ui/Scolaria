@@ -48,6 +48,8 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
+import EtatErreur from '../components/EtatErreur';
+import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { aDesDevoirs, aDesNotes, aUnEmploiDuTemps } from '../utils/niveau';
 
 // Enable LayoutAnimation on Android
@@ -329,6 +331,7 @@ function AgendaScreenContent() {
   const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
   // Jamais d'événements fictifs : démo = agenda de l'enfant actif, compte réel = la base.
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>({});
+  const [erreurAgenda, setErreurAgenda] = useState<TypeErreur | null>(null);
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [selectedFullDate, setSelectedFullDate] = useState(today);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
@@ -411,7 +414,18 @@ function AgendaScreenContent() {
         demoToggleDone(eventId);
       } else if (!eventId.startsWith('local-')) {
         const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
-        toggleEventDone(eventId, newDone).catch(() => {/* optimistic update already applied */});
+        // Échec (réseau coupé…) : la coche est annulée à l'écran et on le dit, jamais d'état faux silencieux.
+        const annuler = () => {
+          setEventsByDay((cur) => {
+            const rev: Record<number, AgendaEvent[]> = {};
+            for (const [d, evs] of Object.entries(cur)) rev[Number(d)] = evs.map((e) => (e.id === eventId ? { ...e, done: !newDone } : e));
+            return rev;
+          });
+          Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');
+        };
+        toggleEventDone(eventId, newDone)
+          .then((r) => { if (r?.error) annuler(); })
+          .catch(annuler);
       }
       return updated;
     });
@@ -578,10 +592,22 @@ function AgendaScreenContent() {
     const endOfSunday = new Date(sunday);
     endOfSunday.setHours(23, 59, 59, 999);
 
-    const result = await getAgendaEvents(selectedChildId, {
-      startDate: monday.toISOString(),
-      endDate: endOfSunday.toISOString(),
-    });
+    let result: Awaited<ReturnType<typeof getAgendaEvents>> | null = null;
+    try {
+      result = await getAgendaEvents(selectedChildId, {
+        startDate: monday.toISOString(),
+        endDate: endOfSunday.toISOString(),
+      });
+    } catch (e) {
+      setErreurAgenda(classerErreur(e));
+      return;
+    }
+    // Échec de chargement ≠ « journée libre » : message + « Réessayer » (les événements déjà affichés restent).
+    if (result?.error) {
+      setErreurAgenda(classerErreur(result.error));
+      return;
+    }
+    setErreurAgenda(null);
     const rows = result?.data ?? [];
     if (rows.length === 0) { setEventsByDay({}); return; }
 
@@ -652,8 +678,12 @@ function AgendaScreenContent() {
           start_time: dayDate.toISOString(),
         });
         if (result?.error) {
-          console.error('[Agenda] createAgendaEvent error:', JSON.stringify(result.error));
-          Alert.alert('Erreur', `Impossible de créer l'événement : ${result.error.message || 'Veuillez réessayer.'}`);
+          Alert.alert(
+            'Événement non créé',
+            classerErreur(result.error) === 'reseau'
+              ? 'Pas de connexion : l’événement n’a pas été enregistré. Réessayez quand le réseau est revenu.'
+              : 'L’événement n’a pas pu être enregistré. Réessayez dans un instant.',
+          );
           return;
         }
         await loadEvents();
@@ -895,7 +925,8 @@ function AgendaScreenContent() {
           }}
           nestedScrollEnabled
         >
-          {dayEvents.length === 0 ? (
+          {erreurAgenda && <EtatErreur type={erreurAgenda} onReessayer={loadEvents} compact />}
+          {dayEvents.length === 0 && erreurAgenda ? null : dayEvents.length === 0 ? (
             <View style={st.emptyState}>
               <View style={st.emptyIconWrap}>
                 <CalendarCheck size={32} color="rgba(15,23,42,0.35)" strokeWidth={1.8} />

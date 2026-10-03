@@ -23,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
 import { getChildren, updateChild } from '../services/database';
+import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
 import demoChildren from '../data/demo/demo-children.json';
 
@@ -84,6 +85,8 @@ interface ActiveChildContextValue {
   setChildFond: (childId: string, fond: string | null) => Promise<void>;
   fadeAnim: Animated.Value;
   loading: boolean;
+  /** Chargement des enfants en échec (réseau, session, serveur) : jamais confondu avec « aucun enfant ». */
+  erreur: TypeErreur | null;
 }
 
 const ActiveChildContext = createContext<ActiveChildContextValue>({
@@ -96,6 +99,7 @@ const ActiveChildContext = createContext<ActiveChildContextValue>({
   setChildFond: async () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
+  erreur: null,
 });
 
 type ChildRow = {
@@ -152,17 +156,22 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   const [childList, setChildList] = useState<Child[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [erreur, setErreur] = useState<TypeErreur | null>(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // ─── Chargement : démo OU base, jamais les deux ─────────
-  const loadChildren = useCallback(async (): Promise<Child[]> => {
+  const loadChildren = useCallback(async (): Promise<Child[] | null> => {
     if (!userId) return [];
     if (isDemo) return lireDemoOverrides(DEMO_CHILDREN);
     try {
       const result = await getChildren();
+      if (result?.error) throw result.error;
+      setErreur(null);
       return ((result?.data ?? []) as ChildRow[]).map(mapRow);
-    } catch {
-      return [];
+    } catch (e) {
+      // Échec : on garde la liste déjà chargée (hors ligne, rien ne disparaît) et on signale l'erreur.
+      setErreur(classerErreur(e));
+      return null;
     }
   }, [userId, isDemo]);
 
@@ -196,11 +205,12 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
     let cancelled = false;
     setSelectedChildId(null);
     setChildList([]);
+    setErreur(null);
     if (!userId) return;
     setLoading(true);
     loadChildren().then(async (list) => {
       if (cancelled) return;
-      await applyList(list);
+      if (list) await applyList(list);
       if (!cancelled) setLoading(false);
     });
     return () => {
@@ -210,7 +220,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
 
   const reloadChildren = useCallback(async (preferId?: string) => {
     const list = await loadChildren();
-    await applyList(list, preferId);
+    if (list) await applyList(list, preferId);
   }, [loadChildren, applyList]);
 
   const selectedChild = useMemo(
@@ -285,6 +295,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         setChildFond,
         fadeAnim,
         loading,
+        erreur,
       }}
     >
       {reactChildren}

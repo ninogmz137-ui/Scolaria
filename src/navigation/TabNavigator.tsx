@@ -21,6 +21,7 @@ import { TOPBAR_PADDING_TOP, TOPBAR_ROW_HEIGHT } from '../components/navigation/
 import { getBottomBarOffset, BOTTOM_BAR_ROW_HEIGHT } from '../components/navigation/BottomBar';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { canSwipeBack, getChromeMode, getFocusedLeafRouteName, type StackParams } from './chrome';
 import { navigationRef } from './navigationRef';
@@ -137,7 +138,7 @@ const SCREEN_TITLES: Record<string, string> = {
 const AccueilStack = createNativeStackNavigator<StackParams>();
 function AccueilStackScreen() {
   return (
-    <AccueilStack.Navigator
+    <ErrorBoundary nom="Accueil" compact><AccueilStack.Navigator
       screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
@@ -343,14 +344,14 @@ function AccueilStackScreen() {
         component={SignSuccessScreen}
         options={{ headerShown: false }}
       />
-    </AccueilStack.Navigator>
+    </AccueilStack.Navigator></ErrorBoundary>
   );
 }
 
 const NotesStack = createNativeStackNavigator<StackParams>();
 function NotesStackScreen() {
   return (
-    <NotesStack.Navigator
+    <ErrorBoundary nom="Suivi" compact><NotesStack.Navigator
       screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
@@ -424,14 +425,14 @@ function NotesStackScreen() {
         component={AjouterAuCarnetScreen}
         options={{ headerShown: false }}
       />
-    </NotesStack.Navigator>
+    </NotesStack.Navigator></ErrorBoundary>
   );
 }
 
 const AgendaStack = createNativeStackNavigator<StackParams>();
 function AgendaStackScreen() {
   return (
-    <AgendaStack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
+    <ErrorBoundary nom="Agenda" compact><AgendaStack.Navigator screenOptions={{ headerShown: false, gestureEnabled: true }}>
       <AgendaStack.Screen
         name="AgendaHome"
         component={AgendaScreen}
@@ -448,14 +449,14 @@ function AgendaStackScreen() {
         component={TimetableScreen}
         options={{ headerShown: false }}
       />
-    </AgendaStack.Navigator>
+    </AgendaStack.Navigator></ErrorBoundary>
   );
 }
 
 const MessagerieStack = createNativeStackNavigator<StackParams>();
 function MessagerieStackScreen() {
   return (
-    <MessagerieStack.Navigator
+    <ErrorBoundary nom="Messages" compact><MessagerieStack.Navigator
       screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
@@ -541,7 +542,7 @@ function MessagerieStackScreen() {
         component={SignSuccessScreen}
         options={{ headerShown: false }}
       />
-    </MessagerieStack.Navigator>
+    </MessagerieStack.Navigator></ErrorBoundary>
   );
 }
 

@@ -12,9 +12,12 @@ import { UserPlus } from 'lucide-react-native';
 import ScolariaSymbol from './ScolariaSymbol';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
+import EtatErreur from './EtatErreur';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 
 export default function AucunEnfant({ compact }: { compact?: boolean }) {
   const navigation = useNavigation<any>();
+  const { erreur, reloadChildren } = useActiveChild();
 
   const ajouter = () => {
     navigation.navigate('MainPager', {
@@ -22,6 +25,9 @@ export default function AucunEnfant({ compact }: { compact?: boolean }) {
       params: { screen: 'AjouterEnfant', initial: false },
     });
   };
+
+  // Chargement échoué (réseau coupé, session expirée…) : jamais « aucun enfant » à tort.
+  if (erreur) return <EtatErreur type={erreur} onReessayer={() => reloadChildren()} compact={compact} />;
 
   return (
     <View style={[st.root, compact && st.compact]}>

@@ -9,6 +9,7 @@
  */
 
 import { supabase } from './supabase';
+import { leverSiErreur } from './erreurs';
 import demoMotsJson from '../data/demo/demo-mots.json';
 import { evenementDemoParId } from '../contexts/DemoContext';
 import { MOI_DEMO, autreResponsableDemo } from '../data/demo/responsables';
@@ -171,7 +172,8 @@ type MotRow = {
 };
 
 async function motsReels(childId: string): Promise<MotCarnet[]> {
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: erreurAuth } = await supabase.auth.getUser();
+  leverSiErreur(erreurAuth);
   const moi = auth.user?.id ?? '';
   const [carnet, resp, sigs, reps, lus] = await Promise.all([
     supabase
@@ -183,7 +185,7 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
     supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation, updated_at').eq('child_id', childId),
     supabase.from('read_receipts').select('mot_id').eq('parent_id', moi),
   ]);
-  if (carnet.error) return [];
+  leverSiErreur(carnet.error); // échec de chargement ≠ « aucun mot » : l'écran propose « Réessayer »
   const responsables = ((resp.data ?? []) as { user_id: string; prenom: string; nom: string; est_moi: boolean }[]);
   const lignesSig = (sigs.data ?? []) as { mot_id: string; parent_id: string | null; signed_at: string }[];
   const signes = new Set(lignesSig.filter((s) => s.parent_id).map((s) => `${s.mot_id}|${s.parent_id}`));

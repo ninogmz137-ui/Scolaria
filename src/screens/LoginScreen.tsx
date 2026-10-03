@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import ScolariaLogo from '../components/ScolariaLogo';
 import { Text } from '../components/ui';
+import { useSessionExpiree } from '../services/sessionExpiree';
 
 const BG = '#F2F1EE';
 const NAVY = '#0F172A';
@@ -14,6 +15,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { enterDemoMode } = useAuth();
+  const sessionExpiree = useSessionExpiree();
 
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]}>
@@ -26,6 +28,13 @@ export default function LoginScreen() {
           <ScolariaLogo fontSize={32} primaryColor={NAVY} sparkleColor={INDIGO} />
           <Text style={styles.tagline}>Le carnet de scolarité numérique</Text>
         </View>
+
+        {/* Session terminée sans action de la personne (jeton refusé…) : on le dit. */}
+        {sessionExpiree ? (
+          <Text style={styles.expiree} accessibilityRole="alert">
+            Votre session a expiré. Reconnectez-vous pour retrouver votre carnet.
+          </Text>
+        ) : null}
 
         {/* Buttons */}
         <View style={styles.actions}>
@@ -99,6 +108,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: 'rgba(15,23,42,0.50)',
     marginTop: 6,
+  },
+  expiree: {
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 14,
+    lineHeight: 20,
+    color: NAVY,
+    textAlign: 'center',
+    marginTop: -24,
+    marginBottom: 24,
+    paddingHorizontal: 8,
   },
   actions: {
     width: '100%',

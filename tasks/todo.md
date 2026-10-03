@@ -760,3 +760,8 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] AriaScreen v3 (topbar spécifique, suggestions centré, input Aria)
 - [ ] `npx expo run:android` — test visuel des nouveaux écrans
 - [ ] EAS build quand tout est validé localhost
+
+### STAB-1 (3 oct 2026)
+- [x] Point 0 : journal_executions_effacement 3 oct 03:30 UTC = succès (HTTP 200, 0 échue, 0 échec) ; M28 appliquée à Paris ; M29 et M30 LOCALES en attente de validation ; origin/main à jour.
+- [x] Point 3 : sauvegarde hebdomadaire + restauration testée (tasks/sauvegarde.md). **Lire `C:\Users\admin\ScolariaBackups\hebdo\journal.log` en début de session.** Copie hors PC : non faite (ton choix).
+- [~] Point 4 ROBUSTESSE : code fait (erreurs.ts, EtatErreur, ErrorBoundary par onglet, délai réseau 25 s, hooks useCarnetReel / useMotsEnfant, Accueil, Suivi, Agenda, Messages, Ajouter au carnet, Famille & paramètres, session expirée sur l'écran d'ouverture). tsc OK, test:erreurs 12/12. **NON éprouvé sur le Redmi** : écran verrouillé par un code (je ne le saisis pas) et compte réel à reconnecter par toi. À faire ensemble : mode avion + mesures adb.

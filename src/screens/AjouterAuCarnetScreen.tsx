@@ -34,6 +34,8 @@ import {
 import { jourMois } from '../utils/competences';
 import { de } from '../utils/francais';
 import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
+import EtatErreur from '../components/EtatErreur';
+import { classerErreur, type TypeErreur } from '../services/erreurs';
 
 type Params = { source?: SourceAjout; element?: ElementCarnet; categorie?: CategorieCarnet };
 
@@ -80,6 +82,8 @@ export default function AjouterAuCarnetScreen() {
   const [annees, setAnnees] = useState<AnneeParcours[]>([]);
   const [anneeId, setAnneeId] = useState<string | undefined>(element?.anneeId);
   const [envoi, setEnvoi] = useState(false);
+  const [erreurAnnees, setErreurAnnees] = useState<TypeErreur | null>(null);
+  const [essaiAnnees, setEssaiAnnees] = useState(0);
 
   const prenom = selectedChild?.name.split(' ')[0] ?? '';
 
@@ -92,12 +96,19 @@ export default function AjouterAuCarnetScreen() {
       setAnneeId((id) => id ?? liste.find((a) => a.statut === 'active')?.id);
     };
     if (isDemoMode) choisir(getAnneesDemo(selectedChild.id));
-    else getAcademicYears(selectedChild.id).then(({ data }) =>
-      choisir((data ?? []).map((a) => ({ id: a.id, annee: a.annee_scolaire, niveau: a.niveau, etablissement: a.etablissement ?? '', statut: a.statut }))));
+    else getAcademicYears(selectedChild.id).then(({ data, error }) => {
+      // Échec (réseau coupé…) : message + « Réessayer » — sans l'année, l'envoi d'un fichier serait bloqué sans explication.
+      if (error) {
+        if (!annule) setErreurAnnees(classerErreur(error));
+        return;
+      }
+      if (!annule) setErreurAnnees(null);
+      choisir((data ?? []).map((a) => ({ id: a.id, annee: a.annee_scolaire, niveau: a.niveau, etablissement: a.etablissement ?? '', statut: a.statut })));
+    });
     return () => {
       annule = true;
     };
-  }, [selectedChild?.id, isDemoMode, modification]);
+  }, [selectedChild?.id, isDemoMode, modification, essaiAnnees]);
 
   const anneesTriees = useMemo(() => [...annees].sort((a, b) => b.annee.localeCompare(a.annee)), [annees]);
   const valide = titre.trim().length > 0 && !!selectedChild && (modification || !!anneeId || !fichier);
@@ -172,6 +183,7 @@ export default function AjouterAuCarnetScreen() {
         withTopInset
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
+        {erreurAnnees ? <EtatErreur type={erreurAnnees} onReessayer={() => setEssaiAnnees((v) => v + 1)} compact /> : null}
         {apercuUri ? (
           <Image source={{ uri: apercuUri }} style={st.apercu} resizeMode="cover" accessibilityLabel="Aperçu de la photo" />
         ) : fichier ? (

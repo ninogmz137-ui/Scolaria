@@ -33,7 +33,9 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getConversations } from '../stores/messagerieStore';
 import { construireAccueilDemo, isoJour, todoDepuisMots } from '../data/demo/accueil';
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
-import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import EtatErreur from '../components/EtatErreur';
+import { useCarnetReel } from '../hooks/useCarnetReel';
+import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 import { NOM_APP } from '../constants/marque';
 import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
@@ -189,7 +191,7 @@ export default function AccueilScreen() {
   //  - « À faire », « Aujourd'hui », Aria : Agenda, mots et Messages de l'enfant.
   const { getAgenda, getGrades, getSubjects } = useDemoData();
   // Mots du carnet : la MÊME donnée que Messages › Général « À traiter » (démo et compte réel).
-  const { mots } = useMotsEnfant(selectedChild?.id);
+  const { mots, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(selectedChild?.id);
   const dernieresNotes = useMemo(() => {
     if (!isDemo || !selectedChild) return [];
     const matieres = getSubjects(selectedChild.id);
@@ -213,20 +215,14 @@ export default function AccueilScreen() {
   // compte réel : carnet_items. Livrets → Suivi › Livrets ; souvenirs et jalons → Suivi › Souvenirs.
   const [versionCarnet, setVersionCarnet] = useState(0);
   useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
-  const [motsReels, setMotsReels] = useState<ElementCarnet[]>([]);
-  useEffect(() => {
-    let annule = false;
-    if (isDemo || !selectedChild) {
-      setMotsReels([]);
-      return;
-    }
-    getCarnetItems(selectedChild.id).then((items) => {
-      if (!annule) setMotsReels(items.filter((e) => e.categorie === 'mot'));
-    });
-    return () => {
-      annule = true;
-    };
-  }, [isDemo, selectedChild?.id, versionCarnet]);
+  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemo, versionCarnet);
+  const motsReels = useMemo(() => carnetReel.filter((e) => e.categorie === 'mot'), [carnetReel]);
+  // Chargement en échec (réseau coupé, session expirée…) : message + « Réessayer », jamais « Rien à faire » à tort.
+  const erreurAccueil = erreurMots ?? erreurCarnet;
+  const reessayerAccueil = () => {
+    rechargerMots();
+    rechargerCarnet();
+  };
   const nouveauxMots = (isDemo ? carnetDemo(selectedChild?.id).filter((e) => e.categorie === 'mot') : motsReels).slice(0, 3);
   const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirAjout = async (e: ElementCarnet) => {
@@ -290,6 +286,14 @@ export default function AccueilScreen() {
         )}
 
         {selectedChild && (<>
+
+        {erreurAccueil && (
+          <View style={styles.cardOuter}>
+            <View style={styles.cardInner}>
+              <EtatErreur type={erreurAccueil} onReessayer={reessayerAccueil} compact />
+            </View>
+          </View>
+        )}
 
         {/* À faire */}
         {accueil.todo.length > 0 && (

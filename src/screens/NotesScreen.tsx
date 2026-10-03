@@ -65,7 +65,10 @@ import { referentielDuNiveau } from '../data/referentiels';
 import type { Decoupage, ElementSuivi } from '../utils/competences';
 import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
 import CarnetVue from './suivi/CarnetVue';
-import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import { carnetDemo, lienFichier, type ElementCarnet } from '../services/carnetService';
+import EtatErreur from '../components/EtatErreur';
+import { useCarnetReel } from '../hooks/useCarnetReel';
+import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { videLivrets } from '../utils/livrets';
 import { getLivretsDemo } from '../data/demo/livrets';
 import { getSouvenirsDemo } from '../data/demo/souvenirs';
@@ -947,6 +950,12 @@ function NotesScreenContent() {
   // Maternelle (observations) et primaire (compétences) : démo = src/data/demo/suivi.ts (même source
   // que l'Accueil) ; compte réel = table competences (échelle et période de chaque ligne).
   const [competences, setCompetences] = useState<ElementSuivi[]>([]);
+  // Chargements en échec (réseau, session, serveur) : « Réessayer » relit tout (versionSuivi), jamais un
+  // écran vide à tort. Les données déjà affichées sont conservées.
+  const [versionSuivi, setVersionSuivi] = useState(0);
+  const [erreurCompetences, setErreurCompetences] = useState<TypeErreur | null>(null);
+  const [erreurAnnees, setErreurAnnees] = useState<TypeErreur | null>(null);
+  const [erreurNotes, setErreurNotes] = useState<TypeErreur | null>(null);
   // Découpage de l'année : démo = réglage de l'école de démo ; compte réel : défaut du niveau
   // (périodes) tant que la résolution serveur (decoupage_annee) n'est pas branchée côté app.
   const decoupageSuivi: Decoupage =
@@ -966,8 +975,13 @@ function NotesScreenContent() {
       setCompetences([]);
       return;
     }
-    getCompetences(selectedChild.id).then(({ data }) => {
+    getCompetences(selectedChild.id).then(({ data, error }) => {
       if (annule) return;
+      if (error) {
+        setErreurCompetences(classerErreur(error));
+        return;
+      }
+      setErreurCompetences(null);
       setCompetences(
         data.map((c) => ({
           id: c.id,
@@ -984,7 +998,7 @@ function NotesScreenContent() {
     return () => {
       annule = true;
     };
-  }, [isPrimaire, isMaternelle, isDemoMode, selectedChild]);
+  }, [isPrimaire, isMaternelle, isDemoMode, selectedChild, versionSuivi]);
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
@@ -992,26 +1006,11 @@ function NotesScreenContent() {
   // Démo : livrets et souvenirs de l'univers de démo. Compte réel : carnet_items ; tant que rien ne
   // permet d'en ajouter (lot B5), la barre n'apparaît que s'il en existe déjà (jamais de module grisé).
   const [onglet, setOnglet] = useState<OngletSuivi>('apprentissages');
-  const [carnetReel, setCarnetReel] = useState<ElementCarnet[]>([]);
-  // Ajout / modification / suppression (B5) : on relit la liste.
-  const [versionCarnet, setVersionCarnet] = useState(0);
-  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
+  // Ajout / modification / suppression (B5) : le hook relit la liste (surChangementCarnet).
+  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemoMode, versionSuivi);
   useEffect(() => {
     setOnglet('apprentissages');
   }, [selectedChild?.id]);
-  useEffect(() => {
-    let annule = false;
-    if (isDemoMode || !selectedChild) {
-      setCarnetReel([]);
-      return;
-    }
-    getCarnetItems(selectedChild.id).then((items) => {
-      if (!annule) setCarnetReel(items);
-    });
-    return () => {
-      annule = true;
-    };
-  }, [selectedChild?.id, isDemoMode, versionCarnet]);
   // Démo : ajouts de la session (en mémoire) + données de démo fixes.
   const carnet: ElementCarnet[] = isDemoMode
     ? [...carnetDemo(selectedChild?.id), ...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
@@ -1043,8 +1042,13 @@ function NotesScreenContent() {
       setAnnees(getAnneesDemo(selectedChild.id));
       return;
     }
-    getAcademicYears(selectedChild.id).then(({ data }) => {
+    getAcademicYears(selectedChild.id).then(({ data, error }) => {
       if (annule) return;
+      if (error) {
+        setErreurAnnees(classerErreur(error));
+        return;
+      }
+      setErreurAnnees(null);
       setAnnees(
         (data ?? []).map((a) => ({
           id: a.id,
@@ -1058,23 +1062,38 @@ function NotesScreenContent() {
     return () => {
       annule = true;
     };
-  }, [selectedChild?.id, isDemoMode]);
+  }, [selectedChild?.id, isDemoMode, versionSuivi]);
   const anneeEnCours = annees.find((a) => a.statut === 'active');
   const anneesArchives = annees
     .filter((a) => a.statut !== 'active')
     .sort((a, b) => b.annee.localeCompare(a.annee));
 
+  // Un échec de chargement se montre sous l'en-tête, dans CHAQUE vue (Apprentissages, Souvenirs, Livrets,
+  // notes) : message clair + « Réessayer », jamais « aucune compétence » à tort.
+  const erreurSuivi = erreurCarnet ?? erreurCompetences ?? erreurAnnees ?? erreurNotes;
   const entete = (
-    <SuiviEntete
-      onglet={onglet}
-      onChange={setOnglet}
-      afficherBarre={afficherBarre}
-      boutonAnnee={
-        anneeEnCours ? (
-          <BoutonAnnee enCours={anneeEnCours} archives={anneesArchives} onParcours={ouvrirParcours} />
-        ) : undefined
-      }
-    />
+    <>
+      <SuiviEntete
+        onglet={onglet}
+        onChange={setOnglet}
+        afficherBarre={afficherBarre}
+        boutonAnnee={
+          anneeEnCours ? (
+            <BoutonAnnee enCours={anneeEnCours} archives={anneesArchives} onParcours={ouvrirParcours} />
+          ) : undefined
+        }
+      />
+      {erreurSuivi ? (
+        <EtatErreur
+          type={erreurSuivi}
+          compact
+          onReessayer={() => {
+            setVersionSuivi((v) => v + 1);
+            rechargerCarnet();
+          }}
+        />
+      ) : null}
+    </>
   );
 
   const loadNotes = useCallback(async () => {
@@ -1148,6 +1167,12 @@ function NotesScreenContent() {
       getSubjects(selectedChild.id),
       getGrades(selectedChild.id),
     ]);
+    const erreurChargement = subjectsResult.error ?? gradesResult.error;
+    if (erreurChargement) {
+      setErreurNotes(classerErreur(erreurChargement));
+      return;
+    }
+    setErreurNotes(null);
     const rawSubjects = subjectsResult.data ?? [];
     let rawGrades = (gradesResult.data ?? []) as any[];
     if (rawSubjects.length === 0) {
@@ -1225,7 +1250,7 @@ function NotesScreenContent() {
       };
     });
     setSubjects(mapped);
-  }, [selectedChild?.id, isDemoMode, getDemoSubjects, getDemoGrades, selectedTrimester]);
+  }, [selectedChild?.id, isDemoMode, getDemoSubjects, getDemoGrades, selectedTrimester, versionSuivi]);
 
   useEffect(() => {
     loadNotes();

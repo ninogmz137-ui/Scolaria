@@ -19,7 +19,23 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
+/**
+ * Délai maximal d'une requête : sans lui, un réseau qui « accroche » laisse l'écran tourner sans fin.
+ * Échéance dépassée → AbortError → classé « Pas de connexion » (erreurs.ts) avec « Réessayer ».
+ * Fichiers et fonctions (Aria, import) : délai plus long.
+ */
+const fetchAvecDelai: typeof fetch = (input, init) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  const delai = /\/(storage|functions)\/v1\//.test(url) ? 90_000 : 25_000;
+  const controleur = new AbortController();
+  const minuteur = setTimeout(() => controleur.abort(), delai);
+  // Annulation demandée par l'appelant : on la propage au contrôleur du délai.
+  init?.signal?.addEventListener?.('abort', () => controleur.abort());
+  return fetch(input, { ...init, signal: controleur.signal }).finally(() => clearTimeout(minuteur));
+};
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: { fetch: fetchAvecDelai },
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,

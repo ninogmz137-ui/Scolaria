@@ -39,7 +39,9 @@ import CarteATraiter from '../components/messages/CarteATraiter';
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import { aTraiter, marquerTousMotsLus, monNomComplet, type MotCarnet } from '../services/motsService';
-import { carnetDemo, getCarnetItems, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import { carnetDemo, lienFichier, type ElementCarnet } from '../services/carnetService';
+import EtatErreur from '../components/EtatErreur';
+import { useCarnetReel } from '../hooks/useCarnetReel';
 import { demanderAjoutCarnet } from '../services/ouvertureAjout';
 import { de } from '../utils/francais';
 import { NOM_APP } from '../constants/marque';
@@ -133,7 +135,7 @@ function MessagerieContenu() {
   const conversations = useMemo(() => (childId ? getConversations(childId) : []), [childId, version]);
 
   // Mots du carnet : la MÊME donnée que l'Accueil (« À faire »).
-  const { mots, charge, isDemo } = useMotsEnfant(childId);
+  const { mots, charge, isDemo, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(childId);
   const [monNom, setMonNom] = useState('vous');
   useEffect(() => {
     if (childId) monNomComplet(childId, isDemo).then(setMonNom);
@@ -142,22 +144,14 @@ function MessagerieContenu() {
 
   // Mots importés par la famille (carnet_items, catégorie « mot ») : « Visible par vous seul »
   // respecté par la base (RLS : privé = auteur seul) et affiché.
-  const [versionCarnet, setVersionCarnet] = useState(0);
-  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
-  const [importsReels, setImportsReels] = useState<ElementCarnet[]>([]);
-  useEffect(() => {
-    let annule = false;
-    if (isDemo || !childId) {
-      setImportsReels([]);
-      return;
-    }
-    getCarnetItems(childId).then((items) => {
-      if (!annule) setImportsReels(items.filter((e) => e.categorie === 'mot'));
-    });
-    return () => {
-      annule = true;
-    };
-  }, [isDemo, childId, versionCarnet, version]);
+  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(childId, isDemo, version);
+  const importsReels = useMemo(() => carnetReel.filter((e) => e.categorie === 'mot'), [carnetReel]);
+  // Chargement en échec : message + « Réessayer », jamais « Aucun message » à tort.
+  const erreurMessages = erreurMots ?? erreurCarnet;
+  const reessayerMessages = () => {
+    rechargerMots();
+    rechargerCarnet();
+  };
   const imports = isDemo ? carnetDemo(childId).filter((e) => e.categorie === 'mot') : importsReels;
 
   const ouvrirConversation = (c: Conversation) => {
@@ -319,8 +313,9 @@ function MessagerieContenu() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
+        {erreurMessages && <EtatErreur type={erreurMessages} onReessayer={reessayerMessages} compact />}
         {carte.length > 0 && <CarteATraiter mots={carte} monNom={monNom} demo={isDemo} onOuvrir={ouvrirMot} />}
-        {ecoleAbsente ? (
+        {erreurMessages && visibles.length === 0 && carte.length === 0 ? null : ecoleAbsente ? (
           <View style={st.vide}>
             <Text style={st.videTexte}>{`Les mots de l’école ${de(prenom)} arriveront ici quand elle utilisera ${NOM_APP}.`}</Text>
             <Pressable

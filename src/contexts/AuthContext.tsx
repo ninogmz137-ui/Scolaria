@@ -16,6 +16,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { ENV } from '../services/getEnv';
 import { urlRetourAuth } from '../services/liensAuthApp';
+import { deconnexionVolontaire, marquerEvenementAuth } from '../services/sessionExpiree';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -110,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, s) => {
         setSession(s);
-        if (__DEV__) console.log('[session]', event);
+        if (__DEV__) console.log('[session]', event); marquerEvenementAuth(event, !!s);
         if (isDemoModeRef.current) return; // never wipe demo user on Supabase events
         // Même compte (rafraîchissement du jeton, INITIAL_SESSION…) : on garde le MÊME objet user,
         // sinon tout ce qui dépend de user se rejoue (redirection, rechargements) à chaque jeton.
@@ -255,7 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Portée « local » : ne ferme que la session de CET appareil. La portée par défaut (« global »)
     // révoque toutes les sessions du compte, sur tous les appareils (diagnostic du 26 sept 2026 :
     // tasks/lessons.md, déconnexion du Redmi).
-    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    deconnexionVolontaire(); const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     setRole(null);
     setIsDemoMode(false);

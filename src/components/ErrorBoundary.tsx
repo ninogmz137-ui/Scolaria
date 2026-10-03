@@ -1,101 +1,79 @@
+/**
+ * ErrorBoundary — filet de sécurité : une erreur de rendu n'affiche JAMAIS un écran blanc.
+ * Message clair en français + « Réessayer » (remonte l'arbre). Les détails techniques (pile) ne
+ * s'affichent qu'en développement (__DEV__), jamais à une famille.
+ * `nom` = écran protégé : une panne d'un onglet laisse les autres (et la navigation) utilisables.
+ */
+
 import React from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
-import { Colors } from '../constants/colors';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBottomBarScrollPadding } from './navigation/BottomBar';
+import { Colors } from '../constants/colors';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import { Text } from './ui';
+import { Pressable, Text } from './ui';
 
-type ErrorBoundaryState = { error: Error | null; info: React.ErrorInfo | null };
+type Etat = { error: Error | null; info: React.ErrorInfo | null; essai: number };
 
-export default class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  ErrorBoundaryState
-> {
-  state: ErrorBoundaryState = { error: null, info: null };
+export default class ErrorBoundary extends React.Component<{ children: React.ReactNode; nom?: string; compact?: boolean }, Etat> {
+  state: Etat = { error: null, info: null, essai: 0 };
 
   static getDerivedStateFromError(error: Error) {
-    return { error, info: null };
+    return { error };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    // Keep it visible on web; still log for devtools.
-    // eslint-disable-next-line no-console
-    console.error(error, info);
+    // Aucune donnée personnelle dans le message d'erreur : nom du composant et type seulement.
+    if (__DEV__) console.error(error, info);
+    else console.warn(`[erreur de rendu] ${this.props.nom ?? 'app'} : ${error?.name ?? 'Error'}`);
     this.setState({ error, info });
   }
 
-  render() {
-    const { error, info } = this.state;
-    if (!error) return this.props.children;
+  reessayer = () => this.setState((s) => ({ error: null, info: null, essai: s.essai + 1 }));
 
-    return (
-      <View style={styles.root}>
-        <Text style={styles.title}>Erreur de rendu</Text>
-        <Text style={styles.subtitle}>Copie-colle ce message ici.</Text>
-        <ErrorDetails error={error} info={info} />
-      </View>
-    );
+  render() {
+    const { error, info, essai } = this.state;
+    if (!error) return <React.Fragment key={essai}>{this.props.children}</React.Fragment>;
+    return <Secours compact={this.props.compact} error={error} info={info} onReessayer={this.reessayer} />;
   }
 }
 
-/** Composant fonction : un hook (insets) ne peut pas vivre dans la classe ErrorBoundary. */
-function ErrorDetails({ error, info }: { error: Error; info: React.ErrorInfo | null }) {
+function Secours({ error, info, onReessayer, compact }: { error: Error; info: React.ErrorInfo | null; onReessayer: () => void; compact?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView style={styles.box} contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}>
-      <Text style={styles.mono}>{String(error.stack || error.message)}</Text>
-      {info?.componentStack ? (
-        <>
-          <Text style={styles.section}>Component stack</Text>
-          <Text style={styles.mono}>{info.componentStack}</Text>
-        </>
+    <View style={[st.root, { paddingTop: compact ? 0 : insets.top + 48, paddingBottom: insets.bottom + 24 }]} accessibilityRole="alert">
+      <Text style={st.titre}>Un souci est survenu</Text>
+      <Text style={st.texte}>
+        Cet écran n’a pas pu s’afficher. Vos données sont intactes. Réessayez ; si cela continue, fermez puis rouvrez l’application.
+      </Text>
+      <Pressable onPress={onReessayer} style={st.bouton} accessibilityRole="button">
+        <Text style={st.boutonTexte}>Réessayer</Text>
+      </Pressable>
+      {__DEV__ ? (
+        <ScrollView style={st.dev}>
+          <Text style={st.mono}>{String(error.stack || error.message)}</Text>
+          {info?.componentStack ? <Text style={st.mono}>{info.componentStack}</Text> : null}
+        </ScrollView>
       ) : null}
-    </ScrollView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    paddingTop: 24,
-    paddingHorizontal: 16,
-    backgroundColor: Colors.pageBg,
+const st = StyleSheet.create({
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, backgroundColor: Colors.pageBg },
+  titre: { fontFamily: FontFamily.sansBold, fontSize: 20, lineHeight: 26, color: '#0F172A', textAlign: 'center' },
+  texte: { fontFamily: FontFamily.sansRegular, fontSize: 15, lineHeight: 22, color: 'rgba(15,23,42,0.62)', textAlign: 'center', marginTop: 12 },
+  bouton: {
+    height: 52,
+    minWidth: 180,
+    maxWidth: 240,
+    paddingHorizontal: 28,
+    borderRadius: 999,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 28,
   },
-  title: {
-    fontFamily: FontFamily.displayBold,
-    fontSize: 22,
-    color: Colors.textPrimary,
-  },
-  subtitle: {
-    marginTop: 6,
-    marginBottom: 12,
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-  box: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 16,
-    padding: 12,
-  },
-  section: {
-    marginTop: 14,
-    marginBottom: 6,
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: Colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-  },
-  mono: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    lineHeight: 18,
-    color: Colors.textPrimary,
-  },
+  boutonTexte: { fontFamily: FontFamily.sansBold, fontSize: 15, lineHeight: 20, color: '#FFFFFF' },
+  dev: { maxHeight: 220, marginTop: 20, alignSelf: 'stretch' },
+  mono: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 16, color: 'rgba(15,23,42,0.55)' },
 });
-

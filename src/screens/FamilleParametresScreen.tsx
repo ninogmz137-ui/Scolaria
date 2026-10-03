@@ -35,6 +35,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { getChildInitials } from '../utils/childInitials';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
+import EtatErreur from '../components/EtatErreur';
 import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text, Pressable } from '../components/ui';
@@ -107,7 +108,7 @@ export default function FamilleParametresScreen() {
   const isFamille = espace === 'famille';
 
   const { user, signOut, isDemo, demoDev } = useAuth();
-  const { children: childList, selectChild } = useActiveChild();
+  const { children: childList, selectChild, erreur: erreurEnfants, reloadChildren } = useActiveChild();
   const { prefs, update } = usePrefs();
 
   const siblingNames = childList.map((c) => c.name);
@@ -163,6 +164,7 @@ export default function FamilleParametresScreen() {
 
         {isFamille && (
           <>
+            {erreurEnfants ? <EtatErreur type={erreurEnfants} onReessayer={() => reloadChildren()} compact /> : null}
             <DeepGroup title="Mes enfants" first>
               {childList.map((child) => (
                 <DeepRow
