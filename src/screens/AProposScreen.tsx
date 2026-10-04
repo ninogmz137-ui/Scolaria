@@ -21,7 +21,7 @@ import {
   Moon,
   LifeBuoy,
 } from 'lucide-react-native';
-import ScolariaLogo from '../components/ScolariaLogo';
+import LogoMarque from '../components/LogoMarque';
 import ScolariaAppIcon from '../components/ScolariaAppIcon';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { DeepGroup, DeepRow, DEEP } from '../components/DeepList';
@@ -102,7 +102,7 @@ export default function AProposScreen() {
         <View style={st.hero}>
           <ScolariaAppIcon size={72} withBackground />
           <View style={{ height: 12 }} />
-          <ScolariaLogo fontSize={30} primaryColor={DEEP.navy} />
+          <LogoMarque fontSize={30} primaryColor={DEEP.navy} />
           <Text style={st.tagline}>Le carnet de scolarité numérique</Text>
           <Text style={st.version}>Version 1.0.0</Text>
         </View>

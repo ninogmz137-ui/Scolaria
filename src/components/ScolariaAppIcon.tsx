@@ -7,7 +7,7 @@
  */
 
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import ScolariaSymbol from './ScolariaSymbol';
+import ScolariaSymbol from './ScolariaSymbol'; import { NOM_APP } from '../constants/marque';
 
 const DEFAULT_SYMBOL = '#4338CA';
 const DEFAULT_BG = '#FFFFFF';
@@ -50,7 +50,7 @@ export default function ScolariaAppIcon({
         },
         style,
       ]}
-      accessibilityLabel="Scolaria"
+      accessibilityLabel={NOM_APP}
     >
       <ScolariaSymbol size={symbolSize} color={color} entrance="none" />
     </View>

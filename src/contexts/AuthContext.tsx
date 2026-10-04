@@ -45,7 +45,7 @@ interface AuthContextType {
 
 const DEMO_USER: User = {
   id: 'demo-user-001',
-  email: 'demo@scolaria.fr',
+  email: ENV.VARIANTE_DEMO ? 'demo@exemple.invalid' : 'demo@scolaria.fr', // variante démo : aucune adresse au nom du produit
   app_metadata: {},
   user_metadata: { family_name: 'Moreau', role: 'parent' },
   aud: 'authenticated',

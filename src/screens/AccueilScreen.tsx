@@ -39,6 +39,7 @@ import { useAccueilReel } from '../hooks/useAccueilReel';
 import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 import { NOM_APP } from '../constants/marque';
+import { ENV } from '../services/getEnv';
 import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
 // ─── Data démo ────────────────────────────────────────────
@@ -476,6 +477,12 @@ export default function AccueilScreen() {
           </TouchableOpacity>
         </View>
         </>)}
+        {/* APK de démonstration (APP_VARIANT=demo) : dit que tout est fictif, discrètement, tout en bas du défilement. */}
+        {ENV.VARIANTE_DEMO ? (
+          <Text style={{ fontFamily: 'Figtree_300Light', fontSize: 11, color: 'rgba(15,23,42,0.35)', textAlign: 'center', marginTop: 20, paddingHorizontal: 24 }}>
+            Démonstration : famille et données fictives.
+          </Text>
+        ) : null}
       </Animated.ScrollView>
 
       <JustifierAbsenceSheet

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { ENV } from '../services/getEnv';
 import ScolariaSymbol from '../components/ScolariaSymbol';
-import ScolariaLogo from '../components/ScolariaLogo';
+import LogoMarque from '../components/LogoMarque';
 import { Text } from '../components/ui';
 import { useSessionExpiree } from '../services/sessionExpiree';
 
@@ -26,7 +26,7 @@ export default function LoginScreen() {
           <View style={styles.symbolHalo}>
             <ScolariaSymbol size={28} color={INDIGO} />
           </View>
-          <ScolariaLogo fontSize={32} primaryColor={NAVY} sparkleColor={INDIGO} />
+          <LogoMarque fontSize={32} primaryColor={NAVY} sparkleColor={INDIGO} />
           <Text style={styles.tagline}>Le carnet de scolarité numérique</Text>
         </View>
 
@@ -75,6 +75,11 @@ export default function LoginScreen() {
           >
             <Text style={ENV.VARIANTE_DEMO ? styles.primaryBtnText : styles.demoText}>Essayer en mode démo</Text>
           </TouchableOpacity>
+          {ENV.VARIANTE_DEMO ? (
+            <Text style={{ fontFamily: 'Figtree_300Light', fontSize: 11, color: 'rgba(15,23,42,0.35)', textAlign: 'center', marginTop: 14 }}>
+              Une famille fictive, aucune donnée réelle.
+            </Text>
+          ) : null}
         </View>
       </View>
 

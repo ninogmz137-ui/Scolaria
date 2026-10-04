@@ -114,12 +114,12 @@ if (process.env.APP_VARIANT === 'demo') {
   const { expo } = config;
   expo.android.package += '.demo';
   expo.name = process.env.APP_LIBELLE_DEMO || 'Démo';
-  delete expo.scheme;
+  delete expo.scheme; expo.ios.infoPlist = { ...expo.ios.infoPlist, NSCameraUsageDescription: `${expo.name} utilise la caméra pour scanner les bulletins scolaires.`, NSPhotoLibraryUsageDescription: `${expo.name} accède à vos photos pour importer des bulletins scolaires.` };
   expo.updates = { enabled: false };
   expo.extra = {
     ...expo.extra,
     EXPO_PUBLIC_SUPABASE_URL: 'https://your-demo.invalid',
-    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur', APP_VARIANT: 'demo',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur', APP_VARIANT: 'demo', APP_LIBELLE: expo.name,
   };
 }
 

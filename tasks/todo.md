@@ -824,3 +824,10 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] **« Données fictives » dans la démo** : proposition de texte et d'emplacements dans tasks/demo-plan.md § 8, en attente de ton accord (rien codé).
 - [x] Sauvegardes : catégorie « captures » (dossiers `captures-…`) purgée à 30 jours, test 19 contrôles ; leçon : aucun fichier d'environnement dans un dossier de sauvegarde. **À faire par l'utilisateur** : afficher les NOMS des variables de `2026-09-25_avant_INFRA-1\env.londres` (bloc PowerShell du rapport : 2 lignes, 145 octets) puis décider de la suppression ; rien supprimé.
 - [x] `scripts/adbui.sh` (appuis adb sûrs) conservé dans le dépôt (captures dans %TEMP%, hors dépôt) ; `.gitattributes` : `*.sh` en LF ; `scripts/telecharger-apk-demo.mjs` (lien jamais affiché).
+
+## Session n°7 (4 oct 2026)
+- [x] Nom affiché en variante démo : inventaire dans tasks/noms-affiches.md (« Theka » : 0 occurrence ; « Scolaria » : NOM_APP + logo-mot + a11y + message réseau + e-mail de démo + libellé d'icône). Variante démo : `NOM_APP` = « Carnet Démo » (propre à la variante, via `extra.APP_LIBELLE`), logo-mot remplacé par le texte (`LogoMarque`), e-mail de démo neutre. Edge Functions et e-mails NON touchés. `npm run test:nom-affiche-demo` : 8 écrans parcourus, aucun nom ; contre-épreuve sans variante : le nom est détecté.
+- [x] Textes « fictifs » (variante démo seulement) : Accueil (bas du défilement, 11 px) « Démonstration : famille et données fictives. » ; ouverture « Une famille fictive, aucune donnée réelle. ».
+- [x] Liste des écrans de la variante : tasks/ecrans-variante-demo.md ; captures hors dépôt : ScolariaBackups\captures-demo-web-2026-10-04 (purgées à 30 jours).
+- [ ] **Au renommage** : `ar.ts` `scolariaId` (nom en lettres arabes figé), `SCA-2026-FR-…` (identifiants de démo), clés `@scolaria:…` (lot dédié, tasks/renommage.md).
+- [ ] **Build démo : EN ATTENTE du « go build »** (diff d'app.config.js : 3 lignes modifiées depuis la session 6, eas.json inchangé).

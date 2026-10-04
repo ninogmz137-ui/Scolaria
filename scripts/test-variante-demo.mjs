@@ -54,7 +54,7 @@ const easJson = JSON.parse(lire('eas.json'));
 const libelle = easJson.build.demo?.env?.APP_LIBELLE_DEMO;
 const demo = charger(path.resolve('app.config.js'), { APP_VARIANT: 'demo', APP_LIBELLE_DEMO: libelle, ...PARIS_ENV });
 const changees = [...new Set([...Object.keys(demo.expo), ...Object.keys(ancien.expo)])].filter((k) => JSON.stringify(demo.expo[k]) !== JSON.stringify(ancien.expo[k])).sort();
-ok(JSON.stringify(changees) === JSON.stringify(['android', 'extra', 'name', 'scheme', 'updates']), `B. clés modifiées : ${changees.join(', ')}`);
+ok(JSON.stringify(changees) === JSON.stringify(['android', 'extra', 'ios', 'name', 'scheme', 'updates']), `B. clés modifiées : ${changees.join(', ')}`);
 ok(demo.expo.android.package === ancien.expo.android.package + '.demo', `B. identifiant distinct : ${demo.expo.android.package} (base ${ancien.expo.android.package} intacte)`);
 ok(demo.expo.name === 'Carnet Démo' && demo.expo.name === libelle, `B. libellé d'icône « ${demo.expo.name} » (variable APP_LIBELLE_DEMO)`);
 ok(demo.expo.scheme === undefined, 'B. aucun schéma de lien (scolaria://)');
@@ -63,6 +63,10 @@ const sansVarianteParis = charger(path.resolve('app.config.js'), PARIS_ENV);
 ok(JSON.stringify(sansVarianteParis).includes('nmizwmymhqleasnxcyvu'), 'B. (témoin) SANS variante, une URL de Paris en entrée se retrouve dans la configuration : le contrôle a des dents');
 ok(/your-/.test(demo.expo.extra.EXPO_PUBLIC_SUPABASE_URL) && !JSON.stringify(demo).includes('nmizwmymhqleasnxcyvu') && !JSON.stringify(demo).includes('cle-publique-d-essai'), 'B. AVEC variante, même avec une URL et une clé de Paris en entrée : URL factice, aucune référence de Paris dans la configuration résolue');
 ok(demo.expo.extra.APP_VARIANT === 'demo', 'B. APP_VARIANT recopié dans `extra` (lu par l\'app)');
+// Chaînes VISIBLES de la configuration (libellé de l'icône, textes des autorisations iOS, libellé recopié pour l'app) : aucun nom de produit.
+const visibles = [demo.expo.name, demo.expo.extra.APP_LIBELLE, demo.expo.ios.infoPlist.NSCameraUsageDescription, demo.expo.ios.infoPlist.NSPhotoLibraryUsageDescription];
+ok(visibles.every((v) => typeof v === 'string' && v && !/scolaria|theka/i.test(v)), 'B. chaînes visibles de la configuration (libellé, autorisations iOS) : aucun « Scolaria » ni « Theka »');
+ok(ancien.expo.ios.infoPlist.NSCameraUsageDescription.includes('Scolaria'), 'B. (témoin) sans variante, ces textes nomment bien « Scolaria » : inchangés');
 
 // ── C. eas.json
 const easAvant = JSON.parse(execSync(`git show ${AVANT}:eas.json`, { encoding: 'utf8' }));

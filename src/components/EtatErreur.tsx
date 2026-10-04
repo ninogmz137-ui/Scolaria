@@ -10,6 +10,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { CloudOff, ServerCrash, LogIn } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { MESSAGES_ERREUR, type TypeErreur } from '../services/erreurs';
+import { NOM_APP } from '../constants/marque';
 import { useAuth } from '../contexts/AuthContext';
 import { Pressable, Text } from './ui';
 
@@ -25,7 +26,9 @@ export default function EtatErreur({
 }) {
   const { signOut } = useAuth();
   const [essai, setEssai] = useState(false);
-  const { titre, texte } = MESSAGES_ERREUR[type];
+  const { titre, texte: brut } = MESSAGES_ERREUR[type];
+  // Le texte de base nomme « Scolaria » : le nom AFFICHÉ vient de NOM_APP (variante démo : « Carnet Démo »).
+  const texte = brut.replace(/Scolaria/g, NOM_APP);
   const Icone = type === 'reseau' ? CloudOff : type === 'session' ? LogIn : ServerCrash;
 
   const agir = async () => {

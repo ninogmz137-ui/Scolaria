@@ -19,6 +19,7 @@
     "test:bundle-prod": "node scripts/test-bundle-prod.mjs",
     "test:garde-hote": "node scripts/test-garde-hote.mjs",
     "test:garde-destination": "node scripts/test-garde-destination.mjs",
+    "test:nom-affiche-demo": "node scripts/test-nom-affiche-demo.mjs",
     "test:variante-demo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-variante-demo.mjs",
     "test:rotation-sauvegardes": "node scripts/test-rotation-sauvegardes.mjs",
     "test:mots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/motsRegles.test.mts",
