@@ -51,10 +51,12 @@ export function isoJour(d: Date): string {
 }
 
 /** « 09:30 » → « 9h30 », « 14:00 » → « 14h ». */
-function heure(hhmm: string): string {
+export function heureFr(hhmm: string): string {
   const [h, m] = hhmm.split(':');
   return `${Number(h)}h${m === '00' ? '' : m}`;
 }
+
+const heure = heureFr;
 
 /** « 2026-10-01 » → « jeu. 1 oct. » */
 function jourCourt(iso: string): string {

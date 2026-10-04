@@ -10,12 +10,18 @@ import { getSuiviDemo } from '../data/demo/suivi';
 import { getCompetences } from './database';
 import { libelleNiveau, ligneSource, type ElementSuivi } from '../utils/competences';
 import type { Cycle } from '../utils/niveau';
+import { leverSiErreur } from './erreurs';
 
 export async function chargerSuivi(childId: string, demo: boolean, cycle: Cycle | null | undefined): Promise<ElementSuivi[]> {
   if (cycle !== 'maternelle' && cycle !== 'primaire') return [];
   if (demo) return getSuiviDemo(childId);
   if (cycle === 'maternelle') return [];
   const { data } = await getCompetences(childId);
+  return versElements(data);
+}
+
+type LigneCompetence = Awaited<ReturnType<typeof getCompetences>>['data'][number];
+function versElements(data: LigneCompetence[]): ElementSuivi[] {
   return data
     .map((c) => ({
       id: c.id,
@@ -28,6 +34,17 @@ export async function chargerSuivi(childId: string, demo: boolean, cycle: Cycle 
       source: c.source,
     }))
     .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/**
+ * Compétences réelles (primaire) LUES AVEC LEUR ERREUR : un échec de chargement lève ErreurChargement au lieu de
+ * ressembler à « aucune compétence » (Accueil, robustesse). Maternelle / collège / lycée : rien (voir chargerSuivi).
+ */
+export async function chargerCompetencesOuErreur(childId: string, cycle: Cycle | null | undefined): Promise<ElementSuivi[]> {
+  if (cycle !== 'primaire') return [];
+  const { data, error } = await getCompetences(childId);
+  leverSiErreur(error);
+  return versElements(data);
 }
 
 /** Ligne prête pour un PDF : échelle de CHAQUE ligne, libellé, source ; jamais de note sur 10. */

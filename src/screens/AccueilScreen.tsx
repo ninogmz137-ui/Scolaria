@@ -35,6 +35,7 @@ import { construireAccueilDemo, isoJour, todoDepuisMots } from '../data/demo/acc
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import EtatErreur from '../components/EtatErreur';
 import { useCarnetReel } from '../hooks/useCarnetReel';
+import { useAccueilReel } from '../hooks/useAccueilReel';
 import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
 import { NOM_APP } from '../constants/marque';
@@ -192,8 +193,11 @@ export default function AccueilScreen() {
   const { getAgenda, getGrades, getSubjects } = useDemoData();
   // Mots du carnet : la MÊME donnée que Messages › Général « À traiter » (démo et compte réel).
   const { mots, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(selectedChild?.id);
+  // Compte réel : agenda du jour, derniers apprentissages et dernières notes lus dans la base (useAccueilReel).
+  const reel = useAccueilReel(selectedChild?.id, isDemo, selectedChild?.cycle);
   const dernieresNotes = useMemo(() => {
-    if (!isDemo || !selectedChild) return [];
+    if (!selectedChild) return [];
+    if (!isDemo) return reel.notes;
     const matieres = getSubjects(selectedChild.id);
     return [...getGrades(selectedChild.id)]
       .sort((a, b) => b.date.localeCompare(a.date))
@@ -205,10 +209,10 @@ export default function AccueilScreen() {
         scale: String(g.outOf),
         date: jourMois(g.date),
       }));
-  }, [isDemo, selectedChild, getGrades, getSubjects]);
+  }, [isDemo, selectedChild, getGrades, getSubjects, reel.notes]);
   const derniersApprentissages = useMemo(
-    () => (isDemo && selectedChild ? getSuiviDemo(selectedChild.id).slice(0, 2) : []),
-    [isDemo, selectedChild],
+    () => (!selectedChild ? [] : isDemo ? getSuiviDemo(selectedChild.id).slice(0, 2) : reel.apprentissages),
+    [isDemo, selectedChild, reel.apprentissages],
   );
 
   // « Nouveau dans le carnet » : mots importés par la famille (lot B5). Démo : ajouts de la session ;
@@ -218,8 +222,9 @@ export default function AccueilScreen() {
   const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemo, versionCarnet);
   const motsReels = useMemo(() => carnetReel.filter((e) => e.categorie === 'mot'), [carnetReel]);
   // Chargement en échec (réseau coupé, session expirée…) : message + « Réessayer », jamais « Rien à faire » à tort.
-  const erreurAccueil = erreurMots ?? erreurCarnet;
+  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur;
   const reessayerAccueil = () => {
+    reel.recharger();
     rechargerMots();
     rechargerCarnet();
   };
@@ -234,7 +239,8 @@ export default function AccueilScreen() {
   };
   const accueil = useMemo(() => {
     if (!selectedChild) return { todo: [], aujourdhui: [], aria: '' };
-    if (!isDemo) return { todo: todoDepuisMots(mots), aujourdhui: [], aria: '' };
+    // Compte réel : « À faire » = mes mots ; « Aujourd'hui » = les événements de l'Agenda du jour (useAccueilReel).
+    if (!isDemo) return { todo: todoDepuisMots(mots), aujourdhui: reel.aujourdhui, aria: '' };
     const auj = new Date();
     const demain = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() + 1);
     return construireAccueilDemo({
@@ -246,7 +252,7 @@ export default function AccueilScreen() {
       mots,
       conversations: getConversations(selectedChild.id),
     });
-  }, [isDemo, selectedChild, getAgenda, mots]);
+  }, [isDemo, selectedChild, getAgenda, mots, reel.aujourdhui]);
   const avecNotes = aDesNotes(selectedChild?.cycle);
   const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
