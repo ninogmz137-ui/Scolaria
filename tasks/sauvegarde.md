@@ -4,8 +4,10 @@
 Tâche planifiée Windows **« Scolaria - Sauvegarde hebdomadaire »** : **dimanche 10 h** ; si le PC est éteint à ce moment, la
 tâche part dès que possible (rattrapage) ; session Windows ouverte et réseau requis ; aucun mot de passe stocké.
 Script : `scripts/sauvegarde-semaine.mjs` (Node, lecture seule sur Paris ; la tâche lance `node.exe` dans le dépôt). Destination, **hors dépôt** :
-`C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\`, **8 sauvegardes complètes conservées** (les plus anciennes sont supprimées
-après une réussite).
+`C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\`, **conservées 56 jours (8 semaines)** : après chaque réussite, les sauvegardes hebdomadaires plus vieilles sont supprimées (la plus récente jamais) ;
+les dossiers **« avant_Mxx »** (sauvegardes avant migration, dans `C:\Users\admin\ScolariaBackups\`) sont supprimés après **30 jours**. Chaque suppression est
+**journalisée** (statut `PURGE` dans `hebdo\journal.log`). Voir la liste avec leur âge, sans rien supprimer : `node scripts/rotation-sauvegardes.mjs`.
+La purge des `avant_Mxx` n'a lieu qu'avec la destination par défaut (ou `--purge-avant <dossier>`). Test : `npm run test:rotation-sauvegardes`.
 
 | Fichier | Contenu |
 |---|---|

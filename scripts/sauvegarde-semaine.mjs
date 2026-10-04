@@ -1,8 +1,8 @@
 // Sauvegarde hebdomadaire Scolaria : base (rôles, schéma, données) + fichiers du bucket « carnet ».
-// Destination HORS dépôt : C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\ (8 sauvegardes complètes conservées).
+// Destination HORS dépôt : C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\ (conservées 56 jours = 8 semaines ; dossiers « avant_Mxx » du dossier parent : 30 jours).
 // Aucun secret ici : la CLI Supabase s'authentifie avec la session de l'utilisateur Windows (supabase login),
 // la base est jointe par un rôle temporaire. Rien n'est lu dans .env. Détails : tasks/sauvegarde.md.
-// Usage : node scripts/sauvegarde-semaine.mjs [--cible linked|local] [--racine <dossier>] [--garder 8]
+// Usage : node scripts/sauvegarde-semaine.mjs [--cible linked|local] [--racine <dossier>] [--jours-hebdo 56] [--jours-avant 30] [--purge-avant <dossier>]
 // (en Node et non en PowerShell : l'antivirus (Avast) supprimait les scripts .ps1 écrits dans le dépôt)
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { refuserDansDepot } from './garde-destination.mjs';
+import { appliquerRotation, JOURS_AVANT, JOURS_HEBDO, planifierRotation } from './rotation-sauvegardes.mjs';
 
 const depot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (nom, defaut) => {
@@ -18,7 +19,12 @@ const arg = (nom, defaut) => {
 };
 const cible = arg('cible', 'linked');
 const racine = arg('racine', 'C:\\Users\\admin\\ScolariaBackups\\hebdo');
-const garder = Number(arg('garder', '8'));
+const joursHebdo = Number(arg('jours-hebdo', String(JOURS_HEBDO)));
+const joursAvant = Number(arg('jours-avant', String(JOURS_AVANT)));
+// Le dossier des « avant_Mxx » (parent de la destination) n'est purgé qu'avec la destination par défaut (ou en le désignant) :
+// une destination d'essai ne doit jamais faire supprimer les voisins.
+const DEFAUT = 'C:\\Users\\admin\\ScolariaBackups\\hebdo';
+const dossierAvant = arg('purge-avant', path.resolve(racine).toLowerCase() === DEFAUT.toLowerCase() ? path.dirname(racine) : '');
 if (!['linked', 'local'].includes(cible)) throw new Error('--cible : linked ou local');
 refuserDansDepot(racine, depot, 'la destination (--racine)');
 const flag = '--' + cible;
@@ -204,17 +210,12 @@ async function main() {
   fs.writeFileSync(path.join(travail, 'manifeste.json'), JSON.stringify(manifeste, null, 2));
   fs.renameSync(travail, path.join(racine, nom));
 
-  // 5. Rotation : garder les N sauvegardes complètes les plus récentes.
-  const completes = fs
-    .readdirSync(racine, { withFileTypes: true })
-    .filter((e) => e.isDirectory() && /^\d{4}-\d{2}-\d{2}_\d{4}$/.test(e.name) && fs.existsSync(path.join(racine, e.name, 'manifeste.json')))
-    .map((e) => e.name)
-    .sort()
-    .reverse();
-  const vieilles = completes.slice(garder);
-  for (const v of vieilles) fs.rmSync(path.join(racine, v), { recursive: true, force: true });
+  // 5. Rotation PAR ÂGE (scripts/rotation-sauvegardes.mjs) : hebdomadaires > 56 jours ; « avant_Mxx » > 30 jours (seulement avec la
+  //    destination par défaut ou --purge-avant). Chaque suppression est journalisée (PURGE). La plus récente n'est jamais supprimée.
+  const plan = planifierRotation({ racine, parent: dossierAvant, joursHebdo, joursAvant });
+  const supprimes = appliquerRotation(plan, { racine, parent: dossierAvant, journaliser: ecrireJournal });
   const duree = Math.round((Date.now() - debut.getTime()) / 1000);
-  ecrireJournal('OK', `${manifeste.tables} tables, ${manifeste.lignes} lignes, ${copies.length} fichiers, ${duree} s, ${vieilles.length} ancienne(s) supprimée(s)`);
+  ecrireJournal('OK', `${manifeste.tables} tables, ${manifeste.lignes} lignes, ${copies.length} fichiers, ${duree} s, ${supprimes.length} ancienne(s) supprimée(s)`);
 }
 
 try {
