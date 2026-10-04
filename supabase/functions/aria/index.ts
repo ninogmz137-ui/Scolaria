@@ -8,6 +8,8 @@
  * - Journaux : un texte fixe + des champs choisis (statut, type, modèle…). JAMAIS la clé, les en-têtes,
  *   le corps de la requête ni l'objet d'erreur brut ; journaux internes du SDK coupés (logLevel 'off').
  *   Garanti par `npm run test:journaux` (supabase/functions/_shared/journaux.test.mts).
+ * - Limite quotidienne par compte (M31, aria_usage_quotidien) : réservée avant l'appel, rendue si le modèle
+ *   n'a pas répondu ; au-delà : { error: 'limite', limite } (l'app affiche un message clair). Journal : nombres seulement.
  * - Protocole d'urgence AVANT tout appel au modèle : mot-clé critique → message fixe
  *   (3114 / 3018 / 119 + 112), aucun appel Anthropic, alerte signalée (catégorie seule).
  * - Réponse au client : { text } | { text, alert } | { error: 'unavailable' } — jamais de détail technique.
@@ -28,6 +30,12 @@ const REGLE_VOUVOIEMENT =
 
 const MODEL = Deno.env.get('ARIA_MODEL') ?? 'claude-sonnet-5';
 const MAX_TOKENS = 16000;
+
+/** Plafond d'appels au modèle par compte et par jour (jour de Paris). Secret facultatif ARIA_LIMITE_JOUR (1 à 1000). */
+const LIMITE_JOUR = (() => {
+  const n = Number(Deno.env.get('ARIA_LIMITE_JOUR'));
+  return Number.isInteger(n) && n >= 1 && n <= 1000 ? n : 40;
+})();
 
 // Garde-fous d'entrée (le client est authentifié, mais pas de confiance aveugle)
 const MAX_MESSAGES = 40;
@@ -118,6 +126,29 @@ Deno.serve(async (req) => {
     return json({ text: buildEmergencyMessage(emergency), alert: emergency });
   }
 
+  // 4 bis. Limite quotidienne PAR COMPTE (audit B6) : un appel est réservé de façon atomique en base (clé service,
+  // fonction réservée au serveur) AVANT l'appel au modèle ; rendu si le modèle n'a pas répondu. Un message
+  // d'urgence ci-dessus n'est jamais compté. Plafond : ARIA_LIMITE_JOUR (secret facultatif), 40 par défaut.
+  // Si le compteur est illisible : on refuse (« indisponible ») plutôt que d'ouvrir un coût illimité.
+  const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', {
+    auth: { persistSession: false },
+  });
+  const { data: quota, error: quotaError } = await admin.rpc('aria_reserver', {
+    p_user: userData.user.id,
+    p_limite: LIMITE_JOUR,
+  });
+  const reservation = Array.isArray(quota) ? quota[0] : null;
+  if (quotaError || !reservation) {
+    console.error('[aria] compteur quotidien illisible — appel refusé', { status: quotaError ? 503 : 500 });
+    return unavailable(503);
+  }
+  if (!reservation.autorise) {
+    // Pas de contenu : seulement des nombres. Réponse 200 + { error: 'limite' } : l'app affiche un message clair.
+    console.warn('[aria] limite quotidienne atteinte', { limite: LIMITE_JOUR, utilises: reservation.utilises });
+    return json({ error: 'limite', limite: LIMITE_JOUR });
+  }
+  const rendreAppel = () => admin.rpc('aria_rendre', { p_user: userData.user.id }).then(() => undefined, () => undefined);
+
   // 5. Appel Anthropic (SDK officiel). Règle fixe ajoutée par le serveur au prompt du client.
   // logLevel 'off' : le SDK n'écrit rien lui-même (ses journaux de débogage contiennent les requêtes).
   const client = new Anthropic({ apiKey, logLevel: 'off' });
@@ -132,6 +163,7 @@ Deno.serve(async (req) => {
     // Refus des classifieurs : pas de repli, simplement « indisponible »
     if (response.stop_reason === 'refusal') {
       console.warn('[aria] refus du modèle', { model: response.model });
+      await rendreAppel();
       return unavailable(200);
     }
     console.log('[aria] réponse Anthropic OK', { model: response.model, stop_reason: response.stop_reason });
@@ -142,8 +174,14 @@ Deno.serve(async (req) => {
       .join('\n')
       .trim();
 
-    return text ? json({ text }) : unavailable(502);
+    if (!text) {
+      await rendreAppel();
+      return unavailable(502);
+    }
+    return json({ text });
   } catch (error) {
+    // Le modèle n'a pas répondu : l'appel réservé est rendu (un échec ne consomme pas la limite de la famille).
+    await rendreAppel();
     // Journaux : statut / type / nom d'erreur uniquement. Jamais le message brut ni l'objet d'erreur
     // (une erreur réseau peut recopier les en-têtes, donc la clé).
     if (error instanceof Anthropic.RateLimitError) {

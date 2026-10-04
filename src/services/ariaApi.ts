@@ -29,12 +29,19 @@ interface AriaFunctionResponse {
   /** Catégorie du protocole d'urgence déclenché côté serveur (le texte est alors le message fixe). */
   alert?: string;
   error?: string;
+  /** Plafond quotidien, renvoyé avec error === 'limite'. */
+  limite?: number;
 }
 
 // ─── Constants ────────────────────────────────────────────
 
 /** Seul message d'erreur montré à l'utilisateur. */
 export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
+/** Plafond quotidien d'appels à Aria atteint (par compte, jour de Paris) : ce que dit l'app, sans détail technique. */
+export function messageLimiteAria(limite?: number): string {
+  const n = typeof limite === 'number' && limite > 0 ? `${limite} questions` : 'questions';
+  return `Vous avez atteint la limite de ${n} à Aria pour aujourd’hui. Aria sera de nouveau disponible demain, à partir de minuit (heure de Paris). Le reste de l’application n’est pas concerné.`;
+}
 /** Aria désactivée dans Famille & paramètres (ou information pas encore lue) : rien n'a été envoyé. */
 export const ARIA_DESACTIVEE = 'Aria est désactivée. Aucun message n’a été envoyé.';
 
@@ -153,6 +160,9 @@ export async function sendToAria(
       body: { system: systemPrompt, messages },
       region: FunctionRegion.EuWest3,
     });
+
+    // Limite quotidienne par compte atteinte (M31) : message clair, pas « indisponible ».
+    if (data?.error === 'limite') return messageLimiteAria(data.limite);
 
     if (error || !data?.text) {
       console.warn('[Aria] Edge Function indisponible', error?.name ?? data?.error ?? 'réponse vide');
