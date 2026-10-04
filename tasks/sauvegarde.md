@@ -55,6 +55,23 @@ Nouveau projet (Paris) → appliquer `schema.sql` (ou les migrations jusqu'à la
 par extension) → rejouer les contrôles ci-dessus à la main. Les secrets (Vault `cle_service_effacements`, secrets des Edge Functions,
 tâches pg_cron de M26) ne sont PAS dans la sauvegarde : à reposer.
 
+## Copie chiffrée sur un disque externe (à faire par toi)
+Pourquoi : les sauvegardes du PC disparaissent avec le PC. Contenu sensible (comptes, enfants, hachages de mots de passe) : **jamais en clair sur un support amovible**.
+
+1. **Chiffrer le disque (BitLocker, intégré à Windows 11 Pro)** : brancher le disque → clic droit dessus dans l'Explorateur → « Activer BitLocker » → mot de passe long (gestionnaire de mots de passe) → **sauvegarder la clé de récupération AILLEURS que sur ce disque et que sur ce PC** (papier dans un lieu sûr, ou ton gestionnaire de mots de passe) → « chiffrer tout le lecteur » → mode « compatible » (disque amovible). Attendre la fin du chiffrement avant la première copie. Je n'ai jamais besoin du mot de passe ni de la clé.
+2. **Copier** (dans un terminal, `E:` = le disque ; sauvegarde la plus récente) :
+   ```
+   robocopy "C:\Users\admin\ScolariaBackups\hebdo" "E:\ScolariaBackups\hebdo" /E /XD ".en-cours-*" /R:2 /W:5
+   ```
+   `/E` copie sans jamais supprimer sur le disque (pas de `/MIR`, qui effacerait aussi à la destination).
+3. **Vérifier la copie** (empreintes SHA-256 de chaque fichier + comparaison avec l'original) :
+   ```
+   node scripts/verifier-sauvegarde.mjs "C:\Users\admin\ScolariaBackups\hebdo\<date>" "E:\ScolariaBackups\hebdo\<date>"
+   ```
+   Doit finir par `VÉRIFICATION RÉUSSIE`. Une fois par trimestre, aller plus loin : `node scripts/restaurer-sauvegarde.mjs "E:\ScolariaBackups\hebdo\<date>"` (base locale, jamais Paris) ; sortie 0 = la copie est restaurable. Ensuite `npx supabase db reset` remet la base locale propre.
+4. **Rotation** : sur le disque, garder les **8 dernières semaines** (comme sur le PC) + éventuellement la première sauvegarde de chaque mois pendant 12 mois. Supprimer à la main les dossiers plus anciens, **jamais le seul exemplaire valide** : avant de supprimer, vérifier (étape 3) qu'au moins 2 copies récentes sont réussies. Rythme conseillé : une copie par mois (dimanche, après le passage de la tâche), plus avant tout changement risqué.
+5. **Hygiène** : éjecter proprement le disque, le ranger débranché ; ne jamais le laisser branché en permanence (un incident sur le PC l'atteindrait aussi) ; changer le mot de passe BitLocker si le disque est perdu ou prêté. Les secrets (Vault, secrets d'Edge Functions) ne sont PAS dans la sauvegarde : les noter dans ton gestionnaire de mots de passe.
+
 ## Limites connues
 - Le Vault, les secrets d'Edge Functions, la configuration Auth (dashboard) et les tâches `cron` ne sont pas sauvegardés.
 - PC éteint plus d'une semaine = pas de sauvegarde (perte possible d'une semaine ; rattrapage au prochain démarrage).
