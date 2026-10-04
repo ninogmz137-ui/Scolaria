@@ -114,7 +114,9 @@ export default function ApprentissagesVue({
                 onPress={() => setPeriode(n)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: actif }}
-                hitSlop={{ top: 6, bottom: 6, left: 2, right: 2 }}
+                // 32 → 44 dp de haut : 8 en haut (le titre au-dessus est un frère PLUS ANCIEN : la pastille passe devant)
+                // et 4 en bas (le texte qui suit est un frère plus récent : au-delà de la marge de 4 il volerait l'appui).
+                hitSlop={{ top: 8, bottom: 4, left: 2, right: 2 }}
                 style={[st.periode, actif && st.periodeActive]}
               >
                 <Text style={[st.periodeTexte, actif && st.periodeTexteActive]}>
@@ -165,7 +167,9 @@ const st = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 6,
   },
-  periodes: { flexDirection: 'row', paddingHorizontal: 14, marginTop: 4, marginBottom: 4 },
+  // Même mise en page qu'avant (marges de 4 en haut et en bas), mais le conteneur englobe la zone tactile agrandie des
+  // pastilles (haut 8, bas 4) : padding 8 / 4 compensé par des marges de -4 / 0. Sans cela la zone débordait du conteneur.
+  periodes: { flexDirection: 'row', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, marginTop: -4, marginBottom: 0 },
   periode: {
     minWidth: 44,
     height: 32,

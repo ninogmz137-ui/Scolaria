@@ -116,6 +116,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
           style={[styles.burger, onHeader && styles.burgerOnHeader]}
           accessibilityRole="button"
           accessibilityLabel="Famille et paramètres"
+          hitSlop={5} // 34 → 44 dp ; 5 à droite = la moitié de l'écart de 10 avec l'onglet voisin (qui prend l'autre moitié)
         >
           <View style={[styles.burgerLine, onHeader && styles.burgerLineOnHeader]} />
           <View style={[styles.burgerLine, onHeader && styles.burgerLineOnHeader]} />
@@ -138,7 +139,10 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
                 isActive ? (onHeader ? styles.pillActiveOnHeader : styles.pillActive) : styles.pillInactive,
                 !isLast && styles.pillMargin,
               ]}
-              hitSlop={{ top: 7, bottom: 7 }}
+              // Zone tactile ≥ 44 dp sans changer le visuel : 30 → 44 en hauteur ; icône seule (34) → 44 en largeur
+              // (5 de chaque côté = la moitié de l'écart de 10 entre deux icônes : aucune zone n'empiète sur sa voisine).
+              // L'onglet actif (≥ 79 de large) n'en a pas besoin.
+              hitSlop={isActive ? { top: 7, bottom: 7 } : { top: 7, bottom: 7, left: 5, right: 5 }}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={tab.label}
@@ -166,6 +170,7 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
           onPress={() => setShowChildSelector(true)}
           accessibilityRole="button"
           accessibilityLabel="Changer d'enfant"
+          hitSlop={5} // 34 → 44 dp ; marge libre de 12 dp à droite, rien à gauche
           style={styles.childAvatarBtn}
         >
           {/* Outer: shadow */}
@@ -212,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15,23,42,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: 10,
     flexShrink: 0,
   },
   burgerLine: {
@@ -257,8 +262,9 @@ const styles = StyleSheet.create({
   burgerLineOnHeader: {
     backgroundColor: '#FFFFFF',
   },
+  // 10 (et non 5) : l'écart permet 5 de zone tactile de chaque côté de deux icônes voisines sans chevauchement.
   pillMargin: {
-    marginRight: 5,
+    marginRight: 10,
   },
   pillLabel: {
     marginLeft: 6,

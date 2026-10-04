@@ -1144,6 +1144,7 @@ function AgendaScreenContent() {
               <Pressable
                 key={`${day.date}-${day.fullDate.getMonth()}`}
                 onPress={() => selectDay(day)}
+                hitSlop={{ left: 4, right: 4 }} // 36 → 44 dp de large (≈ 15 dp d'écart entre deux jours : aucun chevauchement)
                 style={st.weekStripDay}
               >
                 <Text style={st.weekStripLetter}>{day.day[0]}</Text>

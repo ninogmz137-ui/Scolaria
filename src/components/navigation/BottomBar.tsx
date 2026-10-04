@@ -57,6 +57,10 @@ export function getBottomBarScrollPadding(insetsBottom: number): number {
   return getBottomChromeHeight(insetsBottom) + 12;
 }
 
+/** Boutons ronds de 40 dp → zone tactile de 44 dp (2 de chaque côté ; 8 d'écart avec la pill : aucun chevauchement). */
+const ZONE_TACTILE = { top: 2, bottom: 2, left: 2, right: 2 } as const;
+const MARGE_BASSE = 4;
+
 // ─── Props ───────────────────────────────────────────────
 
 export interface BottomBarProps {
@@ -102,11 +106,14 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress, act
   const handleActionPress = () => onActionPress?.();
 
   return (
-    <View style={[styles.container, { bottom: getBottomBarOffset(insets.bottom) }]}>
+    // box-none : la marge transparente basse (voir styles.container) laisse passer les appuis au contenu dessous.
+    // Le décalage de -MARGE_BASSE compense le paddingBottom : la barre ne bouge pas d'un pixel.
+    <View pointerEvents="box-none" style={[styles.container, { bottom: getBottomBarOffset(insets.bottom) - MARGE_BASSE }]}>
 
       {/* ── Bouton Recherche (gauche) ── */}
       <Pressable
         onPress={onSearchPress}
+        hitSlop={ZONE_TACTILE}
         style={styles.roundBtn}
         accessibilityRole="button"
         accessibilityLabel="Rechercher"
@@ -117,6 +124,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress, act
       {/* ── Pill Aria (centre) ── */}
       <Pressable
         onPress={handleAriaPress}
+        hitSlop={{ top: 2, bottom: 2 }}
         style={styles.ariaPill}
         accessibilityRole="button"
         accessibilityLabel="Demander à Aria"
@@ -131,6 +139,7 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress, act
       {ActionIcon ? (
         <Pressable
           onPress={handleActionPress}
+          hitSlop={ZONE_TACTILE}
           style={styles.roundBtn}
           accessibilityRole="button"
           accessibilityLabel={activeTab === 'accueil' || activeTab === 'notes' ? 'Ajouter au carnet' : activeTab === 'agenda' ? 'Nouvel événement' : 'Écrire ou signaler une absence'}
@@ -158,7 +167,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingTop: 4,
-    paddingVertical: 0,
+    // Marge transparente basse : sans elle, la zone tactile agrandie (hitSlop de 2) déborderait du conteneur par le bas
+    // et ne recevrait pas les appuis. Compensée par `bottom` ci-dessus.
+    paddingBottom: MARGE_BASSE,
     backgroundColor: 'transparent',
     // Au-dessus du voile du bas (élévation 12) : Android trie les vues sœurs par élévation avant
     // le zIndex. Conteneur sans fond → aucune ombre dessinée.
