@@ -11,7 +11,7 @@
 - Si une question sort du cadre de la démo, répondre « je ne sais pas encore, je note » (la feuille de notes, § 5).
 
 ## 1. Parcours avec une enseignante (10 min) — quoi montrer, dans quel ordre
-Idée directrice : « ce que reçoivent les familles de ta classe ». **La démo montre le côté famille ; l'interface enseignant n'est pas montrée en démo** [UNCLEAR : à confirmer sur l'appareil]. L'enseignante voit ce que verrait chaque famille, et ce que tu lui demandes est de dire si c'est juste.
+Idée directrice : « ce que reçoivent les familles de ta classe ». **La démo montre le côté famille ; elle n'a PAS de vue enseignant à présenter** (voir § 7 : un détour technique ouvre bien une interface enseignant, mais NE PAS la montrer en l'état). L'enseignante voit ce que verrait chaque famille, et ce que tu lui demandes est de dire si c'est juste.
 1. **(1 min) Le principe** — « Un enfant = un carnet, qui suit l'enfant d'une école à l'autre ; il appartient à la famille. L'école qui participe accélère le remplissage, mais n'est pas obligatoire. » Accueil du carnet de **Lucas**.
 2. **(2 min) Un mot à signer** — Accueil › carte « À traiter » : ouvrir un mot, montrer les types (information, signature, autorisation, participation) et la signature par responsable. Demander : « C'est ainsi que tu fais circuler les mots aujourd'hui ? »
 3. **(2 min) Le Suivi** — onglet Suivi › **Apprentissages** : compétences par discipline, échelle (3 niveaux), source affichée (« Saisi par Mme Dupont »). Puis **Livrets** et **Souvenirs**. Pour **Léa** (maternelle) : observations par domaine, **aucun niveau**.
@@ -68,3 +68,26 @@ Règle : ne noter AUCUN nom d'élève, d'enseignant ni d'école réels sur la fe
 ## 6. Après la démo
 - Recopier les notes (sans nom) dans `tasks/` si utile ; les promesses éventuelles sont à vérifier par rapport au § 3.
 - Si tu étais sur le client de développement : **« Revenir à mon compte »**, puis vérifier que ton compte réel est bien affiché.
+
+## 7. Vue enseignant en démo — vérifié dans le code ET à l'exécution (4 oct 2026) : il n'y a pas de vue enseignant à présenter
+**Ce que fait « Essayer en mode démo »** : rôle « parent » seulement → AUCUN écran enseignant (`AuthContext.enterDemoMode`).
+
+**Détour qui ouvre quand même l'interface enseignant** (constaté sur l'app locale, variante démo à URL factice, 0 requête hors localhost) : écran d'ouverture → **Créer un compte** → choisir **Enseignant** → nom, adresse et mot de passe quelconques → **Ma classe**. Il existe parce que, en démo (`isDemo`), l'inscription propose le rôle enseignant (`utils/rolesInscription.ts`, « développement et démo seulement ») et que `signUp` hors serveur ouvre un compte de démonstration. La **connexion** (« Se connecter ») ne l'ouvre PAS : elle appelle le serveur directement (`ConnexionScreen`) et affiche une erreur (« Failed to fetch ») dans la variante sans serveur. Le chemin `signIn` du contexte avec les adresses « prof / enseignant / teacher » (compte `DEMO_TEACHER`) n'est appelé par aucun écran : code mort.
+
+**Écrans enseignant atteignables par ce détour** (`navigation/TeacherTabNavigator.tsx`, 5 onglets) :
+| Onglet | Écrans | Contenu en démo |
+|---|---|---|
+| Ma classe | Ma classe (tableau de bord) · Absences | « Mme Dupont · CM2-B · École Voltaire », 26 élèves anonymisés (« Élève 01 »…), tendance en mots, actions rapides ; Absences : service sans serveur → vide |
+| Liaison | Cahier de liaison | formulaire d'envoi d'un mot ; texte figé « CM2 B · **25** élèves » |
+| Suivi | Météo de classe · Vie de classe | services sans serveur → listes vides |
+| Messages | Messagerie des parents · Cahier de liaison | **conversations écrites en dur** dans le fichier |
+| Réglages | Famille & paramètres (espace enseignant) · Permissions · Code de transfert · Droit à l'effacement · Export · À propos | écrans communs |
+
+**Pourquoi NE PAS le montrer à une enseignante en l'état** (constats à corriger avant, notés au todo) :
+1. **Messagerie** : une conversation d'exemple dit « Emma semble un peu plus fatiguée cette semaine. Son Score de Joie a baissé » → alerte nominative sur le Score de Joie, interdite en V1 (CLAUDE.md : aucune alerte avant Aria stade 3).
+2. **Incohérence** : 26 élèves (Ma classe) contre 25 (Cahier de liaison).
+3. **Couleur** : la barre d'onglets utilise `TEACHER_ORANGE`, une seconde couleur d'accent (règle : une seule couleur d'accent, l'indigo) [à constater à l'écran].
+4. Les écrans Effacement / Export / Code de transfert côté enseignant : à vérifier (« rien dans l'app qui ne soit vrai aujourd'hui »).
+5. L'interface enseignant réelle n'est pas finie (MVP V1 en cours) : toute promesse est interdite (§ 3).
+
+**Conséquence pour le plan** : parcours enseignante = vue FAMILLE (§ 1). Si elle demande « et pour moi ? » : « l'interface enseignant n'est pas encore montrable ; je veux d'abord ton avis sur ce que reçoivent les familles ».

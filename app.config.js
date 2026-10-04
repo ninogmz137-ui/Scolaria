@@ -21,7 +21,7 @@ if (IS_EAS) {
   console.log('[app.config.js] SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 }
 
-module.exports = {
+const config = {
   expo: {
     name: 'Scolaria',
     slug: 'Scolaria',
@@ -101,3 +101,26 @@ module.exports = {
     },
   },
 };
+
+// ─── Variante « démo » (profil EAS preview : APP_VARIANT=demo) ──────────────────────────────────────────────
+// APK de démonstration autonome, installé À CÔTÉ de l'application de développement, sans aucun accès à un serveur :
+//  - identifiant Android distinct (suffixe .demo) : l'identifiant de base ci-dessus n'est PAS modifié ;
+//  - URL et clé factices : l'app se croit non configurée (« your- » dans l'URL, cf. AuthContext et database.ts) → mode démo,
+//    aucune requête réseau vers un serveur ; le domaine .invalid ne se résout jamais ;
+//  - ni schéma de lien (scolaria://), ni mises à jour à distance ;
+//  - libellé de l'icône : variable APP_LIBELLE_DEMO (jamais le nom écrit en dur ici).
+// Sans APP_VARIANT : configuration strictement identique à celle d'avant (production et développement inchangés).
+if (process.env.APP_VARIANT === 'demo') {
+  const { expo } = config;
+  expo.android.package += '.demo';
+  expo.name = process.env.APP_LIBELLE_DEMO || 'Démo';
+  delete expo.scheme;
+  expo.updates = { enabled: false };
+  expo.extra = {
+    ...expo.extra,
+    EXPO_PUBLIC_SUPABASE_URL: 'https://your-demo.invalid',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur',
+  };
+}
+
+module.exports = config;

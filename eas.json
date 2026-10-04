@@ -11,6 +11,12 @@
       }
     },
     "preview": {
+      "environment": "production",
+      "env": {
+        "APP_VARIANT": "demo",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://your-demo.invalid",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "demo-sans-serveur"
+      },
       "distribution": "internal",
       "android": {
         "buildType": "apk"

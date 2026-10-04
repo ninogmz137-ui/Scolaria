@@ -1,6 +1,6 @@
 # Build de démonstration Android autonome (APK sans Metro) — profil EAS « preview » — état au 4 oct 2026
 
-**Statut : constats faits (lecture seule), RIEN modifié, AUCUN build lancé. J'attends ton « go build » (et tes décisions du § 3).**
+**Statut (session 5, 4 oct) : variante « démo » IMPLÉMENTÉE dans `app.config.js` et `eas.json` (diff au § 6), vérifiée en local ; AUCUN build lancé. J'attends ton « go build » et ton choix de libellé (§ 6).** Les §§ 1 à 5 sont l'état de la session 4 (constats) ; le § 6 les met à jour.
 
 ## 1. Constats (vérifiés le 4 oct)
 | Point | Constat |
@@ -39,4 +39,26 @@
 - **Recherche de secrets dans le bundle (clé Anthropic, clé « secret » Supabase, clé de rôle service) : NON ajoutée** — le garde-fou a bloqué l'édition du script qui contient ces préfixes ; je n'ai pas contourné. Bloc PowerShell de secours donné dans le rapport (à exécuter par toi) ; en attendant, la preuve par le code : aucune clé de ce type dans `app.config.js`, seules 2 variables publiques dans EAS `preview`.
 
 ## 5. Ce que la démo montre / ne montre pas
-Le mode démo ouvre la vue PARENT (famille Moreau : Léa, Lucas, Emma). **Aucune vue enseignant en démo** [UNCLEAR : confirmer sur l'appareil ; l'interface enseignant n'est atteinte qu'avec un compte enseignant réel]. Voir `tasks/demo-plan.md`.
+Le mode démo ouvre la vue PARENT (famille Moreau : Léa, Lucas, Emma). **Pas de vue enseignant à présenter** : un détour (Créer un compte → Enseignant) ouvre bien une interface enseignant avec des données d'exemple, mais elle n'est pas montrable en l'état. Voir `tasks/demo-plan.md` § 7.
+
+## 6. Mise à jour de la session 5 — variante démo implémentée (rien de lancé)
+**Décisions de l'utilisateur appliquées :** A) identifiant distinct `.demo` **uniquement par le profil de build** (la ligne de l'identifiant de base n'est pas modifiée) ; C) mises à jour à distance désactivées ; B) libellé : à choisir (ci-dessous).
+
+**Diff exact** (`git diff app.config.js eas.json`) :
+- `app.config.js` : `module.exports = {` devient `const config = {` (aucune autre ligne de la configuration de base touchée), puis, en fin de fichier :
+  `if (process.env.APP_VARIANT === 'demo') { expo.android.package += '.demo'; expo.name = process.env.APP_LIBELLE_DEMO || 'Démo'; delete expo.scheme; expo.updates = { enabled: false }; expo.extra = { …, EXPO_PUBLIC_SUPABASE_URL: 'https://your-demo.invalid', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur' }; }` puis `module.exports = config;`.
+- `eas.json` (profil `preview` seulement) : `"environment": "production"` (environnement EAS sans aucune variable : les variables Paris du profil `preview` NE sont PAS fournies à ce build), `"env": { "APP_VARIANT": "demo", "EXPO_PUBLIC_SUPABASE_URL": "https://your-demo.invalid", "EXPO_PUBLIC_SUPABASE_ANON_KEY": "demo-sans-serveur" }`.
+  **Pourquoi `environment: production`** : la doc EAS que j'ai lue ne dit pas qui l'emporte entre `env` de `eas.json` et les variables du serveur ; en pointant le build sur l'environnement vide, il n'existe aucun conflit possible. **Effet de bord à connaître** : tous les builds du profil `preview` sont désormais des builds de démonstration.
+
+**Preuves :**
+- Sans `APP_VARIANT`, la configuration est identique octet pour octet à celle d'avant (comparaison JSON de `HEAD` et du fichier modifié : identique) ; avec `APP_VARIANT=demo`, seules cinq clés changent : `name`, `android` (package `com.scolaria.app.demo`), `extra`, `updates`, `scheme`.
+- **Réponse à ta question : OUI, le mode démo tourne avec une URL et une clé factices, sans aucun accès à Paris.** `AuthContext` et `database.ts` tiennent l'app pour « non configurée » dès que l'URL est vide ou contient `your-` : tout passe en démo, aucune session lue, aucun appel. Exécution réelle (variante démo, port 8083, serveur arrêté ensuite) : le bundle servi contient l'URL factice et **0 occurrence de la référence de Paris** ; « Essayer en mode démo » → Accueil, Agenda, Suivi parcourus : **seul `localhost` est contacté** (0 hôte externe). Une URL vide est impossible : `createClient` lève une erreur au chargement ; d'où le domaine `.invalid`, qui ne se résout jamais.
+- **Effet secondaire constaté** : « Se connecter » tente un appel vers le domaine factice et affiche « Failed to fetch » (honnête, aucune requête réelle) ; « Créer un compte » ouvre en revanche un compte de DÉMONSTRATION (sans serveur) et propose le rôle Enseignant (cf. `tasks/demo-plan.md` § 7). **Recommandation (décision à toi)** : masquer « Se connecter » et « Créer un compte » dans la variante démo (petit changement de code dans `LoginScreen`, commandé par `Constants.expoConfig.extra.APP_VARIANT`), pour que l'APK ne propose que « Essayer en mode démo » et n'ouvre pas l'interface enseignant. Je ne l'ai PAS fait (non demandé : ta consigne était de masquer seulement si la démo ne tournait pas sans serveur).
+
+**B) Trois libellés d'icône** (contenant « Démo ; Android tronque autour de 12 caractères) — à choisir, puis la valeur va dans la variable `APP_LIBELLE_DEMO` de `eas.json` (aucun nom écrit en dur) :
+1. **Carnet · Démo** (13 car.)
+2. **Démo du carnet** (13 car.)
+3. **Carnet Démo** (11 car.) — le plus court, ne se tronque pas.
+Sans choix, le libellé par défaut est « Démo ».
+
+**Avant le build (je les rejoue) :** `npx tsc --noEmit` ; `npm run test:bundle-prod` (12/12) ; `npx expo config` avec et sans variante. Puis, sur ton « go build » : `npx eas-cli@latest build --platform android --profile preview` (plan Free : file basse priorité, 0 / 15 builds Android utilisés ce cycle).

@@ -807,4 +807,13 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] **Sauvegardes exceptionnelles (avant_Mxx, avant_M34_cycle…) : AUCUNE purge automatique** — décider d'une durée (ex. 8 semaines) et la mettre en œuvre ; sinon une donnée effacée y reste indéfiniment (cf. brouillon de politique § 6 bis).
 - [ ] Build de démonstration Android (preview, APK autonome) : plan et constats dans tasks/build-demo-android.md ; **EN ATTENTE du « go build »** et des décisions A (applicationId distinct, exception à ARRÊT NOM), B (libellé), C (mises à jour désactivées). Quota EAS : plan Free, 0/15 builds Android ce cycle. CLAUDE.md dit « Starter » : vérifier.
 - [ ] Recherche de secrets dans test-bundle-prod : le garde-fou a bloqué l'édition (préfixes de clés) ; bloc de secours donné à l'utilisateur.
-- [x] tasks/demo-plan.md : parcours 10 min enseignante / parent, 5 questions, ce qu'il ne faut pas promettre, feuille de notes. [UNCLEAR] : pas de vue enseignant en démo (à confirmer sur l'appareil).
+- [x] tasks/demo-plan.md : parcours 10 min enseignante / parent, 5 questions, ce qu'il ne faut pas promettre, feuille de notes..
+
+## Session n°5 (4 oct 2026)
+- [x] test:bundle-prod 12/12 (recherche de secrets ajoutée par l'utilisateur) : aucune bibliothèque ne contient les chaînes interdites, rien à assouplir.
+- [x] CLAUDE.md : plan EAS Free (vérifié). 
+- [x] Sauvegardes : rotation par âge (hebdo 56 j, avant_Mxx 30 j, jamais la plus récente, PURGE journalisée) ; test:rotation-sauvegardes 14/14 ; `node scripts/rotation-sauvegardes.mjs` liste l'âge (23 dossiers, 0 à purger aujourd'hui, première échéance le 25 oct). **Rien supprimé.** Brouillon de politique : « 8 semaines pour toutes » NON affirmé (captures du compte réel, copie de Londres avec fichier d'environnement, sauvegardes éventuelles du prestataire hors règle).
+- [ ] **Décider** : captures-avion-2026-10-04 (compte réel, 8 Mo) et 2026-09-25_avant_INFRA-1 (copie de Londres + env.londres) : suppression sur accord ; Londres : suppression du projet prévue le 9 oct.
+- [x] Variante démo Android dans app.config.js / eas.json (identifiant `.demo`, URL factice, mises à jour coupées) ; vérifiée à l'exécution (0 requête hors localhost, 0 référence Paris dans le bundle). **EN ATTENTE** : « go build » + choix du libellé (Carnet · Démo / Démo du carnet / Carnet Démo) + décision : masquer « Se connecter » / « Créer un compte » dans la variante.
+- [ ] **Interface enseignant atteignable en démo (Créer un compte → Enseignant)** : Messagerie d'exemple en dur (« Son Score de Joie a baissé », alerte nominative interdite en V1), 26 élèves (Ma classe) vs 25 (Cahier de liaison), barre d'onglets orange (`TEACHER_ORANGE`, 2e couleur d'accent), écrans Effacement / Export / Code de transfert côté enseignant à vérifier ; code mort `signIn` / `DEMO_TEACHER` à supprimer.
+- [x] demo-plan.md § 7 : liste des écrans enseignant atteignables, [UNCLEAR] levé.
