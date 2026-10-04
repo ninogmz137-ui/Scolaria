@@ -761,6 +761,11 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] `npx expo run:android` — test visuel des nouveaux écrans
 - [ ] EAS build quand tout est validé localhost
 
+### Reprise n°3 du 4 oct 2026 — état
+- [ ] **M34 : PRÊTE, NON appliquée — arrêt volontaire avant l'application.** Fait : `est_enseignant()` sans argument (WARN accepté) ; `tasks/warns-attendus.md` créé (101 WARN par objet, avec raisons) ; local avec M34 après `db reset` : 19 suites SQL OK, parcours complet 45/45, effacement 22/22, verrous 18/18, invitation 12/12, limite Aria 15/15, clé 15/15, audit 670/0 écart ; sauvegarde Paris `avant_M34` vérifiée ; essai à blanc = M34 seule. **Raison de l'arrêt : M34 crée 2 fonctions SECURITY DEFINER exécutables par `authenticated` (`annuler_invitation(uuid)`, `renvoyer_invitation(uuid)`) → 2 WARN ABSENTS de la liste → critère (f) violé d'avance.** Ils sont déclarés dans warns-attendus.md (section « annoncés, non validés »). À toi : les valider (les déplacer en section 1), puis exécuter le bloc de secours du rapport ou me dire d'appliquer.
+- [x] Garde-fou : gates.json montré, motif plus étroit proposé (à modifier par TOI) ; leçon : en cas de blocage, pas de reformulation, bloc PowerShell de secours.
+- [x] comptes-enseignants.md : brouillon validé (réponses 1 à 4, reportés, dépendance emails/domaine/Brevo : rien à coder avant). enquete-ios.md corrigé (Expo Go App Store = SDK 54 ; sign.expo.dev à confirmer [UNCLEAR] ; `npx expo start --go` ; pare-feu ; liste de test iPhone).
+
 ### Reprise n°2 du 4 oct 2026 — état (remplace la ligne « M31 … NON APPLIQUÉES » ci-dessous)
 - [x] **Paris : M31, M32, M33 APPLIQUÉES, fonction `aria` DÉPLOYÉE** (401 sans compte ; aucun secret touché ; plafond 40/jour par défaut). Sauvegardes avant_M31 (10:37 UTC), avant_M32, avant_M33, vérifiées. Advisors : après M31 101 WARN / 0 ERROR / 0 INFO ; après M32 100 WARN ; après M33 101 WARN (+1 : `est_enseignant()`), 0 ERROR.
 - [ ] **M34 NON appliquée** : condition (f) (« pas plus de WARN qu'avant ») non remplie après M33. À décider : accepter le WARN `est_enseignant` (fonction SECURITY DEFINER volontaire, lit la seule ligne de l'appelant) ou la passer en SECURITY INVOKER (migration à part), puis appliquer M34.

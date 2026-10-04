@@ -1,6 +1,7 @@
 # Comptes enseignants — spécification (sans code) · 4 oct 2026
 
-Statut : **proposition à valider**. Aucun code, aucune migration, aucune table créée. Prépare le sprint enseignant ; ne change rien pour les familles.
+Statut : **brouillon validé** (réponses du 4 oct, section 9). **Aucun code**, aucune migration, aucune table créée. Prépare le sprint enseignant ; ne change rien pour les familles.
+**Dépendance : les emails (nom de domaine + Brevo).** La demande d'accès, les codes et les relances passent par des emails du projet ; le nom étant provisoire (ARRÊT NOM), **rien n'est à coder avant** que le domaine et l'expéditeur existent.
 Principe directeur (leçon du 4 oct) : **l'interface n'est jamais une frontière de sécurité, seule la base l'est.** Tout ce qui suit est une règle de base de données ; l'écran ne fait que la refléter.
 
 ## 1. Constat de départ
@@ -36,10 +37,10 @@ Tests de non-accès (à écrire, sur le modèle de `audit-securite-local.mts`) :
 
 ## 5. Rattachement par code de classe (à valider)
 Deux codes distincts, pour ne pas mélanger les droits :
-- **Code de classe — enseignant** : le responsable crée la classe (école, année, niveau, nom) ET son code, à usage unique, valable 14 jours, remis à l'enseignant validé. L'enseignant le saisit (fonction `rattacher_classe(code)`, réservée aux comptes `est_enseignant_valide()`) : la classe prend `enseignant_id = lui` ; le code est consommé. Limite : 5 essais ratés par compte et par heure, puis blocage (anti-devinette). Un code est stocké **haché** (jamais en clair en base) ; il est affiché une seule fois au responsable.
-- **Code de classe — familles** : l'enseignant rattaché obtient (fonction `code_famille(classe)`) un code révocable pour SA classe, qu'il donne aux familles ; un parent responsable de l'enfant le saisit (`rattacher_enfant_a_classe(enfant, code)`) : `academic_years.classe_id` de l'année active de l'enfant, jamais d'une année archivée. Révocable, renouvelable ; même limite d'essais. Remplace la pose serveur actuelle sans changer le verrou M18 (la fonction DEFINER est le seul chemin).
+- **Code de classe — enseignant** : le responsable crée la classe (école, année, niveau, nom) ET son code, à usage unique, valable 14 jours, remis à l'enseignant validé. L'enseignant le saisit (fonction `rattacher_classe(code)`, réservée aux comptes `est_enseignant_valide()`) : la classe prend `enseignant_id = lui` ; le code est consommé. Limite : **5 essais ratés par compte et par heure** (blocage d'une heure), et **verrouillage du compte pour le rattachement après 15 échecs cumulés** (levé par le responsable). Un code fait **au moins 10 caractères, sans caractères ambigus** (ni 0/O, 1/I/l, 5/S, 8/B…). Un code est stocké **haché** (jamais en clair en base) ; il est affiché une seule fois au responsable.
+- **Code de classe — familles** : l'enseignant rattaché obtient (fonction `code_famille(classe)`) un code révocable pour SA classe, qu'il donne aux familles ; un parent responsable de l'enfant le saisit (`rattacher_enfant_a_classe(enfant, code)`). **Avec VALIDATION par l'enseignant** : la saisie crée un rattachement **« en attente »** (aucun accès enseignant à l'enfant, rien dans la classe) ; l'enseignant **l'accepte dans sa liste de classe** (ou le refuse) ; seule l'acceptation pose `academic_years.classe_id` de l'année active de l'enfant, jamais d'une année archivée. Révocable, renouvelable ; mêmes règles de code et d'essais que ci-dessus (14 jours, 5 essais par heure, verrouillage à 15 échecs cumulés, 10 caractères non ambigus). Remplace la pose serveur actuelle sans changer le verrou M18 (la fonction DEFINER est le seul chemin).
 - Un enseignant peut avoir plusieurs classes (même école) ; un enfant n'a qu'une classe active par année.
-Question ouverte : le code « famille » est-il nécessaire pour la phase pilote (le responsable peut continuer à rattacher à la main) ?
+Décision : les deux codes dès le pilote ; le code famille passe par la validation de l'enseignant (ci-dessus).
 
 ## 6. Tables, droits (esquisse)
 | Table | Contenu | Lecture | Écriture |
@@ -58,9 +59,14 @@ Interface : l'inscription enseignant reste absente en version réelle (test exis
 - **Invitation d'un enseignant par un directeur d'école** et interface directeur (Phase 3 : « Interface directeur d'école »).
 - Création de classe par l'enseignant lui-même, import de listes d'élèves, ÉduConnect (V2, jamais obligatoire), validation automatique par domaine académique, double authentification obligatoire pour les comptes enseignants.
 - Effacement d'un compte enseignant dans l'app (point ouvert).
+- **Plusieurs enseignants par classe** (intervenants, collège : un professeur par matière). **`classes.enseignant_id` est provisoire** : un seul titulaire par classe. Le passage à plusieurs enseignants par classe (table de liaison classe ↔ enseignant, avec rôle et matière) devra réécrire `is_titulaire_classe`, `est_titulaire_enfant`, `is_titulaire_annee`, les politiques qui en dépendent et `rattacher_classe` ; rien de ce sprint ne doit figer le « un seul enseignant ».
+- **Classes** : au-delà de la création par le responsable (voir plus haut), gestion des classes (changement d'année, passage au niveau suivant, fusion) : à spécifier avec ce point.
 
-## 9. Questions pour toi
-1. Où l'enseignant dépose-t-il sa demande en v1 : email au projet (simple) ou page web de demande (plus de travail, plus propre) ?
-2. Les deux codes (enseignant puis familles) dès le pilote, ou seulement le code enseignant (les familles rattachées à la main) ?
-3. Durée de vie du code enseignant (14 jours proposés) et nombre d'essais (5 par heure proposés).
-4. Un enseignant suspendu garde-t-il ses mots déjà envoyés dans les carnets des familles ? (proposition : oui, ils font partie du carnet ; seul l'accès futur est coupé.)
+## 9. Réponses (4 oct 2026) — brouillon validé
+1. **Demande d'accès : par email au projet en v1** (pas de page web pour l'instant).
+2. **Deux codes dès le pilote** ; le code famille avec **VALIDATION par l'enseignant** (rattachement « en attente », accepté dans sa liste de classe).
+3. **14 jours** de validité, **5 essais par heure**, **verrouillage après 15 échecs cumulés**, code d'**au moins 10 caractères sans caractères ambigus**.
+4. **Enseignant suspendu : mots conservés, nom conservé, accès futur coupé.**
+
+## 10. Dépendances et ordre
+Rien à coder avant : (a) le nom définitif et un nom de domaine ; (b) Brevo (expéditeur, domaine authentifié) pour les emails de demande, de validation et de codes ; (c) la politique de confidentialité (D5) qui mentionne les données de l'enseignant. Ensuite : migrations (tables, fonctions réservées au serveur, `est_enseignant_valide`), tests (section 7), puis écrans.
