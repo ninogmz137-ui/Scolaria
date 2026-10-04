@@ -91,3 +91,10 @@ Règle : ne noter AUCUN nom d'élève, d'enseignant ni d'école réels sur la fe
 5. L'interface enseignant réelle n'est pas finie (MVP V1 en cours) : toute promesse est interdite (§ 3).
 
 **Conséquence pour le plan** : parcours enseignante = vue FAMILLE (§ 1). Si elle demande « et pour moi ? » : « l'interface enseignant n'est pas encore montrable ; je veux d'abord ton avis sur ce que reçoivent les familles ».
+
+## 8. « Données fictives » : la démo le dit-elle ? (constat du 4 oct 2026 — PROPOSITION, rien de codé, en attente de ton accord)
+**Constat dans le code** : un seul endroit l'écrit — **Famille & paramètres (☰)** : « Mode démo · les données affichées sont fictives. » (`FamilleParametresScreen.tsx:162`, visible seulement en démo), plus une alerte à l'ouverture de l'export. **Ni l'écran d'ouverture, ni l'Accueil, le Suivi, l'Agenda, les Messages ou Aria ne le disent.** Une personne qui ne descend pas dans les paramètres peut prendre « Léa, GS, Maternelle Pasteur », « Mme Dupont », les notes d'Emma pour de vraies données ; une enseignante pourrait croire que ses élèves sont dans l'application.
+**Proposition (deux emplacements discrets, un seul texte)** :
+1. **Accueil, tout en bas du défilement** (au-dessus de la réserve de la barre du bas) : une ligne centrée, `Figtree_300Light`, 11 px, `rgba(15,23,42,0.35)` (la « meta » du design system), **« Démonstration · famille et données fictives. »** Elle ne recouvre rien, n'ajoute ni carte ni bandeau (règles : pas de carte-bouton, pas de bandeau opaque), et se voit dès qu'on fait défiler l'Accueil. Variante plus visible si tu préfères : sous « Bonjour [prénom] » dans le header, même style, une ligne.
+2. **Écran d'ouverture de la variante démo**, sous le bouton « Essayer en mode démo », même style : **« Une famille fictive, aucune donnée réelle. »** (Dit avant d'entrer.)
+Pas de bandeau permanent ni de filigrane (trop lourd pour une démonstration de 10 minutes). Même texte à reprendre sur la feuille de l'enseignante/du parent (§ 5). **Aucun code avant ton accord** (emplacement, texte, ou « seulement l'ouverture »).
