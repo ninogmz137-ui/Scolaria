@@ -5,12 +5,16 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { refuserDansDepot } from './garde-destination.mjs';
 
 const [a, b] = process.argv.slice(2);
 if (!a) {
   console.error('Usage : node scripts/verifier-sauvegarde.mjs <dossier> [copie]');
   process.exit(2);
 }
+const depot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+for (const d of [a, b].filter(Boolean)) refuserDansDepot(d, depot, 'la sauvegarde à vérifier');
 const sha = (f) => createHash('sha256').update(fs.readFileSync(f)).digest('hex').toUpperCase();
 const erreurs = [];
 const ok = (cond, msg) => {

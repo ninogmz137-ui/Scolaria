@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { refuserDansDepot } from './garde-destination.mjs';
 
 const depot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (nom, defaut) => {
@@ -19,6 +20,7 @@ const cible = arg('cible', 'linked');
 const racine = arg('racine', 'C:\\Users\\admin\\ScolariaBackups\\hebdo');
 const garder = Number(arg('garder', '8'));
 if (!['linked', 'local'].includes(cible)) throw new Error('--cible : linked ou local');
+refuserDansDepot(racine, depot, 'la destination (--racine)');
 const flag = '--' + cible;
 
 const debut = new Date();

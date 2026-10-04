@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { refuserDansDepot } from './garde-destination.mjs';
 
 const depot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dossierArg = process.argv[2];
@@ -20,6 +21,7 @@ if (!dossierArg) {
   console.error('Usage : node scripts/restaurer-sauvegarde.mjs <dossier de sauvegarde>');
   process.exit(2);
 }
+refuserDansDepot(dossierArg, depot, 'la sauvegarde à restaurer');
 if (!CONTENEUR.startsWith('supabase_db_')) throw new Error('cible refusée : seule la base locale est autorisée');
 
 const echecs = [];
