@@ -156,5 +156,78 @@ BEGIN
 END $$;
 RESET ROLE;
 
+-- T8 (ajouté pour la validation du 4 oct) : enseignant, INVITÉ non encore responsable, parent d'un autre foyer et anonyme
+-- reçoivent EXACTEMENT la même erreur (code ET message) qu'une invitation inexistante ; l'invitation reste intacte.
+INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, email_confirmed_at) VALUES
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'e@test.local', 'authenticated', 'authenticated', '{}', now()),
+  ('ffffffff-ffff-4fff-8fff-ffffffffffff', 'f@test.local', 'authenticated', 'authenticated', '{}', now());
+UPDATE public.profiles SET role = 'enseignant' WHERE id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","email":"a@test.local","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+INSERT INTO public.invitations_responsable (child_id, invited_by, invited_email) VALUES (:'emma', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'f@test.local') RETURNING id AS inv5 \gset
+RESET ROLE;
+SELECT set_config('test.inv5', :'inv5', true) \gset
+CREATE TEMP TABLE m34_msgs (qui text, fonction text, sqlstate text, message text);
+GRANT ALL ON m34_msgs TO PUBLIC;
+DO $$
+DECLARE
+  qui text; cible uuid; f text; st text; msg text;
+  claims text;
+BEGIN
+  FOREACH qui IN ARRAY ARRAY['inconnue_par_A','enseignant_E','invite_F','autre_foyer_C'] LOOP
+    FOREACH f IN ARRAY ARRAY['annuler','renvoyer'] LOOP
+      claims := CASE qui
+        WHEN 'enseignant_E' THEN '{"sub":"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","email":"e@test.local","role":"authenticated"}'
+        WHEN 'invite_F'     THEN '{"sub":"ffffffff-ffff-4fff-8fff-ffffffffffff","email":"f@test.local","role":"authenticated"}'
+        WHEN 'autre_foyer_C' THEN '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","email":"c@test.local","role":"authenticated"}'
+        ELSE '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","email":"a@test.local","role":"authenticated"}' END;
+      cible := CASE WHEN qui = 'inconnue_par_A' THEN gen_random_uuid() ELSE current_setting('test.inv5')::uuid END;
+      PERFORM set_config('request.jwt.claims', claims, true);
+      SET LOCAL ROLE authenticated;
+      BEGIN
+        IF f = 'annuler' THEN PERFORM public.annuler_invitation(cible); ELSE PERFORM public.renvoyer_invitation(cible); END IF;
+        st := 'AUCUNE'; msg := 'aucune erreur';
+      EXCEPTION WHEN OTHERS THEN
+        GET STACKED DIAGNOSTICS msg = MESSAGE_TEXT; st := SQLSTATE;
+      END;
+      RESET ROLE;
+      INSERT INTO m34_msgs VALUES (qui, f, st, msg);
+    END LOOP;
+  END LOOP;
+  -- anonyme : le rôle anon n'a pas EXECUTE du tout (erreur de privilège, aucune fuite d'existence)
+END $$;
+DO $$
+DECLARE n int; r record;
+BEGIN
+  SELECT count(DISTINCT (sqlstate, message)) INTO n FROM m34_msgs;
+  IF n <> 1 THEN
+    FOR r IN SELECT * FROM m34_msgs LOOP RAISE NOTICE '% % → % : %', r.qui, r.fonction, r.sqlstate, r.message; END LOOP;
+    RAISE EXCEPTION 'ÉCHEC T8 les refus ne sont pas identiques (% variantes)', n;
+  END IF;
+  IF (SELECT sqlstate FROM m34_msgs LIMIT 1) <> '42501' THEN RAISE EXCEPTION 'ÉCHEC T8 code attendu 42501'; END IF;
+  IF (SELECT count(*) FROM m34_msgs) <> 8 THEN RAISE EXCEPTION 'ÉCHEC T8 8 cas attendus'; END IF;
+  IF (SELECT statut FROM public.invitations_responsable WHERE id = current_setting('test.inv5')::uuid) <> 'en_attente' THEN
+    RAISE EXCEPTION 'ÉCHEC T8 bis l''invitation a été modifiée par un refusé';
+  END IF;
+  RAISE NOTICE 'OK T8 enseignant, invité, autre foyer et inconnue : 8 refus au code et au message identiques ; invitation intacte';
+END $$;
+
+-- T9 : privilèges (anon et PUBLIC sans EXECUTE ; authenticated avec) et search_path figé.
+DO $$
+DECLARE f text;
+BEGIN
+  FOREACH f IN ARRAY ARRAY['public.annuler_invitation(uuid)','public.renvoyer_invitation(uuid)'] LOOP
+    IF has_function_privilege('anon', f, 'EXECUTE') THEN RAISE EXCEPTION 'ÉCHEC T9 anon peut exécuter %', f; END IF;
+    IF NOT has_function_privilege('authenticated', f, 'EXECUTE') THEN RAISE EXCEPTION 'ÉCHEC T9 authenticated ne peut pas exécuter %', f; END IF;
+    IF EXISTS (SELECT 1 FROM pg_proc p, aclexplode(p.proacl) a WHERE p.oid = f::regprocedure AND a.grantee = 0) THEN
+      RAISE EXCEPTION 'ÉCHEC T9 PUBLIC a EXECUTE sur %', f;
+    END IF;
+    IF NOT (SELECT p.prosecdef AND p.proconfig @> ARRAY['search_path=public, pg_temp'] FROM pg_proc p WHERE p.oid = f::regprocedure) THEN
+      RAISE EXCEPTION 'ÉCHEC T9 SECURITY DEFINER sans search_path figé : %', f;
+    END IF;
+  END LOOP;
+  RAISE NOTICE 'OK T9 anon et PUBLIC sans EXECUTE, authenticated avec, search_path = public, pg_temp';
+END $$;
+
 ROLLBACK;
-\echo 'M34 : 7 groupes de tests OK (transaction annulée)'
+\echo 'M34 : 9 groupes de tests OK (transaction annulée)'

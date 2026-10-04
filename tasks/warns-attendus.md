@@ -4,15 +4,16 @@
 « nom du contrôle | objet », jamais par nombre. Obtenir la liste : `npx supabase db advisors --linked` (JSON, champ `results`, niveau WARN).
 Un WARN nouveau n'est jamais ajouté ici par la migration qui le crée : il est déclaré AVANT l'application et validé par l'utilisateur.*
 
-État mesuré après M33 : 0 ERROR, 0 INFO, 101 WARN, tous ci-dessous.
+État mesuré après M33 : 0 ERROR, 0 INFO, 101 WARN, tous ci-dessous (liste étendue à 103 par la validation de M34 du 4 oct).
 
-## 1. authenticated_security_definer_function_executable — 30 fonctions
+## 1. authenticated_security_definer_function_executable — 32 fonctions (dont `annuler_invitation` et `renvoyer_invitation`, M34, validées par l'utilisateur le 4 oct 2026)
 Raison : ce sont des fonctions SECURITY DEFINER appelées par l'application (RPC) ou par des politiques RLS ; l'EXECUTE est retiré à
 PUBLIC et à `anon` (M32 et migrations antérieures), accordé à `authenticated` seulement, et chacune contrôle l'appelant (`auth.uid()`)
 à l'intérieur — vérifié par l'audit local (npm run audit:securite-local, 670 tests). Retirer l'EXECUTE à `authenticated` casserait les
 politiques ou l'application. `est_enseignant()` (M33) : sans argument, ne répond que pour l'appelant (sa propre ligne de profiles).
 ```
 authenticated_security_definer_function_executable | public.annuler_effacement(p_demande_id uuid) / authenticated
+authenticated_security_definer_function_executable | public.annuler_invitation(p_invitation_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.apercu_effacement_compte() / authenticated
 authenticated_security_definer_function_executable | public.carnet_chemin_autorise(p_name text) / authenticated
 authenticated_security_definer_function_executable | public.compte_en_effacement(p_user_id uuid) / authenticated
@@ -39,6 +40,7 @@ authenticated_security_definer_function_executable | public.mes_invitations() / 
 authenticated_security_definer_function_executable | public.mot_expediteur(p_mot_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.nb_responsables_carnet(p_mot_id uuid, p_child_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.peut_lire_fil(p_conversation_id uuid) / authenticated
+authenticated_security_definer_function_executable | public.renvoyer_invitation(p_invitation_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.respond_invitation(p_invitation_id uuid, p_accept boolean) / authenticated
 authenticated_security_definer_function_executable | public.responsables_enfant(p_child_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.role_dans_fil(p_conversation_id uuid) / authenticated
@@ -144,11 +146,9 @@ Raison : la protection contre les mots de passe divulgués (HaveIBeenPwned) est 
 le passage Pro, **avant la première famille extérieure** (tasks/todo.md).
 
 ## WARN annoncés par une migration, en attente de validation
-**M34 (déclarés AVANT l'application, NON validés — à déplacer dans la section 1 par l'utilisateur) :**
-```
-authenticated_security_definer_function_executable | public.annuler_invitation(p_invitation_id uuid) / authenticated
-authenticated_security_definer_function_executable | public.renvoyer_invitation(p_invitation_id uuid) / authenticated
-```
-Raison : fonctions SECURITY DEFINER appelées par l'application (annuler / renvoyer une invitation de responsable), EXECUTE retiré à PUBLIC et à
-`anon`, accordé à `authenticated`, contrôle de l'appelant (auteur de l'invitation) à l'intérieur ; testées par supabase/tests/m34_invitations_expirees.sql.
-`invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN. `mes_invitations()` figure déjà en section 1.
+Aucun.
+
+*M34 : `annuler_invitation` et `renvoyer_invitation` validés par l'utilisateur le 4 oct 2026 (« j'accepte les 2 WARN ») et déplacés en section 1.
+Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC et à `anon`, accordé à `authenticated`, search_path figé, contrôle de
+l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
+supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
