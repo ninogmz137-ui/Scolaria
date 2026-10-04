@@ -5,7 +5,7 @@
  * chargés sont conservés ; `recharger()` = bouton « Réessayer ».
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCarnetItems, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
 
@@ -15,8 +15,16 @@ export function useCarnetReel(childId: string | undefined, isDemo: boolean, vers
   const [version, setVersion] = useState(0);
   useEffect(() => surChangementCarnet(() => setVersion((v) => v + 1)), []);
 
+  // Un enfant = un carnet : changer d'enfant vide la liste AVANT le chargement (un échec ne montre jamais le carnet
+  // d'un autre enfant) ; un nouvel essai pour le même enfant garde ce qui est déjà affiché.
+  const dernierEnfant = useRef<string | undefined>(undefined);
   useEffect(() => {
     let annule = false;
+    if (dernierEnfant.current !== childId) {
+      dernierEnfant.current = childId;
+      setItems([]);
+      setErreur(null);
+    }
     if (isDemo || !childId) {
       setItems([]);
       setErreur(null);

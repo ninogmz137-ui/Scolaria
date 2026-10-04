@@ -127,7 +127,8 @@ export default function ApprentissagesVue({
       )}
 
       {domaines.length === 0 ? (
-        <Text style={st.vide}>{vide}</Text>
+        // `vide` vide (chaîne vide) = chargement en échec : aucun faux « aucune compétence » sous le message d'erreur.
+        vide ? <Text style={st.vide}>{vide}</Text> : null
       ) : (
         domaines.map((d) => (
           <View key={d.nom} style={st.bloc}>

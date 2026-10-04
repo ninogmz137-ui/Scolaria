@@ -638,7 +638,17 @@ function AgendaScreenContent() {
     setEventsByDay(grouped);
   }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours]);
 
-  useEffect(() => { loadEvents(); }, [loadEvents]);
+  // Un enfant = un carnet : changer d'enfant vide l'agenda AVANT le chargement (un échec ne montre jamais les
+  // événements d'un autre enfant). Même enfant, autre semaine ou nouvel essai : les événements affichés restent.
+  const dernierEnfantAgenda = useRef<string | null>(null);
+  useEffect(() => {
+    if (dernierEnfantAgenda.current !== selectedChildId) {
+      dernierEnfantAgenda.current = selectedChildId ?? null;
+      setEventsByDay({});
+      setErreurAgenda(null);
+    }
+    loadEvents();
+  }, [loadEvents, selectedChildId]);
 
   const openAddModal = useCallback(() => {
     if (childLoading) {
@@ -910,7 +920,7 @@ function AgendaScreenContent() {
             {formatDateFR(item.fullDate).replace(/^./, (c) => c.toUpperCase())}
           </Text>
           <Text style={st.dayEventCount}>
-            {dayEventCount > 0 ? `${dayEventCount} événement${dayEventCount > 1 ? 's' : ''}` : 'Libre'}
+            {dayEventCount > 0 ? `${dayEventCount} événement${dayEventCount > 1 ? 's' : ''}` : erreurAgenda ? '' : 'Libre'}
           </Text>
         </View>
 

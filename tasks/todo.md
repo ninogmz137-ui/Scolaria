@@ -761,6 +761,14 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] `npx expo run:android` — test visuel des nouveaux écrans
 - [ ] EAS build quand tout est validé localhost
 
+### Constats du 4 oct 2026 (validation de M30, test avion)
+- [ ] **Invitation expirée = piège** (preuve 3 de M30) : au bout de 7 jours l'invitation reste « en_attente » en base ; l'invité ne la voit plus (`mes_invitations` filtre l'expiration, SANS message) et l'invitant ne la voit plus non plus ; **réinviter la même adresse échoue** (index unique `uq_invitation_en_attente`) avec « Invitation impossible : une invitation est peut-être déjà en attente ». Aucun bouton Renvoyer / Annuler. Correction à valider (M34) : déclencheur d'insertion qui passe en « annulee » les invitations expirées du même (enfant, adresse) + liste « Invitations en attente » avec « Annuler » et « Renvoyer » ; message à l'invité (« Cette invitation a expiré : demandez-en une nouvelle »). Antérieur à M30 (M30 ne fait que forcer les 7 jours).
+- [ ] **Côté enseignant : l'enfant en cours d'effacement reste visible** (constat chiffré par supabase/tests/m30_preuve2_appelants.sql, identique avant et après M30) : le titulaire voit mots, signatures, fil et messages. À décider : masquer dès la demande.
+- [ ] **Zones tactiles < 44 dp** (tasks/test-avion-redmi.md) : top bar 34, onglets 30, bottom bar 11 de haut mesuré, jours de l'Agenda, filtres, P1–P5 : lot hitSlop / tailles.
+- [ ] **Accueil réel** : « Rien de prévu aujourd'hui » et « Aucun apprentissage noté » toujours affichés pour un compte réel (non branchés) : retirer ou brancher.
+- [ ] **B7 reporté** : contrôle du contenu des fichiers du bucket (octets de tête) ; la restriction de types du bucket reste.
+- [ ] **test:journaux** : 2 échecs antérieurs (executer-effacements, invitation-responsable) : à traiter (demande du 4 oct).
+
 ### STAB-1 (3 oct 2026)
 - [x] Point 0 : journal_executions_effacement 3 oct 03:30 UTC = succès (HTTP 200, 0 échue, 0 échec) ; M28 appliquée à Paris ; M29 et M30 LOCALES en attente de validation ; origin/main à jour.
 - [x] Point 3 : sauvegarde hebdomadaire + restauration testée (tasks/sauvegarde.md). **Lire `C:\Users\admin\ScolariaBackups\hebdo\journal.log` en début de session.** Copie hors PC : non faite (ton choix).

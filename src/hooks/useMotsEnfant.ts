@@ -6,7 +6,7 @@
  * `recharger()` relance (bouton « Réessayer »).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
 import { chargerMots, surChangementMots, type MotCarnet } from '../services/motsService';
@@ -26,8 +26,16 @@ export function useMotsEnfant(childId: string | undefined) {
     }, []),
   );
 
+  // Un enfant = un carnet : changer d'enfant vide les mots AVANT le chargement (un échec ne montre jamais les mots
+  // d'un autre enfant) ; un nouvel essai pour le même enfant garde ce qui est déjà affiché.
+  const dernierEnfant = useRef<string | undefined>(undefined);
   useEffect(() => {
     let annule = false;
+    if (dernierEnfant.current !== childId) {
+      dernierEnfant.current = childId;
+      setMots([]);
+      setErreur(null);
+    }
     if (!childId) {
       setMots([]);
       setErreur(null);

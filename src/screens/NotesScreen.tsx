@@ -953,6 +953,18 @@ function NotesScreenContent() {
   // Chargements en échec (réseau, session, serveur) : « Réessayer » relit tout (versionSuivi), jamais un
   // écran vide à tort. Les données déjà affichées sont conservées.
   const [versionSuivi, setVersionSuivi] = useState(0);
+  // Un enfant = un carnet : en changeant d'enfant, TOUT ce qui venait de l'ancien est vidé AVANT les chargements
+  // (déclaré avant eux), pour qu'un chargement en échec ne laisse jamais voir les données d'un autre enfant.
+  // Un nouvel essai pour le MÊME enfant, lui, garde ce qui est déjà affiché.
+  useEffect(() => {
+    setCompetences([]);
+    setAnnees([]);
+    setSubjects([]);
+    setYearMeta(null);
+    setErreurCompetences(null);
+    setErreurAnnees(null);
+    setErreurNotes(null);
+  }, [selectedChild?.id]);
   const [erreurCompetences, setErreurCompetences] = useState<TypeErreur | null>(null);
   const [erreurAnnees, setErreurAnnees] = useState<TypeErreur | null>(null);
   const [erreurNotes, setErreurNotes] = useState<TypeErreur | null>(null);
@@ -1361,7 +1373,7 @@ function NotesScreenContent() {
         mode="souvenirs"
         entete={entete}
         items={souvenirs}
-        vide="Aucun souvenir pour l’instant cette année. Ajoutez un dessin, une photo ou une première fois avec ⊞."
+        vide={erreurSuivi ? '' : 'Aucun souvenir pour l’instant cette année. Ajoutez un dessin, une photo ou une première fois avec ⊞.'}
         onOuvrir={ouvrirElement}
       />
     );
@@ -1372,7 +1384,7 @@ function NotesScreenContent() {
         mode="livrets"
         entete={entete}
         items={livrets}
-        vide={videLivrets(selectedChild?.niveau, cycle, isMaternelle || isPrimaire ? decoupageSuivi : 'trimestres')}
+        vide={erreurSuivi ? '' : videLivrets(selectedChild?.niveau, cycle, isMaternelle || isPrimaire ? decoupageSuivi : 'trimestres')}
         onParcours={ouvrirParcours}
         onOuvrir={ouvrirElement}
       />
@@ -1393,7 +1405,9 @@ function NotesScreenContent() {
         decoupage={decoupageSuivi}
         referentiel={referentielDuNiveau(selectedChild?.niveau)}
         vide={
-          isMaternelle
+          erreurSuivi
+            ? ''
+            : isMaternelle
             ? `Aucune observation pour ${selectedChild?.name ?? 'cet enfant'} pour l’instant.`
             : `Aucune compétence pour ${selectedChild?.name ?? 'cet enfant'} sur cette période.`
         }

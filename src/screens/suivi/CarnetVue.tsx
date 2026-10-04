@@ -148,7 +148,8 @@ export default function CarnetVue({
       {entete}
 
       {items.length === 0 ? (
-        <Text style={st.vide}>{vide}</Text>
+        // `vide` vide (chaîne vide) = chargement en échec : aucun faux « aucun souvenir » sous le message d'erreur.
+        vide ? <Text style={st.vide}>{vide}</Text> : null
       ) : mode === 'souvenirs' ? (
         <View style={st.grille}>
           {items.map((e) => {

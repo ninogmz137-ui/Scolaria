@@ -20,8 +20,9 @@ interface ChildAvatarProps {
 }
 
 export default function ChildAvatar({ child, size = 36, borderColor }: ChildAvatarProps) {
-  const { children } = useActiveChild();
-  const initials = child ? getChildInitials(child.name, children.map((c) => c.name)) : '+';
+  const { children, erreur } = useActiveChild();
+  // Chargement des enfants en échec : ni « + » ni « Aucun enfant » (ce serait un faux vide) : un « … » neutre.
+  const initials = child ? getChildInitials(child.name, children.map((c) => c.name)) : erreur ? '…' : '+';
   const bg = child ? child.color ?? DEFAULT_CHILD_COLOR : 'rgba(15,23,42,0.12)';
 
   return (
@@ -36,7 +37,7 @@ export default function ChildAvatar({ child, size = 36, borderColor }: ChildAvat
           borderColor: borderColor ?? 'transparent',
         },
       ]}
-      accessibilityLabel={child ? `Avatar ${de(child.name)}` : 'Aucun enfant'}
+      accessibilityLabel={child ? `Avatar ${de(child.name)}` : erreur ? 'Enfants non chargés' : 'Aucun enfant'}
     >
       <Text
         style={[

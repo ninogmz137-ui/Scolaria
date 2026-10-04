@@ -350,7 +350,7 @@ export default function AccueilScreen() {
           </View>
         ) : (
           <SurFondu hauteur={hauteurFondu}>
-            {(ton) => <Text style={[styles.emptyState, ton]}>Rien de prévu aujourd’hui.</Text>}
+            {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Rien de prévu aujourd’hui.'}</Text>}
           </SurFondu>
         )}
 
@@ -378,7 +378,7 @@ export default function AccueilScreen() {
               </View>
             ) : (
               <SurFondu hauteur={hauteurFondu}>
-                {(ton) => <Text style={[styles.emptyState, ton]}>Aucune note pour l’instant.</Text>}
+                {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucune note pour l’instant.'}</Text>}
               </SurFondu>
             )}
             <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
@@ -406,7 +406,7 @@ export default function AccueilScreen() {
               </View>
             ) : (
               <SurFondu hauteur={hauteurFondu}>
-                {(ton) => <Text style={[styles.emptyState, ton]}>Aucun apprentissage noté pour l’instant.</Text>}
+                {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucun apprentissage noté pour l’instant.'}</Text>}
               </SurFondu>
             )}
             <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
