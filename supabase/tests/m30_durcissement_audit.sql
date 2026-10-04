@@ -92,6 +92,9 @@ END $$;
 RESET ROLE;
 
 -- ─── 4. messages ─────────────────────────────────────────────────────────────
+-- Depuis M32 l'accès client à `messages` est coupé (table inutilisée) : le droit est rétabli ICI, dans cette
+-- transaction annulée, pour continuer à vérifier la politique et le verrou de M30 indépendamment de M32.
+GRANT SELECT, INSERT, UPDATE ON public.messages TO authenticated;
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$

@@ -107,7 +107,7 @@
   "table": "access_journal",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -139,7 +139,7 @@
   "table": "access_journal",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -171,7 +171,7 @@
   "table": "access_journal",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -203,7 +203,7 @@
   "table": "access_journal",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -483,7 +483,7 @@
   "table": "appreciations",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -587,7 +587,7 @@
   "table": "aria_conversations",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -602,14 +602,6 @@
  {
   "table": "aria_conversations",
   "operation": "UPDATE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "aria_conversations",
-  "operation": "DELETE",
   "acteur": "ANON",
   "resultat": "refusé / 0 ligne",
   "ecart": false,
@@ -617,6 +609,14 @@
  },
  {
   "table": "aria_conversations",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
   "operation": "SELECT",
   "acteur": "TE",
   "resultat": "0 ligne",
@@ -691,7 +691,7 @@
   "table": "aria_messages",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -899,7 +899,7 @@
   "table": "carnet_items",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1523,7 +1523,7 @@
   "table": "competences",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1563,7 +1563,7 @@
   "table": "deletion_requests",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1595,7 +1595,7 @@
   "table": "deletion_requests",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1627,7 +1627,7 @@
   "table": "deletion_requests",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1659,7 +1659,7 @@
   "table": "deletion_requests",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1667,7 +1667,7 @@
   "table": "export_history",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1699,7 +1699,7 @@
   "table": "export_history",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1731,7 +1731,7 @@
   "table": "export_history",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1763,7 +1763,7 @@
   "table": "export_history",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1939,7 +1939,7 @@
   "table": "invitations_responsable",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -1979,7 +1979,7 @@
   "table": "messages",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2011,7 +2011,7 @@
   "table": "messages",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2043,7 +2043,7 @@
   "table": "messages",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2075,7 +2075,7 @@
   "table": "messages",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2147,7 +2147,7 @@
   "table": "mot_carnets",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2251,7 +2251,7 @@
   "table": "mots_liaison",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2266,14 +2266,6 @@
  {
   "table": "mots_liaison",
   "operation": "UPDATE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "mots_liaison",
-  "operation": "DELETE",
   "acteur": "ANON",
   "resultat": "refusé / 0 ligne",
   "ecart": false,
@@ -2281,6 +2273,14 @@
  },
  {
   "table": "mots_liaison",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
   "operation": "SELECT",
   "acteur": "TE",
   "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
@@ -2291,7 +2291,7 @@
   "table": "person_permissions",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2323,7 +2323,7 @@
   "table": "person_permissions",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2355,7 +2355,7 @@
   "table": "person_permissions",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2387,7 +2387,7 @@
   "table": "person_permissions",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2459,7 +2459,7 @@
   "table": "read_receipts",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2563,7 +2563,7 @@
   "table": "reponses_mot",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2593,110 +2593,6 @@
  },
  {
   "table": "reponses_mot",
-  "operation": "SELECT",
-  "acteur": "TE",
-  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "SELECT",
-  "acteur": "B",
-  "resultat": "0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "INSERT",
-  "acteur": "B",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "UPDATE",
-  "acteur": "B",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "DELETE",
-  "acteur": "B",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "SELECT",
-  "acteur": "T0",
-  "resultat": "0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "INSERT",
-  "acteur": "T0",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "UPDATE",
-  "acteur": "T0",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "DELETE",
-  "acteur": "T0",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "SELECT",
-  "acteur": "ANON",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "INSERT",
-  "acteur": "ANON",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "UPDATE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
-  "operation": "DELETE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "signatures",
   "operation": "SELECT",
   "acteur": "TE",
   "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
@@ -2704,6 +2600,110 @@
   "detail": ""
  },
  {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
   "table": "subjects",
   "operation": "SELECT",
   "acteur": "B",
@@ -2875,7 +2875,7 @@
   "table": "teacher_conversations",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -2979,7 +2979,7 @@
   "table": "teacher_messages",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3019,7 +3019,7 @@
   "table": "transfer_codes",
   "operation": "SELECT",
   "acteur": "B",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3051,7 +3051,7 @@
   "table": "transfer_codes",
   "operation": "SELECT",
   "acteur": "T0",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3083,7 +3083,7 @@
   "table": "transfer_codes",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3115,7 +3115,7 @@
   "table": "transfer_codes",
   "operation": "SELECT",
   "acteur": "TE",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3395,7 +3395,7 @@
   "table": "classes",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3425,110 +3425,6 @@
  },
  {
   "table": "classes",
-  "operation": "SELECT",
-  "acteur": "TE",
-  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "SELECT",
-  "acteur": "B",
-  "resultat": "0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "INSERT",
-  "acteur": "B",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "UPDATE",
-  "acteur": "B",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "DELETE",
-  "acteur": "B",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "SELECT",
-  "acteur": "T0",
-  "resultat": "0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "INSERT",
-  "acteur": "T0",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "UPDATE",
-  "acteur": "T0",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "DELETE",
-  "acteur": "T0",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "SELECT",
-  "acteur": "ANON",
-  "resultat": "0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "INSERT",
-  "acteur": "ANON",
-  "resultat": "refusé (42501)",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "UPDATE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
-  "operation": "DELETE",
-  "acteur": "ANON",
-  "resultat": "refusé / 0 ligne",
-  "ecart": false,
-  "detail": ""
- },
- {
-  "table": "ecoles",
   "operation": "SELECT",
   "acteur": "TE",
   "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
@@ -3536,6 +3432,110 @@
   "detail": ""
  },
  {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
   "table": "foyers",
   "operation": "SELECT",
   "acteur": "B",
@@ -3603,7 +3603,7 @@
   "table": "foyers",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3707,7 +3707,7 @@
   "table": "profiles",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3811,7 +3811,7 @@
   "table": "responsables",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -3915,7 +3915,7 @@
   "table": "demandes_effacement",
   "operation": "SELECT",
   "acteur": "ANON",
-  "resultat": "0 ligne",
+  "resultat": "refusé (42501)",
   "ecart": false,
   "detail": ""
  },
@@ -5211,8 +5211,8 @@
   "table": "colonne profiles.email",
   "operation": "UPDATE par le propriétaire",
   "acteur": "A",
-  "resultat": "MODIFIABLE (adresse affichée du profil)",
-  "ecart": true,
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
   "detail": "adresse affichée du profil"
  },
  {
@@ -5275,7 +5275,7 @@
   "table": "colonne messages.sender_id",
   "operation": "UPDATE par le propriétaire",
   "acteur": "A",
-  "resultat": "verrouillée",
+  "resultat": "verrouillée (42501)",
   "ecart": false,
   "detail": "expéditeur d'un message"
  },
