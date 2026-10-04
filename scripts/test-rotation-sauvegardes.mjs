@@ -38,29 +38,41 @@ mk(path.join(parent, 'avant_M93', ilYa(40)));
 fs.mkdirSync(path.join(parent, 'avant_M94'));
 const t3 = new Date(maintenant.getTime() - 3 * 86_400_000);
 fs.utimesSync(path.join(parent, 'avant_M94'), t3, t3);
-// jamais touchés : ni « avant », ni hebdo
-mk(path.join(parent, 'captures-vieilles'));
+// captures d'écran : date dans le nom (5 et 31 jours), sous-dossier daté (20 jours), sans aucune date (modifié il y a 40 jours)
+mk(path.join(parent, `captures-a-${ilYa(5).slice(0, 10)}`));
+mk(path.join(parent, `captures-b-${ilYa(31).slice(0, 10)}`));
+mk(path.join(parent, 'captures-c', ilYa(20)));
+mk(path.join(parent, 'captures-sans-date'));
+const t40 = new Date(maintenant.getTime() - 40 * 86_400_000);
+fs.utimesSync(path.join(parent, 'captures-sans-date'), t40, t40);
+// jamais touchés : ni « avant », ni hebdo, ni captures (dossiers étrangers, même très vieux)
+mk(path.join(parent, 'notes-vieilles'));
 mk(path.join(parent, 'migrations-en-attente'));
-fs.utimesSync(path.join(parent, 'captures-vieilles'), new Date(2020, 0, 1), new Date(2020, 0, 1));
+fs.utimesSync(path.join(parent, 'notes-vieilles'), new Date(2020, 0, 1), new Date(2020, 0, 1));
 
 const plan = planifierRotation({ racine, parent, maintenant });
 const aPurger = plan.tous.filter((x) => x.aPurger).map((x) => path.basename(x.dossier)).sort();
-const attendu = [ilYa(57), ilYa(200), `${ilYa(31).slice(0, 10)}_avant_M92`, 'avant_M93'].sort();
-ok(JSON.stringify(aPurger) === JSON.stringify(attendu), `plan : à purger = hebdo 57 et 200 jours, avant_M92 (31 j), avant_M93 (40 j) — obtenu : ${aPurger.length}`);
+const attendu = [ilYa(57), ilYa(200), `${ilYa(31).slice(0, 10)}_avant_M92`, 'avant_M93', `captures-b-${ilYa(31).slice(0, 10)}`, 'captures-sans-date'].sort();
+ok(JSON.stringify(aPurger) === JSON.stringify(attendu), `plan : à purger = hebdo 57 et 200 jours, avant_M92 (31 j), avant_M93 (40 j), captures-b (31 j), captures sans date (40 j) — obtenu : ${aPurger.length}`);
 ok(plan.hebdo.length === 5, '5 sauvegardes complètes vues (le dossier sans manifeste est ignoré)');
 ok(plan.avant.find((x) => x.nom === 'avant_M94').jours === 3, 'dossier sans date : âge pris sur la date de modification (3 jours)');
 ok(plan.avant.find((x) => x.nom === 'avant_M93').source === 'sous-dossier', 'avant_M93 : âge pris sur le sous-dossier daté');
-ok(!plan.tous.some((x) => /captures|migrations-en-attente/.test(x.nom)), 'captures-… et migrations-en-attente ne sont pas des candidats');
+ok(!plan.tous.some((x) => /notes-vieilles|migrations-en-attente/.test(x.nom)), 'dossiers étrangers (notes-vieilles, migrations-en-attente) : pas des candidats');
+ok(plan.captures.length === 4 && plan.captures.find((x) => x.nom === 'captures-c').jours === 20 && plan.captures.find((x) => x.nom === 'captures-c').source === 'sous-dossier', 'captures : 4 candidates, captures-c datée par son sous-dossier (20 jours)');
+ok(plan.captures.find((x) => x.nom === 'captures-sans-date').jours === 40 && plan.captures.find((x) => x.nom === 'captures-sans-date').source === 'modification', 'captures sans date : âge pris sur la date de modification (40 jours)');
 ok(plan.hebdo.find((x) => x.nom === ilYa(55)).aPurger === false, 'hebdomadaire de 55 jours conservé (< 56)');
 
 const journal = [];
 const supprimes = appliquerRotation(plan, { racine, parent, journaliser: (s, d) => journal.push([s, d]) });
-ok(supprimes.length === 4 && journal.length === 4 && journal.every(([s]) => s === 'PURGE'), `4 suppressions, 4 lignes de journal « PURGE » (${journal.map((j) => j[1]).join(' | ')})`);
+ok(supprimes.length === 6 && journal.length === 6 && journal.every(([s]) => s === 'PURGE'), `6 suppressions, 6 lignes de journal « PURGE » (${journal.map((j) => j[1]).join(' | ')})`);
 ok(!fs.existsSync(path.join(racine, ilYa(57))) && !fs.existsSync(path.join(racine, ilYa(200))), 'hebdomadaires de 57 et 200 jours supprimés');
 ok(fs.existsSync(path.join(racine, ilYa(0))) && fs.existsSync(path.join(racine, ilYa(55))), 'hebdomadaires de 0 et 55 jours conservés');
 ok(fs.existsSync(path.join(racine, ilYa(300))), 'dossier incomplet (sans manifeste) non touché');
 ok(!fs.existsSync(path.join(parent, 'avant_M93')) && fs.existsSync(path.join(parent, `${ilYa(29).slice(0, 10)}_avant_M91`)), 'avant_M93 supprimé, avant_M91 (29 j) conservé');
-ok(fs.existsSync(path.join(parent, 'captures-vieilles')) && fs.existsSync(path.join(parent, 'migrations-en-attente')), 'dossiers étrangers intacts, même très vieux');
+ok(fs.existsSync(path.join(parent, 'notes-vieilles')) && fs.existsSync(path.join(parent, 'migrations-en-attente')), 'dossiers étrangers intacts, même très vieux');
+ok(!fs.existsSync(path.join(parent, `captures-b-${ilYa(31).slice(0, 10)}`)) && !fs.existsSync(path.join(parent, 'captures-sans-date')), 'captures de 31 et 40 jours supprimées');
+ok(fs.existsSync(path.join(parent, `captures-a-${ilYa(5).slice(0, 10)}`)) && fs.existsSync(path.join(parent, 'captures-c')), 'captures de 5 et 20 jours conservées');
+ok(journal.filter(([, d]) => d.startsWith('captures')).length === 2, 'les 2 suppressions de captures sont journalisées');
 
 // La plus récente sauvegarde complète n'est jamais supprimée, même si elle a plus de 56 jours
 const racine2 = path.join(parent, 'hebdo2');

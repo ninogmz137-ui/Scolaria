@@ -1,7 +1,8 @@
 // Rotation des sauvegardes par ÂGE (décision du 4 oct 2026) :
 //  - sauvegardes hebdomadaires (<racine>\AAAA-MM-JJ_HHmm, avec manifeste.json) : supprimées après 56 jours (8 semaines) ;
 //    la plus récente sauvegarde complète n'est JAMAIS supprimée, quel que soit son âge ;
-//  - dossiers « avant_Mxx » (sauvegardes faites avant une migration, dans le dossier PARENT de <racine>) : supprimés après 30 jours.
+//  - dossiers « avant_Mxx » (sauvegardes faites avant une migration, dans le dossier PARENT de <racine>) : supprimés après 30 jours ;
+//  - dossiers « captures-… » (captures d'écran de test, du même dossier parent ; elles montrent des données réelles) : supprimés après 30 jours.
 // Le script hebdomadaire appelle `appliquerRotation` après une réussite et JOURNALISE chaque suppression (statut PURGE).
 // En ligne de commande ce module ne SUPPRIME RIEN : il liste les sauvegardes avec leur âge et ce qui serait purgé.
 //   node scripts/rotation-sauvegardes.mjs [--racine <dossier hebdo>] [--parent <dossier des avant_Mxx>]
@@ -14,16 +15,24 @@ export const JOURS_AVANT = 30;
 const JOUR = 86_400_000;
 const RE_HEBDO = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})(\d{2})$/;
 const RE_AVANT = /(^|_)avant_/i; // 2026-09-25_avant_M19, avant_M29, avant_M34_cycle…
+const RE_CAPTURES = /^captures-/i; // captures-avion-2026-10-04…
+export const JOURS_CAPTURES = 30;
 
 const dateNom = (nom) => {
   const m = nom.match(/^(\d{4})-(\d{2})-(\d{2})(?:_(\d{2})(\d{2}))?/);
   return m ? new Date(+m[1], +m[2] - 1, +m[3], +(m[4] ?? 0), +(m[5] ?? 0)) : null;
 };
 
-// Date d'un dossier « avant_… » : la date dans son nom ; sinon la plus récente date d'un sous-dossier daté ; sinon sa date de modification.
+// Date AAAA-MM-JJ placée n'importe où dans le nom (ex. captures-avion-2026-10-04).
+const dateDansNom = (nom) => {
+  const m = nom.match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+};
+
+// Date d'un dossier « avant_… » ou « captures-… » : la date dans son nom ; sinon la plus récente date d'un sous-dossier daté ; sinon sa date de modification.
 function dateAvant(dossier) {
   const nom = path.basename(dossier);
-  const d = dateNom(nom);
+  const d = dateNom(nom) ?? dateDansNom(nom);
   if (d) return { date: d, source: 'nom' };
   let meilleur = null;
   for (const e of fs.readdirSync(dossier, { withFileTypes: true })) {
@@ -36,7 +45,7 @@ function dateAvant(dossier) {
   return { date: fs.statSync(dossier).mtime, source: 'modification' };
 }
 
-export function planifierRotation({ racine, parent, maintenant = new Date(), joursHebdo = JOURS_HEBDO, joursAvant = JOURS_AVANT }) {
+export function planifierRotation({ racine, parent, maintenant = new Date(), joursHebdo = JOURS_HEBDO, joursAvant = JOURS_AVANT, joursCaptures = JOURS_CAPTURES }) {
   const age = (d) => Math.floor((maintenant.getTime() - d.getTime()) / JOUR);
   const hebdo = [];
   if (fs.existsSync(racine)) {
@@ -63,7 +72,19 @@ export function planifierRotation({ racine, parent, maintenant = new Date(), jou
     }
   }
   avant.sort((a, b) => a.jours - b.jours);
-  return { hebdo, avant, tous: [...hebdo, ...avant] };
+  // Captures d'écran de test (dossiers « captures-… » du dossier parent) : elles montrent des données réelles (compte de l'utilisateur).
+  const captures = [];
+  if (parent && fs.existsSync(parent)) {
+    for (const e of fs.readdirSync(parent, { withFileTypes: true })) {
+      if (e.isDirectory() && RE_CAPTURES.test(e.name)) {
+        const dossier = path.join(parent, e.name);
+        const { date, source } = dateAvant(dossier);
+        captures.push({ type: 'captures', dossier, nom: e.name, jours: age(date), source, aPurger: age(date) > joursCaptures, limite: joursCaptures });
+      }
+    }
+  }
+  captures.sort((a, b) => a.jours - b.jours);
+  return { hebdo, avant, captures, tous: [...hebdo, ...avant, ...captures] };
 }
 
 // Supprime seulement ce que le plan désigne ET qui reste sous le dossier voulu (jamais hors de racine / parent).

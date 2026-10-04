@@ -7,7 +7,7 @@ Script : `scripts/sauvegarde-semaine.mjs` (Node, lecture seule sur Paris ; la t�
 `C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\`, **conservées 56 jours (8 semaines)** : après chaque réussite, les sauvegardes hebdomadaires plus vieilles sont supprimées (la plus récente jamais) ;
 les dossiers **« avant_Mxx »** (sauvegardes avant migration, dans `C:\Users\admin\ScolariaBackups\`) sont supprimés après **30 jours**. Chaque suppression est
 **journalisée** (statut `PURGE` dans `hebdo\journal.log`). Voir la liste avec leur âge, sans rien supprimer : `node scripts/rotation-sauvegardes.mjs`.
-La purge des `avant_Mxx` n'a lieu qu'avec la destination par défaut (ou `--purge-avant <dossier>`). Test : `npm run test:rotation-sauvegardes`.
+Les dossiers **« captures-… »** (captures d'écran de test, qui montrent des données réelles) sont aussi supprimés après **30 jours** (date lue dans le nom, sinon dans un sous-dossier daté, sinon la date de modification). **Aucun fichier d'environnement (`.env`, `env.*`) ne doit se trouver dans un dossier de sauvegarde** (constat du 4 oct : un `env.londres` de 145 octets dans `2026-09-25_avant_INFRA-1`, à supprimer sur accord). La purge des `avant_Mxx` et des `captures-…` n'a lieu qu'avec la destination par défaut (ou `--purge-avant <dossier>`). Test : `npm run test:rotation-sauvegardes`.
 
 | Fichier | Contenu |
 |---|---|
