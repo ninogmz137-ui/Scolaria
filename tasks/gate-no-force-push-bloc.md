@@ -65,6 +65,5 @@ python3 -c $py
 if ($LASTEXITCODE -ne 0) { $ok = $false }
 if ((((Get-Content -LiteralPath $g -Encoding Byte -TotalCount 3) -join ',')) -eq '239,187,191') { Write-Host 'ECHEC : BOM présent'; $ok = $false }
 
-if ($ok) { Write-Host 'TOUT EST BON. Copie de secours conservée :' $sauv }
-else { Copy-Item -LiteralPath $sauv -Destination $g -Force; Write-Host 'ECHEC : gates.json RESTAURÉ depuis la copie.' }
+if ($ok) { Write-Host 'TOUT EST BON. Copie de secours conservée :' $sauv } else { Copy-Item -LiteralPath $sauv -Destination $g -Force; Write-Host 'ECHEC : gates.json RESTAURÉ depuis la copie.' }
 ```
