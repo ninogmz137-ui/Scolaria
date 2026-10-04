@@ -7,7 +7,8 @@
 import { execSync } from 'node:child_process';
 
 const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
-if (!/127\.0\.0\.1|localhost/.test(statut.API_URL)) throw new Error('Refus : ce test ne tourne que sur le Supabase LOCAL.');
+import { exigerHoteLocal } from './garde-hote.mjs';
+exigerHoteLocal(statut.API_URL);
 const sql = (q: string) =>
   execSync('docker exec -i supabase_db_Scolaria psql -U postgres -d postgres -At -v ON_ERROR_STOP=1', { input: q, encoding: 'utf8' }).trim();
 const attendre = (ms: number) => new Promise((r) => setTimeout(r, ms));

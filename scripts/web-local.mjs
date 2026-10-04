@@ -10,7 +10,8 @@ import { execSync, spawn } from 'node:child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
-if (!/127\.0\.0\.1|localhost/.test(statut.API_URL)) throw new Error('Refus : le Supabase local doit être démarré.');
+import { exigerHoteLocal } from './garde-hote.mjs';
+exigerHoteLocal(statut.API_URL);
 if (existsSync('.env.local')) throw new Error('Refus : un .env.local existe déjà (je ne l’écrase pas).');
 writeFileSync('.env.local', `EXPO_PUBLIC_SUPABASE_URL=${statut.API_URL}\nEXPO_PUBLIC_SUPABASE_ANON_KEY=${statut.ANON_KEY}\n`);
 const nettoyer = () => {

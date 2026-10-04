@@ -6,7 +6,8 @@ import { execSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 
 const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
-if (!/127\.0\.0\.1|localhost/.test(statut.API_URL)) throw new Error('Refus : Supabase LOCAL seulement.');
+import { exigerHoteLocal } from './garde-hote.mjs';
+exigerHoteLocal(statut.API_URL);
 const admin = createClient(statut.API_URL, statut.SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const EMAIL = 'demo-web@exemple.test';
 const MDP = 'Demo-web-2026!';

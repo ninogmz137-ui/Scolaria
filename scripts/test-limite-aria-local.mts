@@ -10,7 +10,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
-if (!/127\.0\.0\.1|localhost/.test(API)) throw new Error('Refus : ce test ne tourne que sur le Supabase LOCAL.');
+import { exigerHoteLocal } from './garde-hote.mjs';
+exigerHoteLocal(API);
 const LIMITE = Number(process.env.ARIA_LIMITE_TEST ?? '3');
 const PORT = Number(process.env.FAUX_ANTHROPIC_PORT ?? '18080');
 const admin = createClient(API, statut.SERVICE_ROLE_KEY, { auth: { persistSession: false } });
