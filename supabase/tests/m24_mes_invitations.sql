@@ -76,9 +76,13 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE n int;
 BEGIN
-  SELECT count(*) INTO n FROM public.mes_invitations();
-  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T6 invitation expirée encore listée'; END IF;
-  RAISE NOTICE 'OK T6 invitation expirée : plus listée';
+  -- Depuis M34 (4 oct) : une invitation expirée reste LISTÉE (30 jours), marquée « expiree », pour que l'app dise
+  -- « Invitation expirée, demandez à [prénom] de vous réinviter » ; elle n'est jamais acceptable (m34, T2).
+  SELECT count(*) INTO n FROM public.mes_invitations() WHERE expiree;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T6 invitation expirée non signalée « expiree » (%)', n; END IF;
+  SELECT count(*) INTO n FROM public.mes_invitations() WHERE NOT expiree;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T6 bis invitation expirée présentée comme valide'; END IF;
+  RAISE NOTICE 'OK T6 invitation expirée : listée comme expirée, jamais comme valide';
 END $$;
 RESET ROLE;
 SET LOCAL ROLE anon;

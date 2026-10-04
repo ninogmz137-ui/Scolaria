@@ -552,7 +552,7 @@ export async function getInvitationsEnAttente(childId: string) {
     .select('id, invited_email, expires_at')
     .eq('child_id', childId)
     .eq('statut', 'en_attente')
-    .gt('expires_at', new Date().toISOString())
+    // M34 : les invitations EXPIRÉES restent listées (« Invitation expirée », à renvoyer ou annuler).
     .order('created_at', { ascending: false });
   return { data: data ?? [], error };
 }
@@ -592,6 +592,8 @@ export type InvitationRecue = {
   lien: string;
   expire_le: string;
   email_confirme: boolean;
+  /** M34 : invitation expirée (listée 30 jours) — jamais acceptable ; l'app dit de demander une nouvelle invitation. */
+  expiree: boolean;
 };
 
 /** Invitations reçues par le compte connecté (M24 : prénoms seulement). */
@@ -599,6 +601,20 @@ export async function mesInvitations(): Promise<InvitationRecue[]> {
   if (!isSupabaseConfigured()) return [];
   const { data, error } = await supabase.rpc('mes_invitations');
   return error ? [] : ((data ?? []) as InvitationRecue[]);
+}
+
+/** Annule une invitation non traitée, même expirée (M34 ; responsables de l'enfant seulement). */
+export async function annulerInvitation(invitationId: string) {
+  if (!isSupabaseConfigured()) return { error: null };
+  const { error } = await supabase.rpc('annuler_invitation', { p_invitation_id: invitationId });
+  return { error };
+}
+
+/** Renvoie une invitation : annule l'ancienne, en crée une nouvelle de 7 jours (M34) ; renvoie son identifiant. */
+export async function renvoyerInvitation(invitationId: string) {
+  if (!isSupabaseConfigured()) return { data: null as string | null, error: null };
+  const { data, error } = await supabase.rpc('renvoyer_invitation', { p_invitation_id: invitationId });
+  return { data: (data ?? null) as string | null, error };
 }
 
 /** Accepter / refuser (M2c : email du compte confirmé exigé). */

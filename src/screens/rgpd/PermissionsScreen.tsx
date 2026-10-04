@@ -24,11 +24,14 @@ import {
   getInvitationsEnAttente,
   inviterResponsable,
   envoyerEmailInvitation,
+  annulerInvitation,
+  renvoyerInvitation,
   type ResponsableEnfant,
 } from '../../services/database';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
+import { libelleInvitationInvitant } from '../../utils/invitationExpiree';
 import { MOI_DEMO, autreResponsableDemo } from '../../data/demo/responsables';
 import { NOM_APP } from '../../constants/marque';
 import { apercuDepartCarnet, quitterCarnet, texteConfirmationDepart } from '../../services/quitterCarnet';
@@ -54,7 +57,7 @@ export default function PermissionsScreen() {
   const prenomEnfant = selectedChild?.name?.split(' ')[0] ?? '';
 
   const [responsables, setResponsables] = useState<ResponsableEnfant[]>([]);
-  const [invitations, setInvitations] = useState<{ id: string; invited_email: string }[]>([]);
+  const [invitations, setInvitations] = useState<{ id: string; invited_email: string; expires_at: string }[]>([]);
   const [chargement, setChargement] = useState(true);
   const [formOuvert, setFormOuvert] = useState(false);
   const [email, setEmail] = useState('');
@@ -119,6 +122,53 @@ export default function PermissionsScreen() {
     ]);
   };
 
+  // Invitation non traitée (valable 7 jours) : renvoyer (annule l'ancienne, en crée une nouvelle, renvoie l'email)
+  // ou annuler. Disponible aussi quand elle a EXPIRÉ (M34) : réinviter la même adresse n'est plus bloqué.
+  const [occupe, setOccupe] = useState(false);
+  const renvoyer = async (inv: { id: string; invited_email: string }) => {
+    setOccupe(true);
+    const { data: nouvelle, error } = await renvoyerInvitation(inv.id);
+    if (error || !nouvelle) {
+      setOccupe(false);
+      Alert.alert('Invitation non renvoyée', 'Elle n’a pas pu être renvoyée. Vérifiez la connexion, puis réessayez.');
+      return;
+    }
+    const { envoye } = await envoyerEmailInvitation(nouvelle);
+    setOccupe(false);
+    Alert.alert(
+      envoye ? 'Invitation renvoyée' : 'Invitation renouvelée',
+      envoye
+        ? `Un nouvel email a été envoyé à ${inv.invited_email}. Elle est valable 7 jours.`
+        : `L’email n’a pas pu être envoyé. Prévenez ${inv.invited_email} : l’invitation l’attend pendant 7 jours dans ${NOM_APP}.`,
+    );
+    charger();
+  };
+  const annuler = async (inv: { id: string; invited_email: string }) => {
+    setOccupe(true);
+    const { error } = await annulerInvitation(inv.id);
+    setOccupe(false);
+    if (error) {
+      Alert.alert('Invitation non annulée', 'Elle n’a pas pu être annulée. Vérifiez la connexion, puis réessayez.');
+      return;
+    }
+    charger();
+  };
+  const gererInvitation = (inv: { id: string; invited_email: string; expires_at: string }) => {
+    if (occupe) return;
+    const { expiree } = libelleInvitationInvitant(inv.expires_at);
+    Alert.alert(
+      inv.invited_email,
+      expiree
+        ? 'Cette invitation a expiré (elle est valable 7 jours). Vous pouvez la renvoyer ou l’annuler.'
+        : 'Cette invitation est en attente (valable 7 jours). Vous pouvez la renvoyer ou l’annuler.',
+      [
+        { text: 'Renvoyer', onPress: () => renvoyer(inv) },
+        { text: 'Annuler l’invitation', style: 'destructive', onPress: () => annuler(inv) },
+        { text: 'Fermer', style: 'cancel' },
+      ],
+    );
+  };
+
   const envoyer = async () => {
     const adresse = email.trim().toLowerCase();
     if (!EMAIL_RE.test(adresse)) {
@@ -136,7 +186,7 @@ export default function PermissionsScreen() {
       setEnvoi(false);
       Alert.alert(
         'Invitation impossible',
-        'Une invitation est peut-être déjà en attente pour cette adresse. Réessayez plus tard.',
+        'Une invitation est déjà en attente pour cette adresse : appuyez dessus dans la liste ci-dessus pour la renvoyer ou l’annuler. Sinon, vérifiez la connexion et réessayez.',
       );
       return;
     }
@@ -191,7 +241,8 @@ export default function PermissionsScreen() {
               key={inv.id}
               icon={<Mail size={20} color={DEEP.text55} strokeWidth={2} />}
               label={inv.invited_email}
-              description="Invitation en attente"
+              description={`${libelleInvitationInvitant(inv.expires_at).texte} · appuyez pour renvoyer ou annuler`}
+              onPress={() => gererInvitation(inv)}
               last={i === invitations.length - 1}
             />
           ))}

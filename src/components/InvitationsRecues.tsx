@@ -12,6 +12,12 @@ import { Text, Pressable } from './ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { mesInvitations, repondreInvitation, type InvitationRecue } from '../services/database';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { messageInvitationExpiree } from '../utils/invitationExpiree';
+
+const cleVue = (id: string) => `@scolaria:invitation_expiree_vue:${id}`;
+const expireeDejaVue = (id: string) => AsyncStorage.getItem(cleVue(id)).then((v) => v === '1', () => false);
+const marquerExpireeVue = (id: string) => AsyncStorage.setItem(cleVue(id), '1').catch(() => undefined);
 
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
@@ -28,7 +34,10 @@ export default function InvitationsRecues() {
       setInvitations([]);
       return;
     }
-    setInvitations(await mesInvitations());
+    const liste = await mesInvitations();
+    // Une invitation expirée déjà lue (« Compris ») ne revient pas à chaque ouverture de l'app.
+    const lues = await Promise.all(liste.map((i) => (i.expiree ? expireeDejaVue(i.invitation_id) : Promise.resolve(false))));
+    setInvitations(liste.filter((_, k) => !lues[k]));
   }, [isDemo, idCompte]);
 
   useEffect(() => {
@@ -41,6 +50,29 @@ export default function InvitationsRecues() {
 
   const inv = invitations[0];
   if (!inv) return null;
+
+  // Invitation EXPIRÉE (M34) : jamais acceptable ; on dit quoi faire, et on ne l'affiche qu'une fois.
+  if (inv.expiree) {
+    const compris = async () => {
+      await marquerExpireeVue(inv.invitation_id);
+      charger();
+    };
+    return (
+      <Modal visible transparent animationType="fade" statusBarTranslucent={Platform.OS === 'android'} onRequestClose={compris}>
+        <View style={st.fond}>
+          <View style={st.carte}>
+            <Text style={st.titre}>{messageInvitationExpiree(inv.prenom_invitant)}</Text>
+            <Text style={st.texte}>
+              {`L’invitation à suivre le carnet de ${inv.prenom_enfant} n’est plus valable (elle l’est 7 jours). Rien n’a été ajouté à votre compte.`}
+            </Text>
+            <Pressable onPress={compris} style={st.primaire} accessibilityRole="button">
+              <Text style={st.primaireTexte}>Compris</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   const repondre = async (accepter: boolean) => {
     setEnvoi(true);
