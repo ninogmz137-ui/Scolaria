@@ -14,6 +14,7 @@
     "test:erreurs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/erreurs.test.mts",
     "test:roles-inscription": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/rolesInscription.test.mts",
     "test:invitation-expiree": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/invitationExpiree.test.mts",
+    "test:role-profil": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/roleProfil.test.mts",
     "test:profil": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/profilService.test.mts",
     "test:bundle-prod": "node scripts/test-bundle-prod.mjs",
     "test:mots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/motsRegles.test.mts",
