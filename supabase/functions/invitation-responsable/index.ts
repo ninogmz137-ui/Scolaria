@@ -87,7 +87,8 @@ Deno.serve(async (req) => {
     }),
   }).catch(() => null);
   if (!r || !r.ok) {
-    console.error('[invitation-responsable] Brevo a refusé l’envoi, statut', r?.status ?? 'réseau');
+    // Statut HTTP seulement (0 = aucune réponse : réseau) ; jamais la réponse de Brevo, ni la clé, ni l'adresse.
+    console.error('[invitation-responsable] Brevo a refusé l’envoi', { status: r?.status ?? 0 });
     return json({ envoye: false, raison: 'envoi_echoue' }, 502);
   }
   return json({ envoye: true });

@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
   const nomsO = (orphelins ?? []) as string[];
   if (nomsO.length && (await supprimerFichiers(admin, nomsO))) bilan.orphelins = nomsO.length;
 
-  console.log(`effacements : ${bilan.executees}/${bilan.dues} exécutés, ${bilan.echecs} échec(s), ${bilan.fichiers} fichier(s), ${bilan.orphelins} orphelin(s)`);
+  // Compteurs entiers seulement (aucune donnée personnelle) : texte fixe + objet littéral (test:journaux).
+  console.log('[executer-effacements] bilan', { dues: bilan.dues, executees: bilan.executees, echecs: bilan.echecs, fichiers: bilan.fichiers, orphelins: bilan.orphelins });
   return json(bilan);
 });

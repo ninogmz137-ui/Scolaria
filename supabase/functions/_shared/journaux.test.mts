@@ -15,7 +15,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const RACINE = join(import.meta.dirname, '..');
-const CLES_AUTORISEES = new Set(['category', 'user', 'model', 'stop_reason', 'status', 'type', 'name', 'limite', 'utilises']);
+const CLES_AUTORISEES = new Set(['category', 'user', 'model', 'stop_reason', 'status', 'type', 'name', 'limite', 'utilises', 'dues', 'executees', 'echecs', 'fichiers', 'orphelins']);
 const VALEUR_INTERDITE = [
   /\b(apiKey|ANTHROPIC_API_KEY|authHeader|headers|req|request|body|system|messages|lastUserMessage|client|text)\b/,
   /\berror\.(message|headers|error|request|response|cause|stack)\b/,
