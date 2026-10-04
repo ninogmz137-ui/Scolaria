@@ -761,6 +761,13 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [ ] `npx expo run:android` — test visuel des nouveaux écrans
 - [ ] EAS build quand tout est validé localhost
 
+### Reprise n°2 du 4 oct 2026 — état (remplace la ligne « M31 … NON APPLIQUÉES » ci-dessous)
+- [x] **Paris : M31, M32, M33 APPLIQUÉES, fonction `aria` DÉPLOYÉE** (401 sans compte ; aucun secret touché ; plafond 40/jour par défaut). Sauvegardes avant_M31 (10:37 UTC), avant_M32, avant_M33, vérifiées. Advisors : après M31 101 WARN / 0 ERROR / 0 INFO ; après M32 100 WARN ; après M33 101 WARN (+1 : `est_enseignant()`), 0 ERROR.
+- [ ] **M34 NON appliquée** : condition (f) (« pas plus de WARN qu'avant ») non remplie après M33. À décider : accepter le WARN `est_enseignant` (fonction SECURITY DEFINER volontaire, lit la seule ligne de l'appelant) ou la passer en SECURITY INVOKER (migration à part), puis appliquer M34.
+- [x] Garde d'hôte (scripts/garde-hote.mjs, test:garde-hote : 8 URL refusées, 3 acceptées, refus réel de 11 scripts). Journaux d'Auth de Paris : illisibles depuis la CLI ; aucun compte créé depuis le 23 sept.
+- [x] STAB-2b : filtres de l'Agenda, segments de Messages, bouton année de Suivi, pill de l'assistant ≥ 44 dp ; preuve par appuis 34/34 sur le Redmi ; positions mesurées avant/après : identiques à 1 px près.
+- [x] Règle d'édition révisée écrite dans lessons.md.
+
 ### Reprise complète du 4 oct 2026 (STAB-3) — état
 - [ ] **M31 → déploiement de la fonction aria → M32 → M34 : NON APPLIQUÉES.** Cycle M31 arrêté à l'étape « application » : sauvegarde `avant_M31` faite et vérifiée, script inverse testé, essai à blanc = M31 seule, 17 suites locales / parcours 45/45 / effacement 22/22 / verrous 18/18 OK ; le garde-fou de sécurité a BLOQUÉ la commande qui applique (aucun contournement, Paris inchangé, dépôt propre). À toi : dire si je réessaie, ou appliquer toi-même (`npx supabase db push --linked` après avoir écarté M32, M33, M34 du dossier). M33 (locale) est aussi en attente.
 - [x] Bugs : test:journaux 0 échec (faux positifs de fuite, code mis en forme) ; ConnexionScreen et AuthContext lisent `profiles.role` (test:role-profil) ; Accueil réel branché (agenda du jour, apprentissages, notes) ; non-régression « un enfant = un carnet » : appareil 10/10 (npm run test:un-enfant-un-carnet-redmi → `node scripts/test-un-enfant-un-carnet-redmi.mjs`), web local avec un vrai événement de Laia : rien de Laia sous Evan réseau coupé.
