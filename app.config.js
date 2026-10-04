@@ -102,7 +102,7 @@ const config = {
   },
 };
 
-// ─── Variante « démo » (profil EAS preview : APP_VARIANT=demo) ──────────────────────────────────────────────
+// ─── Variante « démo » (profil EAS « demo » de eas.json : APP_VARIANT=demo) ──────────────────────────────────
 // APK de démonstration autonome, installé À CÔTÉ de l'application de développement, sans aucun accès à un serveur :
 //  - identifiant Android distinct (suffixe .demo) : l'identifiant de base ci-dessus n'est PAS modifié ;
 //  - URL et clé factices : l'app se croit non configurée (« your- » dans l'URL, cf. AuthContext et database.ts) → mode démo,
