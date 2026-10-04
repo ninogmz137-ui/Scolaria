@@ -1780,7 +1780,7 @@ const styles = StyleSheet.create({
   },
   scroll: { paddingHorizontal: 18 },
   // L'en-tête Suivi a ses propres marges (14) : on annule celles du défilement collège (18).
-  enteteCollege: { marginHorizontal: -18, marginTop: -4 },
+  enteteCollege: { marginHorizontal: -18, marginTop: -9, paddingTop: 5 }, // -4 d'origine, -5 / +5 : l'entête remonte de 5 dp (zone du bouton année) sans bouger
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',

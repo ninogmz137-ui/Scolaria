@@ -1188,6 +1188,10 @@ function AgendaScreenContent() {
               <Pressable
                 key={tab}
                 onPress={() => setActiveFilter(tab)}
+                hitSlop={{ top: 7, bottom: 7 }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={`Filtre ${tab}`}
                 style={[st.filterPill, isActive && st.filterPillActive]}
               >
                 <Text style={[st.filterPillText, isActive && st.filterPillTextActive]}>
@@ -1728,14 +1732,18 @@ const st = StyleSheet.create({
   },
 
   // Filter pills
+  // Zone tactile 44 dp (pastille de 30 + hitSlop 7 + 7), à l'intérieur des bornes du ScrollView : 7 dp de marge verticale au
+  // lieu de 4 ; marginTop 3 / marginBottom -1 retirent les 6 dp ajoutés (visuel inchangé). zIndex : la bande reste au-dessus du
+  // calendrier qui la touche d'1 dp.
   filterPillsRow: {
-    marginTop: 6,
-    marginBottom: 2,
+    marginTop: 3,
+    marginBottom: -1,
+    zIndex: 1,
   },
   filterPillsContent: {
     paddingHorizontal: 16,
     gap: 6,
-    paddingVertical: 4,
+    paddingVertical: 7,
   },
   filterPill: {
     height: 30,

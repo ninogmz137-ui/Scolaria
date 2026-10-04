@@ -17,29 +17,34 @@ export default function Segmented<T extends string>({
   onChange: (id: T) => void;
 }) {
   return (
-    <View style={st.segmented} accessibilityRole="tablist">
-      {options.map((o) => {
-        const actif = o.id === valeur;
-        return (
-          <Pressable
-            key={o.id}
-            onPress={() => onChange(o.id)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: actif }}
-            hitSlop={{ top: 6, bottom: 6 }}
-            style={[st.segment, actif && st.segmentActif]}
-          >
-            <Text style={[st.segmentTexte, actif && st.segmentTexteActif]} numberOfLines={1}>
-              {o.libelle}
-            </Text>
-          </Pressable>
-        );
-      })}
+    // Zone tactile 44 dp (segment de 32 + hitSlop 6 + 6) : la zone doit rester DANS les bornes du parent, d'où ce conteneur
+    // de 2 dp de marge ; les appelants retirent ces 2 + 2 dp de leurs propres marges (visuel inchangé).
+    <View style={st.zone}>
+      <View style={st.segmented} accessibilityRole="tablist">
+        {options.map((o) => {
+          const actif = o.id === valeur;
+          return (
+            <Pressable
+              key={o.id}
+              onPress={() => onChange(o.id)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: actif }}
+              hitSlop={{ top: 6, bottom: 6 }}
+              style={[st.segment, actif && st.segmentActif]}
+            >
+              <Text style={[st.segmentTexte, actif && st.segmentTexteActif]} numberOfLines={1}>
+                {o.libelle}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 const st = StyleSheet.create({
+  zone: { paddingVertical: 2 },
   segmented: {
     flexDirection: 'row',
     padding: 4,

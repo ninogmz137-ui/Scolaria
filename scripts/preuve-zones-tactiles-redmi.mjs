@@ -181,6 +181,74 @@ if (await retourAccueil()) {
   } else noter('Pastilles P1–P5 introuvables (vue Apprentissages primaire attendue)', false);
 }
 
+// ── STAB-2b : filtres de l'Agenda (30 → 44 dp), segments de Messages (32 → 44), bouton année de Suivi (34 → 44) ──
+async function allerSur(onglet) {
+  if (!(await retourAccueil())) return false;
+  const n = lire();
+  const o = trouver(n, onglet);
+  if (!o || !appuyer((o.b[0] + o.b[2]) / 2, (o.b[1] + o.b[3]) / 2, n)) return false;
+  await attendre(2500);
+  return true;
+}
+// Agenda : on part du filtre « Tout » ; un appui à 6 dp au-dessus / en dessous du filtre « Événements » doit le sélectionner.
+if (await allerSur('Agenda')) {
+  for (const cote of ['au-dessus', 'en dessous']) {
+    const tout = lire().find((e) => e.d === 'Filtre Tout');
+    if (tout && !tout.sel) {
+      appuyer((tout.b[0] + tout.b[2]) / 2, (tout.b[1] + tout.b[3]) / 2, lire());
+      await attendre(800);
+    }
+    const f = lire().find((e) => e.d === 'Filtre Événements');
+    if (!f) { noter('Filtre « Événements » introuvable', false); break; }
+    const [x1, y1, x2, y2] = f.b;
+    const y = cote === 'au-dessus' ? y1 - 6 * DP : y2 + 6 * DP;
+    if (!appuyer((x1 + x2) / 2, y, lire())) continue;
+    await attendre(1000);
+    const apres = lire().find((e) => e.d === 'Filtre Événements');
+    noter(`Filtre de l'Agenda (visuel ${(x2 - x1) / DP | 0}×${(y2 - y1) / DP | 0} dp) : appui ${cote}, 6 dp hors du visuel → sélectionne « Événements »`, !!apres?.sel, `selected=${apres?.sel}`);
+  }
+  const tout = lire().find((e) => e.d === 'Filtre Tout');
+  if (tout) appuyer((tout.b[0] + tout.b[2]) / 2, (tout.b[1] + tout.b[3]) / 2, lire());
+}
+// Messages : segment du prénom (inactif au départ) ; appui à 5 dp au-dessus / en dessous → sélectionné.
+if (await allerSur('Messages')) {
+  for (const cote of ['au-dessus', 'en dessous']) {
+    const general = lire().find((e) => e.d === 'Général');
+    if (general && !general.sel) {
+      appuyer((general.b[0] + general.b[2]) / 2, (general.b[1] + general.b[3]) / 2, lire());
+      await attendre(1000);
+    }
+    // Le segment du prénom est le 1er élément sélectionnable (sel=false) de la page, juste à droite de « Général ».
+    const seg = lire().filter((e) => e.sel === false && e.d !== 'Général' && e.d !== '' && e.clic && e.b[3] - e.b[1] > 60 && e.b[3] - e.b[1] < 130 && e.b[2] - e.b[0] > 300 && e.b[1] < 700).sort((a, b) => a.b[1] - b.b[1] || a.b[0] - b.b[0])[0];
+    if (!seg) { noter('Segment du prénom introuvable (Messages)', false); break; }
+    const [x1, y1, x2, y2] = seg.b;
+    const y = cote === 'au-dessus' ? y1 - 5 * DP : y2 + 5 * DP;
+    if (!appuyer((x1 + x2) / 2, y, lire())) continue;
+    await attendre(1200);
+    const apres = lire().find((e) => e.d === seg.d && e.b.length === 4 && e.b[1] < 700);
+    noter(`Segment de Messages « ${seg.d} » (visuel ${(x2 - x1) / DP | 0}×${(y2 - y1) / DP | 0} dp) : appui ${cote}, 5 dp hors du visuel → sélectionne le segment`, !!apres?.sel, `selected=${apres?.sel}`);
+  }
+  const general = lire().find((e) => e.d === 'Général');
+  if (general && !general.sel) appuyer((general.b[0] + general.b[2]) / 2, (general.b[1] + general.b[3]) / 2, lire());
+}
+// Suivi : bouton année ; appui à 4 dp au-dessus / en dessous → ouvre le menu des années (calque « Fermer »), un seul retour.
+if (await allerSur('Suivi')) {
+  for (const cote of ['au-dessus', 'en dessous']) {
+    const b = lire().find((e) => /^Année /.test(e.d));
+    if (!b) { noter('Bouton année introuvable', false); break; }
+    const [x1, y1, x2, y2] = b.b;
+    const y = cote === 'au-dessus' ? y1 - 4 * DP : y2 + 4 * DP;
+    if (!appuyer((x1 + x2) / 2, y, lire())) continue;
+    await attendre(1200);
+    const ouvert = lire().some((e) => e.d === 'Fermer');
+    noter(`Bouton année (visuel ${(x2 - x1) / DP | 0}×${(y2 - y1) / DP | 0} dp) : appui ${cote}, 4 dp hors du visuel → ouvre le menu des années`, ouvert);
+    if (ouvert) {
+      adb('shell', 'input keyevent KEYCODE_BACK');
+      await attendre(1200);
+    }
+  }
+}
+
 // ── Barre du bas : Rechercher, pill Aria, bouton d'action (zone 40 → 44 dp : 2 dp de marge) ──
 if (await retourAccueil()) {
   const n = lire();
@@ -204,6 +272,18 @@ if (await retourAccueil()) {
       await attendre(1500);
     }
   }
+  // Pill de l'assistant (40 dp de haut + 2 + 2) : appui 1,5 dp au-dessus / en dessous → ouvre Aria (un champ de saisie apparaît).
+  const pill = trouver(lire(), 'Demander à Aria');
+  if (pill) {
+    for (const [cote, y] of [['au-dessus', haut - marge], ['en dessous', bas + marge]]) {
+      if (!(await retourAccueil())) break;
+      if (!appuyer((pill.b[0] + pill.b[2]) / 2, y, lire())) continue;
+      await attendre(2200);
+      adb('shell', 'uiautomator dump /sdcard/w.xml');
+      const ouvert = /Avant d.utiliser Aria|class="android.widget.EditText"/.test(adb('exec-out', 'cat /sdcard/w.xml'));
+      noter(`Pill de l'assistant (40 dp de haut visibles) : appui ${cote}, 1,5 dp hors du visuel → ouvre Aria`, ouvert);
+    }
+  } else noter('Pill « Demander à Aria » introuvable', false);
   // Bouton d'action « + » (Accueil) : à droite du visuel (marge libre de 12 dp) et en dessous.
   const plus = trouver(lire(), 'Ajouter au carnet');
   if (plus) {

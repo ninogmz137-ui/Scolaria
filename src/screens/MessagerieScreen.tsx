@@ -268,7 +268,7 @@ function MessagerieContenu() {
 
   return (
     <View style={st.racine}>
-      <View style={[st.entete, { paddingTop: insets.top + 64 }]}>
+      <View style={[st.entete, { paddingTop: insets.top + 64 - 2 }]}>
         <Segmented
           options={[
             { id: 'general', libelle: 'Général' },
@@ -384,7 +384,7 @@ export default function MessagerieScreen() {
 const st = StyleSheet.create({
   racine: { flex: 1, backgroundColor: C.bg },
   entete: { paddingHorizontal: 16, paddingBottom: 6 },
-  barre: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  barre: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   recherche: {
     flex: 1,
     height: 36,

@@ -31,7 +31,7 @@ export default function SuiviEntete({
 }) {
   if (!afficherBarre && !boutonAnnee) return null;
   return (
-    <View style={st.entete}>
+    <View style={[st.entete, afficherBarre ? st.enteteAvecBarre : st.enteteSansBarre]}>
       {boutonAnnee}
       {afficherBarre && (
         <View style={st.barre}>
@@ -43,6 +43,10 @@ export default function SuiviEntete({
 }
 
 const st = StyleSheet.create({
-  entete: { paddingHorizontal: 14, paddingBottom: 8 },
-  barre: { marginTop: 10 },
+  // Zones tactiles de 44 dp (bouton année : 34 + 5 + 5 ; segmented : 40 + 2 + 2), à l'intérieur des bornes de leurs parents.
+  // Le visuel ne bouge pas : -5 en haut (le bouton garde sa place), et les marges du bas retirent les dp ajoutés.
+  entete: { paddingHorizontal: 14, marginTop: -5 },
+  enteteAvecBarre: { paddingBottom: 6 },
+  enteteSansBarre: { paddingBottom: 3 },
+  barre: { marginTop: 3 },
 });

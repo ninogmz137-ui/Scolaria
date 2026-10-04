@@ -85,7 +85,7 @@ export default function BoutonAnnee({
 }
 
 const st = StyleSheet.create({
-  ancre: { alignSelf: 'flex-start' },
+  ancre: { alignSelf: 'flex-start', paddingVertical: 5 }, // 34 + 5 + 5 = 44 dp tactiles, dans les bornes du parent
   bouton: {
     height: 34,
     borderRadius: 999,
