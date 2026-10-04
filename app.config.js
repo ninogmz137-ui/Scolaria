@@ -119,7 +119,7 @@ if (process.env.APP_VARIANT === 'demo') {
   expo.extra = {
     ...expo.extra,
     EXPO_PUBLIC_SUPABASE_URL: 'https://your-demo.invalid',
-    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur',
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: 'demo-sans-serveur', APP_VARIANT: 'demo',
   };
 }
 

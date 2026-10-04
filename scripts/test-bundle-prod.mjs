@@ -27,6 +27,10 @@ try {
     'dev/demo', 'dev/reel', 'dev/notif-mot', 'rafraichir-session', 'Passer en démo', 'Revenir à mon compte',
     'sk-ant-', 'sb_secret_', 'service_role',
   ];
+  // Variante démo (APP_VARIANT=demo) : le bundle ne doit contenir AUCUNE référence du projet de Paris. Constat du 4 oct : l'URL n'est jamais
+  // inlinée dans le JavaScript (elle vit dans la configuration `extra`, embarquée au build natif) ; ce contrôle vaut donc pour le bundle,
+  // et la configuration résolue est prouvée par `npm run test:variante-demo` (URL de Paris injectée en entrée, ignorée par la variante).
+  if (process.env.APP_VARIANT === 'demo') interdits.push('nmizwmymhqleasnxcyvu');
   // Témoins : le test sait lire le bundle (chaînes ASCII et accentuées).
   const temoins = ['mot_expediteur', 'Se déconnecter', 'Ajouter un mot reçu ailleurs'];
 

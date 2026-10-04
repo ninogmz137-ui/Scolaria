@@ -22,7 +22,7 @@ import PinScreen from './src/screens/PinScreen';
 import ProfilIncompletScreen from './src/screens/ProfilIncompletScreen';
 import { assurerProfil, type EtatProfil } from './src/services/profilService';
 /** Kept for future reuse (e.g. Aria) — auto-open on Accueil disabled below. */
-import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext'; import { ENV } from './src/services/getEnv';
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
@@ -148,16 +148,16 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {/* ── Auth ── */}
       <RootStack.Screen name="Login" component={LoginScreen} />
-      <RootStack.Screen name="Connexion" component={ConnexionScreen} />
-      <RootStack.Screen name="MotDePasseOublie" component={MotDePasseOublieScreen} />
-      <RootStack.Screen name="NouveauMotDePasse" component={NouveauMotDePasseScreen} />
-      <RootStack.Screen name="Inscription" component={InscriptionScreen} />
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="Connexion" component={ConnexionScreen} />}
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="MotDePasseOublie" component={MotDePasseOublieScreen} />}
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="NouveauMotDePasse" component={NouveauMotDePasseScreen} />}
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="Inscription" component={InscriptionScreen} />}
       <RootStack.Screen name="Pin" component={PinScreen as any} />
 
       {/* ── Main app ── */}
       <RootStack.Screen name="MainPager" component={TabNavigator} />
-      <RootStack.Screen name="EnseignantDashboard" component={TeacherTabNavigator} />
-      <RootStack.Screen name="EleveSpace" component={EleveTabNavigator} />
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="EnseignantDashboard" component={TeacherTabNavigator} />}
+      {!ENV.VARIANTE_DEMO && <RootStack.Screen name="EleveSpace" component={EleveTabNavigator} />}
       <RootStack.Screen name="Sandbox" component={SandboxNavigator} />
     </RootStack.Navigator>
     </>

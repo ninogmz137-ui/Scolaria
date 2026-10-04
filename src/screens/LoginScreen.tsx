@@ -2,6 +2,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
+import { ENV } from '../services/getEnv';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import ScolariaLogo from '../components/ScolariaLogo';
 import { Text } from '../components/ui';
@@ -38,36 +39,41 @@ export default function LoginScreen() {
 
         {/* Buttons */}
         <View style={styles.actions}>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            activeOpacity={0.9}
-            onPress={() => navigation.navigate('Connexion')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.primaryBtnText}>Se connecter</Text>
-          </TouchableOpacity>
+          {/* APK de démonstration (APP_VARIANT=demo) : ni connexion ni inscription, seul « Essayer en mode démo ». */}
+          {!ENV.VARIANTE_DEMO ? (
+            <>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('Connexion')}
+                accessibilityRole="button"
+              >
+                <Text style={styles.primaryBtnText}>Se connecter</Text>
+              </TouchableOpacity>
 
-          <View style={{ height: 10 }} />
+              <View style={{ height: 10 }} />
 
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            activeOpacity={0.85}
-            onPress={() => navigation.navigate('Inscription')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.secondaryBtnText}>Créer un compte</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryBtn}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('Inscription')}
+                accessibilityRole="button"
+              >
+                <Text style={styles.secondaryBtnText}>Créer un compte</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
 
           <TouchableOpacity
             onPress={() => {
               enterDemoMode();
               navigation.navigate('MainPager');
             }}
-            activeOpacity={0.8}
-            style={styles.demoWrap}
+            activeOpacity={ENV.VARIANTE_DEMO ? 0.9 : 0.8}
+            style={ENV.VARIANTE_DEMO ? styles.primaryBtn : styles.demoWrap}
             accessibilityRole="button"
           >
-            <Text style={styles.demoText}>Essayer en mode démo</Text>
+            <Text style={ENV.VARIANTE_DEMO ? styles.primaryBtnText : styles.demoText}>Essayer en mode démo</Text>
           </TouchableOpacity>
         </View>
       </View>

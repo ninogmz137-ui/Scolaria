@@ -13,13 +13,13 @@
  * available as OS env → read by app.config.js → injected into extra.
  */
 
-import Constants from 'expo-constants';
+import Constants from 'expo-constants'; import { estVarianteDemo } from '../utils/varianteDemo';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
 export const ENV = {
   SUPABASE_URL: extra.EXPO_PUBLIC_SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL || '',
-  SUPABASE_ANON_KEY: extra.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+  SUPABASE_ANON_KEY: extra.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '', VARIANTE_DEMO: estVarianteDemo(extra), // APK de démonstration (APP_VARIANT=demo)
 } as const;
 
 // Startup diagnostics
