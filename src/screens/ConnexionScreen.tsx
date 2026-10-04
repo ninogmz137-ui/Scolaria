@@ -11,17 +11,12 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../services/supabase';
 import { useAuth, type UserRole } from '../contexts/AuthContext';
+import { lireRoleProfil } from '../services/roleProfilBase';
 import { Text, TextInput, Pressable } from '../components/ui';
 
 const BG = '#F2F1EE';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
-
-type DbRole = 'parent' | 'enseignant' | 'eleve';
-
-function isDbRole(v: unknown): v is DbRole {
-  return v === 'parent' || v === 'enseignant' || v === 'eleve';
-}
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -66,21 +61,9 @@ export default function ConnexionScreen() {
         throw new Error("Impossible de récupérer l'utilisateur.");
       }
 
-      // Role lookup: prefer `users.role` (prompt spec), fallback to user_metadata.role.
-      let nextRole: UserRole | null = null;
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (!profileError && isDbRole(profile?.role)) {
-        nextRole = profile.role;
-      } else {
-        const metaRole = data.user?.user_metadata?.role;
-        if (metaRole === 'enseignant' || metaRole === 'eleve') nextRole = metaRole;
-        else nextRole = 'parent';
-      }
+      // Rôle de l'interface = profiles.role (la base), JAMAIS les métadonnées du compte, que la personne peut modifier.
+      // L'interface n'est pas une frontière de sécurité : seule la base l'est (roleProfil.ts).
+      const nextRole: UserRole = await lireRoleProfil(userId);
 
       setRole(nextRole);
 

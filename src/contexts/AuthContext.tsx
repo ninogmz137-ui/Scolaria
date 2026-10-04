@@ -16,6 +16,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 import { ENV } from '../services/getEnv';
 import { urlRetourAuth } from '../services/liensAuthApp';
+import { lireRoleProfil } from '../services/roleProfilBase';
 import { deconnexionVolontaire, marquerEvenementAuth } from '../services/sessionExpiree';
 
 // ─── Types ────────────────────────────────────────────────
@@ -94,15 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        // Detect role from user metadata
-        const metaRole = s.user.user_metadata?.role;
-        if (metaRole === 'enseignant') {
-          setRole('enseignant');
-        } else if (metaRole === 'eleve') {
-          setRole('eleve');
-        } else {
-          setRole('parent');
-        }
+        // Rôle de l'interface = profiles.role (la base), jamais les métadonnées modifiables (roleProfil.ts).
+        // `loading` reste vrai tant que le rôle n'est pas lu : la redirection ne part pas sur un rôle provisoire.
+        lireRoleProfil(s.user.id).then((r) => {
+          setRole(r);
+          setLoading(false);
+        });
+        return;
       }
       setLoading(false);
     });
@@ -145,8 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsDemoMode(false);
     setSession(data.session);
     setUser(u);
-    const metaRole = u?.user_metadata?.role;
-    setRole(!u ? null : metaRole === 'enseignant' ? 'enseignant' : metaRole === 'eleve' ? 'eleve' : 'parent');
+    setRole(!u ? null : await lireRoleProfil(u.id));
   };
   const basculeRef = useRef({ passerEnDemoDev, revenirAuCompteDev });
   basculeRef.current = { passerEnDemoDev, revenirAuCompteDev };
@@ -175,15 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
-    // Detect role from user metadata
-    const metaRole = data.user?.user_metadata?.role;
-    if (metaRole === 'enseignant') {
-      setRole('enseignant');
-    } else if (metaRole === 'eleve') {
-      setRole('eleve');
-    } else {
-      setRole('parent');
-    }
+    // Rôle de l'interface = profiles.role (la base), jamais les métadonnées modifiables (roleProfil.ts).
+    setRole(data.user ? await lireRoleProfil(data.user.id) : 'parent');
   };
 
   const handleSignUp = async (
