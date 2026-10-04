@@ -12,27 +12,26 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { roleEffectif, roleEnseignantVisible, rolesProposes, type RoleInscription } from '../utils/rolesInscription';
 
 const BG = '#F2F1EE';
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 
-type Role = 'parent' | 'enseignant';
-
-const ROLES: { id: Role; label: string; desc: string }[] = [
-  { id: 'parent',     label: 'Parent',      desc: 'Suivre la scolarité de mes enfants' },
-  { id: 'enseignant', label: 'Enseignant',   desc: 'Gérer ma classe et communiquer' },
-];
+type Role = RoleInscription;
 
 function normalizeEmail(e: string) { return e.trim().toLowerCase(); }
 
 export default function InscriptionScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { signUp, setRole } = useAuth();
+  const { signUp, setRole, isDemo } = useAuth();
+  // Version réelle : pas de choix de rôle (parent). Enseignant : développement et démo seulement (utils/rolesInscription).
+  const choixRole = roleEnseignantVisible(__DEV__, isDemo);
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedRole, setSelectedRole] = useState<Role>('parent');
+  const [choisi, setSelectedRole] = useState<Role>('parent');
+  const selectedRole = roleEffectif(choisi, __DEV__, isDemo);
   const [familyName, setFamilyName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -104,9 +103,9 @@ export default function InscriptionScreen() {
         {step === 1 ? (
           <>
             {/* Étape 1 — Rôle + Nom */}
-            <Text style={styles.stepTitle}>Qui êtes-vous ?</Text>
+            <Text style={styles.stepTitle}>{choixRole ? 'Qui êtes-vous ?' : 'Votre famille'}</Text>
 
-            {ROLES.map(r => (
+            {choixRole && rolesProposes(__DEV__, isDemo).map(r => (
               <Pressable
                 key={r.id}
                 onPress={() => setSelectedRole(r.id)}
