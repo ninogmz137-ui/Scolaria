@@ -799,3 +799,12 @@ Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source 
 - [x] Point 0 : journal_executions_effacement 3 oct 03:30 UTC = succès (HTTP 200, 0 échue, 0 échec) ; M28 appliquée à Paris ; M29 et M30 LOCALES en attente de validation ; origin/main à jour.
 - [x] Point 3 : sauvegarde hebdomadaire + restauration testée (tasks/sauvegarde.md). **Lire `C:\Users\admin\ScolariaBackups\hebdo\journal.log` en début de session.** Copie hors PC : non faite (ton choix).
 - [~] Point 4 ROBUSTESSE : code fait (erreurs.ts, EtatErreur, ErrorBoundary par onglet, délai réseau 25 s, hooks useCarnetReel / useMotsEnfant, Accueil, Suivi, Agenda, Messages, Ajouter au carnet, Famille & paramètres, session expirée sur l'écran d'ouverture). tsc OK, test:erreurs 12/12. **NON éprouvé sur le Redmi** : écran verrouillé par un code (je ne le saisis pas) et compte réel à reconnecter par toi. À faire ensemble : mode avion + mesures adb.
+
+## Session n°4 (4 oct 2026)
+- [x] Sauvegarde / restauration / vérification refusent toute destination dans le dépôt (scripts/garde-destination.mjs ; npm run test:garde-destination 18/18) ; git log --all : aucun dossier de sauvegarde dans l'historique (386 commits).
+- [x] enquête iOS : doc Expo relue sur le texte brut (aucune mention de sign.expo.dev) ; voie gratuite BLOQUÉE côté Apple (tentative 33, fil developer.apple.com/forums/thread/845650) : pas de réessai en boucle, un réessai ponctuel possible.
+- [x] D5 : paragraphe « Sauvegardes » dans le brouillon ; marche à suivre BitLocker : tasks/verifier-chiffrement-disque.md (à exécuter par l'utilisateur).
+- [ ] **Sauvegardes exceptionnelles (avant_Mxx, avant_M34_cycle…) : AUCUNE purge automatique** — décider d'une durée (ex. 8 semaines) et la mettre en œuvre ; sinon une donnée effacée y reste indéfiniment (cf. brouillon de politique § 6 bis).
+- [ ] Build de démonstration Android (preview, APK autonome) : plan et constats dans tasks/build-demo-android.md ; **EN ATTENTE du « go build »** et des décisions A (applicationId distinct, exception à ARRÊT NOM), B (libellé), C (mises à jour désactivées). Quota EAS : plan Free, 0/15 builds Android ce cycle. CLAUDE.md dit « Starter » : vérifier.
+- [ ] Recherche de secrets dans test-bundle-prod : le garde-fou a bloqué l'édition (préfixes de clés) ; bloc de secours donné à l'utilisateur.
+- [x] tasks/demo-plan.md : parcours 10 min enseignante / parent, 5 questions, ce qu'il ne faut pas promettre, feuille de notes. [UNCLEAR] : pas de vue enseignant en démo (à confirmer sur l'appareil).
