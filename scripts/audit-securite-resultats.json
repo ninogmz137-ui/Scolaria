@@ -2195,9 +2195,9 @@
   "table": "mots_liaison",
   "operation": "INSERT",
   "acteur": "B",
-  "resultat": "ÉCRIT une ligne",
-  "ecart": true,
-  "detail": "[\"teacher_id\",\"type\",\"titre\",\"contenu\",\"statut\"]"
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
  },
  {
   "table": "mots_liaison",

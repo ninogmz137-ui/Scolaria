@@ -11,6 +11,8 @@ INSERT INTO auth.users (id, email, aud, role, raw_user_meta_data, email_confirme
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b@test.local', 'authenticated', 'authenticated', '{}', now()),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'te@test.local', 'authenticated', 'authenticated', '{}', now()),
   ('dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'tx@test.local', 'authenticated', 'authenticated', '{}', now());
+-- Depuis M33 (4 oct) un mot n'est créable que par profiles.role = 'enseignant' : posé par le serveur pour les 2 enseignants.
+UPDATE public.profiles SET role = 'enseignant' WHERE id IN ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
 
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","email":"a@test.local","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
