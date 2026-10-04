@@ -255,7 +255,7 @@ Durées = temps de travail estimé, hors attentes externes (DNS, Apple).
 | Nom de domaine | ~10-15 €/an | L1 |
 | Brevo | 0 € (300 emails/jour) | L2 |
 | Apple Developer (individuel) | 99 €/an (à vérifier) | L12 |
-| EAS (plan Starter actuel) | inchangé ; builds iOS décomptés du quota (à vérifier) | L9, L13 |
+| EAS (plan Free actuel, vérifié le 4 oct) | inchangé ; builds iOS décomptés du quota (à vérifier) | L9, L13 |
 | Supabase Pro | ~25 $/mois | PAS pour le premier foyer (D2) : avant la première famille extérieure ou école |
 
 ---

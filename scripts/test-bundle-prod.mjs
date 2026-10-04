@@ -23,7 +23,10 @@ try {
     return chercher(Buffer.from(t, 'utf8')) + chercher(Buffer.from(t, 'utf16le'));
   };
 
-  const interdits = ['dev/demo', 'dev/reel', 'dev/notif-mot', 'rafraichir-session', 'Passer en démo', 'Revenir à mon compte'];
+  const interdits = [
+    'dev/demo', 'dev/reel', 'dev/notif-mot', 'rafraichir-session', 'Passer en démo', 'Revenir à mon compte',
+    'sk-ant-', 'sb_secret_', 'service_role',
+  ];
   // Témoins : le test sait lire le bundle (chaînes ASCII et accentuées).
   const temoins = ['mot_expediteur', 'Se déconnecter', 'Ajouter un mot reçu ailleurs'];
 

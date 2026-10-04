@@ -44,7 +44,7 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 ---
 
 ## Stack technique
-- React Native / Expo + EAS (Starter plan)
+- React Native / Expo + EAS (plan Free, vérifié le 4 oct 2026 par `eas account:usage` : 15 builds Android et 15 iOS par mois, file basse priorité)
 - Supabase (BDD + Auth + Storage + RLS)
 - TypeScript
 - NativeWind (Tailwind CSS pour React Native)
