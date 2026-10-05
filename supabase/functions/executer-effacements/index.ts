@@ -6,12 +6,15 @@
  *   Authorization : tout autre appelant → 401, rien n'est fait. Déployée avec --no-verify-jwt : la
  *   vérification est faite ici (cleServiceValide : ancienne clé service_role OU sb_secret_), pas par la passerelle.
  * - Pour chaque demande échue (M25, effacements_dus) :
- *     1. fichiers du bucket (fichiers_a_effacer) supprimés par l'API Storage (le SQL direct est interdit) ;
+ *     1. fichiers du bucket (fichiers_a_effacer) et photos des enfants effacés (photos_a_effacer, M35, bucket
+ *        « child-photos ») supprimés par l'API Storage (le SQL direct est interdit) ;
  *     2. lignes : executer_effacement (enfants effacés, rattachements, données sans clé étrangère) ;
  *     3. portée « compte » : suppression du compte Auth (cascade : profil, ajouts, signatures, Aria…),
  *        puis marquer_effacement_execute.
  *   Une étape en échec arrête CETTE demande (elle sera reprise au passage suivant : tout est idempotent).
- * - Puis fichiers orphelins (sans ligne carnet_items, plus d'un jour) supprimés.
+ * - Puis fichiers orphelins (sans ligne carnet_items, plus d'un jour) et photos orphelines (plus aucun enfant ne les
+ *   référence, plus d'un jour) supprimés. ORDRE DE MISE EN LIGNE : M35 d'abord, cette fonction ensuite (elle appelle
+ *   photos_a_effacer / photos_orphelines).
  * - Journaux : des compteurs seulement, jamais un identifiant, un nom ou un chemin de fichier.
  */
 
@@ -49,9 +52,10 @@ function egal(a: string, b: string): boolean {
 
 const PAQUET = 100; // l'API Storage supprime par lots
 
-async function supprimerFichiers(admin: ReturnType<typeof createClient>, noms: string[]): Promise<boolean> {
+/** Supprime des objets d'un bucket (« carnet » ou « child-photos ») par l'API Storage, par lots. */
+async function supprimerFichiers(admin: ReturnType<typeof createClient>, noms: string[], bucket = 'carnet'): Promise<boolean> {
   for (let i = 0; i < noms.length; i += PAQUET) {
-    const { error } = await admin.storage.from('carnet').remove(noms.slice(i, i + PAQUET));
+    const { error } = await admin.storage.from(bucket).remove(noms.slice(i, i + PAQUET));
     if (error) return false;
   }
   return true;
@@ -77,6 +81,13 @@ Deno.serve(async (req) => {
     if (noms.length && !(await supprimerFichiers(admin, noms))) { bilan.echecs++; continue; }
     bilan.fichiers += noms.length;
 
+    // Photos des enfants effacés (M35) : même règle, AVANT les lignes (l'objet ne suit pas la cascade SQL).
+    const { data: photos, error: errP } = await admin.rpc('photos_a_effacer', { p_demande_id: d.demande_id });
+    if (errP) { bilan.echecs++; continue; }
+    const nomsP = (photos ?? []) as string[];
+    if (nomsP.length && !(await supprimerFichiers(admin, nomsP, 'child-photos'))) { bilan.echecs++; continue; }
+    bilan.fichiers += nomsP.length;
+
     const { error: errX } = await admin.rpc('executer_effacement', { p_demande_id: d.demande_id });
     if (errX) { bilan.echecs++; continue; }
 
@@ -93,6 +104,10 @@ Deno.serve(async (req) => {
   const { data: orphelins } = await admin.rpc('fichiers_orphelins');
   const nomsO = (orphelins ?? []) as string[];
   if (nomsO.length && (await supprimerFichiers(admin, nomsO))) bilan.orphelins = nomsO.length;
+  // Photos que plus aucun enfant ne référence (dépôt interrompu, suppression partielle) : même nettoyage.
+  const { data: orphelinesP } = await admin.rpc('photos_orphelines');
+  const nomsOP = (orphelinesP ?? []) as string[];
+  if (nomsOP.length && (await supprimerFichiers(admin, nomsOP, 'child-photos'))) bilan.orphelins += nomsOP.length;
 
   // Compteurs entiers seulement (aucune donnée personnelle) : texte fixe + objet littéral (test:journaux).
   console.log('[executer-effacements] bilan', { dues: bilan.dues, executees: bilan.executees, echecs: bilan.echecs, fichiers: bilan.fichiers, orphelins: bilan.orphelins });

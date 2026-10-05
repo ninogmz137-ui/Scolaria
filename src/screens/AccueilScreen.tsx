@@ -30,6 +30,8 @@ import { useAnneesEnfant } from '../hooks/useAnneesEnfant';
 import { useAgendaSemaine } from '../hooks/useAgendaSemaine';
 import { useCoches } from '../hooks/useCoches';
 import { getChildInitials } from '../utils/childInitials';
+import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
+import { usePhotoUrl } from '../hooks/usePhotoUrl';
 import { monNomComplet, type MotCarnet } from '../services/motsService';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
@@ -216,6 +218,9 @@ export default function AccueilScreen() {
   const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
   const [justifierVisible, setJustifierVisible] = useState(false);
+  // Photo de l'enfant : comptes réels seulement (démo : initiales). Le badge de l'en-tête suffit, aucune relance.
+  const [photoVisible, setPhotoVisible] = useState(false);
+  const photoUri = usePhotoUrl(selectedChild);
 
   const prenom = selectedChild?.name?.split(' ')[0] ?? '';
   const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
@@ -247,6 +252,8 @@ export default function AccueilScreen() {
             enCours={anneesEnfant.enCours}
             archives={anneesEnfant.archives}
             onParcours={() => nav.navigate('MonParcours')}
+            photoUri={photoUri}
+            onPhoto={isDemo ? undefined : () => setPhotoVisible(true)}
           />
         ) : (
           <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
@@ -440,6 +447,9 @@ export default function AccueilScreen() {
         ) : null}
       </Animated.ScrollView>
 
+      {selectedChild && !isDemo ? (
+        <FeuillePhotoEnfant child={selectedChild} visible={photoVisible} onClose={() => setPhotoVisible(false)} />
+      ) : null}
       <JustifierAbsenceSheet
         visible={justifierVisible}
         onClose={() => setJustifierVisible(false)}

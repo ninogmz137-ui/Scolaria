@@ -35,7 +35,9 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors';
-import { Text, TextInput } from '../components/ui';
+import { Text, TextInput, Pressable } from '../components/ui';
+import { TEXTE_CONSENTEMENT_PHOTO } from '../components/FeuillePhotoEnfant';
+import { useActionsPhoto } from '../hooks/useActionsPhoto';
 import { de } from '../utils/francais';
 import { NOM_APP } from '../constants/marque';
 
@@ -81,6 +83,9 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
   const [color, setColor] = useState(DEFAULT_CHILD_COLOR_HEX);
   const [showNiveauPicker, setShowNiveauPicker] = useState(false);
   const [loading, setSaving] = useState(false);
+  // Étape « Photo de l'enfant » (comptes réels) : proposée après la création, jamais obligatoire.
+  const [etapePhoto, setEtapePhoto] = useState<{ id: string } | null>(null);
+  const { occupe: photoOccupee, ajouter: ajouterPhoto } = useActionsPhoto();
 
   const scolariaId = useRef(generateScolariaId()).current;
 
@@ -149,6 +154,28 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
   // ─── Submit ─────────────────────────────────────────────
 
+  const terminer = () => {
+    Alert.alert(
+      'Enfant ajouté',
+      `Le carnet ${de(firstName)} est créé (identifiant ${scolariaId}).`,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            onChildAdded?.();
+            navigation.goBack();
+          },
+        },
+      ],
+    );
+  };
+
+  const photoDepuisEtape = async (source: 'camera' | 'galerie') => {
+    if (!etapePhoto) return;
+    const fait = await ajouterPhoto(etapePhoto.id, source);
+    if (fait) terminer();
+  };
+
   const handleSubmit = async () => {
     if (!isFormValid) {
       Alert.alert('Champs manquants', 'Veuillez remplir le prénom, la date de naissance et le niveau.');
@@ -185,22 +212,15 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
         });
         if (error) throw error;
         // Source unique : la liste des enfants est rechargée et le nouvel enfant devient actif.
-        await reloadChildren((data as { id?: string } | null)?.id);
+        const idCree = (data as { id?: string } | null)?.id;
+        await reloadChildren(idCree);
+        if (idCree) {
+          setEtapePhoto({ id: idCree });
+          return;
+        }
       }
 
-      Alert.alert(
-        'Enfant ajouté',
-        `Le carnet ${de(firstName)} est créé (identifiant ${scolariaId}).`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              onChildAdded?.();
-              navigation.goBack();
-            },
-          },
-        ],
-      );
+      terminer();
     } catch (err: any) {
       Alert.alert('Erreur', err?.message || 'Impossible d\'ajouter l\'enfant.');
     } finally {
@@ -212,6 +232,38 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 
   const age = computeAge();
   const initiale = firstName.trim().charAt(0).toUpperCase() || '?';
+
+  // Étape « Photo de l'enfant » : l'enfant est déjà créé ; « Plus tard » termine sans photo (rien d'obligatoire).
+  if (etapePhoto) {
+    return (
+      <View style={s.root}>
+        <DeepScreenHeader title="Photo de l'enfant" withTopInset />
+        <View style={s.photoCorps}>
+          <Text style={s.photoTitre}>{`Une photo ${de(firstName)} ?`}</Text>
+          <Text style={s.photoTexte}>{TEXTE_CONSENTEMENT_PHOTO}</Text>
+          {photoOccupee ? (
+            <ActivityIndicator color={INK} style={{ marginTop: 24 }} />
+          ) : (
+            <>
+              <Pressable
+                style={[s.primaryBtn, { marginTop: 28 }]}
+                onPress={() => photoDepuisEtape('camera')}
+                accessibilityRole="button"
+              >
+                <Text style={s.primaryBtnText}>Prendre une photo</Text>
+              </Pressable>
+              <Pressable style={s.photoSecondaire} onPress={() => photoDepuisEtape('galerie')} accessibilityRole="button">
+                <Text style={s.photoSecondaireTexte}>Choisir dans la galerie</Text>
+              </Pressable>
+              <Pressable style={s.photoPlusTard} onPress={terminer} hitSlop={8} accessibilityRole="button">
+                <Text style={s.photoPlusTardTexte}>Plus tard</Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -674,6 +726,30 @@ const s = StyleSheet.create({
   },
 
   // Bouton primaire §2
+  photoCorps: { flex: 1, paddingHorizontal: 24, paddingTop: 32, alignItems: 'center' },
+  photoTitre: { fontFamily: FontFamily.displayBold, fontSize: 22, lineHeight: 28, letterSpacing: -0.8, color: INK, textAlign: 'center' },
+  photoTexte: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(15,23,42,0.55)',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  photoSecondaire: {
+    height: 52,
+    width: '100%',
+    maxWidth: 240,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'rgba(15,23,42,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  photoSecondaireTexte: { fontFamily: FontFamily.sansMedium, fontSize: 15, color: INK },
+  photoPlusTard: { minHeight: 44, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
+  photoPlusTardTexte: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: 'rgba(15,23,42,0.55)' },
   primaryBtn: {
     height: 52,
     width: '100%',

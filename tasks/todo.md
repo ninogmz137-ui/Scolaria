@@ -1,5 +1,19 @@
 # TODO — Scolaria
 
+## SPRINT « Carnet vivant » (5 oct 2026) — lots 0 à 4 FAITS EN LOCAL, rien en production, AUCUN build EAS
+
+- [x] Lot 0 (02efb95) docs : indigo = couleur d'ACTION, teintes de catégorie, matières (pastille + icône, emoji interdit), label de section 13 px, en-tête de carnet, composants §18, RGPD de la photo.
+- [x] Lot 1 (ed253e2) `src/theme/categories.ts` (source unique), `PastilleCategorie`, `LibelleSection`, carte de domaine au Suivi (`npm run test:categories`).
+- [x] Lot 2 (f02f71f) Messages : mot à traiter en carte blanche, pilules compactes, liste à plat (séparateur 1 px), miniatures par URL signée.
+- [x] Lot 3 (34c39f6) Accueil : en-tête du carnet + corps maternelle / primaire (collège / lycée : contenu inchangé) (`npm run test:entete`).
+- [x] Lot 4 photo de l'enfant — code + **M35 LOCALE** (`supabase/migrations/20261005100000_m35_photo_enfant.sql`, inverse testé : `migrations_down/`) : `children.photo_path`, bucket privé `child-photos`, 4 politiques réservées aux responsables, `photos_a_effacer` / `photos_orphelines` (service seulement). Tests : `supabase/tests/m35_photo_enfant.sql` (21 contrôles), `npm run test:photo-enfant-local` (23, API Storage réelle), `npm run test:photo-enfant` (26).
+- [ ] **ATTENTE VALIDATION — M35 sur Paris** : cycle habituel (sauvegarde + verifier-sauvegarde, essai à blanc M35 seule, `db push --linked` EN COMMANDE SEULE, advisors comparés à `tasks/warns-attendus.md` : aucun WARN nouveau attendu — fonction du chemin en SECURITY INVOKER, fonctions du service révoquées aux comptes, inverse prêt).
+- [ ] **Après M35 sur Paris** : redéployer `executer-effacements` (elle appelle `photos_a_effacer` / `photos_orphelines` : M35 d'abord, la fonction ensuite). Tant que M35 n'est pas sur Paris, l'envoi d'une photo échoue (colonne absente) : ne rien publier avant.
+- [ ] **TODO (hors sprint) — lecture de la photo par l'enseignant / la direction** : aucune politique aujourd'hui (la feuille de photo le dit : « de l'équipe de son école quand elle rejoint l'application »). À concevoir avec l'espace école : lecture limitée à l'enseignant titulaire de la classe de l'élève, bucket inchangé.
+- [ ] **Redmi (dev client du 28 sept : expo-image-picker, expo-image-manipulator, expo-file-system déjà inclus, aucun build nécessaire)** : en-tête du carnet des 3 enfants de démo + 1 compte réel ; mesurer la ligne d'identité (cercle 78 dp, pilule 26 dp à zone tactile 44) ; photo : appareil photo, galerie, remplacement, suppression, ré-ouverture hors ligne ; vérifier sur un fichier sorti du téléphone que l'EXIF / GPS a disparu ; liste des Messages (séparateurs, miniature).
+- [ ] Dette : `useAnneesEnfant` duplique la lecture des années de `NotesScreen` (à fusionner) ; `SectionLabel` (uppercase 9 px) reste utilisé par Agenda, Notes collège, Aria, Bulletin… jusqu'à validation du nouveau label.
+- [ ] Photo en démo : volontairement absente (initiales seulement) ; pas de badge appareil photo dans le mode démo.
+
 ## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
 
 **Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2, B2-bis et B2-ter FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**

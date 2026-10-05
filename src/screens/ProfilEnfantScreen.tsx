@@ -21,6 +21,8 @@ import {
   PenLine,
   Fingerprint,
   ChevronLeft,
+  ChevronRight,
+  Camera,
   Info,
   Share2,
 } from 'lucide-react-native';
@@ -28,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import ChildAvatar from '../components/ChildAvatar';
 import CouleurEnfantSheet from '../components/CouleurEnfantSheet';
+import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
@@ -307,6 +310,7 @@ function ProfilEnfantScreenContent() {
 
   const [data, setData] = useState<ChildProfileData>(profilDeBase);
   const [couleurVisible, setCouleurVisible] = useState(false);
+  const [photoVisible, setPhotoVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingMemo, setExportingMemo] = useState(false);
 
@@ -484,6 +488,21 @@ function ProfilEnfantScreenContent() {
 
           <Text style={styles.childName}>{data.name}</Text>
           <Text style={styles.schoolInfo}>{data.classe}</Text>
+
+          {/* Ligne « Photo » (comptes réels seulement : jamais de photo en démo) */}
+          {!isDemoMode ? (
+            <Pressable
+              onPress={() => setPhotoVisible(true)}
+              style={styles.lignePhoto}
+              accessibilityRole="button"
+              accessibilityLabel={`Photo ${de(selectedChild.name)} : ${selectedChild.photoPath ? 'modifier' : 'ajouter'}`}
+            >
+              <Camera size={16} color={NAVY} strokeWidth={2} />
+              <Text style={styles.lignePhotoLibelle}>Photo</Text>
+              <Text style={styles.lignePhotoValeur}>{selectedChild.photoPath ? 'Modifier' : 'Ajouter'}</Text>
+              <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
+            </Pressable>
+          ) : null}
         </View>
 
         <View style={[styles.scaWrap, { marginTop: -6 }]}>
@@ -567,6 +586,9 @@ function ProfilEnfantScreenContent() {
         visible={couleurVisible}
         onClose={() => setCouleurVisible(false)}
       />
+      {!isDemoMode ? (
+        <FeuillePhotoEnfant child={selectedChild} visible={photoVisible} onClose={() => setPhotoVisible(false)} />
+      ) : null}
     </View>
   );
 }
@@ -676,6 +698,18 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
   },
+  lignePhoto: {
+    alignSelf: 'stretch',
+    marginHorizontal: 18,
+    marginTop: 14,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(15,23,42,0.05)',
+  },
+  lignePhotoLibelle: { flex: 1, marginLeft: 12, fontFamily: FontFamily.sansMedium, fontSize: 14, color: NAVY },
+  lignePhotoValeur: { marginRight: 6, fontFamily: FontFamily.sansRegular, fontSize: 13, color: 'rgba(15,23,42,0.55)' },
   scaWrap: {
     alignItems: 'center',
     zIndex: 2,

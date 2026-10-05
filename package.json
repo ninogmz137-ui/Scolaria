@@ -26,6 +26,7 @@
     "test:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/archiveCarnet.test.mts",
     "test:categories": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/theme/categories.test.mts",
     "test:entete": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/fondu.test.mts",
+    "test:photo-enfant": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoEnfant.test.mts",
     "test:photo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/redimension.test.mts",
     "test:liens-auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/lienAuth.test.mts",
     "test:liens-auth-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-liens-auth-local.mts",
@@ -37,6 +38,7 @@
     "test:limite-aria-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-limite-aria-local.mts",
     "test:parcours-complet-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-parcours-complet-local.mts",
     "test:verrous-effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-verrous-effacement-local.mts",
+    "test:photo-enfant-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-photo-enfant-local.mts",
     "test:effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-effacement-local.mts"
   },
   "dependencies": {

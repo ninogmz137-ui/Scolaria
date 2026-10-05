@@ -45,6 +45,10 @@ export type Child = {
   color?: string;
   /** Fond de l'Accueil choisi pour cet enfant (id d'image intégrée) ; null = sa couleur (M13). */
   fond?: string | null;
+  /** Photo de l'enfant : chemin dans le bucket privé « child-photos » (M35) ; absent / null = initiale sur sa couleur. */
+  photoPath?: string | null;
+  /** children.updated_at : avec photoPath, clé du cache des URL signées. */
+  photoUpdatedAt?: string | null;
 };
 
 /** Couleur neutre par défaut (identique au défaut en base, migration M3). */
@@ -83,6 +87,8 @@ interface ActiveChildContextValue {
   setChildColor: (childId: string, color: string) => Promise<void>;
   /** Fond de l'Accueil de l'enfant (null = sa couleur) : en base (compte réel) ou sur l'appareil (démo). */
   setChildFond: (childId: string, fond: string | null) => Promise<void>;
+  /** Photo de l'enfant (compte réel seulement) : chemin après envoi, null après suppression. Écrit children.photo_path. */
+  setChildPhoto: (childId: string, photoPath: string | null) => Promise<void>;
   fadeAnim: Animated.Value;
   loading: boolean;
   /** Chargement des enfants en échec (réseau, session, serveur) : jamais confondu avec « aucun enfant ». */
@@ -97,6 +103,7 @@ const ActiveChildContext = createContext<ActiveChildContextValue>({
   reloadChildren: async () => {},
   setChildColor: async () => {},
   setChildFond: async () => {},
+  setChildPhoto: async () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
   erreur: null,
@@ -111,6 +118,8 @@ type ChildRow = {
   school?: string;
   color?: string;
   fond?: string | null;
+  photo_path?: string | null;
+  updated_at?: string | null;
 };
 
 function mapRow(row: ChildRow): Child {
@@ -126,6 +135,8 @@ function mapRow(row: ChildRow): Child {
     birthDate: row.birth_date,
     color: row.color || DEFAULT_CHILD_COLOR,
     fond: row.fond ?? null,
+    photoPath: row.photo_path ?? null,
+    photoUpdatedAt: row.updated_at ?? null,
   };
 }
 
@@ -271,6 +282,23 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   const setChildColor = useCallback((id: string, color: string) => majEnfant(id, { color }), [majEnfant]);
   const setChildFond = useCallback((id: string, fond: string | null) => majEnfant(id, { fond }), [majEnfant]);
 
+  // Photo : écrite en base seulement (jamais en démo : initiales). L'objet de stockage est géré par services/photoEnfant ;
+  // ici la colonne photo_path (contrainte : <id>/avatar.jpg) et l'état affiché. Échec : on recharge, pas de valeur fausse.
+  const setChildPhoto = useCallback(
+    async (childId: string, photoPath: string | null) => {
+      if (isDemo) return;
+      const { error } = await updateChild(childId, { photo_path: photoPath });
+      if (error) {
+        await reloadChildren(childId);
+        throw error;
+      }
+      setChildList((prev) =>
+        prev.map((c) => (c.id === childId ? { ...c, photoPath, photoUpdatedAt: new Date().toISOString() } : c)),
+      );
+    },
+    [isDemo, reloadChildren],
+  );
+
   // ─── Changement d'enfant (fondu) ────────────────────────
   const selectChild = useCallback(
     (id: string) => {
@@ -293,6 +321,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         reloadChildren,
         setChildColor,
         setChildFond,
+        setChildPhoto,
         fadeAnim,
         loading,
         erreur,

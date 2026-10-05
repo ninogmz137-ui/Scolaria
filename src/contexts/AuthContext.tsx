@@ -18,6 +18,7 @@ import { ENV } from '../services/getEnv';
 import { urlRetourAuth } from '../services/liensAuthApp';
 import { lireRoleProfil } from '../services/roleProfilBase';
 import { deconnexionVolontaire, marquerEvenementAuth } from '../services/sessionExpiree';
+import { viderCachePhotos } from '../services/photoEnfant';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -247,6 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Portée « local » : ne ferme que la session de CET appareil. La portée par défaut (« global »)
     // révoque toutes les sessions du compte, sur tous les appareils (diagnostic du 26 sept 2026 :
     // tasks/lessons.md, déconnexion du Redmi).
+    viderCachePhotos(); // aucune URL signée de photo d'enfant ne survit à la session
     deconnexionVolontaire(); const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     setRole(null);
