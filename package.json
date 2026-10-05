@@ -24,6 +24,7 @@
     "test:rotation-sauvegardes": "node scripts/test-rotation-sauvegardes.mjs",
     "test:mots": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/motsRegles.test.mts",
     "test:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/archiveCarnet.test.mts",
+    "test:categories": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/theme/categories.test.mts",
     "test:photo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/redimension.test.mts",
     "test:liens-auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/lienAuth.test.mts",
     "test:liens-auth-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-liens-auth-local.mts",

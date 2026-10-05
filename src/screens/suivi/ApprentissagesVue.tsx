@@ -18,6 +18,9 @@ import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar
 import { useTopbarScrollHandler } from '../../contexts/TopbarScrollContext';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../../components/ui';
+import LibelleSection from '../../components/LibelleSection';
+import PastilleCategorie from '../../components/PastilleCategorie';
+import { categorieDiscipline } from '../../theme/categories';
 import {
   libelleNiveau,
   libellePeriode,
@@ -102,7 +105,7 @@ export default function ApprentissagesVue({
       onScroll={scrollHandler}
     >
       {entete}
-      <Text style={st.titre}>{titre}</Text>
+      <LibelleSection texte={titre} premier />
 
       {primaire && (
         <View style={st.periodes} accessibilityRole="tablist">
@@ -132,12 +135,22 @@ export default function ApprentissagesVue({
         // `vide` vide (chaîne vide) = chargement en échec : aucun faux « aucune compétence » sous le message d'erreur.
         vide ? <Text style={st.vide}>{vide}</Text> : null
       ) : (
-        domaines.map((d) => (
-          <View key={d.nom} style={st.bloc}>
-            <Text style={st.domaine}>{d.nom.toUpperCase()}</Text>
-            <View style={st.card}>
+        // UNE carte par domaine (COMPONENTS §18.2) : pastille de catégorie + titre + « N observation(s) », puis les
+        // observations (la plus récente en premier). Rien de pressable ; un domaine sans observation n'est pas affiché.
+        domaines.map((d) => {
+          const n = d.items.length;
+          const compte = `${n} observation${n > 1 ? 's' : ''}`;
+          return (
+            <View key={d.nom} style={st.card}>
+              <View style={st.carteTete} accessible accessibilityLabel={`${d.nom}, ${compte}`}>
+                <PastilleCategorie categorie={categorieDiscipline(d.nom)} />
+                <View style={st.carteTitres}>
+                  <Text style={st.domaine}>{d.nom}</Text>
+                  <Text style={st.compte}>{compte}</Text>
+                </View>
+              </View>
               {d.items.map((it, i) => (
-                <View key={it.id} style={[st.row, i < d.items.length - 1 && st.rowBorder]}>
+                <View key={it.id} style={[st.observation, i > 0 && st.observationFilet]}>
                   <Text style={st.texte}>{it.texte}</Text>
                   {primaire && it.niveau && it.echelle ? (
                     <View style={st.niveauLigne}>
@@ -149,8 +162,8 @@ export default function ApprentissagesVue({
                 </View>
               ))}
             </View>
-          </View>
-        ))
+          );
+        })
       )}
       {pied}
     </Reanimated.ScrollView>
@@ -159,14 +172,6 @@ export default function ApprentissagesVue({
 
 const st = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F2F1EE' },
-  titre: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    lineHeight: 18,
-    color: 'rgba(15,23,42,0.55)',
-    paddingHorizontal: 16,
-    marginBottom: 6,
-  },
   // Même mise en page qu'avant (marges de 4 en haut et en bas), mais le conteneur englobe la zone tactile agrandie des
   // pastilles (haut 8, bas 4) : padding 8 / 4 compensé par des marges de -4 / 0. Sans cela la zone débordait du conteneur.
   periodes: { flexDirection: 'row', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, marginTop: -4, marginBottom: 0 },
@@ -191,30 +196,39 @@ const st = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
   },
-  bloc: { marginTop: 12 },
-  domaine: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-    lineHeight: 14,
-    letterSpacing: 1.1,
-    color: 'rgba(15,23,42,0.38)',
-    paddingHorizontal: 16,
-    marginBottom: 6,
-  },
+  // Carte d'écran principal (rayon 18, padding 14). Fond OPAQUE, aucune ombre (leçon du 26 sept : une élévation sous
+  // un fond translucide dessine un rectangle gris sur Android).
   card: {
     marginHorizontal: 14,
+    marginBottom: 8,
+    padding: 14,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.05)',
-    overflow: 'hidden',
   },
-  row: { paddingHorizontal: 14, paddingVertical: 12 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: 'rgba(15,23,42,0.05)' },
-  texte: {
-    fontFamily: FontFamily.sansMedium,
+  carteTete: { flexDirection: 'row', alignItems: 'center' },
+  carteTitres: { flex: 1, marginLeft: 12 },
+  domaine: {
+    fontFamily: FontFamily.sansBold,
     fontSize: 14,
-    lineHeight: 19,
+    lineHeight: 18,
+    letterSpacing: -0.3,
+    color: '#0F172A',
+  },
+  compte: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    lineHeight: 16,
+    color: 'rgba(15,23,42,0.55)',
+    marginTop: 1,
+  },
+  observation: { marginTop: 10 },
+  observationFilet: { paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.08)' },
+  texte: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 14,
+    lineHeight: 20,
     color: '#0F172A',
   },
   niveauLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
