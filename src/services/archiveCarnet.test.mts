@@ -1,6 +1,6 @@
 // Tests de l'archive d'export (L7b). Lancer : npm run test:export
 import { unzipSync, strFromU8 } from 'fflate';
-import { nomFichierArchive, nomArchive, construireArchive, texteLisezmoi } from './archiveCarnet.ts';
+import { nomFichierArchive, nomArchive, construireArchive, texteLisezmoi, avecPhotoEnfant } from './archiveCarnet.ts';
 
 let ok = 0;
 let echecs = 0;
@@ -29,6 +29,17 @@ verifier('fichier relu octet pour octet', Array.from(contenu['fichiers/a.jpg']),
 verifier('LISEZMOI sans « incomplet » quand tout est là', /incomplet/.test(strFromU8(contenu['LISEZMOI.txt'])), false);
 const incomplet = texteLisezmoi({ nomApp: 'App', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: ['x'], sectionsManquantes: ['agenda'] });
 verifier('LISEZMOI signale un export incomplet', /incomplet[\s\S]*agenda[\s\S]*fichiers non téléchargés : 1/.test(incomplet), true);
+
+// Photo de l'enfant dans l'export
+const octetsPhoto = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 0, 4, 0, 1, 0xff, 0xd9]);
+const avecPhoto = avecPhotoEnfant({ prenom: 'Léa', photo_path: 'x/avatar.jpg' }, octetsPhoto);
+const zipPhoto = unzipSync(construireArchive({ enfant: avecPhoto.enfant }, lisezmoi, avecPhoto.fichiers));
+verifier('export : la photo est dans fichiers/photo-de-l-enfant.jpg', Object.keys(zipPhoto).includes('fichiers/photo-de-l-enfant.jpg'), true);
+verifier('export : octets de la photo identiques', Array.from(zipPhoto['fichiers/photo-de-l-enfant.jpg']), Array.from(octetsPhoto));
+verifier('export : donnees.json pointe la photo', JSON.parse(strFromU8(zipPhoto['donnees.json'])).enfant.photo_dans_archive, 'fichiers/photo-de-l-enfant.jpg');
+verifier('export : photo_path (ligne de l’enfant) conservé dans donnees.json', JSON.parse(strFromU8(zipPhoto['donnees.json'])).enfant.photo_path, 'x/avatar.jpg');
+const sansPhoto = avecPhotoEnfant({ prenom: 'Léa' }, null);
+verifier('sans photo : aucun fichier et photo_dans_archive null', [sansPhoto.fichiers.length, sansPhoto.enfant.photo_dans_archive], [0, null]);
 
 console.log(echecs === 0 ? `── ${ok}/${ok} ──` : `── ${echecs} échec(s) ──`);
 process.exitCode = echecs === 0 ? 0 : 1;

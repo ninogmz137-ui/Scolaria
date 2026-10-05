@@ -15,7 +15,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { supabase } from './supabase';
 import { getResponsablesEnfant } from './database';
-import { construireArchive, nomArchive, nomFichierArchive, texteLisezmoi, type FichierArchive } from './archiveCarnet';
+import { avecPhotoEnfant, construireArchive, nomArchive, nomFichierArchive, texteLisezmoi, type FichierArchive } from './archiveCarnet';
 import { NOM_APP } from '../constants/marque';
 
 const NOM_DOSSIER = 'carnet-export';
@@ -145,22 +145,24 @@ export async function exporterCarnet(
 
   // Photo de l'enfant (donnée personnelle d'un mineur, incluse dans l'export du carnet) : fichiers/photo-de-l-enfant.jpg
   // (bucket privé « child-photos », URL signée de 10 min). `photo_path` est déjà dans la ligne de l'enfant.
-  let photoDansArchive: string | null = null;
+  let octetsPhoto: Uint8Array | null = null;
   if (enfant.photo_path) {
     progression('Photo de l’enfant…');
     try {
       const { data: signe, error } = await supabase.storage.from('child-photos').createSignedUrl(String(enfant.photo_path), 10 * 60);
       if (error || !signe?.signedUrl) throw new Error('lien');
       const local = await File.downloadFileAsync(signe.signedUrl, new File(dossier, 'photo-enfant.jpg'));
-      fichiers.push({ chemin: 'photo-de-l-enfant.jpg', octets: await local.bytes() });
+      octetsPhoto = await local.bytes();
       local.delete();
-      photoDansArchive = 'fichiers/photo-de-l-enfant.jpg';
     } catch {
       fichiersManquants.push('photo-de-l-enfant');
     }
   }
 
   progression('Création de l’archive…');
+  const photoArchive = avecPhotoEnfant(enfant, octetsPhoto);
+  const enfantArchive = photoArchive.enfant;
+  fichiers.push(...photoArchive.fichiers);
   const genereLe = new Date();
   const archive = construireArchive(
     {
@@ -171,7 +173,7 @@ export async function exporterCarnet(
         sections_non_lues: sectionsManquantes,
         fichiers_non_telecharges: fichiersManquants.length,
       },
-      enfant: { ...enfant, photo_dans_archive: photoDansArchive },
+      enfant: enfantArchive,
       responsables,
       ...donnees,
     },

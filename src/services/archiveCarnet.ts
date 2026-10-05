@@ -28,6 +28,25 @@ export function nomArchive(prenom: string, jour: Date = new Date()): string {
 
 export type FichierArchive = { chemin: string; octets: Uint8Array };
 
+/** Chemin de la photo de l'enfant dans l'archive (sous fichiers/). */
+export const CHEMIN_PHOTO_ARCHIVE = 'photo-de-l-enfant.jpg';
+
+/**
+ * Photo de l'enfant dans l'export (donnée personnelle d'un mineur, incluse dans l'export du carnet) : renvoie la ligne
+ * de l'enfant complétée de `photo_dans_archive` et le fichier à ajouter. Sans octets (pas de photo, ou téléchargement
+ * échoué) : `photo_dans_archive` vaut null et aucun fichier n'est ajouté.
+ */
+export function avecPhotoEnfant(
+  enfant: Record<string, unknown>,
+  octets: Uint8Array | null,
+): { enfant: Record<string, unknown>; fichiers: FichierArchive[] } {
+  if (!octets) return { enfant: { ...enfant, photo_dans_archive: null }, fichiers: [] };
+  return {
+    enfant: { ...enfant, photo_dans_archive: `fichiers/${CHEMIN_PHOTO_ARCHIVE}` },
+    fichiers: [{ chemin: CHEMIN_PHOTO_ARCHIVE, octets }],
+  };
+}
+
 export function construireArchive(donnees: unknown, lisezmoi: string, fichiers: FichierArchive[]): Uint8Array {
   const contenu: Record<string, Uint8Array | [Uint8Array, { level: 0 }]> = {
     'LISEZMOI.txt': strToU8(lisezmoi),
