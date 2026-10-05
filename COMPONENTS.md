@@ -671,8 +671,8 @@ Jamais : rôle de l'expéditeur, tag de catégorie, résumé Aria, rouge, vue m�
 ```
 Bottom sheet (§11), 3 lignes : « Prendre une photo » · « Choisir dans la galerie » · « Supprimer la photo »
 (la dernière seulement si la photo existe, Alert natif avant)
-Consentement en pied : « Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables, et de
-l'équipe de son école quand elle rejoint l'application. »
+Consentement en pied : « Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables. »
+(rien sur l'école : la photo n'est visible d'aucune équipe d'école aujourd'hui)
 Jamais obligatoire ni bloquante, pas de relance répétée : le badge de l'en-tête suffit
 Mode démo : aucune photo, initiales seulement
 ```

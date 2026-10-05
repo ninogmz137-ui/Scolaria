@@ -55,6 +55,23 @@ verifier('après nettoyage : JPEG valide', estJpeg(propre));
 verifier('après nettoyage : plus de GPS, de XMP ni de commentaire', !/GPS|Exif|xmpmeta|mamie/.test(texte(propre)));
 verifier('après nettoyage : les données de l\'image sont intactes (fin du fichier identique)', texte(propre).endsWith(texte(new Uint8Array(donnees))));
 
+// Repli sans M35 : seule l'erreur « colonne inconnue » est avalée.
+import { estColonneInconnue } from './photoEnfant.ts';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant.ts';
+verifier('42703 reconnue', estColonneInconnue({ code: '42703', message: 'column children.photo_path does not exist' }));
+verifier('PGRST204 sur photo_path reconnue', estColonneInconnue({ code: 'PGRST204', message: "Could not find the 'photo_path' column of 'children' in the schema cache" }));
+verifier('PGRST204 sur une autre colonne : NON', !estColonneInconnue({ code: 'PGRST204', message: "Could not find the 'autre' column" }));
+verifier('droits (42501), jeton (PGRST301), réseau, null : NON', [{ code: '42501' }, { code: 'PGRST301' }, new TypeError('Network request failed'), null, undefined].every((e) => !estColonneInconnue(e)));
+
+// Drapeau : false jusqu'à l'application de M35 à Paris ; chaque point d'entrée photo en dépend.
+verifier('PHOTO_ENFANT_ACTIVE vaut false (passera à true APRÈS M35 sur Paris, dans un commit à part)', PHOTO_ENFANT_ACTIVE === false);
+{
+  const racine = join(import.meta.dirname, '..', '..');
+  for (const f of ['src/screens/AccueilScreen.tsx', 'src/screens/ProfilEnfantScreen.tsx', 'src/screens/AjouterEnfantScreen.tsx', 'src/hooks/usePhotoUrl.ts', 'src/contexts/ActiveChildContext.tsx']) {
+    verifier(`${f} dépend du drapeau`, /PHOTO_ENFANT_ACTIVE/.test(readFileSync(join(racine, f), 'utf8')));
+  }
+}
+
 // Confidentialité : la photo n'est JAMAIS envoyée à Aria (app ni Edge Function), ni dans une notification, ni dans le
 // contexte de l'enfant. Lecture du code source : une référence à la photo dans ces fichiers fait échouer le test.
 import { readdirSync, readFileSync } from 'node:fs';

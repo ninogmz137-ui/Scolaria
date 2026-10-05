@@ -16,7 +16,7 @@ import type { SourcePhoto } from '../services/photoEnfant';
 
 /** Texte de consentement (validé) : ce que la photo sert à faire et qui la voit. */
 export const TEXTE_CONSENTEMENT_PHOTO =
-  'Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables, et de l’équipe de son école quand elle rejoint l’application.';
+  'Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables.';
 
 export default function FeuillePhotoEnfant({
   child,

@@ -31,6 +31,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import ChildAvatar from '../components/ChildAvatar';
 import CouleurEnfantSheet from '../components/CouleurEnfantSheet';
 import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
@@ -490,7 +491,7 @@ function ProfilEnfantScreenContent() {
           <Text style={styles.schoolInfo}>{data.classe}</Text>
 
           {/* Ligne « Photo » (comptes réels seulement : jamais de photo en démo) */}
-          {!isDemoMode ? (
+          {!isDemoMode && PHOTO_ENFANT_ACTIVE ? (
             <Pressable
               onPress={() => setPhotoVisible(true)}
               style={styles.lignePhoto}
@@ -586,7 +587,7 @@ function ProfilEnfantScreenContent() {
         visible={couleurVisible}
         onClose={() => setCouleurVisible(false)}
       />
-      {!isDemoMode ? (
+      {!isDemoMode && PHOTO_ENFANT_ACTIVE ? (
         <FeuillePhotoEnfant child={selectedChild} visible={photoVisible} onClose={() => setPhotoVisible(false)} />
       ) : null}
     </View>

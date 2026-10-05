@@ -50,3 +50,15 @@ export const DUREE_CACHE_MS = 50 * 60 * 1000;
 export function urlEncoreValable(creeeLe: number, maintenant: number): boolean {
   return maintenant - creeeLe < DUREE_CACHE_MS;
 }
+
+/**
+ * Erreur « colonne inconnue » (schéma sans M35) : Postgres 42703 (lecture, filtre) ou PostgREST PGRST204 (écriture d'une
+ * colonne absente du schéma, constaté en local avant M35). SEULE cette erreur déclenche le repli sans photo, en silence ;
+ * toute autre erreur (réseau, session, droits…) reste visible.
+ */
+export function estColonneInconnue(error: unknown): boolean {
+  const e = (error ?? {}) as { code?: unknown; message?: unknown };
+  const code = String(e.code ?? '');
+  if (code === '42703') return true;
+  return code === 'PGRST204' && /photo_path/.test(String(e.message ?? ''));
+}

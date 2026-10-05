@@ -32,6 +32,7 @@ import { useCoches } from '../hooks/useCoches';
 import { getChildInitials } from '../utils/childInitials';
 import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import { usePhotoUrl } from '../hooks/usePhotoUrl';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { monNomComplet, type MotCarnet } from '../services/motsService';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
@@ -253,7 +254,7 @@ export default function AccueilScreen() {
             archives={anneesEnfant.archives}
             onParcours={() => nav.navigate('MonParcours')}
             photoUri={photoUri}
-            onPhoto={isDemo ? undefined : () => setPhotoVisible(true)}
+            onPhoto={isDemo || !PHOTO_ENFANT_ACTIVE ? undefined : () => setPhotoVisible(true)}
           />
         ) : (
           <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
@@ -447,7 +448,7 @@ export default function AccueilScreen() {
         ) : null}
       </Animated.ScrollView>
 
-      {selectedChild && !isDemo ? (
+      {selectedChild && !isDemo && PHOTO_ENFANT_ACTIVE ? (
         <FeuillePhotoEnfant child={selectedChild} visible={photoVisible} onClose={() => setPhotoVisible(false)} />
       ) : null}
       <JustifierAbsenceSheet

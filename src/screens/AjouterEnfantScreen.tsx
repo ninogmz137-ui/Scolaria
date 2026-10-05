@@ -38,6 +38,7 @@ import { CHILD_COLORS, DEFAULT_CHILD_COLOR_HEX } from '../constants/childColors'
 import { Text, TextInput, Pressable } from '../components/ui';
 import { TEXTE_CONSENTEMENT_PHOTO } from '../components/FeuillePhotoEnfant';
 import { useActionsPhoto } from '../hooks/useActionsPhoto';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { de } from '../utils/francais';
 import { NOM_APP } from '../constants/marque';
 
@@ -214,7 +215,7 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
         // Source unique : la liste des enfants est rechargée et le nouvel enfant devient actif.
         const idCree = (data as { id?: string } | null)?.id;
         await reloadChildren(idCree);
-        if (idCree) {
+        if (idCree && PHOTO_ENFANT_ACTIVE) {
           setEtapePhoto({ id: idCree });
           return;
         }

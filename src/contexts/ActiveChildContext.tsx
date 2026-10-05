@@ -24,6 +24,8 @@ import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
 import { getChildren, updateChild } from '../services/database';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
+import { estColonneInconnue } from '../utils/photoEnfant';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
 import demoChildren from '../data/demo/demo-children.json';
 
@@ -286,8 +288,10 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   // ici la colonne photo_path (contrainte : <id>/avatar.jpg) et l'état affiché. Échec : on recharge, pas de valeur fausse.
   const setChildPhoto = useCallback(
     async (childId: string, photoPath: string | null) => {
-      if (isDemo) return;
+      if (isDemo || !PHOTO_ENFANT_ACTIVE) return;
       const { error } = await updateChild(childId, { photo_path: photoPath });
+      // Schéma sans M35 (colonne inconnue) : repli sans photo, en silence ; toute autre erreur reste visible.
+      if (error && estColonneInconnue(error)) return;
       if (error) {
         await reloadChildren(childId);
         throw error;

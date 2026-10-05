@@ -7,10 +7,11 @@
 import { useEffect, useState } from 'react';
 import { urlPhoto } from '../services/photoEnfant';
 import type { Child } from '../contexts/ActiveChildContext';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 
 export function usePhotoUrl(child: Pick<Child, 'id' | 'photoPath' | 'photoUpdatedAt'> | null | undefined): string | null {
   const [etat, setEtat] = useState<{ cle: string; url: string } | null>(null);
-  const chemin = child?.photoPath ?? null;
+  const chemin = PHOTO_ENFANT_ACTIVE ? child?.photoPath ?? null : null;
   const cle = child && chemin ? `${child.id}|${chemin}|${child.photoUpdatedAt ?? ''}` : null;
 
   useEffect(() => {
