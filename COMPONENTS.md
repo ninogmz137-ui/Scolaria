@@ -14,7 +14,8 @@
 TOP BAR (toujours visible, toutes les pages)
   [☰] [⌂ Accueil] [↗ Suivi] [📅] [✉●] ... [Avatar enfant]
   - ☰ burger (gauche) : 34×34px · tap = écran unique « Famille & paramètres »
-  - Avatar (droite) : 34×34px, cercle, border 2px rgba(15,23,42,0.15), couleur de l'enfant + initiale
+  - Avatar (droite) : 34×34px, cercle, border 2px rgba(15,23,42,0.15), photo de l'enfant si elle existe,
+    sinon initiale sur la couleur de l'enfant
     tap = sélecteur d'enfant UNIQUEMENT (§13)
   - Aucune ouverture de menu par swipe (conflit avec le pager)
   - Fond : JAMAIS opaque, jamais BlurView. Transparente au repos ;
@@ -132,6 +133,16 @@ Même que Primaire · background: #EF4444
 RÈGLE: toujours précédé d'une confirmation Alert natif
 ```
 
+### Pilule compacte (actions dans une carte ou sous un texte)
+```
+height: 40px · paddingH: 20px · borderRadius: 999px · fontSize 13px · fontWeight 600
+Alignée sur le texte (retrait 50 sous un titre à pastille 38), JAMAIS pleine largeur ; retour à la ligne autorisé
+Pleine : background #0F172A · color #FFFFFF   (« J'autorise », « Je participe », « Signer »)
+Outline : transparent · borderWidth 2px · borderColor rgba(15,23,42,0.18) · color #0F172A   (« Non », « Peut-être »)
+Variante liste (Signer dans « À faire ») : height 30px · paddingH 14px · fontSize 12px · fontWeight 600
+  (zone tactile étendue à 44px par hitSlop)
+```
+
 ### Aria inline
 ```
 height: 40px · borderRadius: 999px · paddingH: 16px
@@ -233,7 +244,7 @@ fontSize: 11-12px · placeholder: rgba(15,23,42,0.35)
 ```
 Composant : HeaderFondu (src/components/HeaderFondu.tsx), couche absolue en tête du contenu défilant
 Pleine largeur, derrière la barre d'état, la top bar et les premières cartes (« À faire » flotte dessus)
-Hauteur : insets.top + 300px · aucun arrondi · aucune coupure
+Hauteur : insets.top + 340px · aucun arrondi · aucune coupure
 Couleur de l'enfant : rgba(c, a) avec le MÊME RGB à chaque arrêt (withAlpha, src/utils/couleur.ts)
   arrêts [position, opacité] : [0,1] [.40,1] [.50,.94] [.58,.84] [.66,.68] [.74,.50]
                                [.82,.32] [.89,.17] [.95,.06] [1,0]   (ease-out, pas de bande)
@@ -241,9 +252,7 @@ Couleur de l'enfant : rgba(c, a) avec le MÊME RGB à chaque arrêt (withAlpha, 
 Photo choisie : photo + voile rgba(15,23,42,0.28), puis voile #F2F1EE d'opacité (1 − a) aux
   mêmes arrêts (sur une page unie, identique à une photo d'opacité a ; pas de MaskedView)
 Compte sans enfant : même fondu, indigo #4338CA ; l'état vide est dans une carte blanche
-Texte (paddingTop insets.top + 60 · paddingHorizontal 20 · paddingBottom 16) :
-  « Bonjour » : Figtree 500 · 13px · rgba(255,255,255,0.95)   (AA ≥ 5,1 sur les 6 couleurs)
-  Prénom : Figtree 900 · 32px · letterSpacing -1.2 · #FFFFFF    (≥ 5,2)
+En-tête du carnet (§18.3) : ligne d'identité posée sur la partie pleine du fondu — plus de « Bonjour », aucun emoji
 Libellés / textes vides posés sur le fondu (SurFondu, mesure onLayout) :
   opacité du fondu ≥ 0,6 → #FFFFFF ; 0,05–0,6 → rgba(15,23,42,0.55) ; au-delà → style normal
 Au repos : top bar claire (pill active rgba(255,255,255,0.22), icônes blanches) + barre d'état claire
@@ -265,10 +274,13 @@ PAS de titre — déjà dans la pill active de la top bar ; onglet nommé « Mes
 Segmented (§17) : « Général · [prénom] » — Général par défaut, puis dernier segment consulté
 Barre : recherche en pill pleine largeur (height 36, radius 999, rgba(15,23,42,0.06))
         + menu « Tout ⌄ » (§12) : Tout · Non lus · À signer · Tout marquer comme lu
-Général : carte « À traiter » en tête (SEULE carte de l'écran) :
-          mot à signer + bouton pill « Signer » (confirmation obligatoire)
+Général : carte blanche « mot à traiter » en tête (SEULE carte de l'écran) :
+          pastille indigo (pencil) + titre 600 14 + sous-titre (expéditeur · date de l'événement · échéance)
+          + « À prévoir » en puces (height 26, paddingH 10, fond #E2E8F0, texte #334155, 12px)
           + statuts par responsable « Sophie ✓ · Vous » (§17 Statut de signature)
-          + « À prévoir » en pastilles ; puis la liste à plat (§7 Card message)
+          + pilules COMPACTES (§2) : autorisation « J'autorise » + « Non » · participation « Je participe »
+            · « Peut-être » · « Non » · signature « Signer » seule (confirmation obligatoire)
+          puis la liste à plat (§7 Ligne de message, §18.4)
 [Prénom] : fils de l'enfant (fil famille par foyer ; fil individuel si l'enseignant a choisi
           « un seul parent ») et absences ; mention « Envoyé aussi à [prénom] » si l'autre foyer l'a reçu
 Interdits : bandeau « N mots à signer », rouge, résumé Aria, rôle de l'expéditeur, tags de catégorie
@@ -311,6 +323,8 @@ Symbole Scolaria: 18px · color #4338CA · alignSelf flex-start · marginTop: 2p
 ```
 
 ### Card message (liste) — liste à plat façon X, PAS une carte (B4, 26 sept 2026)
+> Remplacée par la **Ligne de message** (§18.4, sprint « Carnet vivant »). Le séparateur de 1px y est
+> remis (la décision du 27 sept « aucun séparateur » était révisable). Le reste de ce bloc sert d'historique.
 ```
 Ligne : display flex · alignItems flex-start · gap 12px · paddingVertical ~14px · paddingHorizontal 14px
 Séparateur : AUCUN (décision du 27 sept 2026 après captures Redmi avec / sans ; révisable)
@@ -377,10 +391,15 @@ Agenda : **pas de FAB**. L'ajout passe par le « + » de la bottom bar (§0, act
 ## 10. SECTION LABELS
 
 ```
-fontSize: 7.5px · fontWeight: 600 · letterSpacing: 1.1px
-textTransform: uppercase · color: #0F172A · opacity: 0.28
-padding: 14px 14px 6px
-Première section: paddingTop: 10px
+Accueil, Suivi, Messages (décision du sprint « Carnet vivant ») :
+  Figtree 600 · 13px · casse normale · color rgba(15,23,42,0.55) · padding 18px 6px 8px
+  Une marge « entre sections » ne s'applique pas à la première section affichée (leçon du 25 sept)
+
+Autres écrans (provisoire, jusqu'à validation) :
+  fontSize: 7.5px · fontWeight: 600 · letterSpacing: 1.1px
+  textTransform: uppercase · color: #0F172A · opacity: 0.28
+  padding: 14px 14px 6px
+  Première section: paddingTop: 10px
 ```
 
 ---
@@ -431,7 +450,7 @@ Suit le pattern Bottom Sheet (§11)
 Email compte: fontSize 11px · color rgba(15,23,42,0.55) · padding 4px 16px 10px
 
 Child row: flex · alignItems center · gap 12px · padding 12px 16px
-Avatar: 36×36px cercle
+Avatar: 36×36px cercle · photo de l'enfant si elle existe, sinon initiale sur sa couleur
 Prénom: fontSize 13px · fontWeight 600
 Niveau: fontSize 11px · color rgba(15,23,42,0.55)
 Check: fontSize 14px · color #4338CA · marginLeft auto
@@ -501,7 +520,9 @@ section-label Figtree 600  7.5px  letterSpacing 1.1px    uppercase
 ✗ Jamais card glass dans les pages profondes (paramètres, aide, etc.)
 ✗ Jamais de vue mélangeant plusieurs enfants
 ✗ Jamais de module grisé visible
-✗ Jamais d'emoji sur une matière
+✗ Jamais d'emoji sur une matière (texte + pastille teintée + icône lucide sobre)
+✗ Jamais de teinte de catégorie sur un niveau de compétence ni une tendance
+✗ Jamais de teinte de discipline sur un type de contenu, ni sur une personne
 ✗ Jamais de vert/rouge sur les données (compétences, trends)
 ✗ Jamais de top bar opaque ni BlurView dans les barres → voile ScrollVeil
 ✗ Jamais de Pressable / Text / TextInput importés de react-native → src/components/ui
@@ -559,6 +580,101 @@ Obligatoire sous toute donnée de carnet
 Pill 24px · paddingH 10px · fontSize 11px · fontWeight 600
 Signé: background rgba(67,56,202,0.10) · color #4338CA · "Julien ✓"
 En attente: background rgba(15,23,42,0.06) · color rgba(15,23,42,0.62) · "Vous"
+```
+
+---
+
+## 18. CARNET VIVANT — COMPOSANTS (sprint d'octobre 2026)
+
+Source unique des teintes : `src/theme/categories.ts` (identifiants stables, jamais les libellés).
+Icônes lucide size 20, strokeWidth 2. Pastille et icône décoratives : masquées aux lecteurs d'écran.
+
+### 18.1 Pastille de catégorie
+```
+Carré arrondi : 38×38 (borderRadius 12) — 34×34 en ligne d'horaire — fond = teinte, icône lucide = couleur d'icône
+Teintes (fond / icône, AA) :
+  ambre   #FEF3C7 / #92400E      ciel    #E0F2FE / #075985      rose   #FCE7F3 / #9D174D
+  orange  #FFEDD5 / #9A3412      ardoise #E2E8F0 / #334155      action rgba(67,56,202,0.10) / #4338CA
+Disciplines et domaines (identifiant stable → teinte, icône) :
+  Langage oral et écrit / Français ............ ambre   · message-circle
+  Premiers outils mathématiques / Mathématiques orange   · shapes
+  Se repérer dans le temps et l'espace / Questionner le monde  ardoise · compass
+  EMC ......................................... ardoise · scale
+  Langue vivante .............................. ambre   · languages
+  Activités artistiques / Enseignements artistiques  rose · palette
+  Activités physiques / EPS ................... ciel    · activity
+  Inconnu ..................................... ardoise · book-open  (jamais d'erreur)
+Types de contenu (jamais une teinte de discipline) :
+  mot à signer · autorisation · à répondre .... action  · pencil
+  photo · souvenir · livret · document · « À prévoir »  ardoise · image · file-text · backpack
+Personne : initiales Figtree 700 13px sur #E2E8F0 / #334155 (aucune teinte propre)
+École · direction · mairie : fond #E2E8F0 + building-2 #334155
+```
+
+### 18.2 Carte de domaine (Suivi › Apprentissages)
+```
+UNE carte par domaine / discipline (remplace « étiquette grise en majuscules + carte anonyme par observation »)
+Carte glass d'écran principal (§7) : borderRadius 18 · padding 14 · gap 8 · rien de pressable
+En-tête : pastille 38×38 (§18.1) + titre en casse normale (Figtree 700 · 14px · letterSpacing -0.3 · #0F172A)
+          + sous-titre « N observation(s) » (Figtree 400 · 12px · rgba(15,23,42,0.55))
+Corps : observations séparées par un filet 1px rgba(15,23,42,0.08), la plus récente en premier
+        texte Figtree 400 · 14px · lineHeight 1.45 + ligne source obligatoire (§17), 11px rgba(15,23,42,0.6)
+Primaire : niveaux (3 segments A/PA/NA ou 4 LSU) sous chaque compétence, inchangés et SANS teinte
+Domaine sans observation : non affiché · ordre du programme officiel
+Accessibilité : l'en-tête porte le label « [domaine], N observations »
+```
+
+### 18.3 En-tête de carnet (Accueil)
+```
+Sur le HeaderFondu (§6) : hauteur insets.top + 340, même logique (même RGB à chaque arrêt, jamais 'transparent')
+Ligne d'identité : paddingTop insets.top + 64 · paddingHorizontal 20 · row · alignItems center · gap 14
+Cercle photo : 78 · borderRadius 999 · bordure 3px #FFFFFF · fond rgba(255,255,255,0.30)
+  sans photo : initiale Figtree 800 · 30px · blanc + badge appareil photo 26px (fond #0F172A, icône camera 14 blanche,
+  hitSlop pour 44px) qui ouvre la feuille de photo (§11, 3 lignes)
+À droite :
+  prénom ..... Figtree 900 · 30px · letterSpacing -1.1 · #FFFFFF
+  classe ..... Figtree 500 · 14px · rgba(255,255,255,0.95)   (« Grande section », « CE1 »…)
+  pilule année : height 26 · paddingH 10 · borderRadius 999 · fond rgba(255,255,255,0.22)
+                 Figtree 500 · 12px · blanc · « [École] · 2026–2027 » + chevron-down 13px ; sans école : année seule
+                 tap = dropdown du bouton année (§12 / §17) : année en cours cochée · « Archives · lecture seule »
+                 · années précédentes → Mon parcours
+Contraste AA sur les 6 couleurs d'enfant ; fond photo : voile existant conservé
+Avatar de la top bar = photo sinon initiale ; il reste le sélecteur d'enfant. Aucun bouton « Changer »,
+aucune pastille d'enfants sur l'Accueil.
+
+Corps, dans l'ordre :
+ 1. « À faire » : carte blanche ; lignes = pastille 38 (type, §18.1) + titre 600 14 + sous-titre 12.
+    Mot à signer : pilule « Signer » à droite (§2 variante liste). Devoirs et « À prévoir » : case ronde 22px,
+    bordure 1.5px rgba(15,23,42,0.25), cochable. Devoirs teintés par DISCIPLINE (primaire seulement).
+ 2. « Cette semaine » : prochain événement d'Agenda, carte §7 (borderLeft 3px indigo, fond rgba(67,56,202,0.08),
+    borderRadius 14, sans emoji).
+ 3. « Nouveau dans le carnet » : carte blanche ; observation + pastille de son domaine ; photo + miniature 48×48 à droite.
+ 4. Primaire seulement : « Aujourd'hui », journée type fixe : heure (13px, largeur 40) + pastille 34 + nom.
+ 5. Carte Aria existante en bas, alimentée par les seules données de l'enfant sélectionné, sources citées.
+Niveaux : maternelle = ni devoirs ni journée type ; primaire = tout ; collège / lycée = contenu inchangé.
+Sans enfant : état vide inchangé.
+```
+
+### 18.4 Ligne de message (liste à plat)
+```
+Pas de carte. Ligne minHeight 64 · avatar 42 rond · séparateur 1px rgba(15,23,42,0.06)
+École · direction · mairie : fond #E2E8F0 + building-2 #334155 · personne : initiales 700 13px sur #E2E8F0 / #334155
+Non lu : titre Figtree 700 · date indigo 500 · point 8px #4338CA à droite de l'aperçu
+Lu : titre 500 · date rgba(15,23,42,0.5)
+Aperçu : 12px · rgba(15,23,42,0.65) · 1 ligne · ellipsis
+Message avec photo : icône image 14px devant l'aperçu + miniature 44×44 (borderRadius 10) à droite,
+  URL signée, placeholder ardoise si échec
+Jamais : rôle de l'expéditeur, tag de catégorie, résumé Aria, rouge, vue mêlant plusieurs enfants
+```
+
+### 18.5 Photo de l'enfant — feuille de photo
+```
+Bottom sheet (§11), 3 lignes : « Prendre une photo » · « Choisir dans la galerie » · « Supprimer la photo »
+(la dernière seulement si la photo existe, Alert natif avant)
+Consentement en pied : « Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables, et de
+l'équipe de son école quand elle rejoint l'application. »
+Jamais obligatoire ni bloquante, pas de relance répétée : le badge de l'en-tête suffit
+Mode démo : aucune photo, initiales seulement
 ```
 
 ---

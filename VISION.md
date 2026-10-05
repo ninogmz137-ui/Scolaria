@@ -314,7 +314,9 @@ Interface parent complète : Accueil, Notes, Agenda, Messagerie, Aria chat, desi
 - **Aria propose, l'humain décide** — pour tout acte irréversible
 - **"Scolaria"** — jamais ScolarIA, jamais avec IA en majuscules
 - **Pas de full-width buttons** dans le design system
-- **Indigo #4338CA seul accent** — dégradé #6366F1→#22D3EE réservé à Aria ; violet #7C3AED supprimé
+- **Indigo #4338CA = seule couleur d'ACTION** (boutons, liens, sélection, états actifs) — dégradé #6366F1→#22D3EE réservé à Aria ; violet #7C3AED supprimé
+- **Teintes de catégorie** : douces, pour CLASSER seulement (disciplines, types de contenu) — jamais pour évaluer, jamais de vert ni de rouge sur une donnée scolaire
+- **Pas d'emoji sur une matière** : texte + pastille teintée + icône sobre
 
 ---
 

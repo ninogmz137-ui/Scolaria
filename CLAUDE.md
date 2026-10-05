@@ -71,9 +71,10 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 | ✦ sparkle wordmark | Indigo `#4338CA` solide |
 | Symbole (8 ellipses) | Indigo `#4338CA` |
 | Icône app | Fond blanc `#FFFFFF` + symbole indigo |
-| Règle couleur | Blanc/noir dominent — indigo = unique touche accent |
+| Règle couleur | Blanc/noir dominent — indigo = seule couleur d'ACTION |
 
-**Une seule couleur accent. Partout. Toujours.**
+**Indigo `#4338CA` = la seule couleur d'ACTION** (boutons, liens, sélection, états actifs). Partout. Toujours.
+Les teintes de catégorie (ci-dessous) servent à CLASSER, jamais à agir ni à évaluer.
 Le dégradé `#6366F1 → #22D3EE` est réservé exclusivement à Aria — jamais sur l'identité de marque.
 Le violet `#7C3AED` et l'ancien gradient Aria `#8B5CF6 → #1B72E8` sont supprimés.
 
@@ -91,6 +92,16 @@ Elle s'applique **uniquement** à :
 - le header wallpaper de l'Accueil de son carnet
 
 Elle ne s'applique jamais aux tuiles, cartes, pages ou bandeaux. Les anciens thèmes par niveau (orange maternelle / bleu primaire / anthracite lycée appliqués à toute l'app) sont supprimés.
+Dans l'en-tête du carnet (Accueil), elle fait le fond en fondu ; la photo de l'enfant, si elle existe, remplace l'initiale partout où l'enfant apparaît.
+
+### Teintes de catégorie
+Teintes douces (pastille + icône lucide) servant **uniquement à CLASSER** : disciplines et domaines, types de contenu.
+- **Jamais pour évaluer** : aucune teinte sur un niveau de compétence ni sur une tendance ; jamais de vert ni de rouge ; les barres de niveau restent inchangées (§ Suivi).
+- Une discipline a **la même teinte partout** (Suivi, Accueil, devoirs, agenda). Source unique : `src/theme/categories.ts`, indexée par identifiant stable (jamais par libellé).
+- Teintes (fond de pastille / couleur d'icône, AA) : ambre `#FEF3C7` / `#92400E` · ciel `#E0F2FE` / `#075985` · rose `#FCE7F3` / `#9D174D` · orange `#FFEDD5` / `#9A3412` · ardoise `#E2E8F0` / `#334155` · action (indigo) `rgba(67,56,202,0.10)` / `#4338CA`.
+- Types de contenu : mot à signer, autorisation, à répondre = action (indigo, `pencil`) ; photo, souvenir, livret, document, « À prévoir » = ardoise. Jamais une teinte de discipline pour un type.
+- Une personne n'a aucune teinte propre : initiales sur ardoise ; école, direction, mairie = ardoise + `building-2`.
+- Discipline inconnue : ardoise + `book-open`, jamais d'erreur.
 
 ---
 
@@ -153,7 +164,8 @@ Figtree_500Medium — body medium (13px)
 Figtree_400Regular — body (12-14px, lineHeight 1.5)
 Figtree_300Light  — meta (10-11px, color rgba(15,23,42,0.35-55))
 
-Section labels : 600, 7.5px, letterSpacing 1.1px, uppercase, opacity 0.28
+Label de section (Accueil, Suivi, Messages) : Figtree 600, 13px, casse normale, rgba(15,23,42,0.55), padding 18px 6px 8px
+Section labels des autres écrans (provisoire, jusqu'à validation) : 600, 7.5px, letterSpacing 1.1px, uppercase, opacity 0.28
 ```
 
 **JAMAIS de font système. JAMAIS Barlow. JAMAIS DM Sans.**
@@ -178,10 +190,12 @@ Accueil :   header PLEINE LARGEUR en FONDU (décision du 24 sept 2026 ; ni carte
             passe DERRIÈRE la barre d'état, la top bar et les premières cartes, qui flottent sur sa fin
             couleur de l'enfant en dégradé vertical vers la TRANSPARENCE : rgba(c,1) → rgba(c,0),
             même RGB à chaque arrêt (jamais couleur → #F2F1EE, jamais 'transparent')
-            ~300px sous la barre d'état, 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
-            photo choisie : photo + voile sombre, même courbe de disparition
+            ~340px sous la barre d'état, 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
+            photo choisie comme fond : photo + voile sombre, même courbe de disparition
             compte sans enfant : même fondu, indigo
-            « Bonjour » + prénom en blanc sur la partie pleine ; barre d'état claire au repos
+            EN-TÊTE DU CARNET (remplace « Bonjour » + prénom) : photo de l'enfant en cercle (initiale + badge
+            appareil photo sans photo), prénom, classe, pilule « [École] · année » ; blanc sur la partie pleine ;
+            barre d'état claire au repos (détail : COMPONENTS §6)
             libellés posés sur le fondu : blanc si opacité ≥ 0,6, sinon #0F172A 55 %
             au défilement : le fondu part avec le contenu, ScrollVeil apparaît, top bar en §0.
 Suivi :     pas de header coloré. Bouton année "2025–2026 · CE1 ⌄"
@@ -234,7 +248,7 @@ Icônes de navigation (top bar) = papicons ; lucide-react-native partout ailleur
 Taille : 20px listes, 22-24px navigation
 strokeWidth: 2
 Emoji : autorisés dans le contenu (messages, Score de Joie) — jamais comme icône UI
-Matières : texte + couleur uniquement. JAMAIS d'emoji sur une matière, nulle part.
+Matières : texte + pastille teintée + icône lucide sobre (teintes de catégorie). JAMAIS d'emoji sur une matière, nulle part.
 ```
 
 ### Animations
@@ -487,6 +501,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
   > « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. Aria s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez Aria, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
 - L'Edge Function `aria` est appelée avec la région `eu-west-3` imposée (sinon : région la plus proche, parfois hors UE)
 - Export JSON complet disponible (par carnet d'enfant)
+- **Photo de l'enfant** : donnée personnelle d'un mineur. Stockage PRIVÉ (bucket « child-photos », un seul objet `{child_id}/avatar.jpg`) ; lecture par URL signée courte (1 h), jamais de lien public ; ré-encodée sur l'appareil (512×512, JPEG) avant envoi, ce qui retire les métadonnées EXIF / GPS ; incluse dans l'export JSON du carnet ; supprimée en cascade avec l'enfant, objet de stockage compris (il ne suit pas la cascade SQL : même mécanisme que les fichiers de `carnet_items`) ; **jamais envoyée à l'Edge Function `aria` ni au modèle, jamais dans un journal ni une notification** ; suit le carnet à 18 ans. Tout responsable rattaché peut l'ajouter, la remplacer ou la supprimer ; jamais obligatoire. Aucune lecture enseignant / direction tant que l'espace école n'est pas ouvert (consentement affiché dans la feuille de photo).
 - Droit à l'effacement en cascade sous 30 jours
 - Journal d'accès : **pas construit** → aucune mention dans l'app tant qu'il n'existe pas (retiré le 26 sept 2026)
 - URL signées d’1 h pour l’affichage des fichiers dans l’app (bucket privé « carnet », M20) ; jamais de lien public
