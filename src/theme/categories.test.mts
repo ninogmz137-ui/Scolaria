@@ -68,6 +68,11 @@ const officiels = [...DOMAINES_CYCLE_1, ...DISCIPLINES_CYCLE_2, ...DISCIPLINES_C
 const sansId = officiels.filter((l) => idDiscipline(l) === 'inconnu');
 verifier(`les ${officiels.length} libellés officiels ont un identifiant`, sansId.length === 0, sansId.join(' | '));
 
+// Noms courts rencontrés dans l'agenda de démo (emploi du temps, devoirs) : tous couverts.
+const courts = ['Français', 'Mathématiques', 'Histoire-Géo', 'Anglais', 'Sciences', 'EPS', 'Arts', 'Musique', 'Explorer le monde'];
+const courtsSansId = courts.filter((l) => idDiscipline(l) === 'inconnu');
+verifier('noms courts de l\'agenda de démo couverts', courtsSansId.length === 0, courtsSansId.join(' | '));
+
 // Mêmes teintes pour un même identifiant, quel que soit le cycle.
 verifier('Français (cycles 2 et 3) et domaine de langage (cycle 1) : même teinte',
   idDiscipline('Français') === idDiscipline(DOMAINES_CYCLE_1[0]));

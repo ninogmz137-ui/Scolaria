@@ -85,6 +85,13 @@ const PAR_LIBELLE: Record<string, DisciplineId> = {
   'enseignements artistiques': 'arts',
   'education physique et sportive': 'eps',
   eps: 'eps',
+  // Noms courts des emplois du temps et des devoirs (agenda de démo, Agenda réel) : mêmes disciplines.
+  'histoire geo': 'monde',
+  anglais: 'langue-vivante',
+  sciences: 'monde',
+  arts: 'arts',
+  musique: 'arts',
+  'explorer le monde': 'monde',
   // Proposés, hors liste du sprint : disciplines du cycle 3 de la même famille.
   'arts plastiques': 'arts',
   'education musicale': 'arts',

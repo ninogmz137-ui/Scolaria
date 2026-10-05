@@ -14,50 +14,14 @@
 import { View, Image, StyleSheet, type ImageSourcePropType } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { withAlpha } from '../utils/couleur';
+import { ARRETS_FONDU, opaciteFondu, tonSurFondu } from '../utils/fondu';
 
 const PAGE_BG = '#F2F1EE';
 
-/** [position 0 → 1, opacité de la couleur]. Plein sur ~40 %, puis décroissance ease-out. */
-const ARRETS: [number, number][] = [
-  [0, 1],
-  [0.4, 1],
-  [0.5, 0.94],
-  [0.58, 0.84],
-  [0.66, 0.68],
-  [0.74, 0.5],
-  [0.82, 0.32],
-  [0.89, 0.17],
-  [0.95, 0.06],
-  [1, 0],
-];
-const POSITIONS = ARRETS.map(([p]) => p) as [number, number, ...number[]];
+const POSITIONS = ARRETS_FONDU.map(([p]) => p) as [number, number, ...number[]];
 
-/** Opacité de la couleur du fondu à l'ordonnée `y` (0 au-delà du fondu). */
-export function opaciteFondu(y: number, hauteur: number): number {
-  const p = hauteur > 0 ? y / hauteur : 1;
-  if (p <= 0) return 1;
-  if (p >= 1) return 0;
-  for (let i = 1; i < ARRETS.length; i++) {
-    const [p1, a1] = ARRETS[i];
-    const [p0, a0] = ARRETS[i - 1];
-    if (p <= p1) return a0 + ((p - p0) / (p1 - p0)) * (a1 - a0);
-  }
-  return 0;
-}
-
-/**
- * Ton d'un texte posé sur le fondu (contrastes calculés sur les 6 couleurs d'enfant) :
- *  - 'clair' (blanc) tant que la couleur est encore dense (≥ 0,6) ;
- *  - 'fonce' (#0F172A à 55 %) dans la zone intermédiaire : contraste ≥ 2,75, soit mieux que le
- *    libellé standard sur fond uni (2,37) ;
- *  - null au-delà : style normal.
- */
-export function tonSurFondu(y: number, hauteur: number): 'clair' | 'fonce' | null {
-  const a = opaciteFondu(y, hauteur);
-  if (a >= 0.6) return 'clair';
-  if (a > 0.05) return 'fonce';
-  return null;
-}
+// Courbe et ton du texte : src/utils/fondu.ts (module pur, testé), ré-exportés pour les appelants existants.
+export { opaciteFondu, tonSurFondu };
 
 interface Props {
   couleur: string;
@@ -74,7 +38,7 @@ export default function HeaderFondu({ couleur, photo, hauteur }: Props) {
         {/* Voile sombre : texte blanc lisible sur toutes les photos */}
         <View style={[StyleSheet.absoluteFill, st.voilePhoto]} />
         <LinearGradient
-          colors={ARRETS.map(([, a]) => withAlpha(PAGE_BG, 1 - a)) as [string, string, ...string[]]}
+          colors={ARRETS_FONDU.map(([, a]) => withAlpha(PAGE_BG, 1 - a)) as [string, string, ...string[]]}
           locations={POSITIONS}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
@@ -86,7 +50,7 @@ export default function HeaderFondu({ couleur, photo, hauteur }: Props) {
   return (
     <LinearGradient
       pointerEvents="none"
-      colors={ARRETS.map(([, a]) => withAlpha(couleur, a)) as [string, string, ...string[]]}
+      colors={ARRETS_FONDU.map(([, a]) => withAlpha(couleur, a)) as [string, string, ...string[]]}
       locations={POSITIONS}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}

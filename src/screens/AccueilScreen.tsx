@@ -16,15 +16,21 @@ import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildCont
 import { useAuth } from '../contexts/AuthContext';
 import { WALLPAPERS } from '../contexts/WallpaperContext';
 import { getSuiviDemo } from '../data/demo/suivi';
-import { jourMois, libelleNiveau, ligneSource, type Echelle, type ElementSuivi } from '../utils/competences';
-import { aDesNotes } from '../utils/niveau';
+import { jourMois } from '../utils/competences';
+import { aDesNotes, libelleClasse } from '../utils/niveau';
 import AucunEnfant from '../components/AucunEnfant';
-import HeaderFondu, { tonSurFondu } from '../components/HeaderFondu';
-import type { LayoutChangeEvent, StyleProp, TextStyle } from 'react-native';
+import HeaderFondu from '../components/HeaderFondu';
 import Animated from 'react-native-reanimated';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import ScolariaSymbol from '../components/ScolariaSymbol';
-import SectionLabel from '../components/SectionLabel';
+import EnteteCarnet from '../components/accueil/EnteteCarnet';
+import CorpsCarnet from '../components/accueil/CorpsCarnet';
+import SurFondu, { LibelleSurFondu } from '../components/accueil/SurFondu';
+import { useAnneesEnfant } from '../hooks/useAnneesEnfant';
+import { useAgendaSemaine } from '../hooks/useAgendaSemaine';
+import { useCoches } from '../hooks/useCoches';
+import { getChildInitials } from '../utils/childInitials';
+import { monNomComplet, type MotCarnet } from '../services/motsService';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
 import { C } from '../constants/design';
 import { Text } from '../components/ui';
@@ -51,36 +57,12 @@ const ACTION_PILLS: Record<string, { label: string; bg: string; color: string }>
   justifier: { label: 'JUSTIFIER', bg: '#FEF3C7', color: '#B45309' },
 };
 
-/** Hauteur réservée à la top bar au-dessus du contenu du header (TOPBAR_PADDING_TOP + rangée + marge). */
-const HERO_TOPBAR_RESERVE = 60;
-/** Longueur du fondu sous la barre d'état (~300 px) : les premières cartes flottent sur sa fin. */
-const HERO_FONDU = 300;
+/** Hauteur réservée à la top bar au-dessus de la ligne d'identité de l'en-tête du carnet (insets.top + 64). */
+const HERO_TOPBAR_RESERVE = 64;
+/** Longueur du fondu sous la barre d'état : les premières cartes flottent sur sa fin (COMPONENTS §6). */
+const HERO_FONDU = 340;
 
-// ─── Sous-composants ──────────────────────────────────────
-
-const TON_STYLE: Record<'clair' | 'fonce', TextStyle> = {
-  clair: { color: '#FFFFFF' },
-  fonce: { color: 'rgba(15,23,42,0.55)' },
-};
-
-/**
- * Enveloppe un texte posé en haut de l'Accueil : il mesure sa position et prend le ton lisible
- * sur la partie du fondu qui est derrière lui (la position dépend du contenu et de la barre d'état).
- */
-function SurFondu({
-  hauteur,
-  children,
-}: {
-  hauteur: number;
-  children: (ton: StyleProp<TextStyle>) => React.ReactNode;
-}) {
-  const [ton, setTon] = useState<'clair' | 'fonce' | null>(null);
-  const onLayout = (ev: LayoutChangeEvent) => {
-    const { y, height } = ev.nativeEvent.layout;
-    setTon(tonSurFondu(y + height / 2, hauteur));
-  };
-  return <View onLayout={onLayout}>{children(ton ? TON_STYLE[ton] : null)}</View>;
-}
+// ─── Sous-composants (collège / lycée : contenu inchangé) ─────────────
 
 function ActionRow({
   kind, title, deadline, last, onPress,
@@ -122,42 +104,6 @@ function TodayRow({
   );
 }
 
-/** 3 ou 4 segments selon l'échelle de la ligne : remplis #0F172A, vides rgba(15,23,42,0.12). */
-function NiveauSegments({ niveau, echelle }: { niveau: number; echelle: Echelle }) {
-  return (
-    <View style={styles.segments} accessibilityLabel={libelleNiveau(niveau, echelle)}>
-      {Array.from({ length: echelle }, (_, i) => (
-        <View
-          key={i}
-          style={[styles.segment, i + 1 <= niveau && styles.segmentOn, i < echelle - 1 && { marginRight: 3 }]}
-        />
-      ))}
-    </View>
-  );
-}
-
-/** Même élément, même libellé et même ligne source que dans le Suivi (src/data/demo/suivi.ts). */
-function ApprentissageRow({ element, last, onPress }: { element: ElementSuivi; last?: boolean; onPress?: () => void }) {
-  const { domaine, texte, niveau, echelle } = element;
-  return (
-    <TouchableOpacity
-      style={[styles.apprRow, !last && styles.rowBorder]}
-      activeOpacity={0.75}
-      onPress={onPress}
-    >
-      <Text style={styles.apprDomaine}>{domaine}</Text>
-      <Text style={styles.apprTexte}>{texte}</Text>
-      {niveau && echelle ? (
-        <View style={styles.apprMetaLine}>
-          <NiveauSegments niveau={niveau} echelle={echelle} />
-          <Text style={styles.apprNiveau}>{libelleNiveau(niveau, echelle)}</Text>
-        </View>
-      ) : null}
-      <Text style={styles.apprSource}>{ligneSource(element)}</Text>
-    </TouchableOpacity>
-  );
-}
-
 function GradeRow({
   subject, grade, scale, date, last, onPress,
 }: { subject: string; grade: string; scale: string; date: string; last?: boolean; onPress?: () => void }) {
@@ -181,7 +127,7 @@ function GradeRow({
 export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { selectedChild } = useActiveChild();
+  const { selectedChild, children: enfants } = useActiveChild();
   const { isDemo } = useAuth();
   const scrollHandler = useTopbarScrollHandler();
 
@@ -223,9 +169,21 @@ export default function AccueilScreen() {
   const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemo, versionCarnet);
   const motsReels = useMemo(() => carnetReel.filter((e) => e.categorie === 'mot'), [carnetReel]);
   // Chargement en échec (réseau coupé, session expirée…) : message + « Réessayer », jamais « Rien à faire » à tort.
-  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur;
+  // Maternelle / primaire : Agenda des 7 jours (devoirs, prochain événement, journée type), années de l'enfant
+  // (pilule de l'en-tête), cases « À prévoir » (mémorisées sur l'appareil), nom du responsable (signature).
+  const premierDegre = !aDesNotes(selectedChild?.cycle);
+  const primaire = selectedChild?.cycle === 'primaire';
+  const agenda = useAgendaSemaine(selectedChild?.id, isDemo, premierDegre);
+  const anneesEnfant = useAnneesEnfant(selectedChild?.id, isDemo);
+  const { coches, basculer: basculerCoche } = useCoches(selectedChild?.id);
+  const [monNom, setMonNom] = useState('vous');
+  useEffect(() => {
+    if (selectedChild?.id) monNomComplet(selectedChild.id, isDemo).then(setMonNom);
+  }, [selectedChild?.id, isDemo]);
+  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur;
   const reessayerAccueil = () => {
     reel.recharger();
+    agenda.recharger();
     rechargerMots();
     rechargerCarnet();
   };
@@ -278,10 +236,24 @@ export default function AccueilScreen() {
             transparence, derrière la barre d'état, la top bar et les premières cartes. Part avec le
             contenu au défilement. Aucun arrondi, aucune coupure. */}
         <HeaderFondu couleur={heroColor} photo={heroPhoto?.source} hauteur={hauteurFondu} />
-        <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
-          <Text style={styles.heroHello}>{selectedChild ? 'Bonjour' : 'Bienvenue'}</Text>
-          <Text style={styles.heroPrenom} numberOfLines={1}>{selectedChild ? prenom : `dans ${NOM_APP}`}</Text>
-        </View>
+        {selectedChild ? (
+          // En-tête du carnet (COMPONENTS §18.3) : photo ou initiale, prénom, classe, pilule « [École] · année ».
+          <EnteteCarnet
+            paddingTop={insets.top + HERO_TOPBAR_RESERVE}
+            prenom={prenom}
+            initiale={getChildInitials(selectedChild.name, enfants.map((c) => c.name))}
+            classe={libelleClasse(selectedChild.niveau)}
+            ecole={anneesEnfant.enCours?.etablissement || selectedChild.ecole}
+            enCours={anneesEnfant.enCours}
+            archives={anneesEnfant.archives}
+            onParcours={() => nav.navigate('MonParcours')}
+          />
+        ) : (
+          <View style={[styles.hero, { paddingTop: insets.top + HERO_TOPBAR_RESERVE }]}>
+            <Text style={styles.heroHello}>Bienvenue</Text>
+            <Text style={styles.heroPrenom} numberOfLines={1}>{`dans ${NOM_APP}`}</Text>
+          </View>
+        )}
 
         {/* Compte réel sans enfant : état vide, rien d'autre (aucune donnée de démo). */}
         {!selectedChild && (
@@ -302,12 +274,31 @@ export default function AccueilScreen() {
           </View>
         )}
 
-        {/* À faire */}
+        {premierDegre ? (
+          // Maternelle / primaire : À faire · Cette semaine · Nouveau dans le carnet · Aujourd'hui (primaire seulement).
+          <CorpsCarnet
+            primaire={primaire}
+            hauteurFondu={hauteurFondu}
+            mots={mots}
+            monNom={monNom}
+            demo={isDemo}
+            evenements={agenda.evenements}
+            onBasculerDevoir={agenda.basculer}
+            coches={coches}
+            onBasculerCoche={basculerCoche}
+            apprentissages={derniersApprentissages}
+            imports={nouveauxMots}
+            onOuvrirMot={(m: MotCarnet) => nav.navigate('MotDetailScreen', { motId: m.id, childId: selectedChild.id })}
+            onOuvrirAgenda={() => nav.getParent()?.navigate('Agenda')}
+            onOuvrirImport={ouvrirAjout}
+            onOuvrirSuivi={ouvrirSuivi}
+          />
+        ) : (
+          <>
+        {/* À faire (collège / lycée : contenu inchangé) */}
         {accueil.todo.length > 0 && (
           <>
-            <SurFondu hauteur={hauteurFondu}>
-              {(ton) => <SectionLabel text="À faire" style={[styles.sectionLabel, ton]} />}
-            </SurFondu>
+            <LibelleSurFondu texte="À faire" hauteur={hauteurFondu} />
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
                 {accueil.todo.map((it, i) => (
@@ -328,9 +319,7 @@ export default function AccueilScreen() {
         )}
 
         {/* Aujourd'hui */}
-        <SurFondu hauteur={hauteurFondu}>
-          {(ton) => <SectionLabel text="Aujourd'hui" style={[styles.sectionLabel, ton]} />}
-        </SurFondu>
+        <LibelleSurFondu texte="Aujourd’hui" hauteur={hauteurFondu} />
         {accueil.aujourdhui.length > 0 ? (
           <View style={styles.cardOuter}>
             <View style={styles.cardInner}>
@@ -361,73 +350,37 @@ export default function AccueilScreen() {
           </SurFondu>
         )}
 
-        {avecNotes ? (
-          <>
-            {/* Dernières notes : collège / lycée uniquement */}
-            <SurFondu hauteur={hauteurFondu}>
-              {(ton) => <SectionLabel text="Dernières notes" style={[styles.sectionLabel, ton]} />}
-            </SurFondu>
-            {dernieresNotes.length > 0 ? (
-              <View style={styles.cardOuter}>
-                <View style={styles.cardInner}>
-                  {dernieresNotes.map((it, i) => (
-                    <GradeRow
-                      key={it.id}
-                      subject={it.subject}
-                      grade={it.grade}
-                      scale={it.scale}
-                      date={it.date}
-                      last={i === dernieresNotes.length - 1}
-                      onPress={ouvrirSuivi}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : (
-              <SurFondu hauteur={hauteurFondu}>
-                {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucune note pour l’instant.'}</Text>}
-              </SurFondu>
-            )}
-            <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
-              <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
-            </TouchableOpacity>
-          </>
+        {/* Dernières notes : collège / lycée uniquement */}
+        <LibelleSurFondu texte="Dernières notes" hauteur={hauteurFondu} />
+        {dernieresNotes.length > 0 ? (
+          <View style={styles.cardOuter}>
+            <View style={styles.cardInner}>
+              {dernieresNotes.map((it, i) => (
+                <GradeRow
+                  key={it.id}
+                  subject={it.subject}
+                  grade={it.grade}
+                  scale={it.scale}
+                  date={it.date}
+                  last={i === dernieresNotes.length - 1}
+                  onPress={ouvrirSuivi}
+                />
+              ))}
+            </View>
+          </View>
         ) : (
-          <>
-            {/* Maternelle / primaire : derniers apprentissages, jamais de notes /20 */}
-            <SurFondu hauteur={hauteurFondu}>
-              {(ton) => <SectionLabel text="Derniers apprentissages" style={[styles.sectionLabel, ton]} />}
-            </SurFondu>
-            {derniersApprentissages.length > 0 ? (
-              <View style={styles.cardOuter}>
-                <View style={styles.cardInner}>
-                  {derniersApprentissages.map((it, i) => (
-                    <ApprentissageRow
-                      key={it.id}
-                      element={it}
-                      last={i === derniersApprentissages.length - 1}
-                      onPress={ouvrirSuivi}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : (
-              <SurFondu hauteur={hauteurFondu}>
-                {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucun apprentissage noté pour l’instant.'}</Text>}
-              </SurFondu>
-            )}
-            <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
-              <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
-            </TouchableOpacity>
-          </>
+          <SurFondu hauteur={hauteurFondu}>
+            {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucune note pour l’instant.'}</Text>}
+          </SurFondu>
         )}
+        <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
+          <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
+        </TouchableOpacity>
 
         {/* Nouveau dans le carnet : mots importés (section absente tant qu'il n'y en a pas) */}
         {nouveauxMots.length > 0 ? (
           <>
-            <SurFondu hauteur={hauteurFondu}>
-              {(ton) => <SectionLabel text="Nouveau dans le carnet" style={[styles.sectionLabel, ton]} />}
-            </SurFondu>
+            <LibelleSurFondu texte="Nouveau dans le carnet" hauteur={hauteurFondu} />
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
                 {nouveauxMots.map((e, i) => (
@@ -448,6 +401,8 @@ export default function AccueilScreen() {
             </View>
           </>
         ) : null}
+          </>
+        )}
 
         <View style={{ height: 14 }} />
 
@@ -526,14 +481,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: -1.2,
     lineHeight: 36,
-  },
-
-  // ── Section label override ───────────────────────────
-  sectionLabel: {
-    paddingTop: 8,
-    paddingBottom: 2,
-    color: 'rgba(15,23,42,0.38)',
-    opacity: 1,
   },
 
   // ── Card wrapper (outer shadow + inner clip) ─────────
@@ -718,26 +665,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: '#0F172A',
     marginTop: 2,
-  },
-  apprMetaLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 6,
-  },
-  segments: { flexDirection: 'row', marginRight: 6 },
-  segment: {
-    width: 22,
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: 'rgba(15,23,42,0.12)',
-  },
-  segmentOn: { backgroundColor: '#0F172A' },
-  apprNiveau: {
-    fontFamily: 'Figtree_600SemiBold',
-    fontSize: 11,
-    lineHeight: 14,
-    color: '#0F172A',
   },
   apprSource: {
     fontFamily: 'Figtree_400Regular',

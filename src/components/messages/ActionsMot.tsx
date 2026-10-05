@@ -72,6 +72,24 @@ export function StatutsSignature({ mot, retrait = 0 }: { mot: MotCarnet; retrait
   );
 }
 
+/**
+ * Signature demandée depuis une liste (pilule « Signer » de l'Accueil) : même confirmation OBLIGATOIRE que la carte
+ * « À traiter » (« Signer au nom de [prénom nom] ? »), puis signerMot ; une erreur est dite, jamais silencieuse.
+ */
+export function demanderSignature(mot: MotCarnet, monNom: string, demo: boolean, apres?: () => void): void {
+  Alert.alert(`Signer au nom de ${monNom} ?`, `« ${mot.titre} »`, [
+    { text: 'Annuler', style: 'cancel' },
+    {
+      text: 'Signer',
+      onPress: async () => {
+        const erreur = await signerMot(mot, demo);
+        if (erreur) Alert.alert('Oups', erreur);
+        apres?.();
+      },
+    },
+  ]);
+}
+
 /** `retrait` : alignement sur le texte d'une ligne à pastille (50 = pastille 38 + 12). */
 export default function ActionsMot({
   mot,

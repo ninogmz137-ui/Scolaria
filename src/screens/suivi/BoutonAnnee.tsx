@@ -15,10 +15,13 @@ export default function BoutonAnnee({
   enCours,
   archives,
   onParcours,
+  pilule,
 }: {
   enCours: AnneeParcours;
   archives: AnneeParcours[];
   onParcours: () => void;
+  /** En-tête du carnet (Accueil) : pilule 26 px sur le fondu de l'enfant, « [École] · année » ; même menu. */
+  pilule?: { ecole?: string };
 }) {
   const bouton = useRef<View>(null);
   const [ouvert, setOuvert] = useState(false);
@@ -40,17 +43,32 @@ export default function BoutonAnnee({
 
   return (
     <>
-      <View ref={bouton} collapsable={false} style={st.ancre}>
-        <Pressable
-          onPress={ouvrir}
-          style={st.bouton}
-          accessibilityRole="button"
-          accessibilityLabel={`Année ${millesimeAffiche(enCours.annee)}, ${enCours.niveau}. Ouvrir les années`}
-          hitSlop={{ top: 5, bottom: 5 }}
-        >
-          <Text style={st.boutonTexte}>{`${millesimeAffiche(enCours.annee)} · ${enCours.niveau}`}</Text>
-          <ChevronDown size={16} color="#0F172A" strokeWidth={2} />
-        </Pressable>
+      <View ref={bouton} collapsable={false} style={pilule ? st.ancrePilule : st.ancre}>
+        {pilule ? (
+          <Pressable
+            onPress={ouvrir}
+            style={st.pilule}
+            accessibilityRole="button"
+            accessibilityLabel={`Année ${millesimeAffiche(enCours.annee)}${pilule.ecole ? `, ${pilule.ecole}` : ''}. Ouvrir les années`}
+            hitSlop={{ top: 9, bottom: 9 }}
+          >
+            <Text style={st.piluleTexte} numberOfLines={1}>
+              {[pilule.ecole, millesimeAffiche(enCours.annee)].filter(Boolean).join(' · ')}
+            </Text>
+            <ChevronDown size={13} color="#FFFFFF" strokeWidth={2} />
+          </Pressable>
+        ) : (
+          <Pressable
+            onPress={ouvrir}
+            style={st.bouton}
+            accessibilityRole="button"
+            accessibilityLabel={`Année ${millesimeAffiche(enCours.annee)}, ${enCours.niveau}. Ouvrir les années`}
+            hitSlop={{ top: 5, bottom: 5 }}
+          >
+            <Text style={st.boutonTexte}>{`${millesimeAffiche(enCours.annee)} · ${enCours.niveau}`}</Text>
+            <ChevronDown size={16} color="#0F172A" strokeWidth={2} />
+          </Pressable>
+        )}
       </View>
 
       {/* Pas de statusBarTranslucent : measureInWindow mesure depuis le bas de la barre d'état (Android) ;
@@ -94,6 +112,18 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  // Pilule de l'en-tête du carnet : 26 px (zone tactile étendue à 44 par hitSlop), voile SOMBRE et non blanc : un voile
+  // blanc à 22 % donne 3,6 à 4,3 de contraste sur 4 couleurs d'enfant (sous AA) ; test : npm run test:entete.
+  ancrePilule: { alignSelf: 'flex-start', maxWidth: '100%' },
+  pilule: {
+    height: 26,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(15,23,42,0.16)',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  piluleTexte: { flexShrink: 1, fontFamily: FontFamily.sansMedium, fontSize: 12, lineHeight: 16, color: '#FFFFFF', marginRight: 4 },
   boutonTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, lineHeight: 17, color: '#0F172A', marginRight: 4 },
   menu: {
     position: 'absolute',
