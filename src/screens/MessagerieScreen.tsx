@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated from 'react-native-reanimated';
-import { School, CalendarX, Search, ChevronDown, Check, FileText } from 'lucide-react-native';
+import { Building2, CalendarX, Search, ChevronDown, Check, FileText } from 'lucide-react-native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -34,7 +34,9 @@ import { C } from '../constants/design';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
 import Segmented from '../components/Segmented';
-import LigneMessage, { SEPARATEURS_MESSAGES, type LigneMessageProps } from '../components/messages/LigneMessage';
+import LigneMessage, { type LigneMessageProps } from '../components/messages/LigneMessage';
+import LibelleSection from '../components/LibelleSection';
+import MiniatureCarnet, { aUneImage } from '../components/MiniatureCarnet';
 import CarteATraiter from '../components/messages/CarteATraiter';
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
@@ -188,7 +190,7 @@ function MessagerieContenu() {
         apercu: c.lastMessage,
         nonLu: c.unread,
         initiales: c.avatarType === 'initials' ? c.initials ?? initialesDe(c.name) : undefined,
-        Icone: c.avatarType === 'school' ? School : c.avatarType === 'absence' ? CalendarX : undefined,
+        Icone: c.avatarType === 'school' ? Building2 : c.avatarType === 'absence' ? CalendarX : undefined,
         // Fil individuel (« Seulement moi », B4b) : invisible pour l'autre responsable.
         prive: c.portee === 'individuel',
         onPress: () => ouvrirConversation(c),
@@ -211,7 +213,7 @@ function MessagerieContenu() {
                 apercu: m.titre,
                 nonLu: !m.lu,
                 initiales: personne ? initialesDe(m.expediteur) : undefined,
-                Icone: personne ? undefined : School,
+                Icone: personne ? undefined : Building2,
                 onPress: () => ouvrirMot(m),
               },
             };
@@ -230,6 +232,8 @@ function MessagerieContenu() {
               apercu: e.note || 'Mot reçu ailleurs',
               nonLu: false,
               Icone: FileText,
+              avecPhoto: aUneImage(e),
+              miniature: aUneImage(e) ? <MiniatureCarnet element={e} taille={44} rayon={10} /> : undefined,
               source: `Importé par ${e.deMoi === false ? e.auteur ?? 'un responsable' : 'vous'}`,
               prive: e.visibilite === 'prive',
               onPress: () => ouvrirImport(e),
@@ -263,8 +267,6 @@ function MessagerieContenu() {
     marquerTousMotsLus(mots, isDemo);
     setMenu(null);
   };
-
-  const Separe = SEPARATEURS_MESSAGES;
 
   return (
     <View style={st.racine}>
@@ -314,6 +316,7 @@ function MessagerieContenu() {
         contentContainerStyle={{ paddingBottom: getBottomBarScrollPadding(insets.bottom) }}
       >
         {erreurMessages && <EtatErreur type={erreurMessages} onReessayer={reessayerMessages} compact />}
+        {carte.length > 0 && <LibelleSection texte="À traiter" premier />}
         {carte.length > 0 && <CarteATraiter mots={carte} monNom={monNom} demo={isDemo} onOuvrir={ouvrirMot} />}
         {erreurMessages && visibles.length === 0 && carte.length === 0 ? null : ecoleAbsente ? (
           <View style={st.vide}>
@@ -342,7 +345,7 @@ function MessagerieContenu() {
             </Text>
           </View>
         ) : (
-          visibles.map((l, i) => <LigneMessage key={l.cle} {...l.props} separateur={Separe && i < visibles.length - 1} />)
+          visibles.map((l, i) => <LigneMessage key={l.cle} {...l.props} separateur={i < visibles.length - 1} />)
         )}
       </Animated.ScrollView>
 

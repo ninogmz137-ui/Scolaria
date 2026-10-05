@@ -30,12 +30,12 @@ export function libelleTraitement(mot: MotCarnet): string | null {
   return t.le ? `${reponse} le ${dateLongue(t.le)}` : reponse;
 }
 
-export function StatutsSignature({ mot }: { mot: MotCarnet }) {
+export function StatutsSignature({ mot, retrait = 0 }: { mot: MotCarnet; retrait?: number }) {
   if (mot.signatureMode === 'none') return null;
   if (mot.signatureMode === 'one') {
     const l = libelleTraitement(mot);
     return (
-      <View style={st.statuts} accessibilityLabel={l ?? 'Une seule signature suffit'}>
+      <View style={[st.statuts, { marginLeft: retrait }]} accessibilityLabel={l ?? 'Une seule signature suffit'}>
         <Text style={st.statutTexte}>{l ? `✓ ${l}` : 'Une seule signature suffit'}</Text>
         {l && !mot.traitePar?.estMoi ? <Text style={st.statutTexte}>· traité pour tout le foyer</Text> : null}
         {mot.reponsesAnciennes.length > 0 && mot.traitePar?.ancien !== true
@@ -50,7 +50,7 @@ export function StatutsSignature({ mot }: { mot: MotCarnet }) {
   // Les autres d'abord, « Vous » en dernier (« Marc ✓ · Vous »).
   const ordre = [...mot.responsables].sort((a, b) => Number(a.estMoi) - Number(b.estMoi));
   return (
-    <View style={st.statuts} accessibilityLabel={ordre.map((r) => `${r.estMoi ? 'Vous' : r.prenom} ${r.aSigne ? 'a signé' : 'n’a pas signé'}`).join(', ')}>
+    <View style={[st.statuts, { marginLeft: retrait }]} accessibilityLabel={ordre.map((r) => `${r.estMoi ? 'Vous' : r.prenom} ${r.aSigne ? 'a signé' : 'n’a pas signé'}`).join(', ')}>
       {ordre.map((r) => (
         <View key={r.id} style={[st.statut, r.aSigne && st.statutSigne]}>
           <Text style={[st.statutTexte, r.aSigne && st.statutTexteSigne]}>
@@ -72,7 +72,18 @@ export function StatutsSignature({ mot }: { mot: MotCarnet }) {
   );
 }
 
-export default function ActionsMot({ mot, monNom, demo }: { mot: MotCarnet; monNom: string; demo: boolean }) {
+/** `retrait` : alignement sur le texte d'une ligne à pastille (50 = pastille 38 + 12). */
+export default function ActionsMot({
+  mot,
+  monNom,
+  demo,
+  retrait = 0,
+}: {
+  mot: MotCarnet;
+  monNom: string;
+  demo: boolean;
+  retrait?: number;
+}) {
   const [envoi, setEnvoi] = useState(false);
 
   const confirmer = (titre: string, message: string, bouton: string, action: () => Promise<string | null>) => {
@@ -100,15 +111,16 @@ export default function ActionsMot({ mot, monNom, demo }: { mot: MotCarnet; monN
       () => repondreMot(mot, reponse, demo),
     );
 
-  const choix: { libelle: string; valeur: Reponse }[] | null =
+  // Pilules COMPACTES (COMPONENTS §2) : la première est pleine (réponse « positive »), les autres en contour.
+  const choix: { libelle: string; valeur: Reponse; pleine?: boolean }[] | null =
     mot.type === 'autorisation'
       ? [
-          { libelle: 'Oui', valeur: true },
+          { libelle: 'J’autorise', valeur: true, pleine: true },
           { libelle: 'Non', valeur: false },
         ]
       : mot.type === 'participation'
         ? [
-            { libelle: 'Oui', valeur: 'oui' as Participation },
+            { libelle: 'Je participe', valeur: 'oui' as Participation, pleine: true },
             { libelle: 'Peut-être', valeur: 'peut_etre' as Participation },
             { libelle: 'Non', valeur: 'non' as Participation },
           ]
@@ -116,34 +128,38 @@ export default function ActionsMot({ mot, monNom, demo }: { mot: MotCarnet; monN
 
   return (
     <View>
-      <StatutsSignature mot={mot} />
+      <StatutsSignature mot={mot} retrait={retrait} />
       {mot.signatureMode === 'one' && mot.traitePar ? null : choix ? (
         mot.maReponse === null ? (
-          <View style={st.choix}>
+          <View style={[st.choix, { marginLeft: retrait }]}>
             {choix.map((c) => (
               <Pressable
                 key={c.libelle}
                 disabled={envoi}
                 onPress={() => repondre(c.valeur)}
-                style={({ pressed }) => [st.pillSecondaire, pressed && st.presse]}
+                hitSlop={{ top: 2, bottom: 2 }}
+                style={({ pressed }) => [st.pilule, c.pleine ? st.pilulePleine : st.piluleContour, pressed && st.presse]}
                 accessibilityRole="button"
               >
-                <Text style={st.pillSecondaireTexte}>{c.libelle}</Text>
+                <Text style={c.pleine ? st.piluleTextePleine : st.piluleTexteContour}>{c.libelle}</Text>
               </Pressable>
             ))}
           </View>
         ) : (
-          <Text style={st.reponse}>{`Votre réponse : ${LIBELLE_REPONSE[String(mot.maReponse)]}`}</Text>
+          <Text style={[st.reponse, { marginLeft: retrait }]}>{`Votre réponse : ${LIBELLE_REPONSE[String(mot.maReponse)]}`}</Text>
         )
       ) : mot.signatureMode !== 'none' && !mot.maSignature && !mot.signeParAncien ? (
-        <Pressable
-          disabled={envoi}
-          onPress={signer}
-          style={({ pressed }) => [st.pillPrimaire, pressed && st.presse]}
-          accessibilityRole="button"
-        >
-          <Text style={st.pillPrimaireTexte}>Signer</Text>
-        </Pressable>
+        <View style={[st.choix, { marginLeft: retrait }]}>
+          <Pressable
+            disabled={envoi}
+            onPress={signer}
+            hitSlop={{ top: 2, bottom: 2 }}
+            style={({ pressed }) => [st.pilule, st.pilulePleine, pressed && st.presse]}
+            accessibilityRole="button"
+          >
+            <Text style={st.piluleTextePleine}>Signer</Text>
+          </Pressable>
+        </View>
       ) : null}
     </View>
   );
@@ -161,29 +177,21 @@ const st = StyleSheet.create({
   statutSigne: { backgroundColor: 'rgba(67,56,202,0.10)' },
   statutTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, lineHeight: 14, color: 'rgba(15,23,42,0.62)' },
   statutTexteSigne: { color: '#4338CA' },
-  choix: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  pillSecondaire: {
-    flex: 1,
-    height: 44,
+  // Pilules compactes : hauteur 40, retour à la ligne autorisé (marges plutôt que gap : leçon du 10 avril).
+  choix: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 4 },
+  pilule: {
+    height: 40,
+    paddingHorizontal: 20,
+    marginRight: 8,
+    marginTop: 8,
     borderRadius: 999,
-    borderWidth: 2,
-    borderColor: 'rgba(15,23,42,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pillSecondaireTexte: { fontFamily: FontFamily.sansBold, fontSize: 14, color: NAVY },
-  pillPrimaire: {
-    marginTop: 12,
-    height: 44,
-    minWidth: 140,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 28,
-    borderRadius: 999,
-    backgroundColor: NAVY,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillPrimaireTexte: { fontFamily: FontFamily.sansBold, fontSize: 14, color: '#FFFFFF' },
+  pilulePleine: { backgroundColor: NAVY },
+  piluleContour: { borderWidth: 2, borderColor: 'rgba(15,23,42,0.18)' },
+  piluleTextePleine: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#FFFFFF' },
+  piluleTexteContour: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: NAVY },
   presse: { opacity: 0.85, transform: [{ scale: 0.97 }] },
   reponse: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: 'rgba(15,23,42,0.62)', marginTop: 10 },
 });
