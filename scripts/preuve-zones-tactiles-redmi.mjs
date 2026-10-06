@@ -58,11 +58,14 @@ function appuyer(x, y, noeuds) {
 }
 const dehors = 4 * DP; // ~4 dp à l'extérieur du visuel, dans la zone de 44 dp (zones de 2 à 5 dp de marge)
 
+/** Repère de l'Accueil depuis l'en-tête du carnet : la carte « ARIA » (ou « Bienvenue » sans enfant). */
+const estAccueil = (n) => n.some((e) => e.t === 'ARIA' || e.t === 'Bienvenue');
+
 async function retourAccueil() {
   // Un seul retour à la fois, avec contrôle ; sinon arrêt.
   for (let i = 0; i < 3; i++) {
     const n = lire();
-    if (n.some((e) => e.t === 'Bonjour' || e.t === 'Bienvenue')) return true;
+    if (estAccueil(n)) return true;
     if (!premierPlan()) return false;
     const accueil = trouver(n, 'Accueil');
     if (accueil && !INTERDITS.test(norm(texteSous(n, (accueil.b[0] + accueil.b[2]) / 2, (accueil.b[1] + accueil.b[3]) / 2)))) {
@@ -72,7 +75,7 @@ async function retourAccueil() {
     }
     await attendre(2000);
   }
-  return lire().some((e) => e.t === 'Bonjour' || e.t === 'Bienvenue');
+  return estAccueil(lire());
 }
 
 if (!premierPlan()) {
@@ -116,6 +119,30 @@ if (!(await retourAccueil())) {
     }
   }
 }
+// ── En-tête du carnet : pilule d'année (26 → 44 dp, hitSlop 9 + 9). Un appui à ~6 dp au-dessus / en dessous du visuel ouvre le
+//    menu des années (jamais d'action destructive). Les pilules des mots (J'autorise, Non, Je participe, Peut-être, Signer)
+//    portent « sign » / « confirm » : le garde-fou INTERDITS refuse de les toucher ; leur zone est prouvée par le test de code
+//    (npm run test:zones-tactiles) et leur confirmation par la lecture d'ActionsMot (Alert.alert avant tout enregistrement).
+if (await retourAccueil()) {
+  const n = lire();
+  const pilule = n.find((e) => /^Année .*Ouvrir les années/.test(e.d) && e.b.length === 4 && e.b[1] < 1400);
+  if (!pilule) noter('Pilule d’année de l’en-tête introuvable (compte avec une année active attendu)', false);
+  else {
+    const [x1, y1, x2, y2] = pilule.b;
+    for (const [cote, x, y] of [['au-dessus (~6 dp)', (x1 + x2) / 2, y1 - 6 * DP], ['en dessous (~6 dp)', (x1 + x2) / 2, y2 + 6 * DP]]) {
+      if (!(await retourAccueil())) break;
+      if (!appuyer(x, y, lire())) continue;
+      await attendre(1500);
+      const ouvert = lire().some((e) => /^\d{4}–\d{4} · /.test(e.t));
+      noter(`Pilule d'année (visuel ${(x2 - x1) / DP | 0}×${(y2 - y1) / DP | 0} dp) : appui ${cote}, hors du visuel → ouvre le menu des années`, ouvert);
+      if (ouvert) {
+        adb('shell', 'input keyevent KEYCODE_BACK');
+        await attendre(1200);
+      }
+    }
+  }
+}
+
 for (const [nom, visee, attendu] of [['Suivi', 'Suivi', (e) => e.some((x) => /^Année /.test(x.d) || x.t.startsWith('Compétences') || x.t.startsWith('Carnet de suivi'))], ['Agenda', 'Agenda', (e) => e.some((x) => x.t === 'Emploi du temps' || /^Octobre|^Novembre|^Septembre|^Décembre/.test(x.t))], ['Messages', 'Messages', (e) => e.some((x) => x.d === 'Général')]]) {
   for (const cote of ['gauche', 'droite', 'haut', 'bas']) {
     if (!(await retourAccueil())) break;
