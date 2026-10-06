@@ -116,6 +116,24 @@ verifier('PHOTO_ENFANT_ACTIVE vaut false (passera à true APRÈS M35 sur Paris, 
   }
 }
 
+// Démo : AUCUN point d'entrée photo, même avec PHOTO_ENFANT_ACTIVE = true (la démo n'a jamais de photo d'enfant).
+{
+  const racine = join(import.meta.dirname, '..', '..');
+  const src = (f: string) => readFileSync(join(racine, f), 'utf8').replace(/\r\n/g, '\n');
+  const accueil = src('src/screens/AccueilScreen.tsx');
+  verifier('Accueil : cercle / badge — onPhoto absent en démo (isDemo || !PHOTO_ENFANT_ACTIVE)', /onPhoto=\{isDemo \|\| !PHOTO_ENFANT_ACTIVE \? undefined/.test(accueil));
+  verifier('Accueil : feuille de photo montée seulement hors démo (!isDemo && PHOTO_ENFANT_ACTIVE)', /selectedChild && !isDemo && PHOTO_ENFANT_ACTIVE \? \(\s*<FeuillePhotoEnfant/.test(accueil));
+  const profil = src('src/screens/ProfilEnfantScreen.tsx');
+  verifier('Profil : ligne « Photo » et feuille hors démo seulement', (profil.match(/!isDemoMode && PHOTO_ENFANT_ACTIVE/g) ?? []).length === 2);
+  const ajout = src('src/screens/AjouterEnfantScreen.tsx');
+  const iDemo = ajout.indexOf('if (isDemo) {');
+  const iPhoto = ajout.indexOf('setEtapePhoto({ id: idCree })');
+  const iElse = ajout.indexOf('} else {', iDemo);
+  verifier('Création : l\'étape « Photo de l\'enfant » n\'existe que dans la branche compte réel', iDemo > 0 && iElse > iDemo && iPhoto > iElse && /idCree && PHOTO_ENFANT_ACTIVE/.test(ajout));
+  verifier('Enfants de démo : aucune photo (ni photo_path ni photoPath dans demo-children.json)', !/photo/i.test(readFileSync(join(racine, 'src/data/demo/demo-children.json'), 'utf8')));
+  verifier('setChildPhoto : sans effet en démo', /if \(isDemo \|\| !PHOTO_ENFANT_ACTIVE\) return;/.test(src('src/contexts/ActiveChildContext.tsx')));
+}
+
 // Confidentialité : la photo n'est JAMAIS envoyée à Aria (app ni Edge Function), ni dans une notification, ni dans le
 // contexte de l'enfant. Lecture du code source : une référence à la photo dans ces fichiers fait échouer le test.
 import { readdirSync, readFileSync } from 'node:fs';
