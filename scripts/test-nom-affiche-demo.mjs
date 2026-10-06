@@ -135,7 +135,7 @@ await changerEnfant('Lucas', 'Emma');
 await ecran('Accueil Emma', { clic: 'Accueil', attendu: ['Emma', '3ème', 'Collège Hugo · 2026–2027', 'Dernières notes'], interdit: SANS_PHOTO });
 await ecran('Messages Emma', { clic: 'Messages', attendu: ['Emma'], interdit: SANS_PHOTO });
 await changerEnfant('Emma', 'Léa');
-const fam = await ecran('Famille et paramètres', { clic: 'Famille et paramètres', attendu: ['Mode démo'] });
+const fam = await ecran('Famille et paramètres', { clic: 'Famille et paramètres', attendu: ['Mode démo'], interdit: ['Notifications', 'Résumé à 18h', 'Mots et messages', 'Silence de 20h'] });
 if (await evalue(CLIQUE('À propos'))) await ecran('A propos');
 else console.log('INFO   À propos : entrée non trouvée à l\'écran (non parcouru)');
 
