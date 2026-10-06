@@ -19,9 +19,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Plus,
   Image as ImageIcon,
-  Bell,
-  Clock,
-  Moon,
   Mic,
   Shield,
   Trash2,
@@ -55,21 +52,15 @@ type Espace = 'famille' | 'enseignant' | 'eleve';
 
 // ─── Préférences locales ───────────────────────────────
 // Enregistrées sur l'appareil. « Aria activée » est APPLIQUÉE (ariaPreferences : aucun appel au modèle
-// si désactivée) ; les réglages de notifications le seront avec les notifications distantes.
+// si désactivée). Aucun réglage de notifications : aucune notification n'existe aujourd'hui (voir tasks/todo.md, push distant).
 const PREFS_KEY = '@scolaria:prefs';
 
 type Prefs = {
-  notifMotsMessages: boolean;
-  notifResume18h: boolean;
-  notifSilence: boolean;
   ariaActive: boolean;
   ariaTon: string;
 };
 
 const DEFAULT_PREFS: Prefs = {
-  notifMotsMessages: true,
-  notifResume18h: true,
-  notifSilence: true,
   ariaActive: true,
   ariaTon: 'Calme',
 };
@@ -218,31 +209,6 @@ export default function FamilleParametresScreen() {
             />
           </DeepGroup>
         )}
-
-        <DeepGroup title="Notifications">
-          <DeepRow
-            icon={<Bell size={20} color={TEXT55} strokeWidth={2} />}
-            label="Mots et messages"
-            description="Mots à signer, messages de l’enseignant et de la direction"
-            toggle={prefs.notifMotsMessages}
-            onToggle={(v) => update('notifMotsMessages', v)}
-          />
-          <DeepRow
-            icon={<Clock size={20} color={TEXT55} strokeWidth={2} />}
-            label="Résumé à 18h"
-            description="Photos, annonces et informations en une seule notification"
-            toggle={prefs.notifResume18h}
-            onToggle={(v) => update('notifResume18h', v)}
-          />
-          <DeepRow
-            icon={<Moon size={20} color={TEXT55} strokeWidth={2} />}
-            label="Silence de 20h à 7h"
-            description="Sauf urgence de l’école"
-            toggle={prefs.notifSilence}
-            onToggle={(v) => update('notifSilence', v)}
-            last
-          />
-        </DeepGroup>
 
         {isFamille && (
           <DeepGroup title="Aria">

@@ -279,7 +279,7 @@ Scale 0.97 sur press
 
 ### Pages profondes
 - **Mon parcours** — archives des années précédentes, lecture seule (Addendum v3.2). Accès : bouton année de Suivi + sélecteur d'enfant
-- **Famille & paramètres** (écran unique, ouvert par ☰) → Mes enfants / Responsables légaux / Mon profil / Apparence / Notifications / Aria / Confidentialité & données / Système / Compte (aide, à propos, déconnexion)
+- **Famille & paramètres** (écran unique, ouvert par ☰) → Mes enfants / Responsables légaux / Mon profil / Apparence / Aria / Confidentialité & données / Système / Compte (aide, à propos, déconnexion)
 - Profil enfant → avatar & couleur / niveau / école / matières / suppression
 - Personnaliser matières → **couleur** par matière (pas d'emoji)
 
@@ -338,7 +338,8 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 ---
 
-## Notifications
+## Notifications — NON IMPLÉMENTÉ (6 oct 2026)
+> Rien de ce qui suit n'existe encore : aucune notification n'est envoyée, aucun réglage n'est affiché (le groupe « Notifications » de Famille & paramètres est retiré, pas grisé). Le push distant (APNs, FCM) est BLOQUANT avant tout enseignant réel ; le prénom de l'enfant transitera alors par Apple et Google (à dire dans la politique de confidentialité). Spécification cible :
 - **Activées par défaut** : mots à signer, messages enseignant, messages direction.
 - **Résumé unique à 18h** : photos, annonces, informations.
 - **Silence 20h – 7h**, sauf urgence école.

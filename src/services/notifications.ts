@@ -1,9 +1,11 @@
 /**
- * Notifications — Service de notifications push locales.
- *
- * Configure les notifications locales pour :
- * - Conseil du Matin à 7h30 chaque jour
- * - Rappels d'examens (optionnel)
+ * Notifications — NON IMPLÉMENTÉ en production (6 oct 2026) : aucune notification n'est envoyée ni programmée, aucun jeton
+ * de push distant n'est enregistré. Ce fichier ne garde que ce qui sert déjà :
+ *  - `notifierMot` (appelée seulement par un lien de développement `__DEV__`) ;
+ * - l'ouverture du bon carnet au toucher d'une notification (NotificationsRouteur) ;
+ *  - l'annulation des anciennes notifications locales programmées par des versions antérieures.
+ * Les rappels d'examen et de devoir ont été supprimés (aucun appelant). Le push distant (APNs, FCM) est un chantier à part :
+ * tasks/todo.md.
  */
 
 import * as Notifications from 'expo-notifications';
@@ -110,85 +112,6 @@ export async function cancelConseilDuMatin(): Promise<void> {
   }
 
   console.log('[Notifications] Conseil du Matin annulé');
-}
-
-// ─── Exam reminder ───────────────────────────────────────
-
-interface ExamReminder {
-  title: string;
-  subject: string;
-  date: Date;
-  childName: string;
-  childId: string;
-}
-
-/**
- * Schedule a reminder notification the evening before an exam (18:00).
- */
-export async function scheduleExamReminder(exam: ExamReminder): Promise<string | null> {
-  const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return null;
-
-  // Schedule for 18:00 the day before
-  const reminderDate = new Date(exam.date);
-  reminderDate.setDate(reminderDate.getDate() - 1);
-  reminderDate.setHours(18, 0, 0, 0);
-
-  // Don't schedule if the reminder is in the past
-  if (reminderDate <= new Date()) return null;
-
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: `${exam.childName} · ${exam.subject} demain`,
-      body: `« ${exam.title} » demain.`,
-      data: { type: 'agenda', childId: exam.childId, date: exam.date.toISOString().slice(0, 10) } satisfies CibleNotification,
-      sound: 'default',
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: reminderDate,
-    },
-  });
-
-  console.log(`[Notifications] Rappel examen programmé : ${exam.title} → ${reminderDate}`);
-  return id;
-}
-
-// ─── Homework reminder ───────────────────────────────────
-
-/**
- * Schedule a reminder for homework due tomorrow (17:00 the day before).
- */
-export async function scheduleHomeworkReminder(
-  childName: string,
-  childId: string,
-  subject: string,
-  dueDate: Date,
-): Promise<string | null> {
-  const hasPermission = await requestNotificationPermissions();
-  if (!hasPermission) return null;
-
-  const reminderDate = new Date(dueDate);
-  reminderDate.setDate(reminderDate.getDate() - 1);
-  reminderDate.setHours(17, 0, 0, 0);
-
-  if (reminderDate <= new Date()) return null;
-
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: `${childName} · devoir de ${subject} pour demain`,
-      body: `À rendre demain.`,
-      data: { type: 'agenda', childId, date: dueDate.toISOString().slice(0, 10) } satisfies CibleNotification,
-      sound: 'default',
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: reminderDate,
-    },
-  });
-
-  console.log(`[Notifications] Rappel devoir programmé : ${subject} → ${reminderDate}`);
-  return id;
 }
 
 // ─── Utility ─────────────────────────────────────────────

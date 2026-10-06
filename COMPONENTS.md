@@ -572,6 +572,15 @@ En attente: background rgba(15,23,42,0.06) · color rgba(15,23,42,0.62) · "Vous
 
 ---
 
+## 17 bis. NOTIFICATIONS — NON IMPLÉMENTÉ (6 oct 2026)
+```
+Aucun réglage de notifications dans Famille & paramètres (groupe retiré, jamais grisé) : aucune notification n'existe aujourd'hui.
+À la mise en place du push distant (APNs, FCM) : trois réglages au plus (mots et messages · résumé à 18 h · silence 20 h – 7 h),
+chacun branché sur un effet réel et testé ; jamais de matrice module × canal ; le texte commence par le prénom de l'enfant.
+```
+
+---
+
 ## 18. CARNET VIVANT — COMPOSANTS (sprint d'octobre 2026)
 
 Source unique des teintes : `src/theme/categories.ts` (identifiants stables, jamais les libellés).
