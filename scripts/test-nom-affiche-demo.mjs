@@ -82,7 +82,7 @@ const DEFILER_BAS = `(() => {
   if (!c) return false; c.scrollTop = c.scrollHeight; return c.scrollHeight;
 })()`;
 let numero = 0;
-async function ecran(nom, { clic, defiler, attendu = [] } = {}) {
+async function ecran(nom, { clic, defiler, attendu = [], interdit = [] } = {}) {
   if (clic) ok(await evalue(CLIQUE(clic)), `${nom} : « ${clic} » trouvé et activé`);
   await attendre(3000);
   if (defiler) { await evalue(DEFILER_BAS); await attendre(1200); }
@@ -91,6 +91,7 @@ async function ecran(nom, { clic, defiler, attendu = [] } = {}) {
   ok(hits.length === 0, `${nom} : ${chaines.length} chaînes affichées (texte, libellés, titre, logos), aucun nom « Scolaria » / « Theka »${hits.length ? ' — TROUVÉ : ' + hits.map((h) => String(h).slice(0, 80)).join(' | ') : ''}`);
   const tout = chaines.join('\n');
   for (const a of attendu) ok(tout.includes(a), `${nom} : contient « ${a} »`);
+  for (const a of interdit) ok(!tout.includes(a), `${nom} : ne contient PAS « ${a} »`);
   const png = (await cdp('Page.captureScreenshot', { format: 'png' })).result.data;
   const f = path.join(DEST, `${String(++numero).padStart(2, '0')}-${nom.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`);
   fs.writeFileSync(f, Buffer.from(png, 'base64'));
@@ -112,11 +113,28 @@ await ecran('Ouverture', { attendu: ['Carnet Démo', 'Essayer en mode démo', 'U
   const t = await evalue(COLLECTE);
   ok(!t.join('\n').includes('Se connecter') && !t.join('\n').includes('Créer un compte'), 'Ouverture : ni « Se connecter » ni « Créer un compte »');
 }
-await ecran('Accueil', { clic: 'Essayer en mode démo' });
+const SANS_PHOTO = ['Ajouter une photo', 'Modifier la photo', 'Prendre une photo', 'Choisir dans la galerie', 'Bonjour'];
+await ecran('Accueil', { clic: 'Essayer en mode démo', attendu: ['Léa', 'Grande section', 'Cette semaine', 'ARIA'], interdit: SANS_PHOTO });
 await ecran('Accueil bas', { defiler: true, attendu: ['Démonstration : famille et données fictives.'] });
 await ecran('Suivi', { clic: 'Suivi' });
 await ecran('Agenda', { clic: 'Agenda' });
-await ecran('Messages', { clic: 'Messages' });
+await ecran('Messages', { clic: 'Messages', attendu: ['À traiter', 'J’autorise'], interdit: SANS_PHOTO });
+// Les trois enfants : en-tête du carnet (prénom, classe, école · année), corps du niveau, Suivi et Messages.
+async function changerEnfant(courant, prenom) {
+  const libelleAvatar = /^[AEIOUYÉÈÊH]/i.test(courant) ? `Avatar d’${courant}` : `Avatar de ${courant}`;
+  ok(await evalue(CLIQUE(libelleAvatar)), `Sélecteur : avatar de ${courant} activé`);
+  await attendre(2000);
+  ok(await evalue(CLIQUE(prenom)), `Sélecteur : « ${prenom} » choisi`);
+  await attendre(2500);
+}
+await changerEnfant('Léa', 'Lucas');
+await ecran('Accueil Lucas', { clic: 'Accueil', attendu: ['Lucas', 'CM2', 'École Voltaire · 2026–2027', 'À faire', 'Cette semaine', 'Aujourd’hui'], interdit: SANS_PHOTO });
+await ecran('Suivi Lucas', { clic: 'Suivi', attendu: ['observation'] });
+await ecran('Messages Lucas', { clic: 'Messages', attendu: ['Lucas'], interdit: SANS_PHOTO });
+await changerEnfant('Lucas', 'Emma');
+await ecran('Accueil Emma', { clic: 'Accueil', attendu: ['Emma', '3ème', 'Collège Hugo · 2026–2027', 'Dernières notes'], interdit: SANS_PHOTO });
+await ecran('Messages Emma', { clic: 'Messages', attendu: ['Emma'], interdit: SANS_PHOTO });
+await changerEnfant('Emma', 'Léa');
 const fam = await ecran('Famille et paramètres', { clic: 'Famille et paramètres', attendu: ['Mode démo'] });
 if (await evalue(CLIQUE('À propos'))) await ecran('A propos');
 else console.log('INFO   À propos : entrée non trouvée à l\'écran (non parcouru)');
