@@ -108,7 +108,7 @@ verifier('PGRST204 sur une autre colonne : NON', !estColonneInconnue({ code: 'PG
 verifier('droits (42501), jeton (PGRST301), réseau, null : NON', [{ code: '42501' }, { code: 'PGRST301' }, new TypeError('Network request failed'), null, undefined].every((e) => !estColonneInconnue(e)));
 
 // Drapeau : false jusqu'à l'application de M35 à Paris ; chaque point d'entrée photo en dépend.
-verifier('PHOTO_ENFANT_ACTIVE vaut false (passera à true APRÈS M35 sur Paris, dans un commit à part)', PHOTO_ENFANT_ACTIVE === false);
+verifier('PHOTO_ENFANT_ACTIVE vaut true (M35 appliquée à Paris le 6 oct 2026) ; la démo reste sans photo : gardes ci-dessous', PHOTO_ENFANT_ACTIVE === true);
 {
   const racine = join(import.meta.dirname, '..', '..');
   for (const f of ['src/screens/AccueilScreen.tsx', 'src/screens/ProfilEnfantScreen.tsx', 'src/screens/AjouterEnfantScreen.tsx', 'src/hooks/usePhotoUrl.ts', 'src/contexts/ActiveChildContext.tsx']) {
