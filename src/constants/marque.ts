@@ -30,3 +30,6 @@ function libelleVariante(): string | undefined {
 }
 
 export const NOM_APP: string = libelleVariante() ?? NOM_APP_BASE;
+
+/** Nom de l'assistant : UNIQUE source des textes affichés (cartes, libellés). Les prompts du modèle gardent le leur (ariaApi.ts). */
+export const NOM_ASSISTANT = 'Aria';

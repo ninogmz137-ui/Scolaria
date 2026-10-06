@@ -56,6 +56,12 @@ const nombre = (src: string, motif: RegExp): number => {
   const hs = nombre(s, /hitSlop=\{(\d+)\}/);
   verifier(`badge : ${t} + ${hs} + ${hs} = ${t + 2 * hs} dp`, t + 2 * hs === 44);
 }
+// ── Pilule « Ajouter au carnet » de l'Accueil vide : 40 + 2 + 2 = 44 ──
+{
+  const s = lire('src/components/accueil/CarnetVide.tsx');
+  const h = nombre(s, /pilule: \{[^}]*height: (\d+)/);
+  verifier(`pilule « Ajouter au carnet » : ${h} + 2 + 2 = ${h + 4} dp`, h + 4 === 44 && /hitSlop=\{\{ top: 2, bottom: 2 \}\}/.test(s));
+}
 // ── Autres éléments du sprint : déjà ≥ 44 ──
 verifier('« Plus tard » (création) : minHeight 44', /photoPlusTard: \{ minHeight: 44/.test(lire('src/screens/AjouterEnfantScreen.tsx')));
 verifier('lignes de la feuille de photo : minHeight 48', /ligne: \{[^}]*minHeight: 48/.test(lire('src/components/FeuillePhotoEnfant.tsx')));

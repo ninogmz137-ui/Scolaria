@@ -47,7 +47,9 @@ import { useCarnetReel } from '../hooks/useCarnetReel';
 import { useAccueilReel } from '../hooks/useAccueilReel';
 import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, NOM_ASSISTANT } from '../constants/marque';
+import CarnetVide from '../components/accueil/CarnetVide';
+import { useCarnetVide } from '../hooks/useCarnetVide';
 import { ENV } from '../services/getEnv';
 import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
@@ -184,6 +186,8 @@ export default function AccueilScreen() {
     if (selectedChild?.id) monNomComplet(selectedChild.id, isDemo).then(setMonNom);
   }, [selectedChild?.id, isDemo]);
   const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur;
+  // Carnet ENTIÈREMENT vide (toutes les tables du carnet à 0, chargement fini, aucune erreur) : compte réel seulement.
+  const carnetVide = useCarnetVide(selectedChild?.id, isDemo, !!erreurAccueil, versionCarnet);
   const reessayerAccueil = () => {
     reel.recharger();
     agenda.recharger();
@@ -282,7 +286,9 @@ export default function AccueilScreen() {
           </View>
         )}
 
-        {premierDegre ? (
+        {carnetVide ? (
+          <CarnetVide prenom={prenom} />
+        ) : premierDegre ? (
           // Maternelle / primaire : À faire · Cette semaine · Nouveau dans le carnet · Aujourd'hui (primaire seulement).
           <CorpsCarnet
             primaire={primaire}
@@ -432,9 +438,12 @@ export default function AccueilScreen() {
               <ScolariaSymbol size={18} color={C.indigo} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.ariaLabel}>ARIA</Text>
+              <Text style={styles.ariaLabel}>{NOM_ASSISTANT.toUpperCase()}</Text>
               <Text style={styles.ariaMessage}>
-                {accueil.aria || `Posez une question à Aria sur le carnet ${de(prenom)}.`}
+                {accueil.aria ||
+                  (isDemo
+                    ? `Posez une question à ${NOM_ASSISTANT}.`
+                    : `Posez une question à ${NOM_ASSISTANT}. Elle ne lit pas le carnet ${de(prenom)} : elle reçoit seulement son prénom, son niveau et vos messages.`)}
               </Text>
             </View>
           </TouchableOpacity>
