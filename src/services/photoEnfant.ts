@@ -17,10 +17,8 @@ import { File } from 'expo-file-system';
 import { supabase } from './supabase';
 import { classerErreur } from './erreurs';
 import { estJpeg, retirerMetadonnees } from '../utils/metadonneesImage';
-import {
-  BUCKET_PHOTOS, DUREE_URL_SIGNEE_S, QUALITE_PHOTO_ENFANT, cheminPhotoEnfant, clePhoto, recadrerEnCarre,
-  urlEncoreValable,
-} from '../utils/photoEnfant';
+import { BUCKET_PHOTOS, DUREE_URL_SIGNEE_S, QUALITE_PHOTO_ENFANT, cheminPhotoEnfant, recadrerEnCarre } from '../utils/photoEnfant';
+import { CacheUrls } from '../utils/cacheUrls';
 
 export type SourcePhoto = 'camera' | 'galerie';
 
@@ -145,39 +143,21 @@ export async function retirerObjetPhoto(childId: string): Promise<void> {
 
 // ─── Lecture : URL signée d'1 h, mémorisée pour la session ───────────────────
 
-const cache = new Map<string, { url: string; creeeLe: number }>();
-const enCours = new Map<string, Promise<string | null>>();
+const cache = new CacheUrls(async (chemin) => {
+  const { data, error } = await supabase.storage.from(BUCKET_PHOTOS).createSignedUrl(chemin, DUREE_URL_SIGNEE_S);
+  return error || !data?.signedUrl ? null : data.signedUrl;
+});
 
 function oublierPhoto(chemin: string) {
-  for (const k of [...cache.keys()]) if (k.startsWith(`${chemin}|`)) cache.delete(k);
-  for (const k of [...enCours.keys()]) if (k.startsWith(`${chemin}|`)) enCours.delete(k);
+  cache.oublier(chemin);
 }
 
-/** À la déconnexion : aucune URL signée ne survit à la session. */
+/** À la déconnexion : aucune URL signée de photo d'enfant ne survit à la session. */
 export function viderCachePhotos() {
-  cache.clear();
-  enCours.clear();
+  cache.vider();
 }
 
 /** URL signée de la photo (1 h), ou null (échec : on affiche l'initiale, jamais d'erreur à l'écran). */
-export async function urlPhoto(photoPath: string, updatedAt?: string | null): Promise<string | null> {
-  const cle = clePhoto(photoPath, updatedAt);
-  const memo = cache.get(cle);
-  if (memo && urlEncoreValable(memo.creeeLe, Date.now())) return memo.url;
-  const attente = enCours.get(cle);
-  if (attente) return attente;
-  const p = (async () => {
-    try {
-      const { data, error } = await supabase.storage.from(BUCKET_PHOTOS).createSignedUrl(photoPath, DUREE_URL_SIGNEE_S);
-      if (error || !data?.signedUrl) return null;
-      cache.set(cle, { url: data.signedUrl, creeeLe: Date.now() });
-      return data.signedUrl;
-    } catch {
-      return null;
-    } finally {
-      enCours.delete(cle);
-    }
-  })();
-  enCours.set(cle, p);
-  return p;
+export function urlPhoto(photoPath: string, updatedAt?: string | null): Promise<string | null> {
+  return cache.obtenir(photoPath, updatedAt);
 }

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { urlPhoto } from '../services/photoEnfant';
 import type { Child } from '../contexts/ActiveChildContext';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
+import { urlAffichable } from '../utils/cacheUrls';
 
 export function usePhotoUrl(child: Pick<Child, 'id' | 'photoPath' | 'photoUpdatedAt'> | null | undefined): string | null {
   const [etat, setEtat] = useState<{ cle: string; url: string } | null>(null);
@@ -30,5 +31,5 @@ export function usePhotoUrl(child: Pick<Child, 'id' | 'photoPath' | 'photoUpdate
   }, [cle]);
 
   // Jamais une URL qui ne correspond pas à l'enfant / à la photo affichés.
-  return etat && etat.cle === cle ? etat.url : null;
+  return urlAffichable(etat, cle);
 }

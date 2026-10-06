@@ -1,8 +1,7 @@
 // Photo de l'enfant : chemin, recadrage carré 512, cache des URL signées, nettoyage des métadonnées (EXIF / GPS).
 // npm run test:photo-enfant
-import {
-  cheminPhotoEnfant, clePhoto, COTE_PHOTO_ENFANT, DUREE_CACHE_MS, DUREE_URL_SIGNEE_S, recadrerEnCarre, urlEncoreValable,
-} from './photoEnfant.ts';
+import { cheminPhotoEnfant, COTE_PHOTO_ENFANT, recadrerEnCarre } from './photoEnfant.ts';
+import { clePhoto, DUREE_CACHE_MS, DUREE_URL_SIGNEE_MS, urlEncoreValable } from './cacheUrls.ts';
 import { estJpeg, retirerMetadonnees } from './metadonneesImage.ts';
 
 let ok = 0;
@@ -33,7 +32,7 @@ verifier('le côté final ne dépasse jamais 512', [recadrerEnCarre(9000, 8000)!
 // Cache des URL signées : clé = chemin + date de mise à jour ; valable moins que l'URL (1 h).
 verifier('la clé change quand la photo est remplacée', clePhoto('a/avatar.jpg', '2026-10-05T10:00:00Z') !== clePhoto('a/avatar.jpg', '2026-10-05T11:00:00Z'));
 verifier('la clé est propre à l\'enfant', clePhoto('a/avatar.jpg', 'x') !== clePhoto('b/avatar.jpg', 'x'));
-verifier('le cache expire avant l\'URL signée (50 min < 1 h)', DUREE_CACHE_MS < DUREE_URL_SIGNEE_S * 1000);
+verifier('le cache expire avant l\'URL signée (50 min < 1 h)', DUREE_CACHE_MS < DUREE_URL_SIGNEE_MS);
 verifier('URL de 49 min : réutilisée ; de 51 min : refaite', urlEncoreValable(0, 49 * 60_000) && !urlEncoreValable(0, 51 * 60_000));
 
 // Métadonnées : un JPEG avec EXIF (dont GPS) + commentaire + XMP ressort sans aucun de ces segments.
@@ -54,6 +53,51 @@ const propre = retirerMetadonnees(brut);
 verifier('après nettoyage : JPEG valide', estJpeg(propre));
 verifier('après nettoyage : plus de GPS, de XMP ni de commentaire', !/GPS|Exif|xmpmeta|mamie/.test(texte(propre)));
 verifier('après nettoyage : les données de l\'image sont intactes (fin du fichier identique)', texte(propre).endsWith(texte(new Uint8Array(donnees))));
+
+// ─── Non-fuite : changer d'enfant ou perdre le réseau ne laisse JAMAIS la photo du précédent ───────────────
+import { CacheUrls, urlAffichable } from './cacheUrls.ts';
+{
+  const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/avatar.jpg';
+  const B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/avatar.jpg';
+  let horloge = 0;
+  let reseau = true;
+  let appels = 0;
+  const cache = new CacheUrls(async (chemin) => {
+    appels++;
+    if (!reseau) throw new TypeError('Network request failed');
+    return `https://stockage.test/sign/${chemin}?jeton=${appels}`;
+  }, () => horloge);
+
+  const urlA = await cache.obtenir(A, 'maj1');
+  const urlB = await cache.obtenir(B, 'maj1');
+  verifier('l\'URL de A est celle de A, celle de B celle de B', !!urlA && !!urlB && urlA.includes('aaaaaaaa') && urlB.includes('bbbbbbbb') && !urlB.includes('aaaaaaaa'));
+  verifier('une même photo demandée deux fois : une seule requête', (await cache.obtenir(A, 'maj1')) === urlA && appels === 2);
+
+  // Affichage : on passe de A à B ; tant que l'URL de B n'est pas arrivée, RIEN de A ne s'affiche.
+  const cleA = `idA|${A}|maj1`;
+  const cleB = `idB|${B}|maj1`;
+  const etatA = { cle: cleA, url: urlA! };
+  verifier('A affiché pour A', urlAffichable(etatA, cleA) === urlA);
+  verifier('on passe à B : l\'URL de A n\'est plus affichable (initiale en attendant)', urlAffichable(etatA, cleB) === null);
+  verifier('enfant sans photo : jamais d\'URL, même avec un état ancien', urlAffichable(etatA, null) === null);
+  verifier('photo remplacée (nouvelle date) : l\'ancienne URL n\'est plus affichable', urlAffichable(etatA, `idA|${A}|maj2`) === null);
+
+  // Réseau coupé : échec → null, rien de mémorisé, rien d'un autre enfant ; au retour du réseau, ça repart.
+  reseau = false;
+  verifier('réseau coupé, photo inconnue : null (initiale)', (await cache.obtenir('cccccccc-cccc-4ccc-8ccc-cccccccccccc/avatar.jpg', 'm')) === null);
+  verifier('réseau coupé : l\'échec n\'est pas mémorisé', cache.taille === 2);
+  horloge = 51 * 60_000; // les URL de A et B ont plus de 50 min : refaites ; réseau coupé → null, pas l'ancienne URL
+  verifier('URL expirée + réseau coupé : null (jamais une URL périmée)', (await cache.obtenir(A, 'maj1')) === null);
+  reseau = true;
+  const renouvelee = await cache.obtenir(A, 'maj1');
+  verifier('réseau revenu : nouvelle URL de A (pas celle de B)', !!renouvelee && renouvelee !== urlA && renouvelee.includes('aaaaaaaa'));
+
+  // Déconnexion : plus rien en mémoire ; remplacement : l'ancienne clé est oubliée.
+  cache.oublier(A);
+  verifier('photo remplacée ou supprimée : clés oubliées', cache.taille === 1);
+  cache.vider();
+  verifier('déconnexion : cache vidé', cache.taille === 0);
+}
 
 // Repli sans M35 : seule l'erreur « colonne inconnue » est avalée.
 import { estColonneInconnue } from './photoEnfant.ts';

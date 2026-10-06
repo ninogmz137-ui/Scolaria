@@ -22,7 +22,7 @@ function verifier(nom: string, cond: boolean, detail = '') {
 }
 
 const t = Date.now();
-const comptes = { a: `claire-${t}@exemple.test`, b: `marc-${t}@exemple.test`, c: `zoe-${t}@exemple.test` };
+const comptes = { a: `claire-${t}@exemple.test`, b: `marc-${t}@exemple.test`, c: `zoe-${t}@exemple.test`, d: `prof-${t}@exemple.test` };
 const mdp = 'Carnet-test-2026!';
 const ids: Record<string, string> = {};
 for (const [k, email] of Object.entries(comptes)) {
@@ -50,12 +50,19 @@ try {
   const A = await session(comptes.a);
   const B = await session(comptes.b);
   const C = await session(comptes.c);
+  const T = await session(comptes.d);
   const lucas = await creerEnfant(A, 'Lucas');
   const zoe = await creerEnfant(C, 'Zoé');
   // B : 2e responsable de Lucas (rattachement par le serveur dans le test ; en vrai : invitation acceptée).
   sql(`insert into public.responsables (foyer_id, user_id, child_id, lien)
        select foyer_id, '${ids.b}', child_id, 'parent' from public.responsables where child_id = '${lucas}'`);
   const chemin = `${lucas}/avatar.jpg`;
+  // D : enseignant titulaire de la classe de Lucas (rattachement fait par le serveur).
+  const ay = sql(`select id from public.academic_years where student_id = '${lucas}'`);
+  const ecole = sql(`insert into public.ecoles (nom) values ('École test') returning id`).split('\n')[0];
+  const classe = sql(`insert into public.classes (ecole_id, annee_scolaire, niveau, nom, enseignant_id)
+    select '${ecole}', annee_scolaire, 'CP', 'CP A', '${ids.d}' from public.academic_years where id = '${ay}' returning id`).split('\n')[0];
+  sql(`update public.academic_years set classe_id = '${classe}' where id = '${ay}'`);
 
   // 1. A dépose la photo, puis écrit photo_path.
   const up1 = await A.storage.from('child-photos').upload(chemin, jpeg1, { contentType: 'image/jpeg', upsert: true });
@@ -95,6 +102,23 @@ try {
   verifier('C : ne peut pas modifier children.photo_path de Lucas', sql(`select photo_path is not null from public.children where id='${lucas}'`) === 't', majC?.message ?? '');
   const { data: pasLa } = await C.from('children').select('id, photo_path').eq('id', lucas);
   verifier('C : ne voit même pas la ligne de Lucas', (pasLa ?? []).length === 0);
+
+  // 4 bis. Enseignant titulaire de la classe ET anonyme : lecture, écriture, suppression refusées.
+  const anon = createClient(API, statut.ANON_KEY, { auth: { persistSession: false } });
+  for (const [qui, cl] of [['enseignant', T], ['anonyme', anon]] as const) {
+    const lien = await cl.storage.from('child-photos').createSignedUrl(chemin, 60);
+    verifier(`${qui} : pas d’URL signée`, !!lien.error || !lien.data?.signedUrl);
+    const dl = await cl.storage.from('child-photos').download(chemin);
+    verifier(`${qui} : lecture refusée`, !!dl.error);
+    const up = await cl.storage.from('child-photos').upload(chemin, jpeg2, { contentType: 'image/jpeg', upsert: true });
+    verifier(`${qui} : remplacement refusé`, !!up.error);
+    const neuf = await cl.storage.from('child-photos').upload(`${lucas}/autre.jpg`, jpeg2, { contentType: 'image/jpeg' });
+    verifier(`${qui} : dépôt refusé`, !!neuf.error);
+    await cl.storage.from('child-photos').remove([chemin]);
+    verifier(`${qui} : suppression sans effet (la photo existe toujours)`, sql(`select count(*) from storage.objects where bucket_id='child-photos' and name='${chemin}'`) === '1');
+  }
+  const { data: vuT } = await T.from('children').select('id, photo_path').eq('id', lucas);
+  verifier('enseignant : ne voit pas photo_path de Lucas (aucune lecture école)', (vuT ?? []).every((r: any) => !r.photo_path));
 
   // 5. Types et poids : JPEG seulement, 1 Mo au plus ; chemin libre refusé.
   const png = await A.storage.from('child-photos').upload(chemin, jpeg1, { contentType: 'image/png', upsert: true });

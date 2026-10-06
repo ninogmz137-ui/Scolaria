@@ -37,19 +37,8 @@ export function recadrerEnCarre(largeur: number, hauteur: number): RecadragePhot
   };
 }
 
-/** Clé du cache en mémoire des URL signées : chemin + date de mise à jour (une nouvelle photo change la clé). */
-export function clePhoto(photoPath: string, updatedAt?: string | null): string {
-  return `${photoPath}|${updatedAt ?? ''}`;
-}
-
-/** Les URL signées valent 1 h ; on les réutilise 50 min au plus (marge de sécurité avant l'expiration). */
+/** Les URL signées valent 1 h (cache : src/utils/cacheUrls.ts). */
 export const DUREE_URL_SIGNEE_S = 60 * 60;
-export const DUREE_CACHE_MS = 50 * 60 * 1000;
-
-/** Durées de vie du cache : vrai tant que l'URL signée mémorisée est encore sûre. */
-export function urlEncoreValable(creeeLe: number, maintenant: number): boolean {
-  return maintenant - creeeLe < DUREE_CACHE_MS;
-}
 
 /**
  * Erreur « colonne inconnue » (schéma sans M35) : Postgres 42703 (lecture, filtre) ou PostgREST PGRST204 (écriture d'une

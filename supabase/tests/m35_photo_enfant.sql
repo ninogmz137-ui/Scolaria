@@ -166,6 +166,52 @@ BEGIN
   RAISE NOTICE 'OK T4b autre foyer : remplacement refusé';
 END $$;
 
+-- ─── T4c · enseignant et anonyme : dépôt, remplacement et suppression refusés ──────────────
+DO $$
+DECLARE n int;
+BEGIN
+  -- Enseignant titulaire de la classe de Lucas
+  PERFORM set_config('request.jwt.claims', '{"sub":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","role":"authenticated"}', true);
+  SET LOCAL ROLE authenticated;
+  BEGIN
+    INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('child-photos', current_setting('test.lucas') || '/avatar.jpg', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
+    RESET ROLE;
+    RAISE EXCEPTION 'ÉCHEC T4c-1 l''enseignant a déposé une photo';
+  EXCEPTION WHEN insufficient_privilege OR unique_violation THEN RESET ROLE; RAISE NOTICE 'OK T4c-1 enseignant : dépôt refusé'; END;
+  SET LOCAL ROLE authenticated;
+  UPDATE storage.objects SET updated_at = now() WHERE bucket_id = 'child-photos';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 0 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T4c-2 l''enseignant a modifié % photo(s)', n; END IF;
+  -- Le garde-fou de Storage (storage.protect_delete) interdit TOUT DELETE SQL direct : refus attendu (ou 0 ligne).
+  -- La suppression par un autre rôle est prouvée par l'API Storage réelle (npm run test:photo-enfant-local).
+  BEGIN
+    DELETE FROM storage.objects WHERE bucket_id = 'child-photos';
+    GET DIAGNOSTICS n = ROW_COUNT;
+  EXCEPTION WHEN raise_exception OR insufficient_privilege THEN n := 0; END;
+  RESET ROLE;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T4c-3 l''enseignant a supprimé % photo(s)', n; END IF;
+  RAISE NOTICE 'OK T4c-2/3 enseignant : remplacement et suppression sans effet';
+  -- Anonyme
+  PERFORM set_config('request.jwt.claims', '', true);
+  SET LOCAL ROLE anon;
+  BEGIN
+    INSERT INTO storage.objects (bucket_id, name) VALUES ('child-photos', current_setting('test.lucas') || '/avatar.jpg');
+    RESET ROLE;
+    RAISE EXCEPTION 'ÉCHEC T4c-4 l''anonyme a déposé une photo';
+  EXCEPTION WHEN insufficient_privilege OR unique_violation THEN RESET ROLE; RAISE NOTICE 'OK T4c-4 anonyme : dépôt refusé'; END;
+  SET LOCAL ROLE anon;
+  BEGIN
+    UPDATE storage.objects SET updated_at = now() WHERE bucket_id = 'child-photos';
+    GET DIAGNOSTICS n = ROW_COUNT;
+    DELETE FROM storage.objects WHERE bucket_id = 'child-photos';
+    RESET ROLE;
+  EXCEPTION WHEN insufficient_privilege OR raise_exception THEN RESET ROLE; n := 0; END;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T4c-5 l''anonyme a modifié des photos'; END IF;
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T4c-6 la photo de Lucas a disparu (%)', n; END IF;
+  RAISE NOTICE 'OK T4c-5/6 anonyme : remplacement et suppression sans effet, la photo existe toujours';
+END $$;
+
 -- ─── T5 · photos_a_effacer / photos_orphelines : service seulement, bonnes lignes ──
 DO $$
 DECLARE n int;
