@@ -322,21 +322,9 @@ border: 1px solid rgba(15,23,42,0.06) · borderRadius: 16px · padding: 12px 14p
 Symbole Scolaria: 18px · color #4338CA · alignSelf flex-start · marginTop: 2px
 ```
 
-### Card message (liste) — liste à plat façon X, PAS une carte (B4, 26 sept 2026)
-> Remplacée par la **Ligne de message** (§18.4, sprint « Carnet vivant »). Le séparateur de 1px y est
-> remis (la décision du 27 sept « aucun séparateur » était révisable). Le reste de ce bloc sert d'historique.
-```
-Ligne : display flex · alignItems flex-start · gap 12px · paddingVertical ~14px · paddingHorizontal 14px
-Séparateur : AUCUN (décision du 27 sept 2026 après captures Redmi avec / sans ; révisable)
-Avatar : 44×44px cercle · initiales fontWeight 700
-Ligne 1 : nom de l'expéditeur lisible (« Mme Dupont », « Direction », « Mairie · Cantine » —
-          jamais de code administratif) + date à droite (fontSize 12, rgba(15,23,42,0.55))
-Ligne 2 : aperçu · 1 ligne · ellipsis · fontSize 14
-Non lu : nom + aperçu en gras (700) + point indigo #4338CA 8px à droite
-         (plus de bordure gauche indigo)
-Jamais : rôle de l'expéditeur, tag de catégorie, résumé Aria, rouge
-Auteur visible sur chaque message d'un fil famille (« Sophie », « Vous »)
-```
+### Card message (liste) — remplacée par la Ligne de message (§18.4)
+Liste à plat, PAS une carte. **Séparateur de 1 px entre les lignes : décision du 6 oct 2026** (choisi sur captures web avec / sans ;
+la variante sans séparateur, retenue le 27 sept, est supprimée). Spécification complète : §18.4.
 
 ---
 

@@ -1,7 +1,8 @@
 /**
  * LigneMessage — ligne de la liste à plat de Messages (COMPONENTS §18.4, sprint « Carnet vivant »).
  *
- * Pas une carte : minHeight 64 · avatar 42 rond · séparateur 1px rgba(15,23,42,0.06).
+ * Pas une carte : minHeight 64 · avatar 42 rond · séparateur 1px rgba(15,23,42,0.06) entre les lignes (décision du 6 oct 2026 ;
+ * `separateur` n'est faux que pour la DERNIÈRE ligne : il n'existe plus de variante sans filet).
  * École / direction / mairie : fond ardoise + icône building-2. Personne : initiales sur ardoise, aucune teinte propre.
  * Non lu : titre Figtree 700, date indigo 500, point 8px à droite de l'aperçu. Lu : titre 500, date atténuée.
  * Message avec photo : icône image 14px devant l'aperçu + miniature 44×44 à droite.
