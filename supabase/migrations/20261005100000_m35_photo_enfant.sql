@@ -16,7 +16,9 @@
 --  4. Effacement : l'objet ne suit pas la cascade SQL (storage.protect_delete). photos_a_effacer(demande) liste
 --     les photos des enfants effacés (l'Edge Function executer-effacements les supprime par l'API Storage AVANT les
 --     lignes, comme les fichiers du carnet) ; photos_orphelines() liste les objets que plus aucun enfant ne référence
---     (dépôt interrompu, suppression partielle) pour le nettoyage quotidien. Fonctions réservées au service.
+--     (dépôt interrompu, suppression partielle) pour le nettoyage quotidien ; l'âge d'un objet se mesure sur sa dernière
+--     écriture, GREATEST(created_at, updated_at) : une photo ancienne qui vient d'être remplacée n'est jamais listée.
+--     Fonctions réservées au service.
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ─── 1. Colonne ─────────────────────────────────────────────────────────────
@@ -55,7 +57,7 @@ CREATE POLICY child_photos_lecture ON storage.objects FOR SELECT TO authenticate
   USING (bucket_id = 'child-photos' AND public.child_photo_chemin_autorise(name));
 
 CREATE POLICY child_photos_depot ON storage.objects FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'child-photos' AND owner_id = auth.uid()::text AND public.child_photo_chemin_autorise(name));
+  WITH CHECK (bucket_id = 'child-photos' AND owner_id = (select auth.uid())::text AND public.child_photo_chemin_autorise(name));
 
 -- Remplacement (upsert) : tout responsable rattaché, pas seulement celui qui a déposé la première photo.
 CREATE POLICY child_photos_remplacement ON storage.objects FOR UPDATE TO authenticated
@@ -87,7 +89,7 @@ CREATE OR REPLACE FUNCTION public.photos_orphelines(p_age interval DEFAULT inter
 AS $function$
   SELECT o.name FROM storage.objects o
   WHERE o.bucket_id = 'child-photos'
-    AND o.created_at < now() - p_age
+    AND GREATEST(o.created_at, COALESCE(o.updated_at, o.created_at)) < now() - p_age
     AND NOT EXISTS (SELECT 1 FROM public.children c WHERE c.photo_path = o.name);
 $function$;
 

@@ -118,7 +118,7 @@ verifier('avant 30 jours : rien d’exécuté', sql(`select count(*) from public
 
 // Échéance atteinte ; l'orphelin a plus d'un jour.
 sql(`update public.demandes_effacement set execution_prevue_le = now() - interval '1 minute' where user_id in ('${ids.a}','${ids.b}') and annulee_le is null;
-     update storage.objects set created_at = now() - interval '2 days' where name in ('${orphelin}', '${pZoe}', '${pMia}');`);
+     set session_replication_role = replica; update storage.objects set created_at = now() - interval '2 days', updated_at = now() - interval '2 days' where name in ('${orphelin}', '${pZoe}', '${pMia}');`);
 const r1 = await (await fetch(fn, { method: 'POST', headers: { Authorization: `Bearer ${statut.SERVICE_ROLE_KEY}` } })).json();
 verifier('demandes échues exécutées (dont les 2 du test), aucun échec', r1.executees >= 2 && r1.echecs === 0, JSON.stringify(r1));
 verifier('Léa effacée', sql(`select count(*) from public.children where id='${lea}'`) === '0');

@@ -230,17 +230,68 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN RESET ROLE; RAISE NOTICE 'OK T5b photos_a_effacer refusée à anonyme'; END;
 
   -- La photo de Lucas est référencée par children.photo_path : jamais « orpheline », même vieille.
-  UPDATE storage.objects SET created_at = now() - interval '3 days' WHERE bucket_id = 'child-photos';
+  -- Un déclencheur de Storage remet updated_at à now() à chaque UPDATE : pour vieillir un objet, on le désactive (session locale).
+  SET LOCAL session_replication_role = replica;
+  UPDATE storage.objects SET created_at = now() - interval '3 days', updated_at = now() - interval '3 days' WHERE bucket_id = 'child-photos';
+  SET LOCAL session_replication_role = origin;
   SELECT count(*) INTO n FROM public.photos_orphelines();
   IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T5c photo référencée jugée orpheline'; END IF;
   -- Dépôt interrompu (objet sans photo_path) et vieux : orphelin ; récent : conservé.
-  INSERT INTO storage.objects (bucket_id, name, created_at) VALUES ('child-photos', current_setting('test.zoe') || '/avatar.jpg', now() - interval '3 days');
+  INSERT INTO storage.objects (bucket_id, name, created_at, updated_at) VALUES ('child-photos', current_setting('test.zoe') || '/avatar.jpg', now() - interval '3 days', now() - interval '3 days');
   SELECT count(*) INTO n FROM public.photos_orphelines();
   IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T5d orphelins : % (attendu 1)', n; END IF;
   UPDATE storage.objects SET created_at = now() WHERE bucket_id = 'child-photos' AND name = current_setting('test.zoe') || '/avatar.jpg';
   SELECT count(*) INTO n FROM public.photos_orphelines();
   IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T5e un dépôt récent est supprimé (laisser 1 jour)'; END IF;
   RAISE NOTICE 'OK T5c-e orphelins : seulement les objets non référencés ET de plus d''un jour';
+  -- (c) Objet ANCIEN qui vient d'être REMPLACÉ (created_at vieux, updated_at récent) : jamais listé (l'âge se mesure sur la dernière écriture).
+  SET LOCAL session_replication_role = replica;
+  UPDATE storage.objects SET created_at = now() - interval '3 days', updated_at = now() WHERE bucket_id = 'child-photos' AND name = current_setting('test.zoe') || '/avatar.jpg';
+  SET LOCAL session_replication_role = origin;
+  SELECT count(*) INTO n FROM public.photos_orphelines();
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T5f un objet ancien tout juste remplacé est listé comme orphelin (%)', n; END IF;
+  -- … et dès que sa dernière écriture a plus d'un jour, il l'est de nouveau.
+  SET LOCAL session_replication_role = replica;
+  UPDATE storage.objects SET updated_at = now() - interval '2 days' WHERE bucket_id = 'child-photos' AND name = current_setting('test.zoe') || '/avatar.jpg';
+  SET LOCAL session_replication_role = origin;
+  SELECT count(*) INTO n FROM public.photos_orphelines();
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T5g objet non écrit depuis 2 jours non listé (%)', n; END IF;
+  RAISE NOTICE 'OK T5f-g orphelin : un objet ancien tout juste remplacé n''est pas listé ; non réécrit depuis plus d''un jour, il l''est';
+END $$;
+
+-- ─── T5h · un responsable qui QUITTE le carnet (quitter_carnet) perd lecture, remplacement, suppression et dépôt ──
+DO $$
+DECLARE n int;
+BEGIN
+  PERFORM set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  IF n <> 1 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T5h-0 B (encore responsable) ne voit pas la photo avant de partir'; END IF;
+  PERFORM public.quitter_carnet(current_setting('test.lucas')::uuid);
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  IF n <> 0 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T5h-1 B lit encore la photo après avoir quitté le carnet'; END IF;
+  UPDATE storage.objects SET updated_at = now() WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 0 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T5h-2 B remplace encore la photo après son départ'; END IF;
+  BEGIN
+    DELETE FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+    GET DIAGNOSTICS n = ROW_COUNT;
+  EXCEPTION WHEN raise_exception OR insufficient_privilege THEN n := 0; END;
+  IF n <> 0 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T5h-3 B supprime encore la photo après son départ'; END IF;
+  BEGIN
+    INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('child-photos', current_setting('test.lucas') || '/avatar.jpg', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+    RESET ROLE;
+    RAISE EXCEPTION 'ÉCHEC T5h-4 B dépose encore une photo après son départ';
+  EXCEPTION WHEN insufficient_privilege OR unique_violation THEN RESET ROLE; END;
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T5h-5 la photo a disparu (%)', n; END IF;
+  -- A (resté responsable) la lit toujours.
+  PERFORM set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  RESET ROLE;
+  IF n <> 1 THEN RAISE EXCEPTION 'ÉCHEC T5h-6 A (resté responsable) ne lit plus la photo'; END IF;
+  RAISE NOTICE 'OK T5h B quitte le carnet : lecture, remplacement, suppression et dépôt de la photo refusés ; A la lit toujours';
 END $$;
 
 -- ─── T6 · effacement de l'enfant : seule SA photo est listée (jamais celle d'un autre foyer) ─
@@ -252,6 +303,16 @@ BEGIN
   INSERT INTO public.demandes_effacement (user_id, portee, child_id, execution_prevue_le)
     VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'enfant', current_setting('test.lucas')::uuid, now() - interval '1 minute')
     RETURNING id INTO v_dem;
+  -- (b) Enfant EN COURS D'EFFACEMENT : la photo n'est plus lisible, ni remplaçable, pour sa famille.
+  PERFORM set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  IF n <> 0 THEN RESET ROLE; RAISE EXCEPTION 'ÉCHEC T6-b A lit encore la photo d''un enfant en cours d''effacement'; END IF;
+  UPDATE storage.objects SET updated_at = now() WHERE bucket_id = 'child-photos' AND name = current_setting('test.lucas') || '/avatar.jpg';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RESET ROLE;
+  IF n <> 0 THEN RAISE EXCEPTION 'ÉCHEC T6-b A remplace la photo d''un enfant en cours d''effacement'; END IF;
+  RAISE NOTICE 'OK T6-b enfant en cours d''effacement : photo ni lisible ni remplaçable pour sa famille';
   SELECT array_agg(x) INTO f FROM public.photos_a_effacer(v_dem) x;
   IF f IS DISTINCT FROM ARRAY[current_setting('test.lucas') || '/avatar.jpg'] THEN
     RAISE EXCEPTION 'ÉCHEC T6a photos_a_effacer : %', f;

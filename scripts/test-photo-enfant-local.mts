@@ -143,10 +143,50 @@ try {
   verifier('B supprime l’objet', !rm.error && sql(`select count(*) from storage.objects where bucket_id='child-photos' and name='${chemin}'`) === '0', rm.error?.message ?? '');
   const apres = await A.storage.from('child-photos').createSignedUrl(chemin, 60);
   verifier('plus d’URL signée après suppression', !!apres.error || !apres.data?.signedUrl);
+
+  // 8. Un responsable qui QUITTE le carnet (quitter_carnet) perd lecture, remplacement, suppression et dépôt de la photo.
+  const mila = await creerEnfant(A, 'Mila');
+  sql(`insert into public.responsables (foyer_id, user_id, child_id, lien)
+       select foyer_id, '${ids.b}', child_id, 'parent' from public.responsables where child_id = '${mila}'`);
+  const pMila = `${mila}/avatar.jpg`;
+  const upMila = await A.storage.from('child-photos').upload(pMila, jpeg1, { contentType: 'image/jpeg', upsert: true });
+  verifier('A dépose la photo de Mila', !upMila.error, upMila.error?.message ?? '');
+  const avant = await B.storage.from('child-photos').createSignedUrl(pMila, 60);
+  verifier('B (encore responsable de Mila) lit la photo', !avant.error && !!avant.data?.signedUrl, avant.error?.message ?? '');
+  const { error: depart } = await B.rpc('quitter_carnet', { p_child_id: mila });
+  verifier('B quitte le carnet de Mila (quitter_carnet)', !depart, depart?.message ?? '');
+  const apresB = await B.storage.from('child-photos').createSignedUrl(pMila, 60);
+  verifier('B parti : plus d’URL signée', !!apresB.error || !apresB.data?.signedUrl);
+  const dlB = await B.storage.from('child-photos').download(pMila);
+  verifier('B parti : lecture refusée', !!dlB.error);
+  const upB = await B.storage.from('child-photos').upload(pMila, jpeg2, { contentType: 'image/jpeg', upsert: true });
+  verifier('B parti : remplacement refusé', !!upB.error);
+  await B.storage.from('child-photos').remove([pMila]);
+  verifier('B parti : suppression sans effet (la photo existe toujours)', sql(`select count(*) from storage.objects where bucket_id='child-photos' and name='${pMila}'`) === '1');
+  const resteA = await A.storage.from('child-photos').createSignedUrl(pMila, 60);
+  verifier('A (resté responsable) lit toujours la photo de Mila', !resteA.error && !!resteA.data?.signedUrl);
+
+  // 9. Enfant EN COURS D'EFFACEMENT : la photo n'est plus lisible, ni remplaçable, ni supprimable par sa famille.
+  // (l'effacement d'un enfant n'est demandé que par son UNIQUE responsable : règle du serveur, erreur « plusieurs_responsables »)
+  const noe = await creerEnfant(A, 'Noé');
+  const pNoe = `${noe}/avatar.jpg`;
+  const upNoe = await A.storage.from('child-photos').upload(pNoe, jpeg1, { contentType: 'image/jpeg', upsert: true });
+  verifier('A dépose la photo de Noé', !upNoe.error, upNoe.error?.message ?? '');
+  const { error: demande } = await A.rpc('demander_effacement_enfant', { p_child_id: noe });
+  verifier('A demande l’effacement de Noé (30 jours)', !demande, demande?.message ?? '');
+  for (const [qui, cl] of [['A (seul responsable)', A]] as const) {
+    const l = await cl.storage.from('child-photos').createSignedUrl(pNoe, 60);
+    verifier(`${qui} : photo de l’enfant en cours d’effacement non lisible (pas d’URL signée)`, !!l.error || !l.data?.signedUrl);
+    const r = await cl.storage.from('child-photos').upload(pNoe, jpeg2, { contentType: 'image/jpeg', upsert: true });
+    verifier(`${qui} : remplacement refusé`, !!r.error);
+    await cl.storage.from('child-photos').remove([pNoe]);
+    verifier(`${qui} : suppression sans effet`, sql(`select count(*) from storage.objects where bucket_id='child-photos' and name='${pNoe}'`) === '1');
+  }
 } finally {
   // Nettoyage : objets par l'API Storage (jamais en SQL), enfants, comptes.
   const restes = sql(`select name from storage.objects where bucket_id='child-photos' and owner_id in ('${ids.a}','${ids.b}','${ids.c}')`).split('\n').filter(Boolean);
   if (restes.length) await admin.storage.from('child-photos').remove(restes);
+  sql(`delete from public.demandes_effacement where user_id in ('${ids.a}','${ids.b}','${ids.c}','${ids.d}')`);
   sql(`delete from public.children where id in (select child_id from public.responsables where user_id in ('${ids.a}','${ids.b}','${ids.c}'))`);
   for (const id of Object.values(ids)) await admin.auth.admin.deleteUser(id);
 }
