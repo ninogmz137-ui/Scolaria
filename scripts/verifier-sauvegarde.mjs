@@ -42,7 +42,17 @@ function verifier(dossier) {
     const p = path.join(dossier, 'fichiers', ...f.chemin.split('/'));
     if (!fs.existsSync(p) || fs.statSync(p).size !== f.octets || sha(p) !== f.sha256) mauvais++;
   }
-  ok(mauvais === 0, `fichiers du bucket identiques (SHA-256) : ${fichiers.length - mauvais} / ${fichiers.length}`);
+  ok(mauvais === 0, `fichiers des buckets identiques (SHA-256) : ${fichiers.length - mauvais} / ${fichiers.length}`);
+  // Par bucket : le manifeste annonce le nombre de fichiers de chaque bucket (carnet, child-photos) ; fichiers.json doit le confirmer.
+  const parBucket = m.fichiers_par_bucket;
+  if (parBucket) {
+    ok(Object.values(parBucket).reduce((x, y) => x + y, 0) === m.fichiers, 'fichiers par bucket : somme = total annoncé');
+    for (const [bucket, n] of Object.entries(parBucket)) {
+      const reel = fichiers.filter((f) => f.chemin.startsWith(bucket + '/')).length;
+      ok(reel === n, `bucket ${bucket} : ${n} annoncé(s), ${reel} dans fichiers.json`);
+    }
+    ok(fichiers.every((f) => Object.keys(parBucket).some((b) => f.chemin.startsWith(b + '/'))), 'aucun fichier hors des buckets annoncés');
+  }
 }
 
 verifier(a);

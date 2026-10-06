@@ -1,4 +1,4 @@
-// Sauvegarde hebdomadaire Scolaria : base (rôles, schéma, données) + fichiers du bucket « carnet ».
+// Sauvegarde hebdomadaire Scolaria : base (rôles, schéma, données) + fichiers des buckets « carnet » et « child-photos » (photos des enfants, M35).
 // Destination HORS dépôt : C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\ (conservées 56 jours = 8 semaines ; dossiers « avant_Mxx » du dossier parent : 30 jours).
 // Aucun secret ici : la CLI Supabase s'authentifie avec la session de l'utilisateur Windows (supabase login),
 // la base est jointe par un rôle temporaire. Rien n'est lu dans .env. Détails : tasks/sauvegarde.md.
@@ -28,6 +28,8 @@ const dossierAvant = arg('purge-avant', path.resolve(racine).toLowerCase() === D
 if (!['linked', 'local'].includes(cible)) throw new Error('--cible : linked ou local');
 refuserDansDepot(racine, depot, 'la destination (--racine)');
 const flag = '--' + cible;
+/** Buckets sauvegardés (child-photos : seulement s'il existe, c'est-à-dire après M35). */
+const BUCKETS = ['carnet', 'child-photos'];
 
 const debut = new Date();
 const pad = (n) => String(n).padStart(2, '0');
@@ -165,22 +167,32 @@ async function main() {
   fs.writeFileSync(path.join(travail, 'comptes.json'), JSON.stringify(comptes, null, 2));
   const structure = lireLignes(cliExe, SQL_STRUCTURE, 'structure')[0];
 
-  // 3. Fichiers du bucket « carnet » (API Storage) : liste, copie, contrôle du nombre, empreintes.
+  // 3. Fichiers des buckets « carnet » et « child-photos » (API Storage) : liste, copie, contrôle du nombre, empreintes.
+  //    « child-photos » n'existe qu'après M35 : on ne sauvegarde que les buckets PRÉSENTS en base (« carnet » est obligatoire).
+  //    Chaque fichier est rangé sous le nom de son bucket (fichiers/carnet/…, fichiers/child-photos/…).
   const fich = path.join(travail, 'fichiers');
   fs.mkdirSync(fich);
-  const liste = path.join(travail, 'liste.txt');
-  cli(cliExe, ['storage', 'ls', 'ss:///carnet', '-r', flag, '--experimental', '--agent', 'yes'], { sortie: liste });
-  const brutL = fs.readFileSync(liste, 'utf8');
-  const attendus = (extraireJson(brutL, 'storage ls').paths ?? []).filter((p) => p && !p.endsWith('/'));
-  if (attendus.length > 0) {
-    // Destination RELATIVE : la CLI prend « C: » d'un chemin absolu pour un schéma d'URL ; --workdir garde le projet lié.
-    cli(cliExe, ['storage', 'cp', '-r', 'ss:///carnet', 'carnet', flag, '--experimental', '-j', '4', '--workdir', depot], {
-      cwd: fich,
-      sortie: path.join(travail, 'copie.tmp'),
-    });
+  const presents = lireLignes(cliExe, 'select id as b from storage.buckets', 'buckets').map((r) => r.b);
+  if (!presents.includes('carnet')) throw new Error('bucket « carnet » absent de la base');
+  const parBucket = {};
+  for (const bucket of BUCKETS.filter((b) => presents.includes(b))) {
+    const liste = path.join(travail, `liste-${bucket}.txt`);
+    cli(cliExe, ['storage', 'ls', `ss:///${bucket}`, '-r', flag, '--experimental', '--agent', 'yes'], { sortie: liste });
+    const brutL = fs.readFileSync(liste, 'utf8');
+    const attendus = (extraireJson(brutL, 'storage ls ' + bucket).paths ?? []).filter((p) => p && !p.endsWith('/'));
+    if (attendus.length > 0) {
+      // Destination RELATIVE : la CLI prend « C: » d'un chemin absolu pour un schéma d'URL ; --workdir garde le projet lié.
+      cli(cliExe, ['storage', 'cp', '-r', `ss:///${bucket}`, bucket, flag, '--experimental', '-j', '4', '--workdir', depot], {
+        cwd: fich,
+        sortie: path.join(travail, 'copie.tmp'),
+      });
+    }
+    const copiesBucket = listerFichiers(path.join(fich, bucket));
+    if (copiesBucket.length !== attendus.length) throw new Error(`fichiers du bucket ${bucket} : ${attendus.length} listés, ${copiesBucket.length} copiés`);
+    parBucket[bucket] = copiesBucket.length;
+    fs.rmSync(liste, { force: true });
   }
   const copies = listerFichiers(fich);
-  if (copies.length !== attendus.length) throw new Error(`fichiers du bucket : ${attendus.length} listés, ${copies.length} copiés`);
   let octets = 0;
   const empreintes = copies.map((c) => {
     const buf = fs.readFileSync(c);
@@ -194,7 +206,7 @@ async function main() {
   fs.writeFileSync(path.join(travail, 'fichiers.json'), JSON.stringify(empreintes, null, 2));
 
   // 4. Manifeste, puis le dossier devient la sauvegarde (renommage = sauvegarde complète).
-  for (const t of ['liste.txt', 'copie.tmp']) fs.rmSync(path.join(travail, t), { force: true });
+  for (const t of ['copie.tmp']) fs.rmSync(path.join(travail, t), { force: true });
   const manifeste = {
     statut: 'complete',
     cible,
@@ -204,6 +216,7 @@ async function main() {
     tables: Object.keys(comptes).length,
     lignes: Object.values(comptes).reduce((a, b) => a + b, 0),
     fichiers: copies.length,
+    fichiers_par_bucket: parBucket,
     octets_fichiers: octets,
     structure,
   };

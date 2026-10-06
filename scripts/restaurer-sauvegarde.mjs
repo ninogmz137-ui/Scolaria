@@ -16,6 +16,8 @@ import { refuserDansDepot } from './garde-destination.mjs';
 
 const depot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dossierArg = process.argv[2];
+/** Buckets restaurés (child-photos : seulement s'il figure dans la sauvegarde). */
+const BUCKETS = ['carnet', 'child-photos'];
 const CONTENEUR = 'supabase_db_Scolaria';
 if (!dossierArg) {
   console.error('Usage : node scripts/restaurer-sauvegarde.mjs <dossier de sauvegarde>');
@@ -110,10 +112,12 @@ try {
 
   // 2. Vider : fichiers du bucket (API), puis public / auth / storage (métadonnées).
   dire('2. Vidage (fichiers du bucket local, schémas public, auth, storage)...');
-  try {
-    cli(['storage', 'rm', '-r', 'ss:///carnet', '--local', '--experimental']);
-  } catch {
-    /* bucket vide */
+  for (const bucket of BUCKETS) {
+    try {
+      cli(['storage', 'rm', '-r', `ss:///${bucket}`, '--local', '--experimental']);
+    } catch {
+      /* bucket vide ou absent */
+    }
   }
   const tablesAuth = Object.keys(comptes).filter((t) => t.startsWith('auth.') && t !== 'auth.schema_migrations');
   fs.writeFileSync(
@@ -147,7 +151,7 @@ try {
 
   // 4. Fichiers du bucket, un par un (type MIME fixé d'après l'extension : la détection automatique de la CLI peut
   // renvoyer text/html, refusé par le bucket qui n'accepte que jpeg, png, heic, pdf).
-  dire('4. Fichiers du bucket carnet...');
+  dire('4. Fichiers des buckets (carnet, child-photos)...');
   const src = path.join(dossier, 'fichiers');
   for (const f of fichiers) {
     const ext = path.extname(f.chemin).slice(1).toLowerCase();
@@ -174,19 +178,29 @@ try {
     controle(n === String(attendu), `${lib} : attendu ${attendu}, obtenu ${n}`);
   }
   controle(Number(psqlValeur("select count(*) from pg_policies where schemaname = 'storage' and policyname like 'carnet%'")) >= 3, 'politiques du bucket carnet (>= 3)');
-  controle(psqlValeur("select count(*) from storage.buckets where id = 'carnet'") === '1', 'bucket carnet présent');
-  const objets = psqlValeur("select count(*) from storage.objects where bucket_id = 'carnet'");
-  controle(objets === String(fichiers.length), `objets du bucket : attendu ${fichiers.length}, obtenu ${objets}`);
-  if (fichiers.length > 0) {
-    const retour = path.join(tmp, 'retour');
-    fs.mkdirSync(retour);
-    cli(['storage', 'cp', '-r', 'ss:///carnet', 'carnet', '--local', '--experimental', '--workdir', depot], retour);
-    let mauvais = 0;
-    for (const f of fichiers) {
-      const p = path.join(retour, ...f.chemin.split('/'));
-      if (!fs.existsSync(p) || sha256(p) !== f.sha256) mauvais++;
+  // Par bucket présent dans la sauvegarde : bucket, objets (nombre) et fichiers (SHA-256, relus par l'API Storage).
+  const retour = path.join(tmp, 'retour');
+  fs.mkdirSync(retour);
+  for (const bucket of BUCKETS) {
+    const duBucket = fichiers.filter((f) => f.chemin.startsWith(bucket + '/'));
+    const annonce = man.fichiers_par_bucket ? man.fichiers_par_bucket[bucket] !== undefined : bucket === 'carnet';
+    if (!annonce) continue;
+    controle(psqlValeur(`select count(*) from storage.buckets where id = '${bucket}'`) === '1', `bucket ${bucket} présent`);
+    if (bucket === 'child-photos') {
+      controle(Number(psqlValeur("select count(*) from pg_policies where schemaname = 'storage' and policyname like 'child_photos%'")) >= 4, 'politiques du bucket child-photos (>= 4)');
+      controle(psqlValeur("select public from storage.buckets where id = 'child-photos'") === 'f', 'bucket child-photos PRIVÉ');
     }
-    controle(mauvais === 0, `fichiers identiques (SHA-256) : ${fichiers.length - mauvais} / ${fichiers.length}`);
+    const objets = psqlValeur(`select count(*) from storage.objects where bucket_id = '${bucket}'`);
+    controle(objets === String(duBucket.length), `objets du bucket ${bucket} : attendu ${duBucket.length}, obtenu ${objets}`);
+    if (duBucket.length > 0) {
+      cli(['storage', 'cp', '-r', `ss:///${bucket}`, bucket, '--local', '--experimental', '--workdir', depot], retour);
+      let mauvais = 0;
+      for (const f of duBucket) {
+        const p = path.join(retour, ...f.chemin.split('/'));
+        if (!fs.existsSync(p) || sha256(p) !== f.sha256) mauvais++;
+      }
+      controle(mauvais === 0, `bucket ${bucket} : fichiers identiques (SHA-256) : ${duBucket.length - mauvais} / ${duBucket.length}`);
+    }
   }
 } catch (e) {
   dire('ERREUR : ' + (e?.message ?? e));
