@@ -128,7 +128,18 @@ async function changerEnfant(courant, prenom) {
   await attendre(2500);
 }
 await changerEnfant('Léa', 'Lucas');
-await ecran('Accueil Lucas', { clic: 'Accueil', attendu: ['Lucas', 'CM2', 'École Voltaire · 2026–2027', 'À faire', 'Cette semaine', 'Aujourd’hui'], interdit: SANS_PHOTO });
+// « Aujourd'hui » = la journée type (cours du jour) ; la démo primaire a une semaine de 4 jours, jamais le mercredi (AgendaScreen.tsx,
+// `sansEcole`) ni le week-end : la section n'existe donc que les jours d'école. Attente conditionnelle à la date du jour ; deux passes à
+// date SIMULÉE (un lundi : présente ; un mercredi : absente) prouvent la règle quelle que soit la date de l'exécution.
+const JOUR_ECOLE = (d) => [1, 2, 4, 5].includes(d.getDay()); // lundi, mardi, jeudi, vendredi
+const NOM_JOUR = (d) => d.toLocaleDateString('fr-FR', { weekday: 'long' });
+const tLucas = await ecran('Accueil Lucas', { clic: 'Accueil', attendu: ['Lucas', 'CM2', 'École Voltaire · 2026–2027', 'À faire', 'Cette semaine'], interdit: SANS_PHOTO });
+{
+  const aujourdhui = new Date();
+  if (JOUR_ECOLE(aujourdhui)) ok(tLucas.includes('Aujourd’hui'), `Accueil Lucas : jour d'école (${NOM_JOUR(aujourdhui)}) → contient « Aujourd’hui »`);
+  else if (aujourdhui.getDay() === 3) ok(!tLucas.includes('Aujourd’hui'), 'Accueil Lucas : mercredi (pas d\'école en démo primaire) → ne contient PAS « Aujourd’hui »');
+  else console.log(`INFO   Accueil Lucas : ${NOM_JOUR(aujourdhui)} (week-end) : « Aujourd’hui » non vérifié ce jour-là (couvert par les passes à date simulée)`);
+}
 await ecran('Suivi Lucas', { clic: 'Suivi', attendu: ['observation'] });
 await ecran('Messages Lucas', { clic: 'Messages', attendu: ['Lucas'], interdit: SANS_PHOTO });
 await changerEnfant('Lucas', 'Emma');
@@ -138,6 +149,36 @@ await changerEnfant('Emma', 'Léa');
 const fam = await ecran('Famille et paramètres', { clic: 'Famille et paramètres', attendu: ['Mode démo'], interdit: ['Notifications', 'Résumé à 18h', 'Mots et messages', 'Silence de 20h'] });
 if (await evalue(CLIQUE('À propos'))) await ecran('A propos');
 else console.log('INFO   À propos : entrée non trouvée à l\'écran (non parcouru)');
+
+// ── Passes à DATE SIMULÉE : la règle « Aujourd'hui seulement les jours d'école » ne dépend pas du jour où le test tourne ──────
+// `Date` est remplacée AVANT le chargement de l'app (décalage constant : l'heure continue de s'écouler) ; le stockage du navigateur est vidé
+// pour repartir de l'écran d'ouverture comme à la première passe.
+const SIMULE = (cibleMs) => `(() => { const R = Date; const delta = ${cibleMs} - R.now();
+  function D(...a) { if (!(this instanceof D)) return new R(R.now() + delta).toString(); return a.length === 0 ? new R(R.now() + delta) : new R(...a); }
+  D.prototype = R.prototype; D.now = () => R.now() + delta; D.UTC = R.UTC; D.parse = R.parse; window.Date = D; })();`;
+function prochain(jourSemaine) {
+  // Le prochain jour `jourSemaine` (1 = lundi, 3 = mercredi) à 10 h, dans les 7 jours : une semaine d'école normale autour de cette date.
+  const d = new Date();
+  d.setHours(10, 0, 0, 0);
+  d.setDate(d.getDate() + ((jourSemaine - d.getDay() + 7) % 7));
+  return d;
+}
+async function passeDateSimulee(cible, presente) {
+  const nom = `date simulée : ${NOM_JOUR(cible)} ${cible.toLocaleDateString('fr-FR')}`;
+  await cdp('Storage.clearDataForOrigin', { origin: new URL(URL_APP).origin, storageTypes: 'all' });
+  const ident = (await cdp('Page.addScriptToEvaluateOnNewDocument', { source: SIMULE(cible.getTime()) })).result.identifier;
+  await cdp('Page.navigate', { url: URL_APP });
+  await attendre(12000);
+  ok((await evalue('new Date().getDay()')) === cible.getDay(), `${nom} : la date de l'app est bien un ${NOM_JOUR(cible)}`);
+  ok(await evalue(CLIQUE('Essayer en mode démo')), `${nom} : « Essayer en mode démo » activé`);
+  await attendre(3000);
+  await changerEnfant('Léa', 'Lucas');
+  const t = await ecran(`Accueil Lucas (${NOM_JOUR(cible)} simulé)`, { clic: 'Accueil', attendu: ['Lucas', 'CM2', 'Cette semaine'], interdit: SANS_PHOTO });
+  ok(t.includes('Aujourd’hui') === presente, `${nom} : section « Aujourd’hui » ${presente ? 'PRÉSENTE (jour d\'école)' : 'ABSENTE (pas d\'école le mercredi)'}`);
+  await cdp('Page.removeScriptToEvaluateOnNewDocument', { identifier: ident });
+}
+await passeDateSimulee(prochain(1), true); // un lundi
+await passeDateSimulee(prochain(3), false); // un mercredi
 
 try { ws.close(); } catch { /* fin */ }
 nav.kill();
