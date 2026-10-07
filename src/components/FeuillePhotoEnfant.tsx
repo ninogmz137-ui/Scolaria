@@ -29,7 +29,8 @@ export default function FeuillePhotoEnfant({
 }) {
   const insets = useSafeAreaInsets();
   const { occupe, ajouter, supprimer } = useActionsPhoto();
-  const existe = !!child.photoPath;
+  // Variante A : une photo affichée en repli (année N−1) n'est pas celle de cette année : rien à y supprimer ici.
+  const existe = !!child.photoPath && child.photoDeCetteAnnee !== false;
 
   const prendre = async (source: SourcePhoto) => {
     // La feuille se ferme à la fin : le sélecteur système s'ouvre par-dessus, l'état « occupé » reste visible.
@@ -54,6 +55,9 @@ export default function FeuillePhotoEnfant({
         <View style={[st.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={st.handle} />
           <Text style={st.titre}>{`Photo de ${child.name}`}</Text>
+          {child.photoAnterieure ? (
+            <Text style={st.info}>{`La photo affichée date de ${child.photoAnterieure}. Ajoutez celle de cette année : l’ancienne reste dans son carnet.`}</Text>
+          ) : null}
 
           <Ligne icone={<Camera size={18} color="#0F172A" strokeWidth={2} />} libelle="Prendre une photo" onPress={() => prendre('camera')} desactivee={occupe} />
           <Ligne icone={<ImageIcone size={18} color="#0F172A" strokeWidth={2} />} libelle="Choisir dans la galerie" onPress={() => prendre('galerie')} desactivee={occupe} />
@@ -138,6 +142,14 @@ const st = StyleSheet.create({
   ligneTexte: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: '#0F172A' },
   occupe: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12 },
   occupeTexte: { marginLeft: 10, fontFamily: FontFamily.sansMedium, fontSize: 13, color: 'rgba(15,23,42,0.6)' },
+  info: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 12,
+    lineHeight: 17,
+    color: 'rgba(15,23,42,0.55)',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
   consentement: {
     fontFamily: FontFamily.sansRegular,
     fontSize: 12,

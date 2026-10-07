@@ -47,6 +47,26 @@ export function avecPhotoEnfant(
   };
 }
 
+/**
+ * Photos par année (M36) : chaque année de l'enfant qui a une photo reçoit `photo_dans_archive` = « fichiers/photos/<millésime>.jpg »
+ * et le fichier est ajouté ; sans octets (pas de photo, ou téléchargement échoué) : `photo_dans_archive` vaut null. Le millésime est
+ * unique par enfant (contrainte de la base) : jamais deux fichiers au même nom.
+ */
+export function avecPhotosAnnees(
+  annees: Record<string, unknown>[],
+  octetsParAnnee: Map<string, Uint8Array>,
+): { annees: Record<string, unknown>[]; fichiers: FichierArchive[] } {
+  const fichiers: FichierArchive[] = [];
+  const lignes = annees.map((a) => {
+    const octets = octetsParAnnee.get(String(a.id));
+    if (!octets) return { ...a, photo_dans_archive: null };
+    const chemin = `photos/${String(a.annee_scolaire)}.jpg`;
+    fichiers.push({ chemin, octets });
+    return { ...a, photo_dans_archive: `fichiers/${chemin}` };
+  });
+  return { annees: lignes, fichiers };
+}
+
 export function construireArchive(donnees: unknown, lisezmoi: string, fichiers: FichierArchive[]): Uint8Array {
   const contenu: Record<string, Uint8Array | [Uint8Array, { level: 0 }]> = {
     'LISEZMOI.txt': strToU8(lisezmoi),

@@ -671,6 +671,10 @@ Bottom sheet (§11), 3 lignes : « Prendre une photo » · « Choisir dans la ga
 Consentement en pied : « Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables. »
 (rien sur l'école : la photo n'est visible d'aucune équipe d'école aujourd'hui)
 Jamais obligatoire ni bloquante, pas de relance répétée : le badge de l'en-tête suffit
+Photo par année (M36, variante A) : « Prendre / Choisir » écrit TOUJOURS sur l'année en cours ; année en cours sans photo →
+la photo de l'année N−1 (seulement) s'affiche, avec une pastille d'année (« 2025–26 », 11 px, blanc 94 %, texte sombre) en bas du cercle
+de l'en-tête ; la feuille ajoute « La photo affichée date de 2025–2026. Ajoutez celle de cette année… » et ne propose PAS « Supprimer »
+(rien à supprimer pour cette année) ; ligne « Photo » du profil : « Photo de 2025–2026 · Ajouter celle de cette année »
 Mode démo : aucune photo, initiales seulement
 ```
 

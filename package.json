@@ -28,6 +28,7 @@
     "test:entete": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/fondu.test.mts",
     "test:photo-enfant": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoEnfant.test.mts",
     "test:zones-tactiles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/zonesTactiles.test.mts",
+    "test:photo-annee": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoAnnee.test.mts",
     "test:appui-redmi": "node scripts/test-appui-redmi.mjs",
     "test:carnet-vide": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/carnetVide.test.mts",
     "test:carnet-vide-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-carnet-vide-local.mts",
@@ -44,6 +45,7 @@
     "test:verrous-effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-verrous-effacement-local.mts",
     "test:photo-enfant-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-photo-enfant-local.mts",
     "test:photo-annee-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-photo-annee-local.mts",
+    "test:photo-annee-sans-colonne-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-photo-annee-sans-colonne-local.mts",
     "test:photo-sans-colonne-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-photo-sans-colonne-local.mts",
     "test:effacement-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-effacement-local.mts"
   },

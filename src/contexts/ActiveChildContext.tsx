@@ -22,9 +22,10 @@ import { Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSchoolMode } from './SchoolModeContext';
 import { useAuth } from './AuthContext';
-import { getChildren, updateChild } from '../services/database';
+import { getChildren, getAnneesPhotos, updateAnneePhoto, updateChild } from '../services/database';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { estColonneInconnue } from '../utils/photoEnfant';
+import { choisirPhoto, type LigneAnnee } from '../utils/photoAnnee';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
 import demoChildren from '../data/demo/demo-children.json';
@@ -49,8 +50,16 @@ export type Child = {
   fond?: string | null;
   /** Photo de l'enfant : chemin dans le bucket privé « child-photos » (M35) ; absent / null = initiale sur sa couleur. */
   photoPath?: string | null;
-  /** children.updated_at : avec photoPath, clé du cache des URL signées. */
+  /** Date de dernière écriture de la ligne qui porte photoPath (année ou, en transition, enfant) : avec photoPath, clé du cache des URL signées. */
   photoUpdatedAt?: string | null;
+  /** M36 : la base sait la photo par année (colonne academic_years.photo_path présente). Faux : ancien modèle (children.photo_path). */
+  photoParAnnee?: boolean;
+  /** Année EN COURS de l'enfant : celle où l'on écrit une nouvelle photo (M36). */
+  photoAnneeId?: string | null;
+  /** Variante A : la photo affichée est celle de l'année N−1 (repli), libellé « 2025–2026 » ; null sinon. Jamais plus loin que N−1. */
+  photoAnterieure?: string | null;
+  /** La photo affichée appartient à l'année en cours (supprimable depuis la feuille de photo) ; faux pour un repli sur N−1. */
+  photoDeCetteAnnee?: boolean;
 };
 
 /** Couleur neutre par défaut (identique au défaut en base, migration M3). */
@@ -89,7 +98,10 @@ interface ActiveChildContextValue {
   setChildColor: (childId: string, color: string) => Promise<void>;
   /** Fond de l'Accueil de l'enfant (null = sa couleur) : en base (compte réel) ou sur l'appareil (démo). */
   setChildFond: (childId: string, fond: string | null) => Promise<void>;
-  /** Photo de l'enfant (compte réel seulement) : chemin après envoi, null après suppression. Écrit children.photo_path. */
+  /**
+   * Photo de l'enfant (compte réel seulement) : chemin après envoi, null après suppression. Écrit academic_years.photo_path de
+   * l'année EN COURS (M36) ou, si la base n'a pas encore M36, children.photo_path (ancien modèle).
+   */
   setChildPhoto: (childId: string, photoPath: string | null) => Promise<void>;
   fadeAnim: Animated.Value;
   loading: boolean;
@@ -142,6 +154,40 @@ function mapRow(row: ChildRow): Child {
   };
 }
 
+/**
+ * Photo par année (M36) : choisit pour chaque enfant la photo de l'année en cours, sinon de l'année N−1 SEULEMENT (variante A),
+ * sinon l'ancienne colonne (transition). Base sans M36 (colonne inconnue) : ancien modèle, en silence. Toute autre erreur de
+ * lecture des années ne casse pas l'écran : l'enfant garde sa photo de l'ancien modèle ou l'initiale (jamais une photo fausse).
+ */
+async function appliquerPhotosParAnnee(enfants: Child[]): Promise<Child[]> {
+  if (!PHOTO_ENFANT_ACTIVE || enfants.length === 0) return enfants;
+  try {
+    const { data, error } = await getAnneesPhotos(enfants.map((c) => c.id));
+    if (error) {
+      if (estColonneInconnue(error)) return enfants;
+      return enfants.map((c) => ({ ...c, photoParAnnee: false }));
+    }
+    const lignes = (data ?? []) as (LigneAnnee & { student_id: string })[];
+    return enfants.map((c) => {
+      const choix = choisirPhoto(
+        lignes.filter((l) => l.student_id === c.id),
+        { chemin: c.photoPath ?? null, updatedAt: c.photoUpdatedAt ?? null },
+      );
+      return {
+        ...c,
+        photoPath: choix.chemin,
+        photoUpdatedAt: choix.updatedAt,
+        photoParAnnee: true,
+        photoAnneeId: choix.anneeActiveId,
+        photoAnterieure: choix.anterieure,
+        photoDeCetteAnnee: choix.deCetteAnnee,
+      };
+    });
+  } catch {
+    return enfants.map((c) => ({ ...c, photoParAnnee: false }));
+  }
+}
+
 /** Démo : couleur / fond modifiés, gardés sur l'appareil (équivalent local de children.color / fond). */
 const demoKey = (childId: string) => `@scolaria:demo_enfant:${childId}`;
 type DemoOverride = { color?: string; fond?: string | null };
@@ -180,7 +226,8 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       const result = await getChildren();
       if (result?.error) throw result.error;
       setErreur(null);
-      return ((result?.data ?? []) as ChildRow[]).map(mapRow);
+      const enfants = ((result?.data ?? []) as ChildRow[]).map(mapRow);
+      return await appliquerPhotosParAnnee(enfants);
     } catch (e) {
       // Échec : on garde la liste déjà chargée (hors ligne, rien ne disparaît) et on signale l'erreur.
       setErreur(classerErreur(e));
@@ -289,6 +336,17 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   const setChildPhoto = useCallback(
     async (childId: string, photoPath: string | null) => {
       if (isDemo || !PHOTO_ENFANT_ACTIVE) return;
+      // M36 : la photo s'écrit sur l'année EN COURS (jamais sur N−1, même quand c'est elle qui est affichée en repli).
+      const enfant = childList.find((c) => c.id === childId);
+      if (enfant?.photoParAnnee && enfant.photoAnneeId) {
+        const { error: errAnnee } = await updateAnneePhoto(enfant.photoAnneeId, photoPath);
+        if (errAnnee) {
+          await reloadChildren(childId);
+          throw errAnnee;
+        }
+        await reloadChildren(childId); // recalcule l'affichage (suppression de la photo de l'année → repli éventuel sur N−1)
+        return;
+      }
       const { error } = await updateChild(childId, { photo_path: photoPath });
       // Schéma sans M35 (colonne inconnue) : repli sans photo, en silence ; toute autre erreur reste visible.
       if (error && estColonneInconnue(error)) return;
@@ -300,7 +358,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         prev.map((c) => (c.id === childId ? { ...c, photoPath, photoUpdatedAt: new Date().toISOString() } : c)),
       );
     },
-    [isDemo, reloadChildren],
+    [isDemo, reloadChildren, childList],
   );
 
   // ─── Changement d'enfant (fondu) ────────────────────────

@@ -7,6 +7,7 @@
 import { execSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
+import { choisirPhoto, type LigneAnnee } from '../src/utils/photoAnnee.ts';
 
 const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
@@ -135,6 +136,22 @@ try {
   const { error: re0 } = await A.from('academic_years').update({ photo_path: `${lucas}/${y0}.jpg` }).eq('id', y0);
   verifier('A efface puis repose photo_path : année archivée rattachée à une classe ET année active rattachée', !raz1 && !re1 && !raz0 && !re0, [raz1, re1, raz0, re0].map((e) => e?.message).filter(Boolean).join(' | '));
 
+  // 3 bis. Le MÊME calcul que l'app (requête sous RLS puis choisirPhoto) contre la vraie base : année en cours, repli N−1, jamais N−2.
+  const lignesApp = async (c: Client, enfant: string) =>
+    ((await c.from('academic_years').select('id, student_id, annee_scolaire, statut, photo_path, updated_at').in('student_id', [enfant])).data ?? []) as unknown as LigneAnnee[];
+  let choix = choisirPhoto(await lignesApp(A, lucas));
+  verifier('app : photo de l’année en cours affichée, sans signe', choix.chemin === `${lucas}/${y0}.jpg` && choix.anterieure === null && choix.deCetteAnnee);
+  await A.from('academic_years').update({ photo_path: null }).eq('id', y0);
+  choix = choisirPhoto(await lignesApp(A, lucas));
+  verifier('app : année en cours sans photo → REPLI sur N−1 avec signe, l’écriture vise l’année en cours', choix.chemin === `${lucas}/${y1}.jpg` && !!choix.anterieure && choix.anneeActiveId === y0 && !choix.deCetteAnnee, JSON.stringify(choix));
+  verifier('app : la photo de repli (N−1) se lit pour un responsable', !!(await lire(A, choix.chemin!)));
+  await A.from('academic_years').update({ photo_path: null }).eq('id', y1);
+  choix = choisirPhoto(await lignesApp(A, lucas));
+  verifier('app : N−1 sans photo mais N−2 photographiée → AUCUN repli (jamais au-delà de N−1)', choix.chemin === null && choix.anterieure === null, JSON.stringify(choix));
+  const { error: rest1 } = await A.from('academic_years').update({ photo_path: `${lucas}/${y1}.jpg` }).eq('id', y1);
+  const { error: rest0 } = await A.from('academic_years').update({ photo_path: `${lucas}/${y0}.jpg` }).eq('id', y0);
+  verifier('les références des années sont remises en place pour la suite', !rest1 && !rest0);
+
   // 4. Refus : année d'un autre enfant, chemin libre, autre foyer.
   const horsAnnee = await bucket(A).upload(`${lucas}/${yz}.jpg`, jpeg(4), { contentType: 'image/jpeg' });
   verifier('A : année d\'un AUTRE enfant sous le dossier de Lucas refusée', !!horsAnnee.error);
@@ -191,6 +208,7 @@ try {
   const { error: depart } = await B.rpc('quitter_carnet', { p_child_id: mila });
   verifier('B quitte le carnet de Mila (quitter_carnet)', !depart, depart?.message ?? '');
   verifier('B parti : le REPLI ne renvoie ni année ni chemin', (await repliB()).length === 0);
+  verifier('B parti : le calcul de l’app (choisirPhoto) n’affiche aucune photo, ni de cette année ni de N−1', choisirPhoto(await lignesApp(B, mila)).chemin === null);
   verifier('B parti : AUCUNE photo d\'aucune année lisible', (await lire(B, `${mila}/${m0}.jpg`)) === null && (await lire(B, `${mila}/${m1}.jpg`)) === null);
   const dlB = await B.storage.from('child-photos').download(`${mila}/${m1}.jpg`);
   const upB2 = await B.storage.from('child-photos').upload(`${mila}/${m1}.jpg`, jpeg(23), { contentType: 'image/jpeg', upsert: true });

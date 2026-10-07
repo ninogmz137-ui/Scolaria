@@ -30,6 +30,7 @@ export default function EnteteCarnet({
   onParcours,
   photoUri,
   onPhoto,
+  anneePhoto,
   paddingTop,
 }: {
   prenom: string;
@@ -43,6 +44,8 @@ export default function EnteteCarnet({
   photoUri?: string | null;
   /** Ouvre la feuille de photo ; absent : le cercle n'est pas pressable (aucun faux bouton). */
   onPhoto?: () => void;
+  /** Variante A : la photo affichée est celle d'une année passée (N−1) : libellé « 2025–2026 », signe discret sur le cercle. */
+  anneePhoto?: string | null;
   /** insets.top + 64 */
   paddingTop: number;
 }) {
@@ -63,7 +66,7 @@ export default function EnteteCarnet({
           <Pressable
             onPress={onPhoto}
             accessibilityRole="button"
-            accessibilityLabel={photoUri ? `Photo de ${prenom}. Modifier` : `Ajouter une photo de ${prenom}`}
+            accessibilityLabel={anneePhoto ? `Photo de ${prenom} de ${anneePhoto}. Ajouter la photo de cette année` : photoUri ? `Photo de ${prenom}. Modifier` : `Ajouter une photo de ${prenom}`}
           >
             {cercle}
           </Pressable>
@@ -80,6 +83,11 @@ export default function EnteteCarnet({
           >
             <Camera size={14} color="#FFFFFF" strokeWidth={2} />
           </Pressable>
+        ) : null}
+        {photoUri && anneePhoto ? (
+          <View style={st.signeAnnee} pointerEvents="none" accessible={false}>
+            <Text style={st.signeAnneeTexte} numberOfLines={1}>{anneePhoto.replace(/(d{4})–(d{2})(d{2})/, '$1–$3')}</Text>
+          </View>
         ) : null}
       </View>
       <View style={st.textes}>
@@ -123,6 +131,19 @@ const st = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Signe discret d'une photo d'une année passée (variante A) : pastille blanche, texte 11 px sombre, en bas du cercle.
+  signeAnnee: {
+    position: 'absolute',
+    bottom: -4,
+    alignSelf: 'center',
+    paddingHorizontal: 7,
+    height: 18,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signeAnneeTexte: { fontFamily: FontFamily.sansMedium, fontSize: 11, lineHeight: 14, color: 'rgba(15,23,42,0.75)' },
   textes: { flex: 1, minWidth: 0 },
   prenom: {
     fontFamily: FontFamily.displaySemiBold, // Figtree 900

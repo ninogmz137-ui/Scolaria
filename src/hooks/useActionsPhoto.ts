@@ -13,6 +13,8 @@ import {
   choisirEtPreparerPhoto, envoyerPhoto, retirerObjetPhoto, ErreurPhoto, type SourcePhoto,
 } from '../services/photoEnfant';
 import { classerErreur } from '../services/erreurs';
+import { cheminPhotoAnnee } from '../utils/photoAnnee';
+import { cheminPhotoEnfant } from '../utils/photoEnfant';
 
 function messageErreur(e: unknown): string {
   if (e instanceof ErreurPhoto) return e.message;
@@ -23,8 +25,17 @@ function messageErreur(e: unknown): string {
 }
 
 export function useActionsPhoto() {
-  const { setChildPhoto } = useActiveChild();
+  const { setChildPhoto, children } = useActiveChild();
   const [occupe, setOccupe] = useState(false);
+
+  // Photo par année (M36) : on écrit TOUJOURS sur l'année en cours (jamais sur N−1, même affichée en repli) ; base sans M36 : ancien chemin.
+  const cheminPour = useCallback(
+    (childId: string): string => {
+      const c = children.find((x) => x.id === childId);
+      return c?.photoParAnnee && c.photoAnneeId ? cheminPhotoAnnee(childId, c.photoAnneeId) : cheminPhotoEnfant(childId);
+    },
+    [children],
+  );
 
   /** true : photo enregistrée ; false : annulée ou en erreur (déjà expliquée). */
   const ajouter = useCallback(
@@ -33,7 +44,7 @@ export function useActionsPhoto() {
       try {
         const octets = await choisirEtPreparerPhoto(source);
         if (!octets) return false;
-        const chemin = await envoyerPhoto(childId, octets);
+        const chemin = await envoyerPhoto(cheminPour(childId), octets);
         await setChildPhoto(childId, chemin);
         return true;
       } catch (e) {
@@ -43,7 +54,7 @@ export function useActionsPhoto() {
         setOccupe(false);
       }
     },
-    [setChildPhoto],
+    [setChildPhoto, cheminPour],
   );
 
   /** Alert natif avant (action destructive) ; true : photo supprimée. */
@@ -58,8 +69,9 @@ export function useActionsPhoto() {
             onPress: async () => {
               setOccupe(true);
               try {
+                const chemin = cheminPour(childId); // calculé AVANT l'écriture : la liste est rechargée ensuite
                 await setChildPhoto(childId, null);
-                await retirerObjetPhoto(childId);
+                await retirerObjetPhoto(chemin);
                 resolve(true);
               } catch (e) {
                 Alert.alert('Photo non supprimée', messageErreur(e));
@@ -71,7 +83,7 @@ export function useActionsPhoto() {
           },
         ]);
       }),
-    [setChildPhoto],
+    [setChildPhoto, cheminPour],
   );
 
   return { occupe, ajouter, supprimer };

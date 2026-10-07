@@ -17,7 +17,7 @@ import { File } from 'expo-file-system';
 import { supabase } from './supabase';
 import { classerErreur } from './erreurs';
 import { estJpeg, retirerMetadonnees } from '../utils/metadonneesImage';
-import { BUCKET_PHOTOS, DUREE_URL_SIGNEE_S, QUALITE_PHOTO_ENFANT, cheminPhotoEnfant, recadrerEnCarre } from '../utils/photoEnfant';
+import { BUCKET_PHOTOS, DUREE_URL_SIGNEE_S, QUALITE_PHOTO_ENFANT, recadrerEnCarre } from '../utils/photoEnfant';
 import { CacheUrls } from '../utils/cacheUrls';
 
 export type SourcePhoto = 'camera' | 'galerie';
@@ -112,9 +112,8 @@ export async function choisirEtPreparerPhoto(source: SourcePhoto): Promise<Uint8
   return propre;
 }
 
-/** Envoie (ou remplace : upsert) l'unique photo de l'enfant. Renvoie son chemin. */
-export async function envoyerPhoto(childId: string, octets: Uint8Array): Promise<string> {
-  const chemin = cheminPhotoEnfant(childId);
+/** Envoie (ou remplace : upsert) la photo de l'enfant à `chemin` (<enfant>/<année>.jpg, ou l'ancien <enfant>/avatar.jpg). Renvoie le chemin. */
+export async function envoyerPhoto(chemin: string, octets: Uint8Array): Promise<string> {
   try {
     const { error } = await supabase.storage
       .from(BUCKET_PHOTOS)
@@ -131,8 +130,7 @@ export async function envoyerPhoto(childId: string, octets: Uint8Array): Promise
  * Retire l'objet. À appeler APRÈS avoir mis photo_path à NULL : en cas d'échec ici, l'objet n'est plus référencé et le
  * nettoyage quotidien (photos_orphelines) le supprime ; la photo n'apparaît plus nulle part.
  */
-export async function retirerObjetPhoto(childId: string): Promise<void> {
-  const chemin = cheminPhotoEnfant(childId);
+export async function retirerObjetPhoto(chemin: string): Promise<void> {
   oublierPhoto(chemin);
   try {
     await supabase.storage.from(BUCKET_PHOTOS).remove([chemin]);

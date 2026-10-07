@@ -258,6 +258,7 @@ export default function AccueilScreen() {
             archives={anneesEnfant.archives}
             onParcours={() => nav.navigate('MonParcours')}
             photoUri={photoUri}
+            anneePhoto={selectedChild.photoAnterieure}
             onPhoto={isDemo || !PHOTO_ENFANT_ACTIVE ? undefined : () => setPhotoVisible(true)}
           />
         ) : (

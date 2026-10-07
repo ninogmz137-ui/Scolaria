@@ -496,11 +496,11 @@ function ProfilEnfantScreenContent() {
               onPress={() => setPhotoVisible(true)}
               style={styles.lignePhoto}
               accessibilityRole="button"
-              accessibilityLabel={`Photo ${de(selectedChild.name)} : ${selectedChild.photoPath ? 'modifier' : 'ajouter'}`}
+              accessibilityLabel={`Photo ${de(selectedChild.name)}${selectedChild.photoAnterieure ? ` de ${selectedChild.photoAnterieure}` : ''} : ${selectedChild.photoPath ? (selectedChild.photoAnterieure ? 'ajouter la photo de cette année' : 'modifier') : 'ajouter'}`}
             >
               <Camera size={16} color={NAVY} strokeWidth={2} />
               <Text style={styles.lignePhotoLibelle}>Photo</Text>
-              <Text style={styles.lignePhotoValeur}>{selectedChild.photoPath ? 'Modifier' : 'Ajouter'}</Text>
+              <Text style={styles.lignePhotoValeur}>{selectedChild.photoAnterieure ? `Photo de ${selectedChild.photoAnterieure} · Ajouter celle de cette année` : selectedChild.photoPath ? 'Modifier' : 'Ajouter'}</Text>
               <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
             </Pressable>
           ) : null}

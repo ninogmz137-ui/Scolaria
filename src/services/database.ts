@@ -94,6 +94,31 @@ export async function updateChild(
     .single();
 }
 
+/**
+ * Années des enfants avec leur photo (M36, photo par année) : id, millésime, statut, photo_path, updated_at. Lecture sous RLS :
+ * seuls les responsables rattachés (donc jamais un responsable parti, un enfant en cours d'effacement ou l'école).
+ */
+export async function getAnneesPhotos(childIds: string[]) {
+  if (!isSupabaseConfigured() || childIds.length === 0) return { data: [], error: null };
+
+  return supabase
+    .from('academic_years')
+    .select('id, student_id, annee_scolaire, statut, photo_path, updated_at')
+    .in('student_id', childIds);
+}
+
+/** Écrit (ou efface, null) la photo de l'année donnée : academic_years.photo_path, contrainte <enfant>/<année>.jpg. */
+export async function updateAnneePhoto(anneeId: string, photoPath: string | null) {
+  if (!isSupabaseConfigured()) return { data: null, error: null };
+
+  return supabase
+    .from('academic_years')
+    .update({ photo_path: photoPath })
+    .eq('id', anneeId)
+    .select('id')
+    .single();
+}
+
 export async function deleteChild(childId: string) {
   if (!isSupabaseConfigured()) return { error: null };
 

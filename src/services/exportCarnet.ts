@@ -15,7 +15,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { supabase } from './supabase';
 import { getResponsablesEnfant } from './database';
-import { avecPhotoEnfant, construireArchive, nomArchive, nomFichierArchive, texteLisezmoi, type FichierArchive } from './archiveCarnet';
+import { avecPhotoEnfant, avecPhotosAnnees, construireArchive, nomArchive, nomFichierArchive, texteLisezmoi, type FichierArchive } from './archiveCarnet';
 import { NOM_APP } from '../constants/marque';
 
 const NOM_DOSSIER = 'carnet-export';
@@ -159,10 +159,30 @@ export async function exporterCarnet(
     }
   }
 
+  // Photos PAR ANNÉE (M36) : une photo par année scolaire, fichiers/photos/<millésime>.jpg ; `photo_dans_archive` dans la ligne de chaque année.
+  const octetsAnnees = new Map<string, Uint8Array>();
+  const lignesAnnees = ((donnees as any).annees ?? []) as Record<string, unknown>[];
+  for (const a of lignesAnnees) {
+    if (!a.photo_path) continue;
+    progression(`Photo de l’année ${String(a.annee_scolaire)}…`);
+    try {
+      const { data: signe, error } = await supabase.storage.from('child-photos').createSignedUrl(String(a.photo_path), 10 * 60);
+      if (error || !signe?.signedUrl) throw new Error('lien');
+      const local = await File.downloadFileAsync(signe.signedUrl, new File(dossier, `photo-annee-${String(a.annee_scolaire)}.jpg`));
+      octetsAnnees.set(String(a.id), await local.bytes());
+      local.delete();
+    } catch {
+      fichiersManquants.push(`photo-annee-${String(a.annee_scolaire)}`);
+    }
+  }
+  const parAnnee = avecPhotosAnnees(lignesAnnees, octetsAnnees);
+  (donnees as any).annees = parAnnee.annees;
+  const fichiersAnnees = parAnnee.fichiers;
+
   progression('Création de l’archive…');
   const photoArchive = avecPhotoEnfant(enfant, octetsPhoto);
   const enfantArchive = photoArchive.enfant;
-  fichiers.push(...photoArchive.fichiers);
+  fichiers.push(...photoArchive.fichiers, ...fichiersAnnees);
   const genereLe = new Date();
   const archive = construireArchive(
     {
