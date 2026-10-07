@@ -59,7 +59,8 @@ function appuyer(x, y, noeuds) {
 const dehors = 4 * DP; // ~4 dp à l'extérieur du visuel, dans la zone de 44 dp (zones de 2 à 5 dp de marge)
 
 /** Repère de l'Accueil depuis l'en-tête du carnet : la carte « ARIA » (ou « Bienvenue » sans enfant). */
-const estAccueil = (n) => n.some((e) => e.t === 'ARIA' || e.t === 'Bienvenue');
+const estAccueil = (n) =>
+  n.some((e) => e.t === 'ARIA' || e.t === 'Bienvenue' || (/^Année /.test(e.d) && /Ouvrir les années/.test(e.d)));
 
 async function retourAccueil() {
   // Un seul retour à la fois, avec contrôle ; sinon arrêt.
