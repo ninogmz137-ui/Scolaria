@@ -55,9 +55,21 @@ export function creerOutilAppuis(adbShell = adbReel) {
       exiger('retour');
       adbShell(['shell', 'input keyevent KEYCODE_BACK']);
     },
+    /** Un balayage (défilement) de (x1,y1) vers (x2,y2). Même garde que `tap` : refusé hors premier plan. */
+    balayer(x1, y1, x2, y2, dureeMs = 300) {
+      if (![x1, y1, x2, y2, dureeMs].every(Number.isFinite)) throw new AppuiRefuse('REFUSÉ : coordonnées de balayage invalides.');
+      exiger('balayage');
+      adbShell(['shell', `input swipe ${Math.round(x1)} ${Math.round(y1)} ${Math.round(x2)} ${Math.round(y2)} ${Math.round(dureeMs)}`]);
+    },
     /** Relance l'app (aucun appui) — seule action permise hors premier plan. */
-    relancer() {
-      adbShell(['shell', 'am start -n com.scolaria.app/com.scolaria.app.MainActivity']);
+    relancer(paquet = 'com.scolaria.app') {
+      if (!/^com\.scolaria\.app(\.demo)?$/.test(String(paquet))) throw new AppuiRefuse(`REFUSÉ : paquet non autorisé (${paquet}).`);
+      adbShell(['shell', `am start -n ${paquet}/.MainActivity`]);
+    },
+    /** Arrête le PROCESSUS du paquet donné (jamais de désinstallation, rien d'effacé) puis, si `relancer`, le redémarre à froid. */
+    redemarrer(paquet) {
+      if (!/^com\.scolaria\.app(\.demo)?$/.test(String(paquet))) throw new AppuiRefuse(`REFUSÉ : paquet non autorisé (${paquet}).`);
+      adbShell(['shell', `am force-stop ${paquet}`]);
     },
   };
 }

@@ -89,6 +89,23 @@ for (const [nom, focus] of [['Scolaria', 'com.scolaria.app/com.scolaria.app.Main
   outil.relancer();
   verifier('relancer l’app est permis hors premier plan (am start, aucun appui)', t.envoyees.length === 1 && /am start/.test(t.envoyees[0]) && entrees(t.envoyees).length === 0);
 }
+// Balayage (ajouté le 8 oct. pour faire défiler sans « input swipe » brut) et redémarrage à froid d'un paquet autorisé.
+{
+  const dehors = fauxTelephone('com.miui.home/x');
+  const o1 = creerOutilAppuis(dehors.adb);
+  verifier('balayage refusé hors premier plan, aucun « input » envoyé', refuse(() => o1.balayer(1, 2, 3, 4)) && entrees(dehors.envoyees).length === 0);
+  const dedans = fauxTelephone('com.scolaria.app.demo/com.scolaria.app.demo.MainActivity');
+  const o2 = creerOutilAppuis(dedans.adb);
+  o2.balayer(540, 1800, 540, 600, 400);
+  verifier('balayage accepté au premier plan', JSON.stringify(dedans.envoyees) === JSON.stringify(['shell input swipe 540 1800 540 600 400']), dedans.envoyees.join(' ; '));
+  verifier('balayage : coordonnées invalides refusées', refuse(() => o2.balayer(Number.NaN, 1, 2, 3)));
+  const t = fauxTelephone('com.miui.home/x');
+  const o3 = creerOutilAppuis(t.adb);
+  o3.redemarrer('com.scolaria.app.demo');
+  o3.relancer('com.scolaria.app.demo');
+  verifier('redémarrage à froid : am force-stop puis am start, sans « input »', JSON.stringify(t.envoyees) === JSON.stringify(['shell am force-stop com.scolaria.app.demo', 'shell am start -n com.scolaria.app.demo/.MainActivity']), t.envoyees.join(' ; '));
+  verifier('redémarrer : un autre paquet est refusé (jamais d\'arrêt d\'une autre app)', refuse(() => o3.redemarrer('host.exp.exponent')) && refuse(() => o3.relancer('com.android.settings')));
+}
 verifier('scolariaAuPremierPlan : ligne absente → faux', scolariaAuPremierPlan('rien') === false);
 verifier('motInterdit : « Supprimer le compte »', motInterdit('Supprimer le compte') === true && motInterdit('Accueil') === false);
 
