@@ -82,6 +82,12 @@ trois conditions du § 5 ; M36 n'est PAS écrite : elle attend le « go » de l'
   politique de `storage.objects` pour `child-photos` ne mentionne `classes`, `enseignant_id` ni `classe_id` (ce test casse dès que quelqu'un
   élargit la lecture à l'école, ce qui force à relire cette règle) ; (3) l'URL signée de l'ancienne photo n'est demandée par l'app que pour un
   responsable (jamais depuis un écran enseignant).
+- **c bis. Non-fuite : responsable détaché, enfant en cours d'effacement** (ajouté le 7 oct., plan « accepté tel quel ») : pour un enfant ayant
+  3 années et une photo par année, (1) un responsable DÉTACHÉ du carnet (`quitter_carnet`, ou jamais rattaché) : aucune photo d'AUCUNE année n'est
+  lisible, ni par `createSignedUrl` ni par `download` (API Storage), ni la colonne `academic_years.photo_path` par la requête de l'app ; (2) un
+  enfant EN COURS D'EFFACEMENT (demande enregistrée, non exécutée) : idem pour tous ses responsables ; (3) **le repli de la variante A compris** :
+  la requête « année précédente » de l'app, exécutée par ce responsable détaché, ne renvoie ni chemin ni URL signée (l'ancienne photo ne se
+  lit jamais par le seul fait d'avoir déjà été rattaché) ; (4) le second responsable, resté rattaché, continue de tout lire (témoin positif).
 - **e. Variante A** : voir § 5 (6 cas + 2 : repli limité à l'année précédente, signe discret).
 
 ## 5. Année en cours sans photo — VARIANTE A VALIDÉE
