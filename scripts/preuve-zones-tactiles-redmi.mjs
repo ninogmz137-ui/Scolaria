@@ -12,6 +12,7 @@
 // Prérequis : téléphone déverrouillé, app en démo sur l'Accueil d'un enfant de primaire (pastilles P1–P5), Metro joint.
 // Usage : node scripts/preuve-zones-tactiles-redmi.mjs
 import { spawnSync } from 'node:child_process';
+import { creerOutilAppuis, AppuiRefuse } from './appui-redmi.mjs';
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -54,7 +55,24 @@ const VERROU = join(tmpdir(), 'stab2-redmi.lock');
 }
 
 const adb = (...a) => spawnSync('adb', ['-s', DEV, ...a], { encoding: 'utf8', maxBuffer: 1 << 26 }).stdout ?? '';
-const premierPlan = () => /com\.scolaria\.app/.test(adb('shell', 'dumpsys window').split('\n').find((l) => l.includes('mCurrentFocus')) ?? '');
+// Tout appui et tout retour passent par l'outil unique (scripts/appui-redmi.mjs) : premier plan relu AVANT chaque action, refus sinon.
+const outil = creerOutilAppuis();
+const premierPlan = outil.premierPlan;
+/** Exécute une action gardée ; un refus « hors premier plan » arrête la preuve (code 3), un mot interdit renvoie false. */
+function gardee(action) {
+  try {
+    action();
+    return true;
+  } catch (e) {
+    if (!(e instanceof AppuiRefuse)) throw e;
+    if (/premier plan/.test(e.message)) {
+      console.log(`ARRÊT : ${e.message} (relancer l'app avec am start, sans appui).`);
+      process.exit(3);
+    }
+    console.log(e.message);
+    return false;
+  }
+}
 
 // ── Dump (avec nouvelle tentative si vide) ────────────────────────────────────────────────────
 function dumpUne() {
@@ -153,17 +171,7 @@ function ecrireTableau() {
 
 // ── Appui gardé ─────────────────────────────────────────────────────────────────────────────────
 function appuyer(x, y, noeuds) {
-  if (!premierPlan()) {
-    console.log('ARRÊT : Scolaria n’est pas au premier plan (relancer avec am start).');
-    process.exit(3);
-  }
-  const dessous = norm(texteSous(noeuds, x, y));
-  if (INTERDITS.test(dessous)) {
-    console.log(`REFUSÉ (mot interdit sous ${x},${y}) : ${dessous.slice(0, 80)}`);
-    return false;
-  }
-  adb('shell', `input tap ${Math.round(x)} ${Math.round(y)}`);
-  return true;
+  return gardee(() => outil.tap(x, y, { textesSous: texteSous(noeuds, x, y) }));
 }
 const viser = (b, cote, offDp) => {
   const [x1, y1, x2, y2] = b;
@@ -171,7 +179,7 @@ const viser = (b, cote, offDp) => {
   return cote === 'droite' ? [x2 + o, (y1 + y2) / 2] : cote === 'gauche' ? [x1 - o, (y1 + y2) / 2] : cote === 'haut' ? [(x1 + x2) / 2, y1 - o] : [(x1 + x2) / 2, y2 + o];
 };
 const taillDp = (b) => `${Math.round((b[2] - b[0]) / DP)}×${Math.round((b[3] - b[1]) / DP)} dp`;
-const retour = async (ms = 1500) => { adb('shell', 'input keyevent KEYCODE_BACK'); await attendre(ms); };
+const retour = async (ms = 1500) => { gardee(() => outil.retour()); await attendre(ms); };
 
 async function retourAccueil() {
   for (let i = 0; i < 4; i++) {
@@ -179,15 +187,14 @@ async function retourAccueil() {
     if (estAccueil(n)) return true;
     if (!premierPlan()) return false;
     const accueil = n.length ? trouver(n, 'Accueil') : null;
-    if (accueil && !INTERDITS.test(norm(texteSous(n, (accueil.b[0] + accueil.b[2]) / 2, (accueil.b[1] + accueil.b[3]) / 2)))) {
-      adb('shell', `input tap ${(accueil.b[0] + accueil.b[2]) >> 1} ${(accueil.b[1] + accueil.b[3]) >> 1}`);
-    } else {
-      adb('shell', 'input keyevent KEYCODE_BACK'); // écran d'Aria (dump vide) ou feuille ouverte
-    }
+    const cx = (accueil?.b[0] + accueil?.b[2]) / 2;
+    const cy = (accueil?.b[1] + accueil?.b[3]) / 2;
+    if (accueil && !INTERDITS.test(norm(texteSous(n, cx, cy)))) gardee(() => outil.tap(cx, cy));
+    else gardee(() => outil.retour()); // écran d'Aria (dump vide) ou feuille ouverte
     await attendre(2000);
     if (!premierPlan()) {
       // Un retour de trop a fermé l'app : on la relance (aucun appui) et on repart de l'Accueil.
-      adb('shell', 'am start -n com.scolaria.app/com.scolaria.app.MainActivity');
+      outil.relancer();
       await attendre(4000);
     }
   }
@@ -423,6 +430,6 @@ for (const el of BARRE) {
 }
 
 await retourAccueil();
-if (!premierPlan()) adb('shell', 'am start -n com.scolaria.app/com.scolaria.app.MainActivity'); // ne jamais laisser l'app fermée
+if (!premierPlan()) outil.relancer(); // ne jamais laisser l'app fermée
 console.log(`\n${ok} passé(s), ${ko} échec(s) — tableau : ${SORTIE}`);
 process.exit(ko ? 1 : 0);

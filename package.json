@@ -28,6 +28,7 @@
     "test:entete": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/fondu.test.mts",
     "test:photo-enfant": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoEnfant.test.mts",
     "test:zones-tactiles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/zonesTactiles.test.mts",
+    "test:appui-redmi": "node scripts/test-appui-redmi.mjs",
     "test:carnet-vide": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/carnetVide.test.mts",
     "test:carnet-vide-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-carnet-vide-local.mts",
     "test:photo": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/redimension.test.mts",

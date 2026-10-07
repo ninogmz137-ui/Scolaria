@@ -50,13 +50,14 @@ tap_texte() {
   dump; local r; r=$(cible texte "$1")
   if [ -z "$r" ]; then echo "introuvable : $1"; return 1; fi
   if interdit "$1 ${r#*|}"; then echo "REFUSÉ (action interdite) : $1"; return 2; fi
-  adb -s $DEV shell input tap ${r%%|*}
+  # Appui par l'OUTIL UNIQUE : premier plan relu avant l'appui, refus sinon (jamais d'« adb shell input » direct).
+  node "$(dirname "${BASH_SOURCE[0]}")/appui-redmi.mjs" tap ${r%%|*}
 }
 
 tap_xy() {
   dump; local r; r=$(cible xy "$1" "$2")
   if interdit "${r#*|}"; then echo "REFUSÉ (action interdite sous $1,$2) : ${r#*|}"; return 2; fi
-  adb -s $DEV shell input tap $1 $2
+  node "$(dirname "${BASH_SOURCE[0]}")/appui-redmi.mjs" tap $1 $2
 }
 
 attendre_texte() {

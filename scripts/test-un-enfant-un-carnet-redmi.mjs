@@ -9,6 +9,7 @@
 // Prérequis : téléphone déverrouillé, compte réel avec ≥ 2 enfants de niveaux différents, Scolaria sur l'Accueil, Metro joint.
 // Usage : node scripts/test-un-enfant-un-carnet-redmi.mjs [PrénomA PrénomB]   (défaut : Laia Evan)
 import { spawnSync } from 'node:child_process';
+import { creerOutilAppuis, AppuiRefuse } from './appui-redmi.mjs';
 
 const DEV = process.env.ADB_DEVICE ?? 'a3a0cfea';
 const [A, B] = process.argv.slice(2).length === 2 ? process.argv.slice(2) : ['Laia', 'Evan'];
@@ -16,7 +17,9 @@ const INTERDITS = /deconnect|deconnexion|quitter|logout|sign out|supprim|effac|r
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const adb = (...a) => spawnSync('adb', ['-s', DEV, ...a], { encoding: 'utf8', maxBuffer: 1 << 26 }).stdout ?? '';
 const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
-const premierPlan = () => /com\.scolaria\.app/.test(adb('shell', 'dumpsys window').split('\n').find((l) => l.includes('mCurrentFocus')) ?? '');
+// Tout appui et tout retour passent par l'outil unique (scripts/appui-redmi.mjs) : premier plan relu avant chaque action, refus sinon.
+const outil = creerOutilAppuis();
+const premierPlan = outil.premierPlan;
 
 function lire() {
   adb('shell', 'uiautomator dump /sdcard/w.xml');
@@ -37,15 +40,14 @@ function appuyerSur(noeuds, noeud, fractionY = 0.5) {
   // fractionY < 0,5 : viser le haut d'un grand élément (les lignes du sélecteur d'enfant, tout en bas de l'écran, ne
   // réagissent pas à un appui vers leur bas : constaté sur ce Redmi, la ligne basse ne répond qu'à y ≲ 1975).
   const y = Math.round(noeud.b[1] + (noeud.b[3] - noeud.b[1]) * fractionY);
-  if (!premierPlan()) {
-    console.log('ARRÊT : Scolaria n’est pas au premier plan.');
-    sortir(3);
-  }
-  if (INTERDITS.test(norm(dessous(noeuds, x, y) + ' ' + noeud.t + noeud.d))) {
-    console.log(`REFUSÉ (mot interdit) : ${noeud.t || noeud.d}`);
+  try {
+    outil.tap(x, y, { textesSous: dessous(noeuds, x, y) + ' ' + noeud.t + noeud.d });
+  } catch (e) {
+    if (!(e instanceof AppuiRefuse)) throw e;
+    console.log(e.message);
+    if (/premier plan/.test(e.message)) sortir(3);
     return false;
   }
-  adb('shell', `input tap ${x} ${y}`);
   return true;
 }
 
@@ -87,7 +89,7 @@ async function surAccueil() {
     const a = trouver(n, (e) => e.d === 'Accueil');
     if (a && appuyerSur(n, a)) await attendre(2000);
     else {
-      adb('shell', 'input keyevent KEYCODE_BACK');
+      outil.retour();
       await attendre(2000);
     }
   }
@@ -149,7 +151,7 @@ const marqueurs = {};
     const niveau = l ? (l.d.match(/, ([A-Za-z0-9]+) — /) ?? [])[1] : undefined;
     marqueurs[p] = { niveau };
   }
-  adb('shell', 'input keyevent KEYCODE_BACK');
+  outil.retour();
   await attendre(1500);
 }
 for (const p of [A, B]) {
