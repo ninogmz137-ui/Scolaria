@@ -20,6 +20,18 @@
 --  4. Nettoyage : photos_orphelines() ne garde plus un objet que s'il est référencé par children.photo_path OU
 --     academic_years.photo_path ; l'âge se mesure sur la dernière écriture, comme en M35. Dès que children.photo_path est remis à
 --     NULL (M37), l'ancien avatar.jpg devient orphelin et est purgé par le nettoyage quotidien.
+--
+--  TRANSITION M36 → M37 : QUELLE COLONNE GAGNE, QUI ÉCRIT OÙ (mêmes règles : tasks/plan-photo-par-annee.md § 5 bis ; src/utils/photoAnnee.ts)
+--   · M36 NE MIGRE RIEN : children.photo_path et les objets <enfant>/avatar.jpg restent tels quels ; academic_years.photo_path = NULL.
+--   · LECTURE par la nouvelle app, dans cet ordre : (1) academic_years.photo_path de l'année EN COURS ; (2) celui de l'année N−1
+--     seulement (repli, avec signe d'année passée) ; (3) children.photo_path (ancien modèle) ; (4) l'initiale. Quand les deux
+--     colonnes DIVERGENT, academic_years GAGNE toujours (children.photo_path n'est lue que si aucune année — en cours ou N−1 — n'a de photo).
+--     L'ANCIENNE app ne lit que children.photo_path (elle ignore les années : l'affichage peut diverger entre deux responsables, sans erreur).
+--   · ÉCRITURE : la nouvelle app, base avec M36 : AJOUT / REMPLACEMENT → academic_years.photo_path de l'année en cours + objet
+--     <enfant>/<année>.jpg, jamais children.photo_path ni avatar.jpg ; SUPPRESSION → la photo de l'année (colonne NULL puis objet), SAUF
+--     si la photo affichée vient de l'ancien modèle : alors children.photo_path NULL puis objet avatar.jpg. L'ancienne app écrit
+--     toujours children.photo_path + avatar.jpg (la base l'accepte jusqu'à M37). Aucun écrivain côté serveur.
+--   · Cette fonction d'aide et les 4 politiques acceptent donc les DEUX chemins ; photos_orphelines() protège les deux références.
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ─── 1. Colonne par année ───────────────────────────────────────────────────

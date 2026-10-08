@@ -118,6 +118,37 @@ trois conditions du § 5 ; M36 n'est PAS écrite : elle attend le « go » de l'
 | Cohérence avec « jamais obligatoire » | oui (invitation unique, ignorable) | oui |
 | Recommandation | **A**, si le frottement de la rentrée compte ; la donnée ne sort pas du cercle des responsables | **B** pour livrer M36 vite ; A reste ajoutable ensuite sans migration |
 
+## 5 bis. Transition M36 → M37 : quelle colonne gagne en lecture, qui écrit où (décidé le 8 oct. 2026, testé)
+
+M36 ne migre rien : `children.photo_path` et les objets `<enfant>/avatar.jpg` restent ; `academic_years.photo_path` vaut NULL. Deux
+modèles coexistent donc jusqu'à M37, et trois « écrivains » possibles : la nouvelle app, l'ancienne app, le serveur.
+
+**Lecture : `academic_years` GAGNE quand les deux colonnes divergent.**
+
+| Lecteur | Ordre de lecture |
+|---|---|
+| Nouvelle app (base AVEC M36) | 1. photo de l'année EN COURS · 2. photo de l'année N−1 SEULEMENT (signe d'année passée) · 3. `children.photo_path` (ancien modèle, sans signe) · 4. initiale |
+| Nouvelle app, base SANS M36 (Paris aujourd'hui) | `children.photo_path` seule (colonne d'année inconnue : repli silencieux) |
+| Ancienne app (n'importe quelle base) | `children.photo_path` seule ; elle ignore les années |
+
+**Écriture : qui écrit où.**
+
+| Acteur | Ajout / remplacement | Suppression |
+|---|---|---|
+| Nouvelle app, base avec M36 | `academic_years.photo_path` de l'année EN COURS + objet `<enfant>/<année>.jpg` ; **jamais** `children.photo_path` ni `avatar.jpg` | la photo de l'année (colonne NULL, puis objet) ; **si la photo affichée vient de l'ancien modèle** : `children.photo_path` NULL, puis objet `avatar.jpg` |
+| Nouvelle app, base sans M36 | `children.photo_path` + `avatar.jpg` (comme l'ancienne) | idem |
+| Ancienne app | `children.photo_path` + `avatar.jpg` (la base l'accepte jusqu'à M37) | colonne NULL, puis objet `avatar.jpg` |
+| Serveur (SQL, fonctions, passage d'année) | rien : M36 ne migre rien ; le passage d'année crée l'année suivante SANS photo | l'effacement supprime tout (toutes années + avatar) |
+
+**Divergences connues, testées, sans erreur** (`scripts/test-ancienne-app-base-m36-local.mts`) : (a) un responsable sur la nouvelle app
+pose la photo de l'année, l'autre, resté sur l'ancienne, voit encore l'ancienne photo (ou l'initiale) ; (b) une suppression par l'ancienne
+app laisse la photo de l'année ; (c) **une photo de l'année supprimée par la nouvelle app laisse réapparaître l'ancienne photo
+`children.photo_path` si elle existe encore** (le repli de lecture, 3e rang). (c) ne concerne aujourd'hui personne : les 2 photos de test
+de Paris sont supprimées par l'utilisateur avant M36. Option, NON faite et à décider si l'ancien modèle devait vivre plus longtemps :
+« à l'ajout d'une photo d'année, retirer aussi `children.photo_path` et l'objet `avatar.jpg` » (supprime (c), mais l'ancienne app
+n'afficherait alors plus que l'initiale). Fin de transition : M37 (lot séparé) retire `children.photo_path` et l'ancien chemin ; le
+nettoyage quotidien purge alors les `avatar.jpg` restants (testé : T6e).
+
 ## 6. Risques
 
 1. **Verrous d'année** (M17 / M18 / M19) : à prouver qu'ils laissent passer `photo_path` sur une année archivée et sur une année rattachée à une classe.
@@ -139,7 +170,7 @@ trois conditions du § 5 ; M36 n'est PAS écrite : elle attend le « go » de l'
 Reçu : variante A et ses trois conditions. **Reste** : le « go M36 » (rien n'est écrit), la validation du chemin `<enfant>/<année-id>.jpg`
 et de l'ordre M36 puis M37 (lot séparé), et la suppression des deux photos de test par toi depuis l'app (§ 3).
 
-## 9. Liste de tâches de M36 (NON démarrée — attend le « go »)
+## 9. Liste de tâches de M36 (ÉCRITE EN LOCAL le 7 oct. 2026 ; NON appliquée à Paris — voir todo)
 
 1. Prérequis lecture seule sur Paris : `children.photo_path` NULL partout et `child-photos` vide (les 2 photos de test supprimées par l'utilisateur).
 2. Écrire `supabase/migrations/<ts>_m36_photo_par_annee.sql` : colonne `academic_years.photo_path` + contrainte de chemin `student_id/id.jpg`.
