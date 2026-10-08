@@ -234,6 +234,46 @@ BEGIN
   RAISE NOTICE 'OK T6d un dépôt récent est conservé';
 END $$;
 
+-- ─── T6e · NETTOYAGE PENDANT LA TRANSITION : les quatre cas (children seulement, année seulement, aucun des deux, trop récent) ─────
+DO $$
+DECLARE
+  l text := current_setting('test.lucas'); z text := current_setting('test.zoe');
+  x text := l || '/avatar.jpg';                                   -- X : référencé par children.photo_path SEULEMENT
+  y text := l || '/' || current_setting('test.ay_n2') || '.jpg'; -- Y : référencé par academic_years.photo_path SEULEMENT
+  zz text := l || '/' || current_setting('test.ay_n3') || '.jpg'; -- Z : référencé par AUCUN des deux modèles, ancien
+  w text := z || '/' || gen_random_uuid() || '.jpg';             -- W : référencé par AUCUN des deux, mais RÉCENT (délai non atteint)
+  o text[];
+BEGIN
+  INSERT INTO storage.objects (bucket_id, name, owner_id) VALUES ('child-photos', w, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  SET LOCAL session_replication_role = replica;
+  UPDATE storage.objects SET created_at = now() - interval '3 days', updated_at = now() - interval '3 days' WHERE bucket_id = 'child-photos' AND name IN (x, y, zz);
+  SET LOCAL session_replication_role = origin;
+  UPDATE public.children SET photo_path = x WHERE id = l::uuid;   -- X référencé par l'ancien modèle seulement
+  IF (SELECT count(*) FROM public.academic_years WHERE photo_path = x) <> 0 THEN RAISE EXCEPTION 'ÉCHEC T6e préparation : X référencé par une année'; END IF;
+  IF (SELECT count(*) FROM public.academic_years WHERE photo_path = y) <> 1 OR (SELECT count(*) FROM public.children WHERE photo_path = y) <> 0 THEN RAISE EXCEPTION 'ÉCHEC T6e préparation : Y mal référencé'; END IF;
+  SELECT array_agg(n ORDER BY n) INTO o FROM public.photos_orphelines() n WHERE n IN (x, y, zz, w);
+  IF o IS DISTINCT FROM ARRAY[zz] THEN RAISE EXCEPTION 'ÉCHEC T6e-1 listés : % (attendu : Z seul)', o; END IF;
+  RAISE NOTICE 'OK T6e-1 children seulement (X) : non listé ; année seulement (Y) : non listé ; aucun des deux (Z), ancien : LISTÉ ; aucun des deux mais récent (W) : non listé';
+  SET LOCAL session_replication_role = replica;
+  UPDATE storage.objects SET created_at = now() - interval '2 days', updated_at = now() - interval '2 days' WHERE bucket_id = 'child-photos' AND name = w;
+  SET LOCAL session_replication_role = origin;
+  SELECT array_agg(n ORDER BY n) INTO o FROM public.photos_orphelines() n WHERE n IN (x, y, zz, w);
+  IF o IS DISTINCT FROM (SELECT array_agg(n ORDER BY n) FROM unnest(ARRAY[zz, w]) n) THEN RAISE EXCEPTION 'ÉCHEC T6e-2 listés : % (attendu : Z et W)', o; END IF;
+  RAISE NOTICE 'OK T6e-2 non référencé dans les deux modèles : listé dès que le délai (1 jour) est dépassé (W)';
+  UPDATE public.children SET photo_path = NULL WHERE id = l::uuid;
+  SELECT array_agg(n ORDER BY n) INTO o FROM public.photos_orphelines() n WHERE n IN (x, y, zz, w);
+  IF o IS DISTINCT FROM (SELECT array_agg(n ORDER BY n) FROM unnest(ARRAY[x, zz, w]) n) THEN RAISE EXCEPTION 'ÉCHEC T6e-3 listés : % (attendu : X, Z, W)', o; END IF;
+  RAISE NOTICE 'OK T6e-3 children.photo_path remis à NULL (fin de transition, M37) : l''ancien avatar.jpg (X) devient orphelin ; Y, toujours référencé par l''année, reste';
+  UPDATE public.academic_years SET photo_path = NULL WHERE photo_path = y;
+  SELECT array_agg(n ORDER BY n) INTO o FROM public.photos_orphelines() n WHERE n IN (x, y, zz, w);
+  IF o IS DISTINCT FROM (SELECT array_agg(n ORDER BY n) FROM unnest(ARRAY[x, y, zz, w]) n) THEN RAISE EXCEPTION 'ÉCHEC T6e-4 listés : % (attendu : les 4)', o; END IF;
+  RAISE NOTICE 'OK T6e-4 plus aucune référence : les 4 objets sont listés';
+  -- Remise en état pour la suite du test (W supprimé : le garde-fou de Storage est levé pour cette transaction seulement).
+  UPDATE public.academic_years SET photo_path = student_id::text || '/' || id::text || '.jpg' WHERE id = current_setting('test.ay_n2')::uuid;
+  PERFORM set_config('storage.allow_delete_query', 'true', true);
+  DELETE FROM storage.objects WHERE bucket_id = 'child-photos' AND name = w;
+END $$;
+
 -- ─── T7 · test STRUCTUREL : aucune politique du bucket ne mentionne classes, enseignant_id ni classe_id ─────────
 DO $$
 DECLARE r record; n int := 0; def text;
