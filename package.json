@@ -29,6 +29,7 @@
     "test:photo-enfant": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoEnfant.test.mts",
     "test:zones-tactiles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/zonesTactiles.test.mts",
     "test:photo-annee": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoAnnee.test.mts",
+    "verifier-photos-paris": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/verifier-photos-paris.mts",
     "test:appui-redmi": "node scripts/test-appui-redmi.mjs",
     "test:carnet-vide": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/carnetVide.test.mts",
     "test:carnet-vide-local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-carnet-vide-local.mts",
