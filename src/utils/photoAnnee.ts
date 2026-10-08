@@ -28,6 +28,8 @@ export type ChoixPhoto = {
   anterieure: string | null;
   /** La photo affichée appartient à l'année en cours (ou à l'ancien modèle) : supprimable depuis la feuille de photo. */
   deCetteAnnee: boolean;
+  /** La photo affichée vient de l'ANCIEN modèle (children.photo_path, transition jusqu'à M37) : sa suppression vise l'ancienne colonne. */
+  ancienne: boolean;
 };
 
 /** « 2026-2027 » → « 2025-2026 » ; null si le format est inattendu. */
@@ -62,17 +64,35 @@ export function choisirPhoto(
   const active = actives[0] ?? null;
   const base = { anneeActiveId: active?.id ?? null };
   if (active?.photo_path) {
-    return { ...base, chemin: active.photo_path, updatedAt: active.updated_at ?? null, anterieure: null, deCetteAnnee: true };
+    return { ...base, chemin: active.photo_path, updatedAt: active.updated_at ?? null, anterieure: null, deCetteAnnee: true, ancienne: false };
   }
   if (active) {
     const precedent = millesimePrecedent(active.annee_scolaire);
     const n1 = precedent ? annees.find((a) => a.annee_scolaire === precedent && a.id !== active.id) : undefined;
     if (n1?.photo_path) {
-      return { ...base, chemin: n1.photo_path, updatedAt: n1.updated_at ?? null, anterieure: libelleMillesime(n1.annee_scolaire), deCetteAnnee: false };
+      return { ...base, chemin: n1.photo_path, updatedAt: n1.updated_at ?? null, anterieure: libelleMillesime(n1.annee_scolaire), deCetteAnnee: false, ancienne: false };
     }
   }
   if (ancien.chemin) {
-    return { ...base, chemin: ancien.chemin, updatedAt: ancien.updatedAt, anterieure: null, deCetteAnnee: true };
+    return { ...base, chemin: ancien.chemin, updatedAt: ancien.updatedAt, anterieure: null, deCetteAnnee: true, ancienne: true };
   }
-  return { ...base, chemin: null, updatedAt: null, anterieure: null, deCetteAnnee: false };
+  return { ...base, chemin: null, updatedAt: null, anterieure: null, deCetteAnnee: false, ancienne: false };
+}
+
+/**
+ * OÙ ÉCRIT-ON ? (documenté dans tasks/plan-photo-par-annee.md § 5 bis)
+ *  · AJOUT ou REMPLACEMENT : toujours sur l'année EN COURS (<enfant>/<année>.jpg) quand la base connaît M36 ; sinon ancien modèle.
+ *  · SUPPRESSION : la photo de l'année en cours ; SAUF si la photo affichée vient de l'ancien modèle (children.photo_path) : alors c'est
+ *    l'ancienne colonne et l'ancien objet <enfant>/avatar.jpg (sinon la photo ne disparaîtrait jamais).
+ *  · Jamais N−1 : une photo d'une année passée ne se supprime pas depuis la feuille de l'année en cours.
+ */
+export function cibleEcriture(
+  enfantId: string,
+  etat: { parAnnee?: boolean; anneeId?: string | null; ancienne?: boolean },
+  action: 'ajout' | 'suppression',
+): { modele: 'annee' | 'ancien'; chemin: string; anneeId: string | null } {
+  if (etat.parAnnee && etat.anneeId && !(action === 'suppression' && etat.ancienne)) {
+    return { modele: 'annee', chemin: cheminPhotoAnnee(enfantId, etat.anneeId), anneeId: etat.anneeId };
+  }
+  return { modele: 'ancien', chemin: `${enfantId}/avatar.jpg`, anneeId: null };
 }

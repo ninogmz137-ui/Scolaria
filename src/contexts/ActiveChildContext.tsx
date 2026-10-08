@@ -25,7 +25,7 @@ import { useAuth } from './AuthContext';
 import { getChildren, getAnneesPhotos, updateAnneePhoto, updateChild } from '../services/database';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { estColonneInconnue } from '../utils/photoEnfant';
-import { choisirPhoto, type LigneAnnee } from '../utils/photoAnnee';
+import { choisirPhoto, cibleEcriture, type LigneAnnee } from '../utils/photoAnnee';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { cycleDuNiveau, normaliserNiveau, type Cycle } from '../utils/niveau';
 import demoChildren from '../data/demo/demo-children.json';
@@ -60,6 +60,8 @@ export type Child = {
   photoAnterieure?: string | null;
   /** La photo affichée appartient à l'année en cours (supprimable depuis la feuille de photo) ; faux pour un repli sur N−1. */
   photoDeCetteAnnee?: boolean;
+  /** La photo affichée vient de l'ancien modèle (children.photo_path, jusqu'à M37) : sa suppression vise l'ancienne colonne. */
+  photoAncienne?: boolean;
 };
 
 /** Couleur neutre par défaut (identique au défaut en base, migration M3). */
@@ -181,6 +183,7 @@ async function appliquerPhotosParAnnee(enfants: Child[]): Promise<Child[]> {
         photoAnneeId: choix.anneeActiveId,
         photoAnterieure: choix.anterieure,
         photoDeCetteAnnee: choix.deCetteAnnee,
+        photoAncienne: choix.ancienne,
       };
     });
   } catch {
@@ -338,8 +341,9 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       if (isDemo || !PHOTO_ENFANT_ACTIVE) return;
       // M36 : la photo s'écrit sur l'année EN COURS (jamais sur N−1, même quand c'est elle qui est affichée en repli).
       const enfant = childList.find((c) => c.id === childId);
-      if (enfant?.photoParAnnee && enfant.photoAnneeId) {
-        const { error: errAnnee } = await updateAnneePhoto(enfant.photoAnneeId, photoPath);
+      const cible = cibleEcriture(childId, { parAnnee: enfant?.photoParAnnee, anneeId: enfant?.photoAnneeId, ancienne: enfant?.photoAncienne }, photoPath === null ? 'suppression' : 'ajout');
+      if (cible.modele === 'annee' && cible.anneeId) {
+        const { error: errAnnee } = await updateAnneePhoto(cible.anneeId, photoPath);
         if (errAnnee) {
           await reloadChildren(childId);
           throw errAnnee;
@@ -353,6 +357,10 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
       if (error) {
         await reloadChildren(childId);
         throw error;
+      }
+      if (enfant?.photoParAnnee) {
+        await reloadChildren(childId); // suppression de l'ancienne photo : l'affichage est recalculé (repli éventuel sur N−1)
+        return;
       }
       setChildList((prev) =>
         prev.map((c) => (c.id === childId ? { ...c, photoPath, photoUpdatedAt: new Date().toISOString() } : c)),
