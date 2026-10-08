@@ -1,0 +1,880 @@
+# TODO — Scolaria
+
+## SPRINT « Carnet vivant » (5 oct 2026) — lots 0 à 4 FAITS EN LOCAL, rien en production, AUCUN build EAS
+
+- [x] Lot 0 (02efb95) docs : indigo = couleur d'ACTION, teintes de catégorie, matières (pastille + icône, emoji interdit), label de section 13 px, en-tête de carnet, composants §18, RGPD de la photo.
+- [x] Lot 1 (ed253e2) `src/theme/categories.ts` (source unique), `PastilleCategorie`, `LibelleSection`, carte de domaine au Suivi (`npm run test:categories`).
+- [x] Lot 2 (f02f71f) Messages : mot à traiter en carte blanche, pilules compactes, liste à plat (séparateur 1 px), miniatures par URL signée.
+- [x] Lot 3 (34c39f6) Accueil : en-tête du carnet + corps maternelle / primaire (collège / lycée : contenu inchangé) (`npm run test:entete`).
+- [x] Lot 4 photo de l'enfant — code + **M35 LOCALE** (`supabase/migrations/20261005100000_m35_photo_enfant.sql`, inverse testé : `migrations_down/`) : `children.photo_path`, bucket privé `child-photos`, 4 politiques réservées aux responsables, `photos_a_effacer` / `photos_orphelines` (service seulement). Tests : `supabase/tests/m35_photo_enfant.sql` (21 contrôles), `npm run test:photo-enfant-local` (23, API Storage réelle), `npm run test:photo-enfant` (26).
+- [x] **M35 APPLIQUÉE À PARIS le 6 oct 2026** (« go M35 » de l'utilisateur) : sauvegarde `ScolariaBackups\avant_M35_cycle\2026-10-06_1518` vérifiée (SHA-256), essai à blanc = M35 seule, `db push --linked` en commande seule, contrôle en lecture (colonne + contrainte, bucket privé JPEG 1 Mo, 4 politiques dont dépôt en `(select auth.uid())`, `photos_orphelines` sur `GREATEST(created_at, updated_at)`, droits : service seul pour les 2 fonctions), local = distant, advisors : 0 ERROR, 0 nouveau, 0 disparu (103 identiques à `tasks/warns-attendus.md`, aucune ligne sur storage.objects dans cette liste). `executer-effacements` DÉPLOYÉE ; appel de contrôle par `lancer_executer_effacements()` : 200, 0 échue, 0 échec (journal id 7). `PHOTO_ENFANT_ACTIVE = true` (commit à part). Texte d'origine :
+- [ ] ~~ATTENTE VALIDATION — M35 sur Paris~~ : cycle habituel (sauvegarde + verifier-sauvegarde, essai à blanc M35 seule, `db push --linked` EN COMMANDE SEULE, advisors comparés à `tasks/warns-attendus.md` : aucun WARN nouveau attendu — fonction du chemin en SECURITY INVOKER, fonctions du service révoquées aux comptes, inverse prêt).
+- [x] (fait le 6 oct) ~~**Après M35 sur Paris** : redéployer `executer-effacements`~~ (elle appelle `photos_a_effacer` / `photos_orphelines` : M35 d'abord, la fonction ensuite). Tant que M35 n'est pas sur Paris, l'envoi d'une photo échoue (colonne absente) : ne rien publier avant.
+- [ ] **TODO (hors sprint) — lecture de la photo par l'enseignant / la direction** : aucune politique aujourd'hui (le consentement actuel ne parle que des responsables). **Photo visible de l'école = FINALITÉ DISTINCTE : consentement à demander** (nouveau texte, nouvelle case) avant toute politique ; lecture alors limitée à l'enseignant titulaire de la classe de l'élève, bucket inchangé.
+- [ ] **TODO : aligner l'Agenda sur les teintes de catégorie** (l'Agenda et la personnalisation des couleurs de matières ne changent pas dans ce sprint).
+- [ ] **Cases « À prévoir » locales à l'appareil** : mémorisées sur le téléphone seulement (AsyncStorage, par enfant), ni serveur ni autre responsable ; à décider : table serveur partagée ou non.
+- [ ] **Messages avec photo** : le modèle des messages (conversations, mots) ne porte AUCUNE pièce jointe aujourd'hui ; seuls les mots importés par la famille (carnet_items) ont un fichier, et l'Accueil / Messages en montrent la miniature. Pas de pièce jointe de message à construire ici.
+- [ ] **Redmi (dev client du 28 sept : expo-image-picker, expo-image-manipulator, expo-file-system déjà inclus, aucun build nécessaire)** : en-tête du carnet des 3 enfants de démo + 1 compte réel ; mesurer la ligne d'identité (cercle 78 dp, pilule 26 dp à zone tactile 44) ; photo : appareil photo, galerie, remplacement, suppression, ré-ouverture hors ligne ; vérifier sur un fichier sorti du téléphone que l'EXIF / GPS a disparu ; liste des Messages (séparateurs, miniature).
+- [x] ~~**`PHOTO_ENFANT_ACTIVE` = false**~~ → **true depuis le 6 oct** (voir ci-dessus). Avant : : cercle / badge / ligne « Photo » / feuille / étape de création masqués. Passe à true dans un commit À PART, APRÈS l'application de M35 à Paris et le déploiement d'executer-effacements (cycle : « go M35 » de l'utilisateur).
+- [ ] **Redmi — preuve des zones tactiles (STAB-2) : EN ATTENTE** (6 oct : téléphone éveillé, Scolaria au premier plan, mais l'app n'affiche aucun contenu lisible — aucun `adb reverse` vers Metro ; `adb reverse tcp:8081 tcp:8081` rétabli, rechargement sans effet : rouvrir l'app sur le serveur de développement, puis relancer) : `node scripts/preuve-zones-tactiles-redmi.mjs` (adapté : repère « ARIA » au lieu de « Bonjour », pilule d'année). Les pilules des mots (J'autorise, Non, Je participe, Peut-être, Signer) ne sont pas touchées par le script (garde-fou « sign / confirm ») : zones prouvées par `npm run test:zones-tactiles` (code) ; leurs confirmations sont inchangées (`ActionsMot.tsx`, `Alert.alert` avant tout enregistrement).
+- [x] **FAIT le 6 oct (accord reçu avec corrections) — texte d'origine des propositions :** : (1) *Accueil vide, compte réel* : carte blanche « Le carnet de {prénom} est vide pour l’instant. » + « Ajoutez un mot reçu, un livret, un souvenir ou une première fois : tout est rangé dans son carnet. » + pilule compacte « Ajouter au carnet » → `demanderAjoutCarnet({ onglet: 'Accueil' })` ; affichée seulement si chargé, sans erreur et toutes les sections vides (maternelle / primaire). (2) *Carte de l’assistant* (repli `AccueilScreen`) : « Posez une question à Aria. Pour répondre, elle ne reçoit que le prénom et le niveau de {prénom}. » (3) *Notifications* : les 3 réglages (« Mots et messages », « Résumé à 18h », « Silence de 20h à 7h ») ne sont lus par RIEN (`@scolaria:prefs` n'est lu que par l'écran lui-même et, pour Aria, par `ariaPreferences` : ariaActive / ton) ; aucun envoi en production (`notifierMot` n'est appelé que par un lien `__DEV__`, `scheduleExamReminder` / `scheduleHomeworkReminder` n'ont aucun appelant, aucun jeton push enregistré) → masquer le groupe « Notifications » (pas le griser) et supprimer les deux rappels morts.
+- [x] **PHOTO VALIDÉE SUR APPAREIL le 6 oct 2026** : remplacement direct (Evan : objet unique, `created_at` inchangé 17:04:05, `updated_at` 19:07:35, taille 30 231 → 30 826, `version` changée) ET suppression-puis-ajout (Laia : objet unique créé à 17:02:42) testés sur appareil ; 2 objets au total, aucun orphelin. **Restent en local seulement : cascade d'effacement (enfant, compte) et photo vue par un second responsable.** Rien d'autre à faire pour la photo. Prochain point : preuve d'appuis STAB-2 dès que le Redmi est déverrouillé avec l'app sur l'Accueil. Détail du premier contrôle (lecture seule) : 2 enfants (Laia, Evan), 1 objet chacun, chemin = `<id>/avatar.jpg` = `photo_path` ; Laia 36 355 octets, créé = mis à jour le 6 oct 17:02:42 ; Evan 30 231 octets, 17:04:05. Un remplacement (upsert) garde `created_at` et change `updated_at`, la taille et `version` (mesuré en local) : `created_at = updated_at` = aucun remplacement depuis la création de l'objet (envoi unique, ou suppression puis nouvel envoi) ; aucun ancien contenu ne peut subsister (un seul objet par chemin).
+- [ ] **PUSH À DISTANCE (APNs et FCM) : BLOQUANT avant tout enseignant réel** (6 oct 2026). Aujourd'hui AUCUNE notification n'existe (réglages retirés, rappels supprimés). À construire : enregistrement des jetons, envoi serveur (Edge Function), 3 réglages réels (mots et messages, résumé 18 h, silence 20 h – 7 h) testés ; le prénom de l'enfant transite par Apple et Google : à mentionner dans la politique de confidentialité (ligne « Apple et Google » du brouillon, marquée [À VÉRIFIER]). À corriger côté enseignant avant tout enseignant réel : `VieDeClasseScreen` (« Notifier les parents » + « Les parents ont été notifiés. »), `CahierLiaisonScreen` (relances, nouveau mot), `liaisonService` / `absenceService` (stubs `sendRelance…`, `sendNewMot…`, `sendAbsenceNotification`) promettent des notifications qui ne partent pas ; clés i18n mortes `notifGrades`… (fr.ts et 9 autres langues).
+- [ ] **Lot « photo par année scolaire » (M36)** : PLAN écrit, sans code : `tasks/plan-photo-par-annee.md` (variantes A / B pour l'année sans photo à choisir ; M36 puis M37).
+- [ ] **BUILD DE DÉMO ARRÊTÉ le 7 oct (« go build » reçu, 2 contrôles de la liste non verts — règle : un seul échec = arrêt)** : (1) `npx expo-doctor` : 19/20, ÉCHEC « packages vs versions du SDK 55 » = 19 paquets installés en correctif plus ancien que l'attendu (expo 55.0.8 → ~55.0.31, react-native 0.83.2 → 0.83.10, expo-updates, expo-notifications, expo-dev-client, react-native-worklets 0.7.2 → 0.7.4, react-native-pager-view 8.0.1 → 8.0.0 [rétrogradation], etc.) ; correctif = `npx expo install --check` / `--fix` (modifie package.json et le verrou : **décision de l'utilisateur**, puis tsc, tous les tests, `test:bundle-prod`, essai web et sur appareil) ; (2) `test:nom-affiche-demo` : 88/89, l'échec « Accueil Lucas : contient « Aujourd’hui » » est lié à la DATE (la section « Aujourd'hui » = cours du jour ; la démo primaire a une semaine de 4 jours, jamais le mercredi : AgendaScreen.tsx:442-444 ; le 7 oct. 2026 est un mercredi) → l'attente du test doit devenir conditionnelle (jour d'école seulement), pas un défaut de l'app. Aussi : ce test exige un serveur de démo déjà lancé sur le port 8083 (sinon 40 échecs : ce n'est pas une régression) puis cache Metro vidé. Quota EAS vérifié : Android 0/15, iOS 0/15 (période du 1er oct. au 1er nov., plan Free). Tout le reste est VERT (tsc, expo config avec/sans variante, bundle-prod 12/12, variante-demo, photo-enfant 54, zones-tactiles 13, carnet-vide 38, entete 5, categories 29).
+- [~] **BUILD DE DÉMO EN FILE (7 oct. 2026)** : `eas build --platform android --profile demo --no-wait --non-interactive` ; identifiant `a1975cff-b999-4e3b-99c1-5bff40da209c` ; commit `e19087fead4304e9171cbf036377e57f044e84f2` ; statut IN_QUEUE, version 1.0.0 (build 2), distribution interne ; une clé de signature a été créée côté Expo pour `com.scolaria.app.demo` (jamais affichée, stockée chez Expo). Rien sur Paris, aucune migration, aucun secret. **AUCUN test sur le téléphone avant le message « build terminé »** ; le lien de l'artefact n'est jamais affiché ni partagé ; installation (`adb install`) seulement sur accord, par l'outil gardé et premier plan vérifié. Quota Android : 1 / 15 utilisé après ce build.
+- [~] **Build de démo TESTÉ le 7 oct. (sans désinstallation, APK installé par l'utilisateur ; je n'ai ni installé, ni désinstallé, ni récupéré l'APK)** : lectures passives faites (téléphone non touché, ses tests en cours) : `com.scolaria.app.demo` ET le client de développement `com.scolaria.app` présents (+ Expo Go) ; paquet .demo : versionName 1.0.0, versionCode 2, minSdk 24, targetSdk 36, installé le 7 oct. 22:45 par l'installateur de paquets du système ; logcat du processus .demo (142 lignes) : AUCUN hôte réseau, aucun « supabase », aucun identifiant du projet Paris. **EN ATTENTE du « téléphone libre »** : captures hors dépôt des écrans d'ouverture, d'Accueil et de Famille & paramètres (textes « fictifs »). **À DÉCIDER (constat à signaler) : l'identifiant technique « scolaria » est présent dans le paquet .demo** (id du paquet `com.scolaria.app.demo` ; schéma d'URL `exp+scolaria` enregistré par le client de développement dans le manifeste, alors que la config de la variante n'a pas de `scheme` ; autorisation signature `com.scolaria.app.demo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`). Aucun n'est affiché à l'écran (à confirmer par les captures) ; le libellé du lanceur n'est pas lisible sans toucher l'écran. ARRÊT NOM : l'id du paquet ne change pas ; le schéma `exp+scolaria` pourrait être retiré du build de démo (lot séparé).
+- [ ] **Au PROCHAIN build de démo : retirer le schéma d'URL `exp+scolaria` du manifeste final (NE PAS le retirer maintenant, décision du 7 oct.).** Cause : le client de développement (expo-dev-client) l'enregistre dans le manifeste ; la config de la variante n'a pas de `scheme`. Avec un TEST SUR LE MANIFESTE FINAL de l'APK (aapt / `dumpsys package` ou manifeste décodé du build) : aucun schéma d'URL, aucun nom de marque affiché (libellé du lanceur, écrans, autorisations visibles). L'id du paquet `com.scolaria.app.demo` et l'autorisation signature qui en dérive restent (ARRÊT NOM : l'id ne change pas).
+- [x] **APK de démo vérifié sur le Redmi (7 oct. 2026, 22:55–22:58, mode avion actif)** par l'outil d'appuis gardé, captures hors dépôt dans `C:\Users\admin\ScolariaBackups\captures-demo-apk-2026-10-07\` : lanceur = icône « Carnet Démo » (l'icône « Scolaria » voisine est le client de développement) ; écran d'ouverture « Carnet Démo · Le carnet de scolarité numérique · Essayer en mode démo · Une famille fictive, aucune donnée réelle. » ; bas de l'Accueil « Démonstration : famille et données fictives. » ; Famille & paramètres « Mode démo · les données affichées sont fictives. », « Carnet Démo · Le carnet de scolarité numérique · Version 1.0.0 » ; AUCUN « Scolaria » ni « Theka » dans les 6 écrans lus (arbre d'accessibilité + captures). Applications récentes : non faites (l'outil n'a pas de touche « applications récentes », pas de contournement). L'outil gardé a gagné `balayer` et `redemarrer` (arrêt du processus d'UN paquet Scolaria, jamais de désinstallation) ; `test:appui-redmi` 34/34.
+- [ ] **MISE À JOUR DES 19 PAQUETS EXPO (`npx expo install --check`), dont pager-view 8.0.1 contre 8.0.0 attendu : BLOQUANT avant le premier build pour de vrais utilisateurs (TestFlight).** Décision du 7 oct. : l'échec d'`expo-doctor` est ACCEPTÉ pour le build de démo (19 paquets en retard de correctif, SDK identique) ; package.json et le verrou n'ont PAS été touchés. Lot séparé : `npx expo install --check`, tsc, tous les tests, rebuild du client de développement, tour complet sur le Redmi.
+- [x] (7 oct.) `test:nom-affiche-demo` : « Aujourd'hui » conditionnel au jour d'école (lundi, mardi, jeudi, vendredi ; jamais le mercredi, ni le week-end) + deux passes à DATE SIMULÉE (un lundi : section présente ; un mercredi : absente) ; 119 contrôles, 0 échec quelle que soit la date.
+- [x] **Outil d'appuis unique (7 oct.)** `scripts/appui-redmi.mjs` : mCurrentFocus relu avant CHAQUE appui / retour, refus hors Scolaria ; `npm run test:appui-redmi` (29 contrôles, faux téléphone) ; la preuve STAB-2, `test-un-enfant-un-carnet-redmi.mjs` et `adbui.sh` l'utilisent ; lessons.md : tout `adb shell input` manuel interdit. Une ancienne copie d'adbui.sh traîne dans le scratchpad d'une session antérieure (hors dépôt, non utilisée).
+- [ ] **Préparation SANS EXÉCUTER de la mise à jour des 19 paquets Expo (8 oct. 2026, 2e demande)** : `tasks/preparation-maj-paquets-expo.md` (branche locale `maj-expo-55-correctifs`, 13 étapes avec portes de sortie, retour arrière, tests de référence, écrans à vérifier). **Journal de pager-view LU** : 8.0.0 = iOS réécrit en SwiftUI (majeure) ; 8.0.1 = UN correctif (`onPageScroll` à l'arrêt : saut de l'indicateur) ; utilisé seulement via material-top-tabs ; recommandation : garder 8.0.1 + `expo.install.exclude` [DÉCISION de l'utilisateur]. package.json et verrou NON touchés, aucune branche créée.
+- [ ] **Audit du nom visible (8 oct. 2026)** : `tasks/audit-nom-visible.md` : `NOM_APP` couvre 17 fichiers (44 occurrences) mais **5 sites visibles restent en dur** (app.config.js : nom + 2 permissions iOS, erreurs.ts, ar.ts), le wordmark dessiné et 13 assets nommés, le préfixe d'identifiant « SCA- » ; `NOM_ASSISTANT` n'est utilisé que dans 2 fichiers : **~135 chaînes « Aria » en dur** (55 d'écran/service/serveur + 81 valeurs de traduction ; `t()` n'injecte pas `%{assistant}`). Aucun code modifié ; priorités et estimations dans le rapport (1 : sites visibles 0,5 j ; 2 : source partagée pour app.config 0,5 j ; 3 : assistant 1,5 j [À DÉCIDER]; 4 : test de garde 0,5 j). Aussi : le texte des permissions iOS est PÉRIMÉ (ne cite pas la photo de l'enfant).
+- [ ] **Plans SANS CODE du 8 oct. 2026, à valider par l'utilisateur** : `tasks/plan-reste-lot-photo.md` (Mon parcours par année 2 j ; étape photo à l'ajout d'une année + vérification de la création 1 j ; invitation de rentrée 1 j ; signe sur les avatars de 34 px 0,5 j ; M37 en dernier, conditions préalables et risque d'une ancienne app ; à AMENDER : « Mon parcours » est en lecture seule dans CLAUDE.md) et `tasks/plan-maj-paquets-expo.md` (19 paquets, sauts de version, ce qui risque de casser, tests à rejouer, reconstruction ; **pager-view : rétrogradation 8.0.1 → 8.0.0 [UNCLEAR, lire le journal de 8.0.1 avant]** ; **`runtimeVersion` fixe '1.0.0' : à changer avant le premier OTA**). package.json et verrou NON touchés.
+- [x] **Étape 2 d'Evan (ajout) VÉRIFIÉE sur Paris le 8 oct. 14:52 (« go étape 2 ») : LES TROIS ÉTAPES SONT VÉRIFIÉES, toutes conformes** : nouvel objet `<evan>/<année>.jpg` de 13 699 octets, `created_at` = `updated_at` (12:52:02.888 UTC), `academic_years.photo_path` renseigné (updated_at 12:52:03.080, 192 ms après l'objet : l'objet d'abord, la colonne ensuite), `children.photo_path` NULL, aucun `avatar.jpg`, affichage = photo de l'année en cours sans pastille ; Laia inchangée ; 2 objets, aucun orphelin. Ordre réel des gestes : 3, 1, 2 (le premier ajout et la suppression de l'ancienne photo avaient eu lieu lors de la validation sur appareil, à 11:33 UTC).
+- [x] **Étape 1 d'Evan (suppression) VÉRIFIÉE sur Paris le 8 oct. 14:51 (« go étape 1 »)** : l'objet `<evan>/<année>.jpg` est SUPPRIMÉ (0 objet pour Evan), `academic_years.photo_path` → NULL (updated_at 12:50:46.151 UTC), `children.photo_path` NULL, aucun `avatar.jpg` recréé, affichage = initiale ; Laia inchangée ; 1 objet au total, aucun orphelin. Conforme. Mesure faite APRÈS l'étape 3 (l'ordre des gestes a été 3 puis 1).
+- [x] **Étape 3 d'Evan (remplacement) VÉRIFIÉE sur Paris le 8 oct. 14:50 (« go étape 3 »)** : même objet `<evan>/<année>.jpg` (un seul), `created_at` inchangé (11:33:57.318), `updated_at` 12:49:00.659 UTC, taille 13 196 → 6 831 octets, version et eTag changés ; `academic_years.photo_path` inchangé (même chemin), `academic_years.updated_at` 12:49:00.817 UTC (+158 ms : clé du cache des URL signées) ; `children.photo_path` NULL, aucun `avatar.jpg` recréé ; Laia inchangée ; 2 objets au total, aucun orphelin. Conforme à l'attendu. Les étapes 1 et 2 (gestes faits lors de la validation) n'avaient pas été mesurées une à une.
+- [ ] **Vérification de Paris en lecture seule (`npm run verifier-photos-paris`), à rejouer après chaque geste d'Evan** (« go étape 1/2/3 » de l'utilisateur ; je ne touche pas au téléphone). Constat du 8 oct. 13:36 : Evan n'avait déjà plus d'`avatar.jpg` ni de `children.photo_path` (NULL depuis 11:33:09 UTC) ; une photo d'année (13 196 octets) posée à 11:33:57 UTC, `academic_years.photo_path` renseigné ; Laia inchangée (ancien modèle, 36 355 octets). Les gestes 1 et 2 ont donc DÉJÀ eu lieu lors de la validation sur appareil.
+- [x] **M36 : TÉMOINS DE TRANSITION VALIDÉS SUR APPAREIL le 8 oct. 2026 (compte réel de l'utilisateur, nouveau code)** : les 2 photos (Laia, Evan, ancien modèle `children.photo_path`) s'affichent toujours, SANS pastille d'année (repli sur l'ancien modèle, comme prévu). Suite : vérification en lecture seule de Paris rejouable après chaque geste (point 2 du 8 oct.), puis plans sans code (reste du lot photo, M37, 19 paquets Expo).
+- [x] **M36 APPLIQUÉE À PARIS le 8 oct. 2026 (« GO CYCLE PARIS M36 » de l'utilisateur)** : décisions : l'option « retirer l'ancienne photo à l'ajout d'une photo d'année » est REFUSÉE (l'ancienne app perdrait l'affichage, une photo serait effacée à l'insu de l'utilisateur) ; les 2 photos de test de Paris NE sont PAS supprimées avant le cycle (témoins de la transition). Avant : git propre, HEAD = origin/main = `da0ec51`, tsc, SQL M36 (48) et M35 (28), `test:photo-annee-local` 62/62, `test:ancienne-app-base-m36-local` 14/14. Dump `ScolariaBackups/avant_M36_cycle/2026-10-08_1228` (68 tables, 111 lignes, 4 fichiers dont les 2 photos) vérifié (SHA-256 4/4). Advisors de référence : 0 ERROR, 0 INFO, 103 WARN (noms et effectifs = tasks/warns-attendus.md). Essai à blanc (`npx supabase db push --dry-run --linked`, CLI installée 2.120.0) : M36 SEULE ; application `npx supabase db push --linked` en commande seule. Contrôle en lecture : `academic_years.photo_path` text NULL + `academic_years_photo_path_check` validée ; `child_photo_chemin_autorise` à double chemin, SECURITY INVOKER, anon sans EXECUTE, authenticated oui ; `photos_orphelines` sur les deux colonnes, `photos_a_effacer` inchangée, service_role seul (ni anon ni authenticated), EXECUTE à PUBLIC : 0 ; 4 politiques storage.objects inchangées (authenticated seul) ; les 2 objets (36 355 et 30 826 octets, mêmes dates) et `children.photo_path` + `updated_at` inchangés ; `academic_years.photo_path` NULL pour les 2 années ; local = distant (44 migrations, 0 différence). Advisors après : 0 ERROR, 0 INFO, 103 WARN, 0 nouveau, 0 disparu (par clé nom|objet). `executer-effacements` NON redéployée (code inchangé ; appelle `photos_a_effacer` / `photos_orphelines` par leur nom) ; appel de contrôle par `lancer_executer_effacements()` : journal id 10, 200, 0 échue, 0 échec, 0 orphelin, 2 photos intactes. **Reste à l'utilisateur : vérifier les 2 photos sur son compte réel** (je n'ai pas touché au téléphone ni ne me connecte). M37 = lot séparé, plus tard.
+- [~] **M36 — 5 questions de l'utilisateur répondues le 8 oct. (inverse VALIDÉ par lui ; « go cycle Paris M36 » PAS donné : aucun cycle)** : (1) Paris : `academic_years.id` uuid NOT NULL PK, `student_id` uuid NOT NULL FK → children ON DELETE CASCADE + UNIQUE (student_id, annee_scolaire) ; 0 nul sur 2 lignes ; aucune correction de contrainte. (2) Paris : 2 objets (Laia 36 355 o, Evan 30 826 o, `<enfant>/avatar.jpg`), référencés par `children.photo_path` ; après M36 ils restent et s'affichent (ancien modèle en repli), jamais orphelins. DÉFAUT TROUVÉ ET CORRIGÉ : avec le nouveau code, « Supprimer » sur une photo d'origine ancienne ne la supprimait pas (cible = année) → `cibleEcriture` (suppression d'une photo ancienne = children.photo_path NULL + avatar.jpg), 7 contrôles. (3) `test:ancienne-app-base-m36-local` 14/14 : l'ancienne app marche sur une base avec M36 ; flotte mixte sans échec mais affichages divergents ; échouerait APRÈS M37 seulement. (4) SQL T6e : les 4 cas du nettoyage (children seul, année seule, aucun des deux, trop récent), 48 contrôles. (5) Règle documentée : academic_years GAGNE en lecture (année en cours > N−1 > ancien > initiale) ; la nouvelle app écrit l'année, l'ancienne app children + avatar.jpg (plan § 5 bis + commentaire du SQL, code inchangé, vérifié). Divergence connue (c) : une photo d'année supprimée peut laisser réapparaître l'ancienne photo children si elle existe encore (option non faite : retirer l'ancienne à l'ajout). **Cycle Paris, quand « go cycle Paris M36 »** : dump vérifié hors dépôt (sauvegarde-semaine + verifier-sauvegarde), essai à blanc `db push --dry-run --linked` ne listant QUE M36, `npx supabase@latest db push --linked` EN COMMANDE SEULE, contrôle en lecture (colonne, contrainte, fonctions, 2 photos intactes), advisors par nom (0 ERROR, aucun WARN hors tasks/warns-attendus.md), inverse prêt. **executer-effacements : NON redéployée** (code inchangé depuis le déploiement du 6 oct. ; elle appelle photos_a_effacer / photos_orphelines par leur nom, la nouvelle définition de photos_orphelines est prise en compte sans redéploiement). Après : les deux photos s'affichent-elles ? (vérification par l'utilisateur sur son compte réel ; je ne me connecte jamais).
+- [~] **M36 ÉCRITE EN LOCAL (7 oct. 2026, « GO M36, écriture locale seulement ») — NON appliquée à Paris : STOP, l'utilisateur lit le SQL avant tout cycle.** Fichiers : `supabase/migrations/20261007200000_m36_photo_par_annee.sql` (+ inverse `migrations_down/…`), tests `supabase/tests/m36_photo_par_annee.sql` (44), `scripts/test-photo-annee-local.mts` (62, API Storage réelle), `scripts/test-restauration-photo-annee-local.mts` (12, sauvegarde puis restauration SHA-256), `scripts/test-photo-annee-sans-colonne-local.mts` (7), `src/utils/photoAnnee.test.mts` (19). Résultats : suites SQL (21 fichiers) exit 0 ; audit de sécurité 670 tests / 0 écart ; parcours complet 45/45 ; photo-enfant-local 47/47 ; effacement-local 31/31 ; inverse testé (M35 rejoué puis M36 remise). Application (variante A) : repli N−1 seulement, signe d'année passée sur l'avatar de l'en-tête, feuille et ligne du profil adaptées, export zip `fichiers/photos/<millésime>.jpg`, base sans M36 = ancien modèle en silence. **NON FAIT dans ce lot (à dire) : invitation « Nouvelle photo pour 20XX–20YY ? » une fois par année ; Mon parcours (une photo par année, remplaçable et supprimable sur les années archivées) ; étape photo à la création d'un enfant et à l'ajout d'une année ; signe sur les petits avatars (34 px) ; M37 (lot séparé après M36 appliquée, parcours complet et nettoyage des anciens avatar.jpg).** Rien sur Paris ; ne pas toucher aux 2 photos de test de Paris (l'utilisateur les supprime depuis l'app avant M36).
+- [ ] **Photo par année (M36) : plan ACCEPTÉ tel quel le 7 oct** (+ test de non-fuite : responsable détaché ou enfant en cours d'effacement = aucune photo d'aucune année lisible, repli compris — plan § 4 bis c bis) ; **M36 NON écrite : l'utilisateur dira « go M36 » APRÈS le build de démo**. **VARIANTE A VALIDÉE le 7 oct** (repli sur l'année précédente seulement, signe discret d'année passée, aucune lecture école d'une photo d'année précédente) ; plan et liste de tâches dans `tasks/plan-photo-par-annee.md` ; M36 NON écrite, attend « go » ; tests obligatoires d'effacement multi-années + restauration + enseignant jamais ; deux photos de test de Paris supprimées par l'utilisateur avant M36 ; M37 (retrait `children.photo_path`) = lot séparé après M36 appliquée, parcours complet et anciens `avatar.jpg` nettoyés.
+- [ ] **Sprint enseignant (todo)** : photo visible de l'école = finalité distincte : consentement explicite PAR ANNÉE, désactivé par défaut, lisible seulement par l'enseignant validé de la classe.
+- [x] Les trois propositions du 6 oct (Accueil d'un carnet vide, texte de la carte de l'assistant, réglages de notifications) ne sont plus en attente : faites (commits du 6 oct).
+- [ ] Dette : `useAnneesEnfant` duplique la lecture des années de `NotesScreen` (à fusionner) ; `SectionLabel` (uppercase 9 px) reste utilisé par Agenda, Notes collège, Aria, Bulletin… jusqu'à validation du nouveau label.
+- [ ] Photo en démo : volontairement absente (initiales seulement) ; pas de badge appareil photo dans le mode démo.
+
+## PHASE B · écrans branchés sur le modèle de la Phase A (plan du 23 sept 2026)
+
+**Statut : PLAN VALIDÉ (24 sept). B1 et B1-bis validés sur le Redmi. B1-ter, B2, B2-bis et B2-ter FAITS (24 sept), À VÉRIFIER SUR LE REDMI. B3 : NE PAS lancer sans feu vert.**
+
+### B3a (25 sept) — Suivi › Apprentissages
+- M17 + M18 appliquées en prod (sauvegarde hors dépôt : C:\Users\admin\ScolariaBackups\2026-09-25_avant_M17_M18), 36/36 tests locaux, advisors 0 ERROR.
+- B3a.2 référentiels (d84dd53) ; B3a.3 démo + Accueil branché, carnet.ts supprimé (2135ea7) ; B3a.4 UI (1a265cd) ; B3a.5 couleur (a801271).
+- Vérifié sur le web (393 dp) : Emma 8/20 le 19, 17/20 le 16, 13/20 le 24 identiques Accueil / Suivi / Messages ; Lucas et Léa : mêmes éléments Accueil / Suivi.
+- [ ] Redmi : Léa (6 domaines, aucun niveau), Lucas P1 (barres 3 segments, recopie « Atteint » en 4), Emma inchangée. PRÉVENIR avant de prendre la main.
+- Primaire en trimestres (choix de l'école, jamais par défaut) : libellé « 1er trimestre » en toutes lettres, jamais « T1 » (décision du 25 sept ; pas d'interdiction serveur).
+- [ ] Compte réel : découpage non résolu côté app (défaut « périodes ») → appeler decoupage_annee() quand le Suivi réel sera branché.
+
+### B3b — FAIT (25-26 sept, 2314393 → 31e8c26)
+- [x] M19 (9b22c7f, appliquée à Paris, 54/54 tests) ; barre Apprentissages · Souvenirs · Livrets (a3ebb78) ; Livrets (ecc4ffb) ; Souvenirs (87a6181) ; bouton année + Mon parcours + année archivée (be6720e, correctif Redmi 31e8c26) ; courbe Emma + compétences profil/PDF/mémo (cbe9a26).
+- Vérifié : démo sur le web (3 enfants × 3 onglets, bouton année, Mon parcours, CM1 de Lucas) ; Redmi sur le compte RÉEL de l'utilisateur (barre masquée, bouton année mesuré, ⊞ absent). Captures démo sur le Redmi non faites : le téléphone est connecté au compte réel (pas de déconnexion sans l'utilisateur).
+- [ ] Profil enfant : la page utilise encore des glass cards et un fond d'écran (règle « pages profondes ») — hors périmètre B3b.
+- [ ] TeacherDashboardScreen : commentaire « joyScore /10 » dans le type (l'affichage est en mots depuis B2-ter).
+
+### Plan payant Supabase (à faire au passage en Pro)
+- [ ] Activer « Leaked password protection » (HaveIBeenPwned) : Pro et au-dessus seulement (doc « Password security »). Dashboard → Authentication → Providers → Email.
+
+### INFRA-1 — migration Paris (validée le 25 sept, plan : tasks/infra-1-plan.md)
+- [x] Étapes 0 à 4 FAITES (25 sept) : sauvegarde ; projet Paris nmizwmymhqleasnxcyvu (eu-west-3) ; 26 migrations (baseline corrigée) ; schéma identique à Londres hors pg_graphql (non activé, inutilisé) et un commentaire ; données transférées (2 comptes, 2 enfants ; compte du 21 mars resté à Londres) ; RLS vérifiée ; Storage vide. CLI liée à PARIS.
+- [ ] **Utilisateur : révoquer l'ancienne clé Anthropic de Londres** (rappel fait à l'étape 10, 25 sept). La clé …3dh6HAAA est déjà absente de la console (vérifié par l'utilisateur).
+- [x] Formulation validée appliquée (25 sept) : CLAUDE.md § Règles RGPD, VISION.md § 8 (charte, principe 3) et § 10. AES-256 gardé avec sa source.
+- [x] Étapes 5 à 10 FAITES (25 sept) : aria sur Paris (région eu-west-3 vérifiée), Auth identique, app basculée et testée sur le Redmi (connexion, Aria claude-sonnet-5, alerte « harcèlement » sans texte), 36/36 tests, advisors 0 ERROR, Londres EN PAUSE.
+- [ ] **9 oct 2026 (J+14)** : suppression du projet de Londres (eklpzspvfjfqgqgugmxl) — UNIQUEMENT avec l'accord de l'utilisateur. Ses journaux du 23 sept contiennent une clé Anthropic en clair (déjà révoquée) : ils disparaissent avec le projet.
+- [x] (R3, 26 sept) Textes FRANÇAIS alignés sur la formulation validée : RGPDScreen (formulation mot pour mot + AES-256 au repos / TLS), AProposScreen (principe 3 « Souveraineté des données »), i18n fr `encryptionSub` (« AES-256 · Données hébergées dans l’UE, à Paris »).
+- [ ] **Traduction à faire valider** (texte juridique : NE PAS traduire sans validation) : `encryptionSub` dans ar, en, es, it, pt, ro, tr, wo, zh (encore « AES-256 · vos données sont sécurisées »). NB : cette clé n'est affichée par AUCUN écran aujourd'hui (clé morte) ; la formulation longue (RGPD, À propos) n'existe qu'en français, écrite en dur dans les écrans.
+- [x] (26 sept) Affirmations non vraies retirées : `rgpdNote` et `slide1Feature1` (clés mortes, 10 langues), journal d'accès (écran, routes, service, lignes RGPD / Famille & paramètres / export / effacement / transfert), « conformément à l'article 17/20 du RGPD », notices enseignant (« conservés 3 ans conformément… », « chiffrés et conservés 12 mois »), PDF « protégé par le RGPD ». Règle ajoutée à CLAUDE.md.
+- [ ] **Affirmations encore à vérifier (règle « rien qui ne soit vrai aujourd'hui »)** : écrans Export et Effacement = compteurs FICTIFS (« 47 notes », « 24 photos »…) et délais non construits (effacement, e-mail de confirmation) ; Code de transfert (« code sécurisé », « 90 jours ») ; Permissions (fonctionnel ?). À décider : retirer ces écrans tant qu'ils ne sont pas branchés, ou les construire.
+- [ ] scolaria_website.html (« Chiffrement AES-256 ») à aligner ; VISION.md cite encore « ScolarIA_Charte_Ethique_v1.pdf » (absent du dépôt, voir B3b.0).
+- [ ] Mettre à jour cette formulation quand Aria lira le carnet (stade 2).
+- [ ] Charte : mentionner que le texte des notifications (prénom de l'enfant) transite par Apple et Google.
+
+### BLOQUANT avant la rentrée 2027
+- [ ] **Passage d'année par une tâche serveur planifiée** (plus rien dans l'app ne le fait depuis M19) : pour chaque enfant, archiver l'année active et créer la suivante (niveau suivant, sans classe_id), en une transaction ; date à fixer (fin août) ; testée comme M19 T15 (une seule année active, unicité du millésime).
+
+### B3b.0 — rappels (25 sept)
+- [ ] **Avant le prochain build EAS** : les APK existants pointent vers Londres (en pause). Vérifier que les variables d'environnement EAS (`eas env:list`, profils development / preview / production) donnent l'URL et la clé publique de **Paris** (`nmizwmymhqleasnxcyvu`).
+- [ ] Charte PDF à refaire avec la formulation validée (tasks/infra-1-plan.md § Formulation validée), nommée « Scolaria » (jamais « ScolarIA ») ; mettre à jour le renvoi de VISION.md § 8.
+
+### Compte sans profil
+- [x] (R2, 26 sept) Gérer dans l'app un compte auth sans ligne `profiles` (cas réel : compte du 21 mars 2026, resté à Londres, non transféré) : message clair ou fin d'inscription, **jamais d'écran blanc**. Avec un test. → FAIT : parent sans profil = inscription terminée automatiquement (profil « parent ») ; enseignant / élève / échec = écran « Votre inscription n’est pas terminée » (Réessayer, Se déconnecter). Tests : npm run test:profil (8/8), supabase/tests/r2_profil_manquant.sql (6/6, local).
+
+### BLOQUANT avant toute famille réelle
+- [ ] **PDF / fichiers du carnet : jamais de copie dans un dossier public** (constat Redmi 26 sept : « Voir le fichier » ouvrait l'URL signée dans Chrome, qui téléchargeait le document dans les Téléchargements publics). Télécharger dans le stockage PRIVÉ de l'app, ouvrir avec la visionneuse du système (intent), sans aucune copie publique.
+- [x] (28 sept) **M24 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-09-28_avant_M24, essai à blanc M24 seule, advisors : 0 ERROR, +1 WARN attendu `mes_invitations` exécutable par authenticated) ; **invitation-responsable DÉPLOYÉE** (appel sans compte → 401 ; sans secrets Brevo → « email non configuré », l'app le dit). Variables EAS development + preview → Paris (URL + clé publique), production vide ; build de dev Android lancé (7b1d3f58).
+- [x] (28 sept) **M25 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-09-28_avant_M25, session séparée de M24, essai à blanc M25 seule, advisors 0 ERROR : +7 WARN fonctions appelables par l'app, prévues) ; **executer-effacements DÉPLOYÉE** (--no-verify-jwt ; sans la clé service → 401).
+- [x] (2 oct) **M26 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-10-02_avant_M26, essai à blanc M26 seule, advisors 0 ERROR : +1 INFO table du journal sans policy, voulu ; +1 WARN `pg_net` installée dans public, non déplaçable). Secret Vault `cle_service_effacements` vérifié par son NOM seulement. Deux tâches : 3 h 30 UTC exécution, 3 h 40 UTC journal. **Journal** `journal_executions_effacement` (date, statut succes/echec, code HTTP, compteurs dues/executees/echecs/fichiers/orphelins, raison courte ; aucune donnée personnelle ; illisible par l'app) — pour le lire : tableau de bord › SQL editor : `select * from public.journal_executions_effacement order by id desc limit 10;`. Appel de contrôle : 200, 0 échue, 0 échec. Le 1er essai a donné 401 : la comparaison de chaînes refusait la clé du Vault → la fonction valide maintenant la clé par son EFFET (toute clé service : `service_role` ancienne OU `sb_secret_`) ; tests 9/9.
+- [ ] **Clés service : passage à `sb_secret_`** — si Supabase désactive les anciennes clés `service_role` : (1) la fonction `executer-effacements` accepte déjà une clé `sb_secret_` (testé en local) ; (2) mettre à jour la valeur du secret Vault `cle_service_effacements` avec la clé « Secret » du projet (Project Settings › API Keys), même méthode que tasks/vault-cle-effacements.md ; (3) vérifier le lendemain matin dans le journal (statut `succes`) ; (4) la même question se posera pour l'Edge Function `aria` si elle utilise la clé service. Une ligne `echec` dans le journal = à regarder le jour même.
+- [ ] **L7a EFFACEMENT (28 sept) : code FAIT, local seulement.** M25 `20260928100000_m25_effacement_differe.sql` (24/24 `supabase/tests/m25_effacement_differe.sql`, inverse testé), Edge Function `executer-effacements` (`npm run test:effacement-local` 18/18), écran Effacement réel + écran bloquant « compte en cours d'effacement ». **Pour Paris (sur validation)** : sauvegarde → M25 → `functions deploy executer-effacements --no-verify-jwt` (région Paris) → tâche quotidienne (TOI : clé service dans le Vault ; MOI : le reste) :
+  ```sql
+  create extension if not exists pg_cron; create extension if not exists pg_net;
+  -- par toi, dans le SQL editor : select vault.create_secret('<clé service_role>', 'cle_service_effacements');
+  select cron.schedule('executer-effacements', '30 3 * * *', $$
+    select net.http_post(
+      url := 'https://nmizwmymhqleasnxcyvu.supabase.co/functions/v1/executer-effacements',
+      headers := jsonb_build_object('Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'cle_service_effacements')),
+      timeout_milliseconds := 60000);
+  $$);
+  ```
+  Puis test sur Paris avec un enfant de test créé pour l'occasion (échéance avancée à la main).
+  **Règles de suppression d'un compte TRANCHÉES le 28 sept** (carnet = à l'enfant) et appliquées dans M25 (local) : ajouts « foyer » conservés (« Ajouté par un ancien responsable »), ajouts privés supprimés avec leurs fichiers, signatures conservées (« Signé par un responsable (compte supprimé) le [date] », jamais « à signer » à nouveau), messages du fil famille conservés (auteur NULL → « Ancien responsable »). Détail : tasks/politique-confidentialite-regles.md. Réponses aux mots et événements d'agenda : tranchés le 2 oct (conservés sans auteur, M27 LOCALE). Restent ouverts : côté enseignant, enfant en cours d'effacement encore visible ; compte enseignant non effaçable dans l'app.
+- [x] (2 oct) **M27 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-10-02_avant_M27, essai à blanc M27 seule, advisors inchangés : 180, 0 ERROR). Réponses aux mots + événements d'agenda conservés sans auteur à la suppression d'un compte (l'agenda n'a aucun « privé » : tous conservés).
+- [x] (2 oct) **Vérification de clé de executer-effacements prouvée en local** (`npm run test:cle-effacements-local` 15/15, comptages avant/après) : refusés (401) sans rien supprimer : jeton de compte parent connecté, clé anon, clé sb_publishable_, jeton falsifié / expiré / altéré, chaîne quelconque, en-tête absent ; acceptés : service_role ancienne et sb_secret_. Non testé sur Paris avec un jeton de compte connecté (aucun mot de passe saisi) : même code, mêmes règles.
+- [x] (2 oct) **M28 APPLIQUÉE à Paris** (sauvegarde ScolariaBackups/2026-10-02_avant_M28, essai à blanc seule, advisors inchangés 180, 0 ERROR) : « Me retirer de ce carnet » opérationnel côté serveur, faille « se réinviter après son départ » FERMÉE.
+- [x] **M29 APPLIQUÉE à Paris le 4 oct** (validée ; sauvegarde ScolariaBackups/avant_M29, essai à blanc M29 seule, colonne parent_parti présente, advisors 0 ERROR / 106 WARN). Texte d'origine : **M29 (2 oct)** : fils individuels avec l'enseignant CONSERVÉS (« Ancien responsable ») au départ d'un carnet ET à la suppression d'un compte (M25 les supprimait : changement). Colonne `parent_parti`, contrainte assouplie, verrou des fils : anonymisation autorisée seulement si le parent n'est plus responsable / compte en effacement. m29 10/10, m25 27/27 (test T20c mis à jour), 13 suites OK, inverse testé. Règle générale ajoutée à tasks/politique-confidentialite-regles.md.
+- [ ] **AUDIT DE SÉCURITÉ (2 oct) FAIT — rapport tasks/audit-securite.md** (`npm run audit:securite-local`, 670 tests). Cloisonnement entre foyers / enseignants non rattachés / anonymes : aucun accès. **M30 LOCALE, NON appliquée à Paris — ATTENTE validation** (15 écarts corrigés : oracles d'état, appréciations, mots, messages, accusés de lecture, champs « auteur », expiration d'invitation, forfait ; 14 suites SQL 100 % + e2e effacement 22/22, clé 15/15, tâche 9/9, invitation 12/12 ; inverse testé). À décider (non corrigé) : droits de table trop larges (anon/authenticated ALL, TRUNCATE) ; rôle enseignant non vérifié et mode d'attribution du rôle indéfini ; limite d'appels Aria par compte ; `profiles.email` ; `invitations_select` ; contenu des fichiers non inspecté ; tables inutilisées à supprimer.
+- [x] (2 oct) **M28 APPLIQUÉE à Paris** (avant_M28, essai à blanc seule, advisors inchangés 180, 0 ERROR).
+- [ ] **Branchement des vrais fils (plus tard)** : un message dont `sender_id` est NULL (compte supprimé, M25) s'affiche « Ancien responsable ».
+- [ ] **L7b EXPORT (28 sept) : code FAIT, NON VÉRIFIÉ sur appareil** (système de fichiers et feuille de partage natifs ; web = message « depuis l'app, sur le téléphone »). Archive .zip du carnet de l'enfant affiché : donnees.json (tout ce que le compte peut lire, SOUS RLS : rien du privé de l'autre responsable) + fichiers/ (téléchargés depuis URL signées dans le cache privé) + LISEZMOI.txt (signale un export incomplet) ; feuille de partage du système ; cache vidé avant chaque export et au démarrage. `npm run test:export` 11/11 ; `test:bundle-prod` 9/9. Tout en mémoire : à surveiller pour un gros carnet (centaines de photos). Test à faire sur téléphone avec un compte réel.
+- [ ] **Page D5 (politique de confidentialité, mentions légales, repli des liens ouverts sur ordinateur)** : à la mise en ligne, REMETTRE sur Connexion et Inscription la mention « vous acceptez les conditions et la politique de confidentialité » AVEC un lien réel (retirée le 28 sept : elle renvoyait à des documents inexistants).
+  - (4 oct) BROUILLONS écrits, NON publiés, à faire relire par un juriste : `tasks/politique-confidentialite-brouillon.md` et `tasks/mentions-legales-brouillon.md` (variables {NOM_APP}, {EDITEUR}, {CONTACT} ; tout ce qui n'est pas prouvé est marqué [À VÉRIFIER], récapitulatif en fin de politique). Reste à décider : durées de conservation (alertes d'urgence, registre d'effacement, sauvegardes hebdomadaires de ~8 semaines), activation de Brevo, copie locale des documents ouverts, page de repli ordinateur (inexistante).
+- [ ] **Performance Supabase (4 oct)** : corriger les **48 politiques `auth_rls_initplan`** avec `(select auth.uid())` avant la montée en charge (une migration dédiée, politique par politique ; liste dans `tasks/warns-attendus.md` § 2).
+- [ ] **Performance Supabase (4 oct)** : fusionner les **21 `multiple_permissive_policies`** (liste dans `tasks/warns-attendus.md` § 3).
+- [~] **« Me retirer de ce carnet » (2 oct) : code FAIT, M28 LOCALE NON appliquée à Paris — ATTENTE validation.** M28 `20260928130000_m28_quitter_carnet.sql` : `quitter_carnet(enfant)` (soi seul, jamais le dernier : erreurs `dernier_responsable` / `non_responsable`), `apercu_depart_carnet(enfant)` (nb d'ajouts privés supprimés / partagés conservés), et **FAILLE FERMÉE : une invitation envoyée par un responsable restait valable après son départ → il pouvait se réinviter lui-même et retrouver l'accès (DÉMONTRÉ en local sans M28 ; présente sur Paris tant que M28 n'est pas appliquée — risque faible : il faut avoir invité sa propre adresse AVANT de partir)**. Tests m28 10/10 + 11 autres suites OK, inverse testé. App : Autorisations › « Quitter ce carnet » (confirmation Alert native : accès perdu, ajouts privés supprimés avec leurs fichiers, ajouts partagés conservés « Ajouté par un ancien responsable », signatures et réponses conservées, invitations annulées, réinvitation nécessaire ; refus clair pour le dernier responsable ; en démo : message « mode démo »). Auteurs absents de la liste des responsables → « un ancien responsable ». Non éprouvé sur appareil (compte réel à un seul responsable aujourd'hui : le bouton est remplacé par une explication). Questions : fils INDIVIDUELS avec l'enseignant du partant (inaccessibles pour lui, conservés côté enseignant) ; textes à valider.
+- [x] **Rendre RÉELS l'export et l'effacement (droits RGPD)** — code fait en L7a / L7b (voir ci-dessus), écrans réaffichés ; reste : Paris + test appareil. — écrans MASQUÉS le 26 sept 2026 (factices). Export = vrai fichier (JSON + PDF) avec les vraies données du carnet, fichiers du bucket compris. Effacement = vraie suppression en cascade, fichiers du bucket « carnet » compris (via l'API Storage), sous 30 jours. Code de transfert : masqué aussi, à concevoir (aucun mécanisme). Tables deletion_requests / export_history / transfer_codes / access_journal existent sans usage réel.
+- [~] **Nettoyage des fichiers orphelins du bucket « carnet »** — FAIT en local (L7a : fichiers_orphelins > 1 jour, Edge Function quotidienne ; départ d'un responsable → ses ajouts privés supprimés par déclencheur) ; reste l'application à Paris. (tâche SERVEUR via l'API Storage — jamais de DELETE SQL direct, storage.protect_delete l'interdit à raison) déclenché par : la suppression d'un enfant (tous ses fichiers), la suppression d'un élément (son fichier, si l'app n'a pas pu le supprimer), le départ d'un responsable (ses éléments PRIVÉS et leurs fichiers). Test : après suppression d'un enfant, plus aucun fichier sous `<child_id>/` dans le bucket.
+- [ ] **Lot « Emails et liens Auth »** (un seul lot) :
+  - Brevo + nom de domaine d'envoi (SPF, DKIM) configurés dans Supabase Auth (SMTP par défaut = équipe du projet seulement) ;
+  - modèles d'email en français : confirmation, invitation, réinitialisation, changement d'email (aujourd'hui : textes Supabase par défaut, en anglais) ;
+  - Site URL + Redirect URL vers l'app (`scolaria://`) (aujourd'hui : Site URL `http://localhost:3000`, aucune Redirect URL, Londres = Paris) ;
+  - test de bout en bout : inscription → email → lien qui ouvre l'app → compte confirmé → invitation du second responsable acceptée.
+
+### Aria
+- [ ] Écran d'information Aria à la première utilisation (ce qui part chez Anthropic, où, combien de temps).
+- [ ] Aria désactivable (Famille & paramètres) : désactivée = aucun appel au modèle.
+
+### Avant le premier contrat école / mairie
+- [ ] Aria via Amazon Bedrock en Irlande (eu-west-1), point de terminaison régional unique — PAS le profil « EU » (inclut Londres et Zurich). Changement de fournisseur isolé dans l'Edge Function `aria` (l'app ne change pas).
+
+### B3-0 (24 sept) — corrections avant B3
+- Agenda : maternelle et primaire sans créneaux de cours (journée type dans « Emploi du temps », primaire seulement) ; Léa = 3 événements de GS en semaine ; tri par heure tous types, devoirs en tête sans horaire (« Pour aujourd’hui / demain / date ») ; voile du bas toujours visible + élévations Android ; bouton Emploi du temps sur sa ligne (44 px).
+- Docs : Agenda = « + » de la bottom bar, pas de FAB ; §17 échelle 3 niveaux (Non acquis · Partiellement acquis · Acquis) ou 4 LSU ; bouton année « 2026–2027 · CM2 ⌄ » ; VISION : 3114, 3018, 119, 112.
+- [x] ~~**Aria, écart constaté** : UUID de l’enfant dans la consigne de l’action « signaler une absence »~~ → **corrigé en B3-0-bis** : balise sans identifiant ; l’app attache l’id de l’enfant affiché à l’exécution (un `student_id` écrit par le modèle est ignoré) ; historique d’AriaScreen nettoyé des balises. Seuls prénom + niveau partent au modèle.
+
+### B2-ter (24 sept) — règles par niveau et réponses aux 3 questions
+- **Règle corrigée** (l'ancienne « devoirs / emploi du temps réservés au collège » était fausse) : maternelle = ni devoirs ni filtre « Devoirs » ni emploi du temps ; CP à CM2 = filtre « Devoirs » + devoirs de primaire + emploi du temps en journée type ; collège / lycée inchangé. `utils/niveau.ts` : `aDesDevoirs`, `aUnEmploiDuTemps`.
+- Lucas (CM2) : devoirs de démo remis et rendus crédibles (leçon d'histoire, tables de 7 et 8, lecture du Petit Prince, fractions, poésie de La Fontaine, dictée préparée ; « Évaluation de maths »), salles « Classe de CM2 B ». Onglet Devoirs primaire dédié. Échéances toujours sur un jour d'école.
+- Emploi du temps : construit depuis l'agenda de démo de l'enfant actif (semaine en cours, semaines précédente / suivante) ; Lucas = Mme Dupont (EPS : M. Garcia) ; Emma = enseignants de l'univers démo.
+- Q1 (espace enseignant) : tableau de bord et météo de classe sans chiffre, sans %, sans vert/rouge, sans alerte ni « analyse IA » ; tendance en mots ; liste en ordre alphabétique (aucun classement par Score de Joie).
+- Q2 (agenda de démo) : dates recalées sur la semaine courante (`DemoContext`, même jour de la semaine) ; cours répétés la semaine suivante.
+- Q3 (compétences sur 10) : section « Compétences clés » du profil, compétences de l'export PDF et « Points forts » du mémo supprimés → refonte en B3. Au passage : le bloc « Bien-être général » (joie /10) du mémo de transition, que B2-bis croyait retiré, l'est vraiment.
+
+### B2-bis (24 sept) — conformité charte
+- Score de Joie : plus aucun chiffre ni alerte côté parent (profil, curseur du ressenti, export PDF, mémo de transition, réponses de démo d’Aria). Profil : « Tendance sur 5 jours : stable / plutôt en hausse / plutôt en baisse » (écart > 10 % entre les 5 derniers relevés et les 5 précédents), rien sous 10 relevés. JoyAlerts / JoyHistory supprimés.
+- Mon ressenti : détection d’urgence = `detectEmergency` partagé (celui d’Aria, 22 cas testés) au lieu d’une liste maison ; mention « chiffrées, partagées avec personne » (inexacte) remplacée par « Visible uniquement par les responsables de l’enfant ».
+- Super-pouvoir : étiquettes sans emoji, mention « Observé par Aria » retirée (aussi dans le texte partagé). L’emoji principal du super-pouvoir (🔭) est gardé (contenu).
+- Agenda : ~~devoirs de démo réservés au collège / lycée~~ (règle erronée, corrigée en B2-ter : devoirs dès le CP) ; filtre « Devoirs » masqué en maternelle (et remis sur « Tout » au changement d’enfant). Cause : le calcul des devoirs n’était fait qu’une fois (dépendances vides). Au passage : choisir un jour dans le calendrier du mois ne rechargeait pas la semaine (événements de la semaine en cours) → corrigé.
+- Fond de l’Accueil : page profonde (‹ + titre, sans barres). Élision « de / d’ » : `utils/francais.ts` `de()` (profil, couleur, avatar, autorisations, ajout enfant / année, carte Aria, confirmation de signature).
+- Aria : vouvoiement dans les écrans, suggestions, réponses de démo, cartes ; consigne serveur fixe ajoutée par l’Edge Function (déployée).
+- État vide Agenda : icône lucide CalendarCheck.
+- ~~3 questions (espace enseignant, dates de l'agenda de démo, compétences sur 10)~~ → répondues et faites en B2-ter.
+
+### Choix à valider (pris en autonomie, le plus simple et conforme à CLAUDE.md)
+- ~~Header Accueil, bas arrondi~~ → **remplacé le 24 sept par un fondu** (décision produit) : rgba(couleur, 1 → 0), 10 arrêts ease-out, ~300 px, cartes flottantes ; libellés sur le fondu en blanc (opacité ≥ 0,6) ou gris 55 %. Contrastes vérifiés sur les 6 couleurs (pire : sarcelle, « Bonjour » 5,1, « À FAIRE » 4,8). Photo : voile #F2F1EE d’opacité (1 − a), identique à une photo qui disparaît sur fond uni (MaskedView évité).
+- **Top bar posée sur le header coloré (au repos)** : même forme qu’en §0, couleurs claires : pill active blanc 22 %, icône + libellé blancs, inactifs SANS fond en blanc 78 %, burger cercle blanc 22 %, barre d’état claire. Dès 8 px de défilement : couleurs §0. (La pill blanche opaque et les ronds gris refusés en B1-bis ne reviennent pas.)
+- **Retour par glissement** : autorisé sur toute route qui n’est pas une racine d’onglet, départ du doigt à moins de 40 px du bord gauche, déclenché à 70 px (ou 30 px si rapide). Exclu : SignSuccess (revenir au formulaire déjà signé n’a pas de sens).
+- **Couleurs d’enfant** : 6 couleurs (Indigo #4338CA, Océan #0369A1, Sarcelle #0F766E, Framboise #BE185D, Ardoise #334155, Pierre #57534E) ; exclus : ambre (Score de Joie), violet, vert, rouge ; toutes lisibles avec une initiale blanche.
+- **Fond photo de l’Accueil** : voile sombre rgba(15,23,42,0.28) sur la photo pour garder « Bonjour + prénom » lisible en blanc.
+- ~~**Emploi du temps, cahier de texte, bulletin de démo** : réservés au collège / lycée~~ → **corrigé en B2-ter** : emploi du temps et devoirs dès le CP (Lucas : journée type de CM2) ; bulletin et cahier de texte de démo restent ceux d'Emma (collège).
+- **Compétences de démo de Lucas** : intitulés rédigés pour la démo, « dans l’esprit » du LSU ; les intitulés officiels (Éduscol) sont à reprendre en B3.
+- **Compte réel avec enfant** : Accueil, Notes, Agenda, Messages affichent des états vides (« Rien de prévu aujourd’hui », « Aucune note pour l’instant »…) tant que ces données ne sont pas branchées sur la base — jamais de démo.
+- **Aria, compte réel** : le modèle reçoit prénom + niveau seulement (aucune donnée du carnet encore). L’action « signaler une absence » est gardée ; l’action « envoyer un message » est retirée du prompt réel (aucune conversation réelle à cibler).
+- **Profil de l’enfant (écran ancien)** : pour un enfant réel, super-pouvoir, compétences sur 10, Score de Joie et portfolio sont masqués tant qu’ils sont vides (règle « jamais de module vide visible ») ; refonte à prévoir.
+- **Écrans RGPD** (journal, codes, effacement, export) : correctif minimal (démo uniquement, enfant actif, volumes fictifs masqués) ; la refonte RGPD complète reste un chantier à part.
+- **Notifications « Conseil du matin »** : supprimées sans remplacement (le résumé de 18h viendra avec les vraies notifications push).
+
+### Questions pour toi (rien de destructif n’a été nécessaire en B1-ter / B2)
+- Aucune migration destructive requise. M13 (`children.fond`) et M2f sont des ajouts.
+- [UNCLEAR] Détail d’un événement : le badge « Inscrite » (féminin, figé) s’affiche pour tout événement → à revoir avec B6 (Agenda).
+- [UNCLEAR] L’onglet Notes (vue maternelle de démo) garde l’image de fond globale (WallpaperContext) → à retirer en B3 ?
+- ~~Emploi du temps de démo d’Emma : semaine figée « Semaine 18 · 4–10 mai 2026 »~~ → semaine en cours (B2-ter).
+
+Regroupe tout ce qui est noté « Phase B » plus bas (navigation, enfant actif, FAB Agenda, couleur de l’enfant, types de mots, invitations, import, Aria, droit à l’image).
+
+**Règles communes à chaque lot**
+- Un lot = un commit, testable seul. Arrêt et test sur le Redmi (`npm run dev:android`) avant le lot suivant : le web ne prouve rien pour Android.
+- Avant chaque lot : grep des motifs touchés (leçons du 17 avril et du 23 sept) ; `Pressable` / `Text` / `TextInput` depuis `components/ui` ; pas de `gap` en ligne ; pas de `sed -i` sur src/.
+- Après chaque lot : `tsc --noEmit`, contrôle web, checklist Redmi du lot, lessons.md, primer.md.
+- Toute migration : `supabase db push` (dry-run d’abord), script inverse dans `migrations_down/`, tests SQL en transaction annulée, advisors 0 ERROR.
+- Estimation en **sessions** (≈ une séance de travail Claude Code + un test Redmi). Total : **13 à 19 sessions**.
+
+**Constats du code (23 sept) qui fixent les estimations**
+- Enfant actif : `ActiveChildContext` existe mais 20 fichiers le lisent par des chemins différents ; 19 écrans / composants contiennent encore Emma / Léa en dur (Accueil, Timetable, Homework, Bulletin, GradeDetail, SignDoc, SignSuccess, MonParcours, Aria ×3, RGPD ×3…).
+- Navigation : swipe `PanResponder` dans `TabNavigator.tsx:777-868` (retour + ouverture burger) ; `ChildSelectorSheet` contient encore Réglages et Déconnexion (`:126`, `:136`) ; `ReglagesScreen` (661 l.) et « Mon compte » (BurgerMenu) coexistent.
+- Suivi : `NotesScreen` (2424 l.) ne distingue que maternelle / autre (`:1104`) ; pas de vue primaire LSU ni de segmented.
+- Messages : filtres actuels Tout / Non lus / Messages / École / Absences (`MessagerieScreen.tsx:74`).
+- Agenda : `agenda_events.mot_id` **n’existe pas en base** (prévu au plan M5, non fait) ; « À prévoir » d’EventDetail = état local non enregistré.
+- Import : `expo-image-picker` et `expo-document-picker` déjà installés ; **aucun bucket Storage** en migration.
+- Aria : suggestions en cartes (`AriaHomeScreen.tsx:542-550`), `makeSuggestions(childName, mode)`.
+
+### B1 · Navigation — FAIT et VALIDÉ sur le Redmi (24 sept), corrections en B1-bis
+Objectif : ☰ → « Famille & paramètres » ; avatar → sélecteur d’enfant seul ; plus de swipe d’ouverture ; top bar en voile (déjà fait, commit 4914e8d → contrôle seulement).
+- [x] Nouvel écran `FamilleParametresScreen` (route `FamilleParametres`, chrome 'none', page profonde §8) : Mes enfants (row → profil de l’enfant, « Ajouter un enfant ») · Responsables légaux (vous seul pour l’instant → B4) · Mon profil · Apparence (Fond de l’Accueil) · Notifications (3 interrupteurs : mots et messages / résumé 18h / silence 20h–7h) · Aria (activée, personnalité, langue de saisie vocale) · Confidentialité & données (autorisations, journal, export, effacement) · Compte (à propos, déconnexion / quitter la démo, avec Alert).
+- [x] ☰ ouvre DIRECTEMENT cet écran. Supprimés : `BurgerMenu.tsx` (tiroir sombre + animation + overlays), `ReglagesScreen`, `EditProfileScreen` (« Mon compte », fusionné), `NotificationsSettingsScreen` (matrice par module, interdite ; écrivait une colonne `profiles.notification_preferences` qui n’existe pas), `TextSizeScreen` (réglage lu nulle part). Supprimés aussi : Capacités, Connecteurs, Liens partagés, Thème Auto, « Résumé quotidien 8h00 », fonds dégradés abstraits (WallpaperPicker : photos nature uniquement).
+- [x] Swipe : plus aucune ouverture de menu ; le retour arrière par swipe depuis le bord est conservé (pages avec flèche + ProfilEnfant, BienEtre, FamilleParametres). Fond racine #0F172A → #F2F1EE.
+- [x] `ChildSelectorSheet` : Réglages et Déconnexion retirés ; « Ajouter un enfant » (indigo). Point de nouveauté par enfant → B2 (aucune donnée de nouveauté aujourd’hui).
+- [x] Espaces enseignant et élève : leur onglet Réglages affiche le même écran (`espace` = enseignant / eleve, titre « Paramètres », sans sections famille, sans bouton retour).
+- [x] Navigation imbriquée avec `initial: false` (☰, « Ajouter un enfant », recherche rapide) : sans ça l’écran devenait la racine de la pile Accueil et le retour n’avait nulle part où aller.
+- [x] `chrome.ts`, SCREEN_TITLES, recherche rapide (« Famille & paramètres », « Fond de l’Accueil »), `DeepScreenHeader` (retour facultatif).
+- [x] tsc OK ; web (375×812, mode démo) : ☰ → écran complet, retour → Accueil, Journal d’accès s’ouvre et se ferme, avatar → sélecteur sans réglages, « Ajouter un enfant » → formulaire. Déconnexion non testable en web (Alert inactif sur react-native-web).
+- Non affiché volontairement (rien ne fonctionne derrière) : code de déverrouillage (aucun verrou dans l’app, « Face ID » était un libellé fixe), retour haptique (aucun appel haptique dans l’app), centre d’aide (aucun écran).
+- [UNCLEAR] Préférences Notifications et Aria enregistrées sur l’appareil seulement (`@scolaria:prefs`) : rien ne les lit encore (pas de push, Aria ne lit pas le ton). À brancher avec les notifications push / l’Edge Function.
+- [UNCLEAR] « Mon Ressenti » (Score de Joie) et « Mon parcours » n’étaient accessibles que par l’ancien tiroir : restent accessibles via la recherche rapide ; Mon parcours revient par le bouton année de Suivi (B3). Emplacement de Mon Ressenti à décider.
+- Reste : `QuickActionsSheet` navigue encore sans `initial: false` (à corriger en B5, qui la refait) ; Fond de l’Accueil choisi mais pas encore affiché sur l’Accueil (B2, M13).
+
+#### Checklist Redmi · B1 (`npm run dev:android`)
+1. Accueil : tap ☰ → « Famille & paramètres » s’ouvre en plein écran, sans top bar ni bottom bar, flèche ‹ en haut à gauche.
+2. ‹ → retour à l’Accueil. Recommencer, puis swipe depuis le bord gauche → retour à l’Accueil.
+3. Sur l’Accueil : swipe depuis le bord gauche → AUCUN menu ne s’ouvre ; swipe horizontal au milieu → le pager change d’onglet (Accueil → Notes…).
+4. Défilement de « Famille & paramètres » jusqu’en bas : groupes blancs, séparateurs gris, police Figtree partout, pas de ligne coupée, pas de contour gris (elevation).
+5. Interrupteurs Notifications et Aria : ils basculent ; quitter et revenir → l’état est conservé. Pills de personnalité : sélection noire.
+6. Chaque ligne : Léa / Lucas / Emma → profil de l’enfant ; Ajouter un enfant → formulaire ; Fond de l’Accueil → 5 photos nature, aucun dégradé ; Autorisations / Journal d’accès / Exporter / Effacement → feuille qui s’ouvre et se ferme ; À propos → écran.
+7. « Quitter la démo » → confirmation native, Annuler ne fait rien, Quitter → écran d’ouverture.
+8. Avatar (en haut à droite) → sélecteur : e-mail, 3 enfants, coche sur l’enfant actif, « Ajouter un enfant » ; plus de « Gérer les enfants » ni de « Se déconnecter ». Changer d’enfant → la feuille se ferme.
+9. Voile : sur Notes et Agenda, faire défiler → fondu #F2F1EE sous la top bar et au-dessus de la bottom bar, jamais de bandeau opaque au repos.
+10. Retour matériel Android depuis « Famille & paramètres » → Accueil (pas de sortie de l’app).
+
+### B1-bis · Corrections après test Redmi — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+- [x] 1. Top bar (COMPONENTS §0) : onglet actif = pill rgba(15,23,42,0.08), 30 px, icône + libellé ; inactifs = icône seule SANS fond, rgba(15,23,42,0.38). Plus de variante « sur header » (pills blanches) : cause = la barre était posée sur le header indigo plein écran de l’Accueil. **Header de l’Accueil passé en carte 130 px sous la barre** (radius 20, marge 12, indigo neutre ; couleur / fond de l’enfant en B2). Burger = cercle 34 px rgba(15,23,42,0.08) ; avatar bordure 2 px rgba(15,23,42,0.15) ; fontWeight retiré du libellé.
+- [x] 2. Tagline : « Pour les familles françaises » (À propos) → « Le carnet de scolarité numérique ». « Passeport scolaire » → « carnet de scolarité » (fr.ts ×3, PDF ×3). Restent volontairement : phrases descriptives de CLAUDE.md / VISION.md / prompt d’Aria (« … des familles françaises », pas une tagline).
+- [x] 3. À propos réécrit en page profonde (§8) : retirés « 100 % Données en Europe », « AES-256 », « RGPD Conforme », « Conforme RGPD · CNIL · Données hébergées en France », le bloc Technologies (Google Vision jamais utilisé, « chiffrement E2E », « hébergement UE »), les emoji-icônes. Gardés : aucune publicité, données jamais revendues (icônes lucide). Charte = 7 principes de VISION.md §8 (dépliables).
+- [x] 4. Autorisations : rôles fictifs retirés (famille proche, accompagnant, accès minimal, grand-mère, assistante maternelle, médecin, 4 niveaux, modules). Affiche les vrais responsables légaux de l’enfant actif + invitations en attente + « Inviter un responsable » (insert invitations_responsable, acceptation par l’invité à l’email confirmé). Migration **M2f** `20260924130000_m2f_liste_responsables` : RPC `responsables_enfant(child_id)` (DEFINER, lecture seule, prénom / nom / lien / vous, jamais l’email) — nécessaire car profiles_select masque le nom de l’autre responsable. Tests SQL (transaction annulée, 0 donnée restante) : A et B voient 2 responsables (« vous » en premier), C (sans lien) 0, anon sans droit d’exécution. Advisors : 0 ERROR (WARN voulu : fonction exécutable par authenticated). 23/23 migrations alignées. Entrée masquée dans les espaces enseignant / élève. Fonctions `person_permissions` de rgpdService supprimées (table conservée, inutilisée).
+- [x] 5. « Ajouter un enfant » et « À propos » : pages profondes (chrome 'none', en-tête ‹ + titre centré, swipe retour), plus de bottom bar sur le bouton. Espaces enseignant / élève : en-tête natif masqué sur À propos.
+- [x] 6. Formulaire : avatars emoji → couleur de l’enfant (6 couleurs, `constants/childColors.ts`, sans ambre / violet / vert / rouge ; avatar = initiale sur la couleur, envoyée à create_child). « Classe » → **Niveau** obligatoire (PS → Terminale) + **école facultative** en texte libre, pas de liste de classes. Pied « conformes au RGPD » retiré.
+- [x] Composant partagé `components/DeepList.tsx` (groupes / rows §8) : Famille & paramètres, À propos, Autorisations.
+- [x] tsc OK ; web 375×812 démo : pills conformes, header en carte, Autorisations (2 responsables + formulaire d’invitation), À propos (7 principes dépliables, sans barres), Ajouter un enfant (couleur, niveau, bouton visible).
+- [ ] **Idée future (VISION)** : accès partiels pour les proches (grands-parents, nounou) — lecture limitée à certains modules, révocable, journalisée. Table `person_permissions` existante mais non branchée. Ne pas afficher avant d’être réel.
+- [UNCLEAR] VISION.md §8 principe 3 annonce « hébergement OVH France » : faux aujourd’hui (Supabase eu-west-2 = Londres ; Aria = Anthropic hors UE). À corriger dans VISION.md / CLAUDE.md (§ RGPD : « Hébergement OVH France », « AES-256 ») ou à rendre vrai.
+- [UNCLEAR] wo.ts (wolof) contient encore « passeport scolaire » ×3 : je ne traduis pas en wolof sans relecture.
+- [UNCLEAR] contact@scolaria.fr : adresse conservée dans À propos, non vérifiée (domaine détenu ?).
+- Reste : saisie de la date de naissance serrée en rendu web (déjà le cas avant) → à vérifier sur le Redmi.
+
+#### Checklist Redmi · B1-bis (`npm run dev:android`)
+1. Top bar sur les 4 onglets : l’onglet actif est une pill grise (icône + libellé), les autres sont des icônes seules grises SANS rond derrière. Jamais de pill blanche, y compris sur l’Accueil en haut de page.
+2. Accueil : le bandeau « Bonjour Léa » est une carte indigo arrondie de 130 px SOUS la top bar, avec 12 px de marge à gauche et à droite ; la barre du haut est sur le fond clair.
+3. Faire défiler l’Accueil : le voile apparaît sous la barre, les pills restent identiques.
+4. ☰ → Autorisations : seulement « Moreau (vous) » et « Marc Moreau », plus « Inviter un responsable ». Aucun grand-parent, nounou, médecin, niveau d’accès ni module.
+5. « Inviter un responsable » → champ e-mail + bouton pill « Envoyer l’invitation » ; en démo, message « Aucune invitation n’est envoyée en mode démo ».
+6. ☰ → À propos : en-tête ‹ + « À propos », AUCUNE barre en haut ni en bas ; tagline « Le carnet de scolarité numérique » ; engagements = « Aucune publicité » et « Vos données ne sont jamais revendues » ; charte = 7 principes qui se déplient ; aucune mention d’Europe, AES-256, RGPD conforme.
+7. ☰ → Ajouter un enfant (et avatar → Ajouter un enfant) : en-tête ‹ + titre, AUCUNE bottom bar ; le bouton « Ajouter … » est entièrement visible et cliquable en bas de page, clavier ouvert compris.
+8. Formulaire : 6 pastilles de couleur sur une ligne, l’aperçu rond montre l’initiale du prénom sur la couleur choisie ; « Niveau * » propose PS → Terminale ; « École (facultatif) » ; le bouton reste grisé tant que prénom, date et niveau manquent.
+9. Saisie de la date de naissance (JJ / MM / AAAA) : chiffres lisibles, séparateurs non superposés.
+10. Swipe depuis le bord gauche sur À propos et Ajouter un enfant → retour.
+
+### B1-ter · Corrections du test Redmi B1-bis — FAIT (24 sept), À VÉRIFIER SUR LE REDMI
+- [x] 1.1 Header de l’Accueil pleine largeur (remplace la carte 130 px, décision produit) : premier élément du défilement, passe derrière la barre d’état et la top bar, couleur de l’enfant (`children.color`, démo : Léa teal), haut sans arrondi, bas arrondi 28 px, « Bonjour » + prénom en blanc, barre d’état claire au repos ; au défilement il part avec le contenu, le voile apparaît et la top bar repasse en §0. CLAUDE.md (§ Headers d’écran) et COMPONENTS.md (§6) mis à jour.
+- [x] 1.2 Retour par glissement : **cause** — le retour était envoyé à la navigation de l’écran racine (`MainPager`) ; ne sachant pas le traiter, elle le laissait au navigateur d’onglets, qui revenait à l’onglet précédent (s’il y en avait un) au lieu de dépiler la page ; s’y ajoutaient une liste de routes codée en dur et une vitesse minimale. **Correctif** : `navigationRef` unique (App.tsx) → `goBack()` sur le navigateur focalisé le plus profond ; geste capté avant les enfants (ScrollView, Pressable), seulement s’il part du bord ; règle générale `canSwipeBack()` (chrome.ts). En test web, `gestureState.x0` valait 0 avant l’attribution du geste (tout glissement au milieu revenait en arrière) → abscisse de départ mémorisée à part.
+  - Pages profondes vérifiées une par une en web (glissement simulé depuis le bord → retour à la racine de l’onglet), 36/36 OK : **Accueil** SignalerAbsenceScreen, BienEtreScreen, ProfilEnfant, AjouterEnfant, AjouterAnne, MonParcours, FamilleParametres, RGPDScreen, PermissionsRGPD, JournalAcces, TransfertCode, Effacement, ExportDonnees, APropos, AriaHome, AriaConversation, WallpaperPicker, Homework, Timetable, SignDoc, ArchivedYearDetail · **Notes** BulletinScreen, GradeDetail, SubjectDetail · **Agenda** EventDetail · **Messages** SignalerAbsence, MessagesListScreen, AbsencesListScreen, EcoleListScreen, MessagerieAriaScreen, ConversationDetailScreen, MotDetailScreen. Glissement au milieu d’une page : aucun retour. Glissement sur une racine : rien.
+  - Outil de test : `globalThis.__navRef` exposé en développement uniquement (`__DEV__`).
+- [x] 1.3 À propos : ligne contact@scolaria.fr retirée.
+
+### B2 · Enfant actif — FAIT (autonomie, 24 sept), À VÉRIFIER SUR LE REDMI
+Commits : 4f96a2f (2.1) · 409dba0 (2.2 + 2.5) · b6d1524 (2.3) · 44bcb76 (2.4) · 2604eee (2.6) · 31fb012 (2.7). Advisors : 0 ERROR (WARN voulus uniquement). Migrations : 24/24 alignées.
+- [x] 2.1 Source unique : `ActiveChildContext` réécrit — démo = enfants Moreau (depuis demo-children.json) UNIQUEMENT en mode démo ; compte réel = ses enfants en base ; `selectedChild: Child | null` ; dernier enfant consulté persisté par compte (`@scolaria:enfant_actif:<user>`) ; `niveau` + `cycle` (utils/niveau.ts) ; mode scolaire dérivé du cycle ; `reloadChildren(preferId)` après ajout (et `createChild` : l’erreur n’était pas vérifiée → « Enfant ajouté » affiché même en cas d’échec, corrigé). Supprimés : GlobalChildSwitcher (jamais ouvert), ChildThemeContext (passe-plat). Pages qui exigent un enfant (Profil, Signaler une absence, Mon parcours, Bien-être) : garde → état vide `AucunEnfantPage`. Messages : plus de conversations / mots / enseignants fictifs pour un compte réel. Web : bascule Léa → Emma, rechargement → Emma conservée.
+- [x] 2.2 Démo ou compte réel : Accueil d’un compte sans enfant = « Bienvenue dans Scolaria » + « Ajoutez le carnet de votre premier enfant » + pill « Ajouter un enfant » (`AucunEnfant`) ; Notes, Agenda, Messages : même état vide sous la top bar (`AucunEnfantOnglet`). Données de secours fictives retirées : `MOCK_SUBJECTS` (Notes), `MOCK_EVENTS_BY_DAY` (Agenda), mocks de MessagesList → listes vides pour un compte réel. Contenu de l’Accueil par enfant : `data/demo/carnet.ts` (référence unique de l’univers démo). Devoirs de démo : collège, mode démo uniquement.
+  - Non testé en web : compte réel sans enfant (je ne crée pas de compte) → checklist Redmi avec le compte de test.
+- [x] 2.3 Données en dur : plus aucun prénom affiché hors de l’enfant actif (restent des données de démo indexées par id, visibles uniquement pour cet enfant en mode démo, et l’espace enseignant, hors périmètre).
+  - **Aria (grave)** : pour un enfant RÉEL, `getChildContext` retombait sur la démo (par prénom : un « Emma » réel recevait les notes de l’Emma de démo ; sinon Léa) et ces données partaient à Anthropic. Corrigé : enfant réel = prénom + niveau seulement ; sans enfant = contexte neutre ; exemple « Léa » retiré du prompt ; plus de défaut `demo-lea`. `npm run test:emergency` : 22/22.
+  - **Notifications (grave)** : `scheduleConseilDuMatin()` programmait pour TOUT compte 7 push hebdomadaires à 7h30 sur « Lucas » (données fictives). Supprimé ; au démarrage, les anciennes sont annulées. Composant ConseilDuMatin (mort) supprimé.
+  - Profil de l’enfant : un enfant réel héritait des traits / compétences / portfolio / super-pouvoir de l’Emma de démo → profil neutre, blocs vides masqués. Mon parcours : plus d’années d’Emma par défaut.
+  - Signature : document passé en paramètre (détails par enfant dans carnet.ts), enfant = enfant actif ; « Signature légale » → « Horodatage automatique » (eIDAS = Phase 2-3). Justifier une absence : prénom de l’enfant actif, plus de « Sophie Martin ». Détail de note : « Féliciter [prénom] ». Signaler une absence : plus de « Parent Moreau ».
+  - Emploi du temps, cahier de texte, bulletin de démo : collège, mode démo uniquement (sinon page vide) ; bouton « Emploi du temps » de l’Agenda : collège / lycée seulement.
+  - RGPD (journal, codes de transfert, effacement, export) : données fictives en démo seulement, sur l’enfant actif ; listes d’enfants = enfants du compte ; volumes fictifs (« 47 notes »…) masqués pour un compte réel ; entrée « Grand-mère » retirée du journal.
+  - Changement d’enfant : sélection immédiate (elle attendait la fin d’un fondu).
+- [x] 2.4 Données de démo par niveau : Léa (GS) domaines + observations ; **Lucas (CM2) : plus aucune note /20** (57 notes, 6 matières chiffrées, 6 bulletins archivés chiffrés retirés ; contexte Aria de démo sans moyenne) → compétences sur 4 niveaux (`getDemoCompetences`, 10 compétences, source « Saisi par Mme Dupont / M. Garcia ») ; Emma (3e) : notes v7 inchangées. Onglet Notes : cycle de l’enfant (plus la date de naissance) ; **primaire = nouvelle vue compétences** (`screens/suivi/ApprentissagesVue.tsx`, compte réel = table `competences` sous RLS) ; maternelle : domaines de démo pour Léa seulement (avant : **les domaines de Léa pour TOUT enfant de maternelle**, comptes réels compris) ; plus d’observation inventée (« X progresse régulièrement »). Messagerie de démo alignée (Lucas : Mme Dupont, CM2 B, École Voltaire ; Emma : Mme Lambert, M. Petit, Collège Hugo). Mots, messages, agenda, absences : déjà par enfant (JSON indexés par id).
+- [x] 2.6 Couleur et fond : **avatar unique** `ChildAvatar` (initiale(s) sur children.color) dans la top bar, le sélecteur, Famille & paramètres et le profil ; plus aucun avatar emoji ni photo (AvatarPicker supprimé). Profil : tap sur l’avatar → choix de la couleur (`CouleurEnfantSheet`, 6 couleurs). **Migration M13** `20260924140000_m13_fond_accueil` (ajout non destructif : `children.fond` nullable, CHECK `^[a-z0-9-]{1,40}$`, inverse dans migrations_down) ; tests SQL (transaction annulée, 0 donnée restante) : défaut NULL, responsable pose / retire le fond, valeur invalide refusée, personne sans lien 0 ligne ; 24/24 migrations alignées. « Fond de l’Accueil » = par enfant : « Couleur de [prénom] » (défaut) ou photo nature ; header de l’Accueil = photo + voile sombre léger, sinon couleur. Démo : couleur et fond gardés sur l’appareil (`@scolaria:demo_enfant:<id>`). Web : fond « Forêt » pour Emma, Léa garde son teal, rechargement → conservé ; couleur changée depuis le profil → avatar mis à jour.
+  - Reste : l’onglet Notes (vue maternelle de démo) affiche encore l’image de fond globale de WallpaperContext → à retirer en B3 (la couleur / le fond ne s’appliquent qu’à l’avatar et au header de l’Accueil).
+- [x] 2.7 Vérification écran par écran (web 375×812, démo) : test automatique qui, pour chaque enfant, ouvre Accueil, Notes, Agenda, Emploi du temps, Messages, Aria et cherche les marqueurs des DEUX autres enfants (prénom, enseignants, école, classe) dans le texte visible. Résultat final : Léa 6/6, Lucas 6/6, Emma 6/6 sans fuite. Famille & paramètres : seule la liste « Mes enfants » et « Responsable de Léa, Lucas, Emma » citent les autres enfants (niveau famille, voulu). Recherche : liens génériques uniquement. Corrigé pendant la vérification :
+  - Emploi du temps d’Emma : « Mme Dupont » (maîtresse de Lucas) et 4 autres enseignants inventés → enseignants d’Emma ; idem bulletin et détail de note (« M. Dupont », « M. Garcia » → M. Petit, Mme Ortiz…).
+  - demo-teachers / demo-messages : Mme Lambert retirée de Lucas ; « Bulletins du 1er trimestre, moyenne 14,2/20 » de Lucas → livret sans note.
+  - Détail d’un événement : affichait la sortie d’Orsay (date, description, liste, rappel « 8 € ») pour TOUT événement ouvert depuis l’Agenda → affiche désormais l’événement réellement ouvert, champs vides masqués.
+  - Artefact de test (pas un bug) : dans ce panneau web masqué, les animations sont suspendues, donc la feuille du sélecteur reste affichée après un choix ; exclue du contrôle.
+- [x] 2.5 Accueil selon le niveau : fait en 2.2 (notes : collège / lycée ; derniers apprentissages : maternelle / primaire ; À faire, Aujourd’hui, carte Aria : enfant actif).
+
+Objectif : une seule source (`useActiveChild()` → `selectedChild`) pour toute l’app ; aucune donnée d’un autre enfant affichée.
+- [ ] Contrat unique : `selectedChild` (id, prénom, niveau, couleur, année active) ; supprimer les chemins parallèles (`selectedChildId` lu seul, `GlobalChildSwitcher`, `ChildThemeContext` passe-plat) ; `SchoolModeContext` dérivé du niveau de l’enfant (pas de la date de naissance seule).
+- [ ] Données de démo indexées par id d’enfant (Léa GS / Lucas / Emma 4ème) : Accueil, Messages, Agenda, Emploi du temps, Devoirs, Bulletin, GradeDetail, SignDoc/SignSuccess, MonParcours, Aria. Emploi du temps et Devoirs : rien pour un enfant de maternelle (empty state), pas les données d’Emma.
+- [ ] Compte réel : lecture Supabase filtrée par `child_id` (RLS fait le périmètre, pas de refiltre sur parent_id) ; compte sans enfant → empty states, jamais la démo.
+- [ ] Header Accueil : carte 130 px, radius 20, marge 12, couleur de l’enfant ou fond choisi PAR enfant ; texte et pills lisibles sur toutes les couleurs de démo.
+- [ ] Fond de l’Accueil (décision Q2) : **en base, par enfant, commun aux responsables** — migration M13 `children.fond` (identifiant texte, NULL = couleur de l’enfant, CHECK sur la liste des fonds connus ou format simple), modifiable par un responsable (policy children_update existante). Images **intégrées à l’app** ; la base ne stocke que l’identifiant. `WallpaperContext` / `WallpaperPickerScreen` lisent et écrivent le fond de l’enfant actif.
+- [ ] Avatars (top bar, sélecteur, Famille & paramètres, ChildAvatar) à `child.color` ; écran « modifier la couleur » dans le profil de l’enfant (update `children.color`, palette sans ambre ni vert/rouge).
+- [ ] Indicateur de nouveauté par enfant dans le sélecteur (démo : calculé localement).
+- Écrans touchés : `ActiveChildContext`, `SchoolModeContext`, `ChildThemeContext`, `WallpaperContext`, `GlobalChildSwitcher`, `TopBar`, `ChildSelectorSheet`, `ChildAvatar`, `AccueilScreen`, `MessagerieScreen`, `MessagesListScreen`, `AgendaScreen`, `TimetableScreen`, `HomeworkScreen`, `BulletinScreen`, `GradeDetailScreen`, `SignDocScreen`, `SignSuccessScreen`, `MonParcoursScreen`, `ProfilEnfantScreen`, `EditProfileScreen`, `WallpaperPickerScreen`, `data/demo/*`.
+- Test Redmi : changer d’enfant 3 fois → chaque écran (Accueil, Messages, Agenda, EDT, Aria, avatar, header) suit ; Léa (GS) n’affiche jamais de note /20 ni l’EDT d’Emma.
+- Risques : bug d’id silencieux déjà vécu (leçon 17 avril : `.find() ?? [0]`) → warn en dev sur tout repli ; contraste texte blanc sur couleur claire ; rendu en double au changement d’enfant (écrans montés dans le pager) ; migration M13 (colonne fond) ; les fonds actuels de WallpaperContext incluent des dégradés abstraits à retirer (B1) → liste de fonds à figer.
+
+### B3 · Suivi (ex-Notes) — 3 à 4 sessions
+Objectif : contenu selon le niveau de l’enfant actif, segmented Apprentissages · Souvenirs · Livrets, bouton année + Mon parcours.
+
+**Retours terrain (réunion de rentrée, CP, Marseille — 24 sept) à intégrer :**
+- [ ] Primaire : **pas de trimestres**. Découpage par **périodes P1 à P5 ou semestres** selon l’école (LSU remis en janvier et juin). Supprimer le sélecteur « T1 » en maternelle / primaire. [UNCLEAR] où stocker le choix (réglage de l’école / classe, colonne à ajouter) — à voir avec le modèle `ecoles` / `classes`.
+- [ ] **Échelle d’évaluation paramétrable** : 3 niveaux (A / PA / NA, usage quotidien fréquent) OU 4 niveaux LSU (non atteint, partiellement atteint, atteint, dépassé). Affichage adapté (3 ou 4 segments). Impact BDD : `competences.niveau` 1-4 → prévoir l’échelle (ajout non destructif).
+- [ ] **Disciplines officielles du CP (cycle 2)** pour la démo et les listes : Français (lecture, écriture, oral, vocabulaire, grammaire et orthographe) ; Mathématiques (nombres, calcul et résolution de problèmes, grandeurs et mesures, espace et géométrie, organisation et gestion de données) ; Questionner le monde ; EMC ; Langue vivante (anglais) ; Enseignements artistiques ; EPS. (Lucas est en CM2, cycle 3 : disciplines du cycle 3 à reprendre des textes officiels pour lui.)
+- [ ] Suivi › Livrets : type de document **« Évaluations nationales »** (CP : septembre et janvier, français et maths).
+- [ ] Profil de l’enfant : « Compétences clés » retirées en B2-ter → à réintroduire ici avec la même échelle (3 ou 4 niveaux).
+- [ ] Renommer l’onglet Notes → Suivi (pill top bar, icône `trending-up`, routes).
+- [ ] Découper `NotesScreen` (2424 l.) : conteneur Suivi + 3 vues Apprentissages — maternelle (domaines + observations), primaire (compétences LSU, 4 segments #0F172A / rgba 0.12, jamais vert/rouge), collège-lycée (vue notes v7 actuelle, déplacée sans refonte).
+- [ ] Démo (décision Q3) : pas de 4e enfant. **Lucas reste en CM2 (primaire)** : ses données de démo passent des notes /20 à des compétences sur 4 niveaux (livret). **Emma garde les notes** (collège). Léa (GS) : domaines maternelle.
+- [ ] Compétences lues depuis `competences` (compte réel) avec la source affichée (« Saisi par Mme Durand · 12 déc. » / « Ajouté par vous »).
+- [ ] Souvenirs et Livrets : lecture de `carnet_items` (souvenir, jalon / livret) + `bulletins` ; empty states ; le remplissage vient de B5.
+- [ ] Bouton « 2025–2026 · CE1 ⌄ » : année active + lien Mon parcours (archives lecture seule, pas d’alerte Score de Joie) ; `ArchivedYearDetailScreen` branché sur `academic_year_id`.
+- [ ] Action ⊞ de la bottom bar sur Suivi → Ajouter au carnet (câblée en B5, ici simple entrée).
+- Écrans touchés : `NotesScreen` (→ Suivi + sous-vues), `SubjectDetailScreen`, `GradeDetailScreen`, `BulletinScreen`, `MonParcoursScreen`, `ArchivedYearDetailScreen`, `TopBar`, `BottomBar`, `TabNavigator`, `chrome.ts`.
+- Test Redmi : Léa (GS) → domaines ; Lucas (CM2) → 4 segments, aucune note /20 ; Emma (4ème) → notes v7 identiques à avant ; segmented et bouton année ; archive en lecture seule.
+- Risques : régression de la vue notes v7 lors du découpage (le fichier mélange les 2 modes) ; les notes /20 de Lucas sont lues ailleurs (Accueil, GradeDetail, Bulletin, Aria) → grep avant de les retirer ; nomenclature maternelle / LSU à valider (domaines et intitulés officiels à reprendre des textes Éduscol, pas inventés).
+
+### B4a — Messages › Général (26 sept, 7671d2a → B4a.4)
+- [x] B4a.1 structure (segmented Général · prénom, liste à plat, recherche + menu « Tout ⌄ »).
+- [x] B4a.2 Général : carte « À traiter », signature / réponses avec confirmation, mots importés, état vide réel.
+- [x] B4a.3 même donnée Accueil « À faire » ↔ Général « À traiter » (motsService + useMotsEnfant) ; démo cohérente Agenda / Accueil / Messages (événements liés : Muséum, médiathèque, réunion 3e).
+- [x] B4a.4 notifications locales : ouverture exacte (NotificationsRouteur), « [Expéditeur] a retiré ce mot ».
+- [x] M21 APPLIQUÉE à Paris le 27 sept (validée) : mot_expediteur(p_mot_id) → text (nom seul, SECURITY DEFINER, anon refusé, ancienne version absente). Sauvegarde ScolariaBackups/2026-09-27_avant_M21 ; essai à blanc = M21 seule (M22 mise de côté pendant l'opération) ; advisors 0 ERROR (nouveau WARN attendu : fonction exécutable par les comptes connectés).
+- [x] Séparateurs de la liste : SANS (27 sept, révisable : SEPARATEURS_MESSAGES dans LigneMessage.tsx).
+- [ ] Vérif utilisateur (mes scripts adb ne peuvent pas appuyer sur Signer / Oui / Non) : confirmation « Signer au nom de Claire Moreau ? », puis le mot disparaît de l'Accueil ET de Général.
+- [ ] Hors lot, relevé : fil de conversation « Aria peut résumer ce message » (affirmation à vérifier, règle « rien qui ne soit vrai aujourd'hui ») ; read_receipts sans contrôle de responsable (un parent peut marquer lu un mot d'un autre carnet s'il en connaît l'id — sans lecture de contenu).
+- **Notifications distantes (règles, pour le lot notifications)** : titre = PRÉNOM de l'enfant + contenu utile (« Lucas · Mme Dupont a publié un mot à signer ») ; données = { type, childId, id } pour ouvrir EXACTEMENT l'élément dans le bon carnet ; élément retiré → message clair, jamais d'erreur ; une MODIFICATION ne renvoie JAMAIS de notification ; silence 20h-7h sauf urgence ; résumé unique à 18h (CLAUDE.md, Notifications).
+
+### B4b — segment [prénom], modèle par foyer (27 sept, session de nuit)
+- [x] B4b.1 M22 (fils par foyer) : 21/21 + toutes les suites ; script inverse vérifié. **APPLIQUÉE à Paris le 27 sept** (validée ; ferme la faille « fil créé vers n'importe quel élève ») : sauvegarde ScolariaBackups/2026-09-27_avant_M22 (session séparée de M21), essai à blanc M22 seule, 6 politiques fils_* en place ; advisors sécurité 0 ERROR (7 WARN attendus : fonctions d'accès exécutables par authenticated) ; performance : index foyer_id manquant + 4 politiques auth.uid() réévaluées → corrigés dans M23 (locale).
+- [ ] **AVANT le collège et le sprint enseignant : table des enseignants d'une classe** (plusieurs enseignants par classe ; intervenants en primaire : anglais, EPS, musique…). Aujourd'hui un fil n'est possible qu'avec le TITULAIRE (est_titulaire_enfant) : bloquant pour le collège (un professeur par matière).
+- [x] B4b.2 app (démo) : fil famille (auteur de chaque message : « Vous », « Marc »), fil individuel (« Seulement vous · Marc ne voit pas ce fil », « Visible par vous seul » dans la liste), option « Seulement moi » (« Marc ne verra pas ce message ») → le message part dans le fil individuel (créé si besoin), absences dans le segment [prénom].
+- [ ] **Branchement réel des fils** (teacher_conversations / teacher_messages, fil_enseignant, envoye_aussi_a) : APRÈS application de M22 à Paris (sans M22, les colonnes n'existent pas). Aujourd'hui : fils de démo seulement ; absences réelles (table absences) non affichées.
+- [ ] « Envoyé aussi à » : prêt côté données (M22, envoye_aussi_a, testé T14-T15) et affiché s'il est présent, mais la démo n'a qu'UN foyer (famille Moreau) : aucun exemple visible. Ajouter un enfant de démo à deux foyers ? (question)
+- [x] Historique du fil famille quand un parent quitte le foyer : TRANCHÉ le 27 sept (lecture seule jusqu'au départ, b4-decisions §6) → **M23 APPLIQUÉE à Paris le 27 sept** (validée ; sauvegarde ScolariaBackups/2026-09-27_avant_M23, essai à blanc M23 seule ; advisors : 0 ERROR, INFO attendu « departs_foyer sans politique » (voulu : table fermée à l'API), 4 avis auth.uid() des fils corrigés, clé foyer_id indexée).
+- [x] Ex-responsable sans nouveau foyer : perd tout accès, historique compris (décision du 27 sept, b4-decisions §6 ; testé T7).
+- [ ] Question : résumés « ARIA » dans le fil (AriaThreadSummary) = textes de démo écrits à la main présentés comme d'Aria (règle « rien qui ne soit vrai aujourd'hui ») : retirer ?
+- [ ] Côté enseignant (lot à venir) : écran d'envoi « Tous les représentants » (défaut, envoyer_a_tous_les_representants) / « Un seul parent » (fil individuel).
+
+### B4 · Mots et Messages — 3 à 4 sessions
+Objectif : types de mots et signature par responsable, filtres Tout / À signer / École / Privés, invitations d’un responsable.
+- [ ] Mots : 4 types (information / signature / autorisation / participation) ; statut par responsable (« Signé par vous · en attente de Marc ») via `mot_carnets_statut` ; réponses autorisation (oui/non) et participation (oui / peut-être / non) via `reponses_mot` ; signature en son nom (déjà côté service, `liaisonService`).
+- [ ] Filtres Messages : Tout · À signer · École · Privés (remplacent Non lus / Messages / Absences). Privés = conversations privées de l’utilisateur, jamais celles de l’autre responsable.
+- [ ] Absences (décision Q4) : restent dans Messages, en **fil dédié par enfant** (« Absences Léa »), visible sous le filtre **École** (et Tout). Déclaration via le ✏️ de Messages → choix « Nouveau message » ou « Déclarer une absence » (`SignalerAbsenceScreen`, enfant actif).
+- [ ] Invitations : « Inviter un responsable » (email, par enfant) dans Famille & paramètres › Responsables légaux ; « Invitations reçues » (accepter / refuser via `respond_invitation`) ; « Me retirer » (jamais le dernier) ; annulation par l’invitant → **nouvelle RPC** (migration M14).
+- Droit à l’image (décision Q5) : **reporté au sprint enseignant** (dépend des publications photo).
+- Écrans touchés : `MessagerieScreen`, `messagerie/MessagesListScreen`, `messagerie/MotDetailScreen`, `messagerie/ConversationDetailScreen`, `SignDocScreen`, `SignSuccessScreen`, `SignalerAbsenceScreen`, `messagerie/AbsencesListScreen`, `BottomBar` (✏️), `AccueilScreen` (mots à signer), écran Responsables légaux (nouveau), écran Invitations reçues (nouveau), `liaisonService`, `database.ts`.
+- Test Redmi + SQL : 2 comptes de test (A, B) sur le même enfant : A signe → A voit « en attente de B » ; B signe → « signé » ; B ne voit pas les conversations privées de A ; invitation acceptée seulement avec email confirmé.
+- Risques : mode démo sans deuxième compte réel → statuts simulés à écrire ; email de confirmation Supabase (SMTP par défaut limité) pour tester l’invitation ; mapping types DB ↔ types écran déjà ambigu (info ↔ information, bon_de_sortie → autorisation) ; migration M14 (annulation d’invitation).
+
+### B5 — état (26 sept, autonomie)
+- [x] B5.0 prérequis : image-picker, document-picker, file-system et permission CAMERA déjà dans le dev client (installé le 18 sept) ; expo-image-manipulator ABSENT (non ajouté : il faudrait un build).
+- [x] B5.1 M20 (5a3ba05) : 70/70 tests en local, script inverse vérifié. **NON APPLIQUÉE À PARIS** : l'utilisateur relit le SQL.
+- [x] B5.2 flux (b76c54f) ; B5.3 affichage (Accueil « Nouveau dans le carnet »).
+- [ ] **B4 (Messages)** : afficher aussi les mots importés par la famille (carnet_items categorie « mot ») dans Messages de l'enfant.
+- Décisions du 26 sept : 10 Mo validés ; HEIC refusé pour l'instant ; URL signées d'1 h pour l'affichage ; « Actions rapides » gardée (écrire / absence → ✏️ de Messages, masqués sans enseignant rattaché ; nouvel événement → « + » de l'Agenda).
+- [ ] **Au prochain build EAS** : ajouter `expo-image-manipulator` — redimensionnement ~1600 px, < 500 Ko par photo, métadonnées supprimées au réencodage, HEIC converti en JPEG (puis accepté) ; garder le nettoyage JS (metadonneesImage.ts) en seconde sécurité. Raison : 1 Go de stockage sur le plan gratuit Supabase (une photo de téléphone brute = 3 à 5 Mo).
+- [ ] Après application de M20 à Paris : tester sur le Redmi (compte réel) photo → souvenir visible chez A et B ; même photo en « Visible par vous seul » → invisible pour B ; PDF ouvert par URL signée ; permissions refusées → message clair.
+
+### B5 · Ajouter au carnet — 2 à 3 sessions — **À FAIRE JUSTE APRÈS B3b, AVANT B4** (décision du 26 sept 2026)
+Objectif : les 4 actions d’import, rangées dans le carnet de l’enfant actif, fichiers dans un stockage privé.
+Périmètre validé : bucket Storage à **Paris** (M15) ; envoi de photos, captures et PDF ; catégorie et date choisies par le parent ; visibilité foyer ou privée ; **réactivation du ⊞ de Suivi et du « + »** (masqués en B3b tant qu'ils ne font rien). Ne pas commencer avant la fin de B3b.
+- [ ] Migration M15 : bucket Storage **privé** `carnet` ; chemin `{child_id}/{item_id}` ; policies calquées sur `carnet_items` (foyer = responsables, privé = auteur seul) ; URLs signées 24 h ; tests SQL sous rôle authenticated.
+- [ ] Sheet « Ajouter au carnet » (+ Accueil, ⊞ Suivi) : Photographier · Importer une capture · Ajouter un document (PDF) · Noter une première fois (jalon, sans fichier).
+- [ ] Formulaire V1 : catégorie (Mot / Livret / Souvenir / Jalon), date, visibilité (Foyer par défaut / Privé), enfant = enfant actif affiché, source « Ajouté par vous ».
+- [ ] Affichage dans Suivi (Souvenirs, Livrets) et Accueil (« Nouveau dans le carnet ») ; suppression par l’auteur avec Alert.
+- [ ] Mode démo : stockage local, rien envoyé.
+- Écrans touchés : `QuickActionsSheet` (ou nouvelle sheet), `BottomBar`, `TabNavigator` (refs d’action), écran Ajouter (nouveau), vues Suivi (B3), `AccueilScreen`, service carnet (nouveau).
+- Test Redmi : photo → souvenir visible chez A et B ; même photo en Privé → invisible pour B ; PDF ouvert via URL signée ; permissions caméra / galerie refusées → message clair.
+- Risques : permissions Android (caméra, médias) et taille des photos (compresser avant envoi) ; upload interrompu → ligne `carnet_items` sans fichier (écrire la ligne après l’upload) ; suppression de la ligne ≠ suppression du fichier (à faire ensemble) ; B3 doit être fait pour l’affichage.
+
+### B6 · Agenda — 1 à 2 sessions
+Objectif : événements issus des mots, « À prévoir » cochable, FAB conforme.
+- [ ] Migration M16 : `agenda_events.mot_id` (NULL, FK mots_liaison) ; événement créé pour chaque carnet quand le mot a une `event_date` (trigger à la distribution `mot_carnets`) ; table des cases cochées « À prévoir » (décision Q6) : **commune au carnet de l’enfant** (une ligne par carnet + élément), avec l’auteur de la coche affiché (« coché par Julien ») ; lisible et modifiable par les responsables de l’enfant.
+- [ ] Carte d’événement liée au mot source (lien « Voir le mot ») ; mots importés : date saisie à la main (B5).
+- [ ] FAB rond 48 px (bottom 72, right 14) sur l’Agenda ; retirer le + de la bottom bar (`BottomBar.tsx:58`, `agendaActionRef` `TabNavigator.tsx:659`) avec ses constantes et imports.
+- [ ] EventDetail : « À prévoir » enregistré (plus d’état local).
+- Écrans touchés : `AgendaScreen`, `EventDetailScreen`, `BottomBar`, `TabNavigator`, `database.ts` / `liaisonService`.
+- Test Redmi : un mot avec date (démo) crée l’événement dans l’Agenda de chaque enfant concerné ; cocher chez A → visible chez B avec « coché par A » ; FAB rond au-dessus de la bottom bar, plus de + à droite.
+- Risques : sans interface enseignant, aucun vrai mot n’a de date → test surtout en SQL et en démo ; doublons d’événements si le mot est redistribué (UNIQUE mot_id + child_id).
+
+### B7 · Aria — 1 à 2 sessions
+Objectif : suggestions en pills horizontales, contexte = enfant actif uniquement.
+- [ ] Suggestions : `ScrollView horizontal` de pills (leçon du 18 avril, jamais flexWrap + %) ; plus d’emoji ; générées depuis l’enfant actif (prénom, niveau) ; génériques si aucun enfant.
+- [ ] Titres / hero : prénom de l’enfant actif, jamais « Léa » en dur ; compte réel sans enfant → contexte neutre (déjà côté API, à vérifier côté écran).
+- [ ] Historique des conversations filtré par enfant ; changement d’enfant → nouvelle conversation.
+- [ ] Ne pas renvoyer au modèle les réponses « indisponible » / « urgence » (reliquat S).
+- Écrans touchés : `aria/AriaHomeScreen`, `aria/AriaConversationScreen`, `AriaScreen`, `services/childContext.ts`, `services/ariaApi.ts`.
+- Test Redmi : suggestions différentes pour Léa et Emma ; aucune mention d’un autre enfant ; phrase d’urgence toujours interceptée (`npm run test:emergency`).
+- Risques : le prompt système est encore construit côté app (temporaire, voir S2) → ne pas l’étendre, le passage côté serveur reste à planifier ; ne pas toucher au protocole d’urgence sans relancer les 22 cas.
+
+### Dépendances et ordre
+B1 → B2 (bloquant pour tous les autres) → B3 → B5 (avant B4, décision du 26 sept) → B4 → B6 (utilise les mots de B4) → B7 (peut passer juste après B2 si besoin).
+Migrations prévues : M13 (fond d’Accueil par enfant, B2), M14 (annulation d’invitation, B4), M15 (bucket carnet, B5), M16 (agenda ↔ mots + À prévoir, B6).
+
+### Décisions du 24 sept (6 questions)
+1. ☰ reste et ouvre DIRECTEMENT « Famille & paramètres » ; ancien panneau burger et `ReglagesScreen` supprimés. (B1)
+2. Fond de l’Accueil en base, par enfant, commun aux responsables ; images intégrées à l’app, la base ne stocke que l’identifiant. (B2, M13)
+3. Pas de 4e enfant ; Lucas CM2 (primaire) passe aux compétences 4 niveaux, Emma garde les notes. (B3)
+4. Absences : fil dédié par enfant dans Messages, sous le filtre École ; déclaration via ✏️ (« Nouveau message » / « Déclarer une absence »). (B4)
+5. Droit à l’image reporté au sprint enseignant.
+6. « À prévoir » commun au carnet de l’enfant, source affichée (« coché par Julien »). (B6, M16)
+
+## Addendum v3.4 · PHASE A : BDD Supabase + sécurité Aria (23 sept 2026)
+
+**Statut : plan M0–M12 VALIDÉ. Lots 1, 2, 2-bis, 3a (M5–M8) et 3b (M9–M12) FAITS (23–24 sept). Phase A (BDD) terminée : attendre la suite.**
+
+### Étape 2 · état Supabase (constaté le 23 sept)
+- Projet `eklpzspvfjfqgqgugmxl` (« Scolaria », eu-west-2) : **en pause (INACTIVE)**, schéma illisible. 0 branche, 0 Edge Function.
+- Schéma local (`supabase/schema-complet.sql`, dernier commit 2 mai) : 14 tables (profiles, children, academic_years, subjects, grades, bulletins, mots_liaison, signatures, messages, read_receipts, agenda_events, absences, checkins, aria_conversations/messages), 49 policies — à comparer au schéma réel.
+- Décision : l’utilisateur réactive le projet et fait `supabase db dump` (schéma + données) dans `supabase/backups/` (ignoré par Git).
+- Règle validée : **garder les noms de tables existants** (children, profiles…) ; toute table présente est modifiée, jamais recréée ; c’est CLAUDE.md qui sera mis à jour.
+- [x] Projet réactivé ; sauvegarde schéma + données (voir ci-dessous)
+- [x] Schéma réel lu et comparé → écarts listés ci-dessous
+- [x] Plan de migration écrit ci-dessous
+- [x] Plan validé : 3 lots avec arrêt et test entre chaque lot.
+
+#### Lot 1 · M0 + M1 — FAIT (23 sept)
+- [x] M0 : `supabase/migrations/` = seule référence. `20260923140000_baseline.sql` (état réel, enregistrée « appliquée » sans exécution) + 3 fichiers-repères pour les migrations distantes de mars. Anciens `supabase/*.sql` → `docs/archives/sql/`. Scripts inverses dans `supabase/migrations_down/` (hors du dossier lu par la CLI). `supabase migration list` : local = distant (5/5).
+- [x] M1 `20260923145605_m1_securite` appliquée : vues en security_invoker + REVOKE anon ; search_path fixé ; handle_new_user non exécutable via l’API ; **profiles.role immuable** hors service_role (trigger `protect_profile_role` + WITH CHECK de `profiles_update`, profil créé par l’utilisateur = parent) ; **enseignants : plus aucune lecture de donnée d’enfant** (3 policies supprimées, children/subjects/grades/checkins réécrites) ; **publications de classe** : responsables d’un enfant de la classe uniquement.
+- [x] Tests SQL (transactions annulées) : changement de rôle refusé (42501) ; modification du prénom autorisée ; anon sans accès aux vues ni à handle_new_user ; 0 policy « enseignant » ; 0 publication lisible par tous ; 66 policies (69 − 3).
+- [x] Advisors sécurité : **0 ERROR** (3 avant). Restent des WARN : visibilité des tables dans le schéma GraphQL (structure, pas les lignes : la RLS s’applique) ; protection des mots de passe divulgués (réglage du tableau de bord, à activer par l’utilisateur).
+- [x] Code : colonne `emoji` retirée de `database.ts` (select des notes, createSubject, createAgendaEvent). tsc OK.
+- [x] `nul/` supprimé (export web d’avril, jamais suivi par Git).
+- ⚠️ Limite connue : publications de classe rattachées par le texte `classe` (« CE1 » de deux écoles) → vrai identifiant de classe avec le lien enseignant ↔ classe.
+- [x] Trigger `on_auth_user_created` vérifié après M1 (compte de test créé le 23 sept à 15:02) : profil créé automatiquement (+4 ms), rôle « parent », email renseigné.
+- [ ] Reliquat : 1 compte auth du 21 mars 2026 SANS profil (bug d’inscription de l’époque, corrigé par 5b84de3) → créer son profil ou supprimer le compte (décision utilisateur).
+
+#### Lot 2 · M2 + M3 + M4 — FAIT (23 sept)
+- [x] M2 `20260923183636_m2_foyers_responsables` : tables `foyers` + `responsables` (UNIQUE user/enfant), `is_responsable(child_id)` (SECURITY DEFINER, exécutable par authenticated uniquement — voulu, utilisée par les policies), trigger : le créateur d’un enfant devient responsable (foyer créé si besoin). Toutes les données de carnet passent par `is_responsable` ; conversations Aria / messages / conversations enseignant restent réservées à leurs participants. Signatures : statut visible par tous les responsables de l’enfant.
+- [x] M3 `20260923183731_m3_couleur_enfant` : `children.color` NOT NULL DEFAULT `#4338CA`, CHECK format `#RRGGBB` ; modifiable par un responsable de l’enfant uniquement (policy children_update).
+- [x] M4 `20260923183827_m4_rattachement_annee` : `academic_year_id` (NULL autorisé, ON DELETE SET NULL) sur grades, agenda_events, checkins, subjects, messages, signatures, teacher_conversations, appreciations ; FK `student_id → children` sur teacher_conversations et appreciations ; trigger `set_academic_year` : année ACTIVE de l’enfant par défaut, refus d’une année d’un autre enfant.
+- [x] Tests SQL (utilisateurs fictifs, transactions annulées, 0 donnée restante) :
+  - M2 : A (créateur) rattaché automatiquement ; **B (co-responsable) voit l’enfant, la matière, la note, mais 0 conversation Aria et 0 message privé de A** ; C (sans lien) : 0 enfant / 0 note / 0 foyer ; T (enseignant) : 0 enfant / 0 note, voit seulement le message qui lui est adressé.
+  - M3 : défaut #4338CA ; B modifie la couleur (1 ligne) ; C ne modifie rien (0 ligne) ; « rouge » refusé.
+  - M4 : année active posée automatiquement ; année archivée du même enfant acceptée ; année d’un autre enfant refusée ; enfant sans année → NULL accepté.
+- [x] Advisors : **0 ERROR**. WARN : GraphQL (structure), mots de passe divulgués (tableau de bord), `is_responsable` exécutable par authenticated (voulu).
+- [x] `supabase migration list` : local = distant (8/8).
+- [x] Code : `getChildren()` et l’export RGPD s’appuient sur la RLS (tous les enfants dont on est responsable, plus seulement ceux créés) ; `Child.color` + `DEFAULT_CHILD_COLOR` ; couleurs des enfants de démo Moreau (Léa #0F766E, Lucas #4338CA, Emma #0369A1 (lot 2-bis)) dans `ActiveChildContext` et `demo-children.json`. tsc OK.
+- [ ] **Phase B** : afficher `child.color` sur l’avatar (top bar, sélecteur) et le header de l’Accueil — encore en indigo neutre (aucun écran modifié en phase A) ; écran « modifier la couleur » dans le profil de l’enfant.
+- [x] ~~Invitation d’un second responsable~~ : mécanisme en base fait au lot 2-bis (M2c) ; écrans en Phase B.
+- [ ] Plus tard : tables « famille » (access_journal, deletion_requests, export_history, person_permissions, transfer_codes) encore rattachées à `family_id = auth.uid()` → passer à `foyer_id`.
+
+#### Lot 2-bis · M2b + M2c + M2d — FAIT (24 sept)
+- [x] M2b `20260924090000_m2b_creation_enfant` : lecture de children UNIQUEMENT via responsables (plus de parent_id = auth.uid()) ; insertion directe interdite (policy children_insert supprimée, trigger du créateur supprimé) → `create_child()` crée enfant + lien responsable + année scolaire en cours en une transaction ; `current_school_year()` (bascule en août, heure de Paris) ; contrainte différée : jamais d’enfant sans année (création ou suppression de la dernière année refusées au COMMIT).
+- [x] M2c `20260924090100_m2c_invitations_responsables` : table `invitations_responsable` (7 jours, une seule en attente par enfant + email) ; créée par un responsable de l’enfant ; visible par ses responsables et par l’invité ; `respond_invitation(id, accepter)` : seul l’invité (email du compte CONFIRMÉ = email invité) accepte ou refuse ; acceptation → lien dans le foyer de l’invitant. Aucune policy INSERT/UPDATE sur responsables.
+- [x] M2d `20260924090200_m2d_retrait_responsable` : un responsable ne retire que LUI-MÊME (policy DELETE user_id = auth.uid()) ; le DERNIER responsable ne peut pas se retirer (trigger) ; la suppression de l’enfant (cascade) n’est pas bloquée.
+- [x] Appliquées par `supabase db push` (versions = noms de fichiers), inverses dans migrations_down/.
+- [x] Tests SQL (transactions annulées, 0 donnée restante) :
+  - M2b : create_child → enfant + responsable + année 2026-2027 (CE1, active) ; insert direct refusé ; enfant sans année refusé ; suppression de la dernière année refusée ; **A retiré des responsables → 0 enfant, 0 année visibles**.
+  - M2c : **C ne peut ni s’auto-rattacher, ni rattacher D, ni s’inviter** ; C ne voit pas et ne peut pas accepter l’invitation de B ; B voit l’enfant seulement APRÈS acceptation (même foyer que A) ; invitation non réutilisable.
+  - M2d : **B ne peut pas retirer A** (0 ligne) ; B se retire lui-même (1 ligne, ne voit plus l’enfant) ; A, dernier responsable, ne peut pas se retirer ; A peut supprimer l’enfant (liens et années supprimés en cascade).
+- [x] Advisors : 0 ERROR. WARN voulus : create_child, respond_invitation, is_responsable exécutables par authenticated (points d’entrée contrôlés).
+- [x] Code : `createChild` appelle `rpc('create_child')` (paramètres identiques, super_power non pris en charge à la création) ; démo : Emma en bleu océan `#0369A1` (l’ambre est réservé au Score de Joie).
+- [ ] Phase B : écrans « inviter un responsable » (insert invitations_responsable) et « invitations reçues » (respond_invitation) ; annulation d’une invitation par l’invitant (RPC à ajouter) ; procédure vérifiée de retrait d’un autre responsable (garde partagée, côté serveur).
+
+#### Lot 3a · M2e + M5a + M5 à M8 — FAIT (24 sept)
+- [x] M2e `20260924100000_m2e_suppression_enfant` : un enfant n’est supprimé QUE par son unique responsable ; à 2 responsables ou plus, refus (chacun peut seulement se retirer).
+- [x] M5a `20260924100100_m5a_classes` : tables `ecoles` et `classes` (école + année + nom, unique ; `enseignant_id` = titulaire) ; `classe_id` sur academic_years, mots_liaison, class_posts, class_events ; lecture parent des publications / événements **par id** ; colonnes texte `classe` conservées, facultatives, dépréciées (aucune policy ne les lit).
+- [x] M5 `…100200_m5_mots_liaison` : types information | signature | autorisation | participation ; `signature_mode` none | one | both (`requires_signature` recalculé) ; `event_date`, `a_prevoir` (jsonb liste). Table `mot_carnets` (mot, enfant, année) : mot envoyé à une classe → une copie par enfant de la classe (seul le titulaire peut envoyer) ; `distribuer_mot(mot, enfants[])` → fratrie / enfants précis, une copie par enfant. Un parent ne lit un mot QUE via le carnet de son enfant (brouillons exclus).
+- [x] M6 `…100300_m6_signatures` : une ligne par (mot, enfant, responsable), FK vers le carnet, signature seulement si mot envoyé et mode ≠ none, nom / date / année fixés par le serveur, immuables. Vue `mot_carnets_statut` : one → 1 signature ; both → les 2 responsables (**choix : si l’enfant n’a qu’un responsable, sa signature suffit**). L’enseignant auteur voit carnets, signatures et réponses de SES mots.
+- [x] M7 `…100400_m7_absences` : `academic_year_id` uuid (FK, trigger) ; déclarée par un responsable en son nom, visible des autres responsables ; **modifiable par son auteur seul** (avant : tout responsable).
+- [x] M8 `…100500_m8_reponses_mot` : `reponses_mot` (autorisation oui/non, participation oui/peut_etre/non), une réponse par responsable et par carnet, cohérente avec le type du mot, modifiable par son auteur, jamais supprimée.
+- [x] Tests SQL (transaction annulée, 0 donnée restante) — 44 vérifications OK : A et B responsables → **ni A ni B ne peuvent supprimer l’enfant** ; A seul responsable de Zoé → suppression OK ; copies classe (2) / fratrie (2) / brouillon (0) ; C ne voit que le carnet de Max ; parent non titulaire ne peut pas envoyer à la classe ; **both : A seul → non signé, A + B → signé** ; one : A seul → signé ; signer au nom de B, double signature, mode none, C sur Léo → refusés ; absences : B voit celle de A, C ne voit rien, B ne modifie pas celle de A ; réponses : 2e réponse refusée, modification par l’auteur OK, B ne modifie pas celle de A, mauvais type / valeur / carnet refusés.
+- [x] Advisors : 0 ERROR. WARN voulus : `distribuer_mot`, `is_mot_teacher`, `nb_responsables_carnet` (points d’entrée contrôlés).
+- [x] Code (services seuls) : `liaisonService` → types DB ↔ types écran (info ↔ information, bon_de_sortie → autorisation ; signature → autorisation, participation → info à l’affichage), `signature_mode` à la création, compteurs enseignant via `mots_liaison_enriched`, non-signés via `mot_carnets_statut`, mots parent via `mot_carnets`, `is_signed` = signé par moi, signature sans nom client. `absenceService` : rien à changer. Démo Moreau : données locales, rien à changer.
+- [ ] Sprint enseignant / Phase 2 · retours terrain (CP, Marseille, 24 sept) :
+  - **« Demander un rendez-vous »** à l’enseignante depuis Messages.
+  - Fiche **« Organisation de la semaine »** par enfant : jours de cantine, étude, garderie ; remplie par les parents, consultable par l’enseignante. Argument mairie (périscolaire).
+  - **Comportement** (croix / point orange / point rouge) : **pas de module en V1** ; passe par un mot à signer. Règle : visible uniquement par les responsables de l’enfant, **jamais de tableau comparatif**.
+- [ ] Sprint enseignant · mode « both » avec UN seul responsable inscrit : l’enseignant voit « signé · 1 responsable inscrit sur 2 attendus », pas simplement « signé » (données : `mot_carnets_statut.nb_responsables`).
+- [ ] Sprint enseignant · direction : rôle directeur, portée école → écrire à toute l’école (mots, publications) ; à modéliser (rôle + `ecoles` ; distribution à toutes les classes de l’école).
+- [ ] Sprint enseignant : choix de la classe **par id** dans le composer (sans `classe_id`, un mot n’est distribué dans aucun carnet) ; création des écoles / classes et rattachement des enfants (`academic_years.classe_id`) ; teacherService (posts / événements) encore filtré par nom côté enseignant ; noms des élèves non lisibles par l’enseignant (RLS children).
+- [ ] Phase B : les 4 types et le mode both dans l’UI (« signé par vous · en attente de … »), réponses autorisation / participation, liste « À prévoir ».
+
+#### Lot 3b · M9 à M12 — FAIT (24 sept)
+- [x] M9 `20260924110000_m9_competences` (+ correctif M9b `…110400`) : `competences` (child_id + academic_year_id, niveau 1-4, observation). **source fixée par le serveur** : titulaire de la classe de l’année → 'ecole', responsable → 'parent' (la valeur envoyée est ignorée). Compétence école : modifiable / supprimable par le titulaire uniquement (ni parent, ni autre enseignant). Compétence parent : par le responsable qui l’a saisie. Lecture : responsables (tout), titulaire (école de sa classe). Enfant / année / source / auteur non modifiables.
+- [x] M10 `…110100_m10_carnet_items` : `carnet_items` (mot | livret | souvenir | jalon, fichier = chemin Storage, visibilite foyer | prive). **Privé = auteur seul**, foyer = tous les responsables ; modification / suppression par l’auteur ; aucun accès enseignant.
+- [x] M11 `…110200_m11_alertes_urgence` : **DÉCISION : alerte privée à son auteur**, jamais partagée automatiquement avec l’autre responsable (maltraitance signalée contre l’autre parent) ni avec l’enseignant. Colonnes : id, auteur_id, child_id, academic_year_id, categorie, created_at — **aucune colonne de texte**. Lecture / suppression : auteur ; pas de modification ; carnet supprimé → l’alerte reste à son auteur (child_id NULL). App : `ariaApi` enregistre l’alerte (catégorie + enfant) quand le protocole se déclenche sur un compte réel.
+- [x] M12 `…110300_m12_publications_classe` : publications / événements **par classe_id uniquement** (obligatoire) ; écriture par le titulaire de la classe seulement (avant : toute personne connectée pouvait publier dans n’importe quelle classe) ; changement de classe refusé ; « vu » seulement sur une publication lisible.
+- [x] Tests SQL (transaction annulée, 0 donnée restante) — 43 vérifications OK, dont : **ajout « privé » de A invisible pour B, ajout « foyer » de A visible pour B** ; **B (co-responsable) ne voit pas l’alerte de A** ; parent / autre enseignant ne modifient pas une compétence école ; source forcée dans les deux sens ; parent et non-titulaire ne publient pas.
+- [x] Advisors : 0 ERROR. WARN voulus : `is_titulaire_annee`, `is_titulaire_classe` (fonctions d’aide des policies).
+- [ ] Sprint enseignant : `teacherService` crée publications / événements sans `classe_id` → refusé en base pour un vrai compte (voulu) ; à passer à l’id avec le choix de classe.
+- [ ] Écran d’import (Phase B) : bucket Storage **privé** pour `carnet_items.fichier`, policies calquées sur la table (privé = auteur seul), URLs signées 24 h.
+- [ ] Filet serveur : l’Edge Function détecte aussi l’urgence mais n’enregistre pas d’alerte (elle ne connaît pas l’enfant — minimisation) ; l’app enregistre avant tout appel. À revoir si un client contourne l’app.
+- [ ] **Phase B · droit à l’image** : une publication photo ne montre un enfant que si ses responsables ont autorisé le droit à l’image (lien avec les mots de type autorisation / `reponses_mot`).
+
+#### Impact des migrations sur le code de l’app
+| Migration | Impact | Action |
+|---|---|---|
+| M1 | `database.ts` : vues `subject_averages` (l. 215), `child_overview` (l. 527) → filtrées par la RLS (voulu). `teacherService` (météo de classe, élèves, ressentis) et `absenceService` côté enseignant → **listes vides** pour un vrai compte enseignant (voulu, démo inchangée). Aucune écriture de `profiles.role` dans l’app. | Colonne `emoji` retirée de `database.ts`. |
+| M2 | Accès enfant par `is_responsable()`. `createChild` inchangé (trigger crée foyer + responsable). `getChildren` filtrait sur parent_id → un co-responsable n’aurait rien vu. | **Fait** : `getChildren()` et export RGPD sans filtre parent_id (RLS). |
+| M3 | `children.color` : type `Child`, mapping Supabase, démo Moreau. | **Fait** (modèle + démo). Affichage : Phase B. |
+| M4 | `academic_year_id` nullable, rempli par trigger : aucune casse, aucun changement d’insert nécessaire. | **Rien à changer** ; l’app pourra le passer explicitement (vue d’une année archivée). |
+| M5–M8 | Types de mots, `mot_carnets`, signatures par responsable, absences uuid, réponses. | **Fait** : `liaisonService` adapté (voir lot 3a). |
+| M9–M12 | competences, carnet_items, alertes_urgence, publications par classe_id. | **Fait** : `ariaApi` enregistre l’alerte ; écrans d’import / compétences : Phase B. |
+
+
+### Étape 2 bis · schéma RÉEL vs fichiers locaux (lu le 23 sept, projet réactivé)
+Sauvegarde faite le 23 sept (Docker arrêté → via les outils Supabase) : `supabase/backups/schema-2026-09-23.sql` (44 018 o) et `data-2026-09-23.sql` (1 156 o), ignorés par Git. Contrôle : 27 tables, 29 FK, 31 CHECK, 35 PK/UNIQUE, 30 index, 69 policies, 3 fonctions, 9 triggers, 3 vues = identique à la base. Données : 1 ligne (public.profiles), toutes les autres tables vides. Non sauvegardé : schéma auth (2 comptes — empreintes de mots de passe non lues), tables internes storage.
+
+**Écarts avec `supabase/*.sql` (fichiers locaux périmés) :**
+- 12 tables en base absentes des fichiers : access_journal, appreciations, class_events, class_post_reactions, class_post_seen, class_posts, deletion_requests, export_history, person_permissions, teacher_conversations, teacher_messages, transfer_codes.
+- 0 table des fichiers absente de la base.
+- Colonnes : `agenda_events.emoji` et `subjects.emoji` n’existent plus en base (encore dans les fichiers). ⚠️ `src/services/database.ts:129` sélectionne encore `subjects(name, emoji, color)` → la requête échouera sur un vrai compte.
+- Policies : 69 en base contre 49 + 23 + 14 + 1 réparties dans 4 fichiers → les fichiers ne sont plus une source fiable. Désormais : `supabase/migrations/` = seule source (voir M0).
+
+**Non conforme à « toute donnée de carnet → child_id + academic_year_id » :**
+| Table | child_id | academic_year_id | Remarque |
+|---|---|---|---|
+| grades | ✓ | ✗ | |
+| agenda_events | ✓ | ✗ | + pas de lien vers le mot source |
+| messages | nullable | ✗ | |
+| checkins | ✓ | ✗ | |
+| subjects | ✓ | ✗ | matières propres à une année |
+| absences | student_id ✓ | **text** `''` | type faux (pas de FK) |
+| appreciations | student_id sans FK | `academic_year` text | |
+| teacher_conversations | student_id sans FK | ✗ | |
+| mots_liaison | ✗ (rattaché à `classe` texte) | ✗ | copie par carnet absente |
+| signatures | ✓ | ✗ | UNIQUE(mot, élève) empêche la signature des 2 parents |
+| bulletins, academic_years | ✓ | ✓ | conformes |
+
+**Failles de sécurité constatées (advisors Supabase + lecture des policies) :**
+1. 🔴 Les 3 vues (`child_overview`, `subject_averages`, `mots_liaison_enriched`) sont en SECURITY DEFINER : elles ignorent la RLS. `child_overview` renvoie prénom, classe, école et moyennes de TOUS les enfants à n’importe quel compte, et même à `anon`.
+2. 🔴 Toute personne avec `profiles.role = 'enseignant'` lit TOUS les enfants, notes, matières, absences et ressentis (policies *_teacher_* / `children_select` / `grades_*` / `subjects_select` / `checkins_select`). Or le rôle est modifiable par l’utilisateur (`profiles_update` sans restriction de colonne) → n’importe quel parent peut se déclarer enseignant.
+3. 🔴 `class_posts`, `class_events`, `class_post_reactions` : SELECT `USING (true)` → tout compte lit les publications de toutes les classes.
+4. 🟠 `handle_new_user()` (SECURITY DEFINER) appelable via `/rest/v1/rpc` par anon et authenticated.
+5. 🟠 `generate_scolaria_id`, `update_updated_at` : search_path non fixé.
+6. 🟠 `checkins_select` : requête incohérente (UNION sans lien réel avec l’enfant).
+7. 🟡 Protection contre les mots de passe divulgués (HaveIBeenPwned) désactivée — réglage Auth du tableau de bord.
+
+### Plan de migration Phase A (À VALIDER — rien n’est exécuté)
+Règles : noms existants conservés (children, profiles…) ; on modifie, on ne recrée pas ; une migration réversible par sujet dans `supabase/migrations/AAAAMMJJHHMM_sujet.sql`, chacune avec son script inverse `…_down.sql` ; après chaque migration : advisors sécurité + tsc. Les tables sont vides (sauf profiles) : aucune reprise de données lourde.
+
+**Opérations destructives à approuver explicitement** (aucune ne supprime de table ni de colonne) : M1 `DROP VIEW`/re-create en security_invoker ; M2 `DROP POLICY` des policies enseignant trop larges ; M6 `DROP CONSTRAINT` (UNIQUE signatures, CHECK type de mots_liaison) ; M7 `ALTER COLUMN absences.academic_year_id TYPE uuid` (table vide).
+
+- **M0 · Baseline** — `supabase/migrations/…_baseline.sql` = copie du schéma sauvegardé (référence, NON rejouée en base) ; les anciens `supabase/*.sql` déplacés dans `docs/archives/sql/` (déplacement, pas suppression).
+- **M1 · Correctifs de sécurité immédiats** — vues en `security_invoker = true` ; `search_path` fixé sur les 2 fonctions ; `REVOKE EXECUTE` de `handle_new_user` pour anon/authenticated ; `REVOKE SELECT` des 3 vues pour anon. Down : état actuel.
+- **M2 · Foyers et responsables** — nouvelles tables `foyers (id, nom, created_at)` et `responsables (foyer_id, user_id, child_id, lien, created_at, UNIQUE(user_id, child_id))` ; fonction `is_responsable(child_id)` SECURITY DEFINER STABLE (search_path fixé) ; reprise : un foyer + une ligne responsable par couple children.parent_id (0 enfant aujourd’hui) ; `children.parent_id` conservé (= créateur). Toutes les policies « `children.parent_id = auth.uid()` » réécrites en `is_responsable(child_id)`. Policies enseignant larges RETIRÉES (le lien enseignant ↔ classe viendra avec l’interface enseignant) ; `profiles_update` interdit de modifier `role`. Down : policies d’origine, tables supprimées.
+- **M3 · Couleur de l’enfant** — `children.color text NOT NULL DEFAULT '#4338CA'` + CHECK format hex. Down : suppression de la colonne (ajoutée par nous).
+- **M4 · Rattachement à l’année** — `academic_year_id uuid NULL REFERENCES academic_years` sur grades, agenda_events, messages, checkins, subjects, signatures, teacher_conversations ; FK `appreciations.student_id → children` + `academic_year_id` ; FK `teacher_conversations.student_id → children` ; index associés. NULL autorisé tant que l’app ne les renseigne pas (passage NOT NULL = migration ultérieure).
+- **M5 · Mots de liaison** — `mots_liaison` : `signature_mode text (none|one|both) DEFAULT 'none'`, `event_date timestamptz NULL`, `a_prevoir jsonb NULL` ; nouveau CHECK `type` (information|signature|autorisation|participation) avec correspondance info→information, bon_de_sortie→autorisation ; `requires_signature` conservé (déprécié). Nouvelle table `mot_carnets (mot_id, child_id, academic_year_id, UNIQUE(mot_id, child_id))` = la copie du mot dans chaque carnet (fratrie = une copie par enfant) ; policy parent : via `is_responsable(child_id)` au lieu de `classe`. `agenda_events.mot_id NULL` (événement lié au mot source).
+- **M6 · Signatures** — UNIQUE(mot_id, student_id) remplacé par UNIQUE(mot_id, student_id, parent_id) : une signature par responsable. Policy : chaque responsable voit les signatures des enfants dont il est responsable (statut visible par parent).
+- **M7 · Absences** — `academic_year_id` text → uuid FK (table vide).
+- **M8 · reponses_mot** — `(id, mot_id, child_id, responsable_id, autorisation boolean NULL, participation text NULL CHECK (oui|peut_etre|non), created_at, UNIQUE(mot_id, child_id, responsable_id))` + RLS responsable.
+- **M9 · competences** — `(id, child_id, academic_year_id, domaine, competence, niveau smallint CHECK 1-4, source text CHECK (ecole|parent), saisi_par uuid, date, created_at)` + RLS responsable.
+- **M10 · carnet_items** — `(id, child_id, academic_year_id, categorie CHECK (mot|livret|souvenir|jalon), fichier text, date, ajoute_par uuid, visibilite CHECK (foyer|prive) DEFAULT 'foyer', created_at)` ; RLS : `foyer` → responsables de l’enfant, `prive` → auteur seul. Bucket Storage privé (URLs signées 24 h) : migration séparée plus tard.
+- **M11 · Alertes du protocole d’urgence** — `alertes (id, child_id NULL, auteur uuid, categorie CHECK (suicide|harcelement|maltraitance), created_at)` — jamais le texte du message ; ~~RLS : auteur + responsables de l’enfant~~ → **décision du 24 sept : privée à son auteur uniquement** (fait, lot 3b).
+- **M12 · Publications de classe** — `class_posts` / `class_events` / `class_post_reactions` : SELECT réservé aux responsables d’un enfant de la classe (remplace `USING (true)`).
+- **Code (hors migration, après M3/M4)** — `database.ts:129` : retirer `emoji` du select ; données de démo Moreau : ajouter `color` à chaque enfant (Léa, Lucas, Emma) dans `demo-children.json` / `ActiveChildContext` ; CLAUDE.md § Architecture BDD mis à jour avec les noms réels (children, profiles…).
+- **Hors SQL (tableau de bord)** — activer la protection des mots de passe divulgués (Auth → Password security).
+
+Ordre proposé : M0 → M1 (sécurité, tout de suite) → M2 → M3 → M4 → M5/M6 → M7 → M8–M11 → M12.
+
+
+### S · Sécurité Aria
+- [x] S1 : aucune clé `sk-ant-` dans l’historique Git (toutes branches) ; `eas.json` propre depuis `6f641b9`. La clé était dans `.env` (non suivi) → `extra` → APK, et dans les variables EAS (supprimées par l’utilisateur, clé révoquée).
+- [x] S2 : Edge Function `supabase/functions/aria/index.ts` (SDK `npm:@anthropic-ai/sdk`) : session Supabase obligatoire (JWT + getUser), modèle / max_tokens / fallbacks fixés côté serveur, garde-fous de taille, réponse `{ text }` ou `{ error: "unavailable" }`. App : `supabase.functions.invoke("aria")` ; mode démo = réponses locales sans réseau (vérifié en web).
+  - Modèle : `claude-sonnet-5` par défaut (décision : coût), surchargeable sans redéployer par le secret `ARIA_MODEL`. Repli automatique DÉSACTIVÉ : un refus du modèle → « Aria est momentanément indisponible. ». L’ancien code utilisait `claude-sonnet-4-20250514`.
+  - Minimisation : le contexte envoyé à Aria ne contient que le PRÉNOM (plus de nom de famille, d’école ni d’identifiant Scolaria) — `childContext.ts`.
+  - Protocole d’urgence : `supabase/functions/_shared/emergency.ts` (module partagé). Edge Function : contrôle AVANT tout appel au modèle → message fixe 3114 / 3018 / 119 + 112, aucun appel Anthropic, alerte journalisée (catégorie + user id, jamais le texte). App : même contrôle, y compris en mode démo (vérifié en web). 22 cas de test (`npm run test:emergency`), dont les pièges violon / violent / violette / « ces devoirs vont me tuer » / « en finir avec les devoirs ».
+  - TEMPORAIRE : le prompt système est encore construit côté app (données de démo locales). Quand les données seront en base, la fonction construira elle-même le contexte depuis child_id sous RLS et n’acceptera plus de `system` du client.
+- [x] S3 : clés retirées de `app.config.js` (extra), `getEnv.ts` (+ journaux qui affichaient 12 caractères de la clé), `scripts/write-env.js`, `eas-hooks/eas-build-pre-install.sh`, `.env.example`, `.env`. `.env` déjà ignoré ; `supabase/backups/` ajouté au .gitignore.
+- [x] Google Vision : la clé était embarquée mais **jamais utilisée** (aucun appel OCR dans le code) → retirée sans Edge Function. Le futur OCR suivra le même modèle (fonction dédiée + secret).
+- [x] S4 : toute panne d’Aria → « Aria est momentanément indisponible. » (plus de mention de clé, .env, eas.json).
+- [x] S5 : secret ANTHROPIC_API_KEY posé par l’utilisateur (tableau de bord) ; fonction déployée le 23 sept (`functions deploy aria --use-api`, Docker arrêté) : ACTIVE, verify_jwt. Contrôles faits : sans en-tête → 401 passerelle ; clé anon sans session → 401 `unavailable` (y compris phrase d’urgence).
+- [x] Test Redmi (compte de test, 23 sept) — question normale : « indisponible ». Journaux : 1 appel, HTTP 500 AVANT tout appel Anthropic ; cause = secret ANTHROPIC_API_KEY contenant un retour à la ligne (Deno refuse l’en-tête). La valeur ressemble à l’ANCIENNE clé de .env (même coupure). ⚠️ L’erreur Deno a recopié la clé dans les journaux de la fonction.
+  - Corrigé et redéployé (v2) : secret contrôlé (absent / espace / retour à la ligne → 503 + journal SANS la valeur) ; journaux d’erreur limités à statut / type / nom (jamais le message brut) ; succès journalisé avec le modèle ; 404 → « vérifier ARIA_MODEL ».
+  - Compte réel sans enfant : contexte neutre envoyé à Aria (plus les données de démo de Léa).
+  - [x] Utilisateur : anciennes clés révoquées, nouvelle clé posée sur une ligne, aucune clé dans .env.
+  - [x] Retest Redmi (23 sept, 18:30) : journaux de la fonction → 1 exécution, « réponse Anthropic OK », modèle **claude-sonnet-5**, stop_reason end_turn, 0 erreur ; phrase d’urgence → 0 alerte serveur et aucune autre exécution (interceptée dans l’app) → Anthropic non appelé. (Ligne HTTP de la passerelle pas encore ingérée au moment du contrôle ; le 200 se déduit du chemin de code après « OK ».)
+- [x] Phrase d’urgence (Redmi) : message correct ; journaux : AUCUN appel à la fonction pour ce message (détection côté app) → Anthropic non appelé.
+  - [x] Numéros cliquables dans les bulles d’Aria (tel:3114 / 3018 / 119 / 112, pas les décimaux) ; ordre selon la catégorie (numéro concerné en premier, 112 en dernier) — `buildEmergencyMessage(category)`, testé (22 cas + 3 messages).
+- [x] Compte orphelin du 21 mars supprimé par l’utilisateur.
+- [ ] Protocole d’urgence — suites :
+  - [x] Liste de mots-clés validée ; « en finir » seul remplacé par « envie d’en finir » / « en finir avec la vie » ; « me tuer » limité à une intention en 1re personne (pas l’hyperbole).
+  - [x] 3020 → 3018 partout (hors service depuis le 1er janvier 2024 ; 3018 = numéro unique harcèlement + cyberharcèlement, e-Enfance, 7j/7 9h-23h) : code, message d’urgence, JoyAlerts, MonRessenti, CLAUDE.md, VISION.md. 112 conservé.
+  - [x] **Phase A** : table d’alertes (child_id + academic_year_id, catégorie, horodatage, jamais le texte du message) — faite au lot 3b. Pas de notification de l’autre responsable : alerte privée à son auteur (décision du 24 sept).
+  - Ne pas ajouter la réponse « indisponible » / « urgence » à l’historique envoyé au modèle au tour suivant.
+
+## Top bar · voile au défilement (23 sept 2026)
+
+**Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.** Annule le fond opaque de la 0-ter (choix de design : jamais de bandeau opaque).
+- [x] `components/navigation/ScrollVeil.tsx` : un seul voile haut/bas, dégradé vertical #F2F1EE (opaque du bord jusqu’au milieu de la barre, puis fondu 24 px), opacité 0 → 1 sur 16 px de scroll. Plus de BlurView pour les barres.
+- [x] `TopbarScrollContext` : `scrollY` partagé (Reanimated) + `useTopbarScrollHandler()` (useAnimatedScrollHandler, republie le scroll de l’écran au focus)
+- [x] Branché sur Accueil, Notes (2 vues : maternelle + collège), Agenda (jour + liste Devoirs), Messages
+- [x] Top bar transparente ; pills claires sur le header indigo de l’Accueil au repos, sombres dès que le voile apparaît (inactives : icône à 60 % au lieu de 50 % pour le contraste sur #F2F1EE)
+- Reste hors périmètre : BlurView encore utilisés dans AddToDiscussionSheet, JoyAlerts, JoyHistory, Portfolio, MonRessenti (à évaluer sur Android)
+
+## Phase 0-ter · retours du test Android de la 0-bis (23 sept 2026)
+
+**Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.**
+- [x] Symbole : login et pill Aria rendaient DÉJÀ ScolariaSymbol. Les « tirets » venaient de la géométrie de référence à petite taille (ellipses de 1,4 × 2,8 px à 14 px). Ajout d’une géométrie compacte sous 32 px (mêmes 8 ellipses et angles, plus pleines). `CrownShapes` exporté et réutilisé par AriaOrb (qui avait sa propre copie avec les <G rotation> imbriqués). Icônes « sparkles » d’Aria remplacées par ScolariaSymbol : RGPD (Effacement, Export, Permissions), À propos, Météo classe, badge « Observé par Aria », onglet Aria de l’espace élève.
+- [x] ~~Top bar opaque #F2F1EE~~ : annulé, remplacé par le voile au défilement (section du dessus)
+- [x] « Mon compte » : lignes en ligne selon §8. Cause : `Pressable` natif + style en fonction `({ pressed }) => [...]`, ignoré sur Android (même cause que les cartes Agenda en 0-bis). Correctif global : le `Pressable` de `components/ui` résout lui-même la fonction de style, 43 fichiers redirigés. insets.bottom posé sur le conteneur de la feuille. La phase 0 n’avait remplacé aucun `gap` (seulement Pin et AjouterEnfant en 0-bis, réécrits en marges).
+- [x] Initiales : `utils/childInitials.ts`, une lettre du prénom, deux si un autre enfant du foyer a la même initiale (Léa → Lé, Lucas → Lu). Appliqué : top bar, sélecteur, menu burger, Mon compte, ChildAvatar.
+
+### Phase A/B · enfant actif incohérent (constaté sur le Redmi, NE PAS toucher avant)
+- La top bar, « Mon compte », Messages et l’Emploi du temps n’utilisent pas le même enfant actif.
+  - Top bar, Mon compte, Messages : `useActiveChild()` (ActiveChildContext) mais selon des chemins différents (`selectedChild` / `selectedChildId` / `getConversations(selectedChild.id)`) à réconcilier.
+  - Emploi du temps : données démo codées en dur pour Emma 4ème (`TimetableScreen.tsx:70`), sans lien avec l’enfant sélectionné.
+  - À traiter avec la source unique d’enfant actif (phase A/B).
+
+## Phase 0-bis · retours du test Android (23 sept 2026)
+
+**Statut : FAIT. tsc OK, contrôlé en web. À REVÉRIFIER SUR LE REDMI.**
+- [x] ScolariaLogo : fontFamily Rufina_700Bold (au lieu de "Rufina-Bold"), fontWeight retiré
+- [x] ScolariaSymbol : 8 ellipses en transform="rotate(22.5 + angle)", plus de <G rotation> imbriqués
+- [x] Cartes Agenda §7 : TouchableOpacity, borderLeft 3px couleur, fond rgba(couleur, 0.08), radius 14, padding 10/12
+- [x] Bas d’écran : getBottomChromeHeight() partagé par le voile flou et getBottomBarScrollPadding() (padding = voile + 12) ; conversation : « Aria peut résumer » au-dessus du champ
+- [x] Messages : FAB supprimé (JSX, styles, import Plus) ; l’action reste le ✏️ de la bottom bar
+- [x] Bouton « Tools » : FAB d’expo-dev-menu, dev client uniquement (absent des builds release), rien à changer dans le code
+- [x] TextInput Figtree (wrapper ui) : 17 fichiers redirigés
+- [x] PinScreen et AjouterEnfantScreen en clair : fond #F2F1EE, textes #0F172A, inputs §5, bouton primaire §2 (+ icônes lucide, gap → marges)
+- Reste : Phase B (FAB Agenda vs + bottom bar, voir plus bas)
+
+## Addendum v3.4 · PHASE 0 : nettoyage des anciennes décisions (22 sept 2026)
+
+**Statut : FAIT (22 sept 2026). Liste validée, Q1-Q5 acceptées. tsc OK, vérifié en localhost (web). Commit 5116cca. Retours Android traités en phase 0-bis.**
+Périmètre : aucun changement de BDD, aucun nouvel écran.
+
+### Réalisé
+- [x] Fonds → #F2F1EE : tokens `SCREEN_BACKGROUND`, `C.bg`, `PAGE_BG_OFF_WHITE`, `SchoolMode.bg`, `TabNavigator` (conteneur principal), 8 constantes locales, NotesScreen, EditProfile (fond sombre dégradé supprimé), thème React Navigation (`App.tsx`, fond des cartes de navigation `rgb(242,242,242)` → #F2F1EE), pdfExport
+- [x] Emoji de matières : 121 clés JSON retirées (demo-agenda 100, demo-subjects 21), mocks + types (Agenda, Notes, DemoContext), `subjectEmoji` (SubjectDetail), cercle emoji des cartes Agenda + emoji des pills de type de la modale Agenda
+- [x] Violets → #4338CA (104 remplacements + halo PIN) ; `Colors.violet*`, `tokens.accent/info`, `SchoolMode.accent` ; bloc « Child theme accents » retiré de tailwind.config.js
+- [x] `constants/themes.ts` supprimé ; ChildThemeContext réduit à un passe-plat ; SchoolModeContext : thème unique (plus d'`ariaEmoji`, de « Aria Coach », de `headerGradientFull`)
+- [x] Figtree par défaut : `Text` de `src/components/ui` (graisse → variante Figtree, fontWeight retiré) + `cssInterop` pour les className ; 66 fichiers redirigés de `react-native` vers `components/ui` ; DMSans → Figtree (9) ; tailwind `fontFamily` → Figtree. Contrôle web : 157 textes visibles en Figtree, 0 en police système.
+- [x] `LogoScolaria.tsx` (Barlow/DM Sans) supprimé, remplacé par `ScolariaLogo` dans À propos
+- [x] BurgerMenu : « Le carnet de scolarité numérique »
+- [x] 25 dégradés décoratifs → fonds unis ; ~20 tuiles à bordures colorées → `rgba(15,23,42,0.06)`
+- [x] Couleur enfant (Q1) : avatar top bar, sélecteur, profil et header Accueil en indigo neutre #4338CA (texte du header passé en blanc, dégradé vertical)
+
+### Restes signalés (hors liste validée)
+- ~~Écrans encore sombres (PinScreen, AjouterEnfant)~~ : faits en phase 0-bis.
+- Emoji en état vide de l'Agenda (« Journée libre 🏖️ ») : ce n'est pas une carte, conservé.
+- ~~TextInput en police système~~ : fait en phase 0-bis.
+- `SuperPowerBadge.tsx` : jamais monté (seul son type est importé), à supprimer lors d'un nettoyage.
+- Imports `LinearGradient` inutilisés déjà présents avant la phase 0 : AgendaScreen, MessagesListScreen, SignDocScreen.
+- ~~ScolariaLogo Rufina-Bold~~ : corrigé en phase 0-bis.
+
+### Phase B · écart à corriger (NE PAS toucher avant)
+- **FAB Agenda** : CLAUDE.md prévoit un FAB circulaire sur l'Agenda et **aucune** action dans la bottom bar (« Agenda → rien, le FAB suffit »). Le code fait l'inverse : pas de FAB, et un `+` dans la bottom bar (`BottomBar.tsx:58`, `TabNavigator.tsx:659` `agendaActionRef`). À aligner en Phase B.
+
+#### NAVIGATION (décision validée)
+- Top bar : [☰ burger] [onglets] ... [avatar enfant]. On GARDE le burger (ne pas le supprimer même si CLAUDE.md dit autre chose : la doc sera mise à jour).
+- ☰ burger → écran unique « Famille & paramètres ».
+- Avatar → sélecteur d'enfant UNIQUEMENT (liste des enfants + indicateur de nouveauté + ajouter un enfant). Plus de réglages dans ce sélecteur.
+- Supprimer l'ouverture du menu par swipe (conflit avec le pager).
+
+#### FUSION RÉGLAGES → « Famille & paramètres » (base visuelle : écran Mon compte actuel)
+- Structure : Mes enfants · Responsables légaux · Mon profil · Apparence (fond de l'Accueil PAR ENFANT : couleur de l'enfant ou photo nature, un seul système) · Notifications (3 réglages max : mots & messages / résumé 18h / silence 20h–7h) · Aria (activée, personnalité, langue saisie vocale) · Confidentialité & données (code, autorisations, export) · Système (haptique) · Compte (aide, à propos, quitter la démo / déconnexion).
+- Supprimer l'ancien écran Réglages et ses entrées hors sujet : Capacités, Connecteurs, Liens partagés, Thème Auto, fonds dégradés abstraits.
+- Supprimer le doublon « Résumé quotidien 8h00 » d'Aria.
+- Ne pas déranger → 20h–7h.
+- « Face ID » affiché sur Android → libellé selon la plateforme.
+
+
+#### Phase 2 · protocole d’urgence en production
+- La détection par mots-clés (`supabase/functions/_shared/emergency.ts`) est une solution de DÉMO. En production : détection plus robuste (contexte, formulations indirectes, fautes, langage enfant/ado), validée par le comité éthique avant mise en service.
+
+#### AUTRES
+- Écran Aria sur un compte SANS enfant : affiche « Comment va Léa aujourd’hui ? » et d’autres suggestions tirées des données de démo en dur → suggestions et titres liés à l’enfant actif (ou génériques s’il n’y a aucun enfant).
+- Écran Aria : suggestions en cartes 2×2 avec emoji → pills horizontales (règle CLAUDE.md).
+- Accueil : notes /20 et carte Aria sur Emma affichées pour Léa (GS) → toutes les données liées à l'enfant actif.
+- Enfant actif incohérent entre top bar, sélecteur, Messages et Emploi du temps (codé en dur pour Emma) → une seule source (détail : section « Phase A/B · enfant actif incohérent »).
+- Agenda : FAB prévu par CLAUDE.md, action + actuellement dans la bottom bar → à aligner (détail : « FAB Agenda » ci-dessus).
+- Header de l'Accueil : carte 130px arrondie (CLAUDE.md), couleur de l'enfant.
+
+### Contrôle préalable
+- Un seul CLAUDE.md projet (`./CLAUDE.md` v3.1). Les autres CLAUDE.md sont dans `.claude-plugin/` (plugins tiers, gitignorés), donc hors sujet.
+- Un seul addendum, `docs/archives/ADDENDUM_v3.4_Scolaria.md`, rangé au bon endroit.
+
+### a) Fonds de page ≠ #F2F1EE
+Cause racine : les tokens valent `#F7F7F5` (ancien fond). Corriger à la source suffit pour ~30 écrans.
+- `src/constants/colors.ts:2` : `SCREEN_BACKGROUND = '#F7F7F5'` (utilisé par ~20 écrans et par `tokens/colors.ts`, `themes.ts`)
+- `src/constants/design.ts:10` : `C.bg = '#F7F7F5'` (Accueil, Agenda, Messagerie, EventDetail, GradeDetail, Homework, SignDoc, SignSuccess, DeepScreenHeader)
+- `src/constants/theme.ts:101` : `PAGE_BG_OFF_WHITE = '#F7F7F9'`
+- **`src/navigation/TabNavigator.tsx:874` : conteneur principal `#F2F2F7`**, visible derrière toutes les stacks (contentStyle transparent l. 246-306)
+- `src/contexts/SchoolModeContext.tsx:72,91` : `bg` / `backgroundColor` `#F2F2F7` (lus par AjouterAnneScreen:301, EleveTabNavigator:34,56,83,105,207)
+- Constantes locales : `ConnexionScreen.tsx:18`, `EditProfileScreen.tsx:42`, `InscriptionScreen.tsx:11`, `LoginScreen.tsx:8` (`BG = '#F7F7F5'`) ; `MonRessentiScreen.tsx:30`, `ProfilEnfantScreen.tsx:64,660` (`'#F2F4F8'`)
+- En dur : `NotesScreen.tsx:1996,2016` (`#F7F7F5`) ; `EditProfileScreen.tsx:451` (root `#1F1F2E`, sombre)
+- Fonds de panneau `#F2F2F7` : `UniversalInputBar.tsx:244,257`, `chat/AddToDiscussionSheet.tsx:252`
+- Hors appli : `services/pdfExport.ts:117,261,277,303` (`#F7F7F5` dans le HTML exporté)
+
+### b) Emoji sur les matières
+- Données de démo : `src/data/demo/demo-agenda.json` (100 lignes avec `"emoji"`), `src/data/demo/demo-subjects.json` (21 lignes, domaines maternelle + matières)
+- `src/screens/NotesScreen.tsx:108` (type `emoji: string`), `:182,190` (mock matières), `:1164,1294` (repli `'📚'`). NB : pas affiché dans Notes (l. 399 retire déjà les pictogrammes).
+- `src/screens/SubjectDetailScreen.tsx:5,40,155,187,256` : param `subjectEmoji` **affiché** en en-tête (aucun appelant ne le passe aujourd'hui)
+- `src/screens/AgendaScreen.tsx:91` (type), `:123-125` (`NEW_EVENT_TYPE_EMOJI`), `:193-195` (`DEFAULT_EMOJI`), `:210-234` (mock), `:521,564`, **`:777-780` : cercle emoji affiché dans chaque carte Agenda** (interdit aussi par la règle « jamais d'emoji dans une card Agenda »)
+- `src/services/database.ts:129` : `select('*, subjects(name, emoji, color)')`. Lecture seule, pas de changement de schéma. On ignore simplement le champ côté UI.
+- Page « Personnaliser matières » : **n'existe pas dans src/**, rien à corriger.
+
+### c) FAB non circulaires
+- `src/screens/MessagerieScreen.tsx:1339-1368` : **déjà conforme** (48×48, radius 999, bottom 72, right 14)
+- **Agenda : pas de FAB.** L'ajout passe par le `+` de la bottom bar (`BottomBar.tsx:58`, `TabNavigator.tsx:659`), ce qui contredit CLAUDE.md (« Agenda → rien, le FAB suffit »). → [UNCLEAR] voir Q2
+- Commentaires obsolètes : `AgendaScreen.tsx:9-10` (« FAB: black square-rounded »), `messagerie/MessagesListScreen.tsx:8` (FAB inexistant)
+
+### d) Thèmes par niveau / couleur enfant / #7C3AED
+- `src/contexts/SchoolModeContext.tsx:1-9` : doc « maternelle chaude / primaire cosmique / lycée blanc » ; `:83-87` accent `#7C3AED` ; `:92` `headerGradientFull` bleu `#1E3A5F→#3B7DD8→#89B4E8` (non lu) ; `:104,111,118` `ariaEmoji` 🧸/✦/🎯 (non lu) ; `:112,119` `ariaLabel` « Aria ✦ » / « Aria Coach » (lu par `EleveTabNavigator.tsx:210`)
+- `src/contexts/ChildThemeContext.tsx:49-53` : table thème par enfant (ambre/ocean/lavande), sans effet ; `:66` commentaire violet
+- `src/constants/themes.ts` (103 l.) : `CHILD_THEMES` à 9 thèmes dont violet `#7C3AED`. **Aucun import : code mort.**
+- `src/tokens/colors.ts:17,18,22,39,44` : `accent`/`info` `#7C3AED` / `#A78BFA`
+- `src/constants/colors.ts:19-21` : `Colors.violet #6D28D9`, `violetLight #7C3AED`, `violetDark #5B21B6` (source de la majorité des violets ci-dessous)
+- `src/constants/theme.ts:108` : commentaire « thème enfant Violet »
+- `src/screens/EditProfileScreen.tsx:45` : `CHILD_COLORS` avec `#7C3AED`
+- Couleur de l'enfant : **n'existe pas dans le modèle** (`ActiveChildContext.tsx:27-37`, pas de champ `color`). Avatar top bar = dégradé fixe `#818cf8→#6366f1` (`TopBar.tsx:146`) ; avatar du sélecteur = `#818cf8` (`ChildSelectorSheet.tsx:205`) ; header de l'Accueil = dégradé fixe multicolore mauve/rose/orange de 440 px (`AccueilScreen.tsx:123-135`). → [UNCLEAR] voir Q1
+- Violets interdits (#7C3AED, #6D28D9, #8B5CF6, #A78BFA, #C4B5FD, #EDE9FE, rgba(124,58,237), Colors.violet*, C.violet, VIOLET), fichier : lignes
+  - `components/ConseilDuMatin.tsx` : 51,233 · `GlobalChildSwitcher.tsx` : 26,36,148 · `chat/TypingIndicator.tsx` : 44 · `checkin/RessentiSlider.tsx` : 7,36
+  - `profile/JoyAlerts.tsx` : 331,344 · `profile/JoyHistory.tsx` : 50 · `profile/Portfolio.tsx` : 7,40,114 · `profile/SuperPowerBadge.tsx` : 41
+  - `contexts/WallpaperContext.tsx` : 95
+  - `data/demo/demo-agenda.json` : 2,9,14,19,24,30,33,39,48,56,92 · `demo-dashboard.json` : 11,29,48 · `demo-subjects.json` : 8,14
+  - `screens/AProposScreen.tsx` : 73,97,244,259,266,316,321,326,378,476
+  - `screens/AgendaScreen.tsx` : 197,198,211,221,225,230,524,566
+  - `screens/AjouterEnfantScreen.tsx` : 233,415,416,443,474
+  - `screens/ArchivedYearDetailScreen.tsx` : 48,298 · `HomeworkScreen.tsx` : 87,88 · `MessagerieScreen.tsx` : 59
+  - `screens/MonParcoursScreen.tsx` : 84,254,378 · `MonRessentiScreen.tsx` : 68 · `SignalerAbsenceScreen.tsx` : 78
+  - `screens/NotesScreen.tsx` : 737,810-812,1033,1050,1069,1505,1513,1717,1725,2165,2177,2196,2261,2347,2377,2426,2433,2449
+  - `screens/PinScreen.tsx` : 31,154,306
+  - `screens/ProfilEnfantScreen.tsx` : 66,142,167,180,209,210,223,248,272,280,290,316,604,662,740,753,760,765,804,814,823,836
+  - `screens/TextSizeScreen.tsx` : 83,116,122 · `WallpaperPickerScreen.tsx` : 187,201
+  - `messagerie/EcoleListScreen.tsx` : 68 · `messagerie/MessagesListScreen.tsx` : 218,485 · `messagerie/MotDetailScreen.tsx` : 119
+  - `rgpd/EffacementScreen.tsx` : 386
+  - `teacher/AppreciationsScreen.tsx` : 278,279,312,313,344,345,430,459,461,473,481,514,519,521 · `teacher/MeteoClasseScreen.tsx` : 318,325 · `teacher/TeacherDashboardScreen.tsx` : 201 · `teacher/VieDeClasseScreen.tsx` : 190,375,392,395,422,504,505,520
+  - `services/pdfExport.ts` : 68,82,104,114,125,268,292,299,379
+
+### e) Polices (DM Sans, Barlow, système)
+- `src/components/LogoScolaria.tsx` : **ancien logo** « SCOL » en BarlowCondensed + « aria » en DMSans avec dégradé (l. 26-27, 51-56, 74). Utilisé par `AProposScreen.tsx:36,167,277`. Viole aussi la règle « police uniforme, pas de traitement spécial sur ia ».
+- `src/navigation/EleveTabNavigator.tsx:36,58,85` : `fontFamily: 'DMSans_700Bold'` (police non chargée, donc repli système)
+- `tailwind.config.js:76-78` : `fontFamily.heading/body = ["System"]` (0 usage de `font-heading/font-body`)
+- **Aucune police par défaut globale** : tout `<Text>` sans `fontFamily` s'affiche en police système. Fichiers sans aucune référence à Figtree :
+  `ConseilDuMatin.tsx` (10 Text), `GlobalChildSwitcher.tsx` (6), `profile/SuperPowerBadge.tsx` (9), `AjouterAnneScreen.tsx` (28), `teacher/AbsencesEnseignantScreen.tsx` (15), `teacher/TeacherDashboardScreen.tsx` (40)
+  + 193 `className="font-bold|semibold|…"` NativeWind (graisse système) dans : ChatBubble, ConseilDuMatin, GlobalChildSwitcher, JoyAlerts, SuperPowerBadge, AjouterAnne, AjouterEnfant et les 7 écrans teacher/
+- `fontWeight` numérique combiné à une Figtree (sur Android, peut basculer en police système) : `RessentiSlider.tsx:57`, `TopBar.tsx:264`, `AccueilScreen.tsx:301,308`, `AriaConversationScreen.tsx:797`, `AriaHomeScreen.tsx:825`, `MonRessentiScreen.tsx:447`, `NotesScreen.tsx:2090,2117,2293`, `ProfilEnfantScreen.tsx:813,864,910`
+- `services/pdfExport.ts:103,291` : `-apple-system, 'Segoe UI'` (PDF, hors appli)
+- [UNCLEAR] `ScolariaLogo.tsx:54,65,76,87` : `fontFamily="Rufina-Bold"`, alors que la police est chargée sous le nom `Rufina_700Bold`. À vérifier sur appareil.
+
+### f) Symbole ✧ et dégradé #8B5CF6 → #1B72E8
+- **0 occurrence.** Déjà propre.
+- Dégradés « faux Aria » violet→cyan hors contexte Aria : voir i).
+
+### g) Graphie « ScolarIA »
+- **0 occurrence** dans src/, app.config.js, package.json, eas.json. (`design.ts:2` « SCOLARIA » est un commentaire en capitales, pas un problème.)
+- Traitement spécial de « aria » dans le wordmark : `LogoScolaria.tsx` (voir e).
+
+### h) Tagline « copilote »
+- **0 occurrence** de « copilot* ».
+- Taglines non conformes (« passeport scolaire ») : `components/BurgerMenu.tsx:192` (« Passeport scolaire numérique ») ; `AjouterEnfantScreen.tsx:226` ; `i18n/locales/*.ts` `slide1Desc` (clés onboarding **non utilisées**, aucun `t('onboarding…')`).
+- Conforme : `LoginScreen.tsx:26` « Le carnet de scolarité numérique ».
+
+### i) Tuiles à bordures colorées / micro-dégradés (design de mars)
+- Micro-dégradés décoratifs (hors Aria, hors wallpaper) :
+  `NotesScreen.tsx:1032,1049,1068,1590,1632,1976` · `ProfilEnfantScreen.tsx:271,279,289` · `ArchivedYearDetailScreen.tsx:297` (`#7C3AED→#06B6D4`) · `EditProfileScreen.tsx:224,303` · `AjouterEnfantScreen.tsx:232,441,471` · `AjouterAnneScreen.tsx:359,375` · `PinScreen.tsx:80,153` · `profile/SuperPowerBadge.tsx:136,235` · `EventDetailScreen.tsx:138` · `TopBar.tsx:146` (avatar) · `teacher/*` : Absences:181, Appreciations:262,429, MeteoClasse:208,317, TeacherDashboard:151, VieDeClasse:357,421
+- Dégradés conformes (Aria ou carte Aria) : AriaActionCard:135, AriaInlineCard:23, ChatBubble:112, ConseilDuMatin:220, JustifierAbsenceSheet:160, GradientButton:56, UniversalInputBar:153, Accueil:242, Bulletin:191, ConversationDetail:77
+- Bordures colorées sur des tuiles : `teacher/CahierLiaisonScreen.tsx` (7 : 181,229,247,486…) · `teacher/AppreciationsScreen.tsx` (3) · `profile/SuperPowerBadge.tsx` (3, dont 232) · `AjouterEnfantScreen.tsx` (2) · `AjouterAnneScreen.tsx:240` · `AProposScreen.tsx` · `TeacherDashboardScreen.tsx:213` (orange) · `MessagerieParentsScreen.tsx` · `rgpd/PermissionsScreen.tsx` · `aria/AriaActionCard.tsx:160,172,177,219,247` · `MonRessentiScreen.tsx:464` · `teacher/MeteoClasseScreen.tsx:315` · `TextSizeScreen.tsx:83,116` + `WallpaperPickerScreen.tsx:187` (sélection violette)
+
+### Questions à trancher avant correction
+- **Q1 [UNCLEAR] Couleur de l'enfant** : le champ n'existe pas. Proposition phase 0 : ne pas le créer (ce serait de la donnée, donc hors phase 0). Supprimer tout le reste (themes.ts mort, table ChildThemeContext, accent violet), et passer l'avatar et le header de l'Accueil sur un neutre indigo `#4338CA` en attendant la phase qui ajoutera `students.color`.
+- **Q2 [UNCLEAR] FAB Agenda** : il n'existe pas (c'est le `+` de la bottom bar). Proposition : ne rien ajouter en phase 0 (ce serait un nouvel élément d'UI) et le noter pour la phase Agenda.
+- **Q3 Espaces enseignant / élève / sandbox** : les inclure dans le balayage ? Proposition : oui pour fond, violet et polices ; non pour le bandeau orange enseignant (thème de rôle, pas de niveau).
+- **Q4 pdfExport.ts** (HTML exporté) : proposition : fond et violet oui, police non (Figtree n'est pas embarquée dans le PDF).
+- **Q5 Emoji non-matière** (activités extrascolaires de ProfilEnfant, compétences d'Appreciations, ConseilDuMatin, Score de Joie) : proposition : on les garde (contenu autorisé), on ne retire que les emoji matière et Agenda.
+
+### Plan de correction (après validation)
+1. Tokens à la source : `SCREEN_BACKGROUND`, `C.bg`, `PAGE_BG_OFF_WHITE` → `#F2F1EE` ; `Colors.violet*`, `tokens.accent/info`, `SchoolMode.accent*` → `#4338CA` ; `TabNavigator:874` + `SchoolMode.bg` → `#F2F1EE`
+2. Constantes locales et valeurs en dur (a, d)
+3. Emoji matière : retrait des clés JSON, des types, des mocks et du cercle emoji dans les cartes Agenda ; retrait de `subjectEmoji`
+4. Thèmes : suppression de `constants/themes.ts`, de la table ChildThemeContext, des `ariaEmoji` / `ariaLabel` par niveau, de `headerGradientFull` ; doc SchoolModeContext
+5. Polices : police Figtree par défaut sur `Text` (un seul point d'entrée) + DMSans → Figtree + `LogoScolaria` → `ScolariaLogo` + suppression de `LogoScolaria.tsx`
+6. Micro-dégradés hors Aria → aplat ; bordures colorées de tuiles → `rgba(15,23,42,0.06)`
+7. Taglines « passeport » → « Le carnet de scolarité numérique » / « carnet »
+8. `tsc --noEmit`, vérification localhost, pas de build EAS ; mise à jour de lessons.md
+
+---
+
+# Historique · UI Sprint v3.0
+
+## Sprint v3.0 — COMPLÉTÉ (5 mai 2026)
+
+### Fondations
+- [x] `src/constants/design.ts` — tokens C, RADIUS, SHADOW, BOTTOM_BAR_HEIGHT
+- [x] `src/components/WhiteCard.tsx` — carte blanche Android-safe (2 Views)
+- [x] `src/components/DeepScreenHeader.tsx` — header écrans profonds
+- [x] `src/components/AriaInlineCard.tsx` — card Aria gradient EEF2FF→F0FDFA
+
+### Écrans mis à jour
+- [x] `AccueilScreen.tsx` — fix gap Android, pattern 2-Views todayListWrap/recentCard, tokens C
+
+### Nouveaux écrans deep
+- [x] `HomeworkScreen.tsx` — cahier de texte Emma 4ᵉB
+- [x] `TimetableScreen.tsx` — emploi du temps
+- [x] `EventDetailScreen.tsx` — détail événement agenda
+- [x] `GradeDetailScreen.tsx` — détail note + sparkline SVG
+- [x] `SignDocScreen.tsx` — signature autorisation
+- [x] `SignSuccessScreen.tsx` — confirmation signature
+
+### Onboarding
+- [x] `src/screens/onboarding/OnboardingSplashScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingSignupScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingSchoolCodeScreen.tsx`
+- [x] `src/screens/onboarding/OnboardingLinkChildScreen.tsx`
+
+### Navigation
+- [x] `TabNavigator.tsx` — 6 nouveaux écrans enregistrés dans leurs stacks
+
+## Pending — Sprint v3.1
+- [ ] NotesScreen v3 redesign (sparkline Figtree, pills matières, cartes extensibles)
+- [ ] AgendaScreen v3 (FAB cercle, event cards sans emoji)
+- [ ] MessagerieScreen v3 (search toolbar, conversation rows avec tags)
+- [ ] AriaScreen v3 (topbar spécifique, suggestions centré, input Aria)
+- [ ] `npx expo run:android` — test visuel des nouveaux écrans
+- [ ] EAS build quand tout est validé localhost
+
+### Reprise n°3 du 4 oct 2026 — état
+- [x] **M34 APPLIQUÉE à Paris le 4 oct 2026** (2 WARN `annuler_invitation` / `renvoyer_invitation` validés par l'utilisateur ; tests négatifs complétés : 9 groupes ; sauvegarde `ScolariaBackups\avant_M34_cycle\2026-10-04_1759` vérifiée ; essai à blanc = M34 seule ; local = distant ; advisors : 0 ERROR, 0 INFO, 103 WARN tous dans `tasks/warns-attendus.md`). L'entrée ci-dessous est l'historique de l'arrêt :
+- [ ] ~~**M34 : PRÊTE, NON appliquée — arrêt volontaire avant l'application.**~~ (historique) Fait : `est_enseignant()` sans argument (WARN accepté) ; `tasks/warns-attendus.md` créé (101 WARN par objet, avec raisons) ; local avec M34 après `db reset` : 19 suites SQL OK, parcours complet 45/45, effacement 22/22, verrous 18/18, invitation 12/12, limite Aria 15/15, clé 15/15, audit 670/0 écart ; sauvegarde Paris `avant_M34` vérifiée ; essai à blanc = M34 seule. **Raison de l'arrêt : M34 crée 2 fonctions SECURITY DEFINER exécutables par `authenticated` (`annuler_invitation(uuid)`, `renvoyer_invitation(uuid)`) → 2 WARN ABSENTS de la liste → critère (f) violé d'avance.** Ils sont déclarés dans warns-attendus.md (section « annoncés, non validés »). À toi : les valider (les déplacer en section 1), puis exécuter le bloc de secours du rapport ou me dire d'appliquer.
+- [x] Garde-fou : gates.json montré, motif plus étroit proposé (à modifier par TOI) ; leçon : en cas de blocage, pas de reformulation, bloc PowerShell de secours.
+- [x] comptes-enseignants.md : brouillon validé (réponses 1 à 4, reportés, dépendance emails/domaine/Brevo : rien à coder avant). enquete-ios.md corrigé (Expo Go App Store = SDK 54 ; sign.expo.dev à confirmer [UNCLEAR] ; `npx expo start --go` ; pare-feu ; liste de test iPhone).
+
+### Reprise n°2 du 4 oct 2026 — état (remplace la ligne « M31 … NON APPLIQUÉES » ci-dessous)
+- [x] **Paris : M31, M32, M33 APPLIQUÉES, fonction `aria` DÉPLOYÉE** (401 sans compte ; aucun secret touché ; plafond 40/jour par défaut). Sauvegardes avant_M31 (10:37 UTC), avant_M32, avant_M33, vérifiées. Advisors : après M31 101 WARN / 0 ERROR / 0 INFO ; après M32 100 WARN ; après M33 101 WARN (+1 : `est_enseignant()`), 0 ERROR.
+- [ ] **M34 NON appliquée** : condition (f) (« pas plus de WARN qu'avant ») non remplie après M33. À décider : accepter le WARN `est_enseignant` (fonction SECURITY DEFINER volontaire, lit la seule ligne de l'appelant) ou la passer en SECURITY INVOKER (migration à part), puis appliquer M34.
+- [x] Garde d'hôte (scripts/garde-hote.mjs, test:garde-hote : 8 URL refusées, 3 acceptées, refus réel de 11 scripts). Journaux d'Auth de Paris : illisibles depuis la CLI ; aucun compte créé depuis le 23 sept.
+- [x] STAB-2b : filtres de l'Agenda, segments de Messages, bouton année de Suivi, pill de l'assistant ≥ 44 dp ; preuve par appuis 34/34 sur le Redmi ; positions mesurées avant/après : identiques à 1 px près.
+- [x] Règle d'édition révisée écrite dans lessons.md.
+
+### Reprise complète du 4 oct 2026 (STAB-3) — état
+- [ ] **M31 → déploiement de la fonction aria → M32 → M34 : NON APPLIQUÉES.** Cycle M31 arrêté à l'étape « application » : sauvegarde `avant_M31` faite et vérifiée, script inverse testé, essai à blanc = M31 seule, 17 suites locales / parcours 45/45 / effacement 22/22 / verrous 18/18 OK ; le garde-fou de sécurité a BLOQUÉ la commande qui applique (aucun contournement, Paris inchangé, dépôt propre). À toi : dire si je réessaie, ou appliquer toi-même (`npx supabase db push --linked` après avoir écarté M32, M33, M34 du dossier). M33 (locale) est aussi en attente.
+- [x] Bugs : test:journaux 0 échec (faux positifs de fuite, code mis en forme) ; ConnexionScreen et AuthContext lisent `profiles.role` (test:role-profil) ; Accueil réel branché (agenda du jour, apprentissages, notes) ; non-régression « un enfant = un carnet » : appareil 10/10 (npm run test:un-enfant-un-carnet-redmi → `node scripts/test-un-enfant-un-carnet-redmi.mjs`), web local avec un vrai événement de Laia : rien de Laia sous Evan réseau coupé.
+- [x] **M33 LOCALE** (rôle enseignant requis pour écrire un mot) : audit 670 tests, 0 écart. **À appliquer après M30 (déjà), M31, M32, M34 : une par session.**
+- [x] tasks/comptes-enseignants.md (spec, 4 questions) ; tasks/enquete-ios.md (rapport) ; STAB-2 zones tactiles : preuve par appuis 28/28 (`node scripts/preuve-zones-tactiles-redmi.mjs`).
+- [ ] Reste des zones < 44 dp hors périmètre STAB-2 : filtres de l'Agenda (30), segments de Messages (32), bouton année de Suivi (34), « Voir le suivi → » (27), pill Aria de la barre du bas (non prouvée par appui).
+- [ ] Redéployer `executer-effacements` et `invitation-responsable` (journaux mis en forme ; format de journal seulement) lors d'un prochain déploiement autorisé.
+
+### Constats du 4 oct 2026 (validation de M30, test avion)
+- [x] **M30 APPLIQUÉE à Paris le 4 oct** (go conditionnel de l'utilisateur ; sauvegarde ScolariaBackups/avant_M30 vérifiée ; essai à blanc : M30 seule listée ; advisors comptés par niveau avec `db advisors --linked` (résultats groupés par `level`) : 0 ERROR, 101 WARN (106 avant M30 : les politiques réécrites avec `(select auth.uid())` retirent des avertissements `auth_rls_initplan`), 0 INFO ; contrôle en lecture seule : 5 déclencheurs, oracles fermés, politiques read_receipts / mots_liaison, migration 20260928150000 enregistrée). **M31, M32 : en attente de go (une par session).**
+- [~] **M34 (invitation expirée) LOCALE, NON appliquée** : `supabase/migrations/20260928190000_m34_invitations_expirees.sql` (+ inverse) ; tests m34 7 groupes (inverse testé), m24 adapté, 17 suites SQL, parcours 45/45, effacement 22/22, verrous 18/18, invitation 12/12 ; app : invitant « Invitation expirée · appuyez pour renvoyer ou annuler » (renvoyer = nouvelle invitation de 7 jours + email), invité « Invitation expirée. Demandez à [prénom] de vous réinviter. » (une seule fois). À valider avant Paris.
+- [x] (corrigé en local par M34, à appliquer) **Invitation expirée = piège** (preuve 3 de M30) : au bout de 7 jours l'invitation reste « en_attente » en base ; l'invité ne la voit plus (`mes_invitations` filtre l'expiration, SANS message) et l'invitant ne la voit plus non plus ; **réinviter la même adresse échoue** (index unique `uq_invitation_en_attente`) avec « Invitation impossible : une invitation est peut-être déjà en attente ». Aucun bouton Renvoyer / Annuler. Correction à valider (M34) : déclencheur d'insertion qui passe en « annulee » les invitations expirées du même (enfant, adresse) + liste « Invitations en attente » avec « Annuler » et « Renvoyer » ; message à l'invité (« Cette invitation a expiré : demandez-en une nouvelle »). Antérieur à M30 (M30 ne fait que forcer les 7 jours).
+- [ ] **Côté enseignant : l'enfant en cours d'effacement reste visible** (constat chiffré par supabase/tests/m30_preuve2_appelants.sql, identique avant et après M30) : le titulaire voit mots, signatures, fil et messages. À décider : masquer dès la demande.
+- [ ] **Zones tactiles < 44 dp** (tasks/test-avion-redmi.md) : top bar 34, onglets 30, bottom bar 11 de haut mesuré, jours de l'Agenda, filtres, P1–P5 : lot hitSlop / tailles.
+- [ ] **Accueil réel** : « Rien de prévu aujourd'hui » et « Aucun apprentissage noté » toujours affichés pour un compte réel (non branchés) : retirer ou brancher.
+- [ ] **B7 reporté** : contrôle du contenu des fichiers du bucket (octets de tête) ; la restriction de types du bucket reste.
+- [ ] **test:journaux** : 2 échecs antérieurs (executer-effacements, invitation-responsable) : à traiter (demande du 4 oct).
+
+### STAB-1 (3 oct 2026)
+- [x] Point 0 : journal_executions_effacement 3 oct 03:30 UTC = succès (HTTP 200, 0 échue, 0 échec) ; M28 appliquée à Paris ; M29 et M30 LOCALES en attente de validation ; origin/main à jour.
+- [x] Point 3 : sauvegarde hebdomadaire + restauration testée (tasks/sauvegarde.md). **Lire `C:\Users\admin\ScolariaBackups\hebdo\journal.log` en début de session.** Copie hors PC : non faite (ton choix).
+- [~] Point 4 ROBUSTESSE : code fait (erreurs.ts, EtatErreur, ErrorBoundary par onglet, délai réseau 25 s, hooks useCarnetReel / useMotsEnfant, Accueil, Suivi, Agenda, Messages, Ajouter au carnet, Famille & paramètres, session expirée sur l'écran d'ouverture). tsc OK, test:erreurs 12/12. **NON éprouvé sur le Redmi** : écran verrouillé par un code (je ne le saisis pas) et compte réel à reconnecter par toi. À faire ensemble : mode avion + mesures adb.
+
+## Session n°4 (4 oct 2026)
+- [x] Sauvegarde / restauration / vérification refusent toute destination dans le dépôt (scripts/garde-destination.mjs ; npm run test:garde-destination 18/18) ; git log --all : aucun dossier de sauvegarde dans l'historique (386 commits).
+- [x] enquête iOS : doc Expo relue sur le texte brut (aucune mention de sign.expo.dev) ; voie gratuite BLOQUÉE côté Apple (tentative 33, fil developer.apple.com/forums/thread/845650) : pas de réessai en boucle, un réessai ponctuel possible.
+- [x] D5 : paragraphe « Sauvegardes » dans le brouillon ; marche à suivre BitLocker : tasks/verifier-chiffrement-disque.md (à exécuter par l'utilisateur).
+- [ ] **Sauvegardes exceptionnelles (avant_Mxx, avant_M34_cycle…) : AUCUNE purge automatique** — décider d'une durée (ex. 8 semaines) et la mettre en œuvre ; sinon une donnée effacée y reste indéfiniment (cf. brouillon de politique § 6 bis).
+- [ ] Build de démonstration Android (preview, APK autonome) : plan et constats dans tasks/build-demo-android.md ; **EN ATTENTE du « go build »** et des décisions A (applicationId distinct, exception à ARRÊT NOM), B (libellé), C (mises à jour désactivées). Quota EAS : plan Free, 0/15 builds Android ce cycle. CLAUDE.md dit « Starter » : vérifier.
+- [ ] Recherche de secrets dans test-bundle-prod : le garde-fou a bloqué l'édition (préfixes de clés) ; bloc de secours donné à l'utilisateur.
+- [x] tasks/demo-plan.md : parcours 10 min enseignante / parent, 5 questions, ce qu'il ne faut pas promettre, feuille de notes..
+
+## Session n°5 (4 oct 2026)
+- [x] test:bundle-prod 12/12 (recherche de secrets ajoutée par l'utilisateur) : aucune bibliothèque ne contient les chaînes interdites, rien à assouplir.
+- [x] CLAUDE.md : plan EAS Free (vérifié). 
+- [x] Sauvegardes : rotation par âge (hebdo 56 j, avant_Mxx 30 j, jamais la plus récente, PURGE journalisée) ; test:rotation-sauvegardes 14/14 ; `node scripts/rotation-sauvegardes.mjs` liste l'âge (23 dossiers, 0 à purger aujourd'hui, première échéance le 25 oct). **Rien supprimé.** Brouillon de politique : « 8 semaines pour toutes » NON affirmé (captures du compte réel, copie de Londres avec fichier d'environnement, sauvegardes éventuelles du prestataire hors règle).
+- [ ] **Décider** : captures-avion-2026-10-04 (compte réel, 8 Mo) et 2026-09-25_avant_INFRA-1 (copie de Londres + env.londres) : suppression sur accord ; Londres : suppression du projet prévue le 9 oct.
+- [x] Variante démo Android dans app.config.js / eas.json (identifiant `.demo`, URL factice, mises à jour coupées) ; vérifiée à l'exécution (0 requête hors localhost, 0 référence Paris dans le bundle). **EN ATTENTE** : « go build » + choix du libellé (Carnet · Démo / Démo du carnet / Carnet Démo) + décision : masquer « Se connecter » / « Créer un compte » dans la variante.
+- [ ] **Interface enseignant atteignable en démo (Créer un compte → Enseignant)** : Messagerie d'exemple en dur (« Son Score de Joie a baissé », alerte nominative interdite en V1), 26 élèves (Ma classe) vs 25 (Cahier de liaison), barre d'onglets orange (`TEACHER_ORANGE`, 2e couleur d'accent), écrans Effacement / Export / Code de transfert côté enseignant à vérifier ; code mort `signIn` / `DEMO_TEACHER` à supprimer.
+- [x] demo-plan.md § 7 : liste des écrans enseignant atteignables, [UNCLEAR] levé.
+
+## Session n°6 (4 oct 2026)
+- [x] Profil EAS `demo` dédié (étend preview, environnement vide, APP_VARIANT=demo, libellé « Carnet Démo ») ; `preview` rétabli à l'identique ; variante : écran d'ouverture sans connexion ni inscription, routes de connexion / inscription / espaces enseignant et élève absentes ; `npm run test:variante-demo` ; bundle de la variante 13/13. **EN ATTENTE du « go build »** (marche à suivre : tasks/build-demo-android.md § 7).
+- [ ] **Interface enseignant : à corriger AVANT tout enseignant réel** (constats du 4 oct, atteignable aujourd'hui par Créer un compte → Enseignant hors variante démo) : (1) **alerte nominative sur le Score de Joie** dans la Messagerie d'exemple (« Emma semble un peu plus fatiguée… Son Score de Joie a baissé ») : interdit en V1 (aucune alerte avant Aria stade 3) ; (2) **26 élèves** (Ma classe) contre **25** (Cahier de liaison, texte figé « CM2 B · 25 élèves ») ; (3) **`TEACHER_ORANGE`** comme seconde couleur d'accent (règle : une seule, l'indigo). Reste aussi : écrans Effacement / Export / Code de transfert côté enseignant à vérifier ; code mort `signIn` / `DEMO_TEACHER` (AuthContext) à supprimer ; messagerie enseignant en dur dans `MessagerieParentsScreen`.
+- [ ] **Interface enseignant : confirmations sans envoi réel — BLOQUANT avant tout enseignant réel, AU MÊME NIVEAU que les trois défauts ci-dessus** (7 oct 2026) : « Notifier les parents » (`VieDeClasseScreen`) affiche « Les parents ont été notifiés. » et les relances (`CahierLiaisonScreen`) affichent une confirmation, alors que `liaisonService` / `absenceService` (`sendRelance…`, `sendNewMot…`, `sendAbsenceNotification`) n'envoient RIEN ; règle : une confirmation n'est affichée que si l'envoi a réellement eu lieu (sinon retirer le bouton ou le texte). Lié à « PUSH À DISTANCE » (ligne plus haut). Rien à coder maintenant.
+- [ ] **« Données fictives » dans la démo** : proposition de texte et d'emplacements dans tasks/demo-plan.md § 8, en attente de ton accord (rien codé).
+- [x] Sauvegardes : catégorie « captures » (dossiers `captures-…`) purgée à 30 jours, test 19 contrôles ; leçon : aucun fichier d'environnement dans un dossier de sauvegarde. **À faire par l'utilisateur** : afficher les NOMS des variables de `2026-09-25_avant_INFRA-1\env.londres` (bloc PowerShell du rapport : 2 lignes, 145 octets) puis décider de la suppression ; rien supprimé.
+- [x] `scripts/adbui.sh` (appuis adb sûrs) conservé dans le dépôt (captures dans %TEMP%, hors dépôt) ; `.gitattributes` : `*.sh` en LF ; `scripts/telecharger-apk-demo.mjs` (lien jamais affiché).
+
+## Session n°7 (4 oct 2026)
+- [x] Nom affiché en variante démo : inventaire dans tasks/noms-affiches.md (« Theka » : 0 occurrence ; « Scolaria » : NOM_APP + logo-mot + a11y + message réseau + e-mail de démo + libellé d'icône). Variante démo : `NOM_APP` = « Carnet Démo » (propre à la variante, via `extra.APP_LIBELLE`), logo-mot remplacé par le texte (`LogoMarque`), e-mail de démo neutre. Edge Functions et e-mails NON touchés. `npm run test:nom-affiche-demo` : 8 écrans parcourus, aucun nom ; contre-épreuve sans variante : le nom est détecté.
+- [x] Textes « fictifs » (variante démo seulement) : Accueil (bas du défilement, 11 px) « Démonstration : famille et données fictives. » ; ouverture « Une famille fictive, aucune donnée réelle. ».
+- [x] Liste des écrans de la variante : tasks/ecrans-variante-demo.md ; captures hors dépôt : ScolariaBackups\captures-demo-web-2026-10-04 (purgées à 30 jours).
+- [ ] **Au renommage** : `ar.ts` `scolariaId` (nom en lettres arabes figé), `SCA-2026-FR-…` (identifiants de démo), clés `@scolaria:…` (lot dédié, tasks/renommage.md).
+- [ ] **Build démo : EN ATTENTE du « go build »** (diff d'app.config.js : 3 lignes modifiées depuis la session 6, eas.json inchangé).

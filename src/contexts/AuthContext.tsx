@@ -1,0 +1,290 @@
+/**
+ * Auth context — manages authentication state for the entire app.
+ *
+ * Roles:
+ *   - 'parent'      → email+password login → child selector → full access
+ *   - 'enseignant'  → email+password login → teacher dashboard directly
+ *   - 'enfant-pin'  → PIN entry → sandbox (limited navigation)
+ *   - 'eleve'       → email+password login (autonomous teen) → student space
+ *
+ * If Supabase is not configured, auto-enters demo mode as parent.
+ */
+
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { Linking, Platform } from 'react-native';
+import type { Session, User } from '@supabase/supabase-js';
+import { supabase } from '../services/supabase';
+import { ENV } from '../services/getEnv';
+import { urlRetourAuth } from '../services/liensAuthApp';
+import { lireRoleProfil } from '../services/roleProfilBase';
+import { deconnexionVolontaire, marquerEvenementAuth } from '../services/sessionExpiree';
+import { viderCachePhotos } from '../services/photoEnfant';
+
+// ─── Types ────────────────────────────────────────────────
+
+export type UserRole = 'parent' | 'eleve' | 'enseignant' | 'enfant-pin';
+
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  isDemo: boolean;
+  role: UserRole | null;
+  setRole: (role: UserRole | null) => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, familyName: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  enterDemoMode: () => void;
+  /** Développement uniquement (undefined hors __DEV__) : démo sans déconnecter le compte réel. */
+  demoDev?: { passer: () => void; revenir: () => Promise<void>; compteReelEnAttente: boolean };
+  enterChildMode: () => void;
+  exitChildMode: () => void;
+  verifyParentPassword: (password: string) => Promise<boolean>;
+}
+
+// ─── Demo user (when Supabase is not configured) ────────
+
+const DEMO_USER: User = {
+  id: 'demo-user-001',
+  email: ENV.VARIANTE_DEMO ? 'demo@exemple.invalid' : 'demo@scolaria.fr', // variante démo : aucune adresse au nom du produit
+  app_metadata: {},
+  user_metadata: { family_name: 'Moreau', role: 'parent' },
+  aud: 'authenticated',
+  created_at: '2025-09-01T00:00:00Z',
+} as User;
+
+// Demo teacher user
+const DEMO_TEACHER: User = {
+  id: 'demo-teacher-001',
+  email: 'prof@scolaria.fr',
+  app_metadata: {},
+  user_metadata: { family_name: 'Laurent', role: 'enseignant' },
+  aud: 'authenticated',
+  created_at: '2025-09-01T00:00:00Z',
+} as User;
+
+// ─── Context ─────────────────────────────────────────────
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  // Lu par l'écouteur Supabase (abonné une seule fois) : un state capturé y resterait figé à false.
+  const isDemoModeRef = useRef(false);
+  isDemoModeRef.current = isDemoMode;
+
+  const isSupabaseConfigured =
+    !!ENV.SUPABASE_URL &&
+    !ENV.SUPABASE_URL.includes('your-');
+
+  // isDemo is true if Supabase not configured OR user explicitly entered demo mode
+  const isDemo = !isSupabaseConfigured || isDemoMode;
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      // Demo mode: don't auto-login, wait for user interaction
+      setLoading(false);
+      return;
+    }
+
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s?.user) {
+        // Rôle de l'interface = profiles.role (la base), jamais les métadonnées modifiables (roleProfil.ts).
+        // `loading` reste vrai tant que le rôle n'est pas lu : la redirection ne part pas sur un rôle provisoire.
+        lireRoleProfil(s.user.id).then((r) => {
+          setRole(r);
+          setLoading(false);
+        });
+        return;
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes — but never override demo users
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, s) => {
+        setSession(s);
+        if (__DEV__) console.log('[session]', event); marquerEvenementAuth(event, !!s);
+        if (isDemoModeRef.current) return; // never wipe demo user on Supabase events
+        // Même compte (rafraîchissement du jeton, INITIAL_SESSION…) : on garde le MÊME objet user,
+        // sinon tout ce qui dépend de user se rejoue (redirection, rechargements) à chaque jeton.
+        // Seuls un changement de compte ou une mise à jour du profil (USER_UPDATED) le remplacent.
+        const suivant = s?.user ?? null;
+        setUser((actuel) =>
+          actuel && suivant && actuel.id === suivant.id && event !== 'USER_UPDATED' ? actuel : suivant,
+        );
+      },
+    );
+
+    return () => subscription.unsubscribe();
+  }, [isSupabaseConfigured]);
+
+  // ─── Développement uniquement : démo SANS déconnecter le compte réel ─────────
+  // La session réelle reste dans le stockage ; « Revenir à mon compte » la relit. Hors développement
+  // (__DEV__ faux), ni les liens ni l'entrée de Famille & paramètres n'existent (code retiré du bundle).
+  //   Famille & paramètres › « Passer en démo » / « Revenir à mon compte »
+  //   adb shell am start -d "scolaria://dev/demo"  ·  adb shell am start -d "scolaria://dev/reel"
+  const [compteReelEnAttente, setCompteReelEnAttente] = useState(false);
+  const passerEnDemoDev = () => {
+    setCompteReelEnAttente(!!session);
+    setUser(DEMO_USER);
+    setRole('parent');
+    setIsDemoMode(true);
+  };
+  const revenirAuCompteDev = async () => {
+    const { data } = await supabase.auth.getSession();
+    const u = data.session?.user ?? null;
+    setCompteReelEnAttente(false);
+    setIsDemoMode(false);
+    setSession(data.session);
+    setUser(u);
+    setRole(!u ? null : await lireRoleProfil(u.id));
+  };
+  const basculeRef = useRef({ passerEnDemoDev, revenirAuCompteDev });
+  basculeRef.current = { passerEnDemoDev, revenirAuCompteDev };
+  useEffect(() => {
+    if (!__DEV__ || Platform.OS === 'web') return;
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (url.includes('dev/demo')) basculeRef.current.passerEnDemoDev();
+      else if (url.includes('dev/reel')) basculeRef.current.revenirAuCompteDev();
+    });
+    return () => sub.remove();
+  }, []);
+
+  const handleSignIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      // Demo mode: detect role by email
+      if (email.includes('prof') || email.includes('enseignant') || email.includes('teacher')) {
+        setUser(DEMO_TEACHER);
+        setRole('enseignant');
+      } else {
+        setUser(DEMO_USER);
+        setRole('parent');
+      }
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    // Rôle de l'interface = profiles.role (la base), jamais les métadonnées modifiables (roleProfil.ts).
+    setRole(data.user ? await lireRoleProfil(data.user.id) : 'parent');
+  };
+
+  const handleSignUp = async (
+    email: string,
+    password: string,
+    familyName: string,
+  ) => {
+    if (!isSupabaseConfigured) {
+      setUser(DEMO_USER);
+      setRole('parent');
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      // Le lien de confirmation revient dans l'app (L3 : LiensAuthRouteur échange le code).
+      options: { data: { family_name: familyName, role: 'parent' }, emailRedirectTo: urlRetourAuth() },
+    });
+    if (error) throw error;
+  };
+
+  const enterDemoMode = () => {
+    setUser(DEMO_USER);
+    setRole('parent');
+    setSession(null);
+    setIsDemoMode(true);
+  };
+
+  const enterChildMode = () => {
+    // Enter sandbox mode — user stays the same (parent's device)
+    // but role switches to enfant-pin
+    if (!user) {
+      // If no user yet (direct PIN from login screen), use demo
+      setUser(DEMO_USER);
+    }
+    setRole('enfant-pin');
+  };
+
+  const exitChildMode = () => {
+    // Return to parent mode — requires password verification first
+    setRole('parent');
+  };
+
+  const verifyParentPassword = async (password: string): Promise<boolean> => {
+    if (!isSupabaseConfigured) {
+      // Demo mode: accept "password" or "demo"
+      return password === 'password' || password === 'demo' || password.length >= 6;
+    }
+
+    // Re-authenticate with Supabase
+    try {
+      const email = user?.email;
+      if (!email) return false;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return !error;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (!isSupabaseConfigured || isDemoMode) {
+      setUser(null);
+      setRole(null);
+      setIsDemoMode(false);
+      return;
+    }
+
+    // Portée « local » : ne ferme que la session de CET appareil. La portée par défaut (« global »)
+    // révoque toutes les sessions du compte, sur tous les appareils (diagnostic du 26 sept 2026 :
+    // tasks/lessons.md, déconnexion du Redmi).
+    viderCachePhotos(); // aucune URL signée de photo d'enfant ne survit à la session
+    deconnexionVolontaire(); const { error } = await supabase.auth.signOut({ scope: 'local' });
+    if (error) throw error;
+    setRole(null);
+    setIsDemoMode(false);
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        isDemo,
+        role,
+        setRole,
+        signIn: handleSignIn,
+        signUp: handleSignUp,
+        signOut: handleSignOut,
+        enterDemoMode,
+        demoDev: __DEV__
+          ? { passer: passerEnDemoDev, revenir: revenirAuCompteDev, compteReelEnAttente }
+          : undefined,
+        enterChildMode,
+        exitChildMode,
+        verifyParentPassword,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
