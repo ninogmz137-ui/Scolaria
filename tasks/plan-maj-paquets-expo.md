@@ -32,9 +32,10 @@ tour complet sur le Redmi. Les versions ci-dessous viennent de `npx expo-doctor`
 Hors liste (déjà conformes, non touchés) : `expo-image-manipulator ~55.0.21`, `react 19.2.0`, `react-native-reanimated 4.2.1` (compatible avec les
 worklets 0.7.x : à revérifier par `expo-doctor` après la mise à jour), `@supabase/supabase-js ^2.99.3` (hors SDK Expo).
 
-**Point d'attention : pager-view.** Le SDK épingle 8.0.0 alors que le dépôt a `^8.0.1`. Le pager est le cœur de la navigation (glissement entre les
-onglets de la top bar). Une rétrogradation peut faire réapparaître un défaut corrigé en 8.0.1. [UNCLEAR : le journal des modifications de 8.0.1 n'a
-pas été lu ; à lire AVANT de rétrograder. Alternative à examiner : garder 8.0.1 et l'écrire dans `expo.install.exclude`, avec la raison.]
+**Point d'attention : pager-view (journal LU le 8 oct., voir `tasks/preparation-maj-paquets-expo.md` § 1).** Le SDK épingle 8.0.0 alors que le dépôt a `^8.0.1`. 8.0.1 ne contient
+qu'UN correctif (l'événement `onPageScroll` n'émet plus un décalage nul à l'arrêt, ce qui faisait sauter l'indicateur) ; le pager porte les 4 onglets
+via `@react-navigation/material-top-tabs`. Rétrograder réintroduirait ce défaut. Recommandation : garder 8.0.1 et l'inscrire dans `expo.install.exclude` avec
+la raison (décision de l'utilisateur).
 
 ## 2. Ce qui risque de casser (par ordre de sensibilité pour CE projet)
 
