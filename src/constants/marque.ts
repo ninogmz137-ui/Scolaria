@@ -12,7 +12,7 @@
  * e-mails gardent le nom du fichier partagé : cette valeur ne vaut que dans l'application. Sans variante : strictement inchangé.
  */
 
-import { NOM_APP as NOM_APP_BASE } from '../../supabase/functions/_shared/marque';
+import { NOM_APP as NOM_APP_BASE, ASSISTANT, PERMISSIONS_IOS } from '../../supabase/functions/_shared/marque';
 import { estVarianteDemo } from '../utils/varianteDemo';
 
 declare const require: ((id: string) => any) | undefined;
@@ -31,5 +31,12 @@ function libelleVariante(): string | undefined {
 
 export const NOM_APP: string = libelleVariante() ?? NOM_APP_BASE;
 
-/** Nom de l'assistant : UNIQUE source des textes affichés (cartes, libellés). Les prompts du modèle gardent le leur (ariaApi.ts). */
-export const NOM_ASSISTANT = 'Aria';
+/**
+ * Assistant : UNIQUE source des textes affichés (cartes, libellés, accessibilité, traductions, export, serveur). Les textes n'écrivent jamais
+ * son nom : ils emploient ces formes (`ASSISTANT.nom`, `.a`, `.avec`, `.pronom`, `.e`…), définies dans supabase/functions/_shared/marque.ts
+ * d'après marque.json (`assistant.generique: true` le fait devenir « l'assistant » partout, sans autre changement de code).
+ */
+export { ASSISTANT, PERMISSIONS_IOS };
+
+/** Nom de l'assistant tel qu'on l'écrit seul (« Aria », ou « L’assistant » en mode générique). */
+export const NOM_ASSISTANT: string = ASSISTANT.nom;

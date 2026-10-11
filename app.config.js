@@ -21,9 +21,16 @@ if (IS_EAS) {
   console.log('[app.config.js] SUPABASE_ANON_KEY:', SUPABASE_ANON_KEY ? 'SET' : 'MISSING');
 }
 
+// Nom affiché et textes de permission iOS : SOURCE PARTAGÉE avec l'application et les Edge Functions (jamais écrits ici).
+const marque = require('./supabase/functions/_shared/marque.json');
+const permissionsIos = (nomAffiche) => ({
+  NSCameraUsageDescription: marque.permissionsIos.appareilPhoto.replace('{app}', nomAffiche),
+  NSPhotoLibraryUsageDescription: marque.permissionsIos.photos.replace('{app}', nomAffiche),
+});
+
 const config = {
   expo: {
-    name: 'Scolaria',
+    name: marque.nomApp,
     slug: 'Scolaria',
     version: '1.0.0',
     orientation: 'portrait',
@@ -45,10 +52,7 @@ const config = {
       buildNumber: '2',
       infoPlist: {
         UIBackgroundModes: ['fetch', 'remote-notification'],
-        NSCameraUsageDescription:
-          'Scolaria utilise la caméra pour scanner les bulletins scolaires.',
-        NSPhotoLibraryUsageDescription:
-          "Scolaria accède à vos photos pour importer des bulletins scolaires.",
+        ...permissionsIos(marque.nomApp),
         ITSAppUsesNonExemptEncryption: false,
       },
     },
@@ -114,7 +118,8 @@ if (process.env.APP_VARIANT === 'demo') {
   const { expo } = config;
   expo.android.package += '.demo';
   expo.name = process.env.APP_LIBELLE_DEMO || 'Démo';
-  delete expo.scheme; expo.ios.infoPlist = { ...expo.ios.infoPlist, NSCameraUsageDescription: `${expo.name} utilise la caméra pour scanner les bulletins scolaires.`, NSPhotoLibraryUsageDescription: `${expo.name} accède à vos photos pour importer des bulletins scolaires.` };
+  delete expo.scheme;
+  expo.ios.infoPlist = { ...expo.ios.infoPlist, ...permissionsIos(expo.name) }; // mêmes textes, au libellé de la variante
   expo.updates = { enabled: false };
   expo.extra = {
     ...expo.extra,
