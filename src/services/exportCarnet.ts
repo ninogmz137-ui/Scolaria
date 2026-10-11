@@ -16,7 +16,7 @@ import * as Sharing from 'expo-sharing';
 import { supabase } from './supabase';
 import { getResponsablesEnfant } from './database';
 import { avecPhotoEnfant, avecPhotosAnnees, construireArchive, nomArchive, nomFichierArchive, texteLisezmoi, type FichierArchive } from './archiveCarnet';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 const NOM_DOSSIER = 'carnet-export';
 const PAGE = 1000;
@@ -197,7 +197,7 @@ export async function exporterCarnet(
       responsables,
       ...donnees,
     },
-    texteLisezmoi({ nomApp: NOM_APP, prenom, genereLe, nbFichiers: fichiers.length, fichiersManquants, sectionsManquantes }),
+    texteLisezmoi({ nomApp: NOM_APP, assistantComplementAvec: ASSISTANT.complementAvec, prenom, genereLe, nbFichiers: fichiers.length, fichiersManquants, sectionsManquantes }),
     fichiers,
   );
   const fichierZip = new File(dossier, nomArchive(prenom, genereLe));

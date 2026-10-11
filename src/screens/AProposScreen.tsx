@@ -28,7 +28,7 @@ import { DeepGroup, DeepRow, DEEP } from '../components/DeepList';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text } from '../components/ui';
 import { FORMULATION_HEBERGEMENT_ARIA } from '../constants/textesLegaux';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 const ICON = { size: 20, color: DEEP.text55, strokeWidth: 2 } as const;
 
@@ -38,12 +38,12 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
   {
     titre: 'Non-substitution',
     texte:
-      'Aria ne remplace jamais un professionnel. Elle ne pose aucun diagnostic : elle suggère et informe.',
+      `${ASSISTANT.nom} ne remplace jamais un professionnel. ${ASSISTANT.Pronom} ne pose aucun diagnostic : ${ASSISTANT.pronom} suggère et informe.`,
     Icon: HeartHandshake,
   },
   {
     titre: 'Transparence',
-    texte: 'Aria explique toujours pourquoi elle fait une suggestion et cite ses sources.',
+    texte: `${ASSISTANT.nom} explique toujours pourquoi ${ASSISTANT.pronom} fait une suggestion et cite ses sources.`,
     Icon: Eye,
   },
   {
@@ -56,7 +56,7 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
   {
     titre: 'Gradation, jamais de panique',
     texte:
-      'Aucune alerte sur un signal isolé : Aria observe une tendance sur 5 jours avant de vous prévenir.',
+      `Aucune alerte sur un signal isolé : ${ASSISTANT.nomMilieu} observe une tendance sur 5 jours avant de vous prévenir.`,
     Icon: Activity,
   },
   {
@@ -73,7 +73,7 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
   {
     titre: 'Protocole d’urgence',
     texte:
-      'Face à un message de détresse, Aria sort de son rôle : aucune réponse automatique, les numéros d’aide s’affichent (3114, 3018, 119, 112).',
+      `Face à un message de détresse, ${ASSISTANT.nomMilieu} sort de son rôle : aucune réponse automatique, les numéros d’aide s’affichent (3114, 3018, 119, 112).`,
     Icon: LifeBuoy,
   },
 ];

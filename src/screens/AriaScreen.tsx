@@ -21,13 +21,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from '../components/ui';
 import { de } from '../utils/francais';
 import { parseAriaResponse } from '../services/ariaActions';
+import { ASSISTANT } from '../constants/marque';
 
 // ─── Helper: build welcome & suggestions per child ───────
 
 function makeWelcomeMessage(childName: string): Message {
   return {
     id: '1',
-    text: `Bonjour ! Je suis Aria, votre assistante pour le carnet ${de(childName)}. Posez-moi une question.`,
+    text: `Bonjour ! Je suis ${ASSISTANT.presentation} pour le carnet ${de(childName)}. Posez-moi une question.`,
     sender: 'aria',
     timestamp: new Date().toLocaleTimeString('fr-FR', {
       hour: '2-digit',
@@ -285,7 +286,7 @@ export default function AriaScreen() {
         />
 
         <UniversalInputBar
-          placeholder="Demandez à Aria…"
+          placeholder={`Demandez ${ASSISTANT.a}…`}
           value={input}
           onChangeText={setInput}
           onSend={() => sendMessage()}

@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: 'Acasă',
     grades: 'Note',
-    aria: 'Aria',
+    aria: '%{assistant_propre}',
     agenda: 'Agendă',
     settings: 'Setări',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: 'Bună ziua',
     childSwitcher: 'Copii',
-    ariaCard: 'Întreabă-o pe Aria',
+    ariaCard: 'Întreabă-o pe %{assistant_propre}',
     ariaHint: 'Pune o întrebare despre școală',
     joyScore: 'Scor de Bucurie',
     joyScorePeriod: 'ultimele 7 zile',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'Aria ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: 'Pune întrebarea ta...',
     thinking: 'Se gândește...',
     online: 'Online',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: 'Alerte la fiecare notă adăugată',
     notifAgenda: 'Remindere agendă',
     notifAgendaSub: 'Evenimente și teme viitoare',
-    notifAria: 'Sfaturi Aria',
+    notifAria: 'Sfaturi %{assistant_propre}',
     notifAriaSub: 'Recomandări personalizate',
     notifCheckin: 'Reminder check-in',
     notifCheckinSub: 'Reminder zilnic Starea Mea',
@@ -106,7 +106,7 @@ export default {
     since: 'din',
     teacher: 'Spațiu profesor',
     teacherAppreciations: 'Aprecieri',
-    teacherAppreciationsSub: 'Generator Aria — bifează, e deja redactat',
+    teacherAppreciationsSub: 'Generator %{assistant_propre} — bifează, e deja redactat',
     teacherWeather: 'Vremea clasei',
     teacherLife: 'Viața clasei',
     teacherLifeSub: 'Fotografii, anunțuri și momente',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: 'Multi-copii',
     slide1Feature3: 'Totul pe mobil',
     slide2Title: 'Cunoaște-o pe',
-    slide2Highlight: 'Aria',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: 'Asistenta ta IA personală analizează rezultatele, detectează tendințele și îți oferă sfaturi adaptate în fiecare zi.',
     slide2Feature1: 'Sfaturi personalizate',
     slide2Feature2: 'Analiza tendințelor',
@@ -237,7 +237,7 @@ export default {
     urgence: 'Urgență',
     attentionMsg: 'Scorul de Bucurie este în scădere în ultimele zile. Discutați cu copilul dumneavoastră.',
     openCheckin: 'Deschide Starea Mea',
-    talkAria: 'Vorbește cu Aria',
+    talkAria: 'Vorbește cu %{assistant_propre}',
     helpNumbers: 'Numere de ajutor',
     helpFree: 'Aceste numere sunt gratuite, confidențiale și disponibile atât pentru copii, cât și pentru părinți.',
     recentAvg: 'Scor mediu pe 5 zile',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: 'Generator de aprecieri',
-      subtitle: 'Bifează competențele, Aria redactează în 2 secunde',
+      subtitle: 'Bifează competențele, %{assistant_propre} redactează în 2 secunde',
       student: 'Elev',
       level: 'Nivel general',
       competences: 'Competențe',
       comment: 'Notă personală',
       generate: 'Generează aprecierea',
-      generating: 'Aria redactează...',
+      generating: '%{assistant_propre} redactează...',
       copy: 'Copiază',
       copied: 'Copiat!',
       rephrase: 'Reformulează',

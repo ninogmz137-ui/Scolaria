@@ -79,6 +79,8 @@ export function construireArchive(donnees: unknown, lisezmoi: string, fichiers: 
 
 export function texteLisezmoi(o: {
   nomApp: string;
+  /** Complément de « conversations … » avec l'assistant (ASSISTANT.complementAvec) : jamais le nom écrit ici. */
+  assistantComplementAvec: string;
   prenom: string;
   genereLe: Date;
   nbFichiers: number;
@@ -92,12 +94,12 @@ export function texteLisezmoi(o: {
     'Contenu :',
     '- donnees.json : toutes les données du carnet que votre compte peut voir, au format JSON (format ouvert,',
     '  lisible par d’autres logiciels) : profil, années, apprentissages, mots et signatures, ajouts au carnet,',
-    '  agenda, messages avec l’école, conversations Aria…',
+    `  agenda, messages avec l’école, conversations ${o.assistantComplementAvec}…`,
     `- fichiers/ : les ${o.nbFichiers} photo(s) et document(s) du carnet. Dans donnees.json, chaque élément`,
     '  indique son fichier (« fichier_dans_archive »).',
     '',
     'Ne sont pas inclus : ce qui appartient à l’autre responsable seul (ses éléments marqués « privé », ses',
-    'conversations privées avec l’enseignant, ses conversations Aria).',
+    `conversations privées avec l’enseignant, ses conversations ${o.assistantComplementAvec}).`,
   ];
   if (o.sectionsManquantes.length || o.fichiersManquants.length) {
     lignes.push('', 'ATTENTION, export incomplet :');

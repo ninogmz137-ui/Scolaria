@@ -21,6 +21,7 @@ import {
 import { type AriaAction, formatAriaActionLabel } from '../../services/ariaActions';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
+import { ASSISTANT } from '../../constants/marque';
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -99,7 +100,7 @@ export default function AriaActionCard({
         </View>
 
         <View style={styles.ariaBadge}>
-          <Text style={styles.ariaBadgeText}>Aria · Action</Text>
+          <Text style={styles.ariaBadgeText}>{`${ASSISTANT.nom} · Action`}</Text>
         </View>
       </View>
 

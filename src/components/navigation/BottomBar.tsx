@@ -28,6 +28,7 @@ import { Search, Edit, Plus, ScanLine } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';
+import { ASSISTANT } from '../../constants/marque';
 import type { ActiveTab } from './TopBar';
 
 // ─── Constantes exportées ────────────────────────────────
@@ -127,11 +128,11 @@ export default function BottomBar({ activeTab, onSearchPress, onActionPress, act
         hitSlop={{ top: 2, bottom: 2 }}
         style={styles.ariaPill}
         accessibilityRole="button"
-        accessibilityLabel="Demander à Aria"
+        accessibilityLabel={`Demander ${ASSISTANT.a}`}
       >
         <ScolariaSymbol size={15} color="#6366F1" />
         <Text style={styles.ariaText} numberOfLines={1}>
-          Demander à Aria…
+          {`Demander ${ASSISTANT.a}…`}
         </Text>
       </Pressable>
 

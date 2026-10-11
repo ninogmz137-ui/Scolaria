@@ -37,7 +37,7 @@ import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { Text, Pressable } from '../components/ui';
 import ChildAvatar from '../components/ChildAvatar';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 // ─── Tokens (COMPONENTS §8) ────────────────────────────
 const NAVY = '#0F172A';
@@ -211,10 +211,10 @@ export default function FamilleParametresScreen() {
         )}
 
         {isFamille && (
-          <DeepGroup title="Aria">
+          <DeepGroup title={ASSISTANT.nom}>
             <DeepRow
               icon={<ScolariaSymbol size={18} color={TEXT55} />}
-              label="Aria activée"
+              label={`${ASSISTANT.nom} activé${ASSISTANT.e}`}
               toggle={prefs.ariaActive}
               onToggle={(v) => {
                 update('ariaActive', v);
@@ -223,7 +223,7 @@ export default function FamilleParametresScreen() {
             />
             <View style={[st.tonesBlock, st.rowBorder]}>
               <Text style={st.rowLabel}>Personnalité</Text>
-              <Text style={st.rowDescription}>Le ton qu’Aria utilise avec vous.</Text>
+              <Text style={st.rowDescription}>{`Le ton ${ASSISTANT.que} utilise avec vous.`}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}

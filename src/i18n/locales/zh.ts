@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: '首页',
     grades: '成绩',
-    aria: 'Aria',
+    aria: '%{assistant_propre}',
     agenda: '日程',
     settings: '设置',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: '你好',
     childSwitcher: '孩子',
-    ariaCard: '询问 Aria',
+    ariaCard: '询问 %{assistant_propre}',
     ariaHint: '提出关于学业的问题',
     joyScore: '快乐指数',
     joyScorePeriod: '最近7天',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'Aria ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: '请输入您的问题...',
     thinking: '思考中...',
     online: '在线',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: '每次添加成绩时提醒',
     notifAgenda: '日程提醒',
     notifAgendaSub: '即将到来的活动和作业',
-    notifAria: 'Aria 建议',
+    notifAria: '%{assistant_propre} 建议',
     notifAriaSub: '个性化推荐',
     notifCheckin: '签到提醒',
     notifCheckinSub: '每日"我的心情"提醒',
@@ -106,7 +106,7 @@ export default {
     since: '注册于',
     teacher: '教师空间',
     teacherAppreciations: '评语',
-    teacherAppreciationsSub: 'Aria 生成器——勾选即可生成评语',
+    teacherAppreciationsSub: '%{assistant_propre} 生成器——勾选即可生成评语',
     teacherWeather: '班级气象',
     teacherLife: '班级生活',
     teacherLifeSub: '照片、公告和精彩瞬间',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: '多孩子管理',
     slide1Feature3: '全部在手机上',
     slide2Title: '认识',
-    slide2Highlight: 'Aria',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: '您的个人AI助手，分析学习成果、发现趋势，每天为您提供个性化建议。',
     slide2Feature1: '个性化建议',
     slide2Feature2: '趋势分析',
@@ -237,7 +237,7 @@ export default {
     urgence: '紧急',
     attentionMsg: '快乐指数近几天有所下降。建议与孩子聊一聊。',
     openCheckin: '打开"我的心情"',
-    talkAria: '与 Aria 交谈',
+    talkAria: '与 %{assistant_propre} 交谈',
     helpNumbers: '求助电话',
     helpFree: '这些电话号码免费、保密，家长和孩子均可拨打。',
     recentAvg: '5天平均分',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: '评语生成器',
-      subtitle: '勾选能力项，Aria 2秒内生成评语',
+      subtitle: '勾选能力项，%{assistant_propre} 2秒内生成评语',
       student: '学生',
       level: '综合水平',
       competences: '能力',
       comment: '个人备注',
       generate: '生成评语',
-      generating: 'Aria 正在撰写...',
+      generating: '%{assistant_propre} 正在撰写...',
       copy: '复制',
       copied: '已复制！',
       rephrase: '改写',

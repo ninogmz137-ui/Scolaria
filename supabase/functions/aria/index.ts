@@ -23,6 +23,7 @@
 import Anthropic from 'npm:@anthropic-ai/sdk@0.128.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { buildEmergencyMessage, detectEmergency } from '../_shared/emergency.ts';
+import { ASSISTANT } from '../_shared/marque.ts';
 
 /** Règle de ton imposée par le serveur (fait foi) : Aria vouvoie toujours le parent. */
 const REGLE_VOUVOIEMENT =
@@ -123,7 +124,7 @@ Deno.serve(async (req) => {
     // Alerte signalée sans le contenu du message (minimisation). Persistance + notification
     // des responsables : à brancher quand la table d'alertes existera (phase A, voir todo).
     console.warn('[aria] ALERTE protocole d’urgence — Anthropic non appelé', { category: emergency, user: userData.user.id });
-    return json({ text: buildEmergencyMessage(emergency), alert: emergency });
+    return json({ text: buildEmergencyMessage(emergency, ASSISTANT), alert: emergency });
   }
 
   // 4 bis. Limite quotidienne PAR COMPTE (audit B6) : un appel est réservé de façon atomique en base (clé service,

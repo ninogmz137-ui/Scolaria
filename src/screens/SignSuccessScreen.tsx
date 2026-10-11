@@ -95,7 +95,7 @@ export default function SignSuccessScreen() {
 
         {/* Aria */}
         <View style={{ marginTop: 8 }}>
-          <AriaInlineCard label="Aria">
+          <AriaInlineCard>
             <Text style={styles.ariaText}>
               Voulez-vous ajouter « {doc.title} » à l’agenda {de(prenom)} avec un rappel la veille ?
             </Text>

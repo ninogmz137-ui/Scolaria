@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: 'Home',
     grades: 'Voti',
-    aria: 'Aria',
+    aria: '%{assistant_propre}',
     agenda: 'Agenda',
     settings: 'Impostazioni',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: 'Buongiorno',
     childSwitcher: 'Bambini',
-    ariaCard: 'Chiedi ad Aria',
+    ariaCard: 'Chiedi ad %{assistant_propre}',
     ariaHint: 'Fai una domanda sulla scuola',
     joyScore: 'Punteggio di Gioia',
     joyScorePeriod: 'Ultimi 7 giorni',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'Aria ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: 'Fai la tua domanda...',
     thinking: 'Sta pensando...',
     online: 'Online',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: 'Avvisi per ogni voto aggiunto',
     notifAgenda: 'Promemoria agenda',
     notifAgendaSub: 'Eventi e compiti in arrivo',
-    notifAria: 'Consigli Aria',
+    notifAria: 'Consigli %{assistant_propre}',
     notifAriaSub: 'Raccomandazioni personalizzate',
     notifCheckin: 'Promemoria check-in',
     notifCheckinSub: 'Promemoria quotidiano Come mi sento',
@@ -106,7 +106,7 @@ export default {
     since: 'dal',
     teacher: 'Area insegnante',
     teacherAppreciations: 'Valutazioni',
-    teacherAppreciationsSub: 'Generatore Aria — spunta, e viene redatto',
+    teacherAppreciationsSub: 'Generatore %{assistant_propre} — spunta, e viene redatto',
     teacherWeather: 'Meteo della classe',
     teacherLife: 'Vita di classe',
     teacherLifeSub: 'Foto, annunci e momenti',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: 'Multi-bambino',
     slide1Feature3: 'Tutto su mobile',
     slide2Title: 'Incontra',
-    slide2Highlight: 'Aria',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: 'La tua assistente IA personale analizza i risultati, rileva le tendenze e ti dà consigli personalizzati ogni giorno.',
     slide2Feature1: 'Consigli personalizzati',
     slide2Feature2: 'Analisi delle tendenze',
@@ -237,7 +237,7 @@ export default {
     urgence: 'Urgenza',
     attentionMsg: 'Il Punteggio di Gioia è in calo negli ultimi giorni. Pensate a parlare con vostro figlio.',
     openCheckin: 'Apri Come mi sento',
-    talkAria: 'Parla con Aria',
+    talkAria: 'Parla con %{assistant_propre}',
     helpNumbers: 'Numeri di aiuto',
     helpFree: 'Questi numeri sono gratuiti, riservati e disponibili sia per i bambini che per i genitori.',
     recentAvg: 'Punteggio medio su 5 giorni',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: 'Generatore di valutazioni',
-      subtitle: 'Spunta le competenze, Aria redige in 2 secondi',
+      subtitle: 'Spunta le competenze, %{assistant_propre} redige in 2 secondi',
       student: 'Alunno',
       level: 'Livello generale',
       competences: 'Competenze',
       comment: 'Nota personale',
       generate: 'Genera la valutazione',
-      generating: 'Aria sta scrivendo...',
+      generating: '%{assistant_propre} sta scrivendo...',
       copy: 'Copia',
       copied: 'Copiato!',
       rephrase: 'Riformula',

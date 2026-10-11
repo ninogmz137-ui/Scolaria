@@ -31,6 +31,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { ASSISTANT } from '../constants/marque';
 import { Text } from '../components/ui';
 
 // ─── Route params ────────────────────────────────────────────────────────────
@@ -265,7 +266,7 @@ const EventDetailScreen: React.FC = () => {
         <View style={{ width: 10 }} />
         <TouchableOpacity style={styles.evBtnDark} activeOpacity={0.85}>
           <ScolariaSymbol size={13} color={C.white} />
-          <Text style={[styles.evBtnDarkText, { marginLeft: 7 }]}>Demander à Aria</Text>
+          <Text style={[styles.evBtnDarkText, { marginLeft: 7 }]}>{`Demander ${ASSISTANT.a}`}</Text>
         </TouchableOpacity>
       </View>
     </View>

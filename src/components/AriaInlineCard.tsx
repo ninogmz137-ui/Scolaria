@@ -11,6 +11,7 @@ import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from './ScolariaSymbol';
 import { Text } from './ui';
+import { ASSISTANT } from '../constants/marque';
 
 interface AriaInlineCardProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ interface AriaInlineCardProps {
 
 export const AriaInlineCard: React.FC<AriaInlineCardProps> = ({
   children,
-  label = 'Aria',
+  label = ASSISTANT.nom,
 }) => (
   <LinearGradient
     colors={['#EEF2FF', '#F0FDFA']}

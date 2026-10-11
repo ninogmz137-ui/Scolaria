@@ -67,5 +67,25 @@ verifier('variante démo : textes iOS au libellé de la variante, mêmes gabarit
 delete process.env.APP_VARIANT;
 delete process.env.APP_LIBELLE_DEMO;
 
+// ── Le TEXTE JURIDIQUE validé (hébergement + assistant) est reproduit MOT POUR MOT avec le nom actuel ─────────────────────
+// (le fichier src/constants/textesLegaux.ts est compilé ici avec les formes réelles de l'assistant ; la formulation validée est celle de CLAUDE.md)
+{
+  const ts = (await import('typescript')).default;
+  const code = readFileSync(join(racine, 'src', 'constants', 'textesLegaux.ts'), 'utf8');
+  const js = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+  const evaluer = (assistant: unknown): string => {
+    const m: { exports: Record<string, string> } = { exports: {} };
+    new Function('require', 'module', 'exports', js)(() => ({ ASSISTANT: assistant }), m, m.exports);
+    return m.exports.FORMULATION_HEBERGEMENT_ARIA;
+  };
+  const VALIDE =
+    'Les données du carnet de votre enfant sont hébergées dans l’Union européenne, à Paris. Aria s’appuie sur un modèle d’Anthropic, société américaine. ' +
+    'Quand vous utilisez Aria, vos messages, l’historique de la conversation, le prénom et le niveau scolaire de l’enfant sont traités hors de l’Union européenne. ' +
+    'Anthropic les efface sous 30 jours, sauf s’ils sont signalés pour non-respect de ses règles d’utilisation (conservation jusqu’à 2 ans). ' +
+    'Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d’autre du carnet. En cas de message de détresse, rien n’est envoyé à Aria.';
+  verifier('texte juridique validé : identique mot pour mot avec le nom actuel', evaluer(aria), VALIDE);
+  verifier('texte juridique en mode générique : seul le nom change', evaluer(generique).replace(/L’assistant|l’assistant|à l’assistant/g, 'Aria').replace('envoyé Aria', 'envoyé à Aria'), VALIDE);
+}
+
 console.log(`\n${ok} réussis, ${echecs} échec(s)`);
 process.exit(echecs ? 1 : 0);

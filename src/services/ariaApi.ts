@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { de } from '../utils/francais';
 import { ariaAutorisee } from './ariaPreferences';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -36,14 +36,20 @@ interface AriaFunctionResponse {
 // ─── Constants ────────────────────────────────────────────
 
 /** Seul message d'erreur montré à l'utilisateur. */
-export const ARIA_UNAVAILABLE = 'Aria est momentanément indisponible.';
-/** Plafond quotidien d'appels à Aria atteint (par compte, jour de Paris) : ce que dit l'app, sans détail technique. */
+export const ARIA_UNAVAILABLE = `${ASSISTANT.nom} est momentanément indisponible.`;
+/** Plafond quotidien d'appels à l'assistant atteint (par compte, jour de Paris) : ce que dit l'app, sans détail technique. */
 export function messageLimiteAria(limite?: number): string {
   const n = typeof limite === 'number' && limite > 0 ? `${limite} questions` : 'questions';
-  return `Vous avez atteint la limite de ${n} à Aria pour aujourd’hui. Aria sera de nouveau disponible demain, à partir de minuit (heure de Paris). Le reste de l’application n’est pas concerné.`;
+  return `Vous avez atteint la limite de ${n} ${ASSISTANT.a} pour aujourd’hui. ${ASSISTANT.nom} sera de nouveau disponible demain, à partir de minuit (heure de Paris). Le reste de l’application n’est pas concerné.`;
 }
-/** Aria désactivée dans Famille & paramètres (ou information pas encore lue) : rien n'a été envoyé. */
-export const ARIA_DESACTIVEE = 'Aria est désactivée. Aucun message n’a été envoyé.';
+/** Assistant désactivé dans Famille & paramètres (ou information pas encore lue) : rien n'a été envoyé. */
+export const ARIA_DESACTIVEE = `${ASSISTANT.nom} est désactivé${ASSISTANT.e}. Aucun message n’a été envoyé.`;
+
+/**
+ * Présentation de l'assistant dans les consignes du modèle : « Aria, l'assistante IA » avec le nom propre, « l'assistant IA » en mode générique.
+ * Les consignes passent par les mêmes formes que l'affichage : aucun nom écrit en dur.
+ */
+const IDENTITE_MODELE = ASSISTANT.generique ? 'l’assistant IA' : `${ASSISTANT.nomPropre}, l’assistante IA`;
 
 // ─── System prompt builder ───────────────────────────────
 
@@ -53,11 +59,11 @@ export const ARIA_DESACTIVEE = 'Aria est désactivée. Aucun message n’a été
  */
 function buildRealChildSystemPrompt(prenom: string, niveau?: string | null): string {
   const niveauStr = niveau ? ` (${niveau})` : '';
-  return `Tu es Aria, l'assistante IA de ${NOM_APP}, le carnet de scolarité numérique.
+  return `Tu es ${IDENTITE_MODELE} de ${NOM_APP}, le carnet de scolarité numérique.
 
 ═══ TON RÔLE ═══
 - Tu accompagnes un parent dans le suivi scolaire de ${prenom}${niveauStr}, et de cet enfant seulement.
-- Tu es bienveillante, encourageante et constructive, jamais alarmiste.
+- Tu es bienveillant${ASSISTANT.e}, encourageant${ASSISTANT.e} et constructif${ASSISTANT.generique ? '' : 've'}, jamais alarmiste.
 - Tu parles en français, de manière claire et chaleureuse, et tu VOUVOIES toujours le parent.
 
 ═══ TES RÈGLES ═══
@@ -80,9 +86,9 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 `;
 }
 
-/** Compte sans enfant enregistré : Aria répond de façon générale, sans données d'enfant. */
+/** Compte sans enfant enregistré : l'assistant répond de façon générale, sans données d'enfant. */
 function buildNoChildSystemPrompt(): string {
-  return `Tu es Aria, l'assistante IA de ${NOM_APP}, le carnet de scolarité numérique.
+  return `Tu es ${IDENTITE_MODELE} de ${NOM_APP}, le carnet de scolarité numérique.
 
 Aucun enfant n'est encore ajouté au carnet de ce parent.
 - Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée), en vouvoyant toujours le parent.
@@ -125,7 +131,7 @@ export async function sendToAria(
   const emergency = detectEmergency(userMessage);
   if (emergency) {
     if (!options?.isDemo) recordEmergencyAlert(emergency, childId);
-    return buildEmergencyMessage(emergency);
+    return buildEmergencyMessage(emergency, ASSISTANT);
   }
 
   // Aria désactivée, ou information pas encore lue (L10, D8) : AUCUN appel au modèle.
@@ -181,13 +187,13 @@ function buildFallbackResponses(childId: string): string[] {
   const child = getChildContext(childId);
   if (!child) {
     return [
-      'Bonjour ! Je suis Aria. Ajoutez le carnet d’un enfant pour découvrir des réponses adaptées à son niveau.',
+      `Bonjour ! Je suis ${ASSISTANT.nomMilieu}. Ajoutez le carnet d’un enfant pour découvrir des réponses adaptées à son niveau.`,
     ];
   }
   const { profile, grades, activities, upcomingEvents } = child;
   const name = profile.name.split(' ')[0]; // First name only
 
-  const intro = `Bonjour ! Je suis Aria. En mode démo, je vous propose des exemples adaptés à ${name} pour découvrir ${NOM_APP}.`;
+  const intro = `Bonjour ! Je suis ${ASSISTANT.nomMilieu}. En mode démo, je vous propose des exemples adaptés à ${name} pour découvrir ${NOM_APP}.`;
 
   if (grades.length === 0) {
     // Maternelle — no grades

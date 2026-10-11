@@ -16,6 +16,7 @@ import { Box, Text, Pressable, HStack, VStack, Spinner, TextInput } from '../../
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
+import { ASSISTANT } from '../../constants/marque';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { saveAppreciation } from '../../services/teacherService';
@@ -267,7 +268,7 @@ export default function AppreciationsScreen() {
         <Text className="text-[42px] mb-2">✍️</Text>
         <Text className="text-[22px] font-black mb-1" style={{ color: '#FFFFFF' }}>Générateur d'appréciations</Text>
         <Text className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.8)' }}>
-          Cochez les compétences, Aria rédige en 2 secondes
+          {`Cochez les compétences, ${ASSISTANT.nomMilieu} rédige en 2 secondes`}
         </Text>
       </LinearGradient>
 
@@ -429,7 +430,7 @@ export default function AppreciationsScreen() {
               {generating ? (
                 <>
                   <Spinner color={Colors.white} size="small" />
-                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>Aria rédige...</Text>
+                  <Text className="text-[17px] font-extrabold" style={{ color: Colors.white }}>{`${ASSISTANT.nom} rédige...`}</Text>
                 </>
               ) : (
                 <>
@@ -512,7 +513,7 @@ export default function AppreciationsScreen() {
             <HStack className="items-center justify-between mb-3.5">
               <HStack className="items-center gap-1.5 px-2.5 py-1 rounded-[10px]" style={{ backgroundColor: Colors.violet + '20' }}>
                 <Text className="text-sm" style={{ color: Colors.cyan }}>✦</Text>
-                <Text className="text-xs font-bold" style={{ color: Colors.violet }}>Aria</Text>
+                <Text className="text-xs font-bold" style={{ color: Colors.violet }}>{ASSISTANT.nom}</Text>
               </HStack>
               <Text className="text-sm font-bold" style={{ color: '#0F172A' }}>{studentName}</Text>
             </HStack>

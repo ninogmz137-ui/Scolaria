@@ -8,7 +8,7 @@ import { Box, Text, Pressable, HStack } from '../ui';
 import { Ionicons } from '@expo/vector-icons';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
 import ScolariaSymbol from '../ScolariaSymbol';
-import { NOM_APP } from '../../constants/marque';
+import { NOM_APP, ASSISTANT } from '../../constants/marque';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -125,7 +125,7 @@ export default function SuperPowerBadge({
         >
           <ScolariaSymbol size={12} color={accentColor} />
           <Text className="text-[10px] font-bold" style={{ color: accentColor }}>
-            Observé par Aria
+            {`Observé ${ASSISTANT.par}`}
           </Text>
         </HStack>
       </HStack>

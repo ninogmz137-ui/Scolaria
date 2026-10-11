@@ -46,8 +46,8 @@ verifier('pilule « Ajouter au carnet », 40 dp + hitSlop 2 + 2 = 44', /height: 
 verifier('la pilule ouvre la feuille existante (demanderAjoutCarnet)', carte.includes("demanderAjoutCarnet({ onglet: 'Accueil' })"), true);
 const accueil = src('src/screens/AccueilScreen.tsx');
 verifier('Accueil : la carte « vide » n\'est montrée que si carnetVide', /\{carnetVide \? \(\s*<CarnetVide prenom=\{prenom\} \/>/.test(accueil), true);
-verifier('Accueil : carte de l\'assistant — texte exact en compte réel', accueil.includes("Elle ne lit pas le carnet ${de(prenom)} : elle reçoit seulement son prénom, son niveau et vos messages."), true);
-verifier('Accueil : le nom de l\'assistant passe par NOM_ASSISTANT', accueil.includes('NOM_ASSISTANT') && !/ariaLabel\}>ARIA</.test(accueil), true);
+verifier('Accueil : carte de l\'assistant — texte exact en compte réel (par les formes de l\'assistant)', accueil.includes("${ASSISTANT.Pronom} ne lit pas le carnet ${de(prenom)} : ${ASSISTANT.pronom} reçoit seulement son prénom, son niveau et vos messages."), true);
+verifier('Accueil : le nom de l\'assistant passe par ASSISTANT (marque.json)', accueil.includes('ASSISTANT.nom.toUpperCase()') && !/ariaLabel\}>ARIA</.test(accueil), true);
 verifier('NOM_ASSISTANT défini une seule fois (constants/marque.ts)', (src('src/constants/marque.ts').match(/export const NOM_ASSISTANT/g) ?? []).length, 1);
 
 console.log(`\n${ok} réussis, ${echecs} échec(s)`);

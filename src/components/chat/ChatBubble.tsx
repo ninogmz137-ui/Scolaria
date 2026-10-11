@@ -11,6 +11,7 @@ import {
 import AriaOrb from '../AriaOrb';
 import TypingIndicator from './TypingIndicator';
 import SimpleMarkdown from './SimpleMarkdown';
+import { ASSISTANT } from '../../constants/marque';
 
 // ─── Action button config ─────────────────────────────────
 
@@ -81,13 +82,13 @@ export default function ChatBubble({ message, isTyping, onAction }: Props) {
       >
         {isAria && (
           <Text className="text-xs font-bold mb-1" style={{ color: ARIA_INDIGO }}>
-            Aria ✦
+            {`${ASSISTANT.nom} ✦`}
           </Text>
         )}
         {isTyping ? (
           <HStack className="items-center gap-1.5">
             <Text className="text-sm italic" style={{ color: Colors.textSecondary }}>
-              Aria réfléchit
+              {`${ASSISTANT.nom} réfléchit`}
             </Text>
             <TypingIndicator />
           </HStack>

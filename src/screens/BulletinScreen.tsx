@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { ASSISTANT } from '../constants/marque';
 import { Text } from '../components/ui';
 import { AucunEnfantPage, PageVide } from '../components/AucunEnfant';
 import { aDesNotes } from '../utils/niveau';
@@ -200,7 +201,7 @@ function BulletinScreenContent() {
             >
               <View style={styles.ariaHeader}>
                 <ScolariaSymbol size={18} color={C.indigo} />
-                <Text style={styles.ariaLabel}>ARIA</Text>
+                <Text style={styles.ariaLabel}>{ASSISTANT.nom.toUpperCase()}</Text>
               </View>
               <Text style={styles.ariaText}>
                 Trimestre solide en hausse. Forts en maths, anglais et SVT.

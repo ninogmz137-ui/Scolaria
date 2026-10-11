@@ -13,6 +13,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
+import { ASSISTANT } from '../constants/marque';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ const UNIFIED_BASE = {
   accentDark: '#3730A3',
   tabActive: '#4338CA',
   ariaColor: '#4338CA',
-  ariaLabel: 'Aria',
+  ariaLabel: ASSISTANT.nom,
   backgroundColor: '#F2F1EE',
 };
 

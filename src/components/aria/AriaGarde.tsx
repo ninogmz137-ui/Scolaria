@@ -16,6 +16,7 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import ScolariaSymbol from '../ScolariaSymbol';
 import { FORMULATION_HEBERGEMENT_ARIA } from '../../constants/textesLegaux';
+import { ASSISTANT } from '../../constants/marque';
 import {
   enregistrerPreferencesAria,
   lirePreferencesAria,
@@ -52,23 +53,22 @@ export default function AriaGarde({ children }: { children: ReactNode }) {
         <View style={st.symbole}>
           <ScolariaSymbol size={40} color="#4338CA" />
         </View>
-        <Text style={st.titre}>{premiereFois ? 'Avant d’utiliser Aria' : 'Aria est désactivée'}</Text>
+        <Text style={st.titre}>{premiereFois ? `Avant d’utiliser ${ASSISTANT.nomMilieu}` : `${ASSISTANT.nom} est désactivé${ASSISTANT.e}`}</Text>
         {premiereFois ? (
           <>
             <Text style={st.texte}>
-              Aria vous aide à suivre le carnet de votre enfant. Elle ne pose aucun diagnostic : elle suggère et informe.
+              {`${ASSISTANT.nom} vous aide à suivre le carnet de votre enfant. ${ASSISTANT.Pronom} ne pose aucun diagnostic : ${ASSISTANT.pronom} suggère et informe.`}
             </Text>
             <Text style={st.texte}>{FORMULATION_HEBERGEMENT_ARIA}</Text>
-            <Text style={st.texteDiscret}>Vous pourrez désactiver Aria à tout moment dans Famille & paramètres.</Text>
+            <Text style={st.texteDiscret}>{`Vous pourrez désactiver ${ASSISTANT.nomMilieu} à tout moment dans Famille & paramètres.`}</Text>
           </>
         ) : (
           <Text style={st.texte}>
-            Aucun message n’est envoyé à Aria tant qu’elle est désactivée. Vous pouvez la réactiver ici ou dans
-            Famille & paramètres.
+            {`Aucun message n’est envoyé ${ASSISTANT.a} tant qu’${ASSISTANT.pronom} est désactivé${ASSISTANT.e}. Vous pouvez ${ASSISTANT.le} réactiver ici ou dans Famille & paramètres.`}
           </Text>
         )}
         <Pressable onPress={activer} style={({ pressed }) => [st.primaire, pressed && st.presse]} accessibilityRole="button">
-          <Text style={st.primaireTexte}>Activer Aria</Text>
+          <Text style={st.primaireTexte}>{`Activer ${ASSISTANT.nomMilieu}`}</Text>
         </Pressable>
         {premiereFois && (
           <Pressable onPress={pasMaintenant} style={st.ghost} accessibilityRole="button">

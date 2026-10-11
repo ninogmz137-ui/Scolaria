@@ -37,6 +37,7 @@ import WallpaperBackground from '../../components/WallpaperBackground';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { ASSISTANT } from '../../constants/marque';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
@@ -292,7 +293,7 @@ function AriaHomeScreenContenu() {
       } catch {
         const errMsg: Message = {
           id: `e_${Date.now() + 1}`,
-          text: '📡 Impossible de contacter Aria pour le moment. Réessaie dans quelques instants.',
+          text: `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
           sender: 'aria',
           timestamp: nowTime(),
         };
@@ -506,7 +507,7 @@ function AriaHomeScreenContenu() {
                 <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : orbState} />
               </View>
             )}
-            <Text style={styles.topTitle}>Aria</Text>
+            <Text style={styles.topTitle}>{ASSISTANT.nom}</Text>
             <Text style={styles.topSubtitle} numberOfLines={1}>
               {isConversationMode ? (activeTitle ?? 'Conversation') : 'Étendu'}
             </Text>
@@ -590,7 +591,7 @@ function AriaHomeScreenContenu() {
 
         {/* ─── Barre de saisie (toujours visible) ───────────── */}
         <UniversalInputBar
-          placeholder="Demandez à Aria…"
+          placeholder={`Demandez ${ASSISTANT.a}…`}
           value={input}
           onChangeText={setInput}
           onSend={() => sendMessage()}
@@ -630,7 +631,7 @@ function AriaHomeScreenContenu() {
         <View style={styles.drawerHeader}>
           <Text style={styles.drawerBrand}>
             <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
-            <Text style={styles.drawerTitleARIA}>{'Aria'}</Text>
+            <Text style={styles.drawerTitleARIA}>{ASSISTANT.nom}</Text>
           </Text>
           <View style={styles.drawerOrbWrap} pointerEvents="none">
             <AriaOrb state={isTyping ? 'thinking' : orbState} size={52} />

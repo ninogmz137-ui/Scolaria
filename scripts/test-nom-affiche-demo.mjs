@@ -147,8 +147,14 @@ await ecran('Accueil Emma', { clic: 'Accueil', attendu: ['Emma', '3ème', 'Coll�
 await ecran('Messages Emma', { clic: 'Messages', attendu: ['Emma'], interdit: SANS_PHOTO });
 await changerEnfant('Emma', 'Léa');
 const fam = await ecran('Famille et paramètres', { clic: 'Famille et paramètres', attendu: ['Mode démo'], interdit: ['Notifications', 'Résumé à 18h', 'Mots et messages', 'Silence de 20h'] });
-if (await evalue(CLIQUE('À propos'))) await ecran('A propos');
-else console.log('INFO   À propos : entrée non trouvée à l\'écran (non parcouru)');
+// « À propos » : défilé jusqu'en bas ; la formulation juridique validée (hébergement + assistant) y figure mot pour mot.
+if (await evalue(CLIQUE('À propos'))) {
+  await ecran('A propos', { defiler: true, attendu: ['3. Souveraineté des données'] });
+  // Les principes sont repliés : on ouvre celui qui porte la formulation juridique.
+  await ecran('A propos principe ouvert', { clic: '3. Souveraineté des données', attendu: ['Aria s’appuie sur un modèle d’Anthropic, société américaine.', 'sont hébergées dans l’Union européenne, à Paris.'] });
+} else {
+  ok(false, 'À propos : entrée non trouvée à l\'écran (famille « texte juridique » non parcourue)');
+}
 
 // ── Passes à DATE SIMULÉE : la règle « Aujourd'hui seulement les jours d'école » ne dépend pas du jour où le test tourne ──────
 // `Date` est remplacée AVANT le chargement de l'app (décalage constant : l'heure continue de s'écouler) ; le stockage du navigateur est vidé
@@ -179,6 +185,25 @@ async function passeDateSimulee(cible, presente) {
 }
 await passeDateSimulee(prochain(1), true); // un lundi
 await passeDateSimulee(prochain(3), false); // un mercredi
+
+// ── Écran d'information de l'assistant (famille « texte avec le nom de l'assistant ») : première ouverture, assistant encore désactivé ──
+{
+  await cdp('Storage.clearDataForOrigin', { origin: new URL(URL_APP).origin, storageTypes: 'all' });
+  await cdp('Page.navigate', { url: URL_APP });
+  await attendre(12000);
+  ok(await evalue(CLIQUE('Essayer en mode démo')), 'assistant : « Essayer en mode démo » activé');
+  await attendre(3000);
+  await ecran('Assistant information', {
+    clic: 'Demander à Aria',
+    attendu: [
+      'Avant d’utiliser Aria',
+      'Activer Aria',
+      'Pas maintenant',
+      'Aria vous aide à suivre le carnet de votre enfant. Elle ne pose aucun diagnostic : elle suggère et informe.',
+      'Vous pourrez désactiver Aria à tout moment dans Famille & paramètres.',
+    ],
+  });
+}
 
 try { ws.close(); } catch { /* fin */ }
 nav.kill();

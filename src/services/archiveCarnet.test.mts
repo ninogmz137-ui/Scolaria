@@ -20,14 +20,14 @@ verifier('date invalide ignorée', nomFichierArchive('Livret', 'hier', id, 'pdf'
 verifier('nom de l’archive', nomArchive('Léa', new Date('2026-09-28T10:00:00Z')), 'carnet-lea-2026-09-28.zip');
 
 const photo = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9]);
-const lisezmoi = texteLisezmoi({ nomApp: 'App', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: [], sectionsManquantes: [] });
+const lisezmoi = texteLisezmoi({ nomApp: 'App', assistantComplementAvec: 'Assistant d’essai', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: [], sectionsManquantes: [] });
 const zip = construireArchive({ enfant: { prenom: 'Léa' }, carnet: [{ titre: 'Dessin', fichier_dans_archive: 'fichiers/a.jpg' }] }, lisezmoi, [{ chemin: 'a.jpg', octets: photo }]);
 const contenu = unzipSync(zip);
 verifier('archive : 3 entrées', Object.keys(contenu).sort(), ['LISEZMOI.txt', 'donnees.json', 'fichiers/a.jpg']);
 verifier('données relues à l’identique (accents compris)', JSON.parse(strFromU8(contenu['donnees.json'])).enfant.prenom, 'Léa');
 verifier('fichier relu octet pour octet', Array.from(contenu['fichiers/a.jpg']), Array.from(photo));
 verifier('LISEZMOI sans « incomplet » quand tout est là', /incomplet/.test(strFromU8(contenu['LISEZMOI.txt'])), false);
-const incomplet = texteLisezmoi({ nomApp: 'App', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: ['x'], sectionsManquantes: ['agenda'] });
+const incomplet = texteLisezmoi({ nomApp: 'App', assistantComplementAvec: 'Assistant d’essai', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: ['x'], sectionsManquantes: ['agenda'] });
 verifier('LISEZMOI signale un export incomplet', /incomplet[\s\S]*agenda[\s\S]*fichiers non téléchargés : 1/.test(incomplet), true);
 
 // Photo de l'enfant dans l'export

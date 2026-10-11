@@ -27,8 +27,8 @@ export default function EtatErreur({
   const { signOut } = useAuth();
   const [essai, setEssai] = useState(false);
   const { titre, texte: brut } = MESSAGES_ERREUR[type];
-  // Le texte de base nomme « Scolaria » : le nom AFFICHÉ vient de NOM_APP (variante démo : « Carnet Démo »).
-  const texte = brut.replace(/Scolaria/g, NOM_APP);
+  // Le texte de base porte le gabarit {app} : le nom AFFICHÉ vient de NOM_APP (variante démo : « Carnet Démo »).
+  const texte = brut.split('{app}').join(NOM_APP);
   const Icone = type === 'reseau' ? CloudOff : type === 'session' ? LogIn : ServerCrash;
 
   const agir = async () => {

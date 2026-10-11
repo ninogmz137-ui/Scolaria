@@ -42,7 +42,7 @@ for (const [text, expected] of CASES) {
 // Message fixe : tous les numéros, celui de la catégorie en premier, 112 en dernier, jamais le 3020.
 const FIRST: Record<EmergencyCategory, string> = { suicide: '3114', harcelement: '3018', maltraitance: '119' };
 for (const category of Object.keys(FIRST) as EmergencyCategory[]) {
-  const message = buildEmergencyMessage(category);
+  const message = buildEmergencyMessage(category, { nom: 'Assistant d’essai', e: 'e' });
   const order = ['3114', '3018', '119', '112'].map((n) => [n, message.indexOf(n)] as const);
   const missing = order.filter(([, i]) => i < 0).map(([n]) => n);
   const firstNumber = order.filter(([n]) => n !== '112').sort((a, b) => a[1] - b[1])[0][0];

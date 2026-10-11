@@ -20,7 +20,7 @@ import ro from './locales/ro';
 import zh from './locales/zh';
 import wo from './locales/wo';
 import it from './locales/it';
-import { NOM_APP } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 // ─── Supported languages ─────────────────────────────────
 
@@ -121,7 +121,19 @@ export function isRTL(): boolean {
 
 export function t(key: string, options?: Record<string, any>): string {
   // %{app} = nom affiché de l'application (constants/marque) : renommage à un seul endroit.
-  return i18n.t(key, { app: NOM_APP, ...options });
+  // %{assistant…} = nom de l'assistant et ses formes françaises (marque.json : assistant.generique le fait devenir « l'assistant ») :
+  //   assistant (« Aria » / « L’assistant »), assistant_milieu, assistant_a, assistant_avec, assistant_complement, assistant_propre
+  //   (le nom propre, pour les langues autres que le français, où la forme générique reste à écrire).
+  return i18n.t(key, {
+    app: NOM_APP,
+    assistant: ASSISTANT.nom,
+    assistant_milieu: ASSISTANT.nomMilieu,
+    assistant_a: ASSISTANT.a,
+    assistant_avec: ASSISTANT.avec,
+    assistant_complement: ASSISTANT.complement,
+    assistant_propre: ASSISTANT.nomPropre,
+    ...options,
+  });
 }
 
 export default i18n;

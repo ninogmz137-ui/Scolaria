@@ -43,7 +43,7 @@ export function leverSiErreur(error: unknown): void {
 export const MESSAGES_ERREUR: Record<TypeErreur, { titre: string; texte: string }> = {
   reseau: {
     titre: 'Pas de connexion',
-    texte: 'Impossible de joindre Scolaria. Vérifiez votre connexion internet, puis réessayez. Rien n’est perdu.',
+    texte: 'Impossible de joindre {app}. Vérifiez votre connexion internet, puis réessayez. Rien n’est perdu.',
   },
   session: {
     titre: 'Session expirée',

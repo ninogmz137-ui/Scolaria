@@ -47,7 +47,7 @@ import { useCarnetReel } from '../hooks/useCarnetReel';
 import { useAccueilReel } from '../hooks/useAccueilReel';
 import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
-import { NOM_APP, NOM_ASSISTANT } from '../constants/marque';
+import { NOM_APP, ASSISTANT } from '../constants/marque';
 import CarnetVide from '../components/accueil/CarnetVide';
 import { useCarnetVide } from '../hooks/useCarnetVide';
 import { ENV } from '../services/getEnv';
@@ -439,12 +439,12 @@ export default function AccueilScreen() {
               <ScolariaSymbol size={18} color={C.indigo} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.ariaLabel}>{NOM_ASSISTANT.toUpperCase()}</Text>
+              <Text style={styles.ariaLabel}>{ASSISTANT.nom.toUpperCase()}</Text>
               <Text style={styles.ariaMessage}>
                 {accueil.aria ||
                   (isDemo
-                    ? `Posez une question à ${NOM_ASSISTANT}.`
-                    : `Posez une question à ${NOM_ASSISTANT}. Elle ne lit pas le carnet ${de(prenom)} : elle reçoit seulement son prénom, son niveau et vos messages.`)}
+                    ? `Posez une question ${ASSISTANT.a}.`
+                    : `Posez une question ${ASSISTANT.a}. ${ASSISTANT.Pronom} ne lit pas le carnet ${de(prenom)} : ${ASSISTANT.pronom} reçoit seulement son prénom, son niveau et vos messages.`)}
               </Text>
             </View>
           </TouchableOpacity>

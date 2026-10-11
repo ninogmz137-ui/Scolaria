@@ -45,7 +45,22 @@ const ancienChemin = path.join(tmp, 'ancien.config.cjs');
 fs.writeFileSync(ancienChemin, execSync(`git show ${AVANT}:app.config.js`, { encoding: 'utf8' }));
 const ancien = charger(ancienChemin, {});
 const actuel = charger(path.resolve('app.config.js'), {});
-ok(JSON.stringify(ancien) === JSON.stringify(actuel), `A. sans APP_VARIANT : configuration identique à celle du commit ${AVANT}`);
+// Seule différence VOULUE depuis ce commit : les deux textes de permission iOS (appareil photo ET photo de l'enfant), lus dans la source
+// partagée supabase/functions/_shared/marque.json. Tout le reste doit être identique.
+const sansPermissions = (c) => {
+  const x = JSON.parse(JSON.stringify(c));
+  delete x.expo.ios.infoPlist.NSCameraUsageDescription;
+  delete x.expo.ios.infoPlist.NSPhotoLibraryUsageDescription;
+  return x;
+};
+ok(JSON.stringify(sansPermissions(ancien)) === JSON.stringify(sansPermissions(actuel)), `A. sans APP_VARIANT : configuration identique à celle du commit ${AVANT} (hors les deux textes de permission iOS, mis à jour via marque.json)`);
+{
+  const marque = JSON.parse(lire('supabase/functions/_shared/marque.json'));
+  const p = actuel.expo.ios.infoPlist;
+  ok(p.NSCameraUsageDescription === marque.permissionsIos.appareilPhoto.replace('{app}', actuel.expo.name) && p.NSPhotoLibraryUsageDescription === marque.permissionsIos.photos.replace('{app}', actuel.expo.name),
+    'A. textes de permission iOS = gabarits de marque.json avec le nom de l\'application');
+  ok(/appareil photo/.test(p.NSCameraUsageDescription) && /photo de l'enfant/.test(p.NSCameraUsageDescription), 'A. permission appareil photo : cite l\'appareil photo ET la photo de l\'enfant');
+}
 ok(actuel.expo.android.package === 'com.scolaria.app' && actuel.expo.scheme === 'scolaria' && !!actuel.expo.updates.url, 'A. identifiant de base, schéma et mises à jour inchangés');
 ok(!('APP_VARIANT' in actuel.expo.extra), 'A. aucune trace de la variante dans `extra`');
 

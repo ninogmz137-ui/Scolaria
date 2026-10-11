@@ -78,10 +78,14 @@ export const HELP_NUMBERS = ['3114', '3018', '119', '112'] as const;
  * Message fixe (aucune réponse générée par l'IA). Le numéro de la catégorie détectée vient en
  * premier, les autres ensuite, le 112 toujours en dernier.
  */
-export function buildEmergencyMessage(category: EmergencyCategory): string {
+export function buildEmergencyMessage(
+  category: EmergencyCategory,
+  /** Nom de l'assistant et marque du féminin (ASSISTANT de marque.ts) : fournis par l'appelant, ce module reste sans dépendance. */
+  assistant: { nom: string; e: string },
+): string {
   const others = (Object.keys(HELP_LINES) as EmergencyCategory[]).filter((c) => c !== category);
   return [
-    'Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. Aria ne peut pas répondre seule à cette situation.',
+    `Ce que vous décrivez est important et demande l’aide d’une personne, tout de suite. ${assistant.nom} ne peut pas répondre seul${assistant.e} à cette situation.`,
     '',
     HELP_LINES[category],
     ...others.map((c) => HELP_LINES[c]),

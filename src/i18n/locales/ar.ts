@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: 'الرئيسية',
     grades: 'الدرجات',
-    aria: 'آريا',
+    aria: '%{assistant_propre}',
     agenda: 'الجدول',
     settings: 'الإعدادات',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: 'مرحباً',
     childSwitcher: 'الأبناء',
-    ariaCard: 'اسأل آريا',
+    ariaCard: 'اسأل %{assistant_propre}',
     ariaHint: 'اطرح سؤالاً حول الدراسة',
     joyScore: 'مؤشر السعادة',
     joyScorePeriod: 'آخر 7 أيام',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'آريا ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: 'اطرح سؤالك...',
     thinking: 'جارٍ التفكير...',
     online: 'متصل',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: 'تنبيه عند إضافة كل درجة',
     notifAgenda: 'تذكيرات الجدول',
     notifAgendaSub: 'الأحداث والواجبات القادمة',
-    notifAria: 'نصائح آريا',
+    notifAria: 'نصائح %{assistant_propre}',
     notifAriaSub: 'توصيات مخصصة',
     notifCheckin: 'تذكير تسجيل المشاعر',
     notifCheckinSub: 'تذكير يومي بتسجيل المشاعر',
@@ -106,7 +106,7 @@ export default {
     since: 'منذ',
     teacher: 'فضاء المعلم',
     teacherAppreciations: 'التقديرات',
-    teacherAppreciationsSub: 'مولّد آريا — حدد وستتم الصياغة تلقائياً',
+    teacherAppreciationsSub: 'مولّد %{assistant_propre} — حدد وستتم الصياغة تلقائياً',
     teacherWeather: 'طقس القسم',
     teacherLife: 'الحياة المدرسية',
     teacherLifeSub: 'صور وإعلانات ولحظات',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: 'دعم عدة أبناء',
     slide1Feature3: 'كل شيء على الهاتف',
     slide2Title: 'تعرّفوا على',
-    slide2Highlight: 'آريا',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: 'مساعدتكم الذكية تحلل النتائج، وتكشف الاتجاهات، وتقدم لكم نصائح مخصصة كل يوم.',
     slide2Feature1: 'نصائح مخصصة',
     slide2Feature2: 'تحليل الاتجاهات',
@@ -237,7 +237,7 @@ export default {
     urgence: 'طوارئ',
     attentionMsg: 'مؤشر السعادة في انخفاض خلال الأيام الأخيرة. حاولوا التحدث مع طفلكم.',
     openCheckin: 'فتح مشاعري',
-    talkAria: 'التحدث مع آريا',
+    talkAria: 'التحدث مع %{assistant_propre}',
     helpNumbers: 'أرقام المساعدة',
     helpFree: 'هذه الأرقام مجانية وسرية ومتاحة للأطفال وأولياء الأمور.',
     recentAvg: 'المعدل خلال 5 أيام',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: 'مولّد التقديرات',
-      subtitle: 'حدد المهارات، وآريا تصيغ في ثانيتين',
+      subtitle: 'حدد المهارات، و%{assistant_propre} تصيغ في ثانيتين',
       student: 'التلميذ',
       level: 'المستوى العام',
       competences: 'المهارات',
       comment: 'ملاحظة شخصية',
       generate: 'إنشاء التقدير',
-      generating: 'آريا تصيغ...',
+      generating: '%{assistant_propre} تصيغ...',
       copy: 'نسخ',
       copied: 'تم النسخ!',
       rephrase: 'إعادة صياغة',

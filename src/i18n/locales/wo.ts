@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: 'Dalal',
     grades: 'Not',
-    aria: 'Aria',
+    aria: '%{assistant_propre}',
     agenda: 'Agenda',
     settings: 'Parameetar',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: 'Nanga def',
     childSwitcher: 'Xale yi',
-    ariaCard: 'Laaj Aria',
+    ariaCard: 'Laaj %{assistant_propre}',
     ariaHint: 'Laajal laaj ci jàng gi',
     joyScore: 'Notu Béggu',
     joyScorePeriod: '7 fan yi weesu',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'Aria ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: 'Laajal sa laaj...',
     thinking: 'Dangi xalaat...',
     online: 'Ci ligne bi',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: 'Xam-xam bu not bu bees dugg',
     notifAgenda: 'Fàttaliku agenda',
     notifAgendaSub: 'Événement yi ak devoir yi di ñëw',
-    notifAria: 'Digal yi Aria',
+    notifAria: 'Digal yi %{assistant_propre}',
     notifAriaSub: 'Digal yu la mooy',
     notifCheckin: 'Fàttaliku check-in',
     notifCheckinSub: 'Fàttaliku bu bés-bu-bés ci Sama Yéene',
@@ -106,7 +106,7 @@ export default {
     since: 'dale ko',
     teacher: 'Bërëb jàngalekat bi',
     teacherAppreciations: 'Appréciations',
-    teacherAppreciationsSub: 'Générateur Aria — tànneel, bind na ko',
+    teacherAppreciationsSub: 'Générateur %{assistant_propre} — tànneel, bind na ko',
     teacherWeather: 'Almatu kalaas bi',
     teacherLife: 'Dundu kalaas bi',
     teacherLifeSub: 'Nataal, xebaar ak yéenekaay',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: 'Xale yu bari',
     slide1Feature3: 'Lépp ci sa téléphone',
     slide2Title: 'Xamal',
-    slide2Highlight: 'Aria',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: 'Sa ndawal IA bu la mooy dangi saytu résultat yi, gis yoonu jëm yi te jox la digal yu baax bés bu nekk.',
     slide2Feature1: 'Digal yu la mooy',
     slide2Feature2: 'Saytu yoonu jëm yi',
@@ -237,7 +237,7 @@ export default {
     urgence: 'Jafe-jafe',
     attentionMsg: 'Notu Béggu bi ñàkk na ci fan yi mujj. Waxtaanal ak sa xale bi.',
     openCheckin: 'Ubbi Sama Yéene',
-    talkAria: 'Waxtaan ak Aria',
+    talkAria: 'Waxtaan ak %{assistant_propre}',
     helpNumbers: 'Numéro yi ngir ndimbal',
     helpFree: 'Numéro yii fey nañu leen, suturaal nañu leen te am nañu ci xale yi ak waajur yi.',
     recentAvg: 'Diggante ci 5 fan yi',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: 'Générateur appréciations',
-      subtitle: 'Tànneel mànk yi, Aria bind na ko ci 2 segond',
+      subtitle: 'Tànneel mànk yi, %{assistant_propre} bind na ko ci 2 segond',
       student: 'Ndongo',
       level: 'Tolluwaayu gépp',
       competences: 'Mànk',
       comment: 'Kàddu bu yaw',
       generate: 'Défar appréciation bi',
-      generating: 'Aria dangi bind...',
+      generating: '%{assistant_propre} dangi bind...',
       copy: 'Duppi',
       copied: 'Duppi na !',
       rephrase: 'Waxaat ko',

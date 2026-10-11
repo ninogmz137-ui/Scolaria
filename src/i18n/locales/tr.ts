@@ -3,7 +3,7 @@ export default {
   tabs: {
     home: 'Ana Sayfa',
     grades: 'Notlar',
-    aria: 'Aria',
+    aria: '%{assistant_propre}',
     agenda: 'Ajanda',
     settings: 'Ayarlar',
   },
@@ -12,7 +12,7 @@ export default {
   home: {
     welcome: 'Merhaba',
     childSwitcher: 'Çocuklar',
-    ariaCard: "Aria'ya Sor",
+    ariaCard: "%{assistant_propre}'ya Sor",
     ariaHint: 'Okul hakkında bir soru sorun',
     joyScore: 'Mutluluk Puanı',
     joyScorePeriod: 'Son 7 gün',
@@ -41,7 +41,7 @@ export default {
 
   // ─── Aria ───────────────────────────────────────────
   aria: {
-    title: 'Aria ✦',
+    title: '%{assistant_propre} ✦',
     placeholder: 'Sorunuzu yazın...',
     thinking: 'Düşünüyor...',
     online: 'Çevrimiçi',
@@ -88,7 +88,7 @@ export default {
     notifGradesSub: 'Her not eklendiğinde uyarı',
     notifAgenda: 'Ajanda hatırlatıcıları',
     notifAgendaSub: 'Yaklaşan etkinlikler ve ödevler',
-    notifAria: 'Aria tavsiyeleri',
+    notifAria: '%{assistant_propre} tavsiyeleri',
     notifAriaSub: 'Kişiselleştirilmiş öneriler',
     notifCheckin: 'Duygusal durum hatırlatması',
     notifCheckinSub: 'Günlük Nasıl Hissediyorum hatırlatması',
@@ -106,7 +106,7 @@ export default {
     since: 'tarihinden beri',
     teacher: 'Öğretmen alanı',
     teacherAppreciations: 'Değerlendirmeler',
-    teacherAppreciationsSub: 'Aria oluşturucu — işaretleyin, yazılsın',
+    teacherAppreciationsSub: '%{assistant_propre} oluşturucu — işaretleyin, yazılsın',
     teacherWeather: 'Sınıf havası',
     teacherLife: 'Sınıf hayatı',
     teacherLifeSub: 'Fotoğraflar, duyurular ve anlar',
@@ -142,7 +142,7 @@ export default {
     slide1Feature2: 'Çoklu çocuk',
     slide1Feature3: 'Her şey mobilde',
     slide2Title: 'Tanışın',
-    slide2Highlight: 'Aria',
+    slide2Highlight: '%{assistant_propre}',
     slide2Desc: 'Kişisel yapay zeka asistanınız sonuçları analiz eder, eğilimleri tespit eder ve her gün size uygun tavsiyeler verir.',
     slide2Feature1: 'Kişisel tavsiyeler',
     slide2Feature2: 'Eğilim analizi',
@@ -237,7 +237,7 @@ export default {
     urgence: 'Acil',
     attentionMsg: 'Mutluluk Puanı son günlerde düşüyor. Çocuğunuzla konuşmayı düşünün.',
     openCheckin: 'Nasıl Hissediyorum\'u Aç',
-    talkAria: "Aria ile Konuş",
+    talkAria: "%{assistant_propre} ile Konuş",
     helpNumbers: 'Yardım hatları',
     helpFree: 'Bu hatlar ücretsiz, gizli ve hem çocuklar hem de ebeveynler için kullanılabilir.',
     recentAvg: '5 günlük ortalama puan',
@@ -247,13 +247,13 @@ export default {
   teacher: {
     appreciations: {
       title: 'Değerlendirme oluşturucu',
-      subtitle: 'Yetkinlikleri işaretleyin, Aria 2 saniyede yazsın',
+      subtitle: 'Yetkinlikleri işaretleyin, %{assistant_propre} 2 saniyede yazsın',
       student: 'Öğrenci',
       level: 'Genel düzey',
       competences: 'Yetkinlikler',
       comment: 'Kişisel not',
       generate: 'Değerlendirme oluştur',
-      generating: 'Aria yazıyor...',
+      generating: '%{assistant_propre} yazıyor...',
       copy: 'Kopyala',
       copied: 'Kopyalandı!',
       rephrase: 'Yeniden ifade et',

@@ -17,6 +17,7 @@ import { Trash2, UserX, RotateCcw } from 'lucide-react-native';
 import RgpdBottomSheet from '../../components/rgpd/RgpdBottomSheet';
 import { DeepGroup, DeepRow, DEEP } from '../../components/DeepList';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { ASSISTANT } from '../../constants/marque';
 import { useAuth } from '../../contexts/AuthContext';
 import { getResponsablesEnfant } from '../../services/database';
 import {
@@ -105,7 +106,7 @@ export default function EffacementScreen() {
     const lignes = [
       effaces.length ? `Carnets effacés (vous en êtes le seul responsable) : ${effaces.join(', ')}.` : '',
       gardes.length ? `Carnets gardés par l’autre responsable : ${gardes.join(', ')}.` : '',
-      'Effacés : vos ajouts privés et vos conversations Aria.',
+      `Effacés : vos ajouts privés et vos conversations ${ASSISTANT.complementAvec}.`,
       'Gardés dans le carnet de l’enfant, sans votre nom : vos ajouts partagés avec le foyer (« Ajouté par un ancien responsable »), vos signatures (« Signé par un responsable (compte supprimé) ») vos réponses aux mots (« Répondu par un responsable (compte supprimé) »), vos événements d’agenda, vos messages du fil famille et vos conversations avec l’enseignant (« Ancien responsable ») : l’enseignant les garde aussi.',
       'Votre compte est désactivé dès maintenant et effacé dans 30 jours. Vous pourrez annuler jusque-là.',
     ].filter(Boolean);

@@ -37,6 +37,7 @@ import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../ser
 import AriaActionCard from '../../components/aria/AriaActionCard';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
+import { ASSISTANT } from '../../constants/marque';
 import { useSchoolMode } from '../../contexts/SchoolModeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import UniversalInputBar from '../../components/UniversalInputBar';
@@ -276,7 +277,7 @@ function AriaConversationScreenContenu() {
     } catch {
       const errMsg: Message = {
         id: `e_${Date.now() + 1}`,
-        text: '📡 Impossible de contacter Aria pour le moment. Réessaie dans quelques instants.',
+        text: `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
         sender: 'aria',
         timestamp: nowTime(),
       };
@@ -475,7 +476,7 @@ function AriaConversationScreenContenu() {
                 <AriaOrb size={HEADER_ORB_SIZE} state={isTyping ? 'thinking' : 'idle'} />
               </View>
             )}
-            <Text style={styles.topTitle}>Aria</Text>
+            <Text style={styles.topTitle}>{ASSISTANT.nom}</Text>
             <Text style={styles.topSubtitle} numberOfLines={1}>
               {title || `Conversation · ${childFirstName}`}
             </Text>
@@ -535,7 +536,7 @@ function AriaConversationScreenContenu() {
             <View pointerEvents="box-none" style={styles.emptyOverlay}>
               <Text style={styles.emptyTitle}>Bonjour !</Text>
               <Text style={styles.emptyText}>
-                Posez une question sur {childFirstName}. Aria peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
+                Posez une question sur {childFirstName}. {ASSISTANT.nom} peut aider à comprendre les notes, préparer un contrôle, ou proposer un plan de révision.
               </Text>
               {/* Explicit pixel widths for Android — Yoga collapses % widths
                   in nested flex-wrap rows, so we compute card size from SCREEN_WIDTH. */}
@@ -562,7 +563,7 @@ function AriaConversationScreenContenu() {
         </View>
 
         <UniversalInputBar
-          placeholder="Demandez à Aria…"
+          placeholder={`Demandez ${ASSISTANT.a}…`}
           value={input}
           onChangeText={setInput}
           onSend={() => sendMessage()}
@@ -600,7 +601,7 @@ function AriaConversationScreenContenu() {
         <View style={styles.drawerHeader}>
           <Text style={styles.drawerBrand}>
             <Text style={styles.drawerTitleSparkle}>{'✦ '}</Text>
-            <Text style={styles.drawerTitleARIA}>{'Aria'}</Text>
+            <Text style={styles.drawerTitleARIA}>{ASSISTANT.nom}</Text>
           </Text>
           <View style={styles.drawerOrbWrap} pointerEvents="none">
             <AriaOrb state={isTyping ? 'thinking' : 'idle'} size={52} />

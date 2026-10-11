@@ -21,6 +21,7 @@ import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { ASSISTANT } from '../constants/marque';
 import { Text } from '../components/ui';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 
@@ -255,7 +256,7 @@ export default function GradeDetailScreen() {
         <View style={{ width: 10 }} />
         <TouchableOpacity style={styles.btnDark} activeOpacity={0.85}>
           <ScolariaSymbol size={13} color={C.white} />
-          <Text style={[styles.btnDarkText, { marginLeft: 7 }]}>Demander à Aria</Text>
+          <Text style={[styles.btnDarkText, { marginLeft: 7 }]}>{`Demander ${ASSISTANT.a}`}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
