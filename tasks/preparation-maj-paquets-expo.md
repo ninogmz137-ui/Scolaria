@@ -22,9 +22,9 @@ Les deux versions, 8.0.0 et 8.0.1, satisfont ce pair.
 la gravité dépend de ce que notre barre du haut dessine à partir de cette position. [UNCLEAR : je n'ai pas lu ce que `TopBar` fait de la position défilée ;
 le défaut ne peut se constater que sur appareil.]
 
-**Recommandation (à valider par l'utilisateur)** : **B — garder 8.0.1** et l'inscrire dans `expo.install.exclude` de `package.json` avec la raison (un
-correctif sans changement cassant, même base SwiftUI que 8.0.0), à réévaluer à la prochaine mise à jour du SDK. Option A (suivre le SDK, 8.0.0) : à ne
-choisir que si le tour sur appareil ne montre aucun saut ; dans ce cas, comparer glissement et barre du haut sur le Redmi avant/après.
+**DÉCISION DE L'UTILISATEUR (8 oct. 2026) : B — garder 8.0.1 et l'exclure** : `package.json` porte désormais `expo.install.exclude = ["react-native-pager-view"]` et la raison
+(clé `//expo.install.exclude`, JSON n'ayant pas de commentaires). Vérifié le 11 oct. : `npx expo-doctor` respecte l'exclusion (18 paquets signalés, pager-view absent) ; verrou
+et `node_modules` inchangés. À réévaluer à la prochaine mise à jour du SDK.
 
 ## 2. Branche locale et ordre des étapes
 
@@ -34,9 +34,9 @@ choisir que si le tour sur appareil ne montre aucun saut ; dans ce cas, comparer
 | # | Étape (quoi, commande) | Porte de sortie (sinon STOP et retour arrière) |
 |---|---|---|
 | 0 | **État de référence** : `git status` propre, HEAD = origin/main ; rejouer et noter les résultats de référence du § 3 ; `git switch -c maj-expo-55-correctifs` | tout vert avant de commencer |
-| 1 | **Lire sans rien changer** : `npx expo-doctor` (déjà : 19/20) et `npx expo install --check` en répondant NON à la proposition de correction (liste seulement) [UNCLEAR : comportement sans console interactive non vérifié ; si la commande applique sans demander, ne PAS la lancer ainsi] | la liste = les 19 paquets du plan, ni plus ni moins |
+| 1 | **Lire sans rien changer** : `npx expo-doctor` (maintenant 18 paquets + exclusion) et `npx expo install --check --json` (affiche la liste en JSON et sort en code 1, **n'applique JAMAIS**). Comportement VÉRIFIÉ dans la CLI installée (`checkPackages.js`) : `--check` n'applique que si `--fix` est passé, ou si le terminal est interactif ET que l'on répond oui à « Fix dependencies? » ; sans console (CI, tâche, agent) il liste puis sort en code 1 « Found outdated dependencies » | la liste = les 18 paquets restants, ni plus ni moins |
 | 2 | **Décision pager-view** (§ 1) : B (exclusion) ou A | décision de l'utilisateur écrite dans le todo |
-| 3 | **Appliquer** : `npx expo install --check` (oui) ou `npx expo install <paquets@versions du SDK>` ; **jamais** `--force` ni `--legacy-peer-deps` ; `git diff --stat` : seuls `package.json` et `package-lock.json` changent ; `package.json` : exactement les lignes des 18 paquets (+ l'exclusion de pager-view si B) | `npm ls` sans « invalid » ni ERESOLVE ; `npx expo-doctor` : **20/20** (ou 19/20 si B, avec l'exclusion déclarée) |
+| 3 | **Appliquer** : `npx expo install --fix` (applique sans demander, après validation) ou `npx expo install <paquets@versions du SDK>` ; **jamais** `--force` ni `--legacy-peer-deps` ; `git diff --stat` : seuls `package.json` et `package-lock.json` changent ; `package.json` : exactement les lignes des 18 paquets (l'exclusion de pager-view y est déjà) | `npm ls` sans « invalid » ni ERESOLVE ; `npx expo-doctor` : **20/20** (pager-view exclu : il n'est plus signalé) |
 | 4 | `npx tsc --noEmit` | 0 erreur |
 | 5 | **Tests purs, configuration et bundle** (§ 3.1 et 3.2) | mêmes comptes qu'à l'étape 0 |
 | 6 | **Filet base locale** (§ 3.3) : `npx supabase@latest db reset --local`, suites SQL, audit, e2e photo | mêmes comptes ; aucune base de Paris n'est en jeu |

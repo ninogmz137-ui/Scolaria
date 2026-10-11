@@ -107,5 +107,13 @@
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "//expo.install.exclude": "react-native-pager-view est GARDÉ en 8.0.1 alors que le SDK 55 épingle 8.0.0 (décision du 8 oct. 2026) : 8.0.1 ne contient qu'un correctif (onPageScroll n'émet plus un décalage nul à l'arrêt, ce qui faisait sauter l'indicateur) ; le pager porte les 4 onglets via @react-navigation/material-top-tabs. À réévaluer à la prochaine mise à jour du SDK. Voir tasks/preparation-maj-paquets-expo.md § 1.",
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native-pager-view"
+      ]
+    }
+  }
 }
