@@ -28,6 +28,7 @@
     "test:entete": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/fondu.test.mts",
     "test:photo-enfant": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoEnfant.test.mts",
     "test:zones-tactiles": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/zonesTactiles.test.mts",
+    "test:nom-en-dur": "node scripts/test-nom-en-dur.mjs",
     "test:marque": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/marque.test.mts",
     "test:photo-annee": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/photoAnnee.test.mts",
     "verifier-photos-paris": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/verifier-photos-paris.mts",
