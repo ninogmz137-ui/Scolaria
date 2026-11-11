@@ -268,11 +268,7 @@ function AriaConversationScreenContenu() {
     };
 
     try {
-      const response = await sendToAria(trimmed, historyRef.current, childId, {
-        isDemo,
-        childName: selectedChild?.name,
-        niveau: selectedChild?.niveau,
-      });
+      const response = await sendToAria(trimmed, historyRef.current, childId, { isDemo });
 
       // Parse action tag from Aria's response (l'historique garde le texte sans balise)
       const { cleanText, action } = parseAriaResponse(response.text);

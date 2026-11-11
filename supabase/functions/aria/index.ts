@@ -14,25 +14,19 @@
  *   message fixe (3114 / 3018 / 119 + 112), aucun appel Anthropic, aucun décompte, journal = catégorie seule
  *   (ni contenu, ni identifiant de compte).
  * - Réponse au client : { text } | { text, alert } | { error: 'unavailable' } — jamais de détail technique.
- *
- * TEMPORAIRE (phase A) : le prompt système est encore construit côté app, à partir des données
- * de démo locales. Quand les données du carnet seront en base, cette fonction construira elle-même
- * le contexte à partir de student_id (lu sous RLS avec le JWT de l'appelant) et n'acceptera plus
- * de `system` venant du client.
+ * - Requête : { child_id | null, messages }. Les consignes du modèle (prompt système) sont construites ICI
+ *   (_shared/ariaPrompt.ts) : prénom + niveau de l'enfant lus SOUS RLS avec le jeton de l'appelant, rien d'autre.
+ *   Un champ `system` envoyé par le client (ancienne app, requête forgée) est ignoré, sans erreur.
  */
 
 import Anthropic from 'npm:@anthropic-ai/sdk@0.128.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { buildEmergencyMessage } from '../_shared/emergency.ts';
 import { isValidMessages, urgenceDansMessages } from '../_shared/ariaRequete.ts';
+import { MAX_TOKENS, construirePromptSysteme, contexteEnfant, lireChildId, type ContexteEnfant } from '../_shared/ariaPrompt.ts';
 import { ASSISTANT } from '../_shared/marque.ts';
 
-/** Règle de ton imposée par le serveur (fait foi) : Aria vouvoie toujours le parent. */
-const REGLE_VOUVOIEMENT =
-  "Règle absolue : tu vouvoies TOUJOURS le parent (vous, votre, vos), jamais de tutoiement.";
-
 const MODEL = Deno.env.get('ARIA_MODEL') ?? 'claude-sonnet-5';
-const MAX_TOKENS = 16000;
 
 /** Plafond d'appels au modèle par compte et par jour (jour de Paris). Secret facultatif ARIA_LIMITE_JOUR (1 à 1000). */
 const LIMITE_JOUR = (() => {
@@ -41,7 +35,6 @@ const LIMITE_JOUR = (() => {
 })();
 
 // Garde-fous d'entrée : MAX_MESSAGES et MAX_MESSAGE_CHARS vivent dans _shared/ariaRequete.ts (isValidMessages).
-const MAX_SYSTEM_CHARS = 40000;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -85,14 +78,17 @@ Deno.serve(async (req) => {
   }
 
   // 3. Validation de la requête
-  let body: { system?: unknown; messages?: unknown };
+  // Corps attendu : { child_id | null, messages }. Un champ `system` (ancienne app) est IGNORÉ, sans erreur :
+  // les consignes du modèle sont construites ici, jamais par le client.
+  let body: { child_id?: unknown; messages?: unknown };
   try {
     body = await req.json();
   } catch {
     return unavailable(400);
   }
-  const { system, messages } = body;
-  if (typeof system !== 'string' || system.length > MAX_SYSTEM_CHARS || !isValidMessages(messages)) {
+  if (body === null || typeof body !== 'object') return unavailable(400);
+  const { messages } = body;
+  if (!isValidMessages(messages)) {
     return unavailable(400);
   }
 
@@ -129,14 +125,24 @@ Deno.serve(async (req) => {
   }
   const rendreAppel = () => admin.rpc('aria_rendre', { p_user: userData.user.id }).then(() => undefined, () => undefined);
 
-  // 5. Appel Anthropic (SDK officiel). Règle fixe ajoutée par le serveur au prompt du client.
+  // 5. Contexte de l'enfant, lu SOUS RLS avec le jeton de l'appelant (client `supabase`, jamais la clé service) :
+  // prénom + niveau, rien d'autre. Enfant illisible (autre foyer, effacement en cours, identifiant inconnu,
+  // erreur de lecture) → « aucun enfant », sans erreur qui révélerait son existence.
+  const childId = lireChildId(body.child_id);
+  let enfant: ContexteEnfant | null = null;
+  if (childId) {
+    const { data: ligne } = await supabase.from('children').select('first_name, classe').eq('id', childId).maybeSingle();
+    enfant = contexteEnfant(ligne);
+  }
+
+  // 6. Appel Anthropic (SDK officiel). Consignes construites ICI (ariaPrompt.ts), jamais reçues du client.
   // logLevel 'off' : le SDK n'écrit rien lui-même (ses journaux de débogage contiennent les requêtes).
   const client = new Anthropic({ apiKey, logLevel: 'off' });
   try {
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system: `${system}\n\n${REGLE_VOUVOIEMENT}`,
+      system: construirePromptSysteme(enfant, new Date()),
       messages,
     });
 

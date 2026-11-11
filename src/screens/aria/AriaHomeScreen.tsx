@@ -284,11 +284,7 @@ function AriaHomeScreenContenu() {
       };
 
       try {
-        const response = await sendToAria(trimmed, historyRef.current, childId, {
-          isDemo,
-          childName: selectedChild?.name,
-          niveau: selectedChild?.niveau,
-        });
+        const response = await sendToAria(trimmed, historyRef.current, childId, { isDemo });
 
         const { cleanText, action } = parseAriaResponse(response.text);
         await conclure(cleanText, response.urgence, true);

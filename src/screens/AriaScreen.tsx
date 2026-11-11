@@ -144,7 +144,7 @@ export default function AriaScreen() {
           trimmed,
           conversationHistoryRef.current,
           childId,
-          { isDemo, childName: selectedChild?.name, niveau: selectedChild?.niveau },
+          { isDemo },
         );
 
         // Historique (sans balise d'action, 20 messages au plus) : un message de détresse n'y entre jamais.

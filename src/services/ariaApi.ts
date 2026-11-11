@@ -53,62 +53,8 @@ export function messageLimiteAria(limite?: number): string {
 /** Assistant désactivé dans Famille & paramètres (ou information pas encore lue) : rien n'a été envoyé. */
 export const ARIA_DESACTIVEE = `${ASSISTANT.nom} est désactivé${ASSISTANT.e}. Aucun message n’a été envoyé.`;
 
-/**
- * Présentation de l'assistant dans les consignes du modèle : « Aria, l'assistante IA » avec le nom propre, « l'assistant IA » en mode générique.
- * Les consignes passent par les mêmes formes que l'affichage : aucun nom écrit en dur.
- */
-const IDENTITE_MODELE = ASSISTANT.generique ? 'l’assistant IA' : `${ASSISTANT.nomPropre}, l’assistante IA`;
-
-// ─── System prompt builder ───────────────────────────────
-
-/**
- * Enfant réel : Aria ne reçoit que le PRÉNOM et le NIVEAU (minimisation, CLAUDE.md). Aucune donnée
- * de démo : les données du carnet seront construites côté serveur, sous RLS, quand elles existeront.
- */
-function buildRealChildSystemPrompt(prenom: string, niveau?: string | null): string {
-  const niveauStr = niveau ? ` (${niveau})` : '';
-  return `Tu es ${IDENTITE_MODELE} de ${NOM_APP}, le carnet de scolarité numérique.
-
-═══ TON RÔLE ═══
-- Tu accompagnes un parent dans le suivi scolaire de ${prenom}${niveauStr}, et de cet enfant seulement.
-- Tu es bienveillant${ASSISTANT.e}, encourageant${ASSISTANT.e} et constructif${ASSISTANT.generique ? '' : 've'}, jamais alarmiste.
-- Tu parles en français, de manière claire et chaleureuse, et tu VOUVOIES toujours le parent.
-
-═══ TES RÈGLES ═══
-- Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
-- Tu n'as encore AUCUNE donnée du carnet de ${prenom} (notes, compétences, événements, messages) :
-  n'en invente jamais. Réponds de façon générale et adaptée au niveau, et propose de consulter le carnet.
-- Ne parle jamais d'un autre enfant.
-- Sois concise : 2 à 4 paragraphes maximum sauf si on te demande plus de détail.
-
-═══ ACTION DISPONIBLE ═══
-Si le parent demande de signaler une absence et que tu as toutes les informations, termine ta réponse
-par ce tag, seul, sur une nouvelle ligne :
-[ACTION:ABSENCE|date=YYYY-MM-DD|motif=MOTIF|demi_journee=PERIODE]
-  - motif : maladie | maladie_avec_certificat | raison_familiale | autre
-  - demi_journee : journee | matin | apres_midi
-Si une information manque, pose d'abord la question. Pas de tag si l'intention n'est pas claire.
-
-═══ DATE DU JOUR ═══
-${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-`;
-}
-
-/** Compte sans enfant enregistré : l'assistant répond de façon générale, sans données d'enfant. */
-function buildNoChildSystemPrompt(): string {
-  return `Tu es ${IDENTITE_MODELE} de ${NOM_APP}, le carnet de scolarité numérique.
-
-Aucun enfant n'est encore ajouté au carnet de ce parent.
-- Réponds de façon générale et bienveillante aux questions sur la scolarité (maternelle au lycée), en vouvoyant toujours le parent.
-- N'invente jamais de notes, d'enseignants ni d'événements : tu n'as aucune donnée d'enfant.
-- Quand c'est utile, propose d'ajouter un enfant au carnet pour des réponses personnalisées.
-- Ne donne JAMAIS de diagnostic médical ou psychologique ; oriente vers un professionnel si besoin.
-- Réponds en français, en 2 à 4 paragraphes maximum.
-
-═══ DATE DU JOUR ═══
-${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-`;
-}
+// Les consignes du modèle (prompt système) ne sont PAS construites ici : l'Edge Function « aria » les écrit elle-même
+// (supabase/functions/_shared/ariaPrompt.ts) à partir du prénom et du niveau de l'enfant, lus sous RLS.
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -118,7 +64,7 @@ export async function sendToAria(
   userMessage: string,
   conversationHistory: ClaudeMessage[],
   childId: string,
-  options?: { isDemo?: boolean; childName?: string; niveau?: string | null },
+  options?: { isDemo?: boolean },
 ): Promise<ReponseAria> {
   const reponse = (text: string): ReponseAria => ({ text, urgence: null });
 
@@ -141,13 +87,9 @@ export async function sendToAria(
     return reponse(getFallbackResponse(userMessage, childId));
   }
 
-  // Compte réel : contexte = l'enfant actif (prénom + niveau) s'il existe, sinon aucun enfant.
-  // Jamais de données de démo, jamais un autre enfant.
-  const prenom = options?.childName?.trim().split(/\s+/)[0];
-  const systemPrompt =
-    UUID_RE.test(childId) && prenom
-      ? buildRealChildSystemPrompt(prenom, options?.niveau)
-      : buildNoChildSystemPrompt();
+  // Compte réel : l'app n'envoie que l'identifiant de l'enfant actif (ou null) et les messages.
+  // Le serveur lit lui-même le prénom et le niveau sous RLS et construit les consignes ; jamais de données de démo.
+  const child_id = UUID_RE.test(childId) ? childId : null;
 
   // Build messages array: conversation history + new message
   const messages: ClaudeMessage[] = [
@@ -160,7 +102,7 @@ export async function sendToAria(
     // Région imposée : Paris, comme la base. Sans elle, la fonction s'exécute dans la région la plus
     // proche de l'utilisateur, pas forcément dans l'UE (doc Supabase « Regional Invocations »).
     const { data, error } = await supabase.functions.invoke<AriaFunctionResponse>('aria', {
-      body: { system: systemPrompt, messages },
+      body: { child_id, messages },
       region: FunctionRegion.EuWest3,
     });
 
