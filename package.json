@@ -11,6 +11,7 @@
     "test:emergency": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/emergency.test.mts",
     "test:journaux": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/journaux.test.mts",
     "test:aria-requete": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/ariaRequete.test.mts",
+    "test:ressenti-urgence": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/ressentiUrgence.test.mts",
     "test:aria-echange": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/ariaEchange.test.mts",
     "test:exif": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/metadonneesImage.test.mts",
     "test:erreurs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/services/erreurs.test.mts",

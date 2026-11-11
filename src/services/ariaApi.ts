@@ -15,6 +15,7 @@ import { supabase } from './supabase';
 import { buildEmergencyMessage, detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { de } from '../utils/francais';
 import { ariaAutorisee } from './ariaPreferences';
+import { recordEmergencyAlert } from './alerteUrgence';
 import { NOM_APP, ASSISTANT } from '../constants/marque';
 
 // ─── Types ────────────────────────────────────────────────
@@ -109,21 +110,7 @@ ${new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', mon
 `;
 }
 
-// ─── Alerte du protocole d'urgence (M11) ────────────────
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/**
- * Enregistre l'alerte : catégorie + enfant + date, JAMAIS le texte du message.
- * Privée à son auteur (RLS) : jamais visible de l'autre responsable ni de l'enseignant.
- * Sans effet en mode démo ; un échec n'empêche jamais d'afficher les numéros d'aide.
- */
-function recordEmergencyAlert(category: string, childId: string): void {
-  const child_id = UUID_RE.test(childId) ? childId : null;
-  void Promise.resolve(
-    supabase.from('alertes_urgence').insert({ categorie: category, child_id }),
-  ).catch(() => undefined);
-}
 
 // ─── API call ────────────────────────────────────────────
 

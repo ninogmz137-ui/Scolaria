@@ -7,6 +7,9 @@
 
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
+import { detectEmergency } from '../../supabase/functions/_shared/emergency';
+import { preparerRessenti } from './ressentiUrgence';
+import { recordEmergencyAlert } from './alerteUrgence';
 import { FunctionRegion } from '@supabase/supabase-js';
 
 // ─── Helper: check if Supabase is configured ───────────
@@ -303,9 +306,15 @@ export async function createCheckin(checkin: {
 }) {
   if (!isSupabaseConfigured()) return { data: null, error: null };
 
+  // Protocole d'urgence : un message de détresse n'est JAMAIS enregistré. Le ressenti part sans `message`,
+  // et une alerte (catégorie + enfant, jamais le texte) est créée par le même chemin que l'assistant.
+  // Le garde est ICI et non dans l'écran : il vaut pour tout appelant, quel que soit le navigateur qui monte l'écran.
+  const { ligne, urgence } = preparerRessenti(checkin, detectEmergency);
+  if (urgence) recordEmergencyAlert(urgence, checkin.child_id);
+
   return supabase
     .from('checkins')
-    .insert(checkin)
+    .insert(ligne)
     .select()
     .single();
 }

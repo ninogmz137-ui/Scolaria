@@ -151,7 +151,14 @@ function MonRessentiScreenContent() {
     }
   };
 
+  // Protocole d'urgence : même détection (testée, 22 cas) que pour l'assistant ; affiche les numéros d'aide.
+  // Le texte n'est jamais enregistré (createCheckin l'écarte et crée l'alerte : catégorie + enfant seulement).
+  const critical = detectEmergency(message) !== null;
+  // Les numéros restent affichés après l'envoi, une fois le champ vidé.
+  const [aideGardee, setAideGardee] = useState(false);
+
   const onSubmit = () => {
+    if (critical) setAideGardee(true);
     if (mode === 'maternelle') submitMaternelle();
     else if (mode === 'primaire') submitPrimaire();
     else submitLycee();
@@ -160,13 +167,11 @@ function MonRessentiScreenContent() {
   const canSubmit =
     mode === 'maternelle' ? matSel != null : true;
 
-  const messageLabel =
-    mode === 'lycee' ? 'Message confidentiel' : 'Un mot ? (optionnel)';
+  // Pas de « confidentiel » : le ressenti est visible des responsables de l'enfant (la confidentialité de l'élève
+  // vis-à-vis de ses parents relève de l'espace élève, Phase 2).
+  const messageLabel = 'Un mot ? (optionnel)';
 
   const showCounter = mode === 'lycee';
-
-  // Protocole d'urgence : même détection (testée, 22 cas) que pour Aria ; affiche les numéros d'aide.
-  const critical = detectEmergency(message) !== null;
 
   return (
     <View style={styles.root}>
@@ -190,9 +195,6 @@ function MonRessentiScreenContent() {
               <Text style={styles.screenTitle}>Mon Ressenti</Text>
               <Text style={styles.subtitle}>Prends un moment pour toi</Text>
             </View>
-          </View>
-          <View style={styles.confBadge}>
-            <Text style={styles.confText}>🔒 Confidentiel</Text>
           </View>
         </View>
 
@@ -251,7 +253,7 @@ function MonRessentiScreenContent() {
             </View>
           </View>
 
-          {critical && (
+          {(critical || aideGardee) && (
             <View style={styles.urgency}>
               <CriticalHelp />
             </View>
@@ -298,6 +300,10 @@ function CriticalHelp() {
       <Pressable style={styles.urgencyLine} onPress={() => Linking.openURL('tel:119')}>
         <Text style={styles.urgencyPhone}>🛡️ 119</Text>
         <Text style={styles.urgencyHint}>Allo Enfance en Danger</Text>
+      </Pressable>
+      <Pressable style={styles.urgencyLine} onPress={() => Linking.openURL('tel:112')}>
+        <Text style={styles.urgencyPhone}>📞 112</Text>
+        <Text style={styles.urgencyHint}>Danger immédiat</Text>
       </Pressable>
     </View>
   );
@@ -359,20 +365,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 2,
-  },
-  confBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  confText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 11,
-    color: '#6B7280',
   },
   glowCard: {
     borderRadius: 20,
