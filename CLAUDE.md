@@ -604,3 +604,9 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
 ## APPRENTISSAGES
 *(Claude Code remplit cette section au fil des sprints)*
+
+### 11 nov. 2026 — audit Fable, lot A (C1, C2, I1)
+- **Message de détresse** : `sendToAria` renvoie `{ text, urgence }` ; tout écran passe par `src/services/ariaEchange.ts` (`conclureEchange`) : bulle « Message non conservé », rien dans l'historique, le stockage, le titre ni l'aperçu ; nettoyage unique du stockage au démarrage. Côté serveur, le protocole s'applique à TOUS les messages `user` reçus ; le journal ne porte que la catégorie.
+- **Bien-être** : le garde est dans `createCheckin` (ligne sans `message` + `alertes_urgence` par `src/services/alerteUrgence.ts`), pas dans l'écran. Plus de mention « Confidentiel » (`checkins.is_confidential` n'est lue par aucune policy).
+- **Consignes de l'assistant** : construites par l'Edge Function (`_shared/ariaPrompt.ts`) ; l'app n'envoie que `child_id` et `messages` ; prénom + niveau lus sous RLS, niveau filtré par `_shared/niveaux.ts` (liste fermée, source aussi de `src/utils/niveau.ts`) ; 2 000 jetons de sortie. Ordre de mise en production : fonction d'abord, app ensuite.
+- **Modules purs testés par node** : aucun import ; les dépendances sont passées en paramètre.
