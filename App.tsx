@@ -35,6 +35,10 @@ import ErrorBoundary from './src/components/ErrorBoundary';
 import NotificationsRouteur from './src/components/NotificationsRouteur';
 import { viderFichiersOuverts } from './src/services/ouvertureFichier';
 import { viderExport } from './src/services/exportCarnet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { nettoyerStockageAssistant } from './src/services/ariaEchange';
+import { defaultNewAriaConversationTitle } from './src/utils/ariaConversationTitle';
+import { detectEmergency } from './supabase/functions/_shared/emergency';
 import LiensAuthRouteur from './src/components/LiensAuthRouteur';
 import MotDePasseOublieScreen from './src/screens/auth/MotDePasseOublieScreen';
 import NouveauMotDePasseScreen from './src/screens/auth/NouveauMotDePasseScreen';
@@ -90,6 +94,12 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
   useEffect(() => {
     viderFichiersOuverts();
     viderExport();
+  }, []);
+
+  // Conversations avec l'assistant déjà stockées sur l'appareil : tout message de détresse en est retiré
+  // (une seule fois, idempotent ; règle « jamais le texte d'un message de détresse stocké »).
+  useEffect(() => {
+    nettoyerStockageAssistant(AsyncStorage, detectEmergency, defaultNewAriaConversationTitle).catch(() => {});
   }, []);
 
   useEffect(() => {

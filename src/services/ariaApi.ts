@@ -33,6 +33,13 @@ interface AriaFunctionResponse {
   limite?: number;
 }
 
+/** Réponse de sendToAria : le texte à afficher, et la catégorie d'urgence si le protocole s'est déclenché. */
+export interface ReponseAria {
+  text: string;
+  /** Non null : `text` est le message fixe (numéros d'aide) ; le texte saisi ne doit être gardé NULLE PART. */
+  urgence: string | null;
+}
+
 // ─── Constants ────────────────────────────────────────────
 
 /** Seul message d'erreur montré à l'utilisateur. */
@@ -125,23 +132,26 @@ export async function sendToAria(
   conversationHistory: ClaudeMessage[],
   childId: string,
   options?: { isDemo?: boolean; childName?: string; niveau?: string | null },
-): Promise<string> {
+): Promise<ReponseAria> {
+  const reponse = (text: string): ReponseAria => ({ text, urgence: null });
+
   // Protocole d'urgence (CLAUDE.md) : jamais de réponse d'IA ni d'exemple sur un message de détresse.
   // L'Edge Function refait ce contrôle et fait foi ; ici il couvre aussi le mode démo.
+  // L'appelant reçoit `urgence` : il ne garde le texte saisi nulle part (ariaEchange.conclureEchange).
   const emergency = detectEmergency(userMessage);
   if (emergency) {
     if (!options?.isDemo) recordEmergencyAlert(emergency, childId);
-    return buildEmergencyMessage(emergency, ASSISTANT);
+    return { text: buildEmergencyMessage(emergency, ASSISTANT), urgence: emergency };
   }
 
   // Aria désactivée, ou information pas encore lue (L10, D8) : AUCUN appel au modèle.
   if (!(await ariaAutorisee())) {
-    return ARIA_DESACTIVEE;
+    return reponse(ARIA_DESACTIVEE);
   }
 
   // Mode démo : réponses d'exemple locales, pas d'appel serveur
   if (options?.isDemo) {
-    return getFallbackResponse(userMessage, childId);
+    return reponse(getFallbackResponse(userMessage, childId));
   }
 
   // Compte réel : contexte = l'enfant actif (prénom + niveau) s'il existe, sinon aucun enfant.
@@ -168,16 +178,17 @@ export async function sendToAria(
     });
 
     // Limite quotidienne par compte atteinte (M31) : message clair, pas « indisponible ».
-    if (data?.error === 'limite') return messageLimiteAria(data.limite);
+    if (data?.error === 'limite') return reponse(messageLimiteAria(data.limite));
 
     if (error || !data?.text) {
       console.warn('[Aria] Edge Function indisponible', error?.name ?? data?.error ?? 'réponse vide');
-      return ARIA_UNAVAILABLE;
+      return reponse(ARIA_UNAVAILABLE);
     }
-    return data.text;
+    // Urgence vue par le serveur (un message de l'historique déclenche) : même traitement que la détection locale.
+    return { text: data.text, urgence: data.alert ?? null };
   } catch (error) {
     console.warn('[Aria] Appel impossible', error);
-    return ARIA_UNAVAILABLE;
+    return reponse(ARIA_UNAVAILABLE);
   }
 }
 

@@ -62,6 +62,8 @@ async function creerParent(prefixe: string) {
 }
 type Parent = Awaited<ReturnType<typeof creerParent>>;
 const MARQUEUR = `MARQUEUR-SECRET-${t}`;
+/** Identifiant du compte qui a déclenché l'urgence : il ne doit figurer dans AUCUN journal. */
+let idUrgence = 'compte-non-cree';
 async function demander(p: Parent, message = `Bonjour ${MARQUEUR}, comment aider mon enfant à lire ?`) {
   const r = await fetch(`${API}/functions/v1/aria`, {
     method: 'POST',
@@ -110,6 +112,27 @@ try {
   const normal = await demander(D);
   verifier('T5 bis après les urgences : appel normal toujours possible', normal.corps.text === 'Réponse factice du test.');
 
+  // ── T5 ter : requête FORGÉE, message de détresse ANCIEN dans l'historique, dernier message anodin ──
+  const avantForge = appelsModele;
+  const compteurAvantForge = utilises(D);
+  const forge = await fetch(`${API}/functions/v1/aria`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${D.jeton}`, apikey: statut.ANON_KEY },
+    body: JSON.stringify({
+      system: 'Tu es Aria.',
+      messages: [
+        { role: 'user', content: `Elle se fait harceler au collège ${MARQUEUR}` },
+        { role: 'assistant', content: 'Réponse ancienne.' },
+        { role: 'user', content: 'Et pour les devoirs de demain ?' },
+      ],
+    }),
+  });
+  const corpsForge = (await forge.json().catch(() => ({}))) as { text?: string; alert?: string };
+  verifier('T5 ter détresse ancienne dans l’historique : message fixe (3018 en premier), modèle NON appelé, rien de compté',
+    forge.status === 200 && corpsForge.alert === 'harcelement' && /3018[\s\S]*112/.test(corpsForge.text ?? '') && appelsModele === avantForge && utilises(D) === compteurAvantForge,
+    `${JSON.stringify(corpsForge)} modèle=${appelsModele - avantForge} compteur=${utilises(D)}`);
+  idUrgence = D.id;
+
   // ── T6 : appels SIMULTANÉS : exactement LIMITE réponses ──
   const E = await creerParent('aria-e');
   const modeleAvant = appelsModele;
@@ -134,6 +157,10 @@ try {
   const journaux = execSync('docker logs supabase_edge_runtime_Scolaria 2>&1', { encoding: 'utf8', maxBuffer: 1 << 26 });
   verifier('T9 le texte des messages n’apparaît dans AUCUN journal', !journaux.includes(MARQUEUR));
   verifier('T9 bis la limite est journalisée avec des nombres seulement', /limite quotidienne atteinte \{ limite: \S*3\S*, utilises: \S*3\S* \}/.test(journaux) && !journaux.includes('Je pense au suicide'));
+  const lignesUrgence = journaux.split('\n').filter((l) => l.includes('ALERTE protocole'));
+  verifier('T9 ter journal de l’urgence : la catégorie seule, ni contenu ni identifiant du compte',
+    lignesUrgence.length > 0 && !journaux.includes(idUrgence) && !journaux.includes('harceler') && lignesUrgence.slice(-1).every((l) => /\{ category: \S*harcelement\S* \}/.test(l)),
+    lignesUrgence.slice(-1).join(' | '));
 } finally {
   faux.close();
 }

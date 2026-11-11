@@ -33,6 +33,8 @@ import {
   nativeWhiteInteractiveShadow,
 } from '../../constants/theme';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
+import { conclureEchange, texteBulleParent } from '../../services/ariaEchange';
+import { detectEmergency } from '../../../supabase/functions/_shared/emergency';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import AriaActionCard from '../../components/aria/AriaActionCard';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -233,16 +235,37 @@ function AriaConversationScreenContenu() {
     const trimmed = (textOverride ?? input).trim();
     if (!trimmed || isTyping) return;
 
-    if (messages.length === 0) {
-      void persistConversationTitle(trimmed.slice(0, 40));
-    }
-
-    const userMsg: Message = { id: `u_${Date.now()}`, text: trimmed, sender: 'parent', timestamp: nowTime() };
-    const nextUI = [...messages, userMsg];
-    setMessages(nextUI);
+    // Bulle provisoire (mémoire seulement) : jamais le texte saisi s'il déclenche le protocole d'urgence.
+    // Rien n'est écrit sur l'appareil (messages, historique, titre, aperçu) avant la réponse : conclureEchange décide.
+    const userMsg: Message = {
+      id: `u_${Date.now()}`,
+      text: texteBulleParent(trimmed, detectEmergency),
+      sender: 'parent',
+      timestamp: nowTime(),
+    };
+    setMessages([...messages, userMsg]);
     setInput('');
     setIsTyping(true);
     scrollToEnd();
+
+    const conclure = async (reponse: string, urgence: string | null, dansHistorique: boolean) => {
+      const fin = conclureEchange({
+        messages,
+        history: historyRef.current,
+        texte: trimmed,
+        reponse,
+        urgence,
+        dansHistorique,
+        detecter: detectEmergency,
+        maintenant: Date.now(),
+        heure: nowTime(),
+      });
+      historyRef.current = fin.history;
+      setMessages(fin.messages);
+      await persist(fin.messages, fin.history);
+      if (fin.titre) await persistConversationTitle(fin.titre);
+      await updateConversationPreview(fin.apercu);
+    };
 
     try {
       const response = await sendToAria(trimmed, historyRef.current, childId, {
@@ -251,40 +274,23 @@ function AriaConversationScreenContenu() {
         niveau: selectedChild?.niveau,
       });
 
-      // Parse action tag from Aria's response
-      const { cleanText, action } = parseAriaResponse(response);
-
-      // Update history with clean text (no tag)
-      historyRef.current = [
-        ...historyRef.current,
-        { role: 'user' as const, content: trimmed },
-        { role: 'assistant' as const, content: cleanText },
-      ].slice(-20);
-
-      const ariaMsg: Message = { id: `a_${Date.now() + 1}`, text: cleanText, sender: 'aria', timestamp: nowTime() };
-      const finalUI = [...nextUI, ariaMsg];
-      setMessages(finalUI);
-      await persist(finalUI, historyRef.current);
-      await updateConversationPreview(cleanText);
+      // Parse action tag from Aria's response (l'historique garde le texte sans balise)
+      const { cleanText, action } = parseAriaResponse(response.text);
+      await conclure(cleanText, response.urgence, true);
 
       // Show confirmation card if action detected
-      if (action) {
+      if (action && !response.urgence) {
         setPendingAction(action);
         setActionStatus('pending');
         setActionResult(undefined);
         setTimeout(() => scrollToEnd(), 100);
       }
     } catch {
-      const errMsg: Message = {
-        id: `e_${Date.now() + 1}`,
-        text: `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
-        sender: 'aria',
-        timestamp: nowTime(),
-      };
-      const finalUI = [...nextUI, errMsg];
-      setMessages(finalUI);
-      await persist(finalUI, historyRef.current);
-      await updateConversationPreview(errMsg.text);
+      await conclure(
+        `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
+        null,
+        false,
+      ).catch(() => undefined);
     } finally {
       setIsTyping(false);
       scrollToEnd();

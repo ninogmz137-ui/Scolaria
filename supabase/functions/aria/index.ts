@@ -10,8 +10,9 @@
  *   Garanti par `npm run test:journaux` (supabase/functions/_shared/journaux.test.mts).
  * - Limite quotidienne par compte (M31, aria_usage_quotidien) : réservée avant l'appel, rendue si le modèle
  *   n'a pas répondu ; au-delà : { error: 'limite', limite } (l'app affiche un message clair). Journal : nombres seulement.
- * - Protocole d'urgence AVANT tout appel au modèle : mot-clé critique → message fixe
- *   (3114 / 3018 / 119 + 112), aucun appel Anthropic, alerte signalée (catégorie seule).
+ * - Protocole d'urgence AVANT tout appel au modèle, sur TOUS les messages `user` reçus : mot-clé critique →
+ *   message fixe (3114 / 3018 / 119 + 112), aucun appel Anthropic, aucun décompte, journal = catégorie seule
+ *   (ni contenu, ni identifiant de compte).
  * - Réponse au client : { text } | { text, alert } | { error: 'unavailable' } — jamais de détail technique.
  *
  * TEMPORAIRE (phase A) : le prompt système est encore construit côté app, à partir des données
@@ -22,7 +23,8 @@
 
 import Anthropic from 'npm:@anthropic-ai/sdk@0.128.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { buildEmergencyMessage, detectEmergency } from '../_shared/emergency.ts';
+import { buildEmergencyMessage } from '../_shared/emergency.ts';
+import { isValidMessages, urgenceDansMessages } from '../_shared/ariaRequete.ts';
 import { ASSISTANT } from '../_shared/marque.ts';
 
 /** Règle de ton imposée par le serveur (fait foi) : Aria vouvoie toujours le parent. */
@@ -38,9 +40,7 @@ const LIMITE_JOUR = (() => {
   return Number.isInteger(n) && n >= 1 && n <= 1000 ? n : 40;
 })();
 
-// Garde-fous d'entrée (le client est authentifié, mais pas de confiance aveugle)
-const MAX_MESSAGES = 40;
-const MAX_MESSAGE_CHARS = 8000;
+// Garde-fous d'entrée : MAX_MESSAGES et MAX_MESSAGE_CHARS vivent dans _shared/ariaRequete.ts (isValidMessages).
 const MAX_SYSTEM_CHARS = 40000;
 
 const CORS_HEADERS = {
@@ -57,27 +57,6 @@ function json(body: unknown, status = 200): Response {
 }
 
 const unavailable = (status: number) => json({ error: 'unavailable' }, status);
-
-type ChatMessage = { role: 'user' | 'assistant'; content: string };
-
-function isValidMessages(value: unknown): value is ChatMessage[] {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.length <= MAX_MESSAGES &&
-    value.every(
-      (m) =>
-        m !== null &&
-        typeof m === 'object' &&
-        (m.role === 'user' || m.role === 'assistant') &&
-        typeof m.content === 'string' &&
-        m.content.length > 0 &&
-        m.content.length <= MAX_MESSAGE_CHARS,
-    ) &&
-    value[0].role === 'user' &&
-    value[value.length - 1].role === 'user'
-  );
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
@@ -117,13 +96,13 @@ Deno.serve(async (req) => {
     return unavailable(400);
   }
 
-  // 4. Protocole d'urgence — AVANT tout appel au modèle, sur le dernier message du parent
-  const lastUserMessage = messages[messages.length - 1].content;
-  const emergency = detectEmergency(lastUserMessage);
+  // 4. Protocole d'urgence — AVANT tout appel au modèle et avant tout décompte, sur TOUS les messages du parent
+  // reçus (pas seulement le dernier) : un message de détresse resté dans l'historique n'atteint jamais le modèle.
+  const emergency = urgenceDansMessages(messages);
   if (emergency) {
-    // Alerte signalée sans le contenu du message (minimisation). Persistance + notification
-    // des responsables : à brancher quand la table d'alertes existera (phase A, voir todo).
-    console.warn('[aria] ALERTE protocole d’urgence — Anthropic non appelé', { category: emergency, user: userData.user.id });
+    // Journal : texte fixe + catégorie. Ni le contenu, ni l'identifiant du compte (l'alerte privée à son auteur
+    // est enregistrée par l'app dans alertes_urgence, sous RLS).
+    console.warn('[aria] ALERTE protocole d’urgence — Anthropic non appelé', { category: emergency });
     return json({ text: buildEmergencyMessage(emergency, ASSISTANT), alert: emergency });
   }
 

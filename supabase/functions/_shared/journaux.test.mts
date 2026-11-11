@@ -15,9 +15,10 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const RACINE = join(import.meta.dirname, '..');
-const CLES_AUTORISEES = new Set(['category', 'user', 'model', 'stop_reason', 'status', 'type', 'name', 'limite', 'utilises', 'dues', 'executees', 'echecs', 'fichiers', 'orphelins']);
+// « user » n'est PAS autorisé : aucun identifiant de compte dans les journaux (audit du 11 nov. 2026, M8).
+const CLES_AUTORISEES = new Set(['category', 'model', 'stop_reason', 'status', 'type', 'name', 'limite', 'utilises', 'dues', 'executees', 'echecs', 'fichiers', 'orphelins']);
 const VALEUR_INTERDITE = [
-  /\b(apiKey|ANTHROPIC_API_KEY|authHeader|headers|req|request|body|system|messages|lastUserMessage|client|text)\b/,
+  /\b(apiKey|ANTHROPIC_API_KEY|authHeader|headers|req|request|body|system|messages|lastUserMessage|client|text|content|userData|child_id|childId|prenom|niveau)\b/,
   /\berror\.(message|headers|error|request|response|cause|stack)\b/,
   /\bJSON\.stringify\b|\bString\(|\.\.\./,
 ];
@@ -89,6 +90,11 @@ const INTERDITS: string[] = [
   "'[aria] requête', { user: req.headers.get('Authorization') }",
   "'[aria] corps', { type: JSON.stringify(body) }",
   "'[aria] a', { status: 1 }, apiKey",
+  // Journal de l'urgence : ni identifiant de compte, ni contenu, ni enfant.
+  "'[aria] ALERTE', { category: emergency, user: userData.user.id }",
+  "'[aria] ALERTE', { category: userData.user.id }",
+  "'[aria] ALERTE', { category: emergency, type: messages[0].content }",
+  "'[aria] ALERTE', { category: emergency, name: body.child_id }",
 ];
 for (const ex of INTERDITS) verdict(verifier(ex) !== null, `refusé : console.error(${ex})`);
 
@@ -114,6 +120,17 @@ for (const f of fichiers) {
   }
   for (const m of source.matchAll(/new Anthropic\(([^)]*)\)/g)) {
     verdict(/logLevel:\s*'off'/.test(m[1]), `${rel} : new Anthropic(${m[1]}) coupe les journaux du SDK`);
+  }
+}
+
+// 3. Journal du protocole d'urgence : un texte fixe et la catégorie, RIEN d'autre (ni contenu, ni compte, ni enfant).
+{
+  const aria = readFileSync(join(RACINE, 'aria', 'index.ts'), 'utf8');
+  const urgence = appelsConsole(aria).filter((args) => /ALERTE|urgence/i.test(args));
+  verdict(urgence.length === 1, `aria : un seul journal pour l'urgence (${urgence.length})`);
+  for (const args of urgence) {
+    const [, champs] = decouper(args);
+    verdict(champs !== undefined && champs.replace(/\s+/g, ' ') === '{ category: emergency }', `aria : journal de l'urgence = { category: emergency } seulement (${(champs ?? '').replace(/\s+/g, ' ')})`);
   }
 }
 

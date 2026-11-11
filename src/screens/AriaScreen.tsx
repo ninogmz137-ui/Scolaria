@@ -15,6 +15,8 @@ import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useKeyboardInputPadding } from '../hooks/useKeyboardInputPadding';
 import ChatBubble, { Message } from '../components/chat/ChatBubble';
 import { sendToAria, ClaudeMessage } from '../services/ariaApi';
+import { conclureEchange, texteBulleParent } from '../services/ariaEchange';
+import { detectEmergency } from '../../supabase/functions/_shared/emergency';
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -123,9 +125,10 @@ export default function AriaScreen() {
       if (!trimmed || isTyping) return;
 
       // Add user message to UI
+      // Jamais le texte saisi s'il déclenche le protocole d'urgence (bulle neutre).
       const userMsg: Message = {
         id: Date.now().toString(),
-        text: trimmed,
+        text: texteBulleParent(trimmed, detectEmergency),
         sender: 'parent',
         timestamp: now(),
       };
@@ -144,24 +147,22 @@ export default function AriaScreen() {
           { isDemo, childName: selectedChild?.name, niveau: selectedChild?.niveau },
         );
 
-        // Update conversation history
-        conversationHistoryRef.current = [
-          ...conversationHistoryRef.current,
-          { role: 'user', content: trimmed },
-          // Sans balise d'action : l'historique repart au modèle, rien de technique n'y remonte.
-          { role: 'assistant', content: parseAriaResponse(response).cleanText },
-        ];
-
-        // Keep last 20 messages to stay within context limits
-        if (conversationHistoryRef.current.length > 20) {
-          conversationHistoryRef.current =
-            conversationHistoryRef.current.slice(-20);
-        }
+        // Historique (sans balise d'action, 20 messages au plus) : un message de détresse n'y entre jamais.
+        conversationHistoryRef.current = conclureEchange({
+          messages: [],
+          history: conversationHistoryRef.current,
+          texte: trimmed,
+          reponse: parseAriaResponse(response.text).cleanText,
+          urgence: response.urgence,
+          detecter: detectEmergency,
+          maintenant: Date.now(),
+          heure: now(),
+        }).history;
 
         // Add Aria response to UI
         const ariaMsg: Message = {
           id: (Date.now() + 1).toString(),
-          text: response,
+          text: response.text,
           sender: 'aria',
           timestamp: now(),
         };

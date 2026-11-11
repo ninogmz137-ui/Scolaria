@@ -1,5 +1,27 @@
 # TODO — Scolaria
 
+## 11 nov. 2026 — Correctifs de l'audit Fable, LOT A (branche `fix-audit-fable`, rien sur Paris, aucun build)
+
+**Référence rejouée AVANT toute modification (11 nov., base locale Docker)** : 21 suites SQL `supabase/tests` exit 0 ; `test:emergency` 22 cas / 0 échec ; `test:journaux` 6 fichiers, 15 appels, 0 échec ; `test:marque` 19 ; `audit:securite-local` : voir résultat plus bas.
+
+### Plan (un commit par point)
+- [ ] **C1 — texte de détresse jamais gardé ni renvoyé.**
+  - Cause racine : (1) `sendToAria` renvoie une simple chaîne, l'écran ne sait pas que c'est une urgence et range le texte dans l'historique, les messages persistés, le titre et l'aperçu ; `AriaHomeScreen` écrit même titre + aperçu AVANT la réponse ; (2) le serveur ne teste que le dernier message.
+  - App : `sendToAria` renvoie `{ text, urgence }` ; module pur `src/services/ariaEchange.ts` (`conclureEchange`, `purgerHistorique`, `nettoyerStockageAssistant`, bulle « Message non conservé ») utilisé par les 3 écrans qui appellent l'assistant (`AriaConversationScreen`, `AriaHomeScreen`, `AriaScreen`) ; titre et aperçu posés APRÈS la réponse ; nettoyage unique et idempotent du stockage au démarrage (`App.tsx`).
+  - Serveur : module pur `_shared/ariaRequete.ts` (validation + détection sur TOUS les messages `user`) ; journal de l'urgence = texte fixe + catégorie, sans identifiant de compte.
+  - Tests : `npm run test:aria-echange` (a, b, d), `npm run test:aria-requete` (c, module), `test:journaux` étendu (e), `test:limite-aria-local` étendu (c, de bout en bout, faux modèle).
+- [ ] **C2 — Bien-être.** `createCheckin` passe par un module pur (`src/services/ressentiUrgence.ts`) : urgence → ligne SANS `message` + `alertes_urgence` par le même chemin que l'assistant (`src/services/alerteUrgence.ts`, extrait de `ariaApi.ts`). Le garde est dans `createCheckin` : il couvre l'écran où qu'il soit monté (TabNavigator, SandboxNavigator, EleveTabNavigator). Numéros gardés à l'écran après l'envoi (aujourd'hui ils disparaissent quand le champ est vidé). Badge « 🔒 Confidentiel » et libellé « Message confidentiel » retirés (décision par défaut).
+- [ ] **I1 — prompt construit par le serveur.** La fonction reçoit `{ child_id | null, messages }`, ignore tout `system`, lit `children.first_name` + `children.classe` SOUS RLS (jeton de l'appelant), normalise le niveau sur la liste fermée (module partagé `_shared/niveaux.ts`, repris par `src/utils/niveau.ts`), construit les deux prompts à l'identique, date à l'heure de Paris. `MAX_SYSTEM_CHARS` supprimé, `MAX_TOKENS` 2 000. App : `ariaApi.ts` n'envoie que `child_id` + `messages`, constructeurs de prompt supprimés.
+
+### Risques
+- **Ancienne app + nouvelle fonction** : tolérée (`system` ignoré, pas de `child_id` → prompt « aucun enfant » : l'assistant ne connaît plus le prénom tant que l'app n'est pas rechargée). **Nouvelle app + ancienne fonction** : refus 400 (« indisponible ») → déployer la fonction D'ABORD.
+- **Faux positifs** : un message ancien qui déclenche (« le suicide dans Roméo et Juliette ») bloque toute la conversation côté serveur ; l'app purge l'historique local à chaque échange pour que la conversation reparte.
+- **Nettoyage du stockage** : irréversible sur l'appareil (c'est le but) ; ne touche que les messages `parent` qui déclenchent, les titres et aperçus qui en dérivent.
+- **Niveau** : texte libre en base → seul un niveau de la liste fermée part au modèle ; sinon prénom seul.
+- **2 000 jetons de sortie** : une réponse très longue serait coupée (`stop_reason: max_tokens`), le texte partiel est renvoyé tel quel.
+- **Non vérifiable ici** : Redmi, iOS, production (lecture seule).
+- `checkins.is_confidential` : colonne INUTILISÉE (aucune policy, aucun écran ne l'écrit) ; laissée en place, à supprimer dans un lot de nettoyage.
+
 ## SPRINT « Carnet vivant » (5 oct 2026) — lots 0 à 4 FAITS EN LOCAL, rien en production, AUCUN build EAS
 
 - [x] Lot 0 (02efb95) docs : indigo = couleur d'ACTION, teintes de catégorie, matières (pastille + icône, emoji interdit), label de section 13 px, en-tête de carnet, composants §18, RGPD de la photo.

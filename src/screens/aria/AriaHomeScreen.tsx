@@ -52,6 +52,8 @@ import {
   nativeWhiteInteractiveShadow,
 } from '../../constants/theme';
 import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
+import { conclureEchange, texteBulleParent } from '../../services/ariaEchange';
+import { detectEmergency } from '../../../supabase/functions/_shared/emergency';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 import { Text, TextInput, Pressable } from '../../components/ui';
@@ -204,7 +206,7 @@ function AriaHomeScreenContenu() {
   );
 
   const updateConvPreview = useCallback(
-    async (convId: string, lastMessage: string) => {
+    async (convId: string, lastMessage: string, titre?: string | null) => {
       try {
         const raw = await AsyncStorage.getItem(convListKey(childId));
         const parsed = raw ? (JSON.parse(raw) as Conversation[]) : [];
@@ -212,7 +214,7 @@ function AriaHomeScreenContenu() {
         const now = new Date().toISOString();
         const next = list.map((c) =>
           c.id === convId
-            ? { ...c, lastMessage: lastMessage.slice(0, 120), updatedAt: now }
+            ? { ...c, title: titre || c.title, lastMessage: lastMessage.slice(0, 120), updatedAt: now }
             : c,
         );
         await AsyncStorage.setItem(convListKey(childId), JSON.stringify(next));
@@ -232,31 +234,54 @@ function AriaHomeScreenContenu() {
 
       // Create conversation on first message (sync before any await)
       let activeConvId = conversationId;
+      let listeEnregistree: Promise<void> = Promise.resolve();
       if (!activeConvId) {
         activeConvId = `c_${Date.now()}`;
+        // Titre et aperçu NEUTRES à la création : ils ne sont tirés du texte saisi qu'après la réponse,
+        // et jamais d'un message de détresse (conclureEchange).
         const newConv: Conversation = {
           id: activeConvId,
-          title: trimmed.slice(0, 40),
-          lastMessage: trimmed.slice(0, 120),
+          title: defaultNewAriaConversationTitle(),
+          lastMessage: 'Nouvelle conversation',
           updatedAt: new Date().toISOString(),
         };
         const next = [newConv, ...conversations];
         setConversations(next);
-        saveConvList(childId, next).catch(() => {});
+        listeEnregistree = saveConvList(childId, next).catch(() => {});
         setConversationId(activeConvId); // batched with setMessages below
       }
+      const convId = activeConvId;
 
+      // Bulle provisoire (mémoire seulement) : jamais le texte saisi s'il déclenche le protocole d'urgence.
       const userMsg: Message = {
         id: `u_${Date.now()}`,
-        text: trimmed,
+        text: texteBulleParent(trimmed, detectEmergency),
         sender: 'parent',
         timestamp: nowTime(),
       };
-      const nextUI = [...messages, userMsg];
-      setMessages(nextUI);
+      setMessages([...messages, userMsg]);
       setInput('');
       setIsTyping(true);
       setOrbState('thinking');
+
+      const conclure = async (reponse: string, urgence: string | null, dansHistorique: boolean) => {
+        const fin = conclureEchange({
+          messages,
+          history: historyRef.current,
+          texte: trimmed,
+          reponse,
+          urgence,
+          dansHistorique,
+          detecter: detectEmergency,
+          maintenant: Date.now(),
+          heure: nowTime(),
+        });
+        historyRef.current = fin.history;
+        setMessages(fin.messages);
+        await persist(convId, fin.messages, fin.history);
+        await listeEnregistree; // la conversation est dans la liste avant qu'on y écrive titre et aperçu
+        await updateConvPreview(convId, fin.apercu, fin.titre);
+      };
 
       try {
         const response = await sendToAria(trimmed, historyRef.current, childId, {
@@ -265,41 +290,21 @@ function AriaHomeScreenContenu() {
           niveau: selectedChild?.niveau,
         });
 
-        const { cleanText, action } = parseAriaResponse(response);
+        const { cleanText, action } = parseAriaResponse(response.text);
+        await conclure(cleanText, response.urgence, true);
 
-        historyRef.current = [
-          ...historyRef.current,
-          { role: 'user' as const, content: trimmed },
-          { role: 'assistant' as const, content: cleanText },
-        ].slice(-20);
-
-        const ariaMsg: Message = {
-          id: `a_${Date.now() + 1}`,
-          text: cleanText,
-          sender: 'aria',
-          timestamp: nowTime(),
-        };
-        const finalUI = [...nextUI, ariaMsg];
-        setMessages(finalUI);
-        await persist(activeConvId, finalUI, historyRef.current);
-        await updateConvPreview(activeConvId, cleanText);
-
-        if (action) {
+        if (action && !response.urgence) {
           setPendingAction(action);
           setActionStatus('pending');
           setActionResult(undefined);
           setTimeout(() => scrollToEnd(), 100);
         }
       } catch {
-        const errMsg: Message = {
-          id: `e_${Date.now() + 1}`,
-          text: `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
-          sender: 'aria',
-          timestamp: nowTime(),
-        };
-        const finalUI = [...nextUI, errMsg];
-        setMessages(finalUI);
-        await persist(activeConvId, finalUI, historyRef.current);
+        await conclure(
+          `📡 Impossible de contacter ${ASSISTANT.nomMilieu} pour le moment. Réessaie dans quelques instants.`,
+          null,
+          false,
+        ).catch(() => undefined);
       } finally {
         setIsTyping(false);
         setOrbState('idle');
