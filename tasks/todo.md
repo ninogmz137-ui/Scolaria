@@ -10,6 +10,46 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 3 — PLAN (17 nov., branche `archi-lot-3` depuis main 220cbed) — AUCUN CODE AVANT ACCORD
+Objectif : Messages en fils + mot complet (CLAUDE.md § Messages, COMPONENTS §6 Messages, « Mot complet », §18.4).
+
+**État actuel (lu le 17 nov. dans le code et les migrations, aucune requête sur Paris)**
+- `MessagerieScreen.tsx` (456 l.) : segmented « Général · [prénom] » (`Segmented`, dernier lecteur), recherche + menu « Tout ⌄ », `CarteATraiter` (mots à traiter), liste `LigneMessage`.
+- **Conversations côté parent = démo seulement** (`stores/messagerieStore`, `data/messagerieData`) ; la table `messages` n'a AUCUN lecteur dans `src/` ; un compte réel ne voit que ses mots et ses imports « mot ».
+- Mots réels : `mots_liaison` (type exclusif information | signature | autorisation | participation, `signature_mode`, `a_prevoir`, `event_date`, `classe_id`), `mot_carnets` (une copie par enfant), `signatures`, `reponses_mot` (autorisation OU participation : contrainte `une_valeur`), `read_receipts` (par mot et par responsable, PAS par carnet).
+- Espace enseignant (réel, côté enseignant seulement) : `teacher_conversations` (enseignant × parent × élève, avatars emoji), `teacher_messages`, `class_posts` (classe repérée par son **nom**, contraire à la règle « classe par id »).
+
+**3a — Messages en fils, sans migration (données existantes)**
+- [ ] Supprimer : segmented « Général · [prénom] », barre de recherche et menu « Tout ⌄ » (décisions du 16 et du 17 nov.) ; `Segmented.tsx` n'a plus de lecteur → supprimé.
+- [ ] Bloc « À traiter » (visible seulement s'il y a quelque chose) : une ligne par mot qui attend une action, bouton dans la ligne (« Signer », « Répondre »), statuts par responsable ; reprend `CarteATraiter` / `ActionsMot` en lignes.
+- [ ] Bloc « Conversations » : une `LigneMessage` par interlocuteur (enseignant de l'enfant · classe « Annonces » · école/direction), tri par dernier message ; un fil n'apparaît que s'il a au moins un message (jamais de fil vide affiché).
+- [ ] Démo : les conversations de démo regroupées par interlocuteur ; compte réel : mots et imports seulement tant que 3c n'est pas fait (rien d'inventé).
+- [ ] Mots traités → Scolarité › Documents : filtre « Mots signés et autorisations » (mots dont toutes les actions du responsable connecté sont faites), lus depuis `useMotsEnfant` dans `useScolarite`.
+- [ ] « Signer aussi pour [prénom] » : si le même mot a une copie dans le carnet d'un autre enfant du foyer et qu'elle attend encore ma signature, proposition après la signature (une signature PAR carnet, par la fonction existante).
+- [ ] « Lu » partagé entre carnets : déjà vrai (`read_receipts` est par mot, pas par carnet) → rien à coder ; **QUESTION** : le point I4 du LOT B (« lu d'un mot par carnet ») contredit la décision 7 du 16 nov. → I4 abandonné ?
+
+**3b — Mot complet (UNE migration, cycle complet : local, sauvegarde, essai à blanc, application seule, advisors)**
+- [ ] Migration (numéro à fixer, après M37 et les migrations du LOT B) : `mots_liaison` + `question boolean default false` + `reponse_privee boolean default false` ; les mots existants gardent leur sens (autorisation → question oui / non, participation → question oui / peut-être / non) ; `type` conservé pour l'ancienne app jusqu'à la suivante.
+- [ ] `reponses_mot` : la contrainte `une_valeur` reste (une réponse = autorisation OU participation) ; la « question » réutilise `participation` (oui / peut_etre / non). Aucune nouvelle table.
+- [ ] App : page du mot = signature + question + réponse privée, cumulables, dans cet ordre (COMPONENTS « Mot complet ») ; la réponse privée part dans le fil avec l'expéditeur en citant le mot → dépend de 3c (bouton masqué tant que 3c n'est pas en production).
+- [ ] Tests SQL : un mot peut cumuler les trois ; un responsable ne répond que pour ses carnets ; l'ancienne app lit toujours `type`.
+
+**3c — Fils réels parent ↔ école (1 à 2 migrations, plan détaillé à valider à part avant tout SQL)**
+- Fil enseignant de l'enfant : `teacher_conversations` (enseignant × responsable × élève) = déjà privé par responsable (garde partagée respectée) ; ajouter `teacher_messages.mot_id` (citation d'un mot), retirer les avatars emoji de l'affichage.
+- Fil de classe en ANNONCE SEULE : `class_posts` + `classe_id` (classe par id), écriture enseignant seul, lecture par les responsables des élèves de la classe (RLS), aucune lecture des réponses par une autre famille ; « Répondre en privé » ouvre le fil enseignant.
+- Fil école / direction : aucune table ni aucun compte direction aujourd'hui → **pas affiché** pour un compte réel (démo seulement) jusqu'à l'interface direction (Phase 2).
+- Avant le plan SQL : lire sur Paris, en lecture seule, le nombre de lignes de `teacher_conversations`, `teacher_messages`, `class_posts`, `messages` (données à migrer ou non) et leurs politiques.
+- Le push distant reste BLOQUANT avant tout enseignant réel (inchangé).
+
+**Vérification**
+- tsc, test:nom-en-dur, test:marque, tests de `motsRegles`, test:bundle-prod ; suites SQL locales pour 3b et 3c ; Redmi (3 enfants de démo + compte réel en lecture) : À traiter visible / masqué, fils, Documents › mots signés, « Signer aussi pour ».
+- Scripts d'essai Redmi qui cherchent « Général » (preuve-zones-tactiles) : mis à jour.
+
+**Risques**
+- 3b et 3c touchent Paris : une migration par cycle, procédure complète (sauvegarde, essai à blanc, advisors) ; disque C: à surveiller (base locale Docker).
+- Ancienne app + nouveau schéma : colonnes ajoutées seulement, `type` gardé → l'ancienne app continue de lire.
+- 3c conditionne la réponse privée et le fil de classe réels : sans 3c, un compte réel n'a que « À traiter » et ses imports.
+
 ### LOT 2 — RÉSULTAT (17 nov., plan validé + correction « certificats ajoutés par le parent »)
 - [x] Étape 1 (96d7c60) : `useScolarite()` = fournisseur autour de la pile Scolarité (et de la pile élève) ; compétences, carnet, années, dernière note (collège), erreurs, « Réessayer ».
 - [x] Sommaire `NotesHome` = `screens/scolarite/ScolariteSommaire.tsx` : bouton année + Apprentissages · Souvenirs · Documents · Parcours ; aperçu du plus récent (collège : dernière note) ; cartes d'invitation sur rubrique vide, sans « Tout voir » ; Parcours jamais vide. `SuiviEntete` supprimé ; `Segmented` gardé (lecteur restant : Messages, lot 3).
