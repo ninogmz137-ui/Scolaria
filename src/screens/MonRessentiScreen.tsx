@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { C, SHADOW } from '../constants/design';
 import {
   Alert,
   View,
@@ -26,7 +27,7 @@ import { AucunEnfantPage } from '../components/AucunEnfant';
 
 type AgeMode = 'maternelle' | 'primaire' | 'lycee';
 
-const PAGE_BG = '#F2F1EE';
+const PAGE_BG = C.bg;
 const NAVY = '#1A2340';
 
 const VALUE_JOY: Record<string, number> = {

@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { C, SHADOW } from '../constants/design';
 import { View, StyleSheet, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MessageCircle, UserX } from 'lucide-react-native';
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#F2F1EE',
+    backgroundColor: C.bg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,

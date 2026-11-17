@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { C } from '../constants/design';
 import { View, Modal, StyleSheet, Alert, AppState, Platform } from 'react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
@@ -80,7 +81,7 @@ export default function CompteEnEffacement() {
 }
 
 const st = StyleSheet.create({
-  fond: { flex: 1, backgroundColor: '#F2F1EE', justifyContent: 'center', padding: 24 },
+  fond: { flex: 1, backgroundColor: C.bg, justifyContent: 'center', padding: 24 },
   carte: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 20 },
   titre: { fontFamily: FontFamily.displayBold, fontSize: 19, lineHeight: 25, letterSpacing: -0.5, color: NAVY, marginBottom: 10 },
   texte: { fontFamily: FontFamily.sansRegular, fontSize: 14, lineHeight: 21, color: NAVY, marginBottom: 16 },

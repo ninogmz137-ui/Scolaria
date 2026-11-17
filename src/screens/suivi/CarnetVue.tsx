@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { C } from '../../constants/design';
 import { Image, View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -196,7 +197,7 @@ export default function CarnetVue({
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: C.bg },
   vide: {
     fontFamily: FontFamily.sansMedium,
     fontSize: 14,

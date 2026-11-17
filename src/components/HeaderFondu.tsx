@@ -4,9 +4,9 @@
  * Pleine largeur, posé DERRIÈRE la barre d'état, la top bar et les premières cartes (couche
  * absolue en haut du contenu défilant : il part avec le contenu). Aucun arrondi, aucune coupure :
  *  - couleur de l'enfant : rgba(c, 1) → rgba(c, 0). Même RGB à chaque arrêt, seule l'opacité
- *    varie (jamais un mélange couleur → #F2F1EE, jamais 'transparent' = noir transparent) ;
+ *    varie (jamais un mélange couleur → fond de page, jamais 'transparent' = noir transparent) ;
  *  - photo choisie : photo + voile sombre, puis même courbe de disparition. La page étant unie
- *    (#F2F1EE), un voile #F2F1EE d'opacité (1 − a) posé sur la photo donne exactement le rendu
+ *    (C.bg), un voile C.bg d'opacité (1 − a) posé sur la photo donne exactement le rendu
  *    d'une photo d'opacité a : pas de MaskedView (module natif) nécessaire.
  * Courbe ease-out à 10 arrêts : plein jusqu'au texte, puis décroissance douce (pas de bande).
  */
@@ -15,8 +15,9 @@ import { View, Image, StyleSheet, type ImageSourcePropType } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient';
 import { withAlpha } from '../utils/couleur';
 import { ARRETS_FONDU, opaciteFondu, tonSurFondu } from '../utils/fondu';
+import { C } from '../constants/design';
 
-const PAGE_BG = '#F2F1EE';
+const PAGE_BG = C.bg;
 
 const POSITIONS = ARRETS_FONDU.map(([p]) => p) as [number, number, ...number[]];
 

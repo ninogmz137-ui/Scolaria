@@ -6,7 +6,7 @@
  * - Burger 34px gauche → écran unique « Famille & paramètres »
  * - Pill active : icône + libellé, fond rgba(15,23,42,0.08), hauteur 30 (COMPONENTS §0)
  * - Onglet inactif : icône seule, SANS fond, couleur rgba(15,23,42,0.38)
- * - Sur #F2F1EE (tous les onglets, et l'Accueil dès que le voile apparaît) : couleurs ci-dessus.
+ * - Sur le fond de page C.bg (tous les onglets, et l'Accueil dès que le voile apparaît) : couleurs ci-dessus.
  * - Sur le header coloré de l'Accueil, au repos : même forme, couleurs claires (pill active
  *   blanc 22 %, icônes et libellé blancs, inactifs SANS fond) + barre d'état claire.
  * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
@@ -64,7 +64,7 @@ const ICON_INACTIVE = 'rgba(15,23,42,0.38)';
 const ICON_ACTIVE_ON_HEADER = '#FFFFFF';
 const ICON_INACTIVE_ON_HEADER = 'rgba(255,255,255,0.78)';
 
-/** Au-delà de ce défilement, le voile #F2F1EE couvre le header : couleurs sombres. */
+/** Au-delà de ce défilement, le voile C.bg couvre le header : couleurs sombres. */
 const HEADER_UNTIL_SCROLL = 8;
 
 // ─── Composant ───────────────────────────────────────────

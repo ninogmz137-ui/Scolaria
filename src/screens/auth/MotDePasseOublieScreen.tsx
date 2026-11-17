@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { C } from '../../constants/design';
 import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -91,7 +92,7 @@ export default function MotDePasseOublieScreen() {
 }
 
 export const stylesAuth = StyleSheet.create({
-  racine: { flex: 1, backgroundColor: '#F2F1EE' },
+  racine: { flex: 1, backgroundColor: C.bg },
   entete: {
     height: 56,
     paddingHorizontal: 14,

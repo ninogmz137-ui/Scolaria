@@ -4,9 +4,10 @@
  * This screen is used when the user taps "Accès enfant" from the login flow.
  * For now, it switches the app role to `enfant-pin` once a 4-digit PIN is entered.
  *
- * Design : fond #F2F1EE, texte #0F172A, champ COMPONENTS.md §5, bouton pill §2.
+ * Design : fond C.bg, texte #0F172A, champ COMPONENTS.md §5, bouton pill §2.
  */
 import { useMemo, useRef, useState, useEffect } from 'react';
+import { C } from '../constants/design';
 import {
   View,
   KeyboardAvoidingView,
@@ -26,7 +27,7 @@ interface Props {
   onBack?: () => void;
 }
 
-const BG = '#F2F1EE';
+const BG = C.bg;
 const INK = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';

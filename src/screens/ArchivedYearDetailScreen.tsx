@@ -10,6 +10,7 @@
  */
 
 import { useState } from 'react';
+import { C } from '../constants/design';
 import { View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -162,7 +163,7 @@ export default function ArchivedYearDetailScreen() {
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: C.bg },
   infos: { paddingHorizontal: 16, paddingBottom: 8 },
   ecole: { fontFamily: FontFamily.sansBold, fontSize: 16, lineHeight: 21, color: '#0F172A' },
   lecture: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },

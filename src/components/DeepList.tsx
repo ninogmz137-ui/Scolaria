@@ -7,6 +7,7 @@
  */
 
 import { View, StyleSheet, Switch } from 'react-native';
+import { C as DS } from '../constants/design';
 import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
@@ -18,7 +19,7 @@ export const DEEP = {
   text55: 'rgba(15,23,42,0.55)',
   text35: 'rgba(15,23,42,0.35)',
   borderL: 'rgba(15,23,42,0.05)',
-  bg: '#F2F1EE',
+  bg: DS.bg,
 } as const;
 
 export function DeepGroup({

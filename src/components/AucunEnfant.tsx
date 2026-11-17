@@ -5,6 +5,7 @@
  */
 
 import { View, StyleSheet } from 'react-native';
+import { C } from '../constants/design';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DeepScreenHeader } from './DeepScreenHeader';
@@ -50,7 +51,7 @@ export function AucunEnfantPage({ title }: { title: string }) {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F1EE', paddingBottom: insets.bottom }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, paddingBottom: insets.bottom }}>
       <DeepScreenHeader
         title={title}
         onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}
@@ -65,7 +66,7 @@ export function AucunEnfantPage({ title }: { title: string }) {
 export function AucunEnfantOnglet() {
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F1EE', paddingTop: insets.top + 60 }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top + 60 }}>
       <AucunEnfant />
     </View>
   );
@@ -76,7 +77,7 @@ export function PageVide({ title, message }: { title: string; message: string })
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ flex: 1, backgroundColor: '#F2F1EE', paddingBottom: insets.bottom }}>
+    <View style={{ flex: 1, backgroundColor: C.bg, paddingBottom: insets.bottom }}>
       <DeepScreenHeader
         title={title}
         onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined}

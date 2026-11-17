@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { C } from '../../constants/design';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -81,7 +82,7 @@ export default function AriaGarde({ children }: { children: ReactNode }) {
 }
 
 const st = StyleSheet.create({
-  racine: { flex: 1, backgroundColor: '#F2F1EE' },
+  racine: { flex: 1, backgroundColor: C.bg },
   contenu: { paddingHorizontal: 24, paddingBottom: 24 },
   symbole: { alignItems: 'center', marginBottom: 16 },
   titre: {

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { C, SHADOW } from '../constants/design';
 import {
   View,
   ScrollView,
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#F2F1EE',
+    backgroundColor: C.bg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 12,

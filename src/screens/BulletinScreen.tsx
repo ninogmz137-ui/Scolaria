@@ -1,6 +1,6 @@
 /**
  * BulletinScreen — Bulletin trimestriel, page profonde depuis NotesScreen.
- * Fond #F2F1EE · Pas de bottom bar · Pas de bouton PDF (Phase 2).
+ * Fond C.bg · Pas de bottom bar · Pas de bouton PDF (Phase 2).
  * Charte : zéro couleur sur les notes, zéro rang, zéro full-width button.
  */
 
@@ -28,7 +28,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 // ─── Constantes ───────────────────────────────────────────
 
-const BG = '#F2F1EE';
+const BG = C.bg;
 const TRIMESTRES = ['T1', 'T2', 'T3'] as const;
 
 // ─── Données démo ─────────────────────────────────────────

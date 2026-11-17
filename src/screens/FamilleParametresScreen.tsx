@@ -2,7 +2,7 @@
  * FamilleParametresScreen — écran unique « Famille & paramètres », ouvert par ☰.
  *
  * Remplace l'ancien panneau burger, ReglagesScreen et « Mon compte » (EditProfile).
- * Page profonde (COMPONENTS §8) : fond #F2F1EE, groupes blancs, rows simples, aucune glass card.
+ * Page profonde (COMPONENTS §8) : fond C.bg, groupes blancs, rows simples, aucune glass card.
  *
  * Espaces enseignant / élève : même écran (route param `espace`), sans les sections famille.
  *
@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { C } from '../constants/design';
 import { enregistrerPreferencesAria } from '../services/ariaPreferences';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,7 +47,7 @@ const RED = '#EF4444';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';
 const BORDER_L = 'rgba(15,23,42,0.05)';
-const BG = '#F2F1EE';
+const BG = C.bg;
 
 type Espace = 'famille' | 'enseignant' | 'eleve';
 

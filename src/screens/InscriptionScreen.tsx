@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { C } from '../constants/design';
 import {
   View,
   TouchableOpacity,
@@ -14,7 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { roleEffectif, roleEnseignantVisible, rolesProposes, type RoleInscription } from '../utils/rolesInscription';
 
-const BG = '#F2F1EE';
+const BG = C.bg;
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

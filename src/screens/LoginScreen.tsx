@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { C } from '../constants/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +9,7 @@ import LogoMarque from '../components/LogoMarque';
 import { Text } from '../components/ui';
 import { useSessionExpiree } from '../services/sessionExpiree';
 
-const BG = '#F2F1EE';
+const BG = C.bg;
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 

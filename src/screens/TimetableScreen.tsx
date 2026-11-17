@@ -4,7 +4,7 @@
  * Header : ‹ Agenda | "Emploi du temps" centré | "Aujourd'hui" ghost
  * Sélecteur semaine + strip 7 jours L M M J V S D
  * Timeline du jour : colonne horaire gauche + blocs cours indigo
- * Fond #F2F1EE · paddingBottom 32
+ * Fond C.bg · paddingBottom 32
  *
  * Android rules:
  * - No `gap` → marginRight / marginBottom explicit
@@ -12,6 +12,7 @@
  * - No backdropFilter → semi-opaque colors
  */
 import React, { useState } from 'react';
+import { C } from '../constants/design';
 import {
   View,
   ScrollView,
@@ -33,7 +34,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 // ─── Tokens locaux ────────────────────────────────────────────────────────────
 
-const BG         = '#F2F1EE';
+const BG         = C.bg;
 const INDIGO     = '#4338CA';
 const INDIGO_BG  = 'rgba(67,56,202,0.06)';
 const AMBER      = '#F59E0B';

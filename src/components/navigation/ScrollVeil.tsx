@@ -5,7 +5,7 @@
  *  - Haut, au repos (scrollY = 0) : invisible, la barre est posée sur le contenu (header de l'Accueil).
  *    Au défilement : opacité 0 → 1 entre 0 et 16 px.
  *  - Bas : toujours visible (le contenu passe sous la bottom bar dès le repos).
- *  - Dégradé vertical #F2F1EE, opaque côté bord d'écran jusqu'au milieu de la barre (`solid`),
+ *  - Dégradé vertical du fond de page (C.bg), opaque côté bord d'écran jusqu'au milieu de la barre (`solid`),
  *    puis fondu vers transparent (`fade`).
  *
  * Pas de BlurView : instable sur Android. Un seul composant pour le haut et le bas.
@@ -19,9 +19,12 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
+import { C } from '../../constants/design';
+import { withAlpha } from '../../utils/couleur';
 
-const PAGE_BG = '#F2F1EE';
-const PAGE_BG_CLEAR = 'rgba(242,241,238,0)';
+const PAGE_BG = C.bg;
+// Même RGB que le fond, opacité 0 (jamais 'transparent' = noir transparent sur Android).
+const PAGE_BG_CLEAR = withAlpha(C.bg, 0);
 
 /** Défilement (px) sur lequel le voile passe de 0 à 1. */
 export const VEIL_FADE_IN_SCROLL = 16;

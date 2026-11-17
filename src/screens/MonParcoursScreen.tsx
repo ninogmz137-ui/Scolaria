@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { C } from '../constants/design';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronRight, Plus } from 'lucide-react-native';
@@ -130,7 +131,7 @@ function MonParcoursScreenContent() {
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: C.bg },
   resume: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: 'rgba(15,23,42,0.6)', paddingHorizontal: 16 },
   section: {
     fontFamily: FontFamily.sansSemiBold,

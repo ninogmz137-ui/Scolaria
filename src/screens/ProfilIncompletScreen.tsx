@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'react';
+import { C } from '../constants/design';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -47,7 +48,7 @@ export default function ProfilIncompletScreen({
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE', alignItems: 'center', paddingHorizontal: 24 },
+  root: { flex: 1, backgroundColor: C.bg, alignItems: 'center', paddingHorizontal: 24 },
   titre: { fontFamily: FontFamily.sansBold, fontSize: 20, lineHeight: 26, color: '#0F172A', textAlign: 'center', marginTop: 24 },
   texte: { fontFamily: FontFamily.sansRegular, fontSize: 15, lineHeight: 22, color: 'rgba(15,23,42,0.62)', textAlign: 'center', marginTop: 12 },
   primaire: {

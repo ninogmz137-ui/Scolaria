@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { C } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -171,7 +172,7 @@ export default function ApprentissagesVue({
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: C.bg },
   // Même mise en page qu'avant (marges de 4 en haut et en bas), mais le conteneur englobe la zone tactile agrandie des
   // pastilles (haut 8, bas 4) : padding 8 / 4 compensé par des marges de -4 / 0. Sans cela la zone débordait du conteneur.
   periodes: { flexDirection: 'row', paddingHorizontal: 14, paddingTop: 8, paddingBottom: 4, marginTop: -4, marginBottom: 0 },

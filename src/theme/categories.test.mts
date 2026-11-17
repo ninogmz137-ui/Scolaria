@@ -7,6 +7,13 @@ import {
   type Categorie, type TeinteId,
 } from './categories.ts';
 
+import { readFileSync } from 'node:fs';
+
+// Fond de page lu dans design.ts (C.bg), seule source : aucune copie de la couleur dans ce test.
+const sourceDesign = readFileSync(new URL('../constants/design.ts', import.meta.url), 'utf8');
+const fondPage = sourceDesign.match(/\bbg: '#([0-9A-Fa-f]{6})'/)![1];
+const PAGE_RGB = [0, 2, 4].map((i) => parseInt(fondPage.slice(i, i + 2), 16));
+
 let ok = 0;
 let echecs = 0;
 function verifier(nom: string, bon: boolean, detail = '') {
@@ -15,13 +22,15 @@ function verifier(nom: string, bon: boolean, detail = '') {
   else echecs++;
 }
 
-// Contraste WCAG (fond opaque ; l'indigo à 10 % est composé sur le fond de page #F2F1EE).
+// Contraste WCAG (fond opaque ; l'indigo à 10 % est composé sur le fond de page « Brume »).
+// Ce test tourne sous node : il ne peut pas importer design.ts (react-native) ; il lit donc C.bg
+// dans le texte du fichier (PAGE_RGB, ci-dessus).
 function rgb(c: string): [number, number, number] {
   const m = c.match(/^#([0-9a-f]{6})$/i);
   if (m) return [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)) as [number, number, number];
   const r = c.match(/^rgba\((\d+),(\d+),(\d+),([\d.]+)\)$/)!;
   const a = Number(r[4]);
-  const page = [0xf2, 0xf1, 0xee];
+  const page = PAGE_RGB;
   return [0, 1, 2].map((i) => Math.round(Number(r[i + 1]) * a + page[i] * (1 - a))) as [number, number, number];
 }
 const lum = ([r, g, b]: [number, number, number]) => {

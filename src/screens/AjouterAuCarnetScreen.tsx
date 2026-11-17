@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { C } from '../constants/design';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -288,7 +289,7 @@ export default function AjouterAuCarnetScreen() {
 }
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: C.bg },
   apercu: { width: '100%', height: 200, borderRadius: 16, backgroundColor: '#FFFFFF', marginTop: 8 },
   document: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, marginTop: 8 },
   documentNom: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: '#0F172A', marginLeft: 10, flex: 1 },

@@ -4,6 +4,7 @@
  */
 
 import * as Print from 'expo-print';
+import { C } from '../constants/design';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import type { LigneSuiviExport } from './suiviService';
@@ -117,7 +118,7 @@ function generateHTML(data: PDFExportData): string {
     .superpower .info h3 { margin: 0 0 4px 0; font-size: 18px; color: #4338CA; }
     .superpower .info p { margin: 0; font-size: 13px; color: #787774; line-height: 1.5; }
     .stats-grid { display: flex; gap: 12px; }
-    .stat-card { flex: 1; background: #F2F1EE; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #E8E5E0; }
+    .stat-card { flex: 1; background: ${C.bg}; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #E8E5E0; }
     .stat-value { font-size: 28px; font-weight: 800; color: #37352F; }
     .stat-label { font-size: 11px; color: #787774; margin-top: 4px; }
     table { width: 100%; border-collapse: collapse; }
@@ -243,7 +244,7 @@ function generateMemoHTML(data: TransitionMemoData): string {
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0EEED;">
       <span style="font-size:20px;">${a.emoji}</span>
       <span style="font-weight:600;color:#37352F;flex:1;">${a.name}</span>
-      <span style="font-size:12px;color:#787774;background:#F2F1EE;padding:3px 10px;border-radius:8px;">${a.level}</span>
+      <span style="font-size:12px;color:#787774;background:${C.bg};padding:3px 10px;border-radius:8px;">${a.level}</span>
     </div>
   `).join('');
 

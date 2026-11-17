@@ -1756,7 +1756,7 @@ function NotesScreenContent() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F2F1EE' },
+  root: { flex: 1, backgroundColor: DC.bg },
   wallpaperClip: {
     position: 'absolute',
     top: 0,
@@ -1776,7 +1776,7 @@ const styles = StyleSheet.create({
   mainScroll: {
     flex: 1,
     zIndex: 1,
-    backgroundColor: '#F2F1EE',
+    backgroundColor: DC.bg,
   },
   scroll: { paddingHorizontal: 18 },
   // L'en-tête Suivi a ses propres marges (14) : on annule celles du défilement collège (18).

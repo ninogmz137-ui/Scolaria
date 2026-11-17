@@ -3,7 +3,7 @@
  * primaire, collège-lycée), déduit de sa date de naissance.
  *
  * Le cycle pilote le CONTENU (ex. Suivi), jamais les couleurs : tous les
- * cycles partagent le même thème (fond #F2F1EE, accent indigo #4338CA).
+ * cycles partagent le même thème (fond C.bg, accent indigo #4338CA).
  */
 
 import {
@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from 'react';
 import { ASSISTANT } from '../constants/marque';
+import { C } from '../constants/design';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export interface SchoolModeTheme {
 
 /** Thème unique, commun à tous les cycles. */
 const UNIFIED_BASE = {
-  bg: '#F2F1EE',
+  bg: C.bg,
   bgLight: '#FFFFFF',
   card: '#FFFFFF',
   cardBorder: 'transparent',
@@ -67,7 +68,7 @@ const UNIFIED_BASE = {
   tabActive: '#4338CA',
   ariaColor: '#4338CA',
   ariaLabel: ASSISTANT.nom,
-  backgroundColor: '#F2F1EE',
+  backgroundColor: C.bg,
 };
 
 export const THEMES: Record<SchoolMode, SchoolModeTheme> = {

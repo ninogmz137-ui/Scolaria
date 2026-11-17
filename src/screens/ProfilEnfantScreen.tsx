@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { C, SHADOW } from '../constants/design';
 import {
   View,
   Image,
@@ -53,7 +54,7 @@ import { libelleNiveau, ligneSource, type ElementSuivi } from '../utils/competen
 import { Segments } from './suivi/ApprentissagesVue';
 import { NOM_APP } from '../constants/marque';
 
-const PAGE_BG = '#F2F1EE';
+const PAGE_BG = C.bg;
 const NAVY = '#1A2340';
 const VIOLET = '#4338CA';
 const CYAN = '#06B6D4';
@@ -659,7 +660,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#F2F1EE',
+    backgroundColor: C.bg,
     borderWidth: 2.5,
     borderColor: 'rgba(67,56,202,0.2)',
     alignItems: 'center',

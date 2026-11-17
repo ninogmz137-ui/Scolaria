@@ -8,6 +8,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { C } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import {
   View,
@@ -556,9 +557,9 @@ export default function AjouterEnfantScreen({ navigation, onChildAdded }: Props)
 }
 
 // ─── Styles ──────────────────────────────────────────────
-// Fond #F2F1EE, textes #0F172A, inputs COMPONENTS.md §5, bouton primaire §2.
+// Fond C.bg, textes #0F172A, inputs COMPONENTS.md §5, bouton primaire §2.
 
-const BG = '#F2F1EE';
+const BG = C.bg;
 const INK = '#0F172A';
 const INDIGO = '#4338CA';
 const TEXT55 = 'rgba(15,23,42,0.55)';

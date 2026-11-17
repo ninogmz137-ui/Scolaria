@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { C } from '../constants/design';
 import { View, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
@@ -748,7 +749,7 @@ export default function TabNavigator() {
 
   return (
     <TopbarScrollContext.Provider value={topbarScrollContextValue}>
-      <View style={{ flex: 1, backgroundColor: '#F2F1EE' }} {...swipePan.panHandlers}>
+      <View style={{ flex: 1, backgroundColor: C.bg }} {...swipePan.panHandlers}>
             {/* Voile haut : apparaît au défilement, jamais de bandeau opaque au repos */}
             {showNavChrome && (
               <ScrollVeil edge="top" solid={topVeilSolid} fade={topVeilFade} scrollY={scrollY} />

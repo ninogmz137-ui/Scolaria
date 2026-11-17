@@ -2,7 +2,7 @@
  * EtatErreur — un chargement a échoué (réseau coupé, session expirée, erreur serveur).
  * Message clair en français + pill « Réessayer » (ou « Se reconnecter » si la session a expiré).
  * Jamais un écran blanc, jamais une liste vide qui laisserait croire qu'il n'y a rien.
- * Pas de glass card : texte posé sur le fond de page (#F2F1EE).
+ * Pas de glass card : texte posé sur le fond de page (C.bg).
  */
 
 import { useState } from 'react';
