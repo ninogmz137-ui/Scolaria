@@ -17,7 +17,7 @@ import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolMod
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { getSuiviDemo, REGLAGES_DEMO } from '../data/demo/suivi';
-import { getCompetences, getAcademicYears } from '../services/database';
+import { getCompetences, getAcademicYears, getGrades } from '../services/database';
 import type { Decoupage, ElementSuivi } from '../utils/competences';
 import { carnetDemo, type ElementCarnet } from '../services/carnetService';
 import { useCarnetReel } from './useCarnetReel';
@@ -45,9 +45,21 @@ export interface Scolarite {
   anneeEnCours: AnneeParcours | undefined;
   anneesArchives: AnneeParcours[];
   erreurAnnees: TypeErreur | null;
+  /** Collège / lycée : la note la plus récente (aperçu du sommaire) ; null sans note ou hors collège. */
+  derniereNote: DerniereNote | null;
+  erreurNote: TypeErreur | null;
   /** Incrémenté par « Réessayer » : tout lecteur qui en dépend relit ses données. */
   versionSuivi: number;
   reessayer: () => void;
+}
+
+export interface DerniereNote {
+  valeur: number;
+  sur: number;
+  intitule: string;
+  matiere: string;
+  /** YYYY-MM-DD */
+  date: string;
 }
 
 const ScolariteContext = createContext<Scolarite | null>(null);
@@ -55,7 +67,7 @@ const ScolariteContext = createContext<Scolarite | null>(null);
 function useChargementScolarite(): Scolarite {
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
-  const { isDemoMode } = useDemoData();
+  const { isDemoMode, getSubjects: getDemoSubjects, getGrades: getDemoGrades } = useDemoData();
 
   const schoolMode = selectedChild?.birthDate ? getSchoolModeFromBirthDate(selectedChild.birthDate) : mode;
   const cycle = selectedChild?.cycle ?? null;
@@ -68,13 +80,66 @@ function useChargementScolarite(): Scolarite {
   const [erreurAnnees, setErreurAnnees] = useState<TypeErreur | null>(null);
   const [versionSuivi, setVersionSuivi] = useState(0);
 
+  const [derniereNote, setDerniereNote] = useState<DerniereNote | null>(null);
+  const [erreurNote, setErreurNote] = useState<TypeErreur | null>(null);
+
   // Changement d'enfant : vider AVANT les chargements (déclaré en premier).
   useEffect(() => {
     setCompetences([]);
     setAnnees([]);
+    setDerniereNote(null);
     setErreurCompetences(null);
     setErreurAnnees(null);
+    setErreurNote(null);
   }, [selectedChild?.id]);
+
+  // Collège / lycée : dernière note, pour l'aperçu du sommaire (le détail reste dans Notes v7).
+  useEffect(() => {
+    let annule = false;
+    if (isPrimaire || isMaternelle || !selectedChild) {
+      setDerniereNote(null);
+      return;
+    }
+    if (isDemoMode) {
+      const matieres = getDemoSubjects(selectedChild.id);
+      const n = [...getDemoGrades(selectedChild.id)].sort((a, b) => b.date.localeCompare(a.date))[0];
+      setDerniereNote(
+        n
+          ? {
+              valeur: n.value,
+              sur: n.outOf,
+              intitule: n.title,
+              matiere: matieres.find((m) => m.id === n.subjectId)?.name ?? '',
+              date: n.date.slice(0, 10),
+            }
+          : null,
+      );
+      return;
+    }
+    getGrades(selectedChild.id, { limit: 1 }).then(({ data, error }) => {
+      if (annule) return;
+      if (error) {
+        setErreurNote(classerErreur(error));
+        return;
+      }
+      setErreurNote(null);
+      const r = (data ?? [])[0] as any;
+      setDerniereNote(
+        r
+          ? {
+              valeur: Number(r.value),
+              sur: Number(r.max_value ?? 20),
+              intitule: r.type ?? '',
+              matiere: r.subjects?.name ?? '',
+              date: String(r.date ?? '').slice(0, 10),
+            }
+          : null,
+      );
+    });
+    return () => {
+      annule = true;
+    };
+  }, [isPrimaire, isMaternelle, isDemoMode, selectedChild, versionSuivi, getDemoSubjects, getDemoGrades]);
 
   // Découpage : démo = réglage de l'école de démo ; compte réel = défaut du niveau (périodes) tant que la
   // résolution serveur (decoupage_annee) n'est pas branchée côté app.
@@ -192,6 +257,8 @@ function useChargementScolarite(): Scolarite {
     anneeEnCours,
     anneesArchives,
     erreurAnnees,
+    derniereNote,
+    erreurNote,
     versionSuivi,
     reessayer,
   };

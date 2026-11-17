@@ -10,7 +10,18 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
-### LOT 2 — PLAN (17 nov., branche `archi-lot-2` depuis main 3cc353f) — AUCUN CODE AVANT ACCORD
+### LOT 2 — RÉSULTAT (17 nov., plan validé + correction « certificats ajoutés par le parent »)
+- [x] Étape 1 (96d7c60) : `useScolarite()` = fournisseur autour de la pile Scolarité (et de la pile élève) ; compétences, carnet, années, dernière note (collège), erreurs, « Réessayer ».
+- [x] Sommaire `NotesHome` = `screens/scolarite/ScolariteSommaire.tsx` : bouton année + Apprentissages · Souvenirs · Documents · Parcours ; aperçu du plus récent (collège : dernière note) ; cartes d'invitation sur rubrique vide, sans « Tout voir » ; Parcours jamais vide. `SuiviEntete` supprimé ; `Segmented` gardé (lecteur restant : Messages, lot 3).
+- [x] Pages profondes (chrome 'none', `PageRubrique` : « ‹ » + titre, retour par glissement) : `ScolariteApprentissages` (NotesScreen), `ScolariteSouvenirs` / `ScolariteDocuments` (`RubriqueCarnetScreen`, une ligne de filtres, filtre vide jamais affiché).
+- [x] Document ajouté par le parent : `source: 'document'` → catégorie `livret` en base → apparaît dans Documents (« Tout » et « Ajoutés par vous »), libellé « Document » (`libelleType`). Aucune contrainte ne bloque : PAS de migration.
+- [x] Libellés : « Document » dans le choix de catégorie de l'ajout ; « Parcours » (titres de pile, page sans enfant, lien des documents archivés).
+- [x] Redmi (démo, Léa GS / Lucas CM2 / Emma 3e) : sommaire, « Tout voir » Souvenirs (filtre Premières fois) / Apprentissages / Parcours, retour ; 2 défauts vus et corrigés (millésime « 2026-2027 » → « 2026–2027 » dans l'aperçu Parcours ; menu T1 d'Emma qui recouvrait l'en-tête de la page profonde).
+- Tests : tsc 0 ; nom-en-dur 29 ; marque 19 ; categories 29 ; entete 5 ; emergency 22 ; bundle-prod 12/12.
+- **Écarts au plan** : maternelle sans filtre par domaine ; collège : sélecteur « T1 ▾ » gardé (pas de ligne de filtres) ; bulletins du collège (table `bulletins`, BulletinScreen) absents de Documents ; « Parcours » reste en chrome 'full' (sa top bar n'a ni flèche ni titre : défaut préexistant, à corriger).
+- Incident : disque C: plein (0 Mo) pendant la vérification ; cache npm vidé (accord de l'utilisateur) → 3,1 Go libres. Docker (26,5 Go) à déplacer vers D: par l'utilisateur.
+
+### LOT 2 — PLAN (17 nov., branche `archi-lot-2` depuis main 3cc353f)
 Objectif : Scolarité sur deux niveaux (CLAUDE.md § Scolarité, COMPONENTS §17 bis-A). Décision du 17 nov. : rubrique vide jamais masquée → titre + carte d'invitation (phrase + pilule), sans « Tout voir » ; Parcours jamais vide.
 
 **État actuel (lu le 17 nov.)**

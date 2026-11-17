@@ -7,7 +7,7 @@
  *              disciplines → compétences. Barre à 3 OU 4 segments selon l'échelle de CHAQUE ligne,
  *              libellé sous la barre, ligne source obligatoire. Jamais de vert / rouge, jamais de /20.
  * Empty state si rien pour la période.
- * `entete` : bouton année + segmented Apprentissages · Souvenirs · Livrets (SuiviEntete), en tête.
+ * `entete` : contenu posé en tête (page Apprentissages de Scolarité : message d'erreur éventuel).
  */
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -15,6 +15,7 @@ import { C } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePageProfonde } from '../scolarite/PageRubrique';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { useTopbarScrollHandler } from '../../contexts/TopbarScrollContext';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -68,6 +69,7 @@ export default function ApprentissagesVue({
   vide: string;
 }) {
   const insets = useSafeAreaInsets();
+  const profonde = usePageProfonde();
   const scrollHandler = useTopbarScrollHandler();
   const primaire = mode === 'primaire';
 
@@ -97,10 +99,11 @@ export default function ApprentissagesVue({
   return (
     <Reanimated.ScrollView
       style={st.root}
-      contentContainerStyle={{
-        paddingTop: insets.top + 64 + 8,
-        paddingBottom: getBottomBarScrollPadding(insets.bottom),
-      }}
+      contentContainerStyle={
+        profonde
+          ? { paddingTop: 8, paddingBottom: insets.bottom + 24 }
+          : { paddingTop: insets.top + 64 + 8, paddingBottom: getBottomBarScrollPadding(insets.bottom) }
+      }
       showsVerticalScrollIndicator={false}
       scrollEventThrottle={16}
       onScroll={scrollHandler}

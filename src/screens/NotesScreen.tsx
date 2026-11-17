@@ -60,15 +60,10 @@ import { Text, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
 import ApprentissagesVue from './suivi/ApprentissagesVue';
 import { referentielDuNiveau } from '../data/referentiels';
-import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
-import CarnetVue from './suivi/CarnetVue';
-import { lienFichier, type ElementCarnet } from '../services/carnetService';
 import EtatErreur from '../components/EtatErreur';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
-import { videLivrets } from '../utils/livrets';
-import BoutonAnnee from './suivi/BoutonAnnee';
-import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 import { useScolarite } from '../hooks/useScolarite';
+import { usePageProfonde } from './scolarite/PageRubrique';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -912,6 +907,8 @@ function NotesScreenContent() {
   const { isDemoMode, getSubjects: getDemoSubjects, getGrades: getDemoGrades } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  // Page Apprentissages de Scolarité (niveau 2) : pas de barres à réserver. Pile élève : écran racine.
+  const profonde = usePageProfonde();
   const scrollHandler = useTopbarScrollHandler();
 
   // Jamais de matières fictives : démo = carnet de l'enfant actif, compte réel = la base.
@@ -935,18 +932,12 @@ function NotesScreenContent() {
   // Données partagées de l'onglet (lot 2) : cycle, compétences, carnet, années, erreurs, « Réessayer ».
   // Changement d'enfant : le fournisseur (ScolariteProvider) vide ses données avant de recharger.
   const {
-    cycle,
     isMaternelle,
     isPrimaire,
     decoupage: decoupageSuivi,
     competences,
     erreurCompetences,
-    carnet,
-    livrets,
-    souvenirs,
     erreurCarnet,
-    anneeEnCours,
-    anneesArchives,
     erreurAnnees,
     versionSuivi,
     reessayer,
@@ -962,40 +953,13 @@ function NotesScreenContent() {
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
-  // ─── Onglets Apprentissages · Souvenirs · Livrets (B3b) ──────────────────
-  // Démo : livrets et souvenirs de l'univers de démo. Compte réel : carnet_items ; tant que rien ne
-  // permet d'en ajouter (lot B5), la barre n'apparaît que s'il en existe déjà (jamais de module grisé).
-  const [onglet, setOnglet] = useState<OngletSuivi>('apprentissages');
-  useEffect(() => {
-    setOnglet('apprentissages');
-  }, [selectedChild?.id]);
-  // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier sans copie publique (L6).
-  const ouvrirFichierCarnet = useOuvrirFichierCarnet();
-  const ouvrirElement = async (e: ElementCarnet) => {
-    if (e.deMoi) {
-      navigation.navigate('AjouterAuCarnet', { element: e });
-      return;
-    }
-    await ouvrirFichierCarnet(e);
-  };
-  const afficherBarre = isDemoMode || carnet.length > 0;
-  const ouvrirParcours = () => navigation.navigate('MonParcours');
-
   // Un échec de chargement se montre sous l'en-tête, dans CHAQUE vue (Apprentissages, Souvenirs, Livrets,
   // notes) : message clair + « Réessayer », jamais « aucune compétence » à tort.
   const erreurSuivi = erreurCarnet ?? erreurCompetences ?? erreurAnnees ?? erreurNotes;
+  // Page Apprentissages (Scolarité, niveau 2) : le bouton année vit sur le sommaire ; ici, seulement
+  // l'éventuel message d'erreur au-dessus du contenu.
   const entete = (
     <>
-      <SuiviEntete
-        onglet={onglet}
-        onChange={setOnglet}
-        afficherBarre={afficherBarre}
-        boutonAnnee={
-          anneeEnCours ? (
-            <BoutonAnnee enCours={anneeEnCours} archives={anneesArchives} onParcours={ouvrirParcours} />
-          ) : undefined
-        }
-      />
       {erreurSuivi ? (
         <EtatErreur
           type={erreurSuivi}
@@ -1265,30 +1229,6 @@ function NotesScreenContent() {
   // ─── PRIMAIRE : disciplines → compétences, barre à 3 ou 4 segments selon CHAQUE ligne,
   //     sélecteur de période (P1…P5 ou S1/S2), jamais de trimestre ni de note /20 ─────
 
-  if (afficherBarre && onglet === 'souvenirs') {
-    return (
-      <CarnetVue
-        mode="souvenirs"
-        entete={entete}
-        items={souvenirs}
-        vide={erreurSuivi ? '' : 'Aucun souvenir pour l’instant cette année. Ajoutez un dessin, une photo ou une première fois avec ⊞.'}
-        onOuvrir={ouvrirElement}
-      />
-    );
-  }
-  if (afficherBarre && onglet === 'livrets') {
-    return (
-      <CarnetVue
-        mode="livrets"
-        entete={entete}
-        items={livrets}
-        vide={erreurSuivi ? '' : videLivrets(selectedChild?.niveau, cycle, isMaternelle || isPrimaire ? decoupageSuivi : 'trimestres')}
-        onParcours={ouvrirParcours}
-        onOuvrir={ouvrirElement}
-      />
-    );
-  }
-
   if (isPrimaire || isMaternelle) {
     return (
       <ApprentissagesVue
@@ -1335,7 +1275,9 @@ function NotesScreenContent() {
         onScroll={scrollHandler}
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
+          profonde
+            ? { paddingTop: 8, paddingBottom: insets.bottom + 24 }
+            : { paddingTop: insets.top + 64 + 12, paddingBottom: getBottomBarScrollPadding(insets.bottom) },
         ]}
       >
         <View style={styles.enteteCollege}>{entete}</View>
@@ -1361,7 +1303,8 @@ function NotesScreenContent() {
         <Modal visible={showTrimesterPicker} transparent animationType="fade">
           <View style={styles.modalRoot} pointerEvents="box-none">
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowTrimesterPicker(false)} />
-            <View style={[styles.trimesterDropdownWrap, { top: insets.top + 52 }]}>
+            {/* Page profonde : sous l'en-tête (≈ 54 dp) et le bouton T1 (≈ 31 dp + marges), mesuré sur le Redmi. */}
+            <View style={[styles.trimesterDropdownWrap, { top: insets.top + (profonde ? 106 : 52) }]}>
               <View style={styles.trimesterDropdown}>
                 {TRIMESTER_OPTIONS.map((opt) => {
                   const isActive = opt.value === selectedTrimester;

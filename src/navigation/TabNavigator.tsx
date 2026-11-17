@@ -37,6 +37,14 @@ import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
 // Main tab screens
 import AccueilScreen from '../screens/AccueilScreen';
 import NotesScreen from '../screens/NotesScreen';
+import ScolariteSommaire from '../screens/scolarite/ScolariteSommaire';
+import RubriqueCarnetScreen from '../screens/scolarite/RubriqueCarnetScreen';
+import { pageRubrique } from '../screens/scolarite/PageRubrique';
+
+// Rubriques de Scolarité en pages profondes (niveau 2). Définies une fois (identité stable pour la pile).
+const PageApprentissages = pageRubrique('Apprentissages', NotesScreen);
+const PageSouvenirs = pageRubrique('Souvenirs', RubriqueCarnetScreen);
+const PageDocuments = pageRubrique('Documents', RubriqueCarnetScreen);
 import AgendaScreen from '../screens/AgendaScreen';
 import MessagerieScreen from '../screens/MessagerieScreen';
 
@@ -112,7 +120,10 @@ const SCREEN_TITLES: Record<string, string> = {
   ProfilEnfant: 'Profil',
   AjouterEnfant: 'Ajouter un enfant',
   AjouterAnne: 'Ajouter une année',
-  MonParcours: 'Mon parcours',
+  MonParcours: 'Parcours',
+  ScolariteApprentissages: 'Apprentissages',
+  ScolariteSouvenirs: 'Souvenirs',
+  ScolariteDocuments: 'Documents',
   FamilleParametres: 'Famille & paramètres',
   RGPDScreen: 'RGPD & Confidentialité',
   PermissionsRGPD: 'Permissions',
@@ -231,7 +242,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="MonParcours"
         component={MonParcoursScreen}
-        options={{ title: 'Mon parcours' }}
+        options={{ title: 'Parcours' }}
       />
       <AccueilStack.Screen
         name="FamilleParametres"
@@ -382,7 +393,22 @@ function NotesStackScreen() {
     >
       <NotesStack.Screen
         name="NotesHome"
-        component={NotesScreen}
+        component={ScolariteSommaire}
+        options={{ headerShown: false }}
+      />
+      <NotesStack.Screen
+        name="ScolariteApprentissages"
+        component={PageApprentissages}
+        options={{ headerShown: false }}
+      />
+      <NotesStack.Screen
+        name="ScolariteSouvenirs"
+        component={PageSouvenirs}
+        options={{ headerShown: false }}
+      />
+      <NotesStack.Screen
+        name="ScolariteDocuments"
+        component={PageDocuments}
         options={{ headerShown: false }}
       />
       <NotesStack.Screen
@@ -401,11 +427,11 @@ function NotesStackScreen() {
         component={BulletinScreen}
         options={{ headerShown: false }}
       />
-      {/* Bouton année et lien « Livrets des années précédentes » : retour vers Suivi. */}
+      {/* Rubrique Parcours, bouton année et lien « Documents des années précédentes » : retour vers Scolarité. */}
       <NotesStack.Screen
         name="MonParcours"
         component={MonParcoursScreen}
-        options={{ title: 'Mon parcours' }}
+        options={{ title: 'Parcours' }}
       />
       <NotesStack.Screen
         name="ArchivedYearDetail"

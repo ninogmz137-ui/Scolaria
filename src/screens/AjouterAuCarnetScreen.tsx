@@ -42,7 +42,7 @@ type Params = { source?: SourceAjout; element?: ElementCarnet; categorie?: Categ
 
 const CATEGORIES: { id: CategorieCarnet; libelle: string }[] = [
   { id: 'mot', libelle: 'Mot' },
-  { id: 'livret', libelle: 'Livret' },
+  { id: 'livret', libelle: 'Document' }, // valeur en base inchangée (« livret »), affichée « Document » (lot 2)
   { id: 'souvenir', libelle: 'Souvenir' },
   { id: 'jalon', libelle: 'Jalon' },
 ];

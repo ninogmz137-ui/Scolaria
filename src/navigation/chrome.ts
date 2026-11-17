@@ -45,7 +45,11 @@ export const ROUTE_CHROME = {
   SignDoc: 'none',
   SignSuccess: 'none',
   // ── Pile Notes ────────────────────────────────────────
-  NotesHome: 'full',
+  NotesHome: 'full', // sommaire de Scolarité (niveau 1)
+  // Rubriques de Scolarité (niveau 2) : pages profondes, en-tête « ‹ » + titre (PageRubrique), sans barres.
+  ScolariteApprentissages: 'none',
+  ScolariteSouvenirs: 'none',
+  ScolariteDocuments: 'none',
   SubjectDetail: 'full',
   GradeDetail: 'none',
   BulletinScreen: 'none',

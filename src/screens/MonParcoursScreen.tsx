@@ -168,6 +168,6 @@ const st = StyleSheet.create({
 /** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
 export default function MonParcoursScreen() {
   const { selectedChild } = useActiveChild();
-  if (!selectedChild) return <AucunEnfantPage title="Mon parcours" />;
+  if (!selectedChild) return <AucunEnfantPage title="Parcours" />;
   return <MonParcoursScreenContent />;
 }

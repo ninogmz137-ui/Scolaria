@@ -13,6 +13,7 @@ import { C } from '../../constants/design';
 import { Image, View, StyleSheet } from 'react-native';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePageProfonde } from '../scolarite/PageRubrique';
 import { Award, BookOpen, ClipboardCheck, FileText, Flag, Images, Lock, Mail, Palette, Users } from 'lucide-react-native';
 import { useDemoData } from '../../contexts/DemoContext';
 import { lienFichier } from '../../services/carnetService';
@@ -43,6 +44,15 @@ export const LIBELLES_TYPE: Record<TypeCarnet, string> = {
   jalon: 'Première fois',
   mot: 'Mot',
 };
+
+/**
+ * Libellé du type affiché. Un document ajouté par le parent (catégorie « livret » en base : livret scanné,
+ * certificat, attestation…) s'affiche « Document » : l'app ne sait pas ce qu'il contient (lot 2, 17 nov.).
+ */
+export function libelleType(e: Pick<ElementCarnet, 'type' | 'source'>): string {
+  if (e.type === 'livret' && e.source === 'parent') return 'Document';
+  return LIBELLES_TYPE[e.type];
+}
 
 /** Aperçu d'une image ajoutée (démo : fichier local ; compte réel : URL signée d’1 h). */
 function Apercu({ e }: { e: ElementCarnet }) {
@@ -102,7 +112,7 @@ export function ListeLivrets({ items, onOuvrir }: { items: ElementCarnet[]; onOu
               <Icone size={20} color="#0F172A" strokeWidth={2} />
             </View>
             <View style={st.rowTexte}>
-              <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
+              <Text style={st.type}>{libelleType(e).toUpperCase()}</Text>
               <Text style={st.titre}>{e.titre}</Text>
               {e.note ? <Text style={st.note}>{e.note}</Text> : null}
               <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
@@ -129,19 +139,21 @@ export default function CarnetVue({
   entete: ReactNode;
   items: ElementCarnet[];
   vide: string;
-  /** Lien « Livrets des années précédentes → Mon parcours » (onglet Livrets). */
+  /** Lien « Documents des années précédentes → Parcours » (page Documents). */
   onParcours?: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const profonde = usePageProfonde();
   const scrollHandler = useTopbarScrollHandler();
 
   return (
     <Reanimated.ScrollView
       style={st.root}
-      contentContainerStyle={{
-        paddingTop: insets.top + 64 + 8,
-        paddingBottom: getBottomBarScrollPadding(insets.bottom),
-      }}
+      contentContainerStyle={
+        profonde
+          ? { paddingTop: 8, paddingBottom: insets.bottom + 24 }
+          : { paddingTop: insets.top + 64 + 8, paddingBottom: getBottomBarScrollPadding(insets.bottom) }
+      }
       showsVerticalScrollIndicator={false}
       scrollEventThrottle={16}
       onScroll={scrollHandler}
@@ -173,7 +185,7 @@ export default function CarnetVue({
                   <Apercu e={e} />
                 </View>
                 <View style={st.tuileTexte}>
-                  <Text style={st.type}>{LIBELLES_TYPE[e.type].toUpperCase()}</Text>
+                  <Text style={st.type}>{libelleType(e).toUpperCase()}</Text>
                   <Text style={st.titre} numberOfLines={2}>{e.titre}</Text>
                   {e.note ? <Text style={st.note} numberOfLines={3}>{e.note}</Text> : null}
                   <Text style={st.source}>{ligneSourceCarnet(e)}</Text>
@@ -189,7 +201,7 @@ export default function CarnetVue({
 
       {onParcours ? (
         <Pressable onPress={onParcours} style={st.lien} accessibilityRole="link" hitSlop={{ top: 8, bottom: 8 }}>
-          <Text style={st.lienTexte}>Livrets des années précédentes → Mon parcours</Text>
+          <Text style={st.lienTexte}>Documents des années précédentes → Parcours</Text>
         </Pressable>
       ) : null}
     </Reanimated.ScrollView>
