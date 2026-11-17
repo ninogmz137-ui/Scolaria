@@ -131,7 +131,7 @@ const avatar = () => {
   return a ? [(a.b[0] + a.b[2]) >> 1, a.b[1] + 6] : [1000, 142];
 };
 
-const ONGLETS = ['Accueil', 'Suivi', 'Agenda', 'Messages'];
+const ONGLETS = ['Accueil', 'Scolarité', 'Agenda', 'Messages'];
 
 if (!premierPlan() || !(await surAccueil())) {
   console.log('ARRÊT : Scolaria doit être au premier plan, sur l’Accueil.');

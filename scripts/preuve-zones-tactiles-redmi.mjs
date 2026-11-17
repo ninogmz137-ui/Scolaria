@@ -269,7 +269,7 @@ for (const cote of ['haut', 'bas']) {
 
 // ── Onglets (hitSlop vertical 7 ; horizontal 5 pour l'onglet inactif) ──────────────────────────────
 for (const [nom, attendu] of [
-  ['Suivi', (e) => estSuivi(e)],
+  ['Scolarité', (e) => estSuivi(e)],
   ['Agenda', (e) => e.some((x) => x.t === 'Emploi du temps' || /^Octobre|^Novembre|^Septembre|^Décembre/.test(x.t))],
   ['Messages', (e) => e.some((x) => x.d === 'Général')],
 ]) {
@@ -336,7 +336,7 @@ for (const cote of ['haut', 'bas']) {
 for (const cote of ['haut', 'bas']) {
   let taille = '';
   await serie({ nom: 'Pastille de période P3', hitslop: 'hitSlop {top:8,bottom:4,left:2,right:2} (ApprentissagesVue.tsx:122)', cote, off: 3, get taille() { return taille; } }, async () => {
-    if (!(await allerSur('Suivi'))) return false;
+    if (!(await allerSur('Scolarité'))) return false;
     const n = await lire();
     const p1 = n.find((e) => e.d === 'P1');
     const p = n.find((e) => e.d === 'P3');
@@ -372,7 +372,7 @@ for (const cote of ['haut', 'bas']) {
 for (const cote of ['haut', 'bas']) {
   let taille = '';
   await serie({ nom: 'Bouton année de Suivi', hitslop: 'hitSlop {top:5,bottom:5} (BoutonAnnee.tsx:66)', cote, off: 3, get taille() { return taille; } }, async () => {
-    if (!(await allerSur('Suivi'))) return false;
+    if (!(await allerSur('Scolarité'))) return false;
     const n = await lire();
     const b = n.find((e) => /^Année /.test(e.d) && !/Ouvrir les années/.test(e.d)) ?? n.find((e) => /^Année /.test(e.d));
     if (!b) return false;

@@ -352,7 +352,7 @@ function AccueilStackScreen() {
 const NotesStack = createNativeStackNavigator<StackParams>();
 function NotesStackScreen() {
   return (
-    <ErrorBoundary nom="Suivi" compact><NotesStack.Navigator
+    <ErrorBoundary nom="Scolarité" compact><NotesStack.Navigator
       screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
@@ -591,7 +591,7 @@ function TabContent() {
       <Tab.Screen
         name="Notes"
         component={NotesStackScreen}
-        options={{ tabBarLabel: 'Suivi' }}
+        options={{ tabBarLabel: 'Scolarité' }}
       />
       <Tab.Screen
         name="Agenda"

@@ -116,7 +116,7 @@ await ecran('Ouverture', { attendu: ['Carnet Démo', 'Essayer en mode démo', 'U
 const SANS_PHOTO = ['Ajouter une photo', 'Modifier la photo', 'Prendre une photo', 'Choisir dans la galerie', 'Bonjour'];
 await ecran('Accueil', { clic: 'Essayer en mode démo', attendu: ['Léa', 'Grande section', 'Cette semaine', 'ARIA'], interdit: SANS_PHOTO });
 await ecran('Accueil bas', { defiler: true, attendu: ['Démonstration : famille et données fictives.'] });
-await ecran('Suivi', { clic: 'Suivi' });
+await ecran('Scolarité', { clic: 'Scolarité' });
 await ecran('Agenda', { clic: 'Agenda' });
 await ecran('Messages', { clic: 'Messages', attendu: ['À traiter', 'J’autorise'], interdit: SANS_PHOTO });
 // Les trois enfants : en-tête du carnet (prénom, classe, école · année), corps du niveau, Suivi et Messages.
@@ -140,7 +140,7 @@ const tLucas = await ecran('Accueil Lucas', { clic: 'Accueil', attendu: ['Lucas'
   else if (aujourdhui.getDay() === 3) ok(!tLucas.includes('Aujourd’hui'), 'Accueil Lucas : mercredi (pas d\'école en démo primaire) → ne contient PAS « Aujourd’hui »');
   else console.log(`INFO   Accueil Lucas : ${NOM_JOUR(aujourdhui)} (week-end) : « Aujourd’hui » non vérifié ce jour-là (couvert par les passes à date simulée)`);
 }
-await ecran('Suivi Lucas', { clic: 'Suivi', attendu: ['observation'] });
+await ecran('Scolarité Lucas', { clic: 'Scolarité', attendu: ['observation'] });
 await ecran('Messages Lucas', { clic: 'Messages', attendu: ['Lucas'], interdit: SANS_PHOTO });
 await changerEnfant('Lucas', 'Emma');
 await ecran('Accueil Emma', { clic: 'Accueil', attendu: ['Emma', '3ème', 'Collège Hugo · 2026–2027', 'Dernières notes'], interdit: SANS_PHOTO });

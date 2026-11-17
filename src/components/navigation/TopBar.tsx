@@ -51,7 +51,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { id: 'accueil',  label: 'Accueil',   routeName: 'Accueil',       icon: Home },
   // Libellé « Suivi » (ex-Notes) ; la route interne reste 'Notes'.
-  { id: 'notes',    label: 'Suivi',     routeName: 'Notes',         icon: Grades },
+  { id: 'notes',    label: 'Scolarité', routeName: 'Notes',         icon: Grades },
   { id: 'agenda',   label: 'Agenda',    routeName: 'Agenda',        icon: Calendar },
   { id: 'messages', label: 'Messages',  routeName: 'MessagerieTab', icon: TextBubble },
 ];
