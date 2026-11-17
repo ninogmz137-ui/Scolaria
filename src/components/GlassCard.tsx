@@ -8,6 +8,7 @@ import { type ReactNode } from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
 
 import { GLASS_CARD_RADIUS, nativeGlassCardShadow } from '../constants/theme';
+import { C } from '../constants/design';
 
 // ─── Types ─────────────────────────────────────────────
 
@@ -35,7 +36,7 @@ export default function GlassCard({
   dark = false,
 }: GlassCardProps) {
   return (
-    <View style={[nativeGlassCardShadow, { borderRadius, backgroundColor: 'rgba(255,255,255,0.92)' }, style]}>
+    <View style={[nativeGlassCardShadow, { borderRadius, backgroundColor: '#FFFFFF' }, style]}>
       <View
         style={[
           dark ? styles.innerDark : styles.inner,
@@ -52,7 +53,9 @@ export default function GlassCard({
 
 const styles = StyleSheet.create({
   inner: {
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: C.border,
     overflow: 'hidden',
   },
   innerDark: {

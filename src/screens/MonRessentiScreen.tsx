@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { C, SHADOW } from '../constants/design';
+import { C, RADIUS, SHADOW } from '../constants/design';
 import {
   Alert,
   View,
@@ -347,21 +347,21 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   glowCard: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     marginBottom: 14,
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
+    borderColor: C.border,
   },
   mainCardInner: {
     padding: 16,
   },
   msgGlass: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderColor: C.border,
+    backgroundColor: '#FFFFFF',
     marginBottom: 14,
   },
   msgInner: { padding: 14 },

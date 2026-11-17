@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { C, SHADOW } from '../constants/design';
+import { C, RADIUS, SHADOW } from '../constants/design';
 import {
   View,
   Image,
@@ -843,11 +843,11 @@ const styles = StyleSheet.create({
     color: VIOLET,
   },
   glassCard: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderColor: C.border,
+    backgroundColor: '#FFFFFF',
     marginBottom: 8,
   },
   glassInner: { padding: 16 },

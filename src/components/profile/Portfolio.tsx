@@ -1,4 +1,5 @@
 import { View, StyleSheet } from 'react-native';
+import { C, RADIUS } from '../../constants/design';
 import { BlurView } from 'expo-blur';
 import { Plus } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -82,11 +83,11 @@ export default function Portfolio({ activities }: Props) {
 
 const styles = StyleSheet.create({
   wrap: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.92)',
-    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderColor: C.border,
+    backgroundColor: '#FFFFFF',
   },
   inner: { padding: 16 },
   headerRow: {

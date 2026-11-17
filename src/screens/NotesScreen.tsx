@@ -94,8 +94,9 @@ const C = {
   labelUpper: '#6b7280',
   meta: 'rgba(15,23,42,0.45)',
   body: '#374151',
-  glassBg: 'rgba(255,255,255,0.7)',
-  glassBorder: 'rgba(255,255,255,0.9)',
+  // Cartes opaques (glass supprimé le 16 nov. 2026) : noms conservés pour ne pas toucher aux lecteurs.
+  glassBg: '#FFFFFF',
+  glassBorder: DC.border,
   liquidBtn: 'rgba(255,255,255,0.6)',
   liquidBorder: 'rgba(255,255,255,0.8)',
   rowSep: 'rgba(15,23,42,0.06)',
