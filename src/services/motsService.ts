@@ -251,6 +251,29 @@ export async function chargerMots(childId: string, demo: boolean): Promise<MotCa
   return liste.sort((a, b) => b.date.localeCompare(a.date));
 }
 
+/**
+ * « Signer aussi pour [prénom] » (décision 7 du 16 nov. 2026) : copies du MÊME mot dans le carnet des autres
+ * enfants du foyer qui attendent encore MA signature. Une signature reste PAR carnet (aucune signature
+ * groupée côté base) : chaque copie se signe par signerMot. Mots « à signer » seulement : une autorisation ou
+ * une participation se décide enfant par enfant.
+ */
+export async function copiesASignerAilleurs(
+  m: MotCarnet,
+  autres: { id: string; prenom: string }[],
+  demo: boolean,
+): Promise<{ copie: MotCarnet; prenom: string }[]> {
+  if (m.type !== 'signature' && m.type !== 'information') return [];
+  if (m.signatureMode === 'none') return [];
+  const trouvees: { copie: MotCarnet; prenom: string }[] = [];
+  for (const enfant of autres) {
+    if (enfant.id === m.childId) continue;
+    const mots = await chargerMots(enfant.id, demo);
+    const copie = mots.find((x) => x.id === m.id && aTraiter(x));
+    if (copie) trouvees.push({ copie, prenom: enfant.prenom });
+  }
+  return trouvees;
+}
+
 /** Mon nom complet, pour la confirmation « Signer au nom de … ? ». */
 export async function monNomComplet(childId: string, demo: boolean): Promise<string> {
   if (demo) return `${MOI_DEMO.prenom} ${MOI_DEMO.nom}`;

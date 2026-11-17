@@ -18,6 +18,7 @@ import PastilleCategorie from '../PastilleCategorie';
 import MiniatureCarnet, { aUneImage } from '../MiniatureCarnet';
 import { LibelleSurFondu } from './SurFondu';
 import { demanderSignature } from '../messages/ActionsMot';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { jourCourt, heureCourte } from '../messages/CarteATraiter';
 import { Segments } from '../../screens/suivi/ApprentissagesVue';
 import { aTraiter, type MotCarnet } from '../../services/motsService';
@@ -140,6 +141,9 @@ export default function CorpsCarnet({
   onOuvrirSuivi: () => void;
 }) {
   const aujourdhui = isoJour(new Date());
+  // « Signer aussi pour [prénom] » : les autres enfants du foyer (décision 7 du 16 nov. 2026).
+  const { children, selectedChild } = useActiveChild();
+  const autres = children.filter((c) => c.id !== selectedChild?.id).map((c) => ({ id: c.id, prenom: c.name.split(' ')[0] }));
 
   // 1. À faire
   const lignes = useMemo<LigneAFaire[]>(() => {
@@ -153,7 +157,7 @@ export default function CorpsCarnet({
         titre: m.titre,
         sousTitre: [m.expediteur, delai].join(' · '),
         ouvrir: () => onOuvrirMot(m),
-        signer: reponse ? undefined : () => demanderSignature(m, monNom, demo),
+        signer: reponse ? undefined : () => demanderSignature(m, monNom, demo, undefined, autres),
       });
     }
     if (primaire) {
@@ -184,7 +188,8 @@ export default function CorpsCarnet({
       }
     }
     return res;
-  }, [mots, primaire, evenements, coches, monNom, demo, aujourdhui, onOuvrirMot, onBasculerDevoir, onBasculerCoche]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `autres` suivi par sa clé (ids des enfants)
+  }, [mots, primaire, evenements, coches, monNom, demo, aujourdhui, onOuvrirMot, onBasculerDevoir, onBasculerCoche, autres.map((a) => a.id).join(',')]);
 
   // 2. Cette semaine : prochain événement
   const prochain = useMemo(() => {

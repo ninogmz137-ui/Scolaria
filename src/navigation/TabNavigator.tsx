@@ -38,6 +38,7 @@ import { TopbarScrollContext } from '../contexts/TopbarScrollContext';
 import AccueilScreen from '../screens/AccueilScreen';
 import NotesScreen from '../screens/NotesScreen';
 import ScolariteSommaire from '../screens/scolarite/ScolariteSommaire';
+import FilMessagesScreen from '../screens/messagerie/FilMessagesScreen';
 import RubriqueCarnetScreen from '../screens/scolarite/RubriqueCarnetScreen';
 import { pageRubrique } from '../screens/scolarite/PageRubrique';
 
@@ -542,6 +543,11 @@ function MessagerieStackScreen() {
       <MessagerieStack.Screen
         name="ConversationDetailScreen"
         component={ConversationDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <MessagerieStack.Screen
+        name="FilMessages"
+        component={FilMessagesScreen}
         options={{ headerShown: false }}
       />
       <MessagerieStack.Screen

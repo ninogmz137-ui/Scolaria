@@ -11,7 +11,15 @@ import { useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
-import { repondreMot, signerMot, type MotCarnet, type Participation, type Reponse } from '../../services/motsService';
+import {
+  copiesASignerAilleurs,
+  repondreMot,
+  signerMot,
+  type MotCarnet,
+  type Participation,
+  type Reponse,
+} from '../../services/motsService';
+import { useActiveChild } from '../../contexts/ActiveChildContext';
 
 const NAVY = '#0F172A';
 
@@ -76,7 +84,13 @@ export function StatutsSignature({ mot, retrait = 0 }: { mot: MotCarnet; retrait
  * Signature demandée depuis une liste (pilule « Signer » de l'Accueil) : même confirmation OBLIGATOIRE que la carte
  * « À traiter » (« Signer au nom de [prénom nom] ? »), puis signerMot ; une erreur est dite, jamais silencieuse.
  */
-export function demanderSignature(mot: MotCarnet, monNom: string, demo: boolean, apres?: () => void): void {
+export function demanderSignature(
+  mot: MotCarnet,
+  monNom: string,
+  demo: boolean,
+  apres?: () => void,
+  autres: { id: string; prenom: string }[] = [],
+): void {
   Alert.alert(`Signer au nom de ${monNom} ?`, `« ${mot.titre} »`, [
     { text: 'Annuler', style: 'cancel' },
     {
@@ -84,10 +98,36 @@ export function demanderSignature(mot: MotCarnet, monNom: string, demo: boolean,
       onPress: async () => {
         const erreur = await signerMot(mot, demo);
         if (erreur) Alert.alert('Oups', erreur);
+        else await proposerSignerAussi(mot, monNom, demo, autres);
         apres?.();
       },
     },
   ]);
+}
+
+/**
+ * Après une signature réussie : le même mot attend aussi ma signature dans le carnet d'un autre enfant du foyer
+ * → « Signer aussi pour [prénom] ? » (une proposition par copie, une signature par carnet, jamais automatique).
+ */
+export async function proposerSignerAussi(
+  mot: MotCarnet,
+  monNom: string,
+  demo: boolean,
+  autres: { id: string; prenom: string }[],
+): Promise<void> {
+  if (autres.length === 0) return;
+  const copies = await copiesASignerAilleurs(mot, autres, demo);
+  for (const { copie, prenom } of copies) {
+    const accepte = await new Promise<boolean>((resolve) =>
+      Alert.alert(`Signer aussi pour ${prenom} ?`, `« ${copie.titre} » attend aussi votre signature dans le carnet de ${prenom}.\nSignature au nom de ${monNom}.`, [
+        { text: 'Non', style: 'cancel', onPress: () => resolve(false) },
+        { text: `Signer pour ${prenom}`, onPress: () => resolve(true) },
+      ]),
+    );
+    if (!accepte) continue;
+    const erreur = await signerMot(copie, demo);
+    if (erreur) Alert.alert('Oups', erreur);
+  }
 }
 
 /** `retrait` : alignement sur le texte d'une ligne à pastille (50 = pastille 38 + 12). */
@@ -103,8 +143,16 @@ export default function ActionsMot({
   retrait?: number;
 }) {
   const [envoi, setEnvoi] = useState(false);
+  const { children } = useActiveChild();
+  const autres = children.filter((c) => c.id !== mot.childId).map((c) => ({ id: c.id, prenom: c.name.split(' ')[0] }));
 
-  const confirmer = (titre: string, message: string, bouton: string, action: () => Promise<string | null>) => {
+  const confirmer = (
+    titre: string,
+    message: string,
+    bouton: string,
+    action: () => Promise<string | null>,
+    apresSucces?: () => Promise<void>,
+  ) => {
     Alert.alert(titre, message, [
       { text: 'Annuler', style: 'cancel' },
       {
@@ -114,13 +162,16 @@ export default function ActionsMot({
           const erreur = await action();
           setEnvoi(false);
           if (erreur) Alert.alert('Oups', erreur);
+          else await apresSucces?.();
         },
       },
     ]);
   };
 
   const signer = () =>
-    confirmer(`Signer au nom de ${monNom} ?`, `« ${mot.titre} »`, 'Signer', () => signerMot(mot, demo));
+    confirmer(`Signer au nom de ${monNom} ?`, `« ${mot.titre} »`, 'Signer', () => signerMot(mot, demo), () =>
+      proposerSignerAussi(mot, monNom, demo, autres),
+    );
   const repondre = (reponse: Reponse) =>
     confirmer(
       `Répondre « ${LIBELLE_REPONSE[String(reponse)]} » au nom de ${monNom} ?`,
