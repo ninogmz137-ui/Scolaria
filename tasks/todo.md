@@ -1,5 +1,15 @@
 # TODO — Scolaria
 
+## Architecture v3.3 (décisions du 16 nov. 2026) — lot 0 FAIT (docs seules : CLAUDE.md v3.3, COMPONENTS.md v2.3), lots 1 à 7 à planifier un par un
+- [ ] **Lot 1** — Fond Brume #F3F4FA (pages, ScrollVeil, barre du bas, voile du header), cartes blanches opaques (glass supprimé ; ombre = jeton `SHADOW.card` de `src/constants/design.ts`, déjà en Platform.select iOS 0.04/8 · Android elevation 0 ; à faire : y brancher toutes les cartes (2 fichiers l'utilisent, 39 déclarent une ombre), ajouter un jeton de bordure 0.07 et passer `RADIUS.card` de 18 à 16 ; `C.bg` = #F2F1EE à changer), renommage « Suivi » → « Scolarité », vouvoiement partout (assistant compris).
+- [ ] **Lot 2** — Scolarité sur deux niveaux : sommaire (bouton année + Apprentissages · Souvenirs · Documents · Parcours, aperçu + « Tout voir ») et pages profondes à une ligne de filtres ; segmented control supprimé ; « Livrets » → « Documents ».
+- [ ] **Lot 3** — Messages en fils (« À traiter » + un fil par interlocuteur, fil de classe en annonce seule, bascule Général / [Prénom] supprimée) et mot complet (signature + question + réponse privée cumulables, archivage dans Documents, « Signer aussi pour [prénom] ») ; évolution du schéma `mots_liaison` à concevoir.
+- [ ] **Lot 4** — Agenda : devoirs par jour d'échéance avec coche partagée « Coché par », absence signalée par le parent (quand, durée, motif, justificatif, mot), rendez-vous fixes hebdomadaires avec « À prévoir », libellé de catégorie sur les cartes.
+- [ ] **Lot 5** — Bouton « + » unique (six actions, ordre selon l'onglet ; FAB, crayon, scanner supprimés), champ unique « Rechercher ou demander » (loupe supprimée, « Assistant » sans nom de personnage), pastille rouge sur l'avatar + décompte en clair dans le sélecteur.
+- [ ] **Lot 6** — Accueil (en-tête « classe · enseignant · école », À faire, Aujourd'hui et demain, Nouveau dans le carnet, suggestion sur une ligne avec source ; fonds d'écran supprimés) et Famille et paramètres (sept entrées, « Apparence » supprimée, options non branchées retirées).
+- [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
+- Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
+
 ## 11 nov. 2026 — Correctifs de l'audit Fable, LOT A (branche `fix-audit-fable`, rien sur Paris, aucun build)
 
 **Référence rejouée AVANT toute modification (11 nov., base locale Docker)** : 21 suites SQL `supabase/tests` exit 0 ; `test:emergency` 22 cas / 0 échec ; `test:journaux` 6 fichiers, 15 appels, 0 échec ; `test:marque` 19 ; `audit:securite-local` 670 tests / 0 écart.

@@ -1,7 +1,8 @@
 # CLAUDE.md — Design System & Règles Scolaria
-*Version 3.2 · Septembre 2026 · v3.1 + décisions validées : navigation burger, top bar jamais opaque, protocole d'urgence, Aria via Edge Function, tables réelles, symbole compact, Pressable, garde partagée*
+*Version 3.3 · 16 novembre 2026 · v3.2 + architecture du 16 nov. : onglet Scolarité sur deux niveaux, Messages en fils, mot complet, Agenda (devoirs, absence, rendez-vous fixes), bouton « + » unique, champ « Rechercher ou demander », fond Brume et cartes opaques, vouvoiement, espace enseignant en miroir*
 
-> Ce fichier est l'unique CLAUDE.md du projet. Toute version antérieure (v2.x) est caduque.
+> Ce fichier est l'unique CLAUDE.md du projet. Toute version antérieure (v2.x, v3.0 à v3.2) est caduque.
+> L'identité (nom, logo, wordmark, symbole) est en cours de changement : elle est traitée à part et n'a pas été modifiée en v3.3.
 > En cas de conflit sur un composant UI, COMPONENTS.md a priorité.
 
 ---
@@ -32,12 +33,21 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 
 ---
 
+## Vocabulaire
+- **Le carnet** = tout ce qui concerne un enfant, c'est-à-dire les quatre onglets (Accueil, Scolarité, Agenda, Messages).
+- **Scolarité** = l'onglet anciennement nommé « Suivi » (le mot « Suivi » ne s'affiche plus nulle part).
+- **L'assistant** = le seul libellé affiché pour l'IA. Aucun nom de personnage dans l'interface. Les noms internes du code (`aria`, Edge Function « aria », `ariaApi.ts`…) ne changent pas.
+- **Vouvoiement partout**, y compris dans les textes générés par l'assistant.
+
+---
+
 ## Principe fondateur — Un enfant = un carnet
-- Chaque enfant a son propre carnet. **Aucune vue ne mélange plusieurs enfants** (messages compris).
+- Chaque enfant a son propre carnet, **sans exception, devoirs compris**. **Aucune vue ne mélange plusieurs enfants** (messages compris).
 - Le parent choisit le carnet via l'avatar (sélecteur d'enfant).
-- Toute donnée (mot, message, signature, photo, livret, événement) est rattachée à l'enfant (`child_id`, ou `student_id` selon la table) + `academic_year_id` — jamais au parent seul.
-- Un mot envoyé à une fratrie = une copie dans chaque carnet, une signature par enfant.
-- Le sélecteur d'enfant affiche un indicateur de nouveauté par enfant.
+- Toute donnée (mot, message, signature, photo, document, événement, devoir) est rattachée à l'enfant (`child_id`, ou `student_id` selon la table) + `academic_year_id` — jamais au parent seul.
+- Mot reçu pour deux enfants d'un même foyer : **une copie par carnet**, une signature par enfant ; un mot d'information lu dans un carnet est marqué lu dans l'autre ; un mot à signer propose « Signer aussi pour [prénom] ».
+- **Nouveauté chez un autre enfant** : pastille rouge sur l'avatar de la top bar. Dans le sélecteur, chaque enfant affiche un décompte en clair (« 1 mot à signer · 2 nouveautés ») ou « À jour ».
+  La pastille s'allume pour : mot à traiter, message non lu, devoir pour demain non coché. Une photo ou une compétence ajoutée ne l'allume pas.
 - Chaque notification push nomme l'enfant et ouvre son carnet.
 - À 18 ans, l'enfant récupère son carnet complet, sans tri.
 
@@ -50,11 +60,11 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 - NativeWind (Tailwind CSS pour React Native)
 
 ### Librairies clés
-- `@getpapillon/papicons` — icônes de navigation de la top bar (Accueil, Suivi, Agenda, Messages)
+- `@getpapillon/papicons` — icônes de navigation de la top bar (Accueil, Scolarité, Agenda, Messages)
 - `lucide-react-native` — toutes les autres icônes (size 20-24, strokeWidth 2)
 - `expo-linear-gradient` — dégradés natifs (obligatoire — backgroundColor ne supporte pas les dégradés sur native)
 - `react-native-reanimated` — animations
-- `expo-speech` — voice input Aria (à venir)
+- `expo-speech` — saisie vocale de l'assistant (à venir)
 
 ### Composants de base (`src/components/ui`)
 - `Text`, `TextInput`, `Pressable` s'importent **toujours** depuis `src/components/ui`, jamais depuis `react-native`.
@@ -75,7 +85,7 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 
 **Indigo `#4338CA` = la seule couleur d'ACTION** (boutons, liens, sélection, états actifs). Partout. Toujours.
 Les teintes de catégorie (ci-dessous) servent à CLASSER, jamais à agir ni à évaluer.
-Le dégradé `#6366F1 → #22D3EE` est réservé exclusivement à Aria — jamais sur l'identité de marque.
+Le dégradé `#6366F1 → #22D3EE` est réservé exclusivement à l'assistant — jamais sur l'identité de marque.
 Le violet `#7C3AED` et l'ancien gradient Aria `#8B5CF6 → #1B72E8` sont supprimés.
 
 - `assets/icon.png` — 1024×1024 : symbole centré, fond `#FFFFFF`
@@ -89,17 +99,17 @@ Le violet `#7C3AED` et l'ancien gradient Aria `#8B5CF6 → #1B72E8` sont supprim
 Chaque enfant a une couleur personnelle (choisie à la création du profil).
 Elle s'applique **uniquement** à :
 - son avatar (top bar, sélecteur d'enfant)
-- le header wallpaper de l'Accueil de son carnet
+- le fond en fondu de l'en-tête de l'Accueil de son carnet
 
 Elle ne s'applique jamais aux tuiles, cartes, pages ou bandeaux. Les anciens thèmes par niveau (orange maternelle / bleu primaire / anthracite lycée appliqués à toute l'app) sont supprimés.
-Dans l'en-tête du carnet (Accueil), elle fait le fond en fondu ; la photo de l'enfant, si elle existe, remplace l'initiale partout où l'enfant apparaît.
+**Fonds d'écran supprimés** (forêt, océan, coucher de soleil…) : la couleur de l'enfant ou sa photo les remplace. La photo de l'enfant, si elle existe, remplace l'initiale partout où l'enfant apparaît.
 
 ### Teintes de catégorie
 Teintes douces (pastille + icône lucide) servant **uniquement à CLASSER** : disciplines et domaines, types de contenu.
-- **Jamais pour évaluer** : aucune teinte sur un niveau de compétence ni sur une tendance ; jamais de vert ni de rouge ; les barres de niveau restent inchangées (§ Suivi).
-- Une discipline a **la même teinte partout** (Suivi, Accueil, devoirs, agenda). Source unique : `src/theme/categories.ts`, indexée par identifiant stable (jamais par libellé).
+- **Jamais pour évaluer** : aucune teinte sur un niveau de compétence ni sur une tendance ; jamais de vert ni de rouge ; les barres de niveau restent inchangées (§ Scolarité).
+- Une discipline a **la même teinte partout** (Scolarité, Accueil, devoirs, agenda). Source unique : `src/theme/categories.ts`, indexée par identifiant stable (jamais par libellé).
 - Teintes (fond de pastille / couleur d'icône, AA) : ambre `#FEF3C7` / `#92400E` · ciel `#E0F2FE` / `#075985` · rose `#FCE7F3` / `#9D174D` · orange `#FFEDD5` / `#9A3412` · ardoise `#E2E8F0` / `#334155` · action (indigo) `rgba(67,56,202,0.10)` / `#4338CA`.
-- Types de contenu : mot à signer, autorisation, à répondre = action (indigo, `pencil`) ; photo, souvenir, livret, document, « À prévoir » = ardoise. Jamais une teinte de discipline pour un type.
+- Types de contenu : mot à traiter (signature, question, réponse) = action (indigo, `pencil`) ; photo, souvenir, document, « À prévoir » = ardoise. Jamais une teinte de discipline pour un type.
 - Une personne n'a aucune teinte propre : initiales sur ardoise ; école, direction, mairie = ardoise + `building-2`.
 - Discipline inconnue : ardoise + `book-open`, jamais d'erreur.
 
@@ -108,40 +118,42 @@ Teintes douces (pastille + icône lucide) servant **uniquement à CLASSER** : di
 ## DESIGN LANGUAGE v3 — "Notion Premium"
 
 ### Philosophie
-Référence principale : **Notion mobile** — navigation épurée, hiérarchie claire, Aria au centre.
-Référence secondaire : Papillon — niveau de finition glass morphism sur les écrans riches.
-Pages de navigation principale = glass morphism. Pages profondes = Notion ultra-épuré.
+Référence principale : **Notion mobile** — navigation épurée, hiérarchie claire.
+Fond Brume `#F3F4FA`, cartes blanches opaques sur les écrans principaux. **Le glass morphism est supprimé** (16 nov. 2026). Pages profondes = Notion ultra-épuré.
 
 ### Navigation — pattern Notion (validé définitivement)
 
+**Quatre onglets, dans cet ordre :**
+Accueil (maintenant) · Scolarité (ce qui reste) · Agenda (ce qui arrive) · Messages (ce qu'on se dit).
+
 **Top bar (toujours visible)**
 ```
-[☰] [⌂ Accueil] [↗ Suivi] [📅 Agenda] [✉ Messages●] ... [Avatar enfant]
-- ☰ burger (gauche) : tap = écran unique « Famille & paramètres »
-- Avatar (droite) : 34×34px cercle, couleur de l'enfant, initiale
-  tap = sélecteur d'enfant UNIQUEMENT (bottom sheet) avec indicateur de nouveauté par enfant
+[☰] [⌂ Accueil] [↗ Scolarité] [📅 Agenda] [✉ Messages●] ... [Avatar enfant●]
+- ☰ burger (gauche) : tap = écran unique « Famille et paramètres »
+- Avatar (droite) : 34×34px cercle, couleur de l'enfant, initiale (ou photo)
+  tap = sélecteur d'enfant UNIQUEMENT (bottom sheet), décompte en clair par enfant
+  pastille rouge sur l'avatar quand un AUTRE enfant du foyer a du nouveau (règle : § Principe fondateur)
 - Aucune ouverture de menu par swipe (conflit avec le pager des onglets)
-- Fond : JAMAIS opaque. Transparente au repos ; fondu #F2F1EE lié au défilement
+- Fond : JAMAIS opaque. Transparente au repos ; fondu #F3F4FA lié au défilement
   (composant ScrollVeil, le même que le voile de la bottom bar). Pas de BlurView.
 - Onglet actif : pill rgba(15,23,42,0.08), icône + label, height 30px, borderRadius 999px
 - Onglet inactif : icône seule, color rgba(15,23,42,0.38)
 - Badge non-lu : point rouge 6px, position absolute
-- Icônes des onglets : papicons (Home, Grades pour Suivi, Calendar, TextBubble)
+- Icônes des onglets : papicons (Home, Grades pour Scolarité, Calendar, TextBubble)
 ```
 
-**Bottom bar (toujours visible)**
+**Bottom bar (toujours visible, identique sur tous les onglets)**
 ```
-[🔍 Recherche] [◉ Demander à Aria…] [Action contextuelle]
-- Fond : #F2F1EE, border-top 1px rgba(15,23,42,0.07)
-- Icônes gauche/droite : 34×34px cercle, background rgba(15,23,42,0.08)
-- Pill Aria centrale : flex:1, height 34px, borderRadius 999px
-  background rgba(15,23,42,0.08), symbole Scolaria 14px + placeholder
-- Action droite :
-  Accueil  → + (Ajouter au carnet)
-  Suivi    → ⊞ (scanner / Ajouter au carnet)
-  Messages → ✏️ (nouveau message)
-  Agenda   → + (ajouter un événement) — pas de FAB sur l'Agenda
-  Aria     → rien
+[◉ Rechercher ou demander…                ] [+]
+- Fond : #F3F4FA, border-top 1px rgba(15,23,42,0.07)
+- Champ unique « Rechercher ou demander » (recherche et assistant fusionnés) :
+  flex:1, height 34px, borderRadius 999px, background rgba(15,23,42,0.08)
+  L'icône loupe séparée est supprimée.
+- « + » à droite : 34×34px cercle, background rgba(15,23,42,0.08)
+  SEUL bouton d'ajout de toute l'application, présent sur tous les onglets.
+  Ouvre la feuille « Ajouter » (six actions, § Ajouter au carnet).
+- Supprimés : FAB de l'Agenda et des Messages, icône crayon (✏️), icône scanner (⊞),
+  actions contextuelles différentes par onglet.
 ```
 
 **Règle titre — non redondance absolue**
@@ -150,21 +162,22 @@ Le titre de l'onglet actif est dans la pill top bar.
 
 ### Fond global
 ```
-Background : #F2F1EE (off-white warm) — partout, tous les écrans
-Jamais #FFFFFF comme fond de page
+Background : #F3F4FA (« Brume ») — partout, tous les écrans
+  y compris le voile ScrollVeil (haut et bas), la barre du bas et le voile du header de l'Accueil
+Jamais #FFFFFF comme fond de page ; l'ancien #F2F1EE est supprimé
 ```
 
 ### Typographie — Figtree (unique font family)
 ```
 Figtree_900Black  — data large (40px, letterSpacing -2px) — moyennes, grands chiffres
-Figtree_800ExtraBold — display (19-22px, letterSpacing -0.8px) — questions Aria, titres
+Figtree_800ExtraBold — display (19-22px, letterSpacing -0.8px) — questions de l'assistant, titres
 Figtree_700Bold   — title (14-16px, letterSpacing -0.3px)
 Figtree_600SemiBold — label (12-13px, letterSpacing -0.1px) — labels UI
 Figtree_500Medium — body medium (13px)
 Figtree_400Regular — body (12-14px, lineHeight 1.5)
 Figtree_300Light  — meta (10-11px, color rgba(15,23,42,0.35-55))
 
-Label de section (Accueil, Suivi, Messages) : Figtree 600, 13px, casse normale, rgba(15,23,42,0.55), padding 18px 6px 8px
+Label de section (Accueil, Scolarité, Agenda, Messages) : Figtree 600, 13px, casse normale, rgba(15,23,42,0.55), padding 18px 6px 8px
 Section labels des autres écrans (provisoire, jusqu'à validation) : 600, 7.5px, letterSpacing 1.1px, uppercase, opacity 0.28
 ```
 
@@ -173,13 +186,14 @@ Section labels des autres écrans (provisoire, jusqu'à validation) : 600, 7.5px
 
 ### Palette de couleurs
 ```
-Fond page           #F2F1EE
+Fond page           #F3F4FA (« Brume »)
+Carte               #FFFFFF opaque, bordure 1px rgba(15,23,42,0.07)
 Texte principal     #0F172A
 Texte secondaire    rgba(15,23,42,0.55)
 Texte muted         rgba(15,23,42,0.35)
 Séparateurs         rgba(15,23,42,0.05-0.08)
 Accent indigo       #4338CA
-Dégradé Aria        linear-gradient(135deg, #6366F1, #22D3EE) — réservé Aria uniquement
+Dégradé assistant   linear-gradient(135deg, #6366F1, #22D3EE) — réservé à l'assistant uniquement
 Rouge               #EF4444
 Amber (Score Joie)  #F59E0B
 ```
@@ -189,40 +203,45 @@ Amber (Score Joie)  #F59E0B
 Accueil :   header PLEINE LARGEUR en FONDU (décision du 24 sept 2026 ; ni carte 130px, ni bloc arrondi)
             passe DERRIÈRE la barre d'état, la top bar et les premières cartes, qui flottent sur sa fin
             couleur de l'enfant en dégradé vertical vers la TRANSPARENCE : rgba(c,1) → rgba(c,0),
-            même RGB à chaque arrêt (jamais couleur → #F2F1EE, jamais 'transparent')
+            même RGB à chaque arrêt (jamais couleur → #F3F4FA, jamais 'transparent')
             ~340px sous la barre d'état, 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
-            photo choisie comme fond : photo + voile sombre, même courbe de disparition
+            fond = couleur de l'enfant, ou sa photo (photo + voile sombre, même courbe de disparition) ;
+            les fonds d'écran (forêt, océan, coucher de soleil) sont supprimés
             compte sans enfant : même fondu, indigo
-            EN-TÊTE DU CARNET (remplace « Bonjour » + prénom) : photo de l'enfant en cercle (initiale + badge
-            appareil photo sans photo), prénom, classe, pilule « [École] · année » ; blanc sur la partie pleine ;
-            barre d'état claire au repos (détail : COMPONENTS §6)
+            EN-TÊTE DU CARNET : photo de l'enfant en cercle (initiale + badge appareil photo sans photo),
+            prénom, puis « classe · enseignant · école » ; blanc sur la partie pleine ;
+            barre d'état claire au repos (détail : COMPONENTS §6, §18.3)
             libellés posés sur le fondu : blanc si opacité ≥ 0,6, sinon #0F172A 55 %
             au défilement : le fondu part avec le contenu, ScrollVeil apparaît, top bar en §0.
-Suivi :     pas de header coloré. Bouton année "2025–2026 · CE1 ⌄"
-            puis segmented control Apprentissages · Souvenirs · Livrets
+Scolarité : pas de header coloré. Niveau 1 = sommaire : bouton année "2025–2026 · CE1 ⌄" en tête,
+            puis les quatre rubriques (§ Scolarité). Aucun segmented control.
 Agenda :    pas de header coloré, mois + strip semaine directement
-Messages :  toolbar recherche + filtres uniquement — PAS de titre (déjà dans pill)
-Pages profondes : fond #F2F1EE, header simple ‹ Retour + titre centré + action droite
+Messages :  PAS de titre (déjà dans pill) ; bloc « À traiter » puis bloc « Conversations » (§ Messages)
+Pages profondes : fond #F3F4FA, header simple ‹ Retour + titre centré + action droite
 ```
 
 ### Cartes — règles
 
-**Écrans principaux (Accueil, Suivi, Agenda, Messages)**
-- Glass morphism : `rgba(255,255,255,0.75)`, border `rgba(255,255,255,0.92)`, borderRadius 18px
-- Shadow : `shadowColor:#0F172A, shadowOpacity:0.06, shadowRadius:20, elevation:4`
+**Écrans principaux (Accueil, Scolarité, Agenda, Messages)**
+- Blanc opaque `#FFFFFF`, border 1px `rgba(15,23,42,0.07)`, borderRadius 16
+- Ombre (décision du 17 nov. 2026) : **iOS** `shadowColor:#0F172A, shadowOpacity:0.04, shadowRadius:8` ; **Android `elevation: 0`**, la bordure 1px `rgba(15,23,42,0.07)` suffit (leçons du 2 avr. et du 26 sept. : une élévation dessine un cadre gris sur une carte).
+- **Une seule source** : le jeton `SHADOW.card` de `src/constants/design.ts`, écrit avec `Platform.select`. Aucune carte ne déclare sa propre ombre ni sa propre `elevation` : elle étale le jeton.
 - Animation press : `scale 0.97`, spring damping 15
+- Le glass morphism (blanc à 75 %) est supprimé partout.
 
-**Pages profondes (Paramètres, Aide, Profil, etc.)**
-- Aucune glass card — rows simples sur fond blanc, séparés par 1px rgba(15,23,42,0.05)
+**Pages profondes (Paramètres, Aide, Profil, rubriques de Scolarité, etc.)**
+- Rows simples sur fond blanc, séparés par 1px rgba(15,23,42,0.05)
 - Groupes fond `#FFFFFF` séparés par 8px `rgba(15,23,42,0.04)`
 
 **Cards Agenda**
 - `borderLeft: 3px solid [couleur catégorie]`, background `rgba(couleur, 0.08)`
-- JAMAIS d'emoji dans une card Agenda — barre couleur + texte seul
+- **Libellé de catégorie** écrit dans la carte en plus de la couleur (la couleur seule ne suffit jamais)
+- JAMAIS d'emoji dans une card Agenda — barre couleur + libellé + texte
 
-**Cards Aria**
+**Cartes de l'assistant** (écran de l'assistant)
 - `background: linear-gradient(135deg, #EEF2FF, #F0FDFA)`
 - `border: 1px solid rgba(15,23,42,0.06)`, borderRadius 16px
+- Sur l'Accueil, la suggestion de l'assistant est UNE ligne avec sa source, pas une carte.
 
 ### Boutons
 ```
@@ -236,10 +255,7 @@ JAMAIS de carte-bouton (widget cliquable en card) → pills d'action uniquement
 
 ### FAB
 ```
-Cercle uniquement — borderRadius: 999px — JAMAIS carré ni rectangle arrondi
-Agenda : pas de FAB (l'ajout passe par le « + » de la bottom bar)
-width/height: 48px, background #0F172A
-position: absolute, bottom: 72px (au-dessus bottom bar), right: 14px
+Aucun FAB dans l'application (16 nov. 2026) : tout ajout passe par le « + » de la barre du bas.
 ```
 
 ### Icônes
@@ -263,23 +279,29 @@ Scale 0.97 sur press
 ## Structure de navigation — arborescence complète
 
 ### Écrans principaux (top bar) — toujours pour l'enfant sélectionné
-1. **Accueil** — header wallpaper, mots à signer, carte Aria « Votre semaine », « Nouveau dans le carnet »
-2. **Suivi** (ex-Notes) — contenu selon le niveau (voir section Suivi)
-3. **Agenda** — strip semaine + événements du jour (dont ceux créés depuis les mots) ; ajout par le « + » de la bottom bar
-4. **Messages** — filtres + liste conversations/mots + FAB
+1. **Accueil** (maintenant), dans cet ordre :
+   en-tête (photo ou initiale, prénom, « classe · enseignant · école ») ; **À faire** ;
+   **Aujourd'hui et demain** (événements, à prévoir, devoirs) ; **Nouveau dans le carnet** ;
+   **suggestion de l'assistant** sur une ligne, avec sa source.
+2. **Scolarité** (ce qui reste) — sommaire sur deux niveaux (voir section Scolarité)
+3. **Agenda** (ce qui arrive) — strip semaine + événements, devoirs, absences, rendez-vous fixes (voir section Agenda)
+4. **Messages** (ce qu'on se dit) — « À traiter » + fils de conversation (voir section Messages)
 
-### Bottom bar (persistant)
-- **Recherche** — modal plein écran, focus auto
-- **Aria** — écran propre (topbar historique/nouveau, suggestions pills, input)
+### Bottom bar (persistant, identique sur tous les onglets)
+- **Champ « Rechercher ou demander »** — recherche et assistant fusionnés ; ouvre la recherche / l'écran de l'assistant (topbar historique/nouveau, suggestions pills, input)
+- **« + »** — seul bouton d'ajout de l'application (feuille de six actions)
 
 ### Overlays transversaux
-- **Sélecteur d'enfant** — bottom sheet via l'avatar : liste des enfants + indicateur de nouveauté + ajouter un enfant. Rien d'autre (pas de réglages, pas de déconnexion).
-- **Famille & paramètres** — écran unique via ☰ (voir Pages profondes)
-- **Ajouter au carnet** — 4 actions d'import (voir section dédiée)
+- **Sélecteur d'enfant** — bottom sheet via l'avatar : liste des enfants, décompte en clair par enfant (« 1 mot à signer · 2 nouveautés » ou « À jour »), ajouter un enfant. Rien d'autre (pas de réglages, pas de déconnexion).
+- **Famille et paramètres** — écran unique via ☰ (voir Pages profondes)
+- **Ajouter** — feuille du « + », six actions (voir section dédiée)
 
 ### Pages profondes
-- **Mon parcours** — archives des années précédentes, lecture seule (Addendum v3.2). Accès : bouton année de Suivi + sélecteur d'enfant
-- **Famille & paramètres** (écran unique, ouvert par ☰) → Mes enfants / Responsables légaux / Mon profil / Apparence / Aria / Confidentialité & données / Système / Compte (aide, à propos, déconnexion)
+- **Rubriques de Scolarité** (Apprentissages, Souvenirs, Documents, Parcours) — plein écran, une seule ligne de filtres
+- **Parcours** — les années passées, archivées en lecture seule, **fils de messages de l'année compris**. Accès : rubrique Parcours de Scolarité, bouton année, sélecteur d'enfant
+- **Famille et paramètres** (écran unique, ouvert par ☰), **sept entrées** :
+  Mes enfants · Responsables · Mon profil · Notifications (trois réglages) · Assistant · Confidentialité et données · Aide, à propos, se déconnecter.
+  La rubrique « Apparence » est supprimée. **Toute option affichée mais non branchée est retirée** (donc « Notifications » n'apparaît qu'une fois le push réel en place, § Notifications).
 - Profil enfant → avatar & couleur / niveau / école / matières / suppression
 - Personnaliser matières → **couleur** par matière (pas d'emoji)
 
@@ -289,68 +311,114 @@ Scale 0.97 sur press
 
 ---
 
-## Suivi (ex-Notes)
+## Scolarité (ex-Suivi, ex-Notes)
 
-Le contenu s'adapte **automatiquement au niveau de l'enfant sélectionné** :
+### Deux niveaux
+- **Niveau 1 — sommaire** qui défile : le bouton d'année en tête, puis **quatre rubriques titrées** : **Apprentissages · Souvenirs · Documents · Parcours**. Chacune montre un aperçu du plus récent et un lien « Tout voir ».
+- **Niveau 2 — chaque rubrique en page profonde plein écran**, avec **UNE seule ligne de filtres**.
+- Le segmented control Apprentissages · Souvenirs · Livrets est **supprimé**.
 
-| Niveau | Suivi › Apprentissages |
+### Rubriques
+- **Apprentissages** : contenu selon le niveau (tableau ci-dessous).
+- **Souvenirs** : albums photos de classe, dessins/travaux ajoutés par la famille, jalons (« premier exposé »).
+- **Documents** (ex-« Livrets ») : livrets et bulletins (saisis par l'enseignant ou scannés par le parent) ; **résultats des évaluations nationales** (CP : septembre et janvier, français et maths) ; **mots signés et autorisations** (un mot traité s'archive ici) ; certificats et attestations ; documents de l'école (règlement, fournitures, menus).
+- **Parcours** : les années passées en lecture seule, fils de messages de l'année compris.
+
+Apprentissages s'adapte **automatiquement au niveau de l'enfant sélectionné** :
+
+| Niveau | Scolarité › Apprentissages |
 |--------|------------------------|
 | Maternelle | Carnet de suivi des apprentissages : domaines + observations de l'enseignant |
 | Primaire | Compétences par discipline, échelle choisie par l'école : 3 niveaux (A · PA · NA) ou 4 niveaux LSU (Non atteint · Partiellement atteint · Atteint · Dépassé) |
 | Collège / Lycée | **Notes v7 inchangé** (courbe, pills matières, cartes extensibles) |
 
-- Bouton année `2025–2026 · CE1 ⌄` : année en cours + lien vers **Mon parcours**. Pas de frise.
+- Bouton année `2025–2026 · CE1 ⌄` : année en cours + lien vers **Parcours**. Pas de frise.
 - **Découpage de l'année** : maternelle / primaire = **périodes P1 à P5** ou **semestres** selon l'école (LSU remis en janvier et juin). **Jamais de trimestres par défaut** en maternelle / primaire ; si l'école a choisi les trimestres (certaines rendent le LSU par trimestre), libellé **en toutes lettres** (« 1er trimestre »), **jamais l'abréviation « T1 »**. Collège / lycée : trimestres (ou semestres) de l'établissement.
 - **Échelle d'évaluation paramétrable** (par école / classe) : 3 niveaux A / PA / NA (usage quotidien fréquent) ou 4 niveaux LSU ; l'affichage s'adapte (3 ou 4 segments).
 - **Disciplines officielles du CP (cycle 2)**, pour la démo et les listes : Français (lecture, écriture, oral, vocabulaire, grammaire et orthographe) · Mathématiques (nombres, calcul et résolution de problèmes, grandeurs et mesures, espace et géométrie, organisation et gestion de données) · Questionner le monde · EMC · Langue vivante (anglais) · Enseignements artistiques · EPS.
-- Segmented control : **Apprentissages · Souvenirs · Livrets**
-  - Souvenirs : albums photos de classe, dessins/travaux ajoutés par la famille, jalons (« premier exposé »)
-  - Livrets : livrets et bulletins (saisis par l'enseignant ou scannés par le parent), et **résultats des évaluations nationales** (CP : septembre et janvier, français et maths) comme type de document
 - Niveaux de compétence : 3 ou 4 segments selon l'échelle, remplis #0F172A, vides rgba(15,23,42,0.12). **Jamais de vert/rouge.**
-- Toujours afficher la source : « Saisi par Mme Durand · 12 déc. » ou « Scanné par vous ».
+- Toujours afficher la source : « Saisi par Mme Durand · 12 déc. » ou « Scanné par vous ». **La ligne source est toujours sur sa propre ligne, sous la donnée** — jamais à la suite du niveau de compétence.
 
 ---
 
-## Ajouter au carnet (import par le parent)
+## Ajouter (le bouton « + » unique)
 
 Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
-- Points d'entrée : `+` (Accueil) et `⊞` (Suivi)
-- 4 actions : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon)
-- **V1 :** le parent choisit la catégorie (Mot / Livret / Souvenir / Jalon) et la date. Rangé dans le carnet de l'enfant sélectionné.
-- **Phase 2 (Aria stade 2) :** Aria reconnaît le document et propose la catégorie ; le parent valide toujours.
+- **Un seul point d'entrée dans toute l'application** : le « + » à droite de la barre du bas, sur tous les onglets.
+- Il ouvre une feuille de **six actions** : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Signaler une absence** · **Écrire à l'enseignant**.
+- L'ordre s'adapte à l'onglet : dans Messages, « Écrire à l'enseignant » passe en premier.
+- **V1 :** pour un import, le parent choisit la catégorie (Mot / Document / Souvenir / Jalon) et la date. Rangé dans le carnet de l'enfant sélectionné. (En base, `carnet_items.categorie` garde ses valeurs `mot|livret|souvenir|jalon`.)
+- **Phase 2 (assistant stade 2) :** l'assistant reconnaît le document et propose la catégorie ; le parent valide toujours.
 - Visibilité : foyer (défaut) ou privé.
 
 ---
 
-## Agenda alimenté par les mots
+## Agenda
+
+### Événements alimentés par les mots
 - Composer enseignant : option « Ajouter à l'agenda des familles » avec date/heure saisies par l'enseignant.
-- L'événement apparaît dans l'Agenda de chaque enfant concerné, lié au mot source.
+- L'événement apparaît dans l'Agenda de chaque enfant concerné, lié au mot source. Le **mot lui-même** n'apparaît jamais dans « Aujourd'hui » comme un événement horaire (il est dans « À faire » tant qu'il attend une action).
 - Liste « À prévoir » (pique-nique, casquette…) en cases à cocher dans la carte événement.
-- V1 : date saisie par l'enseignant. Phase 2 : détection automatique par Aria.
+- Les cartes d'événement portent un **libellé de catégorie** en plus de la couleur.
+- V1 : date saisie par l'enseignant. Phase 2 : détection automatique par l'assistant.
 - Mots importés : le parent ajoute la date à la main.
+
+### Rendez-vous fixes hebdomadaires (V1)
+- Piscine le jeudi, bibliothèque le mardi… dès la V1, chacun avec sa liste « À prévoir ».
+
+### Devoirs
+- Rangés **par jour d'échéance**, « **Pour demain** » en premier.
+- Coche « fait » **partagée entre les responsables du foyer**, avec « Coché par [prénom] · [heure] ».
+- Un devoir appartient au carnet d'un seul enfant (aucune liste de devoirs mêlant plusieurs enfants).
+
+### Absence signalée par le parent
+- **Quand** : aujourd'hui / demain / autre date.
+- **Durée** : matin / après-midi / journée / plusieurs jours.
+- **Motif** : maladie / rendez-vous / raison familiale / autre.
+- Justificatif facultatif, mot facultatif.
+- Visible de l'enseignant **avant l'appel**.
 
 ### Devoirs et emploi du temps selon le niveau
 - **Maternelle** : pas de devoirs, pas de filtre « Devoirs », pas d'emploi du temps.
-- **CP à CM2** : filtre « Devoirs » présent ; devoirs de primaire (leçon à apprendre, lecture, poésie, tables, dictée préparée), jamais de contenu de collège. Emploi du temps = **journée type fixe**, identique chaque semaine.
-- **Collège / lycée** : devoirs et emploi du temps par matière et par enseignant.
+- **CP à CM2** : filtre « Devoirs » présent ; devoirs de primaire (leçon à apprendre, lecture, poésie, tables, dictée préparée), jamais de contenu de collège.
+- **Collège / lycée** : devoirs par matière et par enseignant.
+- **L'emploi du temps complet reste en Phase 2.**
 - Démo : dates **relatives à aujourd'hui** (la semaine courante n'est jamais vide, pour chaque enfant).
 
 ---
 
+## Messages
+
+### Liste de fils
+- **Bloc « À traiter »** en haut : les mots qui attendent une action, avec le bouton d'action dans la ligne. Visible **seulement s'il y a quelque chose**.
+- **Bloc « Conversations »** : **un fil par interlocuteur** — enseignant de l'enfant, classe, école/direction. Périscolaire et intervenants : Phase 2. Mairie : Phase 3.
+- La bascule « Général / [Prénom] » est **supprimée**.
+- **Fil de classe = ANNONCE SEULE** : l'enseignant écrit à toutes les familles ; chaque parent répond **en privé** à l'enseignant. **Aucune discussion entre familles.**
+- Les règles de visibilité du foyer et de la garde partagée ne changent pas.
+
+### Le mot complet
+- Un mot peut **cumuler** : une **signature** (aucune / un parent / les deux), une **question** (oui / peut-être / non) et une **réponse privée** à l'expéditeur. Les types ne sont plus exclusifs.
+- La réponse privée rejoint le fil avec l'expéditeur en **citant le mot**.
+- Un mot traité s'archive dans **Scolarité › Documents**.
+- Un mot n'apparaît jamais dans « Aujourd'hui » comme un événement horaire.
+- Mot reçu pour deux enfants du foyer : § Principe fondateur (copie par carnet, lu partagé pour l'information, « Signer aussi pour [prénom] »).
+
+---
+
 ## Notifications — NON IMPLÉMENTÉ (6 oct 2026)
-> Rien de ce qui suit n'existe encore : aucune notification n'est envoyée, aucun réglage n'est affiché (le groupe « Notifications » de Famille & paramètres est retiré, pas grisé). Le push distant (APNs, FCM) est BLOQUANT avant tout enseignant réel ; le prénom de l'enfant transitera alors par Apple et Google (à dire dans la politique de confidentialité). Spécification cible :
+> Rien de ce qui suit n'existe encore : aucune notification n'est envoyée, aucun réglage n'est affiché. L'entrée « Notifications » de Famille et paramètres (une des sept, décision du 16 nov.) n'apparaît que lorsque ses trois réglages sont branchés sur un push réel ; d'ici là elle reste retirée, jamais grisée. Le push distant (APNs, FCM) est BLOQUANT avant tout enseignant réel ; le prénom de l'enfant transitera alors par Apple et Google (à dire dans la politique de confidentialité). Spécification cible :
 - **Activées par défaut** : mots à signer, messages enseignant, messages direction.
 - **Résumé unique à 18h** : photos, annonces, informations.
 - **Silence 20h – 7h**, sauf urgence école.
 - Chaque push commence par le prénom : `Lucas · Mme Durand a publié un mot à signer`. Le tap ouvre le carnet de cet enfant.
-- Trois réglages maximum dans Famille & paramètres. **Jamais de matrice module × canal.**
+- Trois réglages maximum dans Famille et paramètres. **Jamais de matrice module × canal.**
 - Jamais de double activation (système + in-app) : si le système autorise, les push essentiels arrivent.
 
 ---
 
 ## Écran d'ouverture (Login)
-- Fond #F2F1EE, symbole Scolaria + wordmark centrés
+- Fond #F3F4FA, symbole Scolaria + wordmark centrés
 - Pill primaire "Se connecter" (noir)
 - Pill secondaire "Créer un compte" (outline)
 - Ghost "Essayer en mode démo"
@@ -371,15 +439,15 @@ Email + mot de passe → Supabase Auth identifie le rôle →
 - Un **foyer** regroupe N responsables et N enfants ; chaque responsable voit tous les enfants auxquels il est rattaché
 - Consulte **un carnet à la fois** via le sélecteur d'enfant
 - Seuls les responsables peuvent signer les mots — **chacun signe en son nom**, statut visible par parent
-- Peut inviter un second responsable depuis Famille & paramètres
+- Peut inviter un second responsable depuis Famille et paramètres
 - Un responsable peut être rattaché à un seul enfant du foyer (familles recomposées)
 - **Ajout d'un responsable : uniquement par invitation**, acceptée par l'invité dont l'email de compte est **confirmé**. Personne ne s'ajoute seul.
 - **Un responsable ne peut retirer que lui-même** (jamais un autre ; le dernier responsable ne peut pas se retirer).
 - **Un enfant ne peut être supprimé que par son unique responsable.** Dès 2 responsables, chacun peut seulement se retirer.
 
 ### Garde partagée
-- **Partagé entre responsables** : tout ce qui vient de l'école (mots, messages de classe, photos, livrets, statuts de signature)
-- **Privé à chaque responsable** : ses conversations privées avec l'enseignant, ses notes personnelles, ses ajouts marqués privés
+- **Partagé entre responsables** : tout ce qui vient de l'école (mots, annonces du fil de classe, photos, documents, statuts de signature), la coche « fait » des devoirs
+- **Privé à chaque responsable** : ses conversations privées avec l'enseignant (dont ses réponses privées à un mot ou à une annonce de classe), ses notes personnelles, ses ajouts marqués privés
 
 ### ENFANT MATERNELLE / PRIMAIRE (3-10 ans)
 - Pas de compte, pas d'accès autonome
@@ -405,15 +473,20 @@ Interface aussi simple qu'un SMS. Enseignant pense en classe, pas en élève ind
 Zéro double saisie — Scolaria remplace l'ENT, ne coexiste pas.
 Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
+### Navigation en miroir de l'espace parent
+- **Quatre onglets : Classe · Mots · Élèves · Messages.**
+- **Bouton « + »** (même place que chez le parent, seul bouton d'ajout) : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
+
 ### MVP V1
-- Connexion rôle enseignant → dashboard « Ma classe »
+- Connexion rôle enseignant → onglet « Classe »
 - Vue liste de classe + présences
-- Envoi message collectif ou individuel aux parents
-- Mots avec **type** (information / signature / autorisation / participation) et **mode de signature** (aucune / 1 parent / les 2 parents)
+- Fil de classe en **annonce seule** (toutes les familles) ; messages individuels aux parents ; les réponses des parents arrivent en privé
+- Mots **cumulables** : signature (aucune / 1 parent / les 2 parents) + question (oui / peut-être / non) + réponse privée, au choix, dans le même mot
 - **Suivi par mot** : « 22/24 familles ont lu · 18/24 ont signé » + bouton « Relancer les N » (relance auto optionnelle J+2)
 - Option « Ajouter à l'agenda des familles » + liste « À prévoir »
 - Saisie note / observation / compétence par élève
-- Signalement absence + **absences déclarées par les parents** visibles le matin
+- Signalement absence + **absences déclarées par les parents** visibles avant l'appel (quand, durée, motif, justificatif et mot facultatifs)
+- Devoirs donnés à la classe (rangés par jour d'échéance chez chaque enfant)
 
 ### Phase 2
 - Saisie en masse (grille classe)
@@ -423,7 +496,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Publication programmée
 - Traduction des mots pour les familles (fournisseur compatible hébergement UE)
 - Lecture à voix haute des mots
-- Générateur d'appréciations Aria (enseignant coche 3 compétences → Aria propose 2 formulations → validation obligatoire)
+- Générateur d'appréciations par l'assistant (enseignant coche 3 compétences → l'assistant propose 2 formulations → validation obligatoire)
 - Dashboard bien-être anonymisé
 
 ### Testeurs identifiés
@@ -434,12 +507,14 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
 ---
 
-## Aria — règles d'affichage et comportement
+## L'assistant — règles d'affichage et comportement (nom interne du code : `aria`)
 
-- Représentée par le **symbole couronne Scolaria (8 ellipses)** — jamais d'autre icône
-- Accessible depuis la pill bottom bar sur tous les écrans
-- Carte Aria : `linear-gradient(135deg, #EEF2FF, #F0FDFA)`, border `rgba(15,23,42,0.06)`
-- Aria ne diagnostique JAMAIS — elle suggère et informe
+- **Aucun nom de personnage dans l'interface** : le libellé affiché est « Assistant » là où un libellé est nécessaire. Les noms internes (`aria`, Edge Function « aria », `ARIA_MODEL`, `ariaApi.ts`…) ne changent pas.
+- Représenté par le **symbole couronne Scolaria (8 ellipses)** — jamais d'autre icône (l'identité visuelle est traitée à part)
+- Accessible depuis le champ « Rechercher ou demander » de la barre du bas, sur tous les écrans
+- Carte de l'assistant : `linear-gradient(135deg, #EEF2FF, #F0FDFA)`, border `rgba(15,23,42,0.06)` ; sur l'Accueil, une seule ligne de suggestion avec sa source
+- **Vouvoiement** dans tous les textes générés
+- L'assistant ne diagnostique JAMAIS — il suggère et informe
 - Toujours citer ses sources pour chaque alerte ou résumé
 - Travaille toujours sur le carnet de l'enfant sélectionné — jamais sur plusieurs enfants à la fois
 - En mode archive : lecture seule, pas d'alertes Score de Joie
@@ -449,8 +524,8 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
   - Numéros **cliquables** (tel:)
   - Alerte enregistrée (catégorie, enfant, date — **jamais le texte**), **privée à son auteur** : jamais partagée automatiquement avec l'autre responsable ni l'enseignant
 - **Appels au modèle : uniquement via l'Edge Function Supabase « aria »**. La clé Anthropic est un secret Supabase — jamais dans l'app, jamais dans un `.env`, jamais journalisée.
-- Modèle : `claude-sonnet-5`, écrit dans l'Edge Function `aria`. Le secret facultatif `ARIA_MODEL` le remplace sans redéployer (il n'existe pas aujourd'hui). Pas de modèle de repli : un refus ou une erreur = « Aria indisponible », jamais un autre modèle.
-- Contexte envoyé : **prénom + niveau scolaire** de l'enfant (ex. « Lucas (CM2) »), construits par l'app (`ariaApi.ts`) ; jamais le nom, l'école ni l'identifiant. L'Edge Function transmet cette consigne et y ajoute une règle fixe (vouvoiement).
+- Modèle : `claude-sonnet-5`, écrit dans l'Edge Function `aria`. Le secret facultatif `ARIA_MODEL` le remplace sans redéployer (il n'existe pas aujourd'hui). Pas de modèle de repli : un refus ou une erreur = « L'assistant est momentanément indisponible. », jamais un autre modèle.
+- Contexte envoyé : **prénom + niveau scolaire** de l'enfant (ex. « Lucas (CM2) »), lus **sous RLS par l'Edge Function** (niveau filtré par la liste fermée `_shared/niveaux.ts`) ; l'app n'envoie que `child_id` + messages (lot A du 11 nov., branche `fix-audit-fable`, fonction pas encore déployée) ; jamais le nom, l'école ni l'identifiant. Les consignes, dont la règle fixe de vouvoiement, sont construites par l'Edge Function (`_shared/ariaPrompt.ts`).
 - Suggestions = pills horizontales (jamais de cartes 2×2)
 
 ---
@@ -460,7 +535,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - Fenêtre glissante 5 jours
 - 3 niveaux : Attention (baisse 15-30%) / Vigilance (baisse >30%) / Urgence (mots-clés)
 - Présenté comme tendance en mots (« stable », « plutôt en hausse », « plutôt en baisse ») — jamais de chiffre, de %, ni de vert/rouge, **y compris côté enseignant** (tableau de bord, météo de classe)
-- **V1 : aucune alerte** (Attention / Vigilance arrivent avec Aria stade 3, Phase 3). Seul le protocole d'urgence (mots-clés) s'applique.
+- **V1 : aucune alerte** (Attention / Vigilance arrivent avec l'assistant stade 3, Phase 3). Seul le protocole d'urgence (mots-clés) s'applique.
 - Révisable par le parent (contexte maladie, événement familial)
 - Couleur : #F59E0B · Emoji : 💛
 
@@ -481,25 +556,28 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 - `grades` — notes (collège/lycée), child_id
 - `competences` — child_id, academic_year_id, domaine, competence, niveau 1-4, source (ecole|parent) fixée par le serveur, saisi_par, date ; « ecole » modifiable par le titulaire seul
 - `bulletins` — liés à academic_year_id
-- `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable, classe_id (destinataire par id)
+- `mots_liaison` — cahier de liaison : type (information|signature|autorisation|participation), signature_mode (none|one|both), event_date nullable, a_prevoir jsonb nullable, classe_id (destinataire par id). **Schéma actuel à types exclusifs** ; la décision du 16 nov. (signature + question + réponse privée cumulables) demande une évolution, à concevoir au lot 3.
 - `mot_carnets` — une copie du mot par enfant (mot_id, child_id, academic_year_id) : classe → chaque enfant de la classe ; fratrie → `distribuer_mot()`
 - `signatures` — une ligne par (mot_id, student_id, parent_id = responsable, signed_at) ; statut par carnet : vue `mot_carnets_statut` (both = les 2 responsables, ou l'unique)
-- `reponses_mot` — autorisation (oui/non) et participation (oui/peut_etre/non), une par responsable et par carnet
+- `reponses_mot` — autorisation (oui/non) et participation (oui/peut_etre/non), une par responsable et par carnet (la « question » oui / peut-être / non du mot complet s'y rattachera, lot 3)
 - `carnet_items` — import parent : child_id, academic_year_id, categorie (mot|livret|souvenir|jalon), fichier, date, ajoute_par, visibilite (foyer|prive = auteur seul)
 - `alertes_urgence` — protocole d'urgence : auteur, child_id, academic_year_id, catégorie, date — JAMAIS le texte ; privée à son auteur
-- `absences` — signalement enseignant + déclaration parent
-- `messages` — messagerie hub, rattachée à child_id
+- `absences` — signalement enseignant + déclaration parent (quand, durée, motif, justificatif, mot : colonnes à vérifier au lot 4)
+- `messages` — messagerie hub, rattachée à child_id ; un fil par interlocuteur, fil de classe en annonce seule (lot 3)
+- Devoirs (coche « fait » partagée par foyer, « Coché par ») et rendez-vous fixes hebdomadaires : tables à identifier ou concevoir au lot 4 (lire le schéma réel d'abord)
 - `ecoles` / `classes` — classe = école + année + nom, identifiée par son **id** (jamais par son nom) ; `enseignant_id` = titulaire ; élève rattaché via `academic_years.classe_id`
 
 ### RLS
 - Un responsable ne lit que les enfants auxquels il est rattaché
 - `visibilite = prive` : lisible uniquement par son auteur
 - Conversations privées parent ↔ enseignant : lisibles uniquement par leurs participants
+- Fil de classe : écriture par l'enseignant seul ; aucune réponse d'un parent n'est lisible par une autre famille
 
 ### Règles RGPD
 - Chiffrement AES-256 au repos et TLS en transit (source : https://supabase.com/security — « All customer data is encrypted at rest with AES-256 and in transit via TLS », lu le 25 sept 2026)
 - Hébergement : Supabase, région eu-west-3 (Paris), depuis la migration INFRA-1 du 25 sept 2026. Formulation publique, exacte (validée le 25 sept 2026) :
-  > « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. Aria s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez Aria, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. Aria ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à Aria. »
+  > « Les données du carnet de votre enfant sont hébergées dans l'Union européenne, à Paris. L'assistant s'appuie sur un modèle d'Anthropic, société américaine. Quand vous utilisez l'assistant, vos messages, l'historique de la conversation, le prénom et le niveau scolaire de l'enfant sont traités hors de l'Union européenne. Anthropic les efface sous 30 jours, sauf s'ils sont signalés pour non-respect de ses règles d'utilisation (conservation jusqu'à 2 ans). Ils ne servent jamais à entraîner le modèle. L'assistant ne reçoit rien d'autre du carnet. En cas de message de détresse, rien n'est envoyé à l'assistant. »
+  (16 nov. 2026 : seul « Aria » a été remplacé par « l'assistant », décision n° 10 ; le reste du texte validé est inchangé.)
 - L'Edge Function `aria` est appelée avec la région `eu-west-3` imposée (sinon : région la plus proche, parfois hors UE)
 - Export JSON complet disponible (par carnet d'enfant)
 - **Photo de l'enfant** : donnée personnelle d'un mineur. Stockage PRIVÉ (bucket « child-photos »), **une photo par enfant ET par année scolaire** : objet `{child_id}/{academic_year_id}.jpg`, référencé par `academic_years.photo_path` (M36, locale ; l'ancien chemin `{child_id}/avatar.jpg` et `children.photo_path` ne subsistent que jusqu'à M37) ; **variante A** : année en cours sans photo → repli sur l'année **N−1 seulement** (jamais plus loin), affichée avec un signe discret d'année passée, lue des seuls responsables rattachés ; **aucune lecture par l'école d'une photo d'année précédente, jamais** (aucune politique du bucket ne mentionne classes, enseignant_id ni classe_id : test structurel) ; lecture par URL signée courte (1 h), jamais de lien public ; ré-encodée sur l'appareil (512×512, JPEG) avant envoi, ce qui retire les métadonnées EXIF / GPS ; incluse dans l'export JSON du carnet ; supprimée en cascade avec l'enfant, objet de stockage compris (il ne suit pas la cascade SQL : même mécanisme que les fichiers de `carnet_items`) ; **jamais envoyée à l'Edge Function `aria` ni au modèle, jamais dans un journal ni une notification** ; suit le carnet à 18 ans. Tout responsable rattaché peut l'ajouter, la remplacer ou la supprimer ; jamais obligatoire. Aucune lecture enseignant / direction : la photo n'est visible que des responsables (consentement affiché : « Sert à reconnaître votre enfant dans son carnet. Visible de ses responsables. »). Une visibilité par l'école serait une finalité distincte : nouveau consentement à demander avant toute politique de lecture. Comptée dans les sauvegardes du poste (politique de confidentialité). Fonctionnalité derrière `PHOTO_ENFANT_ACTIVE` (src/constants/photoEnfant.ts), vraie depuis l'application de M35 à Paris (6 oct 2026) ; jamais de photo en démo (gardes `isDemo`, testés).
@@ -512,16 +590,18 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 
 ## Ce qui est en Phase 2-3 (ne pas implémenter maintenant)
 
-- Reconnaissance automatique des documents importés (Aria stade 2)
+- Reconnaissance automatique des documents importés (assistant stade 2)
 - Détection automatique des dates dans les mots
-- Progrès d'un enfant comparés à lui-même sur plusieurs années (Aria stade 2+)
+- Progrès d'un enfant comparés à lui-même sur plusieurs années (assistant stade 2+)
 - Mémoires de fin d'année
-- Prédictions de performance Aria
+- Prédictions de performance par l'assistant
+- Emploi du temps complet (Phase 2)
+- Fils périscolaire et intervenants (Phase 2) ; fil mairie (Phase 3)
 - Mode sombre
 - Signature électronique légale eIDAS
 - ÉduConnect (optionnel V2, jamais obligatoire)
 - Internationalisation (après France-first)
-- Aria voice responses (V2 — V1 = input texte + micro)
+- Réponses vocales de l'assistant (V2 — V1 = input texte + micro)
 - Interface directeur d'école
 - Espace élève collège/lycée
 - Traduction, lecture à voix haute, publication programmée, registre d'appel
@@ -562,24 +642,31 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ✗ Jamais "ScolarIA" avec IA en majuscules
 ✗ Jamais de vue mélangeant plusieurs enfants
 ✗ Jamais de donnée de carnet rattachée au parent seul (toujours child_id / student_id)
-✗ Jamais de top bar opaque → voile #F2F1EE lié au défilement
+✗ Jamais de top bar opaque → voile #F3F4FA lié au défilement
 ✓ Retour par glissement depuis le bord gauche sur TOUTE page profonde (géré par l'app, navigation 3 boutons)
 ✗ Jamais de Pressable importé de react-native → `src/components/ui`
 ✗ Jamais de clé API dans l'app ou un .env → secret Supabase + Edge Function
 ✗ Aucune affirmation dans l'app qui ne soit vraie aujourd'hui (sécurité, RGPD, hébergement, fonctionnalités)
 ✗ Jamais le texte d'un message de détresse stocké ou journalisé
-✗ Jamais fond blanc pur #FFFFFF comme background de page → #F2F1EE
+✗ Jamais fond blanc pur #FFFFFF comme background de page → #F3F4FA (Brume)
 ✗ Jamais font système → Figtree partout (Rufina = wordmark uniquement)
 ✗ Jamais bouton non-pill → borderRadius 999px toujours
-✗ Jamais FAB carré → cercle 999px uniquement
+✗ Jamais de FAB ni de second bouton d'ajout → le « + » de la barre du bas, seul
+✗ Jamais de loupe séparée → un seul champ « Rechercher ou demander »
+✗ Jamais de nom de personnage dans l'interface → « Assistant »
+✗ Jamais de tutoiement, y compris dans les textes de l'assistant
 ✗ Jamais carte-bouton → pills d'action uniquement
 ✗ Jamais violet #7C3AED → #4338CA uniquement
-✗ Jamais dégradé Aria (#6366F1→#22D3EE) hors contexte Aria
+✗ Jamais dégradé de l'assistant (#6366F1→#22D3EE) hors contexte de l'assistant
 ✗ Jamais d'emoji sur une matière
-✗ Jamais emoji dans les cards Agenda → barre couleur + texte seul
+✗ Jamais emoji dans les cards Agenda → barre couleur + libellé de catégorie + texte
 ✗ Jamais de vert/rouge sur les données (compétences, trends)
 ✗ Jamais titre répété dans le body si déjà dans la pill top bar
-✗ Jamais glass card dans les pages profondes (paramètres, aide…)
+✗ Jamais de glass morphism → cartes blanches opaques (écrans principaux), rows (pages profondes)
+✗ Jamais de segmented control dans Scolarité ni de bascule « Général / [Prénom] » dans Messages
+✗ Jamais de discussion entre familles → fil de classe en annonce seule, réponses privées
+✗ Jamais un mot affiché dans « Aujourd'hui » comme un événement horaire
+✗ Jamais la ligne source à la suite d'une donnée → toujours sur sa propre ligne, dessous
 ✗ Jamais de module grisé visible — ce qui n'est pas activé n'existe pas à l'écran
 ✗ Jamais de push sans le prénom de l'enfant
 ✗ Jamais de matrice de réglages de notifications
@@ -589,7 +676,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ✗ Jamais de comparaison entre enfants
 ✗ Jamais de conversation privée d'un responsable visible par l'autre
 
-✓ Comparaison d'un enfant avec lui-même : autorisée à partir d'Aria stade 2,
+✓ Comparaison d'un enfant avec lui-même : autorisée à partir de l'assistant stade 2,
   en tendance, sources citées, jamais sur signal isolé
 ✓ Toujours paddingBottom: 80px sur les ScrollView (bottom bar)
 ✓ Toujours zone tactile minimum 44×44px
