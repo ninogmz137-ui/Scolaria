@@ -10,7 +10,18 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
-### LOT 1 — PLAN (17 nov., branche `archi-lot-1` créée depuis main 4d091f8) — AUCUN CODE AVANT ACCORD
+### LOT 1 — RÉSULTAT (17 nov., plan validé avec 2 réponses : SHADOW.flottant pour les 15 flottants ; tutoiement gardé sur les écrans qui parlent à l'enfant)
+- [x] Jetons (d234afc) : `C.bg` #F3F4FA, `C.border` 0,07, `RADIUS.card` 16, `SHADOW.flottant` (iOS 0,10/24, offset 4 · Android elevation 16) ; `SHADOW.cardStrong` / `fab` supprimés (aucun lecteur) ; `SCREEN_BACKGROUND` et `PAGE_BG_OFF_WHITE` = alias de `C.bg`.
+- [x] Fond (a9e627d) : 0 `#F2F1EE` / `242,241,238` dans `src/` (PDF compris) ; le test de catégories lit `C.bg` dans design.ts.
+- [x] Ombres (1d9f540) : 0 `shadowOpacity` hors `src/constants/` ; élévations restantes hors jetons : barre du bas 13 et voile 12 (ordre Android, voulus), curseur natif de `RessentiSlider` (elevation 3, contrôle système, laissé).
+- [x] Glass (d1fd600) : ombres de theme.ts = alias de SHADOW (aucune valeur propre) ; `GlassCard`, Portfolio, cartes de MonRessenti et ProfilEnfant en blanc opaque + `C.border`. Champs de saisie à 0,80 (spécification §5) et textes blancs sur en-têtes sombres : laissés.
+- [x] « Suivi » → « Scolarité » (34b0272) : top bar, i18n fr, navigateur, scripts d'essai Redmi/web. Onglet enseignant « Suivi » : lot 7. « Suivi des absences » (démo) et « Suivi complet » (présentation) : autre sens, laissés.
+- [x] Vouvoiement : aucun tutoiement côté parents trouvé dans `src/` (fr) ; les seuls textes tutoyés sont ceux de « Mon Ressenti » (enfant), gardés. Consignes de l'assistant : vouvoiement imposé par `_shared/ariaPrompt.ts`.
+- Tests : tsc 0 ; marque 19 ; nom-en-dur 29 ; entete 5 ; emergency 22 ; categories 29 ; aria-echange 37 ; aria-prompt 27.
+- Constat hors périmètre : `fr.ts` `checkin.encrypted` « Chiffré · Visible uniquement par toi » (affirmation non vérifiée ; clé apparemment sans lecteur) → à vérifier.
+- Écarts au plan : les écrans enseignant gardent `SCREEN_BACKGROUND` comme fond de CARTE (cartes Brume sur Brume) : à corriger au lot 7.
+
+### LOT 1 — PLAN (17 nov., branche `archi-lot-1` créée depuis main 4d091f8)
 Inventaire lu le 17 nov. (grep sur `src/`) : 39 fichiers déclarent `shadowOpacity` ; `SHADOW.card` n'est utilisé que par 2 (`WhiteCard.tsx`, `HomeworkScreen.tsx`) ; `#F2F1EE` en dur dans 35 fichiers ; `C.bg` lu par 11 ; `C.border` par 3 ; `RADIUS.card` par 1 (`WhiteCard.tsx`). **Deuxième source de jetons** : `src/constants/theme.ts` (ombres « glass », `PAGE_BG_OFF_WHITE = '#F2F1EE'`, `GLASS_CARD_RADIUS = 20`), importé par 13 fichiers ; **troisième** : `src/constants/colors.ts` (`SCREEN_BACKGROUND = '#F2F1EE'`).
 
 **Étape 1 — Jetons (un seul commit)**
