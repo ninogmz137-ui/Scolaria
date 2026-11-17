@@ -317,6 +317,7 @@ Scale 0.97 sur press
 
 ### Deux niveaux
 - **Niveau 1 — sommaire** qui défile : le bouton d'année en tête, puis **quatre rubriques titrées** : **Apprentissages · Souvenirs · Documents · Parcours**. Chacune montre un aperçu du plus récent et un lien « Tout voir ».
+- **Rubrique vide** : jamais masquée ; son titre, puis une carte d'invitation (une phrase + un bouton pill), sans « Tout voir ». Apprentissages : « Les compétences saisies par l'enseignant apparaîtront ici. » + « Photographier un livret » · Souvenirs : « Ajoutez un premier souvenir. » + « Ajouter » · Documents : « Ajoutez un premier document. » + « Ajouter ». Parcours n'est jamais vide (l'année en cours y figure toujours).
 - **Niveau 2 — chaque rubrique en page profonde plein écran**, avec **UNE seule ligne de filtres**.
 - Le segmented control Apprentissages · Souvenirs · Livrets est **supprimé**.
 

@@ -599,7 +599,12 @@ Niveau 1 (ScrollView, onglet Scolarité) :
   Apprentissages · Souvenirs · Documents · Parcours
   Chaque rubrique : label de section (§10) + carte (§7) montrant l'aperçu du PLUS RÉCENT
                     + lien ghost accent « Tout voir » (§2) → niveau 2
-  Rubrique vide : [UNCLEAR] masquée ou carte avec état vide — non tranché le 16 nov., à décider au lot 2
+  Rubrique vide (décision du 17 nov.) : JAMAIS masquée. Titre de la rubrique, puis une carte d'invitation
+    (§7) : une phrase (Figtree 400 · 13px · rgba(15,23,42,0.55)) + une pilule compacte (§2) ; PAS de « Tout voir »
+    Apprentissages : « Les compétences saisies par l'enseignant apparaîtront ici. » + « Photographier un livret »
+    Souvenirs : « Ajoutez un premier souvenir. » + « Ajouter »
+    Documents : « Ajoutez un premier document. » + « Ajouter »
+    Parcours : jamais vide (l'année en cours y figure toujours)
 Niveau 2 (page profonde plein écran, header §6 Pages profondes) :
   UNE seule ligne de filtres (§3 Pills, ScrollView horizontal), puis la liste
   Apprentissages : domaines / disciplines (§18.2) ; collège-lycée : Notes v7

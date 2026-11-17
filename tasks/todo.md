@@ -10,6 +10,54 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 2 — PLAN (17 nov., branche `archi-lot-2` depuis main 3cc353f) — AUCUN CODE AVANT ACCORD
+Objectif : Scolarité sur deux niveaux (CLAUDE.md § Scolarité, COMPONENTS §17 bis-A). Décision du 17 nov. : rubrique vide jamais masquée → titre + carte d'invitation (phrase + pilule), sans « Tout voir » ; Parcours jamais vide.
+
+**État actuel (lu le 17 nov.)**
+- `NotesScreen.tsx` (2 230 lignes) aiguille tout : `SuiviEntete` (bouton année + `Segmented` Apprentissages · Souvenirs · Livrets, affiché seulement si `isDemoMode || carnet.length > 0`), puis `CarnetVue` (souvenirs / livrets) ou `ApprentissagesVue` (maternelle, primaire) ou Notes v7 (collège / lycée, en ligne dans le même fichier).
+- Données déjà chargées dans `NotesScreen` : `carnet` (carnet_items → `souvenirs` = souvenir + jalon, `livrets` = livret), `competences`, `annees` (année en cours + archives), notes du collège.
+- Pile `NotesStack` : NotesHome, SubjectDetail, GradeDetail, BulletinScreen, MonParcours, ArchivedYearDetail, AjouterAnne, VisionneuseImage, AjouterAuCarnet.
+- `AjouterAuCarnet` accepte `{ source: 'photo' | 'capture' | 'document' | 'jalon', categorie }`.
+
+**Étape 1 — Chargement partagé (aucun changement visible)**
+- [ ] Extraire de `NotesScreen` un crochet `useScolarite()` (carnet, compétences, années, notes, erreurs, rechargement) pour que le sommaire ET les 4 pages profondes lisent la même source, sans second appel réseau à l'ouverture d'une rubrique. Toute donnée dérivée de l'enfant actif reste vidée au changement d'enfant (leçons du 24 sept. et du 4 oct.).
+- Preuve : tsc ; Redmi : contenu identique avant / après sur les 3 enfants de démo.
+
+**Étape 2 — Niveau 1 : sommaire (`NotesHome`)**
+- [ ] ScrollView : bouton année, puis 4 rubriques dans l'ordre Apprentissages · Souvenirs · Documents · Parcours. Chacune = label de section (§10) + carte (`SHADOW.card`) avec l'aperçu du PLUS RÉCENT + lien ghost accent « Tout voir » → niveau 2.
+  - Apprentissages : maternelle = dernière observation (pastille du domaine, texte, ligne source dessous) ; primaire = dernière compétence (niveau en segments, ligne source SOUS le niveau) ; collège / lycée = moyenne générale + dernière note.
+  - Souvenirs : dernier souvenir ou jalon (miniature 48×48 si photo, titre, date, source).
+  - Documents : dernier livret / bulletin / document importé (icône file-text, titre, date, « Scanné par vous »).
+  - Parcours : année en cours (« 2026–2027 · GS · Maternelle Pasteur ») + nombre d'années archivées ; « Tout voir » → `MonParcours`.
+- [ ] Rubrique vide (Apprentissages, Souvenirs, Documents) : carte d'invitation, phrase + pilule compacte, pas de « Tout voir » :
+  - « Les compétences saisies par l'enseignant apparaîtront ici. » + « Photographier un livret » → `AjouterAuCarnet { source: 'photo', categorie: 'livret' }`
+  - « Ajoutez un premier souvenir. » + « Ajouter » → `AjouterAuCarnet { source: 'photo', categorie: 'souvenir' }`
+  - « Ajoutez un premier document. » + « Ajouter » → `AjouterAuCarnet { source: 'document', categorie: 'livret' }`
+- [ ] Erreur de chargement : `EtatErreur` compact sous le bouton année ; aucune carte d'invitation affichée à tort sous une erreur (leçon du 4 oct.).
+- [ ] Supprimés : `SuiviEntete`, `Segmented` (plus aucun lecteur → fichiers retirés), la condition `afficherBarre`.
+
+**Étape 3 — Niveau 2 : pages profondes (nouvelles routes de `NotesStack`)**
+- [ ] `ScolariteApprentissages`, `ScolariteSouvenirs`, `ScolariteDocuments` : header de page profonde (§6, « ‹ Scolarité » + titre centré), UNE ligne de filtres (§3 Pills, ScrollView horizontal), puis la liste. Contenu repris de `ApprentissagesVue` / `CarnetVue` / Notes v7 (pas de réécriture).
+  - Filtres Apprentissages : maternelle = domaines ; primaire = périodes (P1–P5 ou semestres, libellés existants) ; collège / lycée = trimestres de Notes v7 (le sélecteur actuel devient la ligne de filtres).
+  - Filtres Souvenirs : Tout · Photos et dessins · Premières fois.
+  - Filtres Documents : Tout · Livrets et bulletins · Évaluations nationales · Documents importés. Un filtre sans élément n'est pas affiché (jamais de module grisé). « Mots signés » arrive au lot 3 (archivage des mots traités) ; certificats et documents de l'école : aucune source aujourd'hui → absents.
+- [ ] Parcours (niveau 2) = `MonParcours` existant, renommé « Parcours » à l'écran. Les fils de messages archivés : lot 3 (ils n'existent pas encore).
+- [ ] Retour par glissement depuis le bord gauche sur les 3 nouvelles pages (règle absolue) ; titre jamais répété dans le corps.
+
+**Étape 4 — Libellés**
+- [ ] « Livrets » → « Documents » à l'écran (Suivi, Accueil « Nouveau dans le carnet », AjouterAuCarnet : choix de catégorie « Document »). Valeur en base `livret` inchangée.
+- [ ] « Mon parcours » → « Parcours » à l'écran.
+
+**Vérification**
+- tsc, test:categories, test:entete, test:nom-en-dur, test:marque, test:bundle-prod ; scripts d'essai Redmi mis à jour (segments « Apprentissages / Souvenirs / Livrets » qu'ils cherchent).
+- Redmi, 3 enfants de démo (maternelle / CM2 / 3e) : sommaire, chaque « Tout voir », chaque filtre, retour par glissement ; compte réel sans donnée (cartes d'invitation) en lecture seule, sans saisie.
+- Commits : un par étape ; aucune migration ; aucun build.
+
+**Risques**
+- `NotesScreen` est long et mêle Notes v7 : l'extraction de l'étape 1 est la partie fragile → faite seule, vérifiée sur le Redmi avant les étapes 2-3.
+- Le bouton ⊞ de la barre du bas et le « + » restent tels quels jusqu'au lot 5 (bouton unique).
+- Les textes vides actuels (« … avec ⊞ ») disparaissent au profit des cartes d'invitation.
+
 ### LOT 1 — RÉSULTAT (17 nov., plan validé avec 2 réponses : SHADOW.flottant pour les 15 flottants ; tutoiement gardé sur les écrans qui parlent à l'enfant)
 - [x] Jetons (d234afc) : `C.bg` #F3F4FA, `C.border` 0,07, `RADIUS.card` 16, `SHADOW.flottant` (iOS 0,10/24, offset 4 · Android elevation 16) ; `SHADOW.cardStrong` / `fab` supprimés (aucun lecteur) ; `SCREEN_BACKGROUND` et `PAGE_BG_OFF_WHITE` = alias de `C.bg`.
 - [x] Fond (a9e627d) : 0 `#F2F1EE` / `242,241,238` dans `src/` (PDF compris) ; le test de catégories lit `C.bg` dans design.ts.
