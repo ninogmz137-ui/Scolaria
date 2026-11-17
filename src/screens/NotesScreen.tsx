@@ -46,7 +46,7 @@ import {
   FileText,
   CalendarDays,
 } from 'lucide-react-native';
-import { useSchoolMode, getSchoolModeFromBirthDate } from '../contexts/SchoolModeContext';
+import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useDemoData } from '../contexts/DemoContext';
 import { useWallpaper } from '../contexts/WallpaperContext';
@@ -59,23 +59,16 @@ import { nativeGlassCardShadow } from '../constants/theme';
 import { Text, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
 import ApprentissagesVue from './suivi/ApprentissagesVue';
-import { getSuiviDemo, REGLAGES_DEMO } from '../data/demo/suivi';
-import { getCompetences } from '../services/database';
 import { referentielDuNiveau } from '../data/referentiels';
-import type { Decoupage, ElementSuivi } from '../utils/competences';
 import SuiviEntete, { type OngletSuivi } from './suivi/SuiviEntete';
 import CarnetVue from './suivi/CarnetVue';
-import { carnetDemo, lienFichier, type ElementCarnet } from '../services/carnetService';
+import { lienFichier, type ElementCarnet } from '../services/carnetService';
 import EtatErreur from '../components/EtatErreur';
-import { useCarnetReel } from '../hooks/useCarnetReel';
 import { classerErreur, type TypeErreur } from '../services/erreurs';
 import { videLivrets } from '../utils/livrets';
-import { getLivretsDemo } from '../data/demo/livrets';
-import { getSouvenirsDemo } from '../data/demo/souvenirs';
-import { getAnneesDemo, type AnneeParcours } from '../data/demo/parcours';
 import BoutonAnnee from './suivi/BoutonAnnee';
-import { getAcademicYears } from '../services/database';
 import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
+import { useScolarite } from '../hooks/useScolarite';
 
 const AnimatedRect = createAnimatedComponent(Rect);
 
@@ -939,79 +932,33 @@ function NotesScreenContent() {
   const graphW = screenW - 36;
   const GRAPH_H = 160;
 
-  const schoolMode = selectedChild?.birthDate
-    ? getSchoolModeFromBirthDate(selectedChild.birthDate)
-    : mode;
-
-  // Le cycle de l'enfant (niveau saisi) fait foi ; la date de naissance n'est qu'un repli.
-  const cycle = selectedChild?.cycle ?? null;
-  const isMaternelle = cycle ? cycle === 'maternelle' : schoolMode === 'maternelle';
-  const isPrimaire = cycle ? cycle === 'primaire' : schoolMode === 'primaire';
-
-  // Maternelle (observations) et primaire (compétences) : démo = src/data/demo/suivi.ts (même source
-  // que l'Accueil) ; compte réel = table competences (échelle et période de chaque ligne).
-  const [competences, setCompetences] = useState<ElementSuivi[]>([]);
-  // Chargements en échec (réseau, session, serveur) : « Réessayer » relit tout (versionSuivi), jamais un
-  // écran vide à tort. Les données déjà affichées sont conservées.
-  const [versionSuivi, setVersionSuivi] = useState(0);
-  // Un enfant = un carnet : en changeant d'enfant, TOUT ce qui venait de l'ancien est vidé AVANT les chargements
-  // (déclaré avant eux), pour qu'un chargement en échec ne laisse jamais voir les données d'un autre enfant.
-  // Un nouvel essai pour le MÊME enfant, lui, garde ce qui est déjà affiché.
+  // Données partagées de l'onglet (lot 2) : cycle, compétences, carnet, années, erreurs, « Réessayer ».
+  // Changement d'enfant : le fournisseur (ScolariteProvider) vide ses données avant de recharger.
+  const {
+    cycle,
+    isMaternelle,
+    isPrimaire,
+    decoupage: decoupageSuivi,
+    competences,
+    erreurCompetences,
+    carnet,
+    livrets,
+    souvenirs,
+    erreurCarnet,
+    anneeEnCours,
+    anneesArchives,
+    erreurAnnees,
+    versionSuivi,
+    reessayer,
+  } = useScolarite();
+  // Notes du collège / lycée (restent ici, liées au trimestre choisi) : vidées au changement d'enfant,
+  // AVANT leur chargement (déclaré avant lui), jamais les notes d'un autre enfant à l'écran.
   useEffect(() => {
-    setCompetences([]);
-    setAnnees([]);
     setSubjects([]);
     setYearMeta(null);
-    setErreurCompetences(null);
-    setErreurAnnees(null);
     setErreurNotes(null);
   }, [selectedChild?.id]);
-  const [erreurCompetences, setErreurCompetences] = useState<TypeErreur | null>(null);
-  const [erreurAnnees, setErreurAnnees] = useState<TypeErreur | null>(null);
   const [erreurNotes, setErreurNotes] = useState<TypeErreur | null>(null);
-  // Découpage de l'année : démo = réglage de l'école de démo ; compte réel : défaut du niveau
-  // (périodes) tant que la résolution serveur (decoupage_annee) n'est pas branchée côté app.
-  const decoupageSuivi: Decoupage =
-    (isDemoMode && selectedChild ? REGLAGES_DEMO[selectedChild.id]?.decoupage : undefined) ?? 'periodes';
-  useEffect(() => {
-    let annule = false;
-    if (!(isPrimaire || isMaternelle) || !selectedChild) {
-      setCompetences([]);
-      return;
-    }
-    if (isDemoMode) {
-      setCompetences(getSuiviDemo(selectedChild.id));
-      return;
-    }
-    if (isMaternelle) {
-      // Pas encore de table d'observations : état vide (jamais de donnée inventée).
-      setCompetences([]);
-      return;
-    }
-    getCompetences(selectedChild.id).then(({ data, error }) => {
-      if (annule) return;
-      if (error) {
-        setErreurCompetences(classerErreur(error));
-        return;
-      }
-      setErreurCompetences(null);
-      setCompetences(
-        data.map((c) => ({
-          id: c.id,
-          domaine: c.domaine,
-          texte: c.competence,
-          niveau: c.niveau,
-          echelle: c.echelle,
-          periode: c.periode ?? undefined,
-          date: c.date,
-          source: c.source,
-        })),
-      );
-    });
-    return () => {
-      annule = true;
-    };
-  }, [isPrimaire, isMaternelle, isDemoMode, selectedChild, versionSuivi]);
 
   const demoProfile = selectedChild?.id ? DEMO_PROFILES[selectedChild.id] : undefined;
 
@@ -1019,16 +966,9 @@ function NotesScreenContent() {
   // Démo : livrets et souvenirs de l'univers de démo. Compte réel : carnet_items ; tant que rien ne
   // permet d'en ajouter (lot B5), la barre n'apparaît que s'il en existe déjà (jamais de module grisé).
   const [onglet, setOnglet] = useState<OngletSuivi>('apprentissages');
-  // Ajout / modification / suppression (B5) : le hook relit la liste (surChangementCarnet).
-  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemoMode, versionSuivi);
   useEffect(() => {
     setOnglet('apprentissages');
   }, [selectedChild?.id]);
-  // Démo : ajouts de la session (en mémoire) + données de démo fixes.
-  const carnet: ElementCarnet[] = isDemoMode
-    ? [...carnetDemo(selectedChild?.id), ...getLivretsDemo(selectedChild?.id), ...getSouvenirsDemo(selectedChild?.id)]
-        .sort((a, b) => b.date.localeCompare(a.date))
-    : carnetReel;
   // Élément ajouté par le parent connecté → modifier ; sinon, ouvrir son fichier sans copie publique (L6).
   const ouvrirFichierCarnet = useOuvrirFichierCarnet();
   const ouvrirElement = async (e: ElementCarnet) => {
@@ -1038,48 +978,8 @@ function NotesScreenContent() {
     }
     await ouvrirFichierCarnet(e);
   };
-  const livrets = carnet.filter((e) => e.categorie === 'livret');
-  const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
   const afficherBarre = isDemoMode || carnet.length > 0;
   const ouvrirParcours = () => navigation.navigate('MonParcours');
-
-  // Bouton année : démo = parcours de démo ; compte réel = academic_years (année active + archives).
-  const [annees, setAnnees] = useState<AnneeParcours[]>([]);
-  useEffect(() => {
-    let annule = false;
-    if (!selectedChild) {
-      setAnnees([]);
-      return;
-    }
-    if (isDemoMode) {
-      setAnnees(getAnneesDemo(selectedChild.id));
-      return;
-    }
-    getAcademicYears(selectedChild.id).then(({ data, error }) => {
-      if (annule) return;
-      if (error) {
-        setErreurAnnees(classerErreur(error));
-        return;
-      }
-      setErreurAnnees(null);
-      setAnnees(
-        (data ?? []).map((a) => ({
-          id: a.id,
-          annee: a.annee_scolaire,
-          niveau: a.niveau,
-          etablissement: a.etablissement ?? '',
-          statut: a.statut,
-        })),
-      );
-    });
-    return () => {
-      annule = true;
-    };
-  }, [selectedChild?.id, isDemoMode, versionSuivi]);
-  const anneeEnCours = annees.find((a) => a.statut === 'active');
-  const anneesArchives = annees
-    .filter((a) => a.statut !== 'active')
-    .sort((a, b) => b.annee.localeCompare(a.annee));
 
   // Un échec de chargement se montre sous l'en-tête, dans CHAQUE vue (Apprentissages, Souvenirs, Livrets,
   // notes) : message clair + « Réessayer », jamais « aucune compétence » à tort.
@@ -1100,10 +1000,7 @@ function NotesScreenContent() {
         <EtatErreur
           type={erreurSuivi}
           compact
-          onReessayer={() => {
-            setVersionSuivi((v) => v + 1);
-            rechargerCarnet();
-          }}
+          onReessayer={reessayer}
         />
       ) : null}
     </>

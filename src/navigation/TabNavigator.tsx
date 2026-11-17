@@ -76,6 +76,7 @@ import { surDemandeAjout, type OngletAjout } from '../services/ouvertureAjout';
 import type { CategorieCarnet } from '../services/carnetService';
 import QuickActionsSheet from '../components/QuickActionsSheet';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
+import { ScolariteProvider } from '../hooks/useScolarite';
 import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
 import VisionneuseImageScreen from '../screens/VisionneuseImageScreen';
 
@@ -352,7 +353,7 @@ function AccueilStackScreen() {
 const NotesStack = createNativeStackNavigator<StackParams>();
 function NotesStackScreen() {
   return (
-    <ErrorBoundary nom="Scolarité" compact><NotesStack.Navigator
+    <ErrorBoundary nom="Scolarité" compact><ScolariteProvider><NotesStack.Navigator
       screenOptions={{ headerShown: false, gestureEnabled: true }}
       screenListeners={{
         state: (e) => {
@@ -426,7 +427,7 @@ function NotesStackScreen() {
         component={AjouterAuCarnetScreen}
         options={{ headerShown: false }}
       />
-    </NotesStack.Navigator></ErrorBoundary>
+    </NotesStack.Navigator></ScolariteProvider></ErrorBoundary>
   );
 }
 

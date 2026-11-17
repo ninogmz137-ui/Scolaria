@@ -24,6 +24,7 @@ import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 import ScolariaSymbol from '../components/ScolariaSymbol';
+import { ScolariteProvider } from '../hooks/useScolarite';
 
 // ─── Stack navigators ────────────────────────────────────
 
@@ -61,7 +62,7 @@ function NotesEleveStackScreen() {
   };
 
   return (
-    <NotesEleveStack.Navigator screenOptions={stackOpts}>
+    <ScolariteProvider><NotesEleveStack.Navigator screenOptions={stackOpts}>
       <NotesEleveStack.Screen
         name="MesNotesHome"
         component={NotesScreen}
@@ -72,7 +73,7 @@ function NotesEleveStackScreen() {
         component={SubjectDetailScreen}
         options={{ title: 'Détail matière' }}
       />
-    </NotesEleveStack.Navigator>
+    </NotesEleveStack.Navigator></ScolariteProvider>
   );
 }
 
