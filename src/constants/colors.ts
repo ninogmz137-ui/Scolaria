@@ -1,5 +1,7 @@
-/** Unified light screen / page background (all main screens). */
-export const SCREEN_BACKGROUND = '#F2F1EE' as const;
+import { C } from './design';
+
+/** Fond de page : alias de C.bg (design.ts), seule source de la couleur de fond. */
+export const SCREEN_BACKGROUND = C.bg;
 
 export const Colors = {
   // ── Light design system (primary palette) ──────────

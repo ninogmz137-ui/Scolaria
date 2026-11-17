@@ -7,7 +7,8 @@ import { Platform } from 'react-native';
 
 export const C = {
   // Backgrounds
-  bg: '#F2F1EE',
+  // Fond « Brume » (16 nov. 2026) : SEULE source de la couleur de fond de page de toute l'app.
+  bg: '#F3F4FA',
   white: '#FFFFFF',
 
   // Texte
@@ -17,7 +18,7 @@ export const C = {
   text28: 'rgba(15,23,42,0.28)',
 
   // Borders
-  border: 'rgba(15,23,42,0.06)',
+  border: 'rgba(15,23,42,0.07)', // bordure des cartes (seule séparation visible sur Android)
   borderM: 'rgba(15,23,42,0.08)',
   borderL: 'rgba(15,23,42,0.05)',
 
@@ -36,7 +37,7 @@ export const C = {
 } as const;
 
 export const RADIUS = {
-  card: 18,
+  card: 16,
   pill: 999,
   input: 14,
   sheet: 22,
@@ -44,6 +45,11 @@ export const RADIUS = {
   tag: 6,
 } as const;
 
+// Ombres : DEUX jetons seulement pour toute l'app (décision du 17 nov. 2026).
+//  - card : cartes de contenu. Android elevation 0 (une élévation dessine un cadre gris sur une carte,
+//    leçons du 2 avr. et du 26 sept.) ; la bordure C.border suffit.
+//  - flottant : feuilles, menus, top bar, barre de saisie, boutons ronds. Android elevation 16, au-dessus
+//    du contenu (0) ET du voile / de la barre du bas (12 / 13) : Android trie par élévation avant zIndex.
 export const SHADOW = {
   card: Platform.select({
     ios: {
@@ -60,34 +66,19 @@ export const SHADOW = {
       shadowRadius: 8,
     },
   }),
-  cardStrong: Platform.select({
+  flottant: Platform.select({
     ios: {
       shadowColor: '#0F172A',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.06,
-      shadowRadius: 20,
+      shadowOpacity: 0.1,
+      shadowRadius: 24,
     },
-    android: { elevation: 0 },
+    android: { elevation: 16 },
     default: {
       shadowColor: '#0F172A',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.06,
-      shadowRadius: 20,
-    },
-  }),
-  fab: Platform.select({
-    ios: {
-      shadowColor: '#0F172A',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.22,
-      shadowRadius: 20,
-    },
-    android: { elevation: 10 },
-    default: {
-      shadowColor: '#0F172A',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.22,
-      shadowRadius: 20,
+      shadowOpacity: 0.1,
+      shadowRadius: 24,
     },
   }),
 } as const;

@@ -4,6 +4,7 @@
  */
 
 import { Platform, StyleSheet, type ViewStyle } from 'react-native';
+import { C } from './design';
 
 /** Glass cards — GlassCard + shared “premium” surfaces */
 export const GLASS_CARD_RADIUS = 20;
@@ -97,8 +98,8 @@ export const nativeAriaSuggestionShadow: ViewStyle = Platform.select({
   },
 }) as ViewStyle;
 
-/** Screen backgrounds referenced in native polish pass */
-export const PAGE_BG_OFF_WHITE = '#F2F1EE' as const;
+/** Fond de page : alias de C.bg (design.ts), seule source de la couleur de fond. */
+export const PAGE_BG_OFF_WHITE = C.bg;
 export const PILL_ACTIVE_NAVY = '#0F1B2D' as const;
 
 /**
