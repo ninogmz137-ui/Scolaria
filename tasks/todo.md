@@ -17,7 +17,9 @@
 - [x] Glass (d1fd600) : ombres de theme.ts = alias de SHADOW (aucune valeur propre) ; `GlassCard`, Portfolio, cartes de MonRessenti et ProfilEnfant en blanc opaque + `C.border`. Champs de saisie à 0,80 (spécification §5) et textes blancs sur en-têtes sombres : laissés.
 - [x] « Suivi » → « Scolarité » (34b0272) : top bar, i18n fr, navigateur, scripts d'essai Redmi/web. Onglet enseignant « Suivi » : lot 7. « Suivi des absences » (démo) et « Suivi complet » (présentation) : autre sens, laissés.
 - [x] Vouvoiement : aucun tutoiement côté parents trouvé dans `src/` (fr) ; les seuls textes tutoyés sont ceux de « Mon Ressenti » (enfant), gardés. Consignes de l'assistant : vouvoiement imposé par `_shared/ariaPrompt.ts`.
-- Tests : tsc 0 ; marque 19 ; nom-en-dur 29 ; entete 5 ; emergency 22 ; categories 29 ; aria-echange 37 ; aria-prompt 27.
+- Tests : tsc 0 ; marque 19 ; nom-en-dur 29 ; entete 5 ; emergency 22 ; categories 29 ; aria-echange 37 ; aria-prompt 27 ; bundle-prod 12/12.
+- **Vu sur le Redmi (17 nov., mode démo, Léa)** : Accueil, Scolarité, Agenda, Messages, menu « Tout », sélecteur d'enfant. Fond Brume partout, cartes blanches sans cadre gris, menu et feuille au-dessus du contenu et de la barre du bas, onglet « Scolarité ». Défaut trouvé et corrigé : le segment actif (`Segmented`) en `SHADOW.flottant` dessinait une ombre lourde (élévation 16) qui débordait du contrôle → passé sur `SHADOW.card` (partie de la page, pas flottant), revu net sur le Redmi. Avatar de la top bar : léger halo (élévation 16), conforme à la décision « boutons ronds ».
+- Non vu : iOS ; feuilles d'ajout, Profil enfant, écrans de l'assistant et de l'espace enseignant.
 - Constat hors périmètre : `fr.ts` `checkin.encrypted` « Chiffré · Visible uniquement par toi » (affirmation non vérifiée ; clé apparemment sans lecteur) → à vérifier.
 - Écarts au plan : les écrans enseignant gardent `SCREEN_BACKGROUND` comme fond de CARTE (cartes Brume sur Brume) : à corriger au lot 7.
 

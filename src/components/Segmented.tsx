@@ -61,7 +61,8 @@ const st = StyleSheet.create({
   },
   segmentActif: {
     backgroundColor: '#FFFFFF',
-    ...SHADOW.flottant,
+    // Partie de la page, pas un élément flottant : ombre de carte (Android : aucune élévation).
+    ...SHADOW.card,
   },
   segmentTexte: {
     fontFamily: FontFamily.sansMedium,
