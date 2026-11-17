@@ -2,7 +2,7 @@
 *Version 3.3 · 16 novembre 2026 · v3.2 + architecture du 16 nov. : onglet Scolarité sur deux niveaux, Messages en fils, mot complet, Agenda (devoirs, absence, rendez-vous fixes), bouton « + » unique, champ « Rechercher ou demander », fond Brume et cartes opaques, vouvoiement, espace enseignant en miroir*
 
 > Ce fichier est l'unique CLAUDE.md du projet. Toute version antérieure (v2.x, v3.0 à v3.2) est caduque.
-> L'identité (nom, logo, wordmark, symbole) est en cours de changement : elle est traitée à part et n'a pas été modifiée en v3.3.
+> L'identité (nom, logo, wordmark, symbole) est en cours de changement : elle est traitée à part et n'a pas été modifiée en v3.3. La ligne « Copilote » de la section Nom sera revue avec elle (décision du 17 nov.) ; d'ici là, l'interface n'affiche aucun nom de personnage (§ Vocabulaire).
 > En cas de conflit sur un composant UI, COMPONENTS.md a priorité.
 
 ---
@@ -350,7 +350,8 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 - **Un seul point d'entrée dans toute l'application** : le « + » à droite de la barre du bas, sur tous les onglets.
 - Il ouvre une feuille de **six actions** : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Signaler une absence** · **Écrire à l'enseignant**.
-- L'ordre s'adapte à l'onglet : dans Messages, « Écrire à l'enseignant » passe en premier.
+- L'ordre s'adapte à l'onglet (décision du 17 nov.) : Accueil et Scolarité = l'ordre ci-dessus ; Agenda = « Signaler une absence » en premier ; Messages = « Écrire à l'enseignant » en premier.
+- Icônes (lucide) : camera · image · file-text · star · calendar-x · pencil.
 - **V1 :** pour un import, le parent choisit la catégorie (Mot / Document / Souvenir / Jalon) et la date. Rangé dans le carnet de l'enfant sélectionné. (En base, `carnet_items.categorie` garde ses valeurs `mot|livret|souvenir|jalon`.)
 - **Phase 2 (assistant stade 2) :** l'assistant reconnaît le document et propose la catégorie ; le parent valide toujours.
 - Visibilité : foyer (défaut) ou privé.
@@ -381,12 +382,13 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 - **Motif** : maladie / rendez-vous / raison familiale / autre.
 - Justificatif facultatif, mot facultatif.
 - Visible de l'enseignant **avant l'appel**.
+- Pas de statut « Vu par l'enseignant » en V1 (aucune lecture n'est enregistrée ; décision du 17 nov.).
 
 ### Devoirs et emploi du temps selon le niveau
 - **Maternelle** : pas de devoirs, pas de filtre « Devoirs », pas d'emploi du temps.
 - **CP à CM2** : filtre « Devoirs » présent ; devoirs de primaire (leçon à apprendre, lecture, poésie, tables, dictée préparée), jamais de contenu de collège.
 - **Collège / lycée** : devoirs par matière et par enseignant.
-- **L'emploi du temps complet reste en Phase 2.**
+- **L'emploi du temps complet reste en Phase 2.** La journée type fixe du primaire est retirée de la V1 (décision du 17 nov.).
 - Démo : dates **relatives à aujourd'hui** (la semaine courante n'est jamais vide, pour chaque enfant).
 
 ---
@@ -395,6 +397,7 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 ### Liste de fils
 - **Bloc « À traiter »** en haut : les mots qui attendent une action, avec le bouton d'action dans la ligne. Visible **seulement s'il y a quelque chose**.
+- Pas de barre de recherche ni de menu de filtre propres à Messages (décision du 17 nov.) : la recherche passe par le champ « Rechercher ou demander », et « À traiter » remplace le filtre « À signer ».
 - **Bloc « Conversations »** : **un fil par interlocuteur** — enseignant de l'enfant, classe, école/direction. Périscolaire et intervenants : Phase 2. Mairie : Phase 3.
 - La bascule « Général / [Prénom] » est **supprimée**.
 - **Fil de classe = ANNONCE SEULE** : l'enseignant écrit à toutes les familles ; chaque parent répond **en privé** à l'enseignant. **Aucune discussion entre familles.**

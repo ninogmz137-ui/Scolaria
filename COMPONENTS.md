@@ -286,8 +286,8 @@ Agenda: mois + année + strip 7 jours (§18.6)
 ```
 PAS de titre — déjà dans la pill active de la top bar ; onglet nommé « Messages »
 Bascule « Général · [prénom] » : SUPPRIMÉE
-[UNCLEAR] Barre propre (recherche pill + menu « Tout ⌄ ») : non tranché par le 16 nov. ; la recherche
-          passe désormais par le champ unique de la barre du bas — à décider au lot 3.
+Barre propre (recherche pill + menu « Tout ⌄ ») : SUPPRIMÉE (décision du 17 nov.) — la recherche passe par le
+          champ unique de la barre du bas, et le bloc « À traiter » remplace le filtre « À signer ».
 1. Bloc « À traiter » (visible SEULEMENT s'il y a quelque chose) : un mot qui attend une action par ligne,
    bouton d'action DANS la ligne (pilule compacte, §2 variante liste) : « Signer », « Répondre »…
    pastille indigo (pencil) + titre 600 14 + sous-titre (expéditeur · échéance)
@@ -436,10 +436,12 @@ Row action: flex · alignItems center · gap 12px · padding 13px 16px
 ```
 Bottom sheet (§11). Six actions, icône lucide 20px + libellé :
   Photographier (camera) · Importer une capture (image) · Ajouter un document (file-text)
-  · Noter une première fois (flag) · Signaler une absence (calendar-x) · Écrire à l'enseignant (pencil)
-  [icônes proposées, à valider au lot 5]
-Ordre selon l'onglet d'où on l'ouvre : dans Messages, « Écrire à l'enseignant » en premier ;
-  sinon l'ordre ci-dessus [UNCLEAR : ordre précis pour Accueil / Scolarité / Agenda non fixé]
+  · Noter une première fois (star) · Signaler une absence (calendar-x) · Écrire à l'enseignant (pencil)
+  (icônes validées le 17 nov.)
+Ordre selon l'onglet d'où on l'ouvre (décision du 17 nov.) :
+  Accueil, Scolarité : l'ordre ci-dessus
+  Agenda : « Signaler une absence » en premier, puis l'ordre ci-dessus
+  Messages : « Écrire à l'enseignant » en premier, puis l'ordre ci-dessus
 Toujours pour l'enfant sélectionné (titre de la feuille : « Ajouter au carnet de [prénom] »)
 
 Signaler une absence (formulaire, page profonde) :
@@ -763,7 +765,9 @@ Devoirs : groupés par JOUR D'ÉCHÉANCE, « Pour demain » en premier, puis les
   ligne = case ronde 22px (bordure 1.5px rgba(15,23,42,0.25)) + pastille de discipline 34 + intitulé
   coche « fait » PARTAGÉE entre les responsables du foyer ; sous la ligne : « Coché par [prénom] · [heure] »
   (ligne source §17) ; un devoir non coché pour demain allume la pastille de l'avatar (§0)
-Absence signalée : carte §7 Agenda, catégorie « Absence », période + motif ; statut « Vu par l'enseignant » [UNCLEAR, à confirmer au lot 4]
+Absence signalée : carte §7 Agenda, catégorie « Absence », période + motif ; PAS de statut « Vu par l'enseignant » en V1
+  (aucune lecture par l'enseignant n'est enregistrée : rien qui ne soit vrai ; décision du 17 nov.)
+Journée type fixe du primaire : RETIRÉE de la V1 (décision du 17 nov.), comme l'emploi du temps complet (Phase 2)
 Rendez-vous fixes hebdomadaires (V1) : « Piscine · tous les jeudis », « Bibliothèque · tous les mardis »
   carte §7 Agenda avec libellé de catégorie + liste « À prévoir » cochable
 Emploi du temps complet : Phase 2 (aucune grille horaire en V1)
