@@ -17,24 +17,9 @@ import {
 import { FontFamily } from '../hooks/useSolariaFonts';
 import AddToDiscussionSheet, { type AddAttachment } from './chat/AddToDiscussionSheet';
 import { TextInput, Pressable } from './ui';
+import { SHADOW } from '../constants/design';
 
-const BUBBLE_SHADOW = Platform.select({
-  ios: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-  },
-  android: {
-    elevation: 4,
-  },
-  default: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-  },
-});
+const BUBBLE_SHADOW = SHADOW.flottant;
 
 export type UniversalInputBarProps = {
   placeholder: string;
@@ -264,21 +249,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: ARIA_GRADIENT_VIOLET,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.45,
-        shadowRadius: 6,
-      },
-      android: { elevation: 4 },
-      default: {
-        shadowColor: ARIA_GRADIENT_VIOLET,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.45,
-        shadowRadius: 6,
-      },
-    }),
+    ...SHADOW.flottant,
   },
   sendAriaDisabled: {
     width: 32,

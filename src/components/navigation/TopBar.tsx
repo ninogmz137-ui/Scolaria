@@ -14,6 +14,7 @@
  */
 
 import React, { useState } from 'react';
+import { SHADOW } from '../../constants/design';
 import { runOnJS, useAnimatedReaction } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import { useTopbarScrollY } from '../../contexts/TopbarScrollContext';
@@ -295,14 +296,6 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#6366F1',
-        shadowOpacity: 0.30,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-      },
-      android: { elevation: 4 },
-    }),
+    ...SHADOW.flottant,
   },
 });

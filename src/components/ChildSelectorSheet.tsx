@@ -4,6 +4,7 @@
  * « Famille & paramètres » (☰).
  */
 import React from 'react';
+import { SHADOW } from '../constants/design';
 import {
   View,
   Modal,
@@ -118,15 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOpacity: 0.10,
-        shadowRadius: 32,
-        shadowOffset: { width: 0, height: -4 },
-      },
-      android: { elevation: 16 },
-    }),
+    ...SHADOW.flottant,
   },
   handle: {
     width: 34,

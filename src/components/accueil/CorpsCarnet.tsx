@@ -10,7 +10,8 @@
  */
 
 import { useMemo, type ReactNode } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { C, RADIUS, SHADOW } from '../../constants/design';
+import { View, StyleSheet } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import PastilleCategorie from '../PastilleCategorie';
@@ -319,15 +320,11 @@ const st = StyleSheet.create({
   // translucide = rectangle gris sur Android).
   carte: {
     marginHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: RADIUS.card,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.05)',
-    ...Platform.select({
-      ios: { shadowColor: NAVY, shadowOpacity: 0.05, shadowRadius: 16, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    borderColor: C.border,
+    ...SHADOW.card,
   },
   ligne: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, minHeight: 58 },
   ligneFiletee: { borderBottomWidth: 1, borderBottomColor: 'rgba(15,23,42,0.06)' },

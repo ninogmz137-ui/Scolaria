@@ -5,6 +5,7 @@
  */
 
 import type { ReactNode } from 'react';
+import { SHADOW } from '../constants/design';
 import { Modal, View, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Camera, Image as ImageIcone, Trash2 } from 'lucide-react-native';
@@ -106,10 +107,7 @@ const st = StyleSheet.create({
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     paddingTop: 0,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 32, shadowOffset: { width: 0, height: -4 } },
-      android: { elevation: 16 },
-    }),
+    ...SHADOW.flottant,
   },
   handle: {
     width: 34,

@@ -33,6 +33,7 @@ import { autreResponsableDemo } from '../../data/demo/responsables';
 import { Pressable } from '../../components/ui';
 import { Lock, Check } from 'lucide-react-native';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { C, SHADOW } from '../../constants/design';
 import type { Conversation, Message } from '../../data/messagerieData';
 import { Text } from '../../components/ui';
 
@@ -503,17 +504,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 16,
     borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.05)',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.03,
-        shadowRadius: 4,
-      },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    borderColor: C.border,
+    ...SHADOW.card,
   },
   bubbleText: {
     fontSize: 15,

@@ -16,7 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { TrendingUp, Target, FileText } from 'lucide-react-native';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
+import { C, SHADOW, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
@@ -265,16 +265,7 @@ export default function GradeDetailScreen() {
 
 // ─── Styles ──────────────────────────────────────────────
 
-const cardShadow = Platform.select({
-  ios: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-  },
-  android: { elevation: 0 },
-  default: {},
-});
+const cardShadow = SHADOW.card;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },

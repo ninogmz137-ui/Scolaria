@@ -26,7 +26,7 @@ import {
   Check,
   Users,
 } from 'lucide-react-native';
-import { C, RADIUS, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
+import { C, RADIUS, SHADOW, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { WhiteCard } from '../components/WhiteCard';
 import { AriaInlineCard } from '../components/AriaInlineCard';
@@ -333,22 +333,13 @@ const styles = StyleSheet.create({
   quickGridOuter: {
     marginHorizontal: 14,
     marginTop: -16,
-    borderRadius: 18,
+    borderRadius: RADIUS.card,
     backgroundColor: C.white,
     zIndex: 1,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-      },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    ...SHADOW.card,
   },
   quickGridInner: {
-    borderRadius: 18,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: C.border,

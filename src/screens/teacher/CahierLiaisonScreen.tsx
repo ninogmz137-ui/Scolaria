@@ -10,6 +10,7 @@ import {
 import { Box, Text, Pressable, HStack, VStack, TextInput } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, SCREEN_BACKGROUND } from '../../constants/colors';
+import { SHADOW } from '../../constants/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import {
@@ -28,11 +29,7 @@ import {
 
 const TEACHER_ORANGE = '#FF8C42';
 
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
+const CARD_SHADOW = SHADOW.card;
 
 // ─── Type config ─────────────────────────────────────────
 

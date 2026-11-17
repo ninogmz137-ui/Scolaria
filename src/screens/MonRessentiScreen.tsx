@@ -49,28 +49,11 @@ const HEADER_EMOJI: Record<AgeMode, string> = {
   lycee: '💜',
 };
 
+// Élément flottant (ombre unique de l'app, décision du 17 nov. 2026 : plus de halo coloré par niveau).
 const GLOW_SHADOW: Record<AgeMode, object> = {
-  maternelle: {
-    shadowColor: '#F59E0B',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  primaire: {
-    shadowColor: '#22C55E',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  lycee: {
-    shadowColor: '#4338CA',
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
+  maternelle: SHADOW.flottant,
+  primaire: SHADOW.flottant,
+  lycee: SHADOW.flottant,
 };
 
 function MonRessentiScreenContent() {
@@ -319,11 +302,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 16,
     marginBottom: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    ...SHADOW.card,
   },
   navRow: {
     flexDirection: 'row',

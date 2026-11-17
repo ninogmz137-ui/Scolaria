@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeft } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { C } from '../constants/design';
+import { C, SHADOW } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { ASSISTANT } from '../constants/marque';
@@ -261,16 +261,7 @@ function BulletinScreenContent() {
 
 // ─── Styles ───────────────────────────────────────────────
 
-const heroShadow = Platform.select({
-  ios: {
-    shadowColor: C.indigo,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.20,
-    shadowRadius: 16,
-  },
-  android: { elevation: 0 },
-  default: {},
-});
+const heroShadow = SHADOW.card;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },

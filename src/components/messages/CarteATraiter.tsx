@@ -5,7 +5,8 @@
  * alignées sur le texte (Signer · J'autorise / Non · Je participe / Peut-être / Non).
  */
 
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { C, RADIUS, SHADOW } from '../../constants/design';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import ActionsMot from './ActionsMot';
@@ -103,15 +104,11 @@ const st = StyleSheet.create({
     marginHorizontal: 14,
     marginBottom: 8,
     padding: 14,
-    borderRadius: 18,
+    borderRadius: RADIUS.card,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.05)',
-    ...Platform.select({
-      ios: { shadowColor: NAVY, shadowOpacity: 0.06, shadowRadius: 20, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    borderColor: C.border,
+    ...SHADOW.card,
   },
   mot: {},
   motSuivant: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.08)' },

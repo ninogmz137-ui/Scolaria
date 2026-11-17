@@ -30,7 +30,7 @@ import {
   subscribe,
 } from '../stores/messagerieStore';
 import type { Conversation } from '../data/messagerieData';
-import { C } from '../constants/design';
+import { C, SHADOW } from '../constants/design';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantOnglet } from '../components/AucunEnfant';
 import Segmented from '../components/Segmented';
@@ -446,11 +446,7 @@ const st = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingVertical: 4,
-    shadowColor: '#000000',
-    shadowOpacity: 0.12,
-    shadowRadius: 32,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    ...SHADOW.flottant,
   },
   menuLigne: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 14, minHeight: 44 },
   menuCoche: { width: 18, alignItems: 'center' },

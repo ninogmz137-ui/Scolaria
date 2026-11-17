@@ -26,6 +26,7 @@ import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar
 import { useKeyboardInputPadding } from '../../hooks/useKeyboardInputPadding';
 import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { SHADOW } from '../../constants/design';
 import {
   androidFloatingWhitePill,
   ARIA_INDIGO,
@@ -813,11 +814,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',
     alignSelf: 'stretch',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
-      android: { elevation: 8 },
-      default: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
-    }),
+    ...SHADOW.flottant,
   },
   drawerHeader: {
     flexDirection: 'row',

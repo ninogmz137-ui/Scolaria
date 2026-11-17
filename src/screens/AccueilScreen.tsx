@@ -35,7 +35,7 @@ import { usePhotoUrl } from '../hooks/usePhotoUrl';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { monNomComplet, type MotCarnet } from '../services/motsService';
 import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
-import { C } from '../constants/design';
+import { C, RADIUS, SHADOW } from '../constants/design';
 import { Text } from '../components/ui';
 import { de } from '../utils/francais';
 import { useDemoData } from '../contexts/DemoContext';
@@ -507,23 +507,15 @@ const styles = StyleSheet.create({
   // ── Card wrapper (outer shadow + inner clip) ─────────
   cardOuter: {
     marginHorizontal: 14,
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     backgroundColor: '#FFFFFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 16,
-      },
-      android: { elevation: 0 },
-    }),
+    ...SHADOW.card,
   },
   cardInner: {
-    borderRadius: 20,
+    borderRadius: RADIUS.card,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.05)',
+    borderColor: C.border,
   },
 
   // ── Lignes (base partagée) ───────────────────────────

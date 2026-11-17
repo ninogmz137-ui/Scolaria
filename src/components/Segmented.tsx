@@ -4,6 +4,7 @@
  */
 
 import { View, StyleSheet } from 'react-native';
+import { SHADOW } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
 
@@ -60,11 +61,7 @@ const st = StyleSheet.create({
   },
   segmentActif: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    ...SHADOW.flottant,
   },
   segmentTexte: {
     fontFamily: FontFamily.sansMedium,

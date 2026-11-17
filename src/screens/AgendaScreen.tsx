@@ -38,7 +38,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronDown, CalendarCheck, CalendarDays } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
-import { C } from '../constants/design';
+import { C, RADIUS, SHADOW } from '../constants/design';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -1405,14 +1405,12 @@ const st = StyleSheet.create({
   },
   calendarGridCard: {
     marginHorizontal: 16,
-    backgroundColor: C.bg,
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: RADIUS.card,
+    borderWidth: 1,
+    borderColor: C.border,
     padding: 16,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    ...SHADOW.card,
   },
   calendarHeaderRow: {
     flexDirection: 'row',
@@ -1636,11 +1634,7 @@ const st = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 32,
-    ...Platform.select({
-      ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.12, shadowRadius: 24 },
-      android: { elevation: 20 },
-      default: {},
-    }),
+    ...SHADOW.flottant,
   },
   modalHandle: {
     width: 40,
@@ -1813,14 +1807,12 @@ const st = StyleSheet.create({
     alignItems: 'flex-start',
     paddingVertical: 11,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: C.border,
     borderRadius: 14,
     marginBottom: 6,
-    ...Platform.select({
-      ios: { shadowColor: '#0F172A', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 2 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    ...SHADOW.card,
   },
   hwRowRendu: {
     backgroundColor: 'rgba(15,23,42,0.03)',

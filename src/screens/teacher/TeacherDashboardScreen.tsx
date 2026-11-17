@@ -9,6 +9,7 @@ import { Box, Text, Pressable, HStack, VStack } from '../../components/ui';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
+import { SHADOW } from '../../constants/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../../components/navigation/BottomBar';
 import { getClassWellbeing, type StudentWellbeing } from '../../services/teacherService';
@@ -27,11 +28,7 @@ const hexToRgb = (hex: string) => {
 
 const TEACHER_ORANGE_RGB = hexToRgb(TEACHER_ORANGE);
 
-const CARD_SHADOW = Platform.select({
-  ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-  android: { elevation: 8 },
-  default: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.10, shadowRadius: 20 },
-});
+const CARD_SHADOW = SHADOW.card;
 
 // ─── Mock data — 26 élèves anonymisés ───────────────────
 

@@ -5,6 +5,7 @@
  * The parent controls `status` to transition through: pending → loading → success | error.
  */
 
+import { SHADOW } from '../../constants/design';
 import {
   View,
   ActivityIndicator,
@@ -158,24 +159,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEF2FF',
     borderWidth: 1,
     borderColor: '#E0E7FF',
-    // Aria-tinted shadow
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.10,
-    shadowRadius: 12,
-    ...Platform.select({ android: { elevation: 3 } }),
+    ...SHADOW.card,
   },
 
   // ── Status variants ──
   cardSuccess: {
     backgroundColor: '#F0FDF4',
     borderColor: 'rgba(15,23,42,0.06)',
-    shadowColor: '#10B981',
   },
   cardError: {
     backgroundColor: '#FFF1F2',
     borderColor: 'rgba(15,23,42,0.06)',
-    shadowColor: '#EF4444',
   },
 
   // ── Header ──

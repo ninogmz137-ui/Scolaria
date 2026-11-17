@@ -1,4 +1,5 @@
 import React from 'react';
+import { SHADOW } from '../../constants/design';
 import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Pressable } from '../ui';
 
@@ -93,18 +94,7 @@ export default function RoundGlassIconButton({
 const styles = StyleSheet.create({
   shadowWrap: {
     backgroundColor: 'transparent',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.12,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
-      default: {},
-    }),
+    ...SHADOW.flottant,
   },
   androidNoShadow: {
     elevation: 0,

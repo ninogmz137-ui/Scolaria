@@ -46,6 +46,7 @@ import ChatBubble, { type Message } from '../../components/chat/ChatBubble';
 import AriaActionCard from '../../components/aria/AriaActionCard';
 import RoundGlassIconButton from '../../components/shared/RoundGlassIconButton';
 import { SCREEN_BACKGROUND } from '../../constants/colors';
+import { C, SHADOW } from '../../constants/design';
 import {
   androidFloatingWhitePill,
   ARIA_INDIGO,
@@ -815,11 +816,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: C.border,
+    ...SHADOW.card,
     justifyContent: 'center',
   },
   suggestionPressable: { flex: 1 },
@@ -847,11 +846,7 @@ const styles = StyleSheet.create({
     borderRightColor: 'rgba(0,0,0,0.06)',
     flexDirection: 'column',
     alignSelf: 'stretch',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
-      android: { elevation: 8 },
-      default: { shadowColor: '#000', shadowOffset: { width: 4, height: 0 }, shadowOpacity: 0.10, shadowRadius: 20 },
-    }),
+    ...SHADOW.flottant,
   },
   drawerHeader: {
     flexDirection: 'row',

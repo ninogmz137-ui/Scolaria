@@ -4,7 +4,8 @@
  * barre du bas). Affichée seulement si useCarnetVide le prouve (chargement fini, aucune erreur, aucune table non vide).
  */
 
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { C, RADIUS, SHADOW } from '../../constants/design';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import { demanderAjoutCarnet } from '../../services/ouvertureAjout';
@@ -36,15 +37,11 @@ const st = StyleSheet.create({
   carte: {
     marginHorizontal: 14,
     padding: 14,
-    borderRadius: 18,
+    borderRadius: RADIUS.card,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.05)',
-    ...Platform.select({
-      ios: { shadowColor: '#0F172A', shadowOpacity: 0.05, shadowRadius: 16, shadowOffset: { width: 0, height: 4 } },
-      android: { elevation: 0 },
-      default: {},
-    }),
+    borderColor: C.border,
+    ...SHADOW.card,
   },
   titre: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, lineHeight: 19, color: '#0F172A' },
   texte: { fontFamily: FontFamily.sansRegular, fontSize: 12, lineHeight: 17, color: 'rgba(15,23,42,0.6)', marginTop: 3 },

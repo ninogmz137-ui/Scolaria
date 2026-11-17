@@ -89,10 +89,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 12,
     paddingHorizontal: 20,
-    ...Platform.select({
-      android: { elevation: 20 },
-      ios: { shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: -4 } },
-    }),
+    ...SHADOW.flottant,
   },
   handle: {
     width: 36, height: 4, borderRadius: 2,

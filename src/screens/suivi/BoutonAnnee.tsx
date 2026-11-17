@@ -5,6 +5,7 @@
  */
 
 import { useRef, useState } from 'react';
+import { SHADOW } from '../../constants/design';
 import { Modal, View, StyleSheet, Platform, StatusBar } from 'react-native';
 import { Check, ChevronDown } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
@@ -132,11 +133,7 @@ const st = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingVertical: 4,
-    shadowColor: '#000000',
-    shadowOpacity: 0.12,
-    shadowRadius: 32,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 12,
+    ...SHADOW.flottant,
   },
   ligne: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, minHeight: 44 },
   iconeVide: { width: 15 },

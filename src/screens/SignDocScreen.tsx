@@ -17,7 +17,7 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import type { DemoDoc } from '../data/demo/accueil';
 import { Clock, Lock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { C, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
+import { C, SHADOW, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import DeepScreenHeader from '../components/DeepScreenHeader';
 import AriaInlineCard from '../components/AriaInlineCard';
@@ -153,16 +153,7 @@ export default function SignDocScreen() {
 
 // ─── Styles ──────────────────────────────────────────────
 
-const cardShadow = Platform.select({
-  ios: {
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-  },
-  android: { elevation: 0 },
-  default: {},
-});
+const cardShadow = SHADOW.card;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },

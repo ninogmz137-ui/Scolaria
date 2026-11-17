@@ -4,6 +4,7 @@
  */
 
 import { Modal, View, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
+import { SHADOW } from '../constants/design';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check } from 'lucide-react-native';
 import { CHILD_COLORS } from '../constants/childColors';
@@ -88,10 +89,7 @@ const st = StyleSheet.create({
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     paddingHorizontal: 16,
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 32, shadowOffset: { width: 0, height: -4 } },
-      android: { elevation: 16 },
-    }),
+    ...SHADOW.flottant,
   },
   handle: {
     width: 34,

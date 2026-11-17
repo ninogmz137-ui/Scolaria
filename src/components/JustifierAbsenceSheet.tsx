@@ -12,7 +12,7 @@ import { Clock, Calendar, Paperclip } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as DocumentPicker from 'expo-document-picker';
 import ScolariaSymbol from './ScolariaSymbol';
-import { C } from '../constants/design';
+import { C, SHADOW } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -222,15 +222,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     maxHeight: '80%',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.10,
-        shadowRadius: 32,
-      },
-      android: { elevation: 20 },
-    }),
+    ...SHADOW.flottant,
   },
 
   handleWrap: {
