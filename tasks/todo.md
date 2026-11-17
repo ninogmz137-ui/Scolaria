@@ -10,6 +10,53 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 1 — PLAN (17 nov., branche `archi-lot-1` créée depuis main 4d091f8) — AUCUN CODE AVANT ACCORD
+Inventaire lu le 17 nov. (grep sur `src/`) : 39 fichiers déclarent `shadowOpacity` ; `SHADOW.card` n'est utilisé que par 2 (`WhiteCard.tsx`, `HomeworkScreen.tsx`) ; `#F2F1EE` en dur dans 35 fichiers ; `C.bg` lu par 11 ; `C.border` par 3 ; `RADIUS.card` par 1 (`WhiteCard.tsx`). **Deuxième source de jetons** : `src/constants/theme.ts` (ombres « glass », `PAGE_BG_OFF_WHITE = '#F2F1EE'`, `GLASS_CARD_RADIUS = 20`), importé par 13 fichiers ; **troisième** : `src/constants/colors.ts` (`SCREEN_BACKGROUND = '#F2F1EE'`).
+
+**Étape 1 — Jetons (un seul commit)**
+- [ ] `design.ts` : `C.bg` → `#F3F4FA` ; `C.border` 0,06 → 0,07 ; `RADIUS.card` 18 → 16 ; `SHADOW.card` inchangé (déjà iOS 0,04/8 · Android elevation 0) ; `SHADOW.fab` supprimé si plus aucun lecteur (sinon à l'étape 3).
+- [ ] `colors.ts` `SCREEN_BACKGROUND` et `theme.ts` `PAGE_BG_OFF_WHITE` : pointent sur `C.bg` (une seule valeur), pas une deuxième copie de `#F3F4FA`.
+- [ ] `C.border` : 3 lecteurs (`EventDetailScreen` bordures, `GradeDetailScreen` et `HomeworkScreen` en `backgroundColor` de séparateur) → vérifier que 0,07 convient aux séparateurs ; sinon les passer sur `C.borderM`/`C.borderL`.
+- Preuve : `tsc`, grep des valeurs (0 occurrence de 0,06 restante dans `C.border`).
+
+**Étape 2 — Fond Brume (`#F2F1EE` en dur, 35 fichiers)**
+- [ ] Remplacer chaque `#F2F1EE` (et ses formes rgba 242,241,238) par `C.bg`, y compris `ScrollVeil.tsx`, `TopBar.tsx`, `HeaderFondu.tsx` (voile 1 − a), `TabNavigator.tsx` (thème NavigationContainer, leçon du 22 sept.), `SchoolModeContext.tsx`.
+- Exceptions à décider à la lecture : `services/pdfExport.ts` (HTML imprimé, pas l'app), `theme/categories.test.mts` (test de contraste à recalculer sur `#F3F4FA`).
+- Un fichier à la fois avec Edit (leçon du 4 oct. : pas de réécriture en masse), `git diff --ignore-cr-at-eol --numstat` après chaque passe.
+- Preuve : grep `F2F1EE` = 0 hors exceptions listées ; `npm run test:entete` (contrastes de l'en-tête recalculés sur le nouveau fond).
+
+**Étape 3 — Ombres de carte (39 fichiers) → `SHADOW.card`**
+- Jetons (2) : `constants/design.ts` (source), `constants/theme.ts` (`nativeGlassCardShadow` et voisines : remplacées par `SHADOW.card` ou supprimées si sans lecteur ; `GLASS_CARD_RADIUS` → `RADIUS.card`).
+- Cartes d'écran principal ou de contenu → `...SHADOW.card` + bordure `C.border` + `RADIUS.card`, fond `#FFFFFF` opaque (16) :
+  `accueil/CarnetVide.tsx` · `accueil/CorpsCarnet.tsx` · `messages/CarteATraiter.tsx` · `aria/AriaActionCard.tsx` · `profile/SuperPowerBadge.tsx` · `AccueilScreen.tsx` · `AgendaScreen.tsx` (2 sur 3 ; la 3e, elevation 20, est flottante) · `BulletinScreen.tsx` · `EventDetailScreen.tsx` · `GradeDetailScreen.tsx` · `MonRessentiScreen.tsx` (1 sur 4) · `ProfilEnfantScreen.tsx` · `SignDocScreen.tsx` · `SignSuccessScreen.tsx` · `messagerie/ConversationDetailScreen.tsx` · `teacher/AbsencesEnseignantScreen.tsx` · `teacher/AppreciationsScreen.tsx` · `teacher/CahierLiaisonScreen.tsx` · `teacher/MessagerieParentsScreen.tsx` · `teacher/MeteoClasseScreen.tsx` · `teacher/TeacherDashboardScreen.tsx` · `teacher/VieDeClasseScreen.tsx`.
+- Éléments FLOTTANTS, pas des cartes (feuilles, menus, barres, boutons ronds ; élévation 8 à 20 aujourd'hui) : `ChildSelectorSheet` · `CouleurEnfantSheet` · `FeuillePhotoEnfant` · `JustifierAbsenceSheet` · `QuickActionsSheet` · `chat/AddToDiscussionSheet` · `navigation/TopBar` · `UniversalInputBar` · `suivi/BoutonAnnee` (menu) · `shared/RoundGlassIconButton` · `Segmented` (supprimé au lot 2) · `QuickSearchScreen` · `MessagerieScreen` (elevation 8) · `aria/AriaConversationScreen` · `aria/AriaHomeScreen` · les ombres 0,25 de `MonRessentiScreen`. → **QUESTION** : les brancher aussi sur `SHADOW.card` (consigne littérale), ou créer un 2e jeton `SHADOW.flottant` (Platform.select, ombre de feuille/menu) ? Recommandation : 2e jeton, car une feuille ou un menu sans élévation Android passe SOUS le contenu (ordre d'élévation, leçon du 23 sept.).
+- Règle d'exécution : les fichiers sont lus un par un ; une ombre dont le rôle n'est pas clair est signalée, pas devinée.
+- Preuve : grep `shadowOpacity` hors `constants/` = 0 ; grep `elevation:` restant = uniquement via jetons ou barres de navigation documentées.
+
+**Étape 4 — Glass supprimé**
+- [ ] `GlassCard.tsx` (8 fichiers l'utilisent) devient un alias de `WhiteCard` ou ses usages passent sur `WhiteCard` ; 20 fichiers contiennent `rgba(255,255,255,0.7x–0.8x)` : chacun vérifié (carte → `#FFFFFF` ; voile sur photo ou en-tête → laissé).
+
+**Étape 5 — « Suivi » → « Scolarité »**
+- [ ] Libellés : `TopBar.tsx`, `TabNavigator.tsx`, `i18n/locales/fr.ts`, `data/messagerieData.ts` (démo) ; `TeacherTabNavigator.tsx` → à revoir au lot 7 (onglets enseignant), seulement le libellé ici s'il s'affiche.
+- Noms de routes et de fichiers (`screens/suivi/…`) : inchangés dans ce lot (pas de renommage de code).
+- Preuve : grep des libellés « Suivi » affichés = 0 (« Suivi par mot » côté enseignant laissé : c'est un autre sens).
+
+**Étape 6 — Vouvoiement**
+- [ ] 26 chaînes probables dans `i18n/locales/fr.ts`, `FamilleParametresScreen.tsx`, `accueil/SurFondu.tsx`, `checkin/MaternelleMode.tsx`, `MonRessentiScreen.tsx` (es.ts / ro.ts hors périmètre : le français seul est vérifié).
+- **QUESTION** : `MaternelleMode` et `MonRessentiScreen` s'adressent à l'ENFANT (le parent tend le téléphone) : vouvoyer aussi l'enfant ? Recommandation : oui, règle « partout » sans exception, sauf avis contraire.
+- Textes de l'assistant : déjà vouvoyés côté serveur (`_shared/ariaPrompt.ts`) ; vérifier les textes fixes de l'app (démo, suggestions).
+- Libellé « Aria » affiché → « Assistant » : PAS dans ce lot (lot 5), sauf demande.
+
+**Vérification du lot**
+- `tsc`, `test:marque`, `test:nom-en-dur`, `test:entete`, `test:emergency`, test de catégories (contraste sur `#F3F4FA`), `test:bundle-prod`.
+- Aperçu web seulement comme indice (leçon du 18 sept.) ; **preuve sur le Redmi** : Accueil, Scolarité, Agenda, Messages, une feuille, une page profonde ; cartes sans cadre gris sur Android.
+- Commits : un par étape ; aucun build EAS ; aucune migration.
+
+**Risques**
+- Contrastes calculés sur `#F2F1EE` (en-tête, pastilles AA) : à recalculer, le Brume est plus froid et un peu plus clair.
+- Glass retiré : cartes posées directement sur le fondu de l'en-tête de l'Accueil (« À faire ») → vérifier le rendu sur les 6 couleurs d'enfant.
+- Ombres flottantes : si elles passent à elevation 0, une feuille peut s'afficher sous le contenu sur Android.
+
 ## 11 nov. 2026 — Correctifs de l'audit Fable, LOT A (branche `fix-audit-fable`, rien sur Paris, aucun build)
 
 **Référence rejouée AVANT toute modification (11 nov., base locale Docker)** : 21 suites SQL `supabase/tests` exit 0 ; `test:emergency` 22 cas / 0 échec ; `test:journaux` 6 fichiers, 15 appels, 0 échec ; `test:marque` 19 ; `audit:securite-local` 670 tests / 0 écart.
