@@ -101,6 +101,9 @@ OMBRES
                       rgba(15,23,42,0.07) suffit (décision du 17 nov.)
                       SOURCE UNIQUE : SHADOW.card (src/constants/design.ts, Platform.select) ; jamais d'ombre
                       ni d'elevation déclarée carte par carte
+  Flottant            feuilles, menus, barres, boutons ronds : jeton SHADOW.flottant (design.ts, Platform.select),
+                      décision du 17 nov. ; Android garde une élévation (sinon l'élément passe sous le contenu) ;
+                      valeurs fixées au lot 1
   (« Card forte » et « FAB » supprimés : plus de FAB, une seule ombre de carte)
 
 ESPACEMENT

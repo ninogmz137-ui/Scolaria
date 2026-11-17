@@ -37,7 +37,8 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 - **Le carnet** = tout ce qui concerne un enfant, c'est-à-dire les quatre onglets (Accueil, Scolarité, Agenda, Messages).
 - **Scolarité** = l'onglet anciennement nommé « Suivi » (le mot « Suivi » ne s'affiche plus nulle part).
 - **L'assistant** = le seul libellé affiché pour l'IA. Aucun nom de personnage dans l'interface. Les noms internes du code (`aria`, Edge Function « aria », `ariaApi.ts`…) ne changent pas.
-- **Vouvoiement partout**, y compris dans les textes générés par l'assistant.
+- **Vouvoiement partout** pour ce qui s'adresse aux parents, y compris dans les textes générés par l'assistant.
+  **Exception (décision du 17 nov. 2026)** : les écrans qui parlent à l'ENFANT (le parent lui tend le téléphone : `MaternelleMode`, `MonRessentiScreen`) gardent le tutoiement.
 
 ---
 
@@ -226,6 +227,7 @@ Pages profondes : fond #F3F4FA, header simple ‹ Retour + titre centré + actio
 - Blanc opaque `#FFFFFF`, border 1px `rgba(15,23,42,0.07)`, borderRadius 16
 - Ombre (décision du 17 nov. 2026) : **iOS** `shadowColor:#0F172A, shadowOpacity:0.04, shadowRadius:8` ; **Android `elevation: 0`**, la bordure 1px `rgba(15,23,42,0.07)` suffit (leçons du 2 avr. et du 26 sept. : une élévation dessine un cadre gris sur une carte).
 - **Une seule source** : le jeton `SHADOW.card` de `src/constants/design.ts`, écrit avec `Platform.select`. Aucune carte ne déclare sa propre ombre ni sa propre `elevation` : elle étale le jeton.
+- Éléments flottants (feuilles, menus, barres, boutons ronds) : 2e jeton `SHADOW.flottant` (même fichier, `Platform.select`) ; sur Android ils gardent une élévation, sinon ils passent sous le contenu (décision du 17 nov.).
 - Animation press : `scale 0.97`, spring damping 15
 - Le glass morphism (blanc à 75 %) est supprimé partout.
 
@@ -654,7 +656,7 @@ Le mot envoyé à la classe arrive dans le carnet de chaque élève.
 ✗ Jamais de FAB ni de second bouton d'ajout → le « + » de la barre du bas, seul
 ✗ Jamais de loupe séparée → un seul champ « Rechercher ou demander »
 ✗ Jamais de nom de personnage dans l'interface → « Assistant »
-✗ Jamais de tutoiement, y compris dans les textes de l'assistant
+✗ Jamais de tutoiement envers un parent, y compris dans les textes de l'assistant (seuls les écrans qui parlent à l'enfant tutoient)
 ✗ Jamais carte-bouton → pills d'action uniquement
 ✗ Jamais violet #7C3AED → #4338CA uniquement
 ✗ Jamais dégradé de l'assistant (#6366F1→#22D3EE) hors contexte de l'assistant
