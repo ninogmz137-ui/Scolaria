@@ -99,7 +99,12 @@ async function controler() {
     enfant.kill();
     return;
   }
-  console.log('[redmi-local] PRÊT : rechargez l’app sur le Redmi (menu de développement → Reload).');
+  // « Reload » ne relit pas le manifeste (Constants.expoConfig.extra) : l'app garderait l'URL de Paris.
+  // On la redémarre donc complètement sur ce Metro (18 nov. 2026).
+  adb('shell', 'am', 'force-stop', 'com.scolaria.app');
+  adb('shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d',
+    'exp+scolaria://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8081', 'com.scolaria.app');
+  console.log('[redmi-local] PRÊT : app redémarrée sur ce Metro ; vérifier « [ENV] Resolved → 127.0.0.1 » ci-dessous.');
 }
 controler().catch((e) => {
   console.error(`[redmi-local] ARRÊT : ${e.message}`);
