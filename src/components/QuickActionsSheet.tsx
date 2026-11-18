@@ -1,6 +1,7 @@
 /**
  * QuickActionsSheet — actions du ✏️ de Messages (décision du 26 sept 2026) :
- * « Écrire à un enseignant » · « Signaler une absence ».
+ * « Écrire à l'enseignant » (ouvre directement le fil avec l'enseignant de l'enfant sélectionné, créé au
+ * besoin, lot 3c) · « Signaler une absence ».
  * MASQUÉES pour un enfant sans enseignant rattaché (école hors Scolaria) : elles n'atteindraient
  * personne. Dans ce cas, le ✏️ lui-même n'est pas affiché (jamais de bouton inactif).
  * « Nouvel événement » n'est plus ici : c'est le « + » de l'Agenda.
@@ -14,10 +15,12 @@ import { MessageCircle, UserX } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
+import { useOuvrirFilEnseignant } from '../hooks/useOuvrirFilEnseignant';
+import { useActiveChild } from '../contexts/ActiveChildContext';
 import { Text, Pressable } from './ui';
 
 const ACTIONS = [
-  { id: 'message', icon: MessageCircle, label: 'Écrire à un enseignant' },
+  { id: 'message', icon: MessageCircle, label: 'Écrire à l’enseignant' },
   { id: 'absence', icon: UserX, label: 'Signaler une absence' },
 ] as const;
 
@@ -30,13 +33,19 @@ export default function QuickActionsSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const enseignantRattache = useEnseignantRattache();
+  const ouvrirFilEnseignant = useOuvrirFilEnseignant();
+  const { selectedChild } = useActiveChild();
 
   const handleAction = (id: (typeof ACTIONS)[number]['id']) => {
     onClose();
     setTimeout(() => {
+      if (id === 'message') {
+        if (selectedChild) ouvrirFilEnseignant(selectedChild.id);
+        return;
+      }
       navigation.navigate('MainPager', {
         screen: 'MessagerieTab',
-        params: { screen: id === 'message' ? 'MessagesListScreen' : 'SignalerAbsence', initial: false },
+        params: { screen: 'SignalerAbsence', initial: false },
       });
     }, 150);
   };

@@ -15,6 +15,7 @@ import { evenementDemoParId } from '../contexts/DemoContext';
 import { MOI_DEMO, autreResponsableDemo } from '../data/demo/responsables';
 import { aTraiter, attendParticipation, attendReponse, premierSignataire } from './motsRegles';
 import { repondreAuMotDemo } from '../stores/messagerieStore';
+import { libellesFil } from './filsService';
 
 export type TypeMot = 'information' | 'signature' | 'autorisation' | 'participation';
 export type SignatureMode = 'none' | 'one' | 'both';
@@ -442,7 +443,7 @@ export async function repondreEnPrive(m: MotCarnet, texte: string, demo: boolean
   if (!filId) {
     const cree = await supabase
       .from('teacher_conversations')
-      .insert({ teacher_id: m.teacherId, parent_id: moi, student_id: m.childId, portee: 'individuel' })
+      .insert({ teacher_id: m.teacherId, parent_id: moi, student_id: m.childId, portee: 'individuel', ...(await libellesFil(m.childId, 'individuel')) })
       .select('id')
       .single();
     if (cree.error) return echec;

@@ -149,6 +149,12 @@ export function filIndividuelDe(conversationId: string): string | undefined {
   return getConversation(id) ? id : undefined;
 }
 
+/** Compte réel (lot 3c) : remplace les fils de l'enfant par ceux lus en base (filsService). */
+export function remplacerFilsReels(childId: string, conversations: Conversation[]): void {
+  store[childId] = conversations;
+  notify();
+}
+
 export function subscribe(listener: () => void): () => void {
   listeners.push(listener);
   return () => {

@@ -396,7 +396,7 @@ export async function sendMessage(conversationId: string, text: string): Promise
       sender_role: 'teacher',
       sender_id: teacherId,
       text,
-      read: true,
+      read: false, // « lu » = lu par le DESTINATAIRE (le foyer) ; le parent le passe à vrai en ouvrant le fil (lot 3c)
     })
     .select()
     .single();

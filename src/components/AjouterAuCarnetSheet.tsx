@@ -1,7 +1,8 @@
 /**
  * AjouterAuCarnetSheet — « Ajouter au carnet » (CLAUDE.md, section dédiée ; lot B5).
  * Ouvert par le « + » de l'Accueil et le ⊞ de Suivi. 4 actions : Photographier · Importer une
- * capture · Ajouter un document (PDF) · Noter une première fois (jalon, sans fichier).
+ * capture · Ajouter un document (PDF) · Noter une première fois (jalon, sans fichier) ; plus « Écrire à
+ * l'enseignant » (lot 3c) si l'enfant a un enseignant rattaché : ouvre directement son fil.
  * Rangé dans le carnet de l'enfant SÉLECTIONNÉ ; le formulaire (AjouterAuCarnetScreen) fait choisir
  * la catégorie, la date, l'année et la visibilité.
  */
@@ -9,7 +10,9 @@
 import { Alert, Modal, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { Camera, FileText, Flag, Image as ImageIcone } from 'lucide-react-native';
+import { Camera, FileText, Flag, Image as ImageIcone, Pencil } from 'lucide-react-native';
+import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
+import { useOuvrirFilEnseignant } from '../hooks/useOuvrirFilEnseignant';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, Pressable } from './ui';
 import { useActiveChild } from '../contexts/ActiveChildContext';
@@ -41,6 +44,8 @@ export default function AjouterAuCarnetSheet({
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
+  const enseignantRattache = useEnseignantRattache();
+  const ouvrirFilEnseignant = useOuvrirFilEnseignant();
 
   const choisir = async (source: SourceAjout) => {
     onClose();
@@ -80,6 +85,24 @@ export default function AjouterAuCarnetSheet({
               </View>
             </Pressable>
           ))}
+          {enseignantRattache && (
+            <Pressable
+              onPress={() => {
+                onClose();
+                setTimeout(() => ouvrirFilEnseignant(selectedChild.id), 150);
+              }}
+              style={st.ligne}
+              accessibilityRole="button"
+            >
+              <View style={st.icone}>
+                <Pencil size={22} color="#0F172A" strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.libelle}>Écrire à l’enseignant</Text>
+                <Text style={st.detail}>Ouvre votre fil avec l’enseignant</Text>
+              </View>
+            </Pressable>
+          )}
         </View>
       </View>
     </Modal>

@@ -36,6 +36,8 @@ export interface Message {
   date: string;
   /** Fil famille : auteur d'un message de parent (absent = vous). « autre » = l'autre responsable du foyer. */
   auteur?: 'moi' | 'autre';
+  /** Compte réel : prénom de l'autre responsable du foyer, auteur du message. */
+  auteurNom?: string;
   /** Message de l'enseignant reçu aussi par l'autre foyer : prénoms (« Envoyé aussi à … »). */
   envoyeAussiA?: string[];
   /** Réponse privée à un mot (mot complet, M39) : titre du mot cité. */
@@ -71,6 +73,17 @@ export interface Conversation {
    * « individuel » = un seul responsable (« Seulement moi »), invisible pour l'autre. Absent : collectif / absences.
    */
   portee?: 'foyer' | 'individuel';
+  /**
+   * Fil de classe ou d'école : ANNONCE SEULE (CLAUDE.md § Messages). Aucun champ de saisie ; à la place,
+   * « Répondre à l'enseignant » ouvre le fil avec l'enseignant de l'enfant.
+   */
+  annonce?: boolean;
+  /** Compte réel (lot 3c) : fil lu en base, envoi par filsService. Absent : démo. */
+  reel?: boolean;
+  /** Compte réel : enseignant du fil (pour « Seulement moi »). */
+  teacherId?: string;
+  /** Compte réel : prénom de l'autre responsable du MÊME foyer (fil foyer partagé), null s'il n'y en a pas. */
+  autreDuFoyer?: string | null;
 }
 
 // ─── Léa — Maternelle Pasteur ───────────────────────────
@@ -91,13 +104,28 @@ const leaConversations: Conversation[] = [
     messages: [
       { id: 'lea-l-1', sender: 'other', text: "Bonjour, Léa s'est très bien adaptée à la grande section, elle a retrouvé ses copains !", time: '16:30', date: ilYa(12) },
       { id: 'lea-l-2', sender: 'parent', auteur: 'autre', text: "Merci Madame, ravie de l'entendre !", time: '17:45', date: ilYa(12) },
-      { id: 'lea-l-3', sender: 'other', text: "Rappel : photo de classe vendredi, pensez à une tenue soignée 😊", time: '08:15', date: ilYa(4) },
-      { id: 'lea-l-4', sender: 'parent', text: "Noté, merci pour le rappel !", time: '08:32', date: ilYa(4) },
       { id: 'lea-l-5', sender: 'other', text: "Léa a oublié son doudou ce matin, il est en sécurité dans la classe.", time: '09:12', date: ilYa(1) },
     ],
   },
   {
+    id: 'lea-classe',
+    annonce: true,
+    childId: 'demo-lea',
+    name: 'Classe MS/GS',
+    role: 'Annonces de Mme Laurent',
+    avatarType: 'school',
+    lastMessage: "Les cahiers de vie partent à la maison ce vendredi, merci de les rapporter lundi.",
+    lastDate: ilYa(2),
+    lastTime: '16:40',
+    unread: false,
+    messages: [
+      { id: 'lea-classe-1', sender: 'other', text: "Semaine du goût : chaque enfant apporte un fruit de saison lundi.", time: '08:20', date: ilYa(6) },
+      { id: 'lea-classe-2', sender: 'other', text: "Les cahiers de vie partent à la maison ce vendredi, merci de les rapporter lundi.", time: '16:40', date: ilYa(2) },
+    ],
+  },
+  {
     id: 'lea-ecole',
+    annonce: true,
     childId: 'demo-lea',
     name: 'École Pasteur',
     role: 'Établissement',
@@ -150,13 +178,28 @@ const lucasConversations: Conversation[] = [
     messages: [
       { id: 'lucas-m-1', sender: 'other', text: "Bonjour, belle rentrée pour Lucas : il s'est vite installé en CM2.", time: '16:15', date: ilYa(11) },
       { id: 'lucas-m-2', sender: 'parent', auteur: 'autre', text: "Merci, il est content de sa classe !", time: '17:30', date: ilYa(11) },
-      { id: 'lucas-m-3', sender: 'other', text: "Sortie à la médiathèque la semaine prochaine : l'autorisation est à signer dans le carnet avant jeudi.", time: '09:00', date: ilYa(5) },
-      { id: 'lucas-m-4', sender: 'parent', text: "Bien noté, nous la signons ce soir.", time: '09:45', date: ilYa(5) },
       { id: 'lucas-m-5', sender: 'other', text: "Lucas a eu un petit accrochage avec un camarade, rien de grave, réglé en classe.", time: '14:20', date: ilYa(2) },
     ],
   },
   {
+    id: 'lucas-classe',
+    annonce: true,
+    childId: 'demo-lucas',
+    name: 'Classe CM2 B',
+    role: 'Annonces de Mme Dupont',
+    avatarType: 'school',
+    lastMessage: "Piscine le jeudi à partir de la semaine prochaine : bonnet et maillot dans un sac.",
+    lastDate: ilYa(3),
+    lastTime: '16:30',
+    unread: false,
+    messages: [
+      { id: 'lucas-classe-1', sender: 'other', text: "Exposés : le planning est affiché en classe, chacun présente le sien avant les vacances.", time: '08:30', date: ilYa(7) },
+      { id: 'lucas-classe-2', sender: 'other', text: "Piscine le jeudi à partir de la semaine prochaine : bonnet et maillot dans un sac.", time: '16:30', date: ilYa(3) },
+    ],
+  },
+  {
     id: 'lucas-ecole',
+    annonce: true,
     childId: 'demo-lucas',
     name: 'École Voltaire',
     role: 'Établissement',
@@ -254,7 +297,24 @@ const emmaConversations: Conversation[] = [
     ],
   },
   {
+    id: 'emma-classe',
+    annonce: true,
+    childId: 'demo-emma',
+    name: 'Classe 3e B',
+    role: 'Annonces de Mme Lambert, professeure principale',
+    avatarType: 'school',
+    lastMessage: "Brevet blanc fin janvier : le calendrier sera donné en décembre.",
+    lastDate: ilYa(2),
+    lastTime: '17:05',
+    unread: false,
+    messages: [
+      { id: 'emma-classe-1', sender: 'other', text: "Heure de vie de classe vendredi : élection des délégués.", time: '12:10', date: ilYa(8) },
+      { id: 'emma-classe-2', sender: 'other', text: "Brevet blanc fin janvier : le calendrier sera donné en décembre.", time: '17:05', date: ilYa(2) },
+    ],
+  },
+  {
     id: 'emma-direction',
+    annonce: true,
     childId: 'demo-emma',
     name: 'Collège Hugo',
     role: 'Direction',

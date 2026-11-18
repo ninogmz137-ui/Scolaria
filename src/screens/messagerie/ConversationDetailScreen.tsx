@@ -28,7 +28,11 @@ import {
   getConversation,
   sendMessage as storeSendMessage,
   envoyerSeulementMoi,
+  subscribe,
 } from '../../stores/messagerieStore';
+import { envoyerMessageReel, envoyerSeulementMoiReel, marquerFilLu } from '../../services/filsService';
+import { useOuvrirFilEnseignant } from '../../hooks/useOuvrirFilEnseignant';
+import { Alert } from 'react-native';
 import { autreResponsableDemo } from '../../data/demo/responsables';
 import { Pressable } from '../../components/ui';
 import { Lock, Check } from 'lucide-react-native';
@@ -134,19 +138,27 @@ export default function ConversationDetailScreen({
   const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { conversationId } = route.params ?? {};
 
+  // Le fil est relu dans le magasin à chaque changement (envoi démo, rechargement des fils réels).
+  const [, setVersion] = useState(0);
+  useEffect(() => subscribe(() => setVersion((v) => v + 1)), []);
   const conv: Conversation | undefined = getConversation(conversationId);
-
-  // Local message state — starts from store, appends on send
-  const [messages, setMessages] = useState<Message[]>(conv?.messages ?? []);
+  const messages: Message[] = conv?.messages ?? [];
   const [inputText, setInputText] = useState('');
+  const [envoi, setEnvoi] = useState(false);
   // « Seulement moi » (B4b) : depuis le fil famille, envoyer dans MON fil individuel avec l'enseignant.
   const [seulementMoi, setSeulementMoi] = useState(false);
-  // L'autre responsable de l'enfant (démo). Même foyer : il partage le fil famille (« Seulement moi »
-  // possible). Autre foyer (Emma, famille recomposée) : il a ses propres fils, ne voit rien des vôtres.
+  // L'autre responsable de l'enfant. Même foyer : il partage le fil famille (« Seulement moi » possible).
+  // Autre foyer (parents séparés) : il a ses propres fils, ne voit rien des vôtres.
   const autreResp = autreResponsableDemo(conv?.childId);
-  const autre = autreResp.prenom;
-  const memeFoyer = autreResp.memeFoyer;
+  const autre = conv?.reel ? conv.autreDuFoyer ?? '' : autreResp.prenom;
+  const memeFoyer = conv?.reel ? !!conv.autreDuFoyer : autreResp.memeFoyer;
+  const ouvrirFilEnseignant = useOuvrirFilEnseignant();
   const scrollRef = useRef<ScrollView>(null);
+
+  // Compte réel : ouvrir le fil marque lus les messages de l'enseignant.
+  useEffect(() => {
+    if (conv?.reel && !conv.annonce) marquerFilLu(conv.id);
+  }, [conv?.id, conv?.reel, conv?.annonce]);
 
   const scrollToBottom = useCallback((animated = true) => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated }), 80);
@@ -157,33 +169,42 @@ export default function ConversationDetailScreen({
     scrollToBottom(false);
   }, [scrollToBottom]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const text = inputText.trim();
-    if (!text) return;
+    if (!text || !conv || envoi) return;
+
+    if (conv.reel) {
+      // Compte réel : le texte reste dans le champ tant que l'envoi n'a pas réussi.
+      setEnvoi(true);
+      try {
+        if (seulementMoi && conv.portee === 'foyer') {
+          const idIndividuel = await envoyerSeulementMoiReel(conv, text);
+          setInputText('');
+          setSeulementMoi(false);
+          navigation.replace('ConversationDetailScreen', { conversationId: idIndividuel });
+          return;
+        }
+        await envoyerMessageReel(conv.id, conv.childId, text);
+        setInputText('');
+        scrollToBottom(true);
+      } catch (e) {
+        Alert.alert('Message non envoyé', e instanceof Error ? e.message : 'Réessayez.');
+      } finally {
+        setEnvoi(false);
+      }
+      return;
+    }
 
     setInputText('');
-
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const date = now.toISOString().split('T')[0];
-    const newMsg: Message = {
-      id: `sent-${Date.now()}`,
-      sender: 'parent',
-      text,
-      time,
-      date,
-    };
-
-    if (seulementMoi && conv?.portee === 'foyer') {
+    if (seulementMoi && conv.portee === 'foyer') {
       const idIndividuel = envoyerSeulementMoi(conversationId, text);
       setSeulementMoi(false);
       if (idIndividuel) navigation.replace('ConversationDetailScreen', { conversationId: idIndividuel });
       return;
     }
-    setMessages((prev) => [...prev, newMsg]);
     storeSendMessage(conversationId, text);
     scrollToBottom(true);
-  }, [inputText, conversationId, scrollToBottom, seulementMoi, conv?.portee, navigation]);
+  }, [inputText, conv, envoi, conversationId, scrollToBottom, seulementMoi, navigation]);
 
   const groups = groupByDate(messages);
 
@@ -261,7 +282,7 @@ export default function ConversationDetailScreen({
               {group.messages.map((msg) => {
                 const isParent = msg.sender === 'parent';
                 // Fil famille : chaque message de parent affiche son auteur (« Vous », « Marc »).
-                const auteur = isParent && conv?.portee === 'foyer' ? (msg.auteur === 'autre' ? autre : 'Vous') : null;
+                const auteur = isParent && conv?.portee === 'foyer' ? (msg.auteur === 'autre' ? msg.auteurNom ?? autre : 'Vous') : null;
                 return (
                   <View key={msg.id}>
                   {auteur && <Text style={styles.auteur}>{auteur}</Text>}
@@ -322,7 +343,20 @@ export default function ConversationDetailScreen({
             />
           )}
           {/* « Seulement moi » : utile seulement si un autre responsable partage VOTRE fil famille. */}
-          {conv?.portee === 'foyer' && memeFoyer && (
+          {/* Fil de classe / d'école : annonce seule, aucune saisie ; on répond à l'enseignant dans son fil. */}
+          {conv?.annonce && (
+            <View style={[styles.annonceBas, { paddingBottom: insets.bottom + 12 }]}>
+              <Text style={styles.annonceTexte}>Fil d’annonces : on n’y répond pas.</Text>
+              <Pressable
+                onPress={() => ouvrirFilEnseignant(conv.childId, true)}
+                style={({ pressed }) => [styles.boutonRepondre, pressed && { opacity: 0.85 }]}
+                accessibilityRole="button"
+              >
+                <Text style={styles.boutonRepondreTexte}>Répondre à l’enseignant</Text>
+              </Pressable>
+            </View>
+          )}
+          {!conv?.annonce && conv?.portee === 'foyer' && memeFoyer && (
             <View style={styles.optionEnvoi}>
               <Pressable
                 onPress={() => setSeulementMoi((v) => !v)}
@@ -338,6 +372,7 @@ export default function ConversationDetailScreen({
               </Text>
             </View>
           )}
+          {!conv?.annonce && (
           <UniversalInputBar
             placeholder="Écrire un message…"
             value={inputText}
@@ -352,6 +387,7 @@ export default function ConversationDetailScreen({
             }}
             maxLength={2000}
           />
+          )}
         </View>
       </KeyboardAvoidingView>
     </View>
@@ -361,6 +397,26 @@ export default function ConversationDetailScreen({
 // ─── Styles ──────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  annonceBas: {
+    alignItems: 'center',
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(15,23,42,0.07)',
+    backgroundColor: SCREEN_BACKGROUND,
+  },
+  annonceTexte: { fontFamily: FontFamily.sansRegular, fontSize: 12, lineHeight: 16, color: 'rgba(15,23,42,0.55)', marginBottom: 10 },
+  boutonRepondre: {
+    height: 52,
+    minWidth: 220,
+    maxWidth: 280,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  boutonRepondreTexte: { fontFamily: FontFamily.sansBold, fontSize: 15, color: '#FFFFFF' },
   root: {
     flex: 1,
     backgroundColor: SCREEN_BACKGROUND,

@@ -5,8 +5,8 @@
  * - « Conversations » : UN FIL PAR INTERLOCUTEUR (enseignant, classe, école…) : conversations et mots déjà
  *   traités regroupés par expéditeur ; les mots reçus ailleurs (imports de la famille) forment leur propre fil.
  *   Un fil n'existe que s'il contient au moins un élément (jamais de fil vide).
- * Compte réel : les conversations n'existent pas encore côté parent (lot 3c) → mots et imports seulement ;
- * démo : conversations de démo (messagerieStore). Rien d'inventé.
+ * Compte réel (lot 3c) : fils lus en base par filsService (fil foyer avec l'enseignant, « Seulement moi »,
+ * fil de classe en annonce seule), rangés dans messagerieStore ; démo : conversations de démo. Rien d'inventé.
  */
 
 import { createElement, useCallback, useEffect, useMemo, useState } from 'react';
@@ -22,6 +22,8 @@ import { useCarnetReel } from './useCarnetReel';
 import { useOuvrirFichierCarnet } from './useOuvrirFichierCarnet';
 import { aTraiter, monNomComplet, type MotCarnet } from '../services/motsService';
 import { carnetDemo, type ElementCarnet } from '../services/carnetService';
+import { rafraichirFils } from '../services/filsService';
+import { classerErreur, type TypeErreur } from '../services/erreurs';
 import type { LigneMessageProps } from '../components/messages/LigneMessage';
 
 /** Un élément d'un fil (conversation, mot ou mot importé), affiché par LigneMessage. */
@@ -72,6 +74,18 @@ export function useFilsMessages() {
 
   const conversations = useMemo(() => (childId ? getConversations(childId) : []), [childId, version]);
   const { mots, charge, isDemo, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(childId);
+
+  // Compte réel (lot 3c) : fils lus en base et rangés dans le même magasin, au focus et au changement d'enfant.
+  const [erreurFils, setErreurFils] = useState<TypeErreur | null>(null);
+  const [focus, setFocus] = useState(0);
+  useFocusEffect(useCallback(() => setFocus((f) => f + 1), []));
+  const chargerFils = useCallback(() => {
+    if (!childId || isDemo) return;
+    rafraichirFils(childId)
+      .then(() => setErreurFils(null))
+      .catch((e) => setErreurFils(classerErreur(e)));
+  }, [childId, isDemo]);
+  useEffect(chargerFils, [chargerFils, focus]);
   const [monNom, setMonNom] = useState('vous');
   useEffect(() => {
     if (childId) monNomComplet(childId, isDemo).then(setMonNom);
@@ -83,10 +97,11 @@ export function useFilsMessages() {
   const imports = isDemo
     ? carnetDemo(childId).filter((e) => e.categorie === 'mot')
     : carnetReel.filter((e) => e.categorie === 'mot');
-  const erreur = erreurMots ?? erreurCarnet;
+  const erreur = erreurMots ?? erreurCarnet ?? erreurFils;
   const reessayer = () => {
     rechargerMots();
     rechargerCarnet();
+    chargerFils();
   };
 
   const ouvrirConversation = (c: Conversation) => {

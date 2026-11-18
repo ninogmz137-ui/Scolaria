@@ -3,6 +3,8 @@
 //   · deux comptes parents, chacun avec un enfant dans cette classe (Lina, Tom) ;
 //   · deux mots envoyés à la classe : « Sortie à la ferme » (une signature suffit + question avec libellé),
 //     « Photo de classe » (information, sans question).
+// Lot 3c : un second responsable du MÊME foyer que Lina (coparent-3b) et un parent SÉPARÉ de Lina (autre foyer,
+// separe-3b) ; deux annonces de classe (`class_posts`).
 // Mot de passe de test commun : MDP ci-dessous (valeur factice, base locale uniquement).
 // Usage : node scripts/seed-lot3b-local.mjs   (idempotent : recrée les comptes ; les données liées partent en cascade)
 import { execSync } from 'node:child_process';
@@ -17,6 +19,8 @@ const COMPTES = {
   enseignant: { email: 'enseignant-3b@exemple.test', nom: 'Martin', prenom: 'Claire' },
   parent: { email: 'parent-3b@exemple.test', nom: 'Bernard', prenom: 'Sophie' },
   parent2: { email: 'parent2-3b@exemple.test', nom: 'Leroy', prenom: 'Karim' },
+  coparent: { email: 'coparent-3b@exemple.test', nom: 'Bernard', prenom: 'Marc' },
+  separe: { email: 'separe-3b@exemple.test', nom: 'Roux', prenom: 'Julien' },
 };
 
 const echoue = (quoi, e) => {
@@ -94,6 +98,28 @@ for (const m of mots) {
   });
   echoue(`mot ${m.titre}`, error);
 }
+// 5. Lot 3c : co-parent dans le foyer de Lina ; parent séparé dans un autre foyer (rattachement direct, base locale).
+const { data: ligneLina, error: eFoyer } = await admin.from('responsables').select('foyer_id').eq('child_id', lina).eq('user_id', ids.parent).single();
+echoue('foyer de Lina', eFoyer);
+const { error: eCo } = await admin.from('responsables').insert({ foyer_id: ligneLina.foyer_id, user_id: ids.coparent, child_id: lina });
+echoue('co-parent', eCo);
+const { data: autreFoyer, error: eAF } = await admin.from('foyers').insert({ nom: 'Foyer Roux', created_by: ids.separe }).select('id').single();
+echoue('autre foyer', eAF);
+const { error: eSep } = await admin.from('responsables').insert({ foyer_id: autreFoyer.id, user_id: ids.separe, child_id: lina });
+echoue('parent séparé', eSep);
+
+// 6. Lot 3c : deux annonces de classe (fil de classe, annonce seule).
+for (const [i, a] of [
+  ['Piscine', 'Piscine le jeudi à partir de la semaine prochaine : bonnet et maillot dans un sac.'],
+  ['Bibliothèque', 'Les livres de la bibliothèque sont à rapporter mardi.'],
+].entries()) {
+  const { error } = await admin.from('class_posts').insert({
+    teacher_id: ids.enseignant, classe_id: classe.id, classe: 'CE1 lot 3b', type: 'annonce', title: a[0], content: a[1],
+    created_at: new Date(Date.now() - (2 - i) * 86400000).toISOString(),
+  });
+  echoue(`annonce ${a[0]}`, error);
+}
+
 const { count } = await admin.from('mot_carnets').select('*', { count: 'exact', head: true }).eq('child_id', lina);
 console.log(`Données lot 3b prêtes : enseignant, 2 parents, Lina et Tom en CE1 lot 3b, ${count} mot(s) dans le carnet de Lina.`);
 console.log(`Comptes : ${Object.values(COMPTES).map((c) => c.email).join(', ')} (mot de passe : constante MDP de ce fichier).`);
