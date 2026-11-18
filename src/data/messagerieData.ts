@@ -38,6 +38,8 @@ export interface Message {
   auteur?: 'moi' | 'autre';
   /** Message de l'enseignant reçu aussi par l'autre foyer : prénoms (« Envoyé aussi à … »). */
   envoyeAussiA?: string[];
+  /** Réponse privée à un mot (mot complet, M39) : titre du mot cité. */
+  motCite?: string;
 }
 
 export type ConvTag = 'sortie' | 'devoir' | 'vie' | 'cantine' | 'admin' | 'controle' | 'rdv';

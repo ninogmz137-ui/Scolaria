@@ -10,12 +10,25 @@
 
 import type { MotCarnet, Reponse, TraitementMot } from './motsService';
 
+/**
+ * Le mot pose une question oui / peut-être / non : question du mot complet (M39, cumulable avec une signature)
+ * ou ancien type « participation » (M39 lui donne question = vrai ; la règle tient aussi avant M39).
+ */
+export function attendParticipation(m: Pick<MotCarnet, 'type' | 'question'>): boolean {
+  return m.type === 'participation' || m.question === true;
+}
+
+/** Le mot attend une réponse : oui / non (autorisation) ou oui / peut-être / non (question). */
+export function attendReponse(m: Pick<MotCarnet, 'type' | 'question'>): boolean {
+  return m.type === 'autorisation' || attendParticipation(m);
+}
+
 /** Le mot attend encore une action de MOI (signature, réponse). */
 export function aTraiter(m: MotCarnet): boolean {
   // Mode « one » : traité pour tout le foyer dès qu'un responsable a signé.
   if (m.signatureMode === 'one' && m.traitePar) return false;
   const signature = m.signatureMode !== 'none' && !m.maSignature && !m.signeParAncien;
-  const reponse = (m.type === 'autorisation' || m.type === 'participation') && m.maReponse === null;
+  const reponse = attendReponse(m) && m.maReponse === null;
   return signature || reponse;
 }
 

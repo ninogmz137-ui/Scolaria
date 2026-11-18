@@ -13,7 +13,8 @@ import { leverSiErreur } from './erreurs';
 import demoMotsJson from '../data/demo/demo-mots.json';
 import { evenementDemoParId } from '../contexts/DemoContext';
 import { MOI_DEMO, autreResponsableDemo } from '../data/demo/responsables';
-import { aTraiter, premierSignataire } from './motsRegles';
+import { aTraiter, attendParticipation, attendReponse, premierSignataire } from './motsRegles';
+import { repondreAuMotDemo } from '../stores/messagerieStore';
 
 export type TypeMot = 'information' | 'signature' | 'autorisation' | 'participation';
 export type SignatureMode = 'none' | 'one' | 'both';
@@ -71,9 +72,28 @@ export interface MotCarnet {
   lu: boolean;
   /** Événement de l'Agenda lié au mot (date YYYY-MM-DD). */
   evenement?: { id: string; titre: string; date: string; heure?: string };
+  /** Mot complet (M39) : le mot pose une question oui / peut-être / non, cumulable avec une signature. */
+  question: boolean;
+  /** Libellé de la question (« Votre enfant viendra-t-il ? ») ou null : libellé par défaut. */
+  questionLibelle: string | null;
+  /**
+   * « Répondre à [expéditeur] » possible : l'expéditeur est l'enseignant titulaire de l'enfant (le fil individuel
+   * parent ↔ enseignant n'existe qu'avec lui). Faux pour la direction, la mairie, l'école.
+   */
+  peutRepondre: boolean;
+  /** Mes réponses privées à ce mot (messages de MON fil individuel qui citent le mot), plus ancienne d'abord. */
+  mesReponsesPrivees: ReponsePrivee[];
+  /** Compte réel : auteur du mot (destinataire de la réponse privée). */
+  teacherId?: string | null;
 }
 
-export { aTraiter };
+export interface ReponsePrivee {
+  texte: string;
+  /** Date ISO d'envoi. */
+  le: string;
+}
+
+export { aTraiter, attendParticipation, attendReponse };
 
 // ─── Événements ─────────────────────────────────────────────────────────────
 
@@ -107,7 +127,14 @@ type MotDemoJson = {
   autreSigne: boolean;
   maSignature: boolean;
   lu: boolean;
+  question?: boolean;
+  questionLibelle?: string;
 };
+
+/** Démo : l'expéditeur est une personne (« Mme Laurent », « M. Petit ») = l'enseignant de l'enfant. */
+const estPersonne = (nom: string) => /^(Mme|M\.|Mlle)\s/.test(nom);
+/** Démo : réponses privées envoyées, par carnet (clé mot + enfant). */
+const reponsesPriveesDemo = new Map<string, ReponsePrivee[]>();
 
 // État de la démo, mêmes règles que la base : signature et réponse PAR CARNET (clé mot + enfant) ;
 // « lu » PAR MOT pour le responsable (décision du 18 nov. 2026) : lu dans un carnet = lu dans tous.
@@ -156,6 +183,10 @@ function motsDemo(childId: string): MotCarnet[] {
         maReponse: etat.reponse ?? null,
         lu: luDemo.has(m.id) || m.lu,
         evenement: ev ? { id: ev.id, titre: ev.title, date: ev.date, heure: ev.startTime } : undefined,
+        question: m.question === true || m.type === 'participation',
+        questionLibelle: m.questionLibelle ?? null,
+        peutRepondre: estPersonne(m.expediteur),
+        mesReponsesPrivees: reponsesPriveesDemo.get(cleCarnet(m.id, m.childId)) ?? [],
       };
     });
 }
@@ -173,21 +204,55 @@ type MotRow = {
   signature_mode: SignatureMode;
   a_prevoir: unknown;
   created_at: string;
+  teacher_id?: string | null;
+  question?: boolean;
+  question_libelle?: string | null;
 };
+
+const COLONNES_MOT = 'id, titre, contenu, date_envoi, date_limite, statut, type, signature_mode, a_prevoir, created_at, teacher_id';
+/** Code PostgreSQL « colonne inconnue » : base sans M39 (question, question_libelle, teacher_messages.mot_id). */
+const COLONNE_INCONNUE = '42703';
+
+/**
+ * Mots du carnet, question comprise (M39). Base encore sans M39 : relecture sans la question, jamais d'écran
+ * en erreur pour autant (le mot s'affiche comme avant).
+ */
+async function lireCarnet(childId: string) {
+  const avec = await supabase
+    .from('mot_carnets')
+    .select(`mots_liaison(${COLONNES_MOT}, question, question_libelle)`)
+    .eq('child_id', childId);
+  if (avec.error?.code !== COLONNE_INCONNUE) return avec;
+  return supabase.from('mot_carnets').select(`mots_liaison(${COLONNES_MOT})`).eq('child_id', childId);
+}
+
+/** Mes réponses privées (messages de mes fils qui citent un mot) ; base sans M39 : aucune. */
+async function mesReponsesPrivees(moi: string): Promise<Map<string, ReponsePrivee[]>> {
+  const res = new Map<string, ReponsePrivee[]>();
+  const { data, error } = await supabase
+    .from('teacher_messages')
+    .select('mot_id, text, created_at')
+    .eq('sender_id', moi)
+    .not('mot_id', 'is', null)
+    .order('created_at', { ascending: true });
+  if (error) return res;
+  for (const r of (data ?? []) as { mot_id: string; text: string; created_at: string }[]) {
+    res.set(r.mot_id, [...(res.get(r.mot_id) ?? []), { texte: r.text, le: r.created_at }]);
+  }
+  return res;
+}
 
 async function motsReels(childId: string): Promise<MotCarnet[]> {
   const { data: auth, error: erreurAuth } = await supabase.auth.getUser();
   leverSiErreur(erreurAuth);
   const moi = auth.user?.id ?? '';
-  const [carnet, resp, sigs, reps, lus] = await Promise.all([
-    supabase
-      .from('mot_carnets')
-      .select('mots_liaison(id, titre, contenu, date_envoi, date_limite, statut, type, signature_mode, a_prevoir, created_at)')
-      .eq('child_id', childId),
+  const [carnet, resp, sigs, reps, lus, privees] = await Promise.all([
+    lireCarnet(childId),
     supabase.rpc('responsables_enfant', { p_child_id: childId }),
     supabase.from('signatures').select('mot_id, parent_id, signed_at').eq('student_id', childId),
     supabase.from('reponses_mot').select('mot_id, responsable_id, autorisation, participation, updated_at').eq('child_id', childId),
     supabase.from('read_receipts').select('mot_id').eq('parent_id', moi),
+    mesReponsesPrivees(moi),
   ]);
   leverSiErreur(carnet.error); // échec de chargement ≠ « aucun mot » : l'écran propose « Réessayer »
   const responsables = ((resp.data ?? []) as { user_id: string; prenom: string; nom: string; est_moi: boolean }[]);
@@ -214,6 +279,14 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
   // la fonction ne renvoie QUE le nom affichable).
   const noms = await Promise.all(lignes.map((m) => supabase.rpc('mot_expediteur', { p_mot_id: m.id })));
   const expediteurs = new Map(lignes.map((m, i) => [m.id, (noms[i].data as string | null) ?? '']));
+  // « Répondre à … » : seulement à l'enseignant titulaire de l'enfant (le seul avec qui un fil individuel peut
+  // exister, règle fils_insert), et seulement sur une base qui connaît la réponse citant un mot (M39).
+  const avecM39 = lignes.some((m) => m.question !== undefined);
+  const enseignants = avecM39 ? [...new Set(lignes.map((m) => m.teacher_id).filter((t): t is string => !!t))] : [];
+  const titulaires = await Promise.all(
+    enseignants.map((t) => supabase.rpc('est_titulaire_enfant', { p_child_id: childId, p_teacher_id: t })),
+  );
+  const estTitulaire = new Set(enseignants.filter((_, i) => titulaires[i].data === true));
 
   return lignes.map((m) => ({
       id: m.id,
@@ -244,6 +317,11 @@ async function motsReels(childId: string): Promise<MotCarnet[]> {
           : m.signature_mode === 'both' && nbSignatures(m.id) >= Math.min(2, Math.max(1, responsables.length))),
       maReponse: mesReponses.get(m.id) ?? null,
       lu: motsLus.has(m.id),
+      question: m.question === true || m.type === 'participation',
+      questionLibelle: m.question_libelle ?? null,
+      peutRepondre: !!m.teacher_id && estTitulaire.has(m.teacher_id),
+      mesReponsesPrivees: privees.get(m.id) ?? [],
+      teacherId: m.teacher_id ?? null,
     }));
 }
 
@@ -267,7 +345,7 @@ export async function copiesASignerAilleurs(
   demo: boolean,
 ): Promise<{ copie: MotCarnet; prenom: string }[]> {
   if (m.type !== 'signature' && m.type !== 'information') return [];
-  if (m.signatureMode === 'none') return [];
+  if (m.signatureMode === 'none' || m.question) return [];
   const trouvees: { copie: MotCarnet; prenom: string }[] = [];
   for (const enfant of autres) {
     if (enfant.id === m.childId) continue;
@@ -329,6 +407,52 @@ export async function repondreMot(m: MotCarnet, reponse: Reponse, demo: boolean)
   await marquerMotLu(m, false);
   prevenir();
   return null;
+}
+
+/**
+ * « Répondre à [expéditeur] » (mot complet, M39) : message privé à l'enseignant, dans MON fil individuel avec lui
+ * pour cet enfant (créé s'il n'existe pas), qui CITE le mot. Jamais dans le fil partagé du foyer : l'autre
+ * responsable ne le voit pas (garde partagée). Démo : même chose dans les fils de démo.
+ */
+export async function repondreEnPrive(m: MotCarnet, texte: string, demo: boolean): Promise<string | null> {
+  const propre = texte.trim();
+  if (!propre) return 'Écrivez votre réponse.';
+  if (!m.peutRepondre) return 'Ce mot ne peut pas recevoir de réponse privée.';
+  if (demo) {
+    const cle = cleCarnet(m.id, m.childId);
+    reponsesPriveesDemo.set(cle, [...(reponsesPriveesDemo.get(cle) ?? []), { texte: propre, le: new Date().toISOString() }]);
+    repondreAuMotDemo(m.childId, m.expediteur, propre, m.titre);
+    prevenir();
+    return null;
+  }
+  const echec = 'Votre réponse n’a pas pu être envoyée. Réessayez.';
+  const { data: auth } = await supabase.auth.getUser();
+  const moi = auth.user?.id;
+  if (!moi || !m.teacherId) return echec;
+  const existant = await supabase
+    .from('teacher_conversations')
+    .select('id')
+    .eq('teacher_id', m.teacherId)
+    .eq('student_id', m.childId)
+    .eq('portee', 'individuel')
+    .eq('parent_id', moi)
+    .maybeSingle();
+  if (existant.error) return echec;
+  let filId = (existant.data as { id: string } | null)?.id;
+  if (!filId) {
+    const cree = await supabase
+      .from('teacher_conversations')
+      .insert({ teacher_id: m.teacherId, parent_id: moi, student_id: m.childId, portee: 'individuel' })
+      .select('id')
+      .single();
+    if (cree.error) return echec;
+    filId = (cree.data as { id: string }).id;
+  }
+  const { error } = await supabase
+    .from('teacher_messages')
+    .insert({ conversation_id: filId, sender_role: 'parent', sender_id: moi, text: propre, mot_id: m.id });
+  prevenir();
+  return error ? echec : null;
 }
 
 export async function marquerMotLu(m: MotCarnet, demo: boolean): Promise<void> {

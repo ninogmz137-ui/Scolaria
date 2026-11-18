@@ -12,7 +12,7 @@ import { Text, Pressable } from '../ui';
 import ActionsMot from './ActionsMot';
 import PastilleCategorie from '../PastilleCategorie';
 import { TYPES_CONTENU } from '../../theme/categories';
-import type { MotCarnet } from '../../services/motsService';
+import { attendParticipation, type MotCarnet } from '../../services/motsService';
 
 const NAVY = '#0F172A';
 const TEXT55 = 'rgba(15,23,42,0.55)';
@@ -83,7 +83,7 @@ export default function CarteATraiter({
             accessibilityRole="button"
             accessibilityLabel={`Ouvrir « ${m.titre} »`}
           >
-            <PastilleCategorie categorie={TYPES_CONTENU[m.type === 'autorisation' ? 'autorisation' : m.type === 'participation' ? 'a-repondre' : 'mot']} />
+            <PastilleCategorie categorie={TYPES_CONTENU[m.type === 'autorisation' ? 'autorisation' : attendParticipation(m) ? 'a-repondre' : 'mot']} />
             <View style={st.textes}>
               <Text style={st.titre} numberOfLines={2}>{m.titre}</Text>
               <Text style={st.sousTitre} numberOfLines={2}>{sousTitreMot(m)}</Text>

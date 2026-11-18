@@ -246,6 +246,41 @@ DO $$ BEGIN
   RAISE NOTICE 'OK T19 refusé : écrire dans messages (à T, à B, à C)';
   -- M38 : A lit le mot (une seule fois, par mot).
   INSERT INTO public.read_receipts (mot_id, parent_id) VALUES (current_setting('test.m')::uuid, auth.uid());
+  -- T24 : après M40, les messages parent → enseignant passent par teacher_messages (fils), pas par messages.
+  INSERT INTO public.teacher_messages (conversation_id, sender_role, sender_id, text)
+  VALUES (current_setting('test.fil_a')::uuid, 'parent', auth.uid(), 'T24 message simple de A (individuel)');
+  INSERT INTO public.teacher_messages (conversation_id, sender_role, sender_id, text)
+  VALUES (current_setting('test.fil_foyer')::uuid, 'parent', auth.uid(), 'T24 message simple de A (foyer)');
+  RAISE NOTICE 'OK T24 après M40, A écrit à T sans citer de mot, dans son fil individuel et dans le fil du foyer';
+END $$;
+RESET ROLE;
+
+SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN
+  INSERT INTO public.teacher_messages (conversation_id, sender_role, sender_id, text)
+  VALUES (current_setting('test.fil_b')::uuid, 'parent', auth.uid(), 'T24 message simple de B (individuel)');
+  IF (SELECT count(*) FROM public.teacher_messages WHERE text LIKE 'T24 % de A %') <> 0 THEN
+    RAISE EXCEPTION 'ÉCHEC T24 B (séparé, autre foyer) voit un message de A';
+  END IF;
+  BEGIN
+    INSERT INTO public.teacher_messages (conversation_id, sender_role, sender_id, text)
+    VALUES (current_setting('test.fil_a')::uuid, 'parent', auth.uid(), 'B écrit dans le fil de A');
+    RAISE EXCEPTION 'ÉCHEC T24 B écrit dans le fil individuel de A';
+  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+  RAISE NOTICE 'OK T24 bis B écrit dans SON fil ; il ne voit pas les messages de A et ne peut pas écrire dans le fil de A';
+END $$;
+RESET ROLE;
+
+SELECT set_config('request.jwt.claims', '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN
+  IF (SELECT count(*) FROM public.teacher_messages WHERE text LIKE 'T24 %' AND sender_role = 'parent') <> 3 THEN
+    RAISE EXCEPTION 'ÉCHEC T24 ter T ne reçoit pas les 3 messages des parents';
+  END IF;
+  UPDATE public.teacher_messages SET read = true WHERE text LIKE 'T24 %';
+  IF NOT FOUND THEN RAISE EXCEPTION 'ÉCHEC T24 ter T ne peut pas marquer lus les messages des parents'; END IF;
+  RAISE NOTICE 'OK T24 ter T reçoit les 3 messages (A individuel, A foyer, B individuel) et les marque lus';
 END $$;
 RESET ROLE;
 

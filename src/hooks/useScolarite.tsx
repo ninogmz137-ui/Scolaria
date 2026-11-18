@@ -27,7 +27,7 @@ import { getSouvenirsDemo } from '../data/demo/souvenirs';
 import { getAnneesDemo, type AnneeParcours } from '../data/demo/parcours';
 import type { Cycle } from '../utils/niveau';
 import { useMotsEnfant } from './useMotsEnfant';
-import { aTraiter, type MotCarnet } from '../services/motsService';
+import { aTraiter, attendReponse, type MotCarnet } from '../services/motsService';
 
 /** « Signé par vous » / « Répondu par Marc : Oui » : statut d'un mot traité (ligne de note dans Documents). */
 function libelleTraitementCourt(m: MotCarnet): string {
@@ -218,7 +218,7 @@ function useChargementScolarite(): Scolarite {
   // attend plus s'archive dans Scolarité › Documents (« Mots signés et autorisations »).
   const { mots, erreur: erreurMots } = useMotsEnfant(selectedChild?.id);
   const motsTraites: ElementCarnet[] = mots
-    .filter((m) => (m.signatureMode !== 'none' || m.type === 'autorisation' || m.type === 'participation') && !aTraiter(m))
+    .filter((m) => (m.signatureMode !== 'none' || attendReponse(m)) && !aTraiter(m))
     .map((m) => ({
       id: `mot-${m.id}`,
       categorie: 'livret',

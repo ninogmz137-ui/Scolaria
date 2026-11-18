@@ -58,7 +58,7 @@ export function markAllConversationsRead(childId: string): void {
   notify();
 }
 
-export function sendMessage(conversationId: string, text: string): void {
+export function sendMessage(conversationId: string, text: string, motCite?: string): void {
   const now = new Date();
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const date = now.toISOString().split('T')[0];
@@ -69,6 +69,7 @@ export function sendMessage(conversationId: string, text: string): void {
     text,
     time,
     date,
+    ...(motCite ? { motCite } : {}),
   };
 
   for (const childId in store) {
@@ -104,6 +105,42 @@ export function envoyerSeulementMoi(conversationId: string, text: string): strin
   }
   sendMessage(idIndividuel, text);
   return idIndividuel;
+}
+
+/**
+ * Démo : réponse privée à un mot (mot complet, M39). Va dans MON fil individuel avec l'expéditeur pour cet
+ * enfant : « Seulement moi » s'il existe un fil famille, sinon un fil individuel créé au besoin. Le mot est cité.
+ */
+export function repondreAuMotDemo(childId: string, nom: string, text: string, titreMot: string): void {
+  const liste = store[childId] ?? [];
+  const individuel = liste.find((c) => c.name === nom && c.portee === 'individuel');
+  if (individuel) return sendMessage(individuel.id, text, titreMot);
+  const famille = liste.find((c) => c.name === nom && c.portee === 'foyer');
+  if (famille) {
+    const id = `${famille.id}~moi`;
+    if (!liste.some((c) => c.id === id)) {
+      store[childId] = [...liste, { ...famille, id, portee: 'individuel', messages: [], unread: false, lastMessage: '' }];
+    }
+    return sendMessage(id, text, titreMot);
+  }
+  const id = `mot-${childId}-${nom}`;
+  store[childId] = [
+    ...liste,
+    {
+      id,
+      childId,
+      name: nom,
+      role: 'Enseignant',
+      avatarType: 'initials',
+      lastMessage: '',
+      lastDate: new Date().toISOString().split('T')[0],
+      lastTime: '',
+      unread: false,
+      messages: [],
+      portee: 'individuel',
+    },
+  ];
+  sendMessage(id, text, titreMot);
 }
 
 /** Le fil individuel (« Seulement moi ») déjà ouvert avec l'enseignant d'un fil famille, s'il existe. */

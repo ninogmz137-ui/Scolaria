@@ -21,7 +21,7 @@ import { demanderSignature } from '../messages/ActionsMot';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { jourCourt, heureCourte } from '../messages/CarteATraiter';
 import { Segments } from '../../screens/suivi/ApprentissagesVue';
-import { aTraiter, type MotCarnet } from '../../services/motsService';
+import { aTraiter, attendParticipation, attendReponse, type MotCarnet } from '../../services/motsService';
 import type { ElementCarnet } from '../../services/carnetService';
 import { ligneSourceCarnet } from '../../screens/suivi/CarnetVue';
 import { categorieDiscipline, TYPES_CONTENU, type Categorie } from '../../theme/categories';
@@ -149,11 +149,11 @@ export default function CorpsCarnet({
   const lignes = useMemo<LigneAFaire[]>(() => {
     const res: LigneAFaire[] = [];
     for (const m of mots.filter(aTraiter)) {
-      const reponse = m.type === 'autorisation' || m.type === 'participation';
+      const reponse = attendReponse(m);
       const delai = m.echeance ? `avant le ${jourCourt(m.echeance)}` : reponse ? 'à répondre' : 'à signer';
       res.push({
         cle: `mot-${m.id}`,
-        categorie: TYPES_CONTENU[m.type === 'autorisation' ? 'autorisation' : m.type === 'participation' ? 'a-repondre' : 'mot'],
+        categorie: TYPES_CONTENU[m.type === 'autorisation' ? 'autorisation' : attendParticipation(m) ? 'a-repondre' : 'mot'],
         titre: m.titre,
         sousTitre: [m.expediteur, delai].join(' · '),
         ouvrir: () => onOuvrirMot(m),

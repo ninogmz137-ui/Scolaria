@@ -29,7 +29,9 @@
     "evenementId": "agenda-lea-fri-1",
     "autreSigne": false,
     "maSignature": false,
-    "lu": true
+    "lu": true,
+    "question": true,
+    "questionLibelle": "Léa sera-t-elle présente le jour de la photo ?"
   },
   {
     "id": "mot-lea-peinture",

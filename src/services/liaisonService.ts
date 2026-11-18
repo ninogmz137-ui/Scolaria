@@ -47,6 +47,11 @@ export interface MotLiaison {
   // Computed for list display
   signatures_count: number;
   total_students: number;
+  /**
+   * « Ont lu » (M38, décision du 18 nov. 2026) : élèves dont au moins un responsable a lu le mot, sur
+   * total_students. Nombres agrégés seulement (fonction lectures_mot), jamais qui a lu. Absent si inconnu.
+   */
+  lus_count?: number | null;
 }
 
 export interface SignatureLiaison {
@@ -289,13 +294,18 @@ function getMockParentMots(childId: string): MotLiaisonParent[] {
 // API — Teacher side
 // ═══════════════════════════════════════════════════════════
 
-export async function getTeacherMots(teacherId: string): Promise<{
+export async function getTeacherMots(): Promise<{
   data: MotLiaison[];
   error: string | null;
 }> {
   if (!isSupabaseConfigured()) {
     return { data: MOCK_MOTS, error: null };
   }
+
+  // L'enseignant connecté (jamais un identifiant écrit en dur).
+  const { data: auth } = await supabase.auth.getUser();
+  const teacherId = auth.user?.id;
+  if (!teacherId) return { data: [], error: null };
 
   // signatures_count = carnets signés, total_students = carnets destinataires (vue M5/M6).
   const { data: rawMots, error } = await supabase
@@ -306,10 +316,20 @@ export async function getTeacherMots(teacherId: string): Promise<{
 
   if (error) return { data: [], error: error.message };
 
+  // « Ont lu » (M38) : un appel par mot envoyé ; base sans M38 ou échec → compteur absent, jamais faux.
+  const envoyes = (rawMots ?? []).filter((m: any) => m.statut !== 'brouillon');
+  const lectures = await Promise.all(envoyes.map((m: any) => supabase.rpc('lectures_mot', { p_mot_id: m.id })));
+  const lus = new Map<string, number>();
+  envoyes.forEach((m: any, i: number) => {
+    const ligne = (lectures[i].data as { eleves_lus: number }[] | null)?.[0];
+    if (!lectures[i].error && ligne) lus.set(m.id, ligne.eleves_lus);
+  });
+
   const data: MotLiaison[] = (rawMots ?? []).map((m: any) => ({
     ...m,
     classe: m.classe ?? '',
     type: fromDbType(m.type),
+    lus_count: lus.get(m.id) ?? null,
   }));
 
   return { data, error: null };

@@ -277,6 +277,11 @@ export default function ConversationDetailScreen({
                         isParent ? styles.bubbleParent : styles.bubbleOther,
                       ]}
                     >
+                      {!!msg.motCite && (
+                        <Text style={[styles.citation, isParent && styles.citationParent]} numberOfLines={2}>
+                          {`En réponse au mot « ${msg.motCite} »`}
+                        </Text>
+                      )}
                       <Text
                         style={[
                           styles.bubbleText,
@@ -511,6 +516,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
   },
+  // Réponse privée à un mot : le mot cité, sur sa propre ligne au-dessus du texte.
+  citation: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 12,
+    lineHeight: 16,
+    color: 'rgba(15,23,42,0.55)',
+    marginBottom: 4,
+  },
+  citationParent: { color: 'rgba(255,255,255,0.72)' },
   bubbleTextParent: {
     fontFamily: FontFamily.sansRegular,
     color: '#FFFFFF',

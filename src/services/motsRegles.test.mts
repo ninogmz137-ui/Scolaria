@@ -1,5 +1,5 @@
 // Tests des règles de signature des mots (« one » : un signataire suffit pour tout le foyer). npm run test:mots
-import { aTraiter, premierSignataire } from './motsRegles.ts';
+import { aTraiter, attendParticipation, attendReponse, premierSignataire } from './motsRegles.ts';
 
 let ok = 0;
 let echecs = 0;
@@ -48,6 +48,17 @@ verifier('si c’est moi : estMoi', premierSignataire('m2', sigs, resp, 'u-clair
 verifier('personne n’a signé : null', premierSignataire('m3', sigs, resp, 'u-claire', rep, null), null);
 verifier('signature d’un compte supprimé : conservée, sans nom', premierSignataire('m4', [{ mot_id: 'm4', parent_id: null, signed_at: '2026-10-01T08:00:00Z' }], resp, 'u-claire', rep, false), { prenom: 'un responsable (compte supprimé)', estMoi: false, ancien: true, le: '2026-10-01T08:00:00Z', reponse: false });
 verifier('signataire qui a quitté le carnet : « un ancien responsable »', premierSignataire('m5', [{ mot_id: 'm5', parent_id: 'u-x', signed_at: '2026-10-01T08:00:00Z' }], resp, 'u-claire', rep, null)?.prenom, 'un ancien responsable');
+
+// Mot complet (M39) : question oui / peut-être / non, cumulable avec une signature.
+verifier('information + question sans réponse : à traiter', aTraiter({ ...base, signatureMode: 'none', type: 'information', question: true }), true);
+verifier('information + question, j’ai répondu : traité', aTraiter({ ...base, signatureMode: 'none', type: 'information', question: true, maReponse: 'peut_etre' }), false);
+verifier('both + question, j’ai répondu ET signé : traité', aTraiter({ ...base, signatureMode: 'both', question: true, maReponse: 'oui', maSignature: true }), false);
+verifier('both + question, répondu sans signature : encore à traiter', aTraiter({ ...base, signatureMode: 'both', question: true, maReponse: 'oui' }), true);
+verifier('information sans question (base avant M39) : rien à faire', aTraiter({ ...base, signatureMode: 'none', type: 'information' }), false);
+verifier('attendParticipation : ancien type participation', attendParticipation({ type: 'participation', question: false }), true);
+verifier('attendParticipation : question sur un mot à signer', attendParticipation({ type: 'signature', question: true }), true);
+verifier('attendReponse : autorisation', attendReponse({ type: 'autorisation', question: false }), true);
+verifier('attendReponse : information sans question', attendReponse({ type: 'information', question: false }), false);
 
 console.log(echecs === 0 ? `── ${ok}/${ok} ──` : `── ${echecs} échec(s) ──`);
 process.exitCode = echecs === 0 ? 0 : 1;

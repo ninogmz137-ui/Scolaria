@@ -12,6 +12,8 @@ import { View, StyleSheet, Alert } from 'react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import {
+  attendParticipation,
+  attendReponse,
   copiesASignerAilleurs,
   repondreMot,
   signerMot,
@@ -32,7 +34,7 @@ export function libelleTraitement(mot: MotCarnet): string | null {
   const t = mot.traitePar;
   if (!t) return null;
   const qui = t.estMoi ? 'vous' : t.prenom;
-  const reponse = (mot.type === 'autorisation' || mot.type === 'participation') && t.reponse !== null
+  const reponse = attendReponse(mot) && t.reponse !== null
     ? `Répondu par ${qui} : ${LIBELLE_REPONSE[String(t.reponse)]}`
     : `Signé par ${qui}`;
   return t.le ? `${reponse} le ${dateLongue(t.le)}` : reponse;
@@ -175,21 +177,23 @@ export default function ActionsMot({
   const repondre = (reponse: Reponse) =>
     confirmer(
       `Répondre « ${LIBELLE_REPONSE[String(reponse)]} » au nom de ${monNom} ?`,
-      `« ${mot.titre} »${mot.signatureMode !== 'none' ? '\nVotre réponse vaut signature.' : ''}`,
+      `« ${mot.questionLibelle ?? mot.titre} »${mot.signatureMode !== 'none' ? '\nVotre réponse vaut signature.' : ''}`,
       'Confirmer',
       () => repondreMot(mot, reponse, demo),
     );
 
   // Pilules COMPACTES (COMPONENTS §2) : la première est pleine (réponse « positive »), les autres en contour.
+  // Question du mot complet (M39) : Oui / Peut-être / Non, sous son libellé ; ancien mot « participation » sans
+  // libellé : « Je participe ».
   const choix: { libelle: string; valeur: Reponse; pleine?: boolean }[] | null =
     mot.type === 'autorisation'
       ? [
           { libelle: 'J’autorise', valeur: true, pleine: true },
           { libelle: 'Non', valeur: false },
         ]
-      : mot.type === 'participation'
+      : attendParticipation(mot)
         ? [
-            { libelle: 'Je participe', valeur: 'oui' as Participation, pleine: true },
+            { libelle: mot.questionLibelle ? 'Oui' : 'Je participe', valeur: 'oui' as Participation, pleine: true },
             { libelle: 'Peut-être', valeur: 'peut_etre' as Participation },
             { libelle: 'Non', valeur: 'non' as Participation },
           ]
@@ -200,6 +204,10 @@ export default function ActionsMot({
       <StatutsSignature mot={mot} retrait={retrait} />
       {mot.signatureMode === 'one' && mot.traitePar ? null : choix ? (
         mot.maReponse === null ? (
+          <View>
+          {mot.questionLibelle ? (
+            <Text style={[st.question, { marginLeft: retrait }]}>{mot.questionLibelle}</Text>
+          ) : null}
           <View style={[st.choix, { marginLeft: retrait }]}>
             {choix.map((c) => (
               <Pressable
@@ -214,8 +222,11 @@ export default function ActionsMot({
               </Pressable>
             ))}
           </View>
+          </View>
         ) : (
-          <Text style={[st.reponse, { marginLeft: retrait }]}>{`Votre réponse : ${LIBELLE_REPONSE[String(mot.maReponse)]}`}</Text>
+          <Text style={[st.reponse, { marginLeft: retrait }]}>
+            {`${mot.questionLibelle ? `${mot.questionLibelle}\n` : ''}Votre réponse : ${LIBELLE_REPONSE[String(mot.maReponse)]}`}
+          </Text>
         )
       ) : mot.signatureMode !== 'none' && !mot.maSignature && !mot.signeParAncien ? (
         <View style={[st.choix, { marginLeft: retrait }]}>
@@ -262,5 +273,6 @@ const st = StyleSheet.create({
   piluleTextePleine: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#FFFFFF' },
   piluleTexteContour: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: NAVY },
   presse: { opacity: 0.85, transform: [{ scale: 0.97 }] },
-  reponse: { fontFamily: FontFamily.sansMedium, fontSize: 13, color: 'rgba(15,23,42,0.62)', marginTop: 10 },
+  reponse: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: 'rgba(15,23,42,0.62)', marginTop: 10 },
+  question: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, lineHeight: 20, color: NAVY, marginTop: 14 },
 });

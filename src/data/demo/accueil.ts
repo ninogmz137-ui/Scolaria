@@ -10,7 +10,7 @@
  */
 
 import type { DemoAgendaEvent } from '../../contexts/DemoContext';
-import { aTraiter, type MotCarnet } from '../../services/motsService';
+import { aTraiter, attendReponse, type MotCarnet } from '../../services/motsService';
 import type { Conversation } from '../messagerieData';
 import type { Cycle } from '../../utils/niveau';
 
@@ -71,11 +71,11 @@ const TYPES_AUJOURDHUI = new Set(['evenement', 'sortie', 'examen', 'reunion', 'a
 /** « À faire » de l'Accueil : les mots qui attendent une action de MOI (démo et compte réel). */
 export function todoDepuisMots(mots: MotCarnet[]): DemoTodo[] {
   return mots.filter(aTraiter).map((m) => ({
-    kind: m.type === 'autorisation' || m.type === 'participation' ? ('repondre' as const) : ('signer' as const),
+    kind: attendReponse(m) ? ('repondre' as const) : ('signer' as const),
     title: m.titre,
     deadline: m.echeance
       ? `Avant le ${jourCourt(m.echeance)}`
-      : m.type === 'autorisation' || m.type === 'participation'
+      : attendReponse(m)
         ? 'À répondre'
         : 'À signer',
     motId: m.id,

@@ -69,7 +69,7 @@ export default function CahierLiaisonScreen() {
   }, []);
 
   const loadMots = async () => {
-    const { data } = await getTeacherMots('t1');
+    const { data } = await getTeacherMots();
     setMots(data);
   };
 
@@ -194,6 +194,17 @@ export default function CahierLiaisonScreen() {
             </Text>
             <Text className="text-sm leading-[22px]" style={{ color: '#0F172A' }}>{selectedMot.contenu}</Text>
           </Box>
+
+          {/* « Ont lu » (M38) : nombres agrégés, jamais qui a lu */}
+          {selectedMot.lus_count != null && (
+            <Text
+              className="text-sm font-semibold px-5 mb-4"
+              style={{ color: '#0F172A' }}
+              accessibilityLabel={`${selectedMot.lus_count} élèves sur ${selectedMot.total_students} : au moins un responsable a lu le mot`}
+            >
+              {`${selectedMot.lus_count}/${selectedMot.total_students} ont lu`}
+            </Text>
+          )}
 
           {/* Signature progress */}
           {selectedMot.requires_signature && (
@@ -502,6 +513,11 @@ export default function CahierLiaisonScreen() {
                 {formatDate(mot.date_envoi)}
                 {mot.date_limite && ` · Limite : ${formatDate(mot.date_limite)}`}
               </Text>
+              {mot.lus_count != null && (
+                <Text className="text-xs mb-2.5" style={{ color: 'rgba(15,23,42,0.62)' }}>
+                  {`${mot.lus_count}/${mot.total_students} ont lu`}
+                </Text>
+              )}
 
               {/* Signature bar */}
               {mot.requires_signature && (
