@@ -18,8 +18,10 @@ et le fil de classe en annonce seule. Plan à valider avant toute ligne.
 - Trois trous à refermer, trouvés en lisant les politiques :
   1. **Réactions aux annonces** : tout parent peut réagir à une annonce, et **toutes les familles voient qui
      a réagi** — c'est une interaction entre familles, contraire à « annonce seule ».
-  2. **Table `messages`** (inutilisée par l'app) : un parent peut y écrire à **n'importe quel compte**,
-     y compris un autre parent — une messagerie entre familles cachée.
+  2. **Table `messages`** (inutilisée par l'app) : sa politique permettrait à un parent d'écrire à **n'importe
+     quel compte**. *Correction du 18 nov., après tests : ce trou est seulement LATENT — depuis M32 l'app n'a
+     plus aucun droit sur cette table, donc rien n'était possible en pratique. M40 retire quand même la
+     politique, pour qu'un droit rétabli un jour par erreur ne la rouvre pas.*
   3. **Messages des fils** : toute personne qui lit un fil peut **modifier le texte** de n'importe quel
      message du fil (celui de l'enseignant compris) — la politique ne visait qu'à marquer « lu ».
 
@@ -69,7 +71,7 @@ Trois migrations, **une par cycle** (sauvegarde, essai à blanc, application seu
 
 | Politique | Avant | Après — ce qui est empêché |
 |---|---|---|
-| `reponses_mot` écriture (création, modification) | Le responsable répond pour un carnet dont il est responsable. | En plus : on ne peut répondre oui/non qu'à une **autorisation**, et oui/peut-être/non qu'à un mot **qui pose une question**. Empêche des réponses fantômes à un mot d'information. |
+| `reponses_mot` (contrôle serveur) | Le déclencheur `reponses_mot_controler` n'acceptait oui/peut-être/non que sur un mot de type « participation ». | *Correction du 18 nov., après tests : la règle vit dans ce déclencheur, pas dans les politiques (inchangées).* Il accepte oui/non pour une **autorisation**, oui/peut-être/non pour un mot **qui pose une question** (ou de l'ancien type « participation », pour l'ancienne app), et refuse toute réponse à un autre mot. |
 | `teacher_messages` création | L'auteur du message est bien soi, avec son rôle dans le fil. | En plus, si le message cite un mot : (a) le mot est bien dans le carnet de l'élève du fil, (b) c'est un mot de **cet** enseignant, (c) côté parent, le fil est **individuel**. Empêche de citer le mot d'un autre enfant, et **empêche qu'une réponse privée parte dans le fil partagé du foyer** (l'autre responsable la lirait). |
 | `teacher_messages` modification | Quiconque lit le fil peut modifier tout message. | On ne peut plus modifier **que le marqueur « lu »**, jamais le texte (droits par colonne). Empêche de réécrire le message de l'enseignant ou de l'autre responsable. |
 | `class_post_reactions` | Tout parent réagit ; toutes les familles voient les réactions. | Aucun parent ne réagit ; chacun ne voit que les siennes ; l'enseignant voit celles de ses annonces. Empêche toute interaction et toute visibilité entre familles. |
@@ -142,6 +144,11 @@ Et la sauvegarde complète faite avant chaque cycle reste le dernier recours.
 ---
 
 ## Annexe A — SQL de M39 (mot complet)
+
+> **Version INITIALE, remplacée le 18 nov. après les tests locaux.** La version à appliquer est le fichier
+> `supabase/migrations/20261118110000_m39_mot_complet.sql` : la règle « la réponse correspond au mot » y est
+> écrite dans le déclencheur existant `reponses_mot_controler` (qui refusait sinon toute question sur un mot
+> « signature »), et les politiques de `reponses_mot` ne sont plus modifiées. Le reste est identique.
 
 ```sql
 -- M39 (numéro provisoire) — mot complet : question cumulable, réponse privée qui cite le mot.
@@ -287,5 +294,15 @@ CREATE POLICY messages_insert ON public.messages
 
 ## Annexe C — M38 (compteur « ont lu »)
 
-Déjà écrite, non appliquée : `supabase/migrations_en_attente/m38_lectures_mot.sql` et
-`m38_lectures_mot_down.sql` (fonction `lectures_mot`, nombres agrégés, auteur du mot seulement).
+`supabase/migrations/20261118100000_m38_lectures_mot.sql` et son inverse dans `supabase/migrations_down/`
+(fonction `lectures_mot`, nombres agrégés, auteur du mot seulement).
+
+## Annexe D — résultats en LOCAL (18 nov. 2026) — rien sur Paris
+
+- M38, M39, M40 appliquées sur la base locale (`supabase migration up`).
+- `supabase/tests/m38_m40_lot3b.sql` : **24 vérifications OK** (T1 à T23, dont T14 « un parent ne peut pas
+  publier dans le fil de classe » et T9 « le parent séparé ne voit pas la réponse privée de l'autre »).
+- Aller → retour → aller des trois inverses : le retour retire colonnes, fonction et règles nouvelles et remet
+  les anciennes ; le nouvel aller les rétablit ; les 24 vérifications repassent.
+- Suites SQL existantes : 22 sur 22 après adaptation de `m30_durcissement_audit.sql` (son test T10 attendait
+  qu'un parent puisse écrire dans `messages` : M40 le refuse désormais, voulu).

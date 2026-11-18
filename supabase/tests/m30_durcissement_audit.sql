@@ -97,13 +97,20 @@ RESET ROLE;
 -- Depuis M32 l'accès client à `messages` est coupé (table inutilisée) : le droit est rétabli ICI, dans cette
 -- transaction annulée, pour continuer à vérifier la politique et le verrou de M30 indépendamment de M32.
 GRANT SELECT, INSERT, UPDATE ON public.messages TO authenticated;
+-- M40 (18 nov. 2026) : plus aucune politique d'écriture sur messages — même avec le droit rétabli, un parent
+-- n'écrit plus. Le message servant aux tests T12 est posé par le serveur.
+INSERT INTO public.messages (sender_id, receiver_id, body, child_id)
+VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'bonjour', :'emma');
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$
 DECLARE n int;
 BEGIN
-  INSERT INTO public.messages (sender_id, receiver_id, body, child_id) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'bonjour', current_setting('test.emma')::uuid);
-  RAISE NOTICE 'OK T10 un parent écrit un message sur SON enfant';
+  BEGIN
+    INSERT INTO public.messages (sender_id, receiver_id, body, child_id) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'bonjour', current_setting('test.emma')::uuid);
+    RAISE EXCEPTION 'ÉCHEC T10 un parent écrit dans messages (M40 : plus aucune écriture)';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'OK T10 un parent n''écrit plus dans messages, même sur SON enfant (M40)';
+  END;
 END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset

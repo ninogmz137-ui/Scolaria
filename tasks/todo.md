@@ -10,6 +10,15 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 3b — SQL FAIT EN LOCAL (18 nov., branche `archi-lot-3b`) — RIEN SUR PARIS
+- [x] Plan validé (`tasks/lot3b-plan-sql.md`, réactions retirées aux parents, autorisation sans question).
+- [x] M38 `lectures_mot`, M39 mot complet, M40 annonce seule : fichiers + inverses ; appliquées sur la base LOCALE.
+- [x] Correction trouvée par les tests : la règle « la réponse correspond au mot » est dans le déclencheur `reponses_mot_controler` (il refusait toute question sur un mot « signature ») ; politiques de `reponses_mot` inchangées. Plan corrigé (et constat `messages` : trou seulement latent, droits retirés depuis M32).
+- [x] Tests : `supabase/tests/m38_m40_lot3b.sql` 24 OK ; aller-retour-aller des inverses OK ; 22 suites SQL OK (`m30` adapté : un parent n'écrit plus dans `messages`).
+- [x] WARN attendu déclaré POUR VALIDATION dans `tasks/warns-attendus.md` (M38 : 1 ; M39, M40 : 0).
+- [ ] **Paris : 3 cycles, UN par migration, avec la procédure complète — sur accord explicite de l'utilisateur.** Ordre : M38, M39, M40. Avant chaque cycle : relire sur Paris (lecture seule) les politiques des tables touchées.
+- [ ] App 3b (après Paris) : question et réponse privée dans la page du mot, fil individuel, compteur enseignant (lot 7).
+
 ### LOT 3a — RÉSULTAT (18 nov., branche `archi-lot-3`, poussée, NON fusionnée : l'utilisateur veut voir le Redmi)
 - [x] Messages : plus de segmented, de recherche ni de menu ; « À traiter » (visible seulement s'il y a quelque chose) puis « Conversations », un fil par interlocuteur (`useFilsMessages`) ; un fil s'ouvre TOUJOURS sur sa page (`FilMessages`), même avec un seul élément (décision du 18 nov.).
 - [x] « Signer aussi pour [prénom] » (`copiesASignerAilleurs`, `proposerSignerAussi`) : après une signature réussie, une proposition par copie du même mot qui attend ma signature dans le carnet d'un autre enfant ; une signature par carnet.

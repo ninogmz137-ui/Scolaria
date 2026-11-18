@@ -1,6 +1,5 @@
--- EN ATTENTE — NON APPLIQUÉE (écrite le 18 nov. 2026, lot 3, décision 7 du 16 nov.).
--- Hors de supabase/migrations : la CLI ne la voit pas. Numéro définitif à fixer au moment du cycle
--- (après M37 et les autres migrations en attente), puis déplacer dans supabase/migrations/.
+-- M38 — compteur enseignant « ont lu » (lot 3b, décision du 18 nov. 2026 qui remplace I4).
+-- Plan : tasks/lot3b-plan-sql.md. Inverse : supabase/migrations_down/20261118100000_m38_lectures_mot_down.sql.
 --
 -- Décision 7 : le « lu » d'un mot est enregistré par responsable et par mot (read_receipts, clé unique
 -- (mot_id, parent_id)) — c'est DÉJÀ le cas, aucune table ne change. Ce qui manque : le compteur enseignant

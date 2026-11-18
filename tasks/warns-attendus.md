@@ -152,3 +152,13 @@ Aucun.
 Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC et à `anon`, accordé à `authenticated`, search_path figé, contrôle de
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
+
+## À VALIDER avant application (déclarés le 18 nov. 2026, lot 3b — PAS encore dans la liste ci-dessus)
+- **M38** `lectures_mot` — 1 WARN attendu :
+  `authenticated_security_definer_function_executable | public.lectures_mot(p_mot_id uuid) / authenticated`
+  Raison : le compteur enseignant « ont lu » doit lire `read_receipts`, que seul son auteur peut lire (M30) ; SECURITY INVOKER
+  impossible. EXECUTE retiré à PUBLIC et `anon`, `search_path` vide, ne rend que deux nombres agrégés et seulement à l'auteur du mot
+  (tout autre appelant : 0 ligne) — testé par supabase/tests/m38_m40_lot3b.sql (T21 à T23).
+- **M39** : aucun WARN nouveau attendu (`reponses_mot_controler` est un déclencheur déjà présent, non exécutable par un compte ;
+  colonnes et politique `fils_messages_insert` écrites avec `(SELECT auth.uid())`).
+- **M40** : aucun WARN nouveau attendu (politique `reactions_select` écrite avec `(SELECT auth.uid())` ; suppression de politiques).
