@@ -11,6 +11,23 @@
   - Civilité dans le profil enseignant (Mme / M.) ; côté parent, l'enseignant s'affiche partout « Mme Martin » (civilité + nom) ; prénom et nom (« Claire Martin ») seulement si la civilité manque. Source actuelle du nom affiché : `mot_expediteur` (M21) et les écrans qui lisent `profiles` (demandé le 18 nov.).
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 3c — PLAN (18 nov., branche `archi-lot-3c` créée depuis `archi-lot-3b`) — rien sur Paris, rien dans main
+Constat (base locale, lue le 18 nov.) : **aucune migration nécessaire**. Tout existe depuis M22 / M29 / M12 :
+fil `teacher_conversations` portée « foyer » (unique par enseignant + enfant + foyer ; lu et écrit par les responsables DU foyer, `est_du_foyer` ; un parent séparé = autre foyer = autre fil, ne voit rien), portée « individuel » (« Seulement moi ») ;
+envoi parent : `teacher_messages` (`sender_role = role_dans_fil`) ; nom de l'enseignant : `fil_enseignant(fil)` ; enseignant de l'enfant : `classes.enseignant_id` (lisible par les responsables) ;
+fil de classe = `class_posts` de la classe de l'enfant (lecture parent, écriture titulaire seul : annonce seule par construction). Aucun fil « école » réel (pas de table) : démo seulement.
+Étapes :
+1. `src/services/filsService.ts` (compte réel) : charger les fils de l'enfant (foyer + individuel avec messages, auteur « Vous » / prénom de l'autre responsable), le fil de classe (`class_posts`, annonce seule) ; `filEnseignant(childId)` = trouver ou créer le fil FOYER avec le titulaire (création : `student_code` = prénom de l'enfant, `parent_name` = « Famille [nom] », seuls libellés lisibles par l'enseignant qui ne lit pas `children`) ; envoyer un message (foyer ou « Seulement moi » → fil individuel) ; marquer lus les messages de l'enseignant.
+2. `messagerieStore` : les fils réels sont chargés dans le même magasin (marque `reel`) ; `Conversation` gagne `annonce` (fil de classe / école : aucune saisie) et `enseignantFilId` / repère du fil enseignant.
+3. `ConversationDetailScreen` : envoi réel ; fil `annonce` → pas de champ, bouton pill « Répondre à l'enseignant » (ouvre le fil enseignant, créé au besoin) ; champ du fil « École » de la démo retiré.
+4. « Écrire à l'enseignant » (feuille d'actions de Messages et feuille du « + ») → ouvre directement le fil avec l'enseignant de l'enfant sélectionné (créé au besoin) ; masqué sans enseignant rattaché (inchangé).
+5. `useFilsMessages` : compte réel = fils réels (plus « démo seulement »).
+6. Démo, chaque enfant : un fil de classe (2 annonces) + le fil enseignant ramené à 3 messages.
+7. Enseignant (`MessagerieParentsScreen`) : nom de l'enfant (`student_code`) et du foyer affichés ; rien d'autre (lot 7).
+8. Tests : `scripts/test-lot3c-local.mjs` (appels réels sous RLS : parent A crée le fil foyer, écrit ; parent2 du même foyer lit et écrit ; parent d'un autre foyer ne voit rien ; enseignant reçoit et répond ; parent ne peut pas publier dans `class_posts`) ; seed étendu (second responsable du foyer de Lina, parent séparé, 2 annonces de classe) ; tsc ; bundle.
+9. Redmi, base locale : message libre envoyé par parent-3b → reçu chez enseignant-3b ; fil de classe sans champ ; « Répondre à l'enseignant ».
+10. `tasks/lot3b-procedures-paris.md` → toutes les migrations du lot 3 dans l'ordre (M38, M39, M40 ; 3c n'en ajoute aucune).
+
 ### LOT 3b — SQL FAIT EN LOCAL (18 nov., branche `archi-lot-3b`) — RIEN SUR PARIS
 - [x] Plan validé (`tasks/lot3b-plan-sql.md`, réactions retirées aux parents, autorisation sans question).
 - [x] M38 `lectures_mot`, M39 mot complet, M40 annonce seule : fichiers + inverses ; appliquées sur la base LOCALE.
