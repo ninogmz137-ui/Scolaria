@@ -449,6 +449,12 @@ function NotesStackScreen() {
         component={VisionneuseImageScreen}
         options={{ headerShown: false }}
       />
+      {/* Mot traité ouvert depuis Scolarité › Documents (lot 3a). */}
+      <NotesStack.Screen
+        name="MotDetailScreen"
+        component={MotDetailScreen}
+        options={{ headerShown: false }}
+      />
       <NotesStack.Screen
         name="AjouterAuCarnet"
         component={AjouterAuCarnetScreen}

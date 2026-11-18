@@ -48,7 +48,7 @@ function Sommaire() {
   // Plus récent d'abord (le carnet et les compétences ne sont pas tous triés à la source).
   const derniereCompetence = [...s.competences].sort((a, b) => b.date.localeCompare(a.date))[0];
   const dernierSouvenir: ElementCarnet | undefined = s.souvenirs[0];
-  const dernierDocument: ElementCarnet | undefined = s.livrets[0];
+  const dernierDocument: ElementCarnet | undefined = s.documents[0];
   const college = !s.isMaternelle && !s.isPrimaire;
 
   // Sous une erreur de chargement, jamais de carte d'invitation à tort (leçon du 4 oct. 2026).

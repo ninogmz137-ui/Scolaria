@@ -54,6 +54,8 @@ export interface ElementCarnet {
   /** Ajouté par le parent connecté : il peut le modifier et le supprimer. */
   deMoi?: boolean;
   anneeId?: string;
+  /** Mot de l'école traité (Scolarité › Documents, lot 3a) : s'ouvre sur la page du mot. */
+  motId?: string;
 }
 
 export function versAffichage(c: CategorieCarnet): Pick<ElementCarnet, 'categorie' | 'type'> {

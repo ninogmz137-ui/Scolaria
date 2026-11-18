@@ -46,7 +46,8 @@ Scolaria ne se connecte à aucun ENT : pas d'API, pas de scraping, pas d'identif
 - Chaque enfant a son propre carnet, **sans exception, devoirs compris**. **Aucune vue ne mélange plusieurs enfants** (messages compris).
 - Le parent choisit le carnet via l'avatar (sélecteur d'enfant).
 - Toute donnée (mot, message, signature, photo, document, événement, devoir) est rattachée à l'enfant (`child_id`, ou `student_id` selon la table) + `academic_year_id` — jamais au parent seul.
-- Mot reçu pour deux enfants d'un même foyer : **une copie par carnet**, une signature par enfant ; un mot d'information lu dans un carnet est marqué lu dans l'autre ; un mot à signer propose « Signer aussi pour [prénom] ».
+- Mot reçu pour deux enfants d'un même foyer : **une copie par carnet**, une signature par enfant ; un mot à signer propose « Signer aussi pour [prénom] ».
+- **« Lu » d'un mot (décision du 18 nov. 2026, remplace le point I4 de l'audit)** : enregistré **par responsable et par mot**, jamais par carnet (`read_receipts`, clé unique mot + responsable). Un mot lu dans le carnet d'un enfant est lu dans tous les carnets de ce responsable qui ont reçu le même mot. La signature, la réponse et le oui / peut-être / non restent **par carnet**. Côté enseignant, le compteur « ont lu » compte un élève comme lu dès qu'**un** de ses responsables a lu (fonction `lectures_mot`, migration en attente : `supabase/migrations_en_attente/m38_lectures_mot.sql`, nombres agrégés seulement, jamais qui a lu).
 - **Nouveauté chez un autre enfant** : pastille rouge sur l'avatar de la top bar. Dans le sélecteur, chaque enfant affiche un décompte en clair (« 1 mot à signer · 2 nouveautés ») ou « À jour ».
   La pastille s'allume pour : mot à traiter, message non lu, devoir pour demain non coché. Une photo ou une compétence ajoutée ne l'allume pas.
 - Chaque notification push nomme l'enfant et ouvre son carnet.

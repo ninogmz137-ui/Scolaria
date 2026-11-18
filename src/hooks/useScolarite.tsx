@@ -26,6 +26,16 @@ import { getLivretsDemo } from '../data/demo/livrets';
 import { getSouvenirsDemo } from '../data/demo/souvenirs';
 import { getAnneesDemo, type AnneeParcours } from '../data/demo/parcours';
 import type { Cycle } from '../utils/niveau';
+import { useMotsEnfant } from './useMotsEnfant';
+import { aTraiter, type MotCarnet } from '../services/motsService';
+
+/** « Signé par vous » / « Répondu par Marc : Oui » : statut d'un mot traité (ligne de note dans Documents). */
+function libelleTraitementCourt(m: MotCarnet): string {
+  if (m.traitePar) return `${m.maReponse !== null ? 'Répondu' : 'Signé'} par ${m.traitePar.estMoi ? 'vous' : m.traitePar.prenom}`;
+  if (m.maReponse !== null) return 'Répondu par vous';
+  if (m.maSignature) return 'Signé par vous';
+  return 'Traité';
+}
 
 export interface Scolarite {
   /** Cycle saisi de l'enfant (fait foi) ; repli sur la date de naissance. */
@@ -39,6 +49,8 @@ export interface Scolarite {
   /** Tout le carnet (démo : ajouts de la session + données fixes ; réel : carnet_items), plus récent d'abord. */
   carnet: ElementCarnet[];
   livrets: ElementCarnet[];
+  /** Page Documents : livrets, bulletins, documents ajoutés et mots traités (plus récent d'abord). */
+  documents: ElementCarnet[];
   souvenirs: ElementCarnet[];
   erreurCarnet: TypeErreur | null;
   annees: AnneeParcours[];
@@ -202,6 +214,26 @@ function useChargementScolarite(): Scolarite {
   const livrets = carnet.filter((e) => e.categorie === 'livret');
   const souvenirs = carnet.filter((e) => e.categorie === 'souvenir');
 
+  // Mots traités (lot 3a) : un mot qui attendait une action (signature, autorisation, participation) et qui n'en
+  // attend plus s'archive dans Scolarité › Documents (« Mots signés et autorisations »).
+  const { mots, erreur: erreurMots } = useMotsEnfant(selectedChild?.id);
+  const motsTraites: ElementCarnet[] = mots
+    .filter((m) => (m.signatureMode !== 'none' || m.type === 'autorisation' || m.type === 'participation') && !aTraiter(m))
+    .map((m) => ({
+      id: `mot-${m.id}`,
+      categorie: 'livret',
+      type: 'mot',
+      titre: m.titre,
+      note: libelleTraitementCourt(m),
+      date: m.date,
+      source: 'ecole',
+      auteur: m.expediteur,
+      visibilite: 'foyer',
+      motId: m.id,
+    }));
+  // Documents = livrets, bulletins, documents ajoutés ET mots traités, du plus récent au plus ancien.
+  const documents = [...livrets, ...motsTraites].sort((a, b) => b.date.localeCompare(a.date));
+
   // Années : démo = parcours de démo ; réel = academic_years (année active + archives).
   useEffect(() => {
     let annule = false;
@@ -251,8 +283,9 @@ function useChargementScolarite(): Scolarite {
     erreurCompetences,
     carnet,
     livrets,
+    documents,
     souvenirs,
-    erreurCarnet,
+    erreurCarnet: erreurCarnet ?? erreurMots,
     annees,
     anneeEnCours,
     anneesArchives,

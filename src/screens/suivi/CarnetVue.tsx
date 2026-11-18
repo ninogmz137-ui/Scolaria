@@ -99,7 +99,7 @@ export function ListeLivrets({ items, onOuvrir }: { items: ElementCarnet[]; onOu
     <View style={st.card}>
       {items.map((e, i) => {
         const Icone = ICONES[e.type] ?? Award;
-        const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier);
+        const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier || !!e.motId);
         return (
           <Pressable
             key={e.id}
@@ -167,7 +167,7 @@ export default function CarnetVue({
         <View style={st.grille}>
           {items.map((e) => {
             const Icone = ICONES[e.type];
-            const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier);
+            const ouvrable = !!onOuvrir && (!!e.deMoi || !!e.fichier || !!e.motId);
             return (
               <Pressable
                 key={e.id}

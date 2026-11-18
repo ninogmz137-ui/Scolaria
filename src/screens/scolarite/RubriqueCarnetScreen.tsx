@@ -33,6 +33,7 @@ const FILTRES_DOCUMENTS: Filtre[] = [
   { id: 'tout', libelle: 'Tout', garde: () => true },
   { id: 'livrets', libelle: 'Livrets et bulletins', garde: (e) => e.source === 'ecole' && (e.type === 'livret' || e.type === 'bulletin') },
   { id: 'evaluations', libelle: 'Évaluations nationales', garde: (e) => e.type === 'evaluation_nationale' },
+  { id: 'mots', libelle: 'Mots signés et autorisations', garde: (e) => !!e.motId },
   { id: 'ajouts', libelle: 'Ajoutés par vous', garde: (e) => !!e.deMoi },
 ];
 
@@ -48,7 +49,7 @@ function Rubrique() {
   const { selectedChild } = useActiveChild();
   const s = useScolarite();
   const documents = route.name === 'ScolariteDocuments';
-  const items = documents ? s.livrets : s.souvenirs;
+  const items = documents ? s.documents : s.souvenirs;
   const filtres = useMemo(
     () => (documents ? FILTRES_DOCUMENTS : FILTRES_SOUVENIRS).filter((f) => f.id === 'tout' || items.some(f.garde)),
     [documents, items],
@@ -61,6 +62,10 @@ function Rubrique() {
 
   const ouvrirFichier = useOuvrirFichierCarnet();
   const ouvrir = async (e: ElementCarnet) => {
+    if (e.motId) {
+      navigation.navigate('MotDetailScreen', { motId: e.motId, childId: selectedChild?.id, expediteur: e.auteur });
+      return;
+    }
     if (e.deMoi) {
       navigation.navigate('AjouterAuCarnet', { element: e });
       return;

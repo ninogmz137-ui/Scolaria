@@ -4,8 +4,8 @@
  *
  * - Bloc « À traiter » en haut, visible SEULEMENT s'il y a quelque chose : les mots qui attendent une action,
  *   avec le bouton d'action dans la carte (CarteATraiter).
- * - Bloc « Conversations » : UN FIL PAR INTERLOCUTEUR (useFilsMessages). Un fil d'un seul élément s'ouvre
- *   directement ; sinon, page du fil (FilMessages).
+ * - Bloc « Conversations » : UN FIL PAR INTERLOCUTEUR (useFilsMessages). Un fil s'ouvre toujours sur sa page
+ *   (FilMessages), même s'il ne contient qu'un élément.
  * - Supprimés : bascule « Général / [prénom] », barre de recherche et menu « Tout ⌄ » (la recherche passe par le
  *   champ unique de la barre du bas, lot 5 ; « À traiter » remplace le filtre « À signer »).
  * - Un enfant = un carnet : uniquement les données de l'enfant sélectionné.
@@ -42,13 +42,8 @@ function MessagerieContenu() {
   const scrollHandler = useTopbarScrollHandler();
   const f = useFilsMessages();
 
-  const ouvrirFil = (fil: Fil) => {
-    if (fil.elements.length === 1) {
-      fil.elements[0].props.onPress();
-      return;
-    }
-    navigation.navigate('FilMessages', { cle: fil.cle, titre: fil.titre });
-  };
+  // Un fil s'ouvre TOUJOURS sur sa page, même avec un seul élément (décision du 18 nov. 2026).
+  const ouvrirFil = (fil: Fil) => navigation.navigate('FilMessages', { cle: fil.cle, titre: fil.titre });
 
   const rien = f.aTraiter.length === 0 && f.fils.length === 0;
 

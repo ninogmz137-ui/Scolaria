@@ -271,7 +271,7 @@ for (const cote of ['haut', 'bas']) {
 for (const [nom, attendu] of [
   ['Scolarité', (e) => estSuivi(e)],
   ['Agenda', (e) => e.some((x) => x.t === 'Emploi du temps' || /^Octobre|^Novembre|^Septembre|^Décembre/.test(x.t))],
-  ['Messages', (e) => e.some((x) => x.d === 'Général')],
+  ['Messages', (e) => e.some((x) => x.t === 'Conversations' || x.t === 'À traiter')],
 ]) {
   for (const cote of ['gauche', 'droite', 'haut', 'bas']) {
     let taille = '';
@@ -337,6 +337,11 @@ for (const cote of ['haut', 'bas']) {
   let taille = '';
   await serie({ nom: 'Pastille de période P3', hitslop: 'hitSlop {top:8,bottom:4,left:2,right:2} (ApprentissagesVue.tsx:122)', cote, off: 3, get taille() { return taille; } }, async () => {
     if (!(await allerSur('Scolarité'))) return false;
+    // Lot 2 : les périodes sont sur la page Apprentissages (niveau 2), ouverte par « Tout voir ».
+    const toutVoir = (await lire()).find((e) => e.d === 'Tout voir : Apprentissages');
+    if (!toutVoir) return false;
+    appuyer((toutVoir.b[0] + toutVoir.b[2]) / 2, (toutVoir.b[1] + toutVoir.b[3]) / 2, await lire());
+    await attendre(1500);
     const n = await lire();
     const p1 = n.find((e) => e.d === 'P1');
     const p = n.find((e) => e.d === 'P3');
@@ -351,22 +356,8 @@ for (const cote of ['haut', 'bas']) {
   });
 }
 
-// ── Messages : segment du prénom (hitSlop {6,6}) ───────────────────────────────────────────────────
-for (const cote of ['haut', 'bas']) {
-  let taille = '';
-  await serie({ nom: 'Segment du prénom (Messages)', hitslop: 'hitSlop {top:6,bottom:6} (Segmented.tsx:32)', cote, off: 3, get taille() { return taille; } }, async () => {
-    if (!(await allerSur('Messages'))) return false;
-    const general = (await lire()).find((e) => e.d === 'Général');
-    if (general && !general.sel) { appuyer((general.b[0] + general.b[2]) / 2, (general.b[1] + general.b[3]) / 2, await lire()); await attendre(1000); }
-    const seg = (await lire()).filter((e) => e.sel === false && e.d !== 'Général' && e.d !== '' && e.clic && e.b[3] - e.b[1] > 60 && e.b[3] - e.b[1] < 130 && e.b[2] - e.b[0] > 300 && e.b[1] < 700).sort((a, b) => a.b[1] - b.b[1] || a.b[0] - b.b[0])[0];
-    if (!seg) return false;
-    taille = taillDp(seg.b);
-    const [x, y] = viser(seg.b, cote, 3);
-    if (!appuyer(x, y, await lire())) return false;
-    await attendre(1200);
-    return !!(await lire()).find((e) => e.d === seg.d && e.b.length === 4 && e.b[1] < 700)?.sel;
-  });
-}
+// (Lot 3a, 18 nov. 2026 : le segment « Général / [prénom] » de Messages et son composant Segmented sont supprimés ;
+// la série qui mesurait sa zone tactile est retirée.)
 
 // ── Suivi : bouton année (hitSlop {5,5}) ─────────────────────────────────────────────────────────
 for (const cote of ['haut', 'bas']) {

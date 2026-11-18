@@ -731,7 +731,8 @@ Sans enfant : état vide inchangé.
 
 ### 18.4 Ligne de fil (bloc « Conversations », liste à plat)
 ```
-UNE ligne par interlocuteur (enseignant de l'enfant · classe · école/direction) ; tap = le fil
+UNE ligne par interlocuteur (enseignant de l'enfant · classe · école/direction) ; tap = TOUJOURS la page du fil,
+même s'il ne contient qu'un élément (décision du 18 nov.)
 Titre = l'interlocuteur ; aperçu = dernier message ; la classe porte la mention « Annonces »
 Pas de carte. Ligne minHeight 64 · avatar 42 rond · séparateur 1px rgba(15,23,42,0.06)
 École · direction · mairie : fond #E2E8F0 + building-2 #334155 · personne : initiales 700 13px sur #E2E8F0 / #334155
