@@ -1,4 +1,18 @@
-# Lot 3b — procédures Paris (M38, puis M39, puis M40), à exécuter par l'utilisateur
+# Lot 3 — procédures Paris (M38, puis M39, puis M40), à exécuter par l'utilisateur
+
+## Toutes les migrations du lot 3, dans l'ordre d'application (mis à jour le 18 nov. 2026, fin du lot 3c)
+
+| Ordre | Sous-lot | Migration | Fichier | Objet | WARN attendu |
+|-------|----------|-----------|---------|-------|--------------|
+| — | 3a (fils, sans migration) | aucune | — | — | — |
+| 1 | 3b | **M38** | `supabase/migrations/20261118100000_m38_lectures_mot.sql` | compteur « ont lu » (`lectures_mot`) | 1 (à valider, § « Le WARN de M38 ») |
+| 2 | 3b | **M39** | `supabase/migrations/20261118110000_m39_mot_complet.sql` | mot complet : question, réponse privée citant le mot | 0 |
+| 3 | 3b | **M40** | `supabase/migrations/20261118120000_m40_annonce_seule.sql` | annonce seule (réactions et `messages` retirés aux parents) | 0 (jusqu'à 7 WARN disparaissent) |
+| — | 3c (fils réels côté parent) | **aucune** | — | tout existait déjà sur Paris : fils « foyer » et « individuel » (M22, M29), `fil_enseignant`, `class_posts` (M12) | — |
+
+Le lot 3 ne demande donc que **trois cycles**, décrits ci-dessous. L'app des lots 3b et 3c fonctionne avant, pendant et après ces
+cycles (sans M39 : pas de question ni de « Répondre à » ; sans M38 : pas de compteur) : l'ordre app / base n'est pas contraignant.
+Inverses : `supabase/migrations_down/` (un fichier `…_down.sql` par migration), à appliquer seulement sur un « VERDICT : ARRÊT ».
 
 *Rédigé le 18 nov. 2026. Rien n'a été appliqué à Paris. Une migration par cycle, dans l'ordre M38 → M39 → M40 ; un cycle ne
 commence que si le précédent s'est terminé sur « VERDICT : OK ». En cas de doute à n'importe quelle étape : s'arrêter, ne pas
@@ -10,7 +24,7 @@ Toutes les commandes se tapent dans **PowerShell**, dans `C:\Users\admin\Scolari
 
 | # | Commande | Ce que vous devez voir |
 |---|----------|------------------------|
-| 0.1 | `git status` | `On branch archi-lot-3b` et `nothing to commit, working tree clean` |
+| 0.1 | `git status` | `On branch archi-lot-3c` (elle contient tout le lot 3b ; `archi-lot-3b` convient aussi) et `nothing to commit, working tree clean` |
 | 0.2 | `npx supabase@latest --version` | `3.2.0` |
 | 0.3 | `Get-Content supabase\.temp\project-ref` | `nmizwmymhqleasnxcyvu` (Paris) |
 | 0.4 | `Test-Path .env.local` | `False` |
