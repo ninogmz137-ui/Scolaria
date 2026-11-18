@@ -28,6 +28,14 @@ fil de classe = `class_posts` de la classe de l'enfant (lecture parent, écritur
 9. Redmi, base locale : message libre envoyé par parent-3b → reçu chez enseignant-3b ; fil de classe sans champ ; « Répondre à l'enseignant ».
 10. `tasks/lot3b-procedures-paris.md` → toutes les migrations du lot 3 dans l'ordre (M38, M39, M40 ; 3c n'en ajoute aucune).
 
+### LOT 3c — RÉSULTAT (18 nov., branche `archi-lot-3c`, NON fusionnée) — rien sur Paris, rien dans main
+- [x] Étapes 1-8 et 10 faites (6d44f0a, 13e75d7) : aucune migration ; test-lot3c-local 27/27, test-lot3b-local 17/17, tsc, mots 26/26, bundle-prod 12/12.
+- [x] **Redmi, base locale (18 nov.)** : parent-3b → « + » → « Écrire à l'enseignant » → fil créé, message libre « Bonjour » envoyé (saisie et envoi par l'utilisateur) ; en base : fil `foyer`, « Lina · Famille Bernard », message sans mot cité ; **reçu et affiché chez enseignant-3b** (constat de l'utilisateur). Cas M40 vérifié de bout en bout (base locale avec M40).
+- [ ] [UNCLEAR] Fil de classe sans champ + bouton « Répondre à l'enseignant » sur le Redmi : demandé, pas confirmé explicitement par l'utilisateur.
+- [x] Incident : « Reload » garde l'ancien manifeste → l'app visait Paris (« Email ou mot de passe incorrect »). `redmi-local.mjs` redémarre désormais l'app (341b124) ; leçon ajoutée.
+- [x] Remise en état : Metro local arrêté, `.env.local` supprimé, redirection 54321 retirée (redémarrage d'adb), Metro Paris relancé (`--dev-client --clear`), app redémarrée dessus (« Resolved → nmizwmymhqle… »). Déconnexion du compte de test : à faire par l'utilisateur.
+- [ ] Écarts : `MessagerieParentsScreen` (enseignant) montre des conversations de démo quand il n'en a aucune réelle (lot 7) ; `test:nom-affiche-demo` exige un serveur web de démo sur le 8083.
+
 ### LOT 3b — SQL FAIT EN LOCAL (18 nov., branche `archi-lot-3b`) — RIEN SUR PARIS
 - [x] Plan validé (`tasks/lot3b-plan-sql.md`, réactions retirées aux parents, autorisation sans question).
 - [x] M38 `lectures_mot`, M39 mot complet, M40 annonce seule : fichiers + inverses ; appliquées sur la base LOCALE.
