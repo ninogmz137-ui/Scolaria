@@ -109,7 +109,11 @@ type MotDemoJson = {
   lu: boolean;
 };
 
-const etatDemo = new Map<string, { signe?: boolean; reponse?: Reponse; lu?: boolean }>();
+// État de la démo, mêmes règles que la base : signature et réponse PAR CARNET (clé mot + enfant) ;
+// « lu » PAR MOT pour le responsable (décision du 18 nov. 2026) : lu dans un carnet = lu dans tous.
+const etatDemo = new Map<string, { signe?: boolean; reponse?: Reponse }>();
+const luDemo = new Set<string>();
+const cleCarnet = (motId: string, childId: string) => `${motId}|${childId}`;
 
 function isoDans(jours: number): string {
   const t = new Date();
@@ -121,7 +125,7 @@ function motsDemo(childId: string): MotCarnet[] {
   return (demoMotsJson as MotDemoJson[])
     .filter((m) => m.childId === childId)
     .map((m) => {
-      const etat = etatDemo.get(m.id) ?? {};
+      const etat = etatDemo.get(cleCarnet(m.id, m.childId)) ?? {};
       const ev = m.evenementId ? evenementDemoParId(m.evenementId) : undefined;
       const maSignature = etat.signe ?? m.maSignature;
       return {
@@ -150,7 +154,7 @@ function motsDemo(childId: string): MotCarnet[] {
         reponsesAnciennes: [],
         signeParAncien: false,
         maReponse: etat.reponse ?? null,
-        lu: etat.lu ?? m.lu,
+        lu: luDemo.has(m.id) || m.lu,
         evenement: ev ? { id: ev.id, titre: ev.title, date: ev.date, heure: ev.startTime } : undefined,
       };
     });
@@ -285,7 +289,9 @@ export async function monNomComplet(childId: string, demo: boolean): Promise<str
 /** Signe le mot en MON nom, pour le carnet de cet enfant (une signature par responsable et par carnet). */
 export async function signerMot(m: MotCarnet, demo: boolean): Promise<string | null> {
   if (demo) {
-    etatDemo.set(m.id, { ...etatDemo.get(m.id), signe: true, lu: true });
+    const cle = cleCarnet(m.id, m.childId);
+    etatDemo.set(cle, { ...etatDemo.get(cle), signe: true });
+    luDemo.add(m.id);
     prevenir();
     return null;
   }
@@ -304,8 +310,10 @@ export async function signerMot(m: MotCarnet, demo: boolean): Promise<string | n
  */
 export async function repondreMot(m: MotCarnet, reponse: Reponse, demo: boolean): Promise<string | null> {
   if (demo) {
-    const signe = m.signatureMode !== 'none' ? true : etatDemo.get(m.id)?.signe;
-    etatDemo.set(m.id, { ...etatDemo.get(m.id), reponse, signe, lu: true });
+    const cle = cleCarnet(m.id, m.childId);
+    const signe = m.signatureMode !== 'none' ? true : etatDemo.get(cle)?.signe;
+    etatDemo.set(cle, { ...etatDemo.get(cle), reponse, signe });
+    luDemo.add(m.id);
     prevenir();
     return null;
   }
@@ -326,7 +334,7 @@ export async function repondreMot(m: MotCarnet, reponse: Reponse, demo: boolean)
 export async function marquerMotLu(m: MotCarnet, demo: boolean): Promise<void> {
   if (m.lu) return;
   if (demo) {
-    etatDemo.set(m.id, { ...etatDemo.get(m.id), lu: true });
+    luDemo.add(m.id);
     prevenir();
     return;
   }

@@ -138,5 +138,35 @@
     "autreSigne": true,
     "maSignature": true,
     "lu": true
+  },
+  {
+    "id": "mot-mairie-centre-loisirs",
+    "childId": "demo-lucas",
+    "titre": "Centre de loisirs : autorisation de sortie",
+    "contenu": "Madame, Monsieur,\n\nPendant les vacances d’hiver, le centre de loisirs organise des sorties à la patinoire. Merci de signer cette autorisation pour chacun de vos enfants inscrits.\n\nLe service enfance de la mairie",
+    "expediteur": "Mairie",
+    "envoyeIlYa": 1,
+    "echeanceDans": 6,
+    "type": "signature",
+    "signatureMode": "both",
+    "aPrevoir": [],
+    "autreSigne": false,
+    "maSignature": false,
+    "lu": false
+  },
+  {
+    "id": "mot-mairie-centre-loisirs",
+    "childId": "demo-emma",
+    "titre": "Centre de loisirs : autorisation de sortie",
+    "contenu": "Madame, Monsieur,\n\nPendant les vacances d’hiver, le centre de loisirs organise des sorties à la patinoire. Merci de signer cette autorisation pour chacun de vos enfants inscrits.\n\nLe service enfance de la mairie",
+    "expediteur": "Mairie",
+    "envoyeIlYa": 1,
+    "echeanceDans": 6,
+    "type": "signature",
+    "signatureMode": "both",
+    "aPrevoir": [],
+    "autreSigne": false,
+    "maSignature": false,
+    "lu": false
   }
 ]
