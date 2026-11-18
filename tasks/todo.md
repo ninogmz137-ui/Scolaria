@@ -10,7 +10,19 @@
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
-### LOT 3 — PLAN (17 nov., branche `archi-lot-3` depuis main 220cbed) — AUCUN CODE AVANT ACCORD
+### LOT 3a — RÉSULTAT (18 nov., branche `archi-lot-3`, poussée, NON fusionnée : l'utilisateur veut voir le Redmi)
+- [x] Messages : plus de segmented, de recherche ni de menu ; « À traiter » (visible seulement s'il y a quelque chose) puis « Conversations », un fil par interlocuteur (`useFilsMessages`) ; un fil s'ouvre TOUJOURS sur sa page (`FilMessages`), même avec un seul élément (décision du 18 nov.).
+- [x] « Signer aussi pour [prénom] » (`copiesASignerAilleurs`, `proposerSignerAussi`) : après une signature réussie, une proposition par copie du même mot qui attend ma signature dans le carnet d'un autre enfant ; une signature par carnet.
+- [x] Scolarité › Documents : mots traités (signature, autorisation, participation) avec le filtre « Mots signés et autorisations », « Signé / Répondu par … », « Envoyé par … », ouverture sur la page du mot.
+- [x] `Segmented.tsx` supprimé ; script `preuve-zones-tactiles-redmi.mjs` aligné.
+- [x] Décision 7 / I4 : « lu » par responsable et par mot (déjà vrai en base) ; démo alignée (signature et réponse par carnet, lu par mot) ; migration EN ATTENTE `m38_lectures_mot` (compteur enseignant).
+- [x] Démo : mot de la mairie à signer reçu par Lucas ET Emma (`mot-mairie-centre-loisirs`).
+- **Redmi (18 nov., démo)** : Léa : À traiter, Conversations (3 lignes « Mme Laurent » → 1 fil), page fil (y compris École Pasteur, un seul élément) ; signature de « Centre de loisirs » faite PAR L'UTILISATEUR chez Lucas + « Signer aussi pour Emma » accepté → mot sorti de « À traiter » chez les deux, présent dans Documents des deux (« Signé par vous »), lu partagé. 2 défauts vus et corrigés : libellé lu du bouton d'invitation (« Tout voir » hérité) ; « Saisi par Mairie » → « Envoyé par Mairie ».
+- Non vérifié par moi : un appui sur le filtre « Mots signés et autorisations » (garde-fou adb : libellé contenant « sign ») → à toucher par l'utilisateur.
+- Tests : tsc 0 ; mots 17/17 ; nom-en-dur 29 ; marque 19 ; categories 29 ; entete 5 ; emergency 22 ; bundle-prod 12/12.
+- À juger : dans la page d'un fil, chaque ligne répète le nom de l'interlocuteur.
+
+### LOT 3 — PLAN (17 nov., branche `archi-lot-3` depuis main 220cbed)
 Objectif : Messages en fils + mot complet (CLAUDE.md § Messages, COMPONENTS §6 Messages, « Mot complet », §18.4).
 
 **État actuel (lu le 17 nov. dans le code et les migrations, aucune requête sur Paris)**

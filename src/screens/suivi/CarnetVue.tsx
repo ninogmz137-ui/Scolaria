@@ -75,7 +75,8 @@ function Apercu({ e }: { e: ElementCarnet }) {
 /** « Saisi par Mme Dupont · 2 oct. », « Scanné par vous · 12 sept. », « Ajouté par vous · 3 sept. » */
 export function ligneSourceCarnet(e: ElementCarnet): string {
   let qui: string;
-  if (e.source === 'ecole') qui = `Saisi par ${e.auteur ?? 'l’école'}`;
+  if (e.motId) qui = `Envoyé par ${e.auteur ?? 'l’école'}`; // mot traité (Documents) : envoyé, pas saisi
+  else if (e.source === 'ecole') qui = `Saisi par ${e.auteur ?? 'l’école'}`;
   else if (e.scanne) qui = `Scanné par ${e.auteur ?? 'vous'}`;
   else qui = `Ajouté par ${e.auteur ?? 'vous'}`;
   return `${qui} · ${jourMois(e.date)}`;
