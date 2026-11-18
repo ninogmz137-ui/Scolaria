@@ -170,14 +170,19 @@ function Rubrique({
     <View>
       <Text style={st.label} accessibilityRole="header">{titre}</Text>
       {masquerApercu ? null : vide && invitation ? (
-        <View style={st.carte}>
+        <View style={st.carte} key="invitation">
           <Text style={st.phrase}>{invitation.phrase}</Text>
-          <Pressable style={st.pilule} onPress={invitation.onPress} accessibilityRole="button">
+          <Pressable
+            style={st.pilule}
+            onPress={invitation.onPress}
+            accessibilityRole="button"
+            accessibilityLabel={`${invitation.action} : ${titre}`}
+          >
             <Text style={st.piluleTexte}>{invitation.action}</Text>
           </Pressable>
         </View>
       ) : (
-        <View style={st.carte}>
+        <View style={st.carte} key="apercu">
           {children}
           <Pressable
             style={st.toutVoir}
