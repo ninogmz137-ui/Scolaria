@@ -9,7 +9,7 @@ import { createServer } from 'node:http';
 import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
 exigerHoteLocal(API);
 const PORT = Number(process.env.FAUX_ANTHROPIC_PORT ?? '18080');

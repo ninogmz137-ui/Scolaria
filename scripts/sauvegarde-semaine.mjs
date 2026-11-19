@@ -45,12 +45,19 @@ function ecrireJournal(statut, detail) {
 }
 
 // Binaire intact de la CLI dans le cache npx (un npm install frais voyait son .exe disparaître : ne pas réinstaller).
+// Version épinglée (19 nov. 2026) : la même CLI que les procédures Paris (`npx supabase@3.2.0`), jamais une autre.
+const VERSION_CLI = '3.2.0';
 function trouverCli() {
   const base = path.join(process.env.LOCALAPPDATA ?? '', 'npm-cache', '_npx');
   let meilleur = null;
   for (const h of fs.existsSync(base) ? fs.readdirSync(base) : []) {
     const exe = path.join(base, h, 'node_modules', '@supabase', 'cli-windows-x64', 'bin', 'supabase.exe');
-    if (fs.existsSync(exe)) {
+    const paquet = path.join(base, h, 'node_modules', 'supabase', 'package.json');
+    let version = null;
+    try {
+      version = JSON.parse(fs.readFileSync(paquet, 'utf8')).version;
+    } catch {}
+    if (version === VERSION_CLI && fs.existsSync(exe)) {
       const t = fs.statSync(exe).mtimeMs;
       if (!meilleur || t > meilleur.t) meilleur = { exe, t };
     }
@@ -141,7 +148,7 @@ const SQL_STRUCTURE = `select
 async function main() {
   fs.mkdirSync(racine, { recursive: true });
   const cliExe = trouverCli();
-  if (!cliExe) throw new Error('CLI Supabase introuvable dans le cache npx');
+  if (!cliExe) throw new Error(`CLI Supabase ${VERSION_CLI} introuvable dans le cache npx (lancer une fois : npx supabase@${VERSION_CLI} --version)`);
   await assurerDocker();
   fs.mkdirSync(travail);
 

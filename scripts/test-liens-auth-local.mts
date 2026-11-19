@@ -8,7 +8,7 @@ import { execSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { analyserLienAuth } from '../src/services/lienAuth.ts';
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
 const ANON: string = statut.ANON_KEY;
 import { exigerHoteLocal } from './garde-hote.mjs';

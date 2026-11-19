@@ -4,7 +4,7 @@
 //   3. le bucket de la sauvegarde contient les 3 photos (et le nombre de fichiers du bucket sauvegardé = celui du bucket) ;
 //   4. scripts/restaurer-sauvegarde.mjs (db reset local, puis restauration) ;
 //   5. les 3 photos sont RETROUVÉES aux mêmes chemins, mêmes SHA-256 (téléchargées par l'API), et academic_years.photo_path pointe vers elles.
-// ⚠ La restauration réinitialise la base locale : lancer ensuite `npx supabase@latest db reset --local` (règle du dépôt).
+// ⚠ La restauration réinitialise la base locale : lancer ensuite `npx supabase@3.2.0 db reset --local` (règle du dépôt).
 import { execSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'node:fs';
@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
 exigerHoteLocal(API);
 const admin = createClient(API, statut.SERVICE_ROLE_KEY, { auth: { persistSession: false } });
@@ -104,5 +104,5 @@ verifier('academic_years.photo_path pointe vers les 3 photos restaurées', sql(`
 const { data: liste } = await admin.storage.from('child-photos').list(enfant, { limit: 100 });
 verifier('l\'API de stockage compte 3 objets pour l\'enfant restauré', (liste ?? []).filter((o) => o.id).length === 3);
 console.log(echecs === 0 ? `── ${ok}/${ok} ──` : `── ${echecs} échec(s) sur ${ok + echecs} ──`);
-console.log('⚠ Maintenant : npx supabase@latest db reset --local');
+console.log('⚠ Maintenant : npx supabase@3.2.0 db reset --local');
 process.exitCode = echecs === 0 ? 0 : 1;

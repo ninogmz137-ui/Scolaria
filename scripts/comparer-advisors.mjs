@@ -1,4 +1,4 @@
-// Compare deux relevés d'advisors Supabase (sortie de `npx supabase@latest db advisors --linked`, enregistrée dans un fichier)
+// Compare deux relevés d'advisors Supabase (sortie de `npx supabase@3.2.0 db advisors --linked`, enregistrée dans un fichier)
 // PAR CLÉ « niveau | contrôle | objet » (cacheKey), jamais par nombre — même méthode qu'au cycle M36 (8 oct. 2026).
 // Ne lit que les deux fichiers : aucune base, aucun réseau.
 // Verdict OK seulement si : 0 ERROR après, et chaque clé NOUVELLE figure dans --attendu (les WARN déclarés et validés AVANT

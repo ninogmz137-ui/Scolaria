@@ -9,7 +9,7 @@ import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
 import { choisirPhoto, type LigneAnnee } from '../src/utils/photoAnnee.ts';
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 const API: string = statut.API_URL;
 exigerHoteLocal(API);
 const admin = createClient(API, statut.SERVICE_ROLE_KEY, { auth: { persistSession: false } });

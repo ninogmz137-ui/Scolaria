@@ -24,8 +24,9 @@ Toutes les commandes se tapent dans **PowerShell**, dans `C:\Users\admin\Scolari
 
 | # | Commande | Ce que vous devez voir |
 |---|----------|------------------------|
+| 0.0 | `New-Item -ItemType Directory -Force C:\Users\admin\ScolariaBackups\migrations-en-attente` | le dossier est listé (ou déjà présent : aucune erreur) |
 | 0.1 | `git status` | `On branch archi-lot-3c` (elle contient tout le lot 3b ; `archi-lot-3b` convient aussi) et `nothing to commit, working tree clean` |
-| 0.2 | `npx supabase@latest --version` | `3.2.0` |
+| 0.2 | `npx supabase@3.2.0 --version` | `3.2.0` |
 | 0.3 | `Get-Content supabase\.temp\project-ref` | `nmizwmymhqleasnxcyvu` (Paris) |
 | 0.4 | `Test-Path .env.local` | `False` |
 
@@ -53,22 +54,22 @@ utilisent `--remote`. Le script de sauvegarde garde `--linked`, accepté par la 
 | 1.4 | `node scripts/sauvegarde-semaine.mjs --racine 'C:\Users\admin\ScolariaBackups\avant_M38_cycle'` | se termine sans erreur ; `Get-Content C:\Users\admin\ScolariaBackups\avant_M38_cycle\journal.log -Tail 1` montre `OK \| linked \| AAAA-MM-JJ_HHmm \| … tables, … lignes, … fichiers` |
 | 1.5 | `Get-ChildItem C:\Users\admin\ScolariaBackups\avant_M38_cycle -Directory` | un dossier `AAAA-MM-JJ_HHmm` (notez son nom) |
 | 1.6 | `node scripts/verifier-sauvegarde.mjs 'C:\Users\admin\ScolariaBackups\avant_M38_cycle\AAAA-MM-JJ_HHmm'` | dernière ligne `VÉRIFICATION RÉUSSIE.` |
-| 1.7 | `npx supabase@latest db advisors --remote --output-format json \| Out-File -Encoding utf8 C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt` | rien (le fichier est créé) |
+| 1.7 | `npx supabase@3.2.0 db advisors --remote --output-format json \| Out-File -Encoding utf8 C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt` | rien (le fichier est créé) |
 | 1.8 | `node scripts/comparer-advisors.mjs C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt` | `Avant : 0 ERROR, 103 WARN, 0 INFO`. **Un autre nombre : arrêt**, m'envoyer le fichier (une version plus récente du contrôleur peut avoir ajouté des avertissements déjà présents ; à trier avant d'appliquer) |
-| 1.9 | `npx supabase@latest db push --remote --dry-run --skip-vault` | **une seule** migration listée : `20261118100000_m38_lectures_mot.sql`. Deux ou plus : arrêt |
-| 1.10 | `npx supabase@latest db push --remote --skip-vault` | **commande seule**. Répondre `Y` à la confirmation ; voir `Applying migration 20261118100000_m38_lectures_mot.sql...` puis `Finished supabase db push.` |
-| 1.11 | `npx supabase@latest db query --remote --read-only "select p.prosecdef as definer, p.proconfig as config, has_function_privilege('anon', p.oid, 'execute') as anon, has_function_privilege('authenticated', p.oid, 'execute') as authentifie from pg_proc p where p.proname = 'lectures_mot'"` | une ligne : `definer` vrai, `config` = `search_path=""`, `anon` faux, `authentifie` vrai |
-| 1.12 | `npx supabase@latest migration list --remote` | la ligne `20261118100000` a la même valeur en Local et en Remote |
-| 1.13 | `npx supabase@latest db advisors --remote --output-format json \| Out-File -Encoding utf8 C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-apres.txt` | rien |
+| 1.9 | `npx supabase@3.2.0 db push --remote --dry-run --skip-vault` | **une seule** migration listée : `20261118100000_m38_lectures_mot.sql`. Deux ou plus : arrêt |
+| 1.10 | `npx supabase@3.2.0 db push --remote --skip-vault` | **commande seule**. Répondre `Y` à la confirmation ; voir `Applying migration 20261118100000_m38_lectures_mot.sql...` puis `Finished supabase db push.` |
+| 1.11 | `npx supabase@3.2.0 db query --remote --read-only "select p.prosecdef as definer, p.proconfig as config, has_function_privilege('anon', p.oid, 'execute') as anon, has_function_privilege('authenticated', p.oid, 'execute') as authentifie from pg_proc p where p.proname = 'lectures_mot'"` | une ligne : `definer` vrai, `config` = `search_path=""`, `anon` faux, `authentifie` vrai |
+| 1.12 | `npx supabase@3.2.0 migration list --remote` | la ligne `20261118100000` a la même valeur en Local et en Remote |
+| 1.13 | `npx supabase@3.2.0 db advisors --remote --output-format json \| Out-File -Encoding utf8 C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-apres.txt` | rien |
 | 1.14 | `node scripts/comparer-advisors.mjs C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-apres.txt --attendu "authenticated_security_definer_function_executable_public_lectures_mot_p_mot_id uuid"` | `Nouvelles clés (1)` marquée `attendue`, `Clés disparues (0)`, `VERDICT : OK` |
 | 1.15 | `Move-Item C:\Users\admin\ScolariaBackups\migrations-en-attente\20261118110000_m39_mot_complet.sql supabase\migrations\` | rien |
 | 1.16 | `Move-Item C:\Users\admin\ScolariaBackups\migrations-en-attente\20261118120000_m40_annonce_seule.sql supabase\migrations\` | rien |
 | 1.17 | `git status` | `nothing to commit, working tree clean` |
 
 **Si 1.14 dit ARRÊT** (ou si 1.10 échoue après avoir commencé) — retour en arrière :
-1. `npx supabase@latest db query --remote -f supabase\migrations_down\20261118100000_m38_lectures_mot_down.sql` (répondre `Y` si demandé)
-2. `npx supabase@latest migration repair --status reverted 20261118100000 --remote`
-3. `npx supabase@latest migration list --remote` : `20261118100000` n'a plus de valeur en Remote.
+1. `npx supabase@3.2.0 db query --remote -f supabase\migrations_down\20261118100000_m38_lectures_mot_down.sql` (répondre `Y` si demandé)
+2. `npx supabase@3.2.0 migration repair --status reverted 20261118100000 --remote`
+3. `npx supabase@3.2.0 migration list --remote` : `20261118100000` n'a plus de valeur en Remote.
 4. Remettre M39 et M40 (1.15, 1.16), puis m'envoyer les sorties. La sauvegarde de 1.4 n'est à restaurer que si une donnée a
    été touchée — M38 n'en touche aucune.
 
@@ -89,9 +90,9 @@ Même déroulé que le cycle 1, avec ces différences :
 | 2.3 | `git status --short` : une seule ligne ` D …m40…` |
 | 2.4-2.8 | Dossier `C:\Users\admin\ScolariaBackups\avant_M39_cycle` partout. En 2.8 : `Avant : 0 ERROR, 104 WARN, 0 INFO` (103 + celui de M38) |
 | 2.9 | Essai à blanc : **seule** `20261118110000_m39_mot_complet.sql` |
-| 2.10 | `npx supabase@latest db push --remote --skip-vault`, commande seule, `Y` |
-| 2.11 | `npx supabase@latest db query --remote --read-only "select table_name, column_name from information_schema.columns where table_schema = 'public' and ((table_name = 'mots_liaison' and column_name in ('question', 'question_libelle')) or (table_name = 'teacher_messages' and column_name = 'mot_id')) order by 1, 2"` → 3 lignes (`mots_liaison question`, `mots_liaison question_libelle`, `teacher_messages mot_id`) |
-| 2.11 bis | `npx supabase@latest db query --remote --read-only "select has_column_privilege('authenticated', 'public.teacher_messages', 'text', 'update') as texte, has_column_privilege('authenticated', 'public.teacher_messages', 'read', 'update') as lu"` → `texte` faux, `lu` vrai |
+| 2.10 | `npx supabase@3.2.0 db push --remote --skip-vault`, commande seule, `Y` |
+| 2.11 | `npx supabase@3.2.0 db query --remote --read-only "select table_name, column_name from information_schema.columns where table_schema = 'public' and ((table_name = 'mots_liaison' and column_name in ('question', 'question_libelle')) or (table_name = 'teacher_messages' and column_name = 'mot_id')) order by 1, 2"` → 3 lignes (`mots_liaison question`, `mots_liaison question_libelle`, `teacher_messages mot_id`) |
+| 2.11 bis | `npx supabase@3.2.0 db query --remote --read-only "select has_column_privilege('authenticated', 'public.teacher_messages', 'text', 'update') as texte, has_column_privilege('authenticated', 'public.teacher_messages', 'read', 'update') as lu"` → `texte` faux, `lu` vrai |
 | 2.14 | `node scripts/comparer-advisors.mjs …\avant_M39_cycle\advisors-avant.txt …\avant_M39_cycle\advisors-apres.txt` (**sans** `--attendu`) → `Nouvelles clés (0)`, `VERDICT : OK` |
 | 2.15 | Remettre M40 seulement |
 | Retour arrière | `supabase\migrations_down\20261118110000_m39_mot_complet_down.sql`, puis `migration repair --status reverted 20261118110000 --remote`. Attention : l'inverse retire les colonnes, donc les questions et les citations écrites entre-temps (aucune tant que l'app n'est pas publiée) |
@@ -113,8 +114,8 @@ supabase_privileged_role). Toute autre disparition : me l'envoyer.
 | 3.1-3.3 | Rien à ranger (M38 et M39 déjà appliquées) ; `git status` propre |
 | 3.4-3.8 | Dossier `C:\Users\admin\ScolariaBackups\avant_M40_cycle`. En 3.8 : `Avant : 0 ERROR, 104 WARN, 0 INFO` |
 | 3.9 | Essai à blanc : **seule** `20261118120000_m40_annonce_seule.sql` |
-| 3.10 | `npx supabase@latest db push --remote --skip-vault`, commande seule, `Y` |
-| 3.11 | `npx supabase@latest db query --remote --read-only "select tablename, policyname, cmd from pg_policies where tablename in ('class_post_reactions', 'messages') order by 1, 3"` → `class_post_reactions reactions_select SELECT`, `messages messages_select SELECT`, `messages messages_update UPDATE` (et rien d'autre) |
+| 3.10 | `npx supabase@3.2.0 db push --remote --skip-vault`, commande seule, `Y` |
+| 3.11 | `npx supabase@3.2.0 db query --remote --read-only "select tablename, policyname, cmd from pg_policies where tablename in ('class_post_reactions', 'messages') order by 1, 3"` → `class_post_reactions reactions_select SELECT`, `messages messages_select SELECT`, `messages messages_update UPDATE` (et rien d'autre) |
 | 3.14 | `comparer-advisors.mjs` sans `--attendu` → `Nouvelles clés (0)`, disparues = celles annoncées ci-dessus, `VERDICT : OK` |
 | Retour arrière | `supabase\migrations_down\20261118120000_m40_annonce_seule_down.sql`, puis `migration repair --status reverted 20261118120000 --remote` |
 

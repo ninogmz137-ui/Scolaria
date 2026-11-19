@@ -6,7 +6,7 @@
 //   npx supabase functions serve executer-effacements --no-verify-jwt
 import { execSync } from 'node:child_process';
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 import { exigerHoteLocal } from './garde-hote.mjs';
 exigerHoteLocal(statut.API_URL);
 const sql = (q: string) =>

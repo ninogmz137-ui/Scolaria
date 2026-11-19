@@ -37,7 +37,7 @@ if (existsSync('.env.local')) {
   process.exit(2);
 }
 
-const statut = JSON.parse(execSync('npx supabase@latest status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
+const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 exigerHoteLocal(statut.API_URL);
 if (!statut.ANON_KEY) {
   console.error('REFUS : `supabase status` ne donne pas de clé ANON_KEY (base locale arrêtée ?).');
