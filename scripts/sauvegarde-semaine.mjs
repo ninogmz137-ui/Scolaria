@@ -2,7 +2,7 @@
 // Destination HORS dépôt : C:\Users\admin\ScolariaBackups\hebdo\AAAA-MM-JJ_HHmm\ (conservées 56 jours = 8 semaines ; dossiers « avant_Mxx » du dossier parent : 30 jours).
 // Aucun secret ici : la CLI Supabase s'authentifie avec la session de l'utilisateur Windows (supabase login),
 // la base est jointe par un rôle temporaire. Rien n'est lu dans .env. Détails : tasks/sauvegarde.md.
-// Usage : node scripts/sauvegarde-semaine.mjs [--cible linked|local] [--racine <dossier>] [--jours-hebdo 56] [--jours-avant 30] [--purge-avant <dossier>]
+// Usage : node scripts/sauvegarde-semaine.mjs [--cible remote|local] [--racine <dossier>] [--jours-hebdo 56] [--jours-avant 30] [--purge-avant <dossier>]
 // (en Node et non en PowerShell : l'antivirus (Avast) supprimait les scripts .ps1 écrits dans le dépôt)
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -17,7 +17,10 @@ const arg = (nom, defaut) => {
   const i = process.argv.indexOf('--' + nom);
   return i >= 0 ? process.argv[i + 1] : defaut;
 };
-const cible = arg('cible', 'linked');
+// CLI 3.2.0 (19 nov. 2026) : la cible par défaut est la base LOCALE ; le projet lié (Paris) se désigne par --remote
+// (« --linked » est déprécié, « --local » inutile). « linked » reste accepté ici comme ancien nom de « remote ».
+const cibleDemandee = arg('cible', 'remote');
+const cible = cibleDemandee === 'linked' ? 'remote' : cibleDemandee;
 const racine = arg('racine', 'C:\\Users\\admin\\ScolariaBackups\\hebdo');
 const joursHebdo = Number(arg('jours-hebdo', String(JOURS_HEBDO)));
 const joursAvant = Number(arg('jours-avant', String(JOURS_AVANT)));
@@ -25,9 +28,10 @@ const joursAvant = Number(arg('jours-avant', String(JOURS_AVANT)));
 // une destination d'essai ne doit jamais faire supprimer les voisins.
 const DEFAUT = 'C:\\Users\\admin\\ScolariaBackups\\hebdo';
 const dossierAvant = arg('purge-avant', path.resolve(racine).toLowerCase() === DEFAUT.toLowerCase() ? path.dirname(racine) : '');
-if (!['linked', 'local'].includes(cible)) throw new Error('--cible : linked ou local');
+if (!['remote', 'local'].includes(cible)) throw new Error('--cible : remote (Paris, défaut) ou local');
 refuserDansDepot(racine, depot, 'la destination (--racine)');
-const flag = '--' + cible;
+/** Options de cible ajoutées à chaque commande : `--remote` pour Paris, rien pour la base locale (défaut de la CLI). */
+const flag = cible === 'remote' ? ['--remote'] : [];
 /** Buckets sauvegardés (child-photos : seulement s'il existe, c'est-à-dire après M35). */
 const BUCKETS = ['carnet', 'child-photos'];
 
@@ -38,9 +42,14 @@ const nom = `${horodatage(debut)}_${pad(debut.getHours())}${pad(debut.getMinutes
 const travail = path.join(racine, '.en-cours-' + nom);
 const journal = path.join(racine, 'journal.log');
 
+// Journal en UTF-8 AVEC BOM : sans lui, Windows PowerShell 5.1 (Get-Content) le lit en ANSI et affiche « Ã© » pour « é ».
+// Un journal existant sans BOM (son contenu est déjà en UTF-8) reçoit le BOM une fois, en tête.
+const BOM = Buffer.from([0xef, 0xbb, 0xbf]);
 function ecrireJournal(statut, detail) {
   const d = new Date();
   const ligne = `${horodatage(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} | ${statut} | ${cible} | ${nom} | ${detail}\r\n`;
+  const existant = fs.existsSync(journal) ? fs.readFileSync(journal) : Buffer.alloc(0);
+  if (!existant.subarray(0, 3).equals(BOM)) fs.writeFileSync(journal, Buffer.concat([BOM, existant]));
   fs.appendFileSync(journal, ligne, 'utf8');
 }
 
@@ -66,14 +75,21 @@ function trouverCli() {
 }
 
 const court = (s, n = 300) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, n);
+/** Texte entier sur une ligne (journal) : aucune coupe, les retours à la ligne deviennent « ⏎ ». */
+const enLigne = (s) => String(s ?? '').trim().replace(/\r?\n+/g, ' ⏎ ').replace(/[ \t]+/g, ' ');
 
 // Lance la CLI ; échec si code de sortie non nul ; la sortie standard peut aller dans un fichier.
+// Entrée standard fermée : une demande de confirmation échoue aussitôt au lieu d'attendre une réponse.
+// En cas d'échec, l'erreur garde TOUTE la sortie d'erreur ET la sortie standard, sans coupe : avec --agent yes, la CLI
+// écrit la cause (objet JSON) sur la sortie standard ; stderr ne porte que les avertissements et la ligne « Target ».
 function cli(cliExe, args, { sortie, cwd = depot } = {}) {
-  const r = spawnSync(cliExe, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 28 });
+  const r = spawnSync(cliExe, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 1 << 28, stdio: ['ignore', 'pipe', 'pipe'] });
   if (sortie) fs.writeFileSync(sortie, r.stdout ?? '');
   if (r.error) throw new Error(`supabase ${args.slice(0, 2).join(' ')} : ${r.error.message}`);
   if (r.status !== 0) {
-    throw new Error(`supabase ${args.slice(0, 2).join(' ')} en échec (code ${r.status}) : ${court(r.stderr || r.stdout)}`);
+    throw new Error(
+      `supabase ${args.slice(0, 2).join(' ')} en échec (code ${r.status}) : stderr : ${enLigne(r.stderr) || '(vide)'} ⏎ stdout : ${enLigne(r.stdout) || '(vide)'}`,
+    );
   }
   return r.stdout ?? '';
 }
@@ -93,7 +109,9 @@ function extraireJson(brut, contexte) {
 function lireLignes(cliExe, sql, nomFichier) {
   const f = path.join(travail, nomFichier + '.sql');
   fs.writeFileSync(f, sql);
-  const brut = cli(cliExe, ['db', 'query', flag, '-f', f, '--agent', 'yes']);
+  // --read-only : transaction en lecture seule ; d'après l'aide de la CLI 3.2.0, une cible hébergée ne demande alors
+  // aucune confirmation (sans lui, la CLI demande de confirmer et la tâche planifiée, sans clavier, échoue). Jamais --yes.
+  const brut = cli(cliExe, ['db', 'query', ...flag, '--read-only', '-f', f, '--agent', 'yes']);
   fs.rmSync(f);
   return extraireJson(brut, `db query ${nomFichier}`).rows;
 }
@@ -153,9 +171,9 @@ async function main() {
   fs.mkdirSync(travail);
 
   // 1. Base : rôles, schéma, données (COPY). Le dump inclut auth.* (comptes), public.* et les métadonnées de storage.
-  cli(cliExe, ['db', 'dump', flag, '--role-only', '-f', path.join(travail, 'roles.sql')]);
-  cli(cliExe, ['db', 'dump', flag, '-f', path.join(travail, 'schema.sql')]);
-  cli(cliExe, ['db', 'dump', flag, '--data-only', '--use-copy', '-f', path.join(travail, 'data.sql')]);
+  cli(cliExe, ['db', 'dump', ...flag, '--role-only', '-f', path.join(travail, 'roles.sql')]);
+  cli(cliExe, ['db', 'dump', ...flag, '-f', path.join(travail, 'schema.sql')]);
+  cli(cliExe, ['db', 'dump', ...flag, '--data-only', '--use-copy', '-f', path.join(travail, 'data.sql')]);
   for (const f of ['roles.sql', 'schema.sql', 'data.sql']) {
     const t = fs.statSync(path.join(travail, f)).size;
     if (t < 200) throw new Error(`fichier ${f} vide ou tronqué (${t} octets)`);
@@ -184,12 +202,12 @@ async function main() {
   const parBucket = {};
   for (const bucket of BUCKETS.filter((b) => presents.includes(b))) {
     const liste = path.join(travail, `liste-${bucket}.txt`);
-    cli(cliExe, ['storage', 'ls', `ss:///${bucket}`, '-r', flag, '--experimental', '--agent', 'yes'], { sortie: liste });
+    cli(cliExe, ['storage', 'ls', `ss:///${bucket}`, '-r', ...flag, '--experimental', '--agent', 'yes'], { sortie: liste });
     const brutL = fs.readFileSync(liste, 'utf8');
     const attendus = (extraireJson(brutL, 'storage ls ' + bucket).paths ?? []).filter((p) => p && !p.endsWith('/'));
     if (attendus.length > 0) {
       // Destination RELATIVE : la CLI prend « C: » d'un chemin absolu pour un schéma d'URL ; --workdir garde le projet lié.
-      cli(cliExe, ['storage', 'cp', '-r', `ss:///${bucket}`, bucket, flag, '--experimental', '-j', '4', '--workdir', depot], {
+      cli(cliExe, ['storage', 'cp', '-r', `ss:///${bucket}`, bucket, ...flag, '--experimental', '-j', '4', '--workdir', depot], {
         cwd: fich,
         sortie: path.join(travail, 'copie.tmp'),
       });
@@ -244,7 +262,7 @@ try {
   fs.rmSync(travail, { recursive: true, force: true });
   try {
     fs.mkdirSync(racine, { recursive: true });
-    ecrireJournal('ECHEC', court(e?.message ?? e, 400));
+    ecrireJournal('ECHEC', enLigne(e?.message ?? e));
   } catch {
     console.error(String(e?.message ?? e));
   }

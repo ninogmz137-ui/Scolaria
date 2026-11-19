@@ -32,7 +32,9 @@ Toutes les commandes se tapent dans **PowerShell**, dans `C:\Users\admin\Scolari
 
 **À savoir sur la CLI 3.2.0** (constaté le 18 nov.) : la cible par défaut est désormais la base **locale**. Paris se désigne
 par `--remote`. L'ancien `--linked` marche encore mais est déprécié (retrait annoncé en v4) : les commandes ci-dessous
-utilisent `--remote`. Le script de sauvegarde garde `--linked`, accepté par la 3.2.0 (essai réussi en local le 18 nov.).
+utilisent `--remote`. Le script de sauvegarde aussi (19 nov.) : sur Paris, `db query` sans `--read-only` demande une
+confirmation, que la sauvegarde (sans clavier) ne peut pas donner (échec du 19 nov. à l'étape 1.4) ; ses requêtes passent
+donc toutes en `--read-only`, jamais `--yes`. Le journal garde désormais toute l'erreur (stderr et stdout) et s'écrit en UTF-8 avec BOM.
 `db advisors` sort du texte par défaut : il faut `--output-format json` pour la comparaison.
 
 ---
@@ -51,7 +53,7 @@ utilisent `--remote`. Le script de sauvegarde garde `--linked`, accepté par la 
 | 1.1 | `Move-Item supabase\migrations\20261118110000_m39_mot_complet.sql C:\Users\admin\ScolariaBackups\migrations-en-attente\` | rien |
 | 1.2 | `Move-Item supabase\migrations\20261118120000_m40_annonce_seule.sql C:\Users\admin\ScolariaBackups\migrations-en-attente\` | rien |
 | 1.3 | `git status --short` | exactement deux lignes ` D supabase/migrations/…m39…` et ` D …m40…` |
-| 1.4 | `node scripts/sauvegarde-semaine.mjs --racine 'C:\Users\admin\ScolariaBackups\avant_M38_cycle'` | se termine sans erreur ; `Get-Content C:\Users\admin\ScolariaBackups\avant_M38_cycle\journal.log -Tail 1` montre `OK \| linked \| AAAA-MM-JJ_HHmm \| … tables, … lignes, … fichiers` |
+| 1.4 | `node scripts/sauvegarde-semaine.mjs --racine 'C:\Users\admin\ScolariaBackups\avant_M38_cycle'` | se termine sans erreur ; `Get-Content C:\Users\admin\ScolariaBackups\avant_M38_cycle\journal.log -Tail 1` montre `OK \| remote \| AAAA-MM-JJ_HHmm \| … tables, … lignes, … fichiers` |
 | 1.5 | `Get-ChildItem C:\Users\admin\ScolariaBackups\avant_M38_cycle -Directory` | un dossier `AAAA-MM-JJ_HHmm` (notez son nom) |
 | 1.6 | `node scripts/verifier-sauvegarde.mjs 'C:\Users\admin\ScolariaBackups\avant_M38_cycle\AAAA-MM-JJ_HHmm'` | dernière ligne `VÉRIFICATION RÉUSSIE.` |
 | 1.7 | `npx supabase@3.2.0 db advisors --remote --output-format json \| Out-File -Encoding utf8 C:\Users\admin\ScolariaBackups\avant_M38_cycle\advisors-avant.txt` | rien (le fichier est créé) |
