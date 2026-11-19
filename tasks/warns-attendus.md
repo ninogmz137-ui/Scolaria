@@ -5,8 +5,10 @@
 Un WARN nouveau n'est jamais ajouté ici par la migration qui le crée : il est déclaré AVANT l'application et validé par l'utilisateur.*
 
 État mesuré après M33 : 0 ERROR, 0 INFO, 101 WARN, tous ci-dessous (liste étendue à 103 par la validation de M34 du 4 oct).
+**État mesuré le 19 nov. 2026, après M38, M39 et M40 : 0 ERROR, 0 INFO, 97 WARN**, tous ci-dessous (103 + `lectures_mot` de M38 − les 7
+WARN de `class_post_reactions` retirés par M40).
 
-## 1. authenticated_security_definer_function_executable — 32 fonctions (dont `annuler_invitation` et `renvoyer_invitation`, M34, validées par l'utilisateur le 4 oct 2026)
+## 1. authenticated_security_definer_function_executable — 33 fonctions (dont `annuler_invitation` et `renvoyer_invitation`, M34, validées par l'utilisateur le 4 oct 2026, et `lectures_mot`, M38, validée le 19 nov. 2026)
 Raison : ce sont des fonctions SECURITY DEFINER appelées par l'application (RPC) ou par des politiques RLS ; l'EXECUTE est retiré à
 PUBLIC et à `anon` (M32 et migrations antérieures), accordé à `authenticated` seulement, et chacune contrôle l'appelant (`auth.uid()`)
 à l'intérieur — vérifié par l'audit local (npm run audit:securite-local, 670 tests). Retirer l'EXECUTE à `authenticated` casserait les
@@ -35,6 +37,7 @@ authenticated_security_definer_function_executable | public.is_mot_teacher(p_mot
 authenticated_security_definer_function_executable | public.is_responsable(p_child_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.is_titulaire_annee(p_academic_year_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.is_titulaire_classe(p_classe_id uuid) / authenticated
+authenticated_security_definer_function_executable | public.lectures_mot(p_mot_id uuid) / authenticated
 authenticated_security_definer_function_executable | public.mes_effacements() / authenticated
 authenticated_security_definer_function_executable | public.mes_invitations() / authenticated
 authenticated_security_definer_function_executable | public.mot_expediteur(p_mot_id uuid) / authenticated
@@ -46,7 +49,7 @@ authenticated_security_definer_function_executable | public.responsables_enfant(
 authenticated_security_definer_function_executable | public.role_dans_fil(p_conversation_id uuid) / authenticated
 ```
 
-## 2. auth_rls_initplan — 48 politiques
+## 2. auth_rls_initplan — 47 politiques (« Anyone can react » retirée par M40, 19 nov.)
 Raison : performance seulement — `auth.uid()` / `current_setting()` réévalué par ligne au lieu de `(select auth.uid())`. Aucun effet de
 sécurité ; sans importance aux volumes actuels ; à corriger politique par politique quand une table grossit (une migration dédiée, pas
 avec une autre). Les politiques de `messages`, `deletion_requests`, `export_history`, `person_permissions`, `transfer_codes`,
@@ -70,7 +73,6 @@ auth_rls_initplan | public.class_events / class_events_teacher_delete
 auth_rls_initplan | public.class_events / class_events_teacher_insert
 auth_rls_initplan | public.class_events / class_events_teacher_select
 auth_rls_initplan | public.class_events / class_events_teacher_update
-auth_rls_initplan | public.class_post_reactions / Anyone can react
 auth_rls_initplan | public.class_post_seen / Parents mark seen
 auth_rls_initplan | public.class_post_seen / Teachers see who viewed
 auth_rls_initplan | public.class_posts / class_posts_teacher_delete
@@ -102,19 +104,13 @@ auth_rls_initplan | public.signatures / sig_parent_insert
 auth_rls_initplan | public.transfer_codes / transfer_owner
 ```
 
-## 3. multiple_permissive_policies — 21 (table / rôle)
+## 3. multiple_permissive_policies — 15 (table / rôle ; les 6 de `class_post_reactions` retirées par M40, 19 nov.)
 Raison : performance seulement — deux politiques permissives pour le même rôle et la même action (enseignant / famille) sur
-`class_events`, `class_posts`, `classes`, `class_post_reactions`, `class_post_seen`, `mots_liaison`. Voulu : une politique par profil
+`class_events`, `class_posts`, `classes`, `class_post_seen`, `mots_liaison`. Voulu : une politique par profil
 d'accès, plus lisible à auditer qu'une politique unique à OR. Les lignes « rôle système » (authenticator, dashboard_user…) sont la
 même table vue par les rôles internes de Supabase.
 ```
 multiple_permissive_policies | public.class_events / authenticated
-multiple_permissive_policies | public.class_post_reactions / anon
-multiple_permissive_policies | public.class_post_reactions / authenticated
-multiple_permissive_policies | public.class_post_reactions / authenticator
-multiple_permissive_policies | public.class_post_reactions / cli_login_postgres
-multiple_permissive_policies | public.class_post_reactions / dashboard_user
-multiple_permissive_policies | public.class_post_reactions / supabase_privileged_role
 multiple_permissive_policies | public.class_post_seen / anon
 multiple_permissive_policies | public.class_post_seen / authenticated
 multiple_permissive_policies | public.class_post_seen / authenticator
@@ -153,7 +149,9 @@ Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
-## À VALIDER avant application (déclarés le 18 nov. 2026, lot 3b — PAS encore dans la liste ci-dessus)
+## Lot 3b (déclarés le 18 nov. 2026, appliqués le 19 nov. 2026 : M38 → M39 → M40, chaque cycle « VERDICT : OK »)
+WARN de M38 validé par l'utilisateur le 18-19 nov. (« garde M38 telle quelle ») et déplacé en section 1. M39 : 0 nouveau, 0 disparu.
+M40 : 0 nouveau, 7 disparus (exactement ceux annoncés). Déclarations d'origine :
 - **M38** `lectures_mot` — 1 WARN attendu :
   `authenticated_security_definer_function_executable | public.lectures_mot(p_mot_id uuid) / authenticated`
   Raison : le compteur enseignant « ont lu » doit lire `read_receipts`, que seul son auteur peut lire (M30) ; SECURITY INVOKER

@@ -14,8 +14,11 @@ Le lot 3 ne demande donc que **trois cycles**, décrits ci-dessous. L'app des lo
 cycles (sans M39 : pas de question ni de « Répondre à » ; sans M38 : pas de compteur) : l'ordre app / base n'est pas contraignant.
 Inverses : `supabase/migrations_down/` (un fichier `…_down.sql` par migration), à appliquer seulement sur un « VERDICT : ARRÊT ».
 
-**État au 19 nov. 2026 : cycle 1 (M38) FAIT sur Paris, VERDICT : OK** (sauvegarde `avant_M38_cycle\2026-11-19_2021`
-vérifiée ; 104 WARN dont celui de M38, attendu). M39 et M40 : non appliquées.
+**État au 19 nov. 2026 : LES TROIS CYCLES SONT FAITS sur Paris, chacun « VERDICT : OK »** (lancés par Claude sur autorisation
+explicite, `--yes` à l'étape d'application seulement) :
+- M38 : sauvegarde `avant_M38_cycle\2026-11-19_2021` vérifiée ; 103 → 104 WARN (celui de M38, attendu).
+- M39 : sauvegarde `avant_M39_cycle\2026-11-19_2030` vérifiée ; 2.11 et 2.11 bis conformes ; 104 → 104, 0 nouveau, 0 disparu.
+- M40 : sauvegarde `avant_M40_cycle\2026-11-19_2032` vérifiée ; 3.11 conforme ; 104 → 97, 0 nouveau, exactement les 7 disparitions annoncées.
 
 **Confirmation de la CLI 3.2.0** : tapée dans PowerShell, `db push` (et `db query` sans `--read-only`) demande `Y`. Lancée sans
 clavier (par Claude), la CLI refuse (« HostedMutationConsentRequiredError … Nothing was changed ») : il faut alors `--yes`,
