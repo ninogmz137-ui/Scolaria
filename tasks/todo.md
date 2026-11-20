@@ -135,6 +135,13 @@
 4. Rendez-vous fixe : qui peut le modifier ou le supprimer ? *(Par défaut : tout responsable de l'enfant, comme la coche des devoirs.)*
 5. Hors lot, à confirmer : afficher dans l'Agenda les événements des mots datés (`mots_liaison.event_date`, ancien B6) ? *(Par défaut : non, cela relève du lot 7, quand l'enseignant pourra dater un mot ; aucun vrai mot n'a de date aujourd'hui.)*
 
+### LOT 4a — RÉSULTAT (20 nov., `archi-lot-4` poussée, d491242) — VÉRIFIÉ SUR LE REDMI (base locale), rien sur Paris, rien dans main
+- [x] M41 (locale, NON appliquée à Paris) : `agenda_coches` (fermée) + `coches_devoirs` ; auteur et heure de la coche visibles dans le foyer de l'auteur seulement, « Fait » ailleurs (règle des parents séparés, CLAUDE.md § Garde partagée, COMPONENTS §18.6). Tests SQL 11/11, aller-retour OK. WARN `coches_devoirs` à valider (warns-attendus.md).
+- [x] A4 : heure de Paris partout (`utils/jourParis`, 39 tests, 20 fichiers corrigés).
+- [x] Vue « Devoirs » réelle (Pour demain d'abord), ligne « Coché par » identique à l'Accueil, dans la vue par jour et dans « Devoirs » (`utils/devoirs`, 22 tests) ; coche partagée Accueil ↔ Agenda (`devoirsStore`, 9 tests) ; test-lot4a-local 20/20 ; HomeworkScreen retiré ; redmi-local sans mode CI.
+- [ ] Préexistant, hors lot : suite SQL `m31_limite_aria` T6 échoue (données de test du 11 nov. restées en base locale).
+- [ ] Suite : 4b (absence, M42), 4c (rendez-vous fixes, M43, vacances par zone), 4d ; procédure Paris des 3 migrations à la fin du lot.
+
 ### LOT 3c — PLAN (18 nov., branche `archi-lot-3c` créée depuis `archi-lot-3b`) — rien sur Paris, rien dans main
 Constat (base locale, lue le 18 nov.) : **aucune migration nécessaire**. Tout existe depuis M22 / M29 / M12 :
 fil `teacher_conversations` portée « foyer » (unique par enseignant + enfant + foyer ; lu et écrit par les responsables DU foyer, `est_du_foyer` ; un parent séparé = autre foyer = autre fil, ne voit rien), portée « individuel » (« Seulement moi ») ;
