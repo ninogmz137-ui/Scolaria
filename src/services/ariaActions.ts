@@ -13,14 +13,10 @@
  */
 
 import { aujourdhuiParis } from '../utils/jourParis';
-import {
-  type CreateAbsencePayload,
-  type AbsenceMotif,
-  type DemiJournee,
-  MOTIF_LABELS,
-  DEMI_JOURNEE_LABELS,
-  createAbsence,
-} from './absenceService';
+import { MOTIFS, libelleMotif, CONFIRMATION_ABSENCE, type MotifAbsence as AbsenceMotif, type DemiJournee } from '../utils/absences';
+import { signalerAbsence } from './absenceService';
+
+const DEMI_JOURNEE_LABELS: Record<DemiJournee, string> = { matin: 'Matin', apres_midi: 'Après-midi', journee: 'Journée' };
 import { sendMessage } from '../stores/messagerieStore';
 
 // ─── Types ───────────────────────────────────────────────
@@ -78,12 +74,7 @@ function parseParams(raw: string): Record<string, string> {
 
 /** Narrow a raw string to AbsenceMotif, falling back to 'maladie'. */
 function toMotif(raw: string | undefined): AbsenceMotif {
-  const valid: AbsenceMotif[] = [
-    'maladie',
-    'maladie_avec_certificat',
-    'raison_familiale',
-    'autre',
-  ];
+  const valid: AbsenceMotif[] = MOTIFS.map((m) => m.id);
   return valid.includes(raw as AbsenceMotif) ? (raw as AbsenceMotif) : 'maladie';
 }
 
@@ -158,6 +149,8 @@ export interface AriaActionContext {
   studentName?: string;
   studentAvatar?: string;
   parentName?: string;
+  /** Démo : l’absence reste en mémoire, jamais en base. */
+  demo?: boolean;
 }
 
 /**
@@ -175,26 +168,24 @@ export async function executeAriaAction(
       if (!context?.studentId) {
         return { success: false, message: "Impossible de signaler l'absence : aucun enfant sélectionné." };
       }
-      const payload: CreateAbsencePayload = {
-        student_id: context.studentId,
-        date_debut: action.date,
-        date_fin: null,
-        demi_journee: action.demi_journee,
-        motif: action.motif,
-        commentaire: null,
-      };
-
       try {
-        await createAbsence(
-          payload,
-          context?.parentName ?? 'Parent',
-          context?.studentName ?? 'Élève',
-          context?.studentAvatar ?? '👧',
+        await signalerAbsence(
+          {
+            childId: context.studentId,
+            prenom: (context.studentName ?? '').split(' ')[0],
+            dateDebut: action.date,
+            dateFin: null,
+            demiJournee: action.demi_journee,
+            motif: action.motif,
+            mot: null,
+            justificatif: null,
+          },
+          context.demo ?? false,
         );
         const dateFr = formatDateFrLong(action.date);
         return {
           success: true,
-          message: `✓ Absence signalée pour le ${dateFr}`,
+          message: `✓ ${CONFIRMATION_ABSENCE} (${dateFr})`,
         };
       } catch {
         return {
@@ -233,7 +224,7 @@ export function formatAriaActionLabel(action: AriaAction): {
 } {
   switch (action.type) {
     case 'ABSENCE': {
-      const motifLabel = MOTIF_LABELS[action.motif];
+      const motifLabel = libelleMotif(action.motif);
       const periodeLabel = DEMI_JOURNEE_LABELS[action.demi_journee];
       const dateFr = formatDateFrLong(action.date);
       return {

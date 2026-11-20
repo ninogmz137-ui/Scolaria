@@ -61,7 +61,6 @@ export const ROUTE_CHROME = {
   MessagesListScreen: 'full',
   FilMessages: 'none', // un fil par interlocuteur (lot 3a), page profonde
 
-  AbsencesListScreen: 'full',
   EcoleListScreen: 'full',
   MessagerieAriaScreen: 'none',
   ConversationDetailScreen: 'full',

@@ -33,6 +33,8 @@ export interface DemoTodo {
   doc?: DemoDoc;
   /** Mot du carnet à ouvrir (signature, réponse). */
   motId?: string;
+  /** Absence à justifier (lot 4b) : ouvre le formulaire en mode « justifier ». */
+  absenceId?: string;
 }
 
 export interface DemoAujourdhui {

@@ -64,7 +64,6 @@ import AriaConversationScreen from '../screens/aria/AriaConversationScreen';
 
 // Messagerie sub-screens
 import MessagesListScreen from '../screens/messagerie/MessagesListScreen';
-import AbsencesListScreen from '../screens/messagerie/AbsencesListScreen';
 import EcoleListScreen from '../screens/messagerie/EcoleListScreen';
 import ConversationDetailScreen from '../screens/messagerie/ConversationDetailScreen';
 import MotDetailScreen from '../screens/messagerie/MotDetailScreen';
@@ -137,7 +136,6 @@ const SCREEN_TITLES: Record<string, string> = {
   MessagerieAriaScreen: 'Aria',
   WallpaperPicker: 'Fond de l’Accueil',
   MessagesListScreen: 'Messages',
-  AbsencesListScreen: 'Absences',
   EcoleListScreen: 'École',
   ConversationDetailScreen: 'Conversation',
   MotDetailScreen: 'Mot à signer',
@@ -518,11 +516,6 @@ function MessagerieStackScreen() {
       <MessagerieStack.Screen
         name="MessagesListScreen"
         component={MessagesListScreen}
-        options={{ headerShown: false }}
-      />
-      <MessagerieStack.Screen
-        name="AbsencesListScreen"
-        component={AbsencesListScreen}
         options={{ headerShown: false }}
       />
       <MessagerieStack.Screen

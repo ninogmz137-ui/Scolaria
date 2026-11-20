@@ -301,6 +301,7 @@ function AriaConversationScreenContenu() {
       studentId: selectedChild?.id,
       studentName: selectedChild?.name,
       studentAvatar: (selectedChild?.name ?? '').charAt(0).toUpperCase(),
+      demo: isDemo,
     });
     setActionStatus(result.success ? 'success' : 'error');
     setActionResult(result.message);

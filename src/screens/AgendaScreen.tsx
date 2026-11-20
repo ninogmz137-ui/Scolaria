@@ -14,7 +14,6 @@ import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, au
 import { grouperDevoirs, libelleCoche, resteAFaire, type Devoir } from '../utils/devoirs';
 import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, chargerLignesSource, type AuteursCoche } from '../services/devoirsService';
 import PastilleCategorie from '../components/PastilleCategorie';
-import { categorieDiscipline } from '../theme/categories';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -51,6 +50,11 @@ import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents, createAgendaEvent } from '../services/database';
 import { signalerDevoirs } from '../stores/devoirsStore';
 import { useVersionDevoirs } from '../hooks/useVersionDevoirs';
+import { useVersionAbsences } from '../hooks/useVersionAbsences';
+import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
+import { couvreJour, texteCarteAbsence } from '../utils/absences';
+import { TEINTES, categorieDiscipline } from '../theme/categories';
+import { de } from '../utils/francais';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
@@ -94,7 +98,9 @@ interface AgendaEvent {
   title: string;
   time: string;
   endTime?: string;
-  type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie';
+  type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie' | 'absence';
+  /** Carte « Absence » (lot 4b) : l'absence et si je peux encore la justifier. */
+  absence?: { id: string; aJustifier: boolean };
   subject?: string;
   location?: string;
   description?: string;
@@ -105,13 +111,14 @@ interface AgendaEvent {
 }
 
 /**
- * Ordre d'une journée : les devoirs d'abord (sans horaire, « pour aujourd'hui »), puis tout le
+ * Ordre d'une journée : l'absence d'abord, puis les devoirs (sans horaire, « pour aujourd'hui »), puis tout le
  * reste par heure, tous types confondus.
  */
 function trierJournee(events: AgendaEvent[]): AgendaEvent[] {
+  const rang = (e: AgendaEvent) => (e.type === 'absence' ? 0 : e.type === 'devoir' ? 1 : 2);
   return [...events].sort((a, b) => {
-    const da = a.type === 'devoir' ? 0 : 1;
-    const db = b.type === 'devoir' ? 0 : 1;
+    const da = rang(a);
+    const db = rang(b);
     if (da !== db) return da - db;
     return a.time.localeCompare(b.time);
   });
@@ -216,10 +223,12 @@ function buildCalendarGrid(
 const DEFAULT_COLOR: Record<AgendaEvent['type'], string> = {
   cours: Colors.violet, devoir: Colors.orange, examen: Colors.red,
   activite: Colors.cyan, reunion: Colors.violet, sortie: Colors.cyan,
+  // Absence : teinte « ardoise » des types de contenu (src/theme/categories.ts).
+  absence: TEINTES.ardoise.icone,
 };
 const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
   cours: 'Cours', devoir: 'Devoir', examen: 'Examen',
-  activite: 'Activité', reunion: 'Réunion', sortie: 'Sortie',
+  activite: 'Activité', reunion: 'Réunion', sortie: 'Sortie', absence: 'Absence',
 };
 
 // ─── Animated checkbox ────────────────────────────────────
@@ -351,6 +360,9 @@ function AgendaScreenContent() {
   const [versionDevoirs, setVersionDevoirs] = useState(0);
   // Coches faites n'importe où (Accueil compris) : la semaine et la vue « Devoirs » se rechargent.
   const versionDevoirsPartagee = useVersionDevoirs(selectedChildId);
+  // Absence signalée ou justifiée n'importe où : la semaine se recharge.
+  const versionAbsencesPartagee = useVersionAbsences(selectedChildId);
+  const prenomEnfant = (selectedChild?.name ?? '').split(' ')[0];
 
   const isSelectedToday = useMemo(
     () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
@@ -528,6 +540,34 @@ function AgendaScreenContent() {
     if (!selectedChildId) return;
     const computed = buildWeekDays(referenceDate);
     setWeekDays(computed);
+    // Absences signalées (lot 4b) : une carte « Absence » chaque jour couvert.
+    let absences: AbsenceLue[] = [];
+    try {
+      absences = await chargerAbsences(selectedChildId, isDemoMode);
+    } catch (e) {
+      setErreurAgenda(classerErreur(e));
+      return;
+    }
+    const moiAbsences = isDemoMode ? 'demo-moi' : user?.id;
+    const ajouterAbsences = (grouped: Record<number, AgendaEvent[]>) => {
+      for (const jour of computed) {
+        const iso = jourDeDate(jour.fullDate);
+        for (const a of absences.filter((x) => couvreJour(x, iso))) {
+          const carte: AgendaEvent = {
+            id: `absence-${a.id}-${iso}`,
+            title: `Absence ${de(prenomEnfant)}`,
+            time: '',
+            type: 'absence',
+            description: a.commentaire ?? undefined,
+            color: DEFAULT_COLOR.absence,
+            absence: { id: a.id, aJustifier: a.signalee_par === moiAbsences && !a.justificatif_path },
+            coche: texteCarteAbsence(a),
+          };
+          grouped[jour.date] = trierJournee([...(grouped[jour.date] ?? []), carte]);
+        }
+      }
+      return grouped;
+    };
 
     setSelectedDay((prev) => {
       const isCurrentWeek = computed.some((d) => d.isToday);
@@ -579,11 +619,8 @@ function AgendaScreenContent() {
           })));
         }
       }
-      if (Object.keys(grouped).length === 0) {
-        setEventsByDay({});
-      } else {
-        setEventsByDay(grouped);
-      }
+      ajouterAbsences(grouped);
+      setEventsByDay(Object.keys(grouped).length === 0 ? {} : grouped);
       return;
     }
 
@@ -607,7 +644,7 @@ function AgendaScreenContent() {
     }
     setErreurAgenda(null);
     const rows = result?.data ?? [];
-    if (rows.length === 0) { setEventsByDay({}); return; }
+    if (rows.length === 0) { setEventsByDay(ajouterAbsences({})); return; }
     let lignesSource = new Map<string, string | null>();
     try {
       lignesSource = await chargerLignesSource(selectedChildId, rows as any[]);
@@ -641,8 +678,8 @@ function AgendaScreenContent() {
       grouped[dayNum].push(mapped);
     }
     for (const jour of Object.keys(grouped)) grouped[Number(jour)] = trierJournee(grouped[Number(jour)]);
-    setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours, versionDevoirsPartagee]);
+    setEventsByDay(ajouterAbsences(grouped));
+  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours, versionDevoirsPartagee, versionAbsencesPartagee, user?.id, prenomEnfant]);
 
   const filtrePrecedent = useRef(activeFilter);
   useEffect(() => {
@@ -825,6 +862,28 @@ function AgendaScreenContent() {
 
   // ─── Render event card ─────────────────────────────────
   const renderEventCard = (event: AgendaEvent, jour: Date) => {
+    if (event.type === 'absence') {
+      const justifier = event.absence?.aJustifier;
+      return (
+        <TouchableOpacity
+          key={event.id}
+          disabled={!justifier}
+          onPress={() => navigation.navigate('MainPager', { screen: 'MessagerieTab', params: { screen: 'SignalerAbsence', params: { absenceId: event.absence?.id }, initial: false } })}
+          activeOpacity={0.8}
+          accessibilityRole={justifier ? 'button' : undefined}
+          style={[st.eventCard, { borderLeftColor: event.color, backgroundColor: withAlpha(event.color, 0.08) }]}
+        >
+          <View style={st.eventInner}>
+            <View style={{ flex: 1 }}>
+              <Text style={st.eventCategorie}>Absence</Text>
+              <Text style={st.eventTitle}>{event.title}</Text>
+              <Text style={st.eventMeta}>{event.coche}</Text>
+              {justifier ? <Text style={st.eventSource}>À justifier · ajouter un justificatif</Text> : null}
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }
     const isExam = event.type === 'examen';
     const isDevoir = event.type === 'devoir';
     // Maternelle / primaire : « Évaluation », tag neutre (jamais « Examen », jamais rouge).
@@ -1744,6 +1803,13 @@ const st = StyleSheet.create({
     color: '#FFFFFF',
   },
 
+  // Libellé de catégorie écrit dans la carte (COMPONENTS « Card événement Agenda ») : Figtree 600 · 11 px.
+  eventCategorie: {
+    fontFamily: FontFamily.sansSemiBold,
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.55)',
+    marginBottom: 2,
+  },
   // Ligne source d'un devoir coché dans la vue par jour (sur sa propre ligne, sous l'échéance).
   eventSource: {
     fontFamily: FontFamily.sansRegular,

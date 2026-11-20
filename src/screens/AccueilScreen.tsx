@@ -35,13 +35,15 @@ import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import { usePhotoUrl } from '../hooks/usePhotoUrl';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { monNomComplet, type MotCarnet } from '../services/motsService';
-import JustifierAbsenceSheet from '../components/JustifierAbsenceSheet';
+import { useAbsences } from '../hooks/useAbsences';
+import { aJustifier, periodeAbsence } from '../utils/absences';
+import { aujourdhuiParis, decalerJour, demainParis } from '../utils/jourParis';
 import { C, RADIUS, SHADOW } from '../constants/design';
 import { Text } from '../components/ui';
 import { de } from '../utils/francais';
 import { useDemoData } from '../contexts/DemoContext';
 import { getConversations } from '../stores/messagerieStore';
-import { construireAccueilDemo, isoJour, todoDepuisMots } from '../data/demo/accueil';
+import { construireAccueilDemo, isoJour, todoDepuisMots, type DemoTodo } from '../data/demo/accueil';
 import { useMotsEnfant } from '../hooks/useMotsEnfant';
 import EtatErreur from '../components/EtatErreur';
 import { useCarnetReel } from '../hooks/useCarnetReel';
@@ -134,7 +136,7 @@ export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { selectedChild, children: enfants } = useActiveChild();
-  const { isDemo } = useAuth();
+  const { isDemo, user } = useAuth();
   const scrollHandler = useTopbarScrollHandler();
 
   // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : vide tant que
@@ -180,18 +182,25 @@ export default function AccueilScreen() {
   const premierDegre = !aDesNotes(selectedChild?.cycle);
   const primaire = selectedChild?.cycle === 'primaire';
   const agenda = useAgendaSemaine(selectedChild?.id, isDemo, premierDegre);
+  // « À justifier » (lot 4b) : mes absences signalées sans justificatif, de moins de 30 jours.
+  const absencesEnfant = useAbsences(selectedChild?.id, isDemo);
+  const absencesAJustifier = useMemo(
+    () => aJustifier(absencesEnfant.absences, isDemo ? 'demo-moi' : user?.id, decalerJour(aujourdhuiParis(), -30)),
+    [absencesEnfant.absences, isDemo, user?.id],
+  );
   const anneesEnfant = useAnneesEnfant(selectedChild?.id, isDemo);
   const { coches, basculer: basculerCoche } = useCoches(selectedChild?.id);
   const [monNom, setMonNom] = useState('vous');
   useEffect(() => {
     if (selectedChild?.id) monNomComplet(selectedChild.id, isDemo).then(setMonNom);
   }, [selectedChild?.id, isDemo]);
-  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur;
+  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur ?? absencesEnfant.erreur;
   // Carnet ENTIÈREMENT vide (toutes les tables du carnet à 0, chargement fini, aucune erreur) : compte réel seulement.
   const carnetVide = useCarnetVide(selectedChild?.id, isDemo, !!erreurAccueil, versionCarnet);
   const reessayerAccueil = () => {
     reel.recharger();
     agenda.recharger();
+    absencesEnfant.recharger();
     rechargerMots();
     rechargerCarnet();
   };
@@ -220,10 +229,14 @@ export default function AccueilScreen() {
       conversations: getConversations(selectedChild.id),
     });
   }, [isDemo, selectedChild, getAgenda, mots, reel.aujourdhui]);
+  // Collège / lycée : absences à justifier en tête de « À faire » (lot 4b).
+  const todoAffiche: DemoTodo[] = [
+    ...absencesAJustifier.map((a) => ({ kind: 'justifier' as const, title: 'Absence à justifier', deadline: periodeAbsence(a, aujourdhuiParis(), demainParis()), absenceId: a.id })),
+    ...accueil.todo,
+  ];
   const avecNotes = aDesNotes(selectedChild?.cycle);
   const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
 
-  const [justifierVisible, setJustifierVisible] = useState(false);
   // Photo de l'enfant : comptes réels seulement (démo : initiales). Le badge de l'en-tête suffit, aucune relance.
   const [photoVisible, setPhotoVisible] = useState(false);
   const photoUri = usePhotoUrl(selectedChild);
@@ -300,6 +313,8 @@ export default function AccueilScreen() {
             demo={isDemo}
             evenements={agenda.evenements}
             onBasculerDevoir={agenda.basculer}
+            aJustifier={absencesAJustifier}
+            onJustifier={(a) => nav.navigate('SignalerAbsenceScreen', { absenceId: a.id })}
             coches={coches}
             onBasculerCoche={basculerCoche}
             apprentissages={derniersApprentissages}
@@ -312,18 +327,18 @@ export default function AccueilScreen() {
         ) : (
           <>
         {/* À faire (collège / lycée : contenu inchangé) */}
-        {accueil.todo.length > 0 && (
+        {todoAffiche.length > 0 && (
           <>
             <LibelleSurFondu texte="À faire" hauteur={hauteurFondu} />
             <View style={styles.cardOuter}>
               <View style={styles.cardInner}>
-                {accueil.todo.map((it, i) => (
+                {todoAffiche.map((it, i) => (
                   <ActionRow
                     key={i}
                     {...it}
-                    last={i === accueil.todo.length - 1}
+                    last={i === todoAffiche.length - 1}
                     onPress={
-                      it.kind === 'justifier' ? () => setJustifierVisible(true) :
+                      it.kind === 'justifier' && it.absenceId ? () => nav.navigate('SignalerAbsenceScreen', { absenceId: it.absenceId }) :
                       it.motId ? () => nav.navigate('MotDetailScreen', { motId: it.motId, childId: selectedChild.id }) :
                       undefined
                     }
@@ -462,10 +477,6 @@ export default function AccueilScreen() {
       {selectedChild && !isDemo && PHOTO_ENFANT_ACTIVE ? (
         <FeuillePhotoEnfant child={selectedChild} visible={photoVisible} onClose={() => setPhotoVisible(false)} />
       ) : null}
-      <JustifierAbsenceSheet
-        visible={justifierVisible}
-        onClose={() => setJustifierVisible(false)}
-      />
     </View>
   );
 }

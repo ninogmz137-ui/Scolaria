@@ -1,378 +1,183 @@
 /**
- * Absence Service — CRUD operations for student absences.
+ * absenceService — absence signalée par le parent (lot 4b, M42).
  *
- * Parents signal absences; teachers acknowledge them.
- * Falls back to mock data in demo mode.
+ * - Un enfant = un carnet : toujours UN enfant (student_id).
+ * - Démo : JAMAIS d'écriture en base (avant le 20 nov. : le repli démo dépendait de la configuration Supabase et la
+ *   démo écrivait dans la vraie table). Les absences de démo vivent en mémoire (stores/absencesStore).
+ * - Justificatif facultatif : fichier préparé (photo réencodée sans métadonnées ou PDF, utils carnetImport), déposé
+ *   dans le bucket privé « carnet » au chemin <enfant>/<année>/<uuid>.<ext>, lu par URL signée d'1 h ; lisible par
+ *   les responsables de l'enfant et le titulaire de sa classe seulement (M42).
+ * - Aucune notification n'est envoyée, aucun statut « vu » : rien ne le promet (CONFIRMATION_ABSENCE).
+ * - Base sans M42 (Paris avant le cycle) : motif « rendez_vous » et justificatif refusés par la base → message clair.
  */
-
-import { aujourdhuiParis, dateAujourdhuiParis } from '../utils/jourParis';
 import { supabase } from './supabase';
-import { ENV } from './getEnv';
+import { classerErreur } from './erreurs';
+import type { FichierPrepare } from './carnetImport';
+import type { AbsenceLue, DemiJournee, MotifAbsence } from '../utils/absences';
+import { absencesDemo, ajouterAbsenceDemo, remplacerAbsenceDemo, signalerAbsences } from '../stores/absencesStore';
 
-// ─── Helper ──────────────────────────────────────────────
+export type { AbsenceLue } from '../utils/absences';
 
-function isSupabaseConfigured(): boolean {
-  const url = ENV.SUPABASE_URL;
-  return !!url && url.length > 0 && !url.includes('your-');
+export class ErreurAbsence extends Error {}
+
+function erreurEcriture(error: unknown, defaut: string): ErreurAbsence {
+  const type = classerErreur(error);
+  if (type === 'reseau') return new ErreurAbsence('Pas de connexion : rien n’a été envoyé, votre saisie est conservée. Réessayez quand le réseau est revenu.');
+  if (type === 'session') return new ErreurAbsence('Votre session a expiré : reconnectez-vous, puis recommencez.');
+  return new ErreurAbsence(defaut);
 }
 
-// ─── Types ───────────────────────────────────────────────
-
-export type AbsenceMotif =
-  | 'maladie'
-  | 'maladie_avec_certificat'
-  | 'raison_familiale'
-  | 'autre';
-
-export type AbsenceStatut = 'signalée' | 'prise_en_compte';
-
-export type DemiJournee = 'matin' | 'apres_midi' | 'journee';
-
-export interface Absence {
-  id: string;
-  student_id: string;
-  student_name: string;
-  student_avatar: string;
-  academic_year_id: string;
-  date_debut: string; // YYYY-MM-DD
-  date_fin: string | null; // null = single day
-  demi_journee: DemiJournee;
-  motif: AbsenceMotif;
-  commentaire: string | null;
-  statut: AbsenceStatut;
-  signalee_par: string; // parent user id
-  created_at: string;
-}
-
-export interface CreateAbsencePayload {
-  student_id: string;
-  date_debut: string;
-  date_fin: string | null;
-  demi_journee: DemiJournee;
-  motif: AbsenceMotif;
-  commentaire: string | null;
-}
-
-// ─── Motif labels ────────────────────────────────────────
-
-export const MOTIF_LABELS: Record<AbsenceMotif, string> = {
-  maladie: 'Maladie',
-  maladie_avec_certificat: 'Maladie avec certificat',
-  raison_familiale: 'Raison familiale',
-  autre: 'Autre',
-};
-
-export const MOTIF_ICONS: Record<AbsenceMotif, string> = {
-  maladie: '🤒',
-  maladie_avec_certificat: '🏥',
-  raison_familiale: '👨‍👩‍👧',
-  autre: '📝',
-};
-
-export const DEMI_JOURNEE_LABELS: Record<DemiJournee, string> = {
-  matin: 'Matin',
-  apres_midi: 'Après-midi',
-  journee: 'Journée entière',
-};
-
-// ─── Mock data ───────────────────────────────────────────
-
-const MOCK_ABSENCES: Absence[] = [
-  {
-    id: 'abs-1',
-    student_id: 'demo-lucas',
-    student_name: 'Lucas Moreau',
-    student_avatar: '👦',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-03-25',
-    date_fin: null,
-    demi_journee: 'journee',
-    motif: 'maladie',
-    commentaire: 'Fièvre depuis hier soir',
-    statut: 'prise_en_compte',
-    signalee_par: 'parent-1',
-    created_at: '2026-03-25T07:30:00Z',
-  },
-  {
-    id: 'abs-2',
-    student_id: 'demo-lucas',
-    student_name: 'Lucas Moreau',
-    student_avatar: '👦',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-03-10',
-    date_fin: '2026-03-12',
-    demi_journee: 'journee',
-    motif: 'maladie_avec_certificat',
-    commentaire: 'Gastro-entérite — certificat médical transmis',
-    statut: 'prise_en_compte',
-    signalee_par: 'parent-1',
-    created_at: '2026-03-10T07:15:00Z',
-  },
-  {
-    id: 'abs-3',
-    student_id: 'demo-emma',
-    student_name: 'Emma Moreau',
-    student_avatar: '👩',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-03-27',
-    date_fin: null,
-    demi_journee: 'matin',
-    motif: 'raison_familiale',
-    commentaire: 'Rendez-vous médical',
-    statut: 'signalée',
-    signalee_par: 'parent-1',
-    created_at: '2026-03-26T20:00:00Z',
-  },
-  {
-    id: 'abs-4',
-    student_id: 'demo-lea',
-    student_name: 'Léa Moreau',
-    student_avatar: '👧',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-02-14',
-    date_fin: null,
-    demi_journee: 'apres_midi',
-    motif: 'autre',
-    commentaire: null,
-    statut: 'prise_en_compte',
-    signalee_par: 'parent-1',
-    created_at: '2026-02-14T08:00:00Z',
-  },
-];
-
-// Teacher mock — all class absences
-const MOCK_CLASS_ABSENCES: Absence[] = [
-  ...MOCK_ABSENCES,
-  {
-    id: 'abs-5',
-    student_id: 's4',
-    student_name: 'Adam P.',
-    student_avatar: '👦',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-03-27',
-    date_fin: null,
-    demi_journee: 'journee',
-    motif: 'maladie',
-    commentaire: 'Angine',
-    statut: 'signalée',
-    signalee_par: 'parent-4',
-    created_at: '2026-03-27T07:00:00Z',
-  },
-  {
-    id: 'abs-6',
-    student_id: 's5',
-    student_name: 'Chloé R.',
-    student_avatar: '👧',
-    academic_year_id: 'ay-2025',
-    date_debut: '2026-03-27',
-    date_fin: '2026-03-28',
-    demi_journee: 'journee',
-    motif: 'raison_familiale',
-    commentaire: 'Décès dans la famille',
-    statut: 'prise_en_compte',
-    signalee_par: 'parent-5',
-    created_at: '2026-03-26T18:00:00Z',
-  },
-];
-
-// In-memory store for new absences (demo mode)
-let runtimeAbsences: Absence[] = [...MOCK_ABSENCES];
-let runtimeClassAbsences: Absence[] = [...MOCK_CLASS_ABSENCES];
-
-// ─── Parent API ──────────────────────────────────────────
-
-/**
- * Get absences for a specific student.
- */
-export async function getStudentAbsences(studentId: string): Promise<Absence[]> {
-  if (!isSupabaseConfigured()) {
-    return runtimeAbsences
-      .filter((a) => a.student_id === studentId)
-      .sort((a, b) => b.date_debut.localeCompare(a.date_debut));
-  }
-
-  const { data, error } = await supabase
-    .from('absences')
-    .select('*')
-    .eq('student_id', studentId)
-    .order('date_debut', { ascending: false });
-
-  if (error) {
-    console.warn('[Absences] getStudentAbsences error:', error.message);
-    return [];
-  }
-  return data || [];
-}
-
-/**
- * Check if the student already has a pending (signalée) absence for today or future.
- */
-export async function hasActiveAbsence(studentId: string): Promise<boolean> {
-  const today = aujourdhuiParis();
-  if (!isSupabaseConfigured()) {
-    return runtimeAbsences.some(
-      (a) =>
-        a.student_id === studentId &&
-        a.date_debut >= today &&
-        a.statut === 'signalée',
-    );
-  }
-
-  const { count } = await supabase
-    .from('absences')
-    .select('*', { count: 'exact', head: true })
-    .eq('student_id', studentId)
-    .gte('date_debut', today)
-    .eq('statut', 'signalée');
-
-  return (count ?? 0) > 0;
-}
-
-/**
- * Get today's absence for a student (if any) — for the Accueil banner.
- */
-export function getTodayAbsence(studentId: string): Absence | null {
-  const today = aujourdhuiParis();
-  return (
-    runtimeAbsences.find(
-      (a) =>
-        a.student_id === studentId &&
-        a.date_debut <= today &&
-        (a.date_fin ? a.date_fin >= today : a.date_debut === today),
-    ) || null
-  );
-}
-
-/**
- * Parent signals an absence.
- */
-export async function createAbsence(
-  payload: CreateAbsencePayload,
-  parentName: string,
-  studentName: string,
-  studentAvatar: string,
-): Promise<Absence> {
-  const newAbsence: Absence = {
-    id: `abs-${Date.now()}`,
-    student_id: payload.student_id,
-    student_name: studentName,
-    student_avatar: studentAvatar,
-    academic_year_id: 'ay-2025',
-    date_debut: payload.date_debut,
-    date_fin: payload.date_fin,
-    demi_journee: payload.demi_journee,
-    motif: payload.motif,
-    commentaire: payload.commentaire,
-    statut: 'signalée',
-    signalee_par: 'parent-1',
-    created_at: new Date().toISOString(),
-  };
-
-  if (!isSupabaseConfigured()) {
-    runtimeAbsences.unshift(newAbsence);
-    runtimeClassAbsences.unshift(newAbsence);
-    sendAbsenceNotification(newAbsence);
-    return newAbsence;
-  }
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data, error } = await supabase
-    .from('absences')
-    .insert({
-      student_id: payload.student_id,
-      student_name: studentName,
-      student_avatar: studentAvatar,
-      date_debut: payload.date_debut,
-      date_fin: payload.date_fin,
-      demi_journee: payload.demi_journee,
-      motif: payload.motif,
-      commentaire: payload.commentaire,
-      statut: 'signalée',
-      signalee_par: user?.id ?? '',
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-  sendAbsenceNotification(data);
-  return data;
-}
-
-// ─── Teacher API ─────────────────────────────────────────
-
-/**
- * Get all class absences (teacher view).
- */
-export async function getClassAbsences(): Promise<Absence[]> {
-  if (!isSupabaseConfigured()) {
-    return runtimeClassAbsences.sort(
-      (a, b) => b.date_debut.localeCompare(a.date_debut),
-    );
-  }
-
-  const { data, error } = await supabase
-    .from('absences')
-    .select('*')
-    .order('date_debut', { ascending: false });
-
-  if (error) {
-    console.warn('[Absences] getClassAbsences error:', error.message);
-    return [];
-  }
-  return data || [];
-}
-
-/**
- * Teacher marks absence as "prise en compte".
- */
-export async function markAbsencePriseEnCompte(absenceId: string): Promise<void> {
-  if (!isSupabaseConfigured()) {
-    const abs = runtimeClassAbsences.find((a) => a.id === absenceId);
-    if (abs) abs.statut = 'prise_en_compte';
-    const abs2 = runtimeAbsences.find((a) => a.id === absenceId);
-    if (abs2) abs2.statut = 'prise_en_compte';
-    return;
-  }
-
-  const { error } = await supabase
-    .from('absences')
-    .update({ statut: 'prise_en_compte' })
-    .eq('id', absenceId);
-
-  if (error) console.warn('[Absences] markAbsencePriseEnCompte error:', error.message);
-}
-
-// ─── Notification stubs ──────────────────────────────────
-
-function sendAbsenceNotification(absence: Absence) {
-  const dateStr = formatDateFr(absence.date_debut);
-  const motifLabel = MOTIF_LABELS[absence.motif];
-  console.log(
-    `📋 Absence signalée — ${absence.student_name} sera absent(e) ${dateStr} · Motif : ${motifLabel}`,
-  );
-  // TODO: expo-notifications push to teacher
-}
-
-// ─── Helpers ─────────────────────────────────────────────
-
-export function formatDateFr(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  const today = dateAujourdhuiParis();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  if (d.getTime() === today.getTime()) return "aujourd'hui";
-  if (d.getTime() === tomorrow.getTime()) return 'demain';
-
-  return d.toLocaleDateString('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'long',
+function uuid(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
 }
 
-export function formatDateRange(debut: string, fin: string | null): string {
-  if (!fin || fin === debut) return formatDateFr(debut);
-  return `du ${formatDateFr(debut)} au ${formatDateFr(fin)}`;
+// ─── Lecture ─────────────────────────────────────────────
+
+/** Absences de l'enfant (les plus récentes d'abord). Lève en cas d'échec réel. */
+export async function chargerAbsences(childId: string, demo: boolean): Promise<AbsenceLue[]> {
+  if (demo) return absencesDemo<AbsenceLue>(childId);
+  const { data, error } = await supabase
+    .from('absences')
+    .select('id, student_id, date_debut, date_fin, demi_journee, motif, commentaire, signalee_par, justificatif_path, created_at')
+    .eq('student_id', childId)
+    .order('date_debut', { ascending: false })
+    .limit(200);
+  if (error && /justificatif_path/.test(error.message)) {
+    // Base sans M42 : même lecture, sans la colonne du justificatif.
+    const r = await supabase
+      .from('absences')
+      .select('id, student_id, date_debut, date_fin, demi_journee, motif, commentaire, signalee_par, created_at')
+      .eq('student_id', childId)
+      .order('date_debut', { ascending: false })
+      .limit(200);
+    if (r.error) throw r.error;
+    return (r.data ?? []) as AbsenceLue[];
+  }
+  if (error) throw error;
+  return (data ?? []) as AbsenceLue[];
+}
+
+/** Lien de lecture d'un justificatif (URL signée d'1 h), ou null s'il n'est pas lisible. */
+export async function lienJustificatif(chemin: string): Promise<string | null> {
+  const { data, error } = await supabase.storage.from('carnet').createSignedUrl(chemin, 3600);
+  if (error || !data?.signedUrl) return null;
+  return data.signedUrl;
+}
+
+// ─── Écriture ────────────────────────────────────────────
+
+export interface NouvelleAbsence {
+  childId: string;
+  /** Prénom de l'enfant : seul libellé lisible par l'enseignant (qui ne lit pas `children`). */
+  prenom: string;
+  dateDebut: string;
+  dateFin: string | null;
+  demiJournee: DemiJournee;
+  motif: MotifAbsence;
+  mot: string | null;
+  justificatif: FichierPrepare | null;
+}
+
+/** Année active de l'enfant (dossier du justificatif). */
+async function anneeActive(childId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('academic_years')
+    .select('id')
+    .eq('student_id', childId)
+    .eq('statut', 'active')
+    .maybeSingle();
+  if (error) throw erreurEcriture(error, 'Envoi impossible. Réessayez.');
+  if (!data?.id) throw new ErreurAbsence('Année scolaire introuvable pour cet enfant.');
+  return String(data.id);
+}
+
+/** Dépose le justificatif ; renvoie son chemin. */
+async function deposer(childId: string, f: FichierPrepare): Promise<string> {
+  const chemin = `${childId}/${await anneeActive(childId)}/${uuid()}.${f.extension}`;
+  const { error } = await supabase.storage.from('carnet').upload(chemin, f.octets, { contentType: f.mime, upsert: false });
+  if (error) throw erreurEcriture(error, 'Envoi du justificatif impossible. Réessayez.');
+  return chemin;
+}
+
+async function moi(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw erreurEcriture(error, 'Envoi impossible. Réessayez.');
+  if (!data.user?.id) throw new ErreurAbsence('Session expirée : reconnectez-vous.');
+  return data.user.id;
+}
+
+/** Signale une absence. Démo : en mémoire seulement. */
+export async function signalerAbsence(a: NouvelleAbsence, demo: boolean): Promise<void> {
+  if (demo) {
+    ajouterAbsenceDemo<AbsenceLue>(a.childId, {
+      id: `demo-absence-${uuid()}`,
+      student_id: a.childId,
+      date_debut: a.dateDebut,
+      date_fin: a.dateFin,
+      demi_journee: a.demiJournee,
+      motif: a.motif,
+      commentaire: a.mot,
+      signalee_par: 'demo-moi',
+      justificatif_path: a.justificatif ? `demo:${a.justificatif.uriLocale}` : null,
+      created_at: new Date().toISOString(),
+    });
+    return;
+  }
+  const auteur = await moi();
+  const chemin = a.justificatif ? await deposer(a.childId, a.justificatif) : null;
+  const ligne: Record<string, unknown> = {
+    student_id: a.childId,
+    student_name: a.prenom,
+    date_debut: a.dateDebut,
+    date_fin: a.dateFin,
+    demi_journee: a.demiJournee,
+    motif: a.motif,
+    commentaire: a.mot,
+    statut: 'signalée',
+    signalee_par: auteur,
+  };
+  if (chemin) ligne.justificatif_path = chemin;
+  const { error } = await supabase.from('absences').insert(ligne);
+  if (error) {
+    // La ligne n'a pas pu être créée : pas de fichier orphelin.
+    if (chemin) await supabase.storage.from('carnet').remove([chemin]);
+    throw erreurEcriture(error, 'L’absence n’a pas pu être signalée. Réessayez.');
+  }
+  signalerAbsences(a.childId);
+}
+
+/** Ajoute le justificatif d'une absence que j'ai signalée (« À justifier »). */
+export async function ajouterJustificatif(absence: AbsenceLue, f: FichierPrepare, demo: boolean): Promise<void> {
+  if (demo) {
+    remplacerAbsenceDemo<AbsenceLue>(absence.student_id, { ...absence, justificatif_path: `demo:${f.uriLocale}` });
+    return;
+  }
+  const chemin = await deposer(absence.student_id, f);
+  const { data, error } = await supabase.from('absences').update({ justificatif_path: chemin }).eq('id', absence.id).select('id');
+  if (error || !data?.length) {
+    await supabase.storage.from('carnet').remove([chemin]);
+    throw error ? erreurEcriture(error, 'Le justificatif n’a pas pu être ajouté. Réessayez.') : new ErreurAbsence('Seul le responsable qui a signalé l’absence peut ajouter le justificatif.');
+  }
+  signalerAbsences(absence.student_id);
+}
+
+// ─── Enseignant ──────────────────────────────────────────
+
+export interface AbsenceClasse extends AbsenceLue {
+  student_name: string;
+}
+
+/** Absences des élèves de mes classes (titulaire : RLS M42). Démo : aucune. Lève en cas d'échec. */
+export async function absencesDeMesClasses(demo: boolean): Promise<AbsenceClasse[]> {
+  if (demo) return [];
+  const { data, error } = await supabase
+    .from('absences')
+    .select('id, student_id, student_name, date_debut, date_fin, demi_journee, motif, commentaire, signalee_par, justificatif_path, created_at')
+    .order('date_debut', { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return (data ?? []) as AbsenceClasse[];
 }

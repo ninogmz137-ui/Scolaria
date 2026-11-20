@@ -10,6 +10,7 @@
  */
 
 import { aujourdhuiParis, demainParis, heureParis } from '../../utils/jourParis';
+import { periodeAbsence, type AbsenceLue } from '../../utils/absences';
 import { useMemo, type ReactNode } from 'react';
 import { C, RADIUS, SHADOW } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
@@ -119,6 +120,8 @@ export default function CorpsCarnet({
   demo,
   evenements,
   onBasculerDevoir,
+  aJustifier,
+  onJustifier,
   coches,
   onBasculerCoche,
   apprentissages,
@@ -135,6 +138,9 @@ export default function CorpsCarnet({
   demo: boolean;
   evenements: EvtAccueil[];
   onBasculerDevoir: (id: string) => void;
+  /** Absences à justifier (lot 4b). */
+  aJustifier: AbsenceLue[];
+  onJustifier: (a: AbsenceLue) => void;
   coches: string[];
   onBasculerCoche: (id: string) => void;
   apprentissages: ElementSuivi[];
@@ -162,6 +168,16 @@ export default function CorpsCarnet({
         sousTitre: [m.expediteur, delai].join(' · '),
         ouvrir: () => onOuvrirMot(m),
         signer: reponse ? undefined : () => demanderSignature(m, monNom, demo, undefined, autres),
+      });
+    }
+    // Absences à justifier (lot 4b) : ligne « Absence · [période] · à justifier », ouvre le formulaire.
+    for (const a of aJustifier) {
+      res.push({
+        cle: `absence-${a.id}`,
+        categorie: TYPES_CONTENU.absence,
+        titre: 'Absence à justifier',
+        sousTitre: periodeAbsence(a, aujourdhui, demainParis()),
+        ouvrir: () => onJustifier(a),
       });
     }
     if (primaire) {

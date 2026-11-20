@@ -27,7 +27,7 @@ export const TEINTES: Record<TeinteId, { fond: string; icone: string }> = {
 
 export type IconeCategorie =
   | 'message-circle' | 'shapes' | 'compass' | 'scale' | 'languages' | 'palette' | 'activity' | 'book-open'
-  | 'pencil' | 'image' | 'file-text' | 'backpack' | 'building-2';
+  | 'pencil' | 'image' | 'file-text' | 'backpack' | 'building-2' | 'calendar-x';
 
 export interface Categorie {
   teinte: TeinteId;
@@ -123,7 +123,7 @@ export function categorieDiscipline(libelle: string | null | undefined): Categor
 
 export type TypeContenu =
   | 'mot' | 'autorisation' | 'a-repondre'
-  | 'photo' | 'souvenir' | 'livret' | 'document' | 'a-prevoir';
+  | 'photo' | 'souvenir' | 'livret' | 'document' | 'a-prevoir' | 'absence';
 
 export const TYPES_CONTENU: Record<TypeContenu, Categorie> = {
   mot: { teinte: 'action', icone: 'pencil' },
@@ -134,6 +134,7 @@ export const TYPES_CONTENU: Record<TypeContenu, Categorie> = {
   livret: { teinte: 'ardoise', icone: 'file-text' },
   document: { teinte: 'ardoise', icone: 'file-text' },
   'a-prevoir': { teinte: 'ardoise', icone: 'backpack' },
+  absence: { teinte: 'ardoise', icone: 'calendar-x' },
 };
 
 /** École, direction, mairie (liste de messages) : ardoise + building-2. Les personnes n'ont aucune teinte propre. */

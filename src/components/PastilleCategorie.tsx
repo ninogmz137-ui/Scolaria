@@ -6,7 +6,7 @@
 
 import { View } from 'react-native';
 import {
-  Activity, Backpack, BookOpen, Building2, Compass, FileText, Image as ImageIcone, Languages, MessageCircle,
+  Activity, Backpack, BookOpen, Building2, CalendarX, Compass, FileText, Image as ImageIcone, Languages, MessageCircle,
   Palette, Pencil, Scale, Shapes,
 } from 'lucide-react-native';
 import { TEINTES, type Categorie, type IconeCategorie } from '../theme/categories';
@@ -25,6 +25,7 @@ const ICONES: Record<IconeCategorie, typeof Pencil> = {
   'file-text': FileText,
   backpack: Backpack,
   'building-2': Building2,
+  'calendar-x': CalendarX,
 };
 
 export default function PastilleCategorie({

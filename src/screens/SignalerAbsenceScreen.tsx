@@ -1,776 +1,289 @@
 /**
- * SignalerAbsenceScreen — 3-step parent flow to report a child's absence.
+ * SignalerAbsenceScreen — absence signalée par le parent (lot 4b, CLAUDE.md § Agenda › Absence, M42).
  *
- * Step 1: Date selection (today/tomorrow/custom + half-day option + multi-day)
- * Step 2: Motif selection (4 buttons + optional comment)
- * Step 3: Confirmation recap + submit
+ * Page profonde (fond Brume, en-tête ‹ Retour + titre). Une seule page :
+ *   Quand (aujourd'hui · demain · autre date) · Durée (matin · après-midi · journée · plusieurs jours) ·
+ *   Motif (maladie · rendez-vous · raison familiale · autre, sans champ de détail) · justificatif facultatif
+ *   (photo ou PDF, stockage privé) · mot facultatif.
+ * Confirmation : « Absence signalée à l'école » — jamais « l'enseignant a été notifié » (aucune notification).
+ * Mode « justifier » (paramètre absenceId, depuis « À justifier » de l'Accueil) : ajoute le justificatif d'une
+ * absence que j'ai signalée.
+ * Dates en heure de Paris (utils/jourParis). Démo : rien n'est écrit en base.
  */
-
-import { useState, useCallback } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Alert,
-  Platform,
-} from 'react-native';
-import { Papicons } from '@getpapillon/papicons';
-import { useNavigation } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useActiveChild } from '../contexts/ActiveChildContext';
-import WallpaperBackground from '../components/WallpaperBackground';
-import GlassCard from '../components/GlassCard';
-import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
-import { FontFamily } from '../hooks/useSolariaFonts';
-import {
-  createAbsence,
-  hasActiveAbsence,
-  MOTIF_LABELS,
-  MOTIF_ICONS,
-  DEMI_JOURNEE_LABELS,
-  formatDateFr,
-  formatDateRange,
-  type AbsenceMotif,
-  type DemiJournee,
-} from '../services/absenceService';
+import { ChevronLeft, ChevronRight, FileText, Camera, Image as IconeImage, X } from 'lucide-react-native';
+import { C } from '../constants/design';
+import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import { Text, TextInput, Pressable } from '../components/ui';
+import { FontFamily } from '../hooks/useSolariaFonts';
+import { useActiveChild } from '../contexts/ActiveChildContext';
+import { useDemoData } from '../contexts/DemoContext';
 import { AucunEnfantPage } from '../components/AucunEnfant';
-import { useAuth } from '../contexts/AuthContext';
-import { aujourdhuiParis, demainParis } from '../utils/jourParis';
+import { choisirFichier, type FichierPrepare } from '../services/carnetImport';
+import { ErreurCarnet } from '../services/carnetService';
+import { ajouterJustificatif, chargerAbsences, ErreurAbsence, signalerAbsence, type AbsenceLue } from '../services/absenceService';
+import {
+  CONFIRMATION_ABSENCE, DUREES, MOTIFS, jourCourt, libelleMotif, periodeAbsence, valeursDuree,
+  type DureeAbsence, type MotifAbsence,
+} from '../utils/absences';
+import { aujourdhuiParis, decalerJour, demainParis } from '../utils/jourParis';
+import { de } from '../utils/francais';
 
-// ─── Helpers ─────────────────────────────────────────────
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const cleaned = hex.replace('#', '');
-  const bigint = parseInt(cleaned, 16);
-  return {
-    r: (bigint >> 16) & 255,
-    g: (bigint >> 8) & 255,
-    b: bigint & 255,
-  };
-}
-
-// ─── Dates ───────────────────────────────────────────────
-// « Aujourd'hui » et « demain » en heure de Paris (lot 4 A4), recalculés à chaque choix : jamais figés au
-// chargement du module (avant : UTC, et la veille entre minuit et 1 h ou 2 h).
-
-// ─── Component ───────────────────────────────────────────
+type Quand = 'aujourdhui' | 'demain' | 'autre';
 
 function SignalerAbsenceScreenContent() {
-  const { selectedChild: enfantActif } = useActiveChild();
-  const selectedChild = enfantActif!; // non nul : garanti par le garde en bas du fichier
-  const selectedChildId = selectedChild.id;
-  const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  // Écran en mode chrome 'none' (chrome.ts) : son mini header remplace la top bar.
-  const TOPBAR_H = insets.top + 12;
+  const { selectedChild } = useActiveChild();
+  const enfant = selectedChild!; // non nul : garde en bas du fichier
+  const { isDemoMode } = useDemoData();
+  const prenom = enfant.name.split(' ')[0];
+  const absenceId: string | undefined = route.params?.absenceId;
 
-  const accent = '#4338CA';
-  const { r: ar, g: ag, b: ab } = hexToRgb(accent);
+  const auj = aujourdhuiParis();
+  const dem = demainParis();
+  const [quand, setQuand] = useState<Quand>('aujourdhui');
+  const [autreDate, setAutreDate] = useState(() => decalerJour(auj, 2));
+  const [duree, setDuree] = useState<DureeAbsence>('journee');
+  const [dernierJour, setDernierJour] = useState(() => decalerJour(auj, 1));
+  const [motif, setMotif] = useState<MotifAbsence | null>(null);
+  const [mot, setMot] = useState('');
+  const [justificatif, setJustificatif] = useState<FichierPrepare | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+  const [envoyee, setEnvoyee] = useState<string | null>(null);
+  const [aJustifier, setAJustifier] = useState<AbsenceLue | null>(null);
 
-  // ── Step state ──
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const debut = quand === 'aujourdhui' ? auj : quand === 'demain' ? dem : autreDate;
+  // Le dernier jour suit toujours le premier.
+  useEffect(() => {
+    if (dernierJour <= debut) setDernierJour(decalerJour(debut, 1));
+  }, [debut, dernierJour]);
 
-  // ── Step 1: Date ──
-  const [dateChoice, setDateChoice] = useState<'today' | 'tomorrow' | 'custom'>('today');
-  const [dateDebut, setDateDebut] = useState(() => aujourdhuiParis());
-  const [multiDay, setMultiDay] = useState(false);
-  const [dateFin, setDateFin] = useState<string | null>(null);
-  const [demiJournee, setDemiJournee] = useState<DemiJournee>('journee');
+  // Mode « justifier » : l'absence visée, parmi celles de l'enfant.
+  useEffect(() => {
+    if (!absenceId) return;
+    chargerAbsences(enfant.id, isDemoMode)
+      .then((liste) => setAJustifier(liste.find((a) => a.id === absenceId) ?? null))
+      .catch(() => setAJustifier(null));
+  }, [absenceId, enfant.id, isDemoMode]);
 
-  // Custom date input (simple text for web compat)
-  const [customDateText, setCustomDateText] = useState('');
-  const [customEndText, setCustomEndText] = useState('');
-
-  // ── Step 2: Motif ──
-  const [motif, setMotif] = useState<AbsenceMotif | null>(null);
-  const [commentaire, setCommentaire] = useState('');
-
-  // ── Step 3: Confirmation ──
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  // ── Date handling ──
-  const handleDateChoice = (choice: 'today' | 'tomorrow' | 'custom') => {
-    setDateChoice(choice);
-    if (choice === 'today') setDateDebut(aujourdhuiParis());
-    else if (choice === 'tomorrow') setDateDebut(demainParis());
-    // custom: user will type
-  };
-
-  const resolvedDateDebut = dateChoice === 'custom' && customDateText.match(/^\d{4}-\d{2}-\d{2}$/)
-    ? customDateText
-    : dateDebut;
-
-  const resolvedDateFin = multiDay && customEndText.match(/^\d{4}-\d{2}-\d{2}$/)
-    ? customEndText
-    : null;
-
-  // ── Navigation ──
-  const canGoStep2 = !!resolvedDateDebut;
-  const canGoStep3 = !!motif;
-
-  const goNext = () => {
-    if (step === 1 && canGoStep2) setStep(2);
-    else if (step === 2 && canGoStep3) setStep(3);
-  };
-
-  const goBack = () => {
-    if (step === 1) navigation.goBack();
-    else setStep((s) => (s - 1) as 1 | 2 | 3);
-  };
-
-  // ── Submit ──
-  const handleSubmit = useCallback(async () => {
-    if (!motif || submitting) return;
-
-    setSubmitting(true);
+  const choisir = async (source: 'photo' | 'capture' | 'document') => {
     try {
-      // Check for active absence
-      const alreadyActive = await hasActiveAbsence(selectedChildId);
-      if (alreadyActive) {
-        Alert.alert(
-          'Absence déjà signalée',
-          `${selectedChild.name} a déjà une absence signalée pour cette période. Contactez l'enseignant via le cahier de liaison pour toute modification.`,
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      await createAbsence(
-        {
-          student_id: selectedChildId,
-          date_debut: resolvedDateDebut,
-          date_fin: resolvedDateFin,
-          demi_journee: demiJournee,
-          motif,
-          commentaire: commentaire.trim() || null,
-        },
-        user?.user_metadata?.full_name ?? user?.email ?? 'Responsable',
-        selectedChild.name,
-        selectedChild.avatar,
-      );
-
-      setSuccess(true);
+      const f = await choisirFichier(source);
+      if (f) setJustificatif(f);
     } catch (e) {
-      console.error('[SignalerAbsence] createAbsence error:', e);
-      Alert.alert('Erreur', "Impossible de signaler l'absence. Réessayez.");
+      Alert.alert('Justificatif', e instanceof ErreurCarnet ? e.message : 'Le fichier n’a pas pu être préparé. Réessayez.');
     }
-    setSubmitting(false);
-  }, [motif, selectedChildId, resolvedDateDebut, resolvedDateFin, demiJournee, commentaire, submitting]);
+  };
 
-  // ── Render helpers ──
-  const motifList: AbsenceMotif[] = ['maladie', 'maladie_avec_certificat', 'raison_familiale', 'autre'];
-  const demiList: DemiJournee[] = ['matin', 'apres_midi', 'journee'];
+  const envoyer = async () => {
+    if (!motif) return;
+    const d = valeursDuree(duree, debut, duree === 'plusieurs_jours' ? dernierJour : null);
+    if ('erreur' in d) {
+      Alert.alert('Dates', d.erreur);
+      return;
+    }
+    setEnvoi(true);
+    try {
+      await signalerAbsence(
+        {
+          childId: enfant.id,
+          prenom,
+          dateDebut: debut,
+          dateFin: d.date_fin,
+          demiJournee: d.demi_journee,
+          motif,
+          mot: mot.trim() || null,
+          justificatif,
+        },
+        isDemoMode,
+      );
+      setEnvoyee(periodeAbsence({ date_debut: debut, date_fin: d.date_fin, demi_journee: d.demi_journee }, auj, dem));
+    } catch (e) {
+      Alert.alert('Absence non signalée', e instanceof ErreurAbsence ? e.message : 'L’absence n’a pas pu être signalée. Réessayez.');
+    } finally {
+      setEnvoi(false);
+    }
+  };
 
-  // ── Accent-tinted border color ──
-  const accentBorder = `rgba(${ar}, ${ag}, ${ab}, 0.25)`;
-  const accentBg = `rgba(${ar}, ${ag}, ${ab}, 0.15)`;
+  const justifier = async () => {
+    if (!aJustifier || !justificatif) return;
+    setEnvoi(true);
+    try {
+      await ajouterJustificatif(aJustifier, justificatif, isDemoMode);
+      Alert.alert('Justificatif ajouté', 'Il est visible de l’enseignant de la classe.');
+      navigation.goBack();
+    } catch (e) {
+      Alert.alert('Justificatif non ajouté', e instanceof ErreurAbsence ? e.message : 'Le justificatif n’a pas pu être ajouté. Réessayez.');
+    } finally {
+      setEnvoi(false);
+    }
+  };
 
-  // ── Success screen ──
-  if (success) {
+  const blocJustificatif = (
+    <>
+      <Text style={st.label}>Justificatif (facultatif)</Text>
+      {justificatif ? (
+        <View style={st.fichier}>
+          {justificatif.mime.startsWith('image/') ? (
+            <Image source={{ uri: justificatif.uriLocale }} style={st.miniature} accessibilityLabel="Aperçu du justificatif" />
+          ) : (
+            <FileText size={22} color="#0F172A" strokeWidth={2} />
+          )}
+          <Text style={st.fichierNom} numberOfLines={1}>{justificatif.nom}</Text>
+          <Pressable onPress={() => setJustificatif(null)} style={st.fleche} accessibilityRole="button" accessibilityLabel="Retirer le justificatif">
+            <X size={18} color="#0F172A" strokeWidth={2} />
+          </Pressable>
+        </View>
+      ) : (
+        <View style={st.pills}>
+          <Pressable onPress={() => choisir('photo')} style={st.pillIcone} accessibilityRole="button">
+            <Camera size={16} color="#0F172A" strokeWidth={2} />
+            <Text style={st.pillTexte}>Photographier</Text>
+          </Pressable>
+          <Pressable onPress={() => choisir('capture')} style={st.pillIcone} accessibilityRole="button">
+            <IconeImage size={16} color="#0F172A" strokeWidth={2} />
+            <Text style={st.pillTexte}>Photo</Text>
+          </Pressable>
+          <Pressable onPress={() => choisir('document')} style={st.pillIcone} accessibilityRole="button">
+            <FileText size={16} color="#0F172A" strokeWidth={2} />
+            <Text style={st.pillTexte}>PDF</Text>
+          </Pressable>
+        </View>
+      )}
+      <Text style={st.aide}>Visible des responsables de {prenom} et de l’enseignant de sa classe, et de personne d’autre.</Text>
+    </>
+  );
+
+  // ─── Confirmation ───
+  if (envoyee) {
     return (
-      <View style={styles.root}>
-        <WallpaperBackground />
-        <View style={[styles.successContainer, { paddingTop: TOPBAR_H }]}>
-          <GlassCard borderRadius={22} style={styles.successCard}>
-            <View style={styles.successIconWrap}>
-              <Papicons name="CheckCircle" size={64} color="#34D399" />
-            </View>
-            <Text style={styles.successTitle}>Absence signalée</Text>
-            <Text style={styles.successBody}>
-              {selectedChild.name} sera absent(e) {formatDateRange(resolvedDateDebut, resolvedDateFin)}
-              {'\n'}Motif : {motif ? MOTIF_LABELS[motif] : ''}
-            </Text>
-            <Text style={styles.successMuted}>
-              L'enseignant principal a été notifié.
-            </Text>
-          </GlassCard>
-          <Pressable
-            style={[styles.primaryBtn, { backgroundColor: accent }]}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.primaryBtnText}>Retour à l'accueil</Text>
+      <View style={st.root}>
+        <DeepScreenHeader title="Signaler une absence" onBack={() => navigation.goBack()} withTopInset />
+        <View style={st.confirmation}>
+          <Text style={st.confirmationTitre}>{CONFIRMATION_ABSENCE}</Text>
+          <Text style={st.confirmationTexte}>{`Absence ${de(prenom)} · ${envoyee}`}</Text>
+          <Text style={st.aide}>Elle figure dans l’Agenda de {prenom}.</Text>
+          <Pressable onPress={() => navigation.goBack()} style={[st.primaire, { marginTop: 24 }]} accessibilityRole="button">
+            <Text style={st.primaireTexte}>Terminé</Text>
           </Pressable>
         </View>
       </View>
     );
   }
 
-  return (
-    <View style={styles.root}>
-      <WallpaperBackground />
-
-      {/* Mini header */}
-      <View style={[styles.miniHeader, { paddingTop: insets.top + 12 }]}>
-        <Pressable onPress={goBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Papicons name="ChevronLeft" size={22} color="#0F172A" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Signaler une absence</Text>
-        <View style={styles.headerSpacer} />
+  // ─── Mode « justifier » ───
+  if (absenceId) {
+    return (
+      <View style={st.root}>
+        <DeepScreenHeader title="Justifier l’absence" subtitle={`Carnet ${de(prenom)}`} onBack={() => navigation.goBack()} withTopInset />
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 24 }}>
+          {aJustifier ? (
+            <View style={st.resume}>
+              <Text style={st.resumeTitre}>{periodeAbsence(aJustifier, auj, dem)}</Text>
+              <Text style={st.aide}>{libelleMotif(aJustifier.motif)}</Text>
+            </View>
+          ) : null}
+          {blocJustificatif}
+          <Pressable onPress={justifier} disabled={!justificatif || !aJustifier || envoi}
+            style={[st.primaire, { marginTop: 24 }, (!justificatif || !aJustifier || envoi) && { opacity: 0.4 }]} accessibilityRole="button">
+            {envoi ? <ActivityIndicator color="#FFFFFF" /> : <Text style={st.primaireTexte}>Ajouter le justificatif</Text>}
+          </Pressable>
+        </ScrollView>
       </View>
+    );
+  }
 
-      {/* Steps indicator */}
-      <View style={styles.stepsRow}>
-        {[1, 2, 3].map((s) => (
-          <View key={s} style={styles.stepItem}>
-            <View
-              style={[
-                styles.stepCircle,
-                s <= step
-                  ? { backgroundColor: accent, borderColor: accent }
-                  : { backgroundColor: 'rgba(0,0,0,0.06)', borderColor: 'rgba(0,0,0,0.15)' },
-              ]}
-            >
-              <Text style={[styles.stepNum, { color: s <= step ? '#FFF' : '#94A3B8' }]}>
-                {s}
-              </Text>
-            </View>
-            <Text style={[styles.stepLabel, { color: s === step ? '#0F172A' : '#94A3B8' }]}>
-              {s === 1 ? 'Date' : s === 2 ? 'Motif' : 'Confirmer'}
-            </Text>
-          </View>
-        ))}
-        {/* Connectors */}
-        <View style={[styles.connector, styles.connectorLeft, { backgroundColor: step >= 2 ? accent : 'rgba(0,0,0,0.12)' }]} />
-        <View style={[styles.connector, styles.connectorRight, { backgroundColor: step >= 3 ? accent : 'rgba(0,0,0,0.12)' }]} />
-      </View>
-
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: getBottomBarScrollPadding(insets.bottom) },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── STEP 1: Date ── */}
-        {step === 1 && (
-          <>
-            <Text style={styles.stepQuestion}>
-              Quand {selectedChild.name} sera-t-il absent(e) ?
-            </Text>
-
-            {/* Quick date buttons */}
-            <View style={styles.pillRow}>
-              {(['today', 'tomorrow', 'custom'] as const).map((c) => {
-                const label = c === 'today' ? "Aujourd'hui" : c === 'tomorrow' ? 'Demain' : 'Autre date';
-                const active = dateChoice === c;
-                return (
-                  <Pressable
-                    key={c}
-                    style={[
-                      styles.pill,
-                      active
-                        ? { backgroundColor: accentBg, borderColor: accent }
-                        : { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.12)' },
-                    ]}
-                    onPress={() => handleDateChoice(c)}
-                  >
-                    <Text style={[styles.pillText, { color: active ? accent : '#64748B' }]}>
-                      {label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Custom date input */}
-            {dateChoice === 'custom' && (
-              <GlassCard style={styles.inputCard} borderRadius={14}>
-                <Text style={styles.inputLabel}>Date (AAAA-MM-JJ)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={customDateText}
-                  onChangeText={setCustomDateText}
-                  placeholder="2026-04-01"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="default"
-                />
-              </GlassCard>
-            )}
-
-            {/* Multi-day toggle */}
-            <Pressable
-              style={styles.checkRow}
-              onPress={() => setMultiDay(!multiDay)}
-            >
-              <Papicons
-                name={multiDay ? 'CheckSquare' : 'Square'}
-                size={22}
-                color={multiDay ? accent : '#94A3B8'}
-              />
-              <Text style={styles.checkLabel}>Absence sur plusieurs jours</Text>
-            </Pressable>
-
-            {/* End date if multi-day */}
-            {multiDay && (
-              <GlassCard style={styles.inputCard} borderRadius={14}>
-                <Text style={styles.inputLabel}>Date de fin (AAAA-MM-JJ)</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={customEndText}
-                  onChangeText={setCustomEndText}
-                  placeholder="2026-04-03"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="default"
-                />
-              </GlassCard>
-            )}
-
-            {/* Half-day selector (only for single day) */}
-            {!multiDay && (
-              <>
-                <Text style={styles.subLabel}>Durée</Text>
-                <View style={styles.pillRow}>
-                  {demiList.map((dj) => {
-                    const active = demiJournee === dj;
-                    return (
-                      <Pressable
-                        key={dj}
-                        style={[
-                          styles.pill,
-                          active
-                            ? { backgroundColor: accentBg, borderColor: accent }
-                            : { backgroundColor: 'rgba(0,0,0,0.05)', borderColor: 'rgba(0,0,0,0.12)' },
-                        ]}
-                        onPress={() => setDemiJournee(dj)}
-                      >
-                        <Text style={[styles.pillText, { color: active ? accent : '#64748B' }]}>
-                          {DEMI_JOURNEE_LABELS[dj]}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </>
-            )}
-
-            {/* Next button */}
-            <Pressable
-              style={[styles.primaryBtn, { backgroundColor: canGoStep2 ? accent : 'rgba(0,0,0,0.08)', marginTop: 8 }]}
-              onPress={goNext}
-              disabled={!canGoStep2}
-            >
-              <Text style={[styles.primaryBtnText, { opacity: canGoStep2 ? 1 : 0.5 }]}>Suivant</Text>
-              <Papicons name="ChevronRight" size={18} color="#FFF" />
-            </Pressable>
-          </>
-        )}
-
-        {/* ── STEP 2: Motif ── */}
-        {step === 2 && (
-          <>
-            <Text style={styles.stepQuestion}>
-              Quel est le motif de l'absence ?
-            </Text>
-
-            <View style={styles.motifList}>
-              {motifList.map((m) => {
-                const active = motif === m;
-                return (
-                  <Pressable
-                    key={m}
-                    style={[
-                      styles.motifRow,
-                      active
-                        ? { backgroundColor: accentBg, borderColor: accent }
-                        : { backgroundColor: 'rgba(0,0,0,0.04)', borderColor: 'rgba(0,0,0,0.10)' },
-                    ]}
-                    onPress={() => setMotif(m)}
-                  >
-                    <Text style={styles.motifEmoji}>{MOTIF_ICONS[m]}</Text>
-                    <Text style={[styles.motifLabel, { color: active ? accent : '#0F172A' }]}>
-                      {MOTIF_LABELS[m]}
-                    </Text>
-                    {active && (
-                      <View style={[styles.checkDot, { backgroundColor: accent }]}>
-                        <Papicons name="Check" size={14} color="#FFF" />
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Comment field */}
-            <Text style={styles.subLabel}>Précision (optionnel)</Text>
-            <GlassCard style={styles.inputCard} borderRadius={14}>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                value={commentaire}
-                onChangeText={(t) => setCommentaire(t.slice(0, 200))}
-                placeholder="Ex: Fièvre depuis hier soir..."
-                placeholderTextColor="#94A3B8"
-                multiline
-                numberOfLines={3}
-              />
-              <Text style={styles.charCount}>{commentaire.length}/200</Text>
-            </GlassCard>
-
-            {/* Next button */}
-            <Pressable
-              style={[styles.primaryBtn, { backgroundColor: canGoStep3 ? accent : 'rgba(0,0,0,0.08)', marginTop: 8 }]}
-              onPress={goNext}
-              disabled={!canGoStep3}
-            >
-              <Text style={[styles.primaryBtnText, { opacity: canGoStep3 ? 1 : 0.5 }]}>Suivant</Text>
-              <Papicons name="ChevronRight" size={18} color="#FFF" />
-            </Pressable>
-          </>
-        )}
-
-        {/* ── STEP 3: Confirmation ── */}
-        {step === 3 && motif && (
-          <>
-            <Text style={styles.stepQuestion}>Confirmer l'absence</Text>
-
-            {/* Recap card */}
-            <GlassCard style={styles.recapCard} borderRadius={18}>
-              <View style={styles.recapChildRow}>
-                <Text style={styles.recapAvatar}>{selectedChild.avatar}</Text>
-                <Text style={styles.recapChildName}>{selectedChild.name} sera absent(e)</Text>
-              </View>
-
-              <View style={styles.recapDivider} />
-
-              {/* Date */}
-              <View style={styles.recapRow}>
-                <Papicons name="Calendar" size={18} color={accent} />
-                <Text style={styles.recapValue}>
-                  {formatDateRange(resolvedDateDebut, resolvedDateFin)}
-                  {!multiDay && ` · ${DEMI_JOURNEE_LABELS[demiJournee]}`}
-                </Text>
-              </View>
-
-              {/* Motif */}
-              <View style={styles.recapRow}>
-                <Text style={{ fontSize: 16 }}>{MOTIF_ICONS[motif]}</Text>
-                <Text style={styles.recapValue}>{MOTIF_LABELS[motif]}</Text>
-              </View>
-
-              {/* Comment */}
-              {commentaire.trim() ? (
-                <View style={styles.recapRow}>
-                  <Papicons name="Chat" size={16} color="#94A3B8" />
-                  <Text style={styles.recapMuted} numberOfLines={2}>
-                    {commentaire.trim()}
-                  </Text>
-                </View>
-              ) : null}
-            </GlassCard>
-
-            {/* Warning */}
-            <View style={styles.warningBox}>
-              <Papicons name="Warning" size={16} color="#FBBF24" />
-              <Text style={styles.warningText}>
-                L'absence ne pourra pas être modifiée après confirmation. Contactez l'enseignant via le cahier de liaison si besoin.
-              </Text>
-            </View>
-
-            {/* Submit button */}
-            <Pressable
-              style={[styles.primaryBtn, { backgroundColor: accent, marginTop: 8 }]}
-              onPress={handleSubmit}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <Text style={styles.primaryBtnText}>Envoi en cours...</Text>
-              ) : (
-                <>
-                  <Papicons name="Send" size={18} color="#FFF" />
-                  <Text style={styles.primaryBtnText}>Confirmer l'absence</Text>
-                </>
-              )}
-            </Pressable>
-          </>
-        )}
-      </ScrollView>
+  // ─── Signaler ───
+  const pill = (actif: boolean, libelle: string, onPress: () => void) => (
+    <Pressable key={libelle} onPress={onPress} style={[st.pill, actif && st.pillActive]} accessibilityRole="radio" accessibilityState={{ selected: actif }}>
+      <Text style={[st.pillTexte, actif && st.pillTexteActif]}>{libelle}</Text>
+    </Pressable>
+  );
+  const choixDate = (valeur: string, setValeur: (j: string) => void, min: string, libelle: string) => (
+    <View style={st.date}>
+      <Pressable onPress={() => setValeur(valeur > min ? decalerJour(valeur, -1) : valeur)} disabled={valeur <= min}
+        style={[st.fleche, valeur <= min && { opacity: 0.3 }]} accessibilityLabel={`${libelle} : jour précédent`}>
+        <ChevronLeft size={20} color="#0F172A" strokeWidth={2} />
+      </Pressable>
+      <Text style={st.dateTexte}>{jourCourt(valeur)}</Text>
+      <Pressable onPress={() => setValeur(decalerJour(valeur, 1))} style={st.fleche} accessibilityLabel={`${libelle} : jour suivant`}>
+        <ChevronRight size={20} color="#0F172A" strokeWidth={2} />
+      </Pressable>
     </View>
+  );
+
+  return (
+    <KeyboardAvoidingView style={st.root} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <DeepScreenHeader title="Signaler une absence" subtitle={`Carnet ${de(prenom)}`} onBack={() => navigation.goBack()} withTopInset />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
+        <Text style={st.label}>Quand</Text>
+        <View style={st.pills}>
+          {pill(quand === 'aujourdhui', 'Aujourd’hui', () => setQuand('aujourdhui'))}
+          {pill(quand === 'demain', 'Demain', () => setQuand('demain'))}
+          {pill(quand === 'autre', 'Autre date', () => setQuand('autre'))}
+        </View>
+        {quand === 'autre' ? choixDate(autreDate, setAutreDate, auj, 'Date') : null}
+
+        <Text style={st.label}>Durée</Text>
+        <View style={st.pills}>{DUREES.map((d) => pill(duree === d.id, d.libelle, () => setDuree(d.id)))}</View>
+        {duree === 'plusieurs_jours' ? (
+          <>
+            <Text style={st.sousLabel}>Dernier jour d’absence</Text>
+            {choixDate(dernierJour, setDernierJour, decalerJour(debut, 1), 'Dernier jour')}
+          </>
+        ) : null}
+
+        <Text style={st.label}>Motif</Text>
+        <View style={st.pills}>{MOTIFS.map((m) => pill(motif === m.id, m.libelle, () => setMotif(m.id)))}</View>
+
+        {blocJustificatif}
+
+        <Text style={st.label}>Un mot (facultatif)</Text>
+        <TextInput style={[st.champ, { minHeight: 72, textAlignVertical: 'top' }]} value={mot} onChangeText={setMot}
+          multiline maxLength={300} placeholder="Pour l’enseignant" placeholderTextColor="rgba(15,23,42,0.35)" />
+
+        <Pressable onPress={envoyer} disabled={!motif || envoi} style={[st.primaire, { marginTop: 24 }, (!motif || envoi) && { opacity: 0.4 }]} accessibilityRole="button">
+          {envoi ? <ActivityIndicator color="#FFFFFF" /> : <Text style={st.primaireTexte}>Signaler l’absence</Text>}
+        </Pressable>
+        {!motif ? <Text style={[st.aide, { textAlign: 'center' }]}>Choisissez un motif.</Text> : null}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+const st = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bg },
+  label: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, lineHeight: 17, color: '#0F172A', marginTop: 18, marginBottom: 8 },
+  sousLabel: { fontFamily: FontFamily.sansRegular, fontSize: 12, lineHeight: 16, color: 'rgba(15,23,42,0.55)', marginTop: 4, marginBottom: 6 },
+  aide: { fontFamily: FontFamily.sansRegular, fontSize: 12, lineHeight: 16, color: 'rgba(15,23,42,0.55)', marginTop: 6 },
+  pills: { flexDirection: 'row', flexWrap: 'wrap' },
+  pill: { height: 36, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(15,23,42,0.08)', justifyContent: 'center', marginRight: 8, marginBottom: 8 },
+  pillActive: { backgroundColor: '#0F172A' },
+  pillIcone: { height: 36, paddingHorizontal: 14, borderRadius: 999, backgroundColor: 'rgba(15,23,42,0.08)', flexDirection: 'row', alignItems: 'center', gap: 6, marginRight: 8, marginBottom: 8 },
+  pillTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, lineHeight: 17, color: 'rgba(15,23,42,0.7)' },
+  pillTexteActif: { color: '#FFFFFF' },
+  date: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)', marginTop: 2 },
+  fleche: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  dateTexte: { flex: 1, textAlign: 'center', fontFamily: FontFamily.sansSemiBold, fontSize: 14, lineHeight: 19, color: '#0F172A' },
+  champ: {
+    fontFamily: FontFamily.sansRegular, fontSize: 15, lineHeight: 20, color: '#0F172A', backgroundColor: '#FFFFFF',
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)', paddingHorizontal: 14, paddingVertical: 12,
   },
-  // ── Header ──
-  miniHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingBottom: 14,
-  },
-  headerTitle: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 16,
-    color: '#0F172A',
-  },
-  headerSpacer: {
-    width: 22,
-  },
-  // ── Steps ──
-  stepsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 32,
-    paddingBottom: 12,
-    position: 'relative',
-  },
-  stepItem: {
-    alignItems: 'center',
-    zIndex: 2,
-  },
-  stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  stepNum: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 13,
-  },
-  stepLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 11,
-  },
-  connector: {
-    position: 'absolute',
-    height: 2,
-    top: 15,
-    zIndex: 1,
-  },
-  connectorLeft: {
-    left: '22%',
-    right: '55%',
-  },
-  connectorRight: {
-    left: '55%',
-    right: '22%',
-  },
-  // ── Scroll ──
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 8,
-    gap: 14,
-  },
-  // ── Step content ──
-  stepQuestion: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 18,
-    color: '#0F172A',
-    marginBottom: 4,
-  },
-  subLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-    marginBottom: -4,
-  },
-  // ── Pills ──
-  pillRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  pill: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    minWidth: 90,
-    alignItems: 'center',
-    borderWidth: 1.5,
-  },
-  pillText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 13,
-  },
-  // ── Input ──
-  inputCard: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  inputLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 6,
-  },
-  textInput: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
-    color: '#0F172A',
-    padding: 0,
-  },
-  textArea: {
-    minHeight: 60,
-    textAlignVertical: 'top',
-  },
-  charCount: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: '#94A3B8',
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  // ── Multi-day toggle ──
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 8,
-  },
-  checkLabel: {
-    fontFamily: FontFamily.sansSemiBold,
-    fontSize: 14,
-    color: '#0F172A',
-  },
-  // ── Motif list ──
-  motifList: {
-    gap: 10,
-  },
-  motifRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    gap: 12,
-    borderWidth: 1.5,
-  },
-  motifEmoji: {
-    fontSize: 24,
-  },
-  motifLabel: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 14,
-    flex: 1,
-  },
-  checkDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // ── Recap ──
-  recapCard: {
-    gap: 14,
-  },
-  recapChildRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  recapAvatar: {
-    fontSize: 32,
-  },
-  recapChildName: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 15,
-    color: '#0F172A',
-    flex: 1,
-  },
-  recapDivider: {
-    height: 1,
-    backgroundColor: 'rgba(0,0,0,0.08)',
-  },
-  recapRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  recapValue: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 14,
-    color: '#0F172A',
-    flex: 1,
-  },
-  recapMuted: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 14,
-    color: '#64748B',
-    flex: 1,
-  },
-  // ── Warning ──
-  warningBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    backgroundColor: 'rgba(251,191,36,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(251,191,36,0.25)',
-    borderRadius: 14,
-    padding: 14,
-  },
-  warningText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: '#FBBF24',
-    flex: 1,
-    lineHeight: 18,
-  },
-  // ── Primary button ──
-  primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 16,
-  },
-  primaryBtnText: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-  // ── Success ──
-  successContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    gap: 16,
-  },
-  successCard: {
-    width: '100%',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-  },
-  successIconWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(52,211,153,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  successTitle: {
-    fontFamily: FontFamily.loraBold,
-    fontSize: 22,
-    color: '#0F172A',
-  },
-  successBody: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 15,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  successMuted: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    color: '#94A3B8',
-    textAlign: 'center',
-  },
+  fichier: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, paddingLeft: 12, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)' },
+  miniature: { width: 36, height: 36, borderRadius: 8, backgroundColor: 'rgba(15,23,42,0.06)' },
+  fichierNom: { flex: 1, marginLeft: 10, fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: '#0F172A' },
+  primaire: { height: 52, maxWidth: 240, alignSelf: 'center', paddingHorizontal: 28, borderRadius: 999, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
+  primaireTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, lineHeight: 20, color: '#FFFFFF' },
+  resume: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginTop: 12, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)' },
+  resumeTitre: { fontFamily: FontFamily.sansSemiBold, fontSize: 15, lineHeight: 20, color: '#0F172A' },
+  confirmation: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  confirmationTitre: { fontFamily: FontFamily.displayBold, fontSize: 20, lineHeight: 26, letterSpacing: -0.6, color: '#0F172A', textAlign: 'center' },
+  confirmationTexte: { fontFamily: FontFamily.sansMedium, fontSize: 15, lineHeight: 21, color: '#0F172A', textAlign: 'center', marginTop: 8 },
 });
 
 /** Garde : cette page n'existe que pour un enfant actif (compte réel sans enfant → état vide). */
