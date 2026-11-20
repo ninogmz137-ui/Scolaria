@@ -143,6 +143,28 @@
 - [ ] Préexistant, hors lot : suite SQL `m31_limite_aria` T6 échoue (données de test du 11 nov. restées en base locale).
 - [ ] Suite : 4b (absence, M42), 4c (rendez-vous fixes, M43, vacances par zone), 4d ; procédure Paris des 3 migrations à la fin du lot.
 
+### LOT 4c — RÉSULTAT (20 nov., `archi-lot-4`, af7bdf6 + 84b9646, NON poussé) — rien sur Paris, rien dans main
+- [x] Calendrier officiel des vacances 2026-2027 (`src/utils/vacances.ts`, arrêté du 22 oct. 2025, tableau A/B/C recoupé avec education.gouv.fr pour la zone B ; pont du vendredi 7 mai 2027).
+  - Zone : département du code UAI de l'école, sinon ville chef-lieu d'académie, sinon B.
+  - Corse et outre-mer, que l'arrêté renvoie à d'autres textes : B par défaut.
+  - 31 tests. Le fichier 2027-2028 sera à ajouter.
+- [x] M43 (locale, aller-retour OK, tests SQL 9/9, 25 suites vertes) :
+  - `rendez_vous_fixes`, lus, créés, modifiés et supprimés par tout responsable ; `cree_par` posé par le serveur ;
+  - `rendez_vous_coches` : coche par semaine, partagée ;
+  - `rendez_vous_coches_auteurs` : écrite par déclencheur, lisible dans le foyer de l'auteur seulement.
+
+  Aucun WARN nouveau attendu.
+- [x] App :
+  - « Toutes les semaines » dans « Nouvel événement », avec la liste « À prévoir » ;
+  - carte « Rendez-vous fixe » : « Ajouté par », « À prévoir » cochable pour la semaine affichée, « Coché par » dans le foyer, « Fait » ailleurs ;
+  - modification et suppression depuis la carte ;
+  - aucune carte un jour de vacances ;
+  - démo en mémoire.
+
+  Tests : rendezVous 15, test-lot4c-local 19/19.
+- [ ] [UNCLEAR] « Ajouté par [prénom] » est visible de tous les responsables, y compris d'un autre foyer : la règle des parents séparés n'a été demandée que pour l'auteur des coches. À confirmer.
+- [ ] Redmi (base locale) : à vérifier par l'utilisateur.
+
 ### LOT 4b — RÉSULTAT (20 nov., `archi-lot-4`, 33384df, NON poussé) — rien sur Paris, rien dans main
 - [x] Préalable : suite SQL `m31_limite_aria` corrigée (T6 ne contrôle que les compteurs du compte appelant) → 24/24 suites vertes.
 - [x] M42 (locale, aller-retour OK, tests SQL 8/8 ; RÉVISÉE le 20 nov. : justificatif par FOYER, table `absences_justificatifs`, lisible et joignable par le foyer de l’auteur, lisible par le titulaire, invisible hors foyer ; test-lot4b-local 23/23) :
