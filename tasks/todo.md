@@ -142,6 +142,28 @@
 - [ ] Préexistant, hors lot : suite SQL `m31_limite_aria` T6 échoue (données de test du 11 nov. restées en base locale).
 - [ ] Suite : 4b (absence, M42), 4c (rendez-vous fixes, M43, vacances par zone), 4d ; procédure Paris des 3 migrations à la fin du lot.
 
+### LOT 4b — RÉSULTAT (20 nov., `archi-lot-4`, 33384df, NON poussé) — rien sur Paris, rien dans main
+- [x] Préalable : suite SQL `m31_limite_aria` corrigée (T6 ne contrôle que les compteurs du compte appelant) → 24/24 suites vertes.
+- [x] M42 (locale, aller-retour OK, tests SQL 8/8) :
+  - motif `rendez_vous` ;
+  - `absences.justificatif_path`, fichier du bucket privé `carnet`, contrôlé par un déclencheur (déposé par l'auteur, dans le dossier de l'enfant, jamais un fichier du carnet) ;
+  - lecture des absences par le titulaire de la classe (une seule politique `absences_select`) ;
+  - lecture du justificatif réservée aux responsables et au titulaire ;
+  - `fichiers_orphelins` garde les justificatifs.
+
+  Aucun WARN nouveau attendu, à confirmer par le contrôle de Paris.
+- [x] App :
+  - formulaire réécrit (Quand / Durée / Motif / justificatif / mot ; « Absence signalée à l'école ») ;
+  - démo en mémoire, jamais en base (assistant compris) ;
+  - carte « Absence » dans l'Agenda ;
+  - « À justifier » à l'Accueil (premier degré et collège) et mode « justifier » ;
+  - écran enseignant en lecture seule (sans « prise en compte ») ;
+  - `AbsencesListScreen` et `JustifierAbsenceSheet` (fictifs) retirés.
+- [x] Tests : absences 22, absencesStore 10, test-lot4b-local 21/21 (API Storage réelle : titulaire OK ; autre enseignant de l'école et parent d'un autre enfant refusés ; falsifications refusées), tsc, bundle 12/12.
+- [x] Redmi (base locale, capture) : « Absence à justifier · Demain · matin » sur l'Accueil.
+- [ ] Redmi, à vérifier par l'utilisateur : carte « Absence » dans l'Agenda, mode « justifier », signalement complet, compte enseignant.
+- [ ] Hors lot, relevé : « Les parents ont été notifiés » (`teacher/VieDeClasseScreen.tsx:292`) et « Vous êtes notifié de son utilisation » (`rgpd/TransfertCodeScreen.tsx:266`) : promesses non tenues (aucun push) ; « Aria » encore affiché à l'Accueil (lot 5).
+
 ### LOT 3c — PLAN (18 nov., branche `archi-lot-3c` créée depuis `archi-lot-3b`) — rien sur Paris, rien dans main
 Constat (base locale, lue le 18 nov.) : **aucune migration nécessaire**. Tout existe depuis M22 / M29 / M12 :
 fil `teacher_conversations` portée « foyer » (unique par enseignant + enfant + foyer ; lu et écrit par les responsables DU foyer, `est_du_foyer` ; un parent séparé = autre foyer = autre fil, ne voit rien), portée « individuel » (« Seulement moi ») ;
