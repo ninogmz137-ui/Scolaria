@@ -496,10 +496,10 @@ function AgendaScreenContent() {
     if (!selectedChildId) return;
     if (!avant) return;
     const fait = !avant.fait;
-    // Affiché tout de suite, puis remplacé par la version du serveur (auteur et heure de la coche).
+    // Affiché tout de suite ; une fois enregistrée, la coche prévient le magasin partagé et la liste est relue
+    // (devoirs ET coches : « Coché par vous · [heure] » vient de la base).
     setDevoirsReels((cur) => cur.map((d) => (d.id === id ? { ...d, fait, faitPar: null, faitJour: null, faitHeure: null } : d)));
     cocherDevoir(id, fait, selectedChildId)
-      .then((enregistre) => setDevoirsReels((cur) => cur.map((d) => (d.id === id ? enregistre : d))))
       .catch(() => {
         setDevoirsReels((cur) => cur.map((d) => (d.id === id ? avant : d)));
         Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');

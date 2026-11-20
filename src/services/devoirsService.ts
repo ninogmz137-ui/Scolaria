@@ -1,77 +1,72 @@
 /**
  * devoirsService — devoirs réels d'un enfant (lot 4a) : agenda_events de type « devoir », du jour de Paris à
- * venir, avec l'auteur et l'heure de la coche (fait_par / fait_le, M41, posés par le serveur).
+ * venir, avec l'auteur et l'heure de chaque coche lus par coches_devoirs (M41) : la base ne les rend qu'aux
+ * responsables du foyer de l'auteur (règle des parents séparés) ; hors foyer → « Fait ».
  *
- * Un enfant = un carnet : la requête porte toujours sur UN child_id. Base sans M41 (Paris avant le cycle) :
- * `select('*')` ne renvoie simplement pas fait_par / fait_le → pas de ligne « Coché par », rien ne casse.
+ * Un enfant = un carnet : toujours UN child_id. Base sans M41 (Paris avant le cycle) : coches_devoirs n'existe
+ * pas → aucune coche lue, chaque devoir coché s'affiche « Fait » ; rien ne casse.
+ * La construction des devoirs (utils/devoirs.construireDevoirs) est la même pour l'Agenda, l'Accueil et les tests.
  */
 import { supabase } from './supabase';
 import { leverSiErreur } from './erreurs';
 import { toggleEventDone } from './database';
-import { aujourdhuiParis, heureParis, jourParis, minuitParis } from '../utils/jourParis';
-import type { Devoir } from '../utils/devoirs';
+import { aujourdhuiParis, heureParisIso, jourParisIso, minuitParis } from '../utils/jourParis';
+import {
+  auteursDepuisResponsables,
+  construireDevoirs,
+  type AuteursCoche,
+  type CocheLue,
+  type Devoir,
+} from '../utils/devoirs';
 import { signalerDevoirs } from '../stores/devoirsStore';
 
-/** Prénoms des responsables de l'enfant, par identifiant de compte ; « vous » pour le compte connecté. */
-export type AuteursCoche = Record<string, string>;
+export { auteurCoche, type AuteursCoche } from '../utils/devoirs';
 
-function versDevoir(r: any): Devoir {
-  const debut = new Date(r.start_time);
-  const faitLe = r.fait_le ? new Date(r.fait_le) : null;
-  return {
-    id: String(r.id),
-    titre: String(r.title ?? ''),
-    matiere: r.subject ? String(r.subject) : undefined,
-    jour: jourParis(debut),
-    fait: !!r.is_done,
-    faitPar: r.fait_par ? String(r.fait_par) : null,
-    faitJour: faitLe ? jourParis(faitLe) : null,
-    faitHeure: faitLe ? heureParis(faitLe) : null,
-  };
+/** Fonction absente (base sans M41) : PostgREST rend PGRST202. */
+function fonctionAbsente(error: { code?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST202' || error.code === '42883');
+}
+
+/** Coches de l'enfant (auteur et heure masqués hors du foyer de l'auteur). Lève en cas d'échec réel. */
+export async function chargerCoches(childId: string): Promise<CocheLue[]> {
+  const { data, error } = await supabase.rpc('coches_devoirs', { p_child_id: childId });
+  if (fonctionAbsente(error)) return [];
+  leverSiErreur(error);
+  return (data ?? []) as CocheLue[];
 }
 
 /** Devoirs de l'enfant à partir d'aujourd'hui (heure de Paris), par échéance. Lève en cas d'échec. */
 export async function chargerDevoirs(childId: string): Promise<Devoir[]> {
-  const { data, error } = await supabase
-    .from('agenda_events')
-    .select('*')
-    .eq('child_id', childId)
-    .eq('event_type', 'devoir')
-    .gte('start_time', minuitParis(aujourdhuiParis()).toISOString())
-    .order('start_time')
-    .limit(200);
-  leverSiErreur(error);
-  return ((data ?? []) as any[]).map(versDevoir);
+  const [lignes, coches] = await Promise.all([
+    supabase
+      .from('agenda_events')
+      .select('*')
+      .eq('child_id', childId)
+      .eq('event_type', 'devoir')
+      .gte('start_time', minuitParis(aujourdhuiParis()).toISOString())
+      .order('start_time')
+      .limit(200),
+    chargerCoches(childId),
+  ]);
+  leverSiErreur(lignes.error);
+  return construireDevoirs((lignes.data ?? []) as any[], coches, jourParisIso, heureParisIso);
 }
 
 /** Prénoms des responsables de l'enfant (« vous » pour soi), pour la ligne « Coché par ». */
 export async function chargerAuteursCoche(childId: string): Promise<AuteursCoche> {
   const { data, error } = await supabase.rpc('responsables_enfant', { p_child_id: childId });
   leverSiErreur(error);
-  const auteurs: AuteursCoche = {};
-  for (const r of (data ?? []) as any[]) {
-    const prenom = String(r.prenom ?? '').trim();
-    auteurs[String(r.user_id)] = r.est_moi ? 'vous' : prenom || '';
-  }
-  return auteurs;
+  return auteursDepuisResponsables((data ?? []) as any[]);
 }
 
 /**
- * Coche ou décoche ; renvoie le devoir tel que le serveur l'a enregistré (auteur et heure compris).
- * SEULE fonction de coche de l'app (Accueil, Agenda par jour, vue « Devoirs ») : une fois enregistrée, elle
- * prévient tous les écrans (stores/devoirsStore), qui rechargent leurs devoirs.
+ * Coche ou décoche. SEULE fonction de coche de l'app (Accueil, Agenda par jour, vue « Devoirs ») : une fois
+ * enregistrée, elle prévient tous les écrans (stores/devoirsStore), qui relisent devoirs ET coches (auteur, heure).
  */
-export async function cocherDevoir(id: string, fait: boolean, childId: string): Promise<Devoir> {
+export async function cocherDevoir(id: string, fait: boolean, childId: string): Promise<void> {
   const res = await toggleEventDone(id, fait);
   leverSiErreur(res?.error);
   // Aucune ligne rendue : devoir supprimé entre-temps ou plus accessible → jamais un faux « enregistré ».
   if (!res?.data) throw new Error('devoir introuvable');
   signalerDevoirs(childId);
-  return versDevoir(res.data);
-}
-
-/** Nom affiché de l'auteur d'une coche, ou null si inconnu (ancien responsable, compte effacé, base sans M41). */
-export function auteurCoche(faitPar: string | null | undefined, auteurs: AuteursCoche): string | null {
-  if (!faitPar) return null;
-  return auteurs[faitPar] || null;
 }

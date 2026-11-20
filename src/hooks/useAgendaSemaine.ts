@@ -13,7 +13,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useDemoData } from '../contexts/DemoContext';
 import { getAgendaEvents } from '../services/database';
-import { cocherDevoir } from '../services/devoirsService';
+import { cocherDevoir, chargerCoches, chargerAuteursCoche } from '../services/devoirsService';
+import { auteurCoche, construireDevoirs, libelleCoche, type AuteursCoche, type CocheLue } from '../utils/devoirs';
+import { heureParisIso, jourParisIso } from '../utils/jourParis';
 import { signalerDevoirs } from '../stores/devoirsStore';
 import { useVersionDevoirs } from './useVersionDevoirs';
 import { classerErreur, leverSiErreur, type TypeErreur } from '../services/erreurs';
@@ -32,9 +34,23 @@ export interface EvtAccueil {
   matiere?: string;
   lieu?: string;
   fait: boolean;
+  /** Devoir coché : ligne source « Coché par [prénom] · [heure] » (ou « Fait » hors du foyer de l’auteur). */
+  coche?: string | null;
 }
 
 const JOURS_VUS = 7;
+
+/** Ligne source d'un devoir, avec la même règle que la vue « Devoirs » de l'Agenda. */
+function ligneCoche(d: { fait: boolean; faitJour?: string | null; faitHeure?: string | null }, auteur: string | null): string | null {
+  const auj = aujourdhuiParis();
+  return libelleCoche(d, auteur, auj, decalerJour(auj, -1));
+}
+
+/** Ligne source de chaque devoir de la semaine (même construction que l'Agenda : utils/devoirs). */
+function cochesParId(lignes: any[], coches: CocheLue[], auteurs: AuteursCoche): Map<string, string | null> {
+  const devoirs = construireDevoirs(lignes.filter((r) => r.event_type === 'devoir'), coches, jourParisIso, heureParisIso);
+  return new Map(devoirs.map((d) => [d.id, ligneCoche(d, auteurCoche(d.faitPar, auteurs))]));
+}
 
 export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, actif: boolean) {
   const { getAgenda, toggleAgendaDone } = useDemoData();
@@ -62,6 +78,10 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
         matiere: e.subject || undefined,
         lieu: e.room || undefined,
         fait: e.is_completed ?? false,
+        coche: e.type === 'devoir' ? ligneCoche(
+          { fait: !!e.is_completed, faitJour: e.coche_le ? jourParisIso(e.coche_le) : null, faitHeure: e.coche_le ? heureParisIso(e.coche_le) : null },
+          e.coche_le ? 'vous' : null,
+        ) : null,
       }));
   }, [isDemo, childId, actif, getAgenda]);
 
@@ -76,8 +96,13 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
     (async () => {
       const jour0 = aujourdhuiParis();
       const bornes = bornesParis(jour0, decalerJour(jour0, JOURS_VUS));
-      const res = await getAgendaEvents(childId, { startDate: bornes.debut, endDate: bornes.fin });
+      const [res, coches, auteurs] = await Promise.all([
+        getAgendaEvents(childId, { startDate: bornes.debut, endDate: bornes.fin }),
+        chargerCoches(childId),
+        chargerAuteursCoche(childId),
+      ]);
       leverSiErreur(res.error);
+      const lignesCoches = cochesParId((res.data ?? []) as any[], coches, auteurs);
       const lignes = ((res.data ?? []) as any[]).map<EvtAccueil>((r) => {
         const d = new Date(r.start_time);
         const f = r.end_time ? new Date(r.end_time) : null;
@@ -91,6 +116,7 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
           matiere: r.subject ? String(r.subject) : undefined,
           lieu: r.location ? String(r.location) : undefined,
           fait: !!r.is_done,
+          coche: r.event_type === 'devoir' ? lignesCoches.get(String(r.id)) ?? null : null,
         };
       });
       if (annule) return;

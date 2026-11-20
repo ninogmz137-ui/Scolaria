@@ -40,6 +40,24 @@ export function jourParis(instant: Date = new Date()): string {
   return `${p.getUTCFullYear()}-${deux(p.getUTCMonth() + 1)}-${deux(p.getUTCDate())}`;
 }
 
+/**
+ * Instant d'un horodatage ISO de la base (« 2026-11-20T14:53:59.31156+00:00 ») : la partie décimale des secondes est
+ * ramenée à 3 chiffres (millisecondes), seule forme que tous les moteurs JavaScript lisent sans ambiguïté.
+ */
+export function instantIso(iso: string): Date {
+  return new Date(String(iso).replace(/(\.\d{3})\d+/, '$1'));
+}
+
+/** Jour de Paris d'un horodatage ISO de la base. */
+export function jourParisIso(iso: string): string {
+  return jourParis(instantIso(iso));
+}
+
+/** Heure de Paris ('HH:MM') d'un horodatage ISO de la base. */
+export function heureParisIso(iso: string): string {
+  return heureParis(instantIso(iso));
+}
+
 /** Heure de Paris de l'instant donné, 'HH:MM'. */
 export function heureParis(instant: Date = new Date()): string {
   const p = horlogeParis(instant);

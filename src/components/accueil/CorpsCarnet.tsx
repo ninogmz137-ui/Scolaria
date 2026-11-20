@@ -59,6 +59,8 @@ interface LigneAFaire {
   sousTitre: string;
   /** Mot à signer : pilule « Signer » à droite. */
   signer?: () => void;
+  /** Devoir coché : ligne source « Coché par [prénom] · [heure] », sur sa propre ligne (lot 4a). */
+  source?: string | null;
   /** Devoir / À prévoir : case ronde cochable. */
   case?: { cochee: boolean; basculer: () => void };
   /** Ouvre le détail (mots). */
@@ -72,6 +74,7 @@ function Ligne({ l, dernier }: { l: LigneAFaire; dernier: boolean }) {
       <View style={st.textes}>
         <Text style={[st.titre, l.case?.cochee && st.titreFait]} numberOfLines={2}>{l.titre}</Text>
         <Text style={st.sousTitre} numberOfLines={2}>{l.sousTitre}</Text>
+        {l.source ? <Text style={st.source} numberOfLines={1}>{l.source}</Text> : null}
       </View>
     </>
   );
@@ -174,6 +177,7 @@ export default function CorpsCarnet({
             e.matiere,
             e.date === aujourdhui ? 'pour aujourd’hui' : e.date === demainParis() ? 'pour demain' : `pour le ${jourCourt(e.date)}`,
           ].filter(Boolean).join(' · '),
+          source: e.coche ?? null,
           case: { cochee: e.fait, basculer: () => onBasculerDevoir(e.id) },
         });
       }

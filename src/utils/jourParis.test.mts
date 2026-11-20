@@ -2,6 +2,7 @@
 import {
   decalageParis, jourParis, heureParis, decalerJour, aujourdhuiParis, demainParis,
   jourSemaine, lundiDuJour, joursEntre, dateDuJour, jourDeDate, dateAujourdhuiParis, minuitParis, bornesParis,
+  instantIso, jourParisIso, heureParisIso,
 } from './jourParis.ts';
 
 let ok = 0;
@@ -54,6 +55,12 @@ egal('bornes début', bornesParis('2026-11-20').debut, '2026-11-19T23:00:00.000Z
 egal('bornes fin', bornesParis('2026-11-20').fin, '2026-11-20T22:59:59.999Z');
 egal('bornes semaine', bornesParis('2026-11-16', '2026-11-22').fin, '2026-11-22T22:59:59.999Z');
 egal('dateAujourdhuiParis', jourDeDate(dateAujourdhuiParis(utc('2026-11-19T23:30:00Z'))), '2026-11-20');
+
+// Horodatages de la base (microsecondes) : lus à la milliseconde.
+egal('instant ISO microsecondes', instantIso('2026-11-20T14:53:59.31156+00:00').toISOString(), '2026-11-20T14:53:59.311Z');
+egal('instant ISO sans décimales', instantIso('2026-11-20T14:53:59+00:00').toISOString(), '2026-11-20T14:53:59.000Z');
+egal('jour Paris ISO', jourParisIso('2026-11-20T23:10:00.123456+00:00'), '2026-11-21');
+egal('heure Paris ISO', heureParisIso('2026-11-20T14:53:59.31156+00:00'), '15:53');
 
 console.log(`jourParis : ${ok} OK, ${ko} échec(s)`);
 if (ko > 0) process.exit(1);

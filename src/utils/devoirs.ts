@@ -78,8 +78,10 @@ function heureEnClair(hhmm: string): string {
 }
 
 /**
- * Ligne source d'un devoir coché, ou null s'il n'est pas coché ou si l'heure est inconnue (base sans M41).
- * `auteur` : 'vous' pour le responsable connecté, le prénom de l'autre responsable, ou null (inconnu).
+ * Ligne source d'un devoir, ou null s'il n'est pas coché.
+ * `auteur` : 'vous' pour le responsable connecté, le prénom d'un responsable du même foyer, ou null.
+ * Règle des parents séparés (20 nov. 2026) : hors du foyer de l'auteur, la base ne rend ni l'auteur ni l'heure
+ * → « Fait » seulement (de même si l'heure est inconnue : base sans M41, compte de l'auteur effacé).
  */
 export function libelleCoche(
   d: Pick<Devoir, 'fait' | 'faitJour' | 'faitHeure'>,
@@ -87,13 +89,82 @@ export function libelleCoche(
   aujourdhui: string,
   hier: string,
 ): string | null {
-  if (!d.fait || !d.faitJour || !d.faitHeure) return null;
+  if (!d.fait) return null;
+  if (!d.faitJour || !d.faitHeure) return 'Fait';
   const qui = auteur ? `Coché par ${auteur}` : 'Coché';
   const heure = heureEnClair(d.faitHeure);
   if (d.faitJour === aujourdhui) return `${qui} · ${heure}`;
   if (d.faitJour === hier) return `${qui} · hier, ${heure}`;
   const p = partiesJour(d.faitJour);
   return `${qui} · ${p.date === 1 ? '1er' : p.date} ${MOIS[p.mois]}, ${heure}`;
+}
+
+// ─── Construction des devoirs à partir de la base (une seule logique pour l'Accueil, l'Agenda et les tests) ───
+
+/** Ligne de agenda_events lue par l'app. */
+export interface LigneDevoir {
+  id: string;
+  title?: string | null;
+  subject?: string | null;
+  start_time: string;
+  is_done?: boolean | null;
+}
+
+/** Ligne de coches_devoirs (M41) : auteur et heure à null hors du foyer de l'auteur. */
+export interface CocheLue {
+  event_id: string;
+  fait_par: string | null;
+  fait_le: string | null;
+}
+
+/** Ligne de responsables_enfant (M2f). */
+export interface ResponsableLu {
+  user_id: string;
+  prenom?: string | null;
+  est_moi?: boolean | null;
+}
+
+/** Prénom affiché de chaque responsable de l'enfant, par compte ; « vous » pour le compte connecté. */
+export type AuteursCoche = Record<string, string>;
+
+export function auteursDepuisResponsables(lignes: ResponsableLu[]): AuteursCoche {
+  const auteurs: AuteursCoche = {};
+  for (const r of lignes) auteurs[String(r.user_id)] = r.est_moi ? 'vous' : String(r.prenom ?? '').trim();
+  return auteurs;
+}
+
+/** Nom affiché de l'auteur d'une coche, ou null s'il est inconnu (hors foyer, compte effacé, base sans M41). */
+export function auteurCoche(faitPar: string | null | undefined, auteurs: AuteursCoche): string | null {
+  if (!faitPar) return null;
+  return auteurs[faitPar] || null;
+}
+
+/**
+ * Devoirs de l'app à partir des lignes de agenda_events et des coches lues par coches_devoirs.
+ * `jourDe` / `heureDe` : jour 'AAAA-MM-JJ' et heure 'HH:MM' de Paris d'un horodatage ISO de la base
+ * (utils/jourParis), passés en paramètre pour garder ce module pur.
+ */
+export function construireDevoirs(
+  lignes: LigneDevoir[],
+  coches: CocheLue[],
+  jourDe: (iso: string) => string,
+  heureDe: (iso: string) => string,
+): Devoir[] {
+  const parEvenement = new Map(coches.map((c) => [String(c.event_id), c]));
+  return lignes.map((r) => {
+    const fait = !!r.is_done;
+    const c = fait ? parEvenement.get(String(r.id)) : undefined;
+    return {
+      id: String(r.id),
+      titre: String(r.title ?? ''),
+      matiere: r.subject ? String(r.subject) : undefined,
+      jour: jourDe(r.start_time),
+      fait,
+      faitPar: c?.fait_par ?? null,
+      faitJour: c?.fait_le ? jourDe(c.fait_le) : null,
+      faitHeure: c?.fait_le ? heureDe(c.fait_le) : null,
+    };
+  });
 }
 
 /** Nombre de devoirs restant à faire (non cochés, aujourd'hui et après). */

@@ -764,8 +764,12 @@ Mode démo : aucune photo, initiales seulement
 ```
 Devoirs : groupés par JOUR D'ÉCHÉANCE, « Pour demain » en premier, puis les jours suivants
   ligne = case ronde 22px (bordure 1.5px rgba(15,23,42,0.25)) + pastille de discipline 34 + intitulé
-  coche « fait » PARTAGÉE entre les responsables du foyer ; sous la ligne : « Coché par [prénom] · [heure] »
-  (ligne source §17) ; un devoir non coché pour demain allume la pastille de l'avatar (§0)
+  coche « fait » PARTAGÉE entre TOUS les responsables de l'enfant, y compris d'un autre foyer (parents séparés,
+  règle du 20 nov. 2026, CLAUDE.md § Garde partagée) ; sous la ligne, ligne source (§17) :
+  « Coché par [prénom] · [heure] » (« Coché par vous » pour soi) DANS le foyer de l'auteur seulement ;
+  hors de ce foyer : « Fait » (auteur et heure masqués par la base, M41) ;
+  même ligne sur l'Accueil et dans l'Agenda (même donnée, même logique : utils/devoirs) ;
+  un devoir non coché pour demain allume la pastille de l'avatar (§0)
 Absence signalée : carte §7 Agenda, catégorie « Absence », période + motif ; PAS de statut « Vu par l'enseignant » en V1
   (aucune lecture par l'enseignant n'est enregistrée : rien qui ne soit vrai ; décision du 17 nov.)
 Journée type fixe du primaire : RETIRÉE de la V1 (décision du 17 nov.), comme l'emploi du temps complet (Phase 2)

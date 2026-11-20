@@ -64,9 +64,17 @@ const nettoyer = () => {
 process.on('exit', nettoyer);
 for (const s of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) process.on(s, () => process.exit(0));
 
+// JAMAIS en mode CI (20 nov. 2026) : avec CI=1, Metro ne surveille pas les fichiers et n'envoie aucune modification
+// au téléphone (« reloads are disabled ») — le Redmi a tourné sur l'ancien code pendant une vérification. CI est donc
+// retiré de l'environnement d'Expo, et son entrée standard reste ouverte (un tube jamais fermé) : lancé en tâche de
+// fond sans clavier, Expo ne voit ni terminal ni fin de flux, et garde la surveillance des fichiers.
+const envMetro = { ...process.env };
+delete envMetro.CI;
 const enfant = spawn(process.execPath, ['node_modules/expo/bin/cli', 'start', '--dev-client', '--port', String(PORT_METRO), '--clear'], {
-  stdio: 'inherit',
+  stdio: ['pipe', 'inherit', 'inherit'],
+  env: envMetro,
 });
+if (process.env.CI) console.log('[redmi-local] CI retiré de l’environnement de Metro : surveillance des fichiers active.');
 enfant.on('exit', (c) => process.exit(c ?? 0));
 
 // Contrôles une fois Metro prêt (le bundle Android est construit à la demande : jusqu'à quelques minutes).
@@ -80,8 +88,7 @@ async function controler() {
     }
     await new Promise((ok) => setTimeout(ok, 2000));
   }
-  const bundle = await (await fetch(`http://localhost:${PORT_METRO}/index.bundle?platform=android&dev=true&minify=false`)).text();
-  const paris = REFERENCES_INTERDITES.some((ref) => bundle.includes(ref));
+  const bundle = await (await fetch(`http://localhost:${PORT_METRO}/index.bundle?platform=android&dev=true&minify=false`)).text();  const paris = REFERENCES_INTERDITES.some((ref) => bundle.includes(ref));
   const local = bundle.includes(statut.API_URL);
   const redirections = adb('reverse', '--list').stdout ?? '';
   const ok =
