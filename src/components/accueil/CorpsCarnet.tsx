@@ -9,7 +9,7 @@
  * Aucune section vide n'est affichée ; tout vient de l'enfant sélectionné (jamais d'un autre carnet).
  */
 
-import { aujourdhuiParis, heureParis } from '../../utils/jourParis';
+import { aujourdhuiParis, demainParis, heureParis } from '../../utils/jourParis';
 import { useMemo, type ReactNode } from 'react';
 import { C, RADIUS, SHADOW } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
@@ -170,7 +170,10 @@ export default function CorpsCarnet({
           cle: `devoir-${e.id}`,
           categorie: categorieDiscipline(e.matiere),
           titre: e.titre,
-          sousTitre: [e.matiere, e.date === aujourdhui ? 'pour aujourd’hui' : `pour le ${jourCourt(e.date)}`].filter(Boolean).join(' · '),
+          sousTitre: [
+            e.matiere,
+            e.date === aujourdhui ? 'pour aujourd’hui' : e.date === demainParis() ? 'pour demain' : `pour le ${jourCourt(e.date)}`,
+          ].filter(Boolean).join(' · '),
           case: { cochee: e.fait, basculer: () => onBasculerDevoir(e.id) },
         });
       }

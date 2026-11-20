@@ -40,7 +40,6 @@ export const ROUTE_CHROME = {
   AriaConversation: 'none',
   WallpaperPicker: 'none',
   ArchivedYearDetail: 'full',
-  Homework: 'none',
   Timetable: 'none',
   SignDoc: 'none',
   SignSuccess: 'none',

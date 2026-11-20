@@ -10,7 +10,11 @@
  * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
-import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate } from '../utils/jourParis';
+import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour } from '../utils/jourParis';
+import { grouperDevoirs, libelleCoche, resteAFaire, type Devoir } from '../utils/devoirs';
+import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, type AuteursCoche } from '../services/devoirsService';
+import PastilleCategorie from '../components/PastilleCategorie';
+import { categorieDiscipline } from '../theme/categories';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -113,23 +117,9 @@ type NewEventType = 'devoir' | 'controle' | 'sortie' | 'autre';
 type FilterTab = 'Tout' | 'Devoirs' | 'Événements' | 'Rappels';
 const FILTER_TABS: FilterTab[] = ['Tout', 'Devoirs', 'Événements', 'Rappels'];
 
-interface DevoirItem {
-  id: string;
-  subject: string;
-  title: string;
-  time: string;
-  attachment?: string;
-  isDemain?: boolean;
-  done: boolean;
-  detail?: string;
-}
-
-interface DevoirGroup {
-  label: string;
-  sublabel: string;
-  isRendus?: boolean;
-  devoirs: DevoirItem[];
-}
+/** Démo : la coche est celle du parent qui consulte (« Coché par vous »). */
+const MOI_DEMO = 'demo-moi';
+const AUTEURS_DEMO: AuteursCoche = { [MOI_DEMO]: 'vous' };
 
 const NEW_EVENT_TYPE_LABELS: Record<NewEventType, string> = {
   devoir: 'Devoir', controle: 'Contrôle', sortie: 'Sortie', autre: 'Autre',
@@ -262,9 +252,9 @@ function AnimatedCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
   );
 }
 
-// ─── Homework checkbox (18px) ─────────────────────────────
+// ─── Homework checkbox (22px, COMPONENTS §18.6) ─────────────────────────────
 
-function HomeworkCheckbox({ done, onPress }: { done: boolean; onPress: () => void }) {
+function HomeworkCheckbox({ done, onPress, label }: { done: boolean; onPress: () => void; label: string }) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -280,11 +270,17 @@ function HomeworkCheckbox({ done, onPress }: { done: boolean; onPress: () => voi
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Pressable onPress={onPress} hitSlop={10}>
+    <Pressable
+      onPress={onPress}
+      hitSlop={11}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: done }}
+      accessibilityLabel={label}
+    >
       <Animated.View style={animStyle}>
         {done ? (
           <View style={st.hwCheckFilled}>
-            <Check size={10} color="#FFFFFF" strokeWidth={3} />
+            <Check size={12} color="#FFFFFF" strokeWidth={3} />
           </View>
         ) : (
           <View style={st.hwCheckEmpty} />
@@ -343,8 +339,12 @@ function AgendaScreenContent() {
   useEffect(() => {
     if (!avecDevoirs && activeFilter === 'Devoirs') setActiveFilter('Tout');
   }, [avecDevoirs, activeFilter]);
-  const [expandedDevoir, setExpandedDevoir] = useState<string | null>(null);
-  const [devoirDoneMap, setDevoirDoneMap] = useState<Record<string, boolean>>({});
+  // ─── Vue « Devoirs » (lot 4a) : devoirs réels de l'enfant, par jour d'échéance ───
+  const [devoirsReels, setDevoirsReels] = useState<Devoir[]>([]);
+  const [auteursCoche, setAuteursCoche] = useState<AuteursCoche>({});
+  const [erreurDevoirs, setErreurDevoirs] = useState<TypeErreur | null>(null);
+  const [devoirsCharges, setDevoirsCharges] = useState(false);
+  const [versionDevoirs, setVersionDevoirs] = useState(0);
 
   const isSelectedToday = useMemo(
     () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
@@ -429,87 +429,77 @@ function AgendaScreenContent() {
     });
   }, [isDemoMode, demoToggleDone]);
 
-  // ─── Demo devoirs data ─────────────────────────────────
-  const demoDevoirs = useMemo((): DevoirGroup[] => {
-    // Devoirs de démo : dès le CP, en mode démo uniquement (jamais pour un compte réel).
-    // Primaire : leçons, lecture, poésie, tables — jamais de contenu de collège.
-    if (!isDemoMode || !aDesDevoirs(selectedChild?.cycle)) return [];
-    const college = aDesNotes(selectedChild?.cycle);
-    const t = dateAujourdhuiParis();
-    // Échéances sur des jours d'école : jamais le week-end ; en primaire (démo : semaine de 4 jours),
-    // jamais le mercredi non plus.
-    const sansEcole = (d: Date) => d.getDay() === 0 || d.getDay() === 6 || (!college && d.getDay() === 3);
-    const ecole = (d: Date, sens: 1 | -1) => { while (sansEcole(d)) d.setDate(d.getDate() + sens); return d; };
-    const tomorrow = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), 1);
-    const inThreeDays = ecole(new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 2), 1);
-    const fourDaysAgo = ecole(new Date(t.getFullYear(), t.getMonth(), t.getDate() - 4), -1);
-    const estDemain = tomorrow.toDateString() === new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1).toDateString();
-    const DAY_SHORT = ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'];
-    const DAY_FULL = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-    const MONTH = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-    const fmt = (d: Date) => `${DAY_SHORT[d.getDay()]} ${d.getDate()} ${MONTH[d.getMonth()]}`;
-    const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-    if (!college) {
-      return [
-        {
-          label: fmt(tomorrow),
-          sublabel: estDemain ? 'Demain' : cap(DAY_FULL[tomorrow.getDay()]),
-          devoirs: [
-            { id: 'hwp1', subject: 'FRANÇAIS', title: 'Poésie : « Le Lion et le Rat », jusqu’au vers 8', time: '', isDemain: estDemain, done: false },
-            { id: 'hwp2', subject: 'MATHS', title: 'Revoir les tables de 7 et de 8', time: '', isDemain: estDemain, done: false },
-          ],
-        },
-        {
-          label: fmt(inThreeDays),
-          sublabel: cap(DAY_FULL[inThreeDays.getDay()]),
-          devoirs: [
-            { id: 'hwp3', subject: 'FRANÇAIS', title: 'Lire le chapitre 3 du Petit Prince', time: '', done: false },
-            { id: 'hwp4', subject: 'HISTOIRE', title: 'Apprendre la leçon sur la Renaissance', time: '', detail: 'Cahier d’histoire', done: false },
-          ],
-        },
-        {
-          label: fmt(fourDaysAgo),
-          sublabel: `${cap(DAY_FULL[fourDaysAgo.getDay()])} dernier`,
-          isRendus: true,
-          devoirs: [
-            { id: 'hwp5', subject: 'FRANÇAIS', title: 'Dictée préparée : liste de mots n°4', time: '', done: true },
-          ],
-        },
-      ];
-    }
-    return [
-      {
-        label: fmt(tomorrow),
-        sublabel: estDemain ? 'Demain' : cap(DAY_FULL[tomorrow.getDay()]),
-        devoirs: [
-          { id: 'hw1', subject: 'MATHS', title: 'Exercices p.84 n°12 à 18', time: '8h00', attachment: '1 PDF', isDemain: estDemain, done: false },
-          { id: 'hw2', subject: 'ANGLAIS', title: 'Apprendre vocabulaire unit 6', time: '10h00', done: false },
-          { id: 'hw3', subject: 'HISTOIRE', title: 'Lire chapitre 7', time: '14h00', detail: 'Manuel p.142', isDemain: estDemain, done: false },
-        ],
-      },
-      {
-        label: fmt(inThreeDays),
-        sublabel: cap(DAY_FULL[inThreeDays.getDay()]),
-        devoirs: [
-          { id: 'hw4', subject: 'FRANÇAIS', title: 'Rédaction 200 mots', time: '9h00', attachment: 'Sujet PDF', done: false },
-          { id: 'hw5', subject: 'SVT', title: 'Compléter fiche révision', time: '11h00', done: false },
-        ],
-      },
-      {
-        label: fmt(fourDaysAgo),
-        sublabel: `${cap(DAY_FULL[fourDaysAgo.getDay()])} dernier`,
-        isRendus: true,
-        devoirs: [
-          { id: 'hw6', subject: 'ESPAGNOL', title: 'Conjugaison pretérito', time: '', done: true },
-          { id: 'hw7', subject: 'MATHS', title: 'DM n°3', time: '', done: true },
-        ],
-      },
-    ];
-  }, [isDemoMode, selectedChild?.cycle]);
+  // ─── Devoirs (lot 4a) ──────────────────────────────────
+  // Démo : devoirs de l'Agenda de démo (dates relatives à aujourd'hui), coche en mémoire, « Coché par vous ».
+  // Compte réel : devoirs « devoir » de l'enfant (devoirsService), coche enregistrée ; auteur et heure de la
+  // coche posés par le serveur (M41). Jamais de tableau en dur.
+  const devoirsDemo = useMemo((): Devoir[] => {
+    if (!isDemoMode || !selectedChildId || !avecDevoirs) return [];
+    return getDemoAgenda(selectedChildId)
+      .filter((e) => e.type === 'devoir')
+      .map((e) => {
+        const coche = e.is_completed && e.coche_le ? new Date(e.coche_le) : null;
+        return {
+          id: e.id,
+          titre: e.title,
+          matiere: e.subject || undefined,
+          jour: e.date,
+          fait: !!e.is_completed,
+          faitPar: coche ? MOI_DEMO : null,
+          faitJour: coche ? jourParis(coche) : null,
+          faitHeure: coche ? heureParis(coche) : null,
+        };
+      });
+  }, [isDemoMode, selectedChildId, avecDevoirs, getDemoAgenda]);
 
-  const toggleDevoirDone = useCallback((id: string) => {
-    setDevoirDoneMap((prev) => ({ ...prev, [id]: !(prev[id] ?? false) }));
-  }, []);
+  // Un enfant = un carnet : changer d'enfant vide la liste AVANT le chargement.
+  const dernierEnfantDevoirs = useRef<string | null>(null);
+  useEffect(() => {
+    if (dernierEnfantDevoirs.current !== selectedChildId) {
+      dernierEnfantDevoirs.current = selectedChildId ?? null;
+      setDevoirsReels([]);
+      setAuteursCoche({});
+      setErreurDevoirs(null);
+      setDevoirsCharges(false);
+    }
+    if (isDemoMode || !selectedChildId || !avecDevoirs || activeFilter !== 'Devoirs') return;
+    let annule = false;
+    (async () => {
+      const [liste, auteurs] = await Promise.all([chargerDevoirs(selectedChildId), chargerAuteursCoche(selectedChildId)]);
+      if (annule) return;
+      setDevoirsReels(liste);
+      setAuteursCoche(auteurs);
+      setErreurDevoirs(null);
+      setDevoirsCharges(true);
+    })().catch((e) => {
+      if (!annule) setErreurDevoirs(classerErreur(e));
+    });
+    return () => {
+      annule = true;
+    };
+  }, [isDemoMode, selectedChildId, avecDevoirs, activeFilter, versionDevoirs]);
+
+  const devoirs = isDemoMode ? devoirsDemo : devoirsReels;
+  const auteursDevoirs = isDemoMode ? AUTEURS_DEMO : auteursCoche;
+  const groupesDevoirs = useMemo(() => grouperDevoirs(devoirs, aujourdhuiParis(), demainParis()), [devoirs]);
+
+  const basculerDevoir = useCallback((id: string) => {
+    if (isDemoMode) {
+      demoToggleDone(id);
+      return;
+    }
+    const avant = devoirsReels.find((d) => d.id === id);
+    if (!avant) return;
+    const fait = !avant.fait;
+    // Affiché tout de suite, puis remplacé par la version du serveur (auteur et heure de la coche).
+    setDevoirsReels((cur) => cur.map((d) => (d.id === id ? { ...d, fait, faitPar: null, faitJour: null, faitHeure: null } : d)));
+    cocherDevoir(id, fait)
+      .then((enregistre) => setDevoirsReels((cur) => cur.map((d) => (d.id === id ? enregistre : d))))
+      .catch(() => {
+        setDevoirsReels((cur) => cur.map((d) => (d.id === id ? avant : d)));
+        Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');
+      });
+  }, [isDemoMode, demoToggleDone, devoirsReels]);
 
   // ─── Add event modal ───────────────────────────────────
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -633,6 +623,12 @@ function AgendaScreenContent() {
     setEventsByDay(grouped);
   }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours]);
 
+  const filtrePrecedent = useRef(activeFilter);
+  useEffect(() => {
+    if (filtrePrecedent.current === 'Devoirs' && activeFilter !== 'Devoirs') loadEvents();
+    filtrePrecedent.current = activeFilter;
+  }, [activeFilter, loadEvents]);
+
   // Un enfant = un carnet : changer d'enfant vide l'agenda AVANT le chargement (un échec ne montre jamais les
   // événements d'un autre enfant). Même enfant, autre semaine ou nouvel essai : les événements affichés restent.
   const dernierEnfantAgenda = useRef<string | null>(null);
@@ -750,52 +746,14 @@ function AgendaScreenContent() {
     setCalendarOpen(false);
   }, []);
 
-  // ─── Render homework (Cahier de texte) view ───────────
+  // ─── Vue « Devoirs » (lot 4a, COMPONENTS §18.6) ─────────
+  // Par jour d'échéance, « Pour demain » en premier ; ligne = case ronde 22 + pastille de discipline 34 +
+  // intitulé ; sous un devoir coché, sa ligne source « Coché par [prénom] · [heure] ».
   const renderHomeworkView = () => {
-    const pendingCount = demoDevoirs.reduce(
-      (acc, g) => !g.isRendus ? acc + g.devoirs.filter((d) => !(devoirDoneMap[d.id] ?? d.done)).length : acc, 0,
-    );
-    const thisWeekCount = 2;
-    const rendusCount = demoDevoirs.find((g) => g.isRendus)?.devoirs.length ?? 0;
-
-    const renderDevoirRow = (devoir: DevoirItem, isRendu: boolean) => {
-      const isDone = devoirDoneMap[devoir.id] ?? devoir.done;
-      const isExpanded = expandedDevoir === devoir.id;
-      const metaParts: string[] = [];
-      if (devoir.time) metaParts.push(`Pour ${devoir.time}`);
-      if (devoir.attachment) metaParts.push(devoir.attachment);
-      if (devoir.detail) metaParts.push(devoir.detail);
-      return (
-        <Pressable
-          key={devoir.id}
-          onPress={() => setExpandedDevoir(isExpanded ? null : devoir.id)}
-          style={({ pressed }) => [pressed && { opacity: 0.75 }]}
-        >
-          <View style={[st.hwRow, isRendu && st.hwRowRendu]}>
-            <HomeworkCheckbox done={isDone} onPress={() => toggleDevoirDone(devoir.id)} />
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <View style={st.hwPillRow}>
-                <View style={st.hwSubjectPill}>
-                  <Text style={st.hwSubjectText}>{devoir.subject}</Text>
-                </View>
-                {devoir.isDemain && !isRendu && (
-                  <View style={st.hwDemainBadge}>
-                    <Text style={st.hwDemainText}>DEMAIN</Text>
-                  </View>
-                )}
-              </View>
-              <Text style={[st.hwTitle, isDone && { textDecorationLine: 'line-through', opacity: 0.45 }]}>
-                {devoir.title}
-              </Text>
-              {metaParts.length > 0 && (
-                <Text style={st.hwMeta}>{metaParts.join(' · ')}</Text>
-              )}
-            </View>
-          </View>
-        </Pressable>
-      );
-    };
-
+    const aujourdhui = aujourdhuiParis();
+    const hier = decalerJour(aujourdhui, -1);
+    const reste = resteAFaire(groupesDevoirs);
+    const chargement = !isDemoMode && !devoirsCharges && !erreurDevoirs;
     return (
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
@@ -808,29 +766,38 @@ function AgendaScreenContent() {
         scrollEventThrottle={16}
         onScroll={scrollHandler}
       >
-        <View style={st.hwStats}>
-          <Text style={st.hwStatNum}>{pendingCount}</Text>
-          <Text style={st.hwStatLabel}> à faire</Text>
-          <Text style={st.hwStatSep}> · </Text>
-          <Text style={st.hwStatNum}>{thisWeekCount}</Text>
-          <Text style={st.hwStatLabel}> cette semaine</Text>
-          <Text style={st.hwStatSep}> · </Text>
-          <Text style={st.hwStatNum}>{rendusCount}</Text>
-          <Text style={st.hwStatLabel}> rendus</Text>
-        </View>
-        {demoDevoirs.map((group) => (
-          <View key={group.label} style={{ marginBottom: 8 }}>
-            <View style={st.hwSectionRow}>
-              <Text style={st.hwSectionLabel}>
-                {`${group.label} · ${group.sublabel}`.toUpperCase()}
-              </Text>
-              <Text style={st.hwSectionCount}>{group.devoirs.length}</Text>
-            </View>
-            <View style={group.isRendus ? st.hwRendusGroup : undefined}>
-              {group.devoirs.map((d) => renderDevoirRow(d, group.isRendus ?? false))}
-            </View>
+        {erreurDevoirs ? (
+          <EtatErreur type={erreurDevoirs} onReessayer={() => setVersionDevoirs((v) => v + 1)} />
+        ) : chargement ? null : groupesDevoirs.length === 0 ? (
+          <View style={st.emptyState}>
+            <Text style={st.hwVide}>Aucun devoir à venir.</Text>
           </View>
-        ))}
+        ) : (
+          <>
+            <Text style={st.hwStats}>{reste === 0 ? 'Tout est fait.' : `${reste} à faire`}</Text>
+            {groupesDevoirs.map((g) => (
+              <View key={g.jour}>
+                <Text style={st.hwSectionLabel}>{g.titre}</Text>
+                {g.devoirs.map((d) => {
+                  const source = libelleCoche(d, auteurCoche(d.faitPar, auteursDevoirs), aujourdhui, hier);
+                  return (
+                    <View key={d.id} style={st.hwRow}>
+                      <HomeworkCheckbox done={d.fait} onPress={() => basculerDevoir(d.id)} label={d.titre} />
+                      <View style={st.hwPastille}>
+                        <PastilleCategorie categorie={categorieDiscipline(d.matiere ?? d.titre)} taille={34} rayon={11} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[st.hwTitle, d.fait && st.hwTitleFait]}>{d.titre}</Text>
+                        {d.matiere ? <Text style={st.hwMeta}>{d.matiere}</Text> : null}
+                        {source ? <Text style={st.hwSource}>{source}</Text> : null}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </>
+        )}
       </Animated.ScrollView>
     );
   };
@@ -1755,127 +1722,79 @@ const st = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Homework view
+  // Vue « Devoirs » (lot 4a, COMPONENTS §18.6)
   hwStats: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    paddingVertical: 12,
-    paddingBottom: 14,
-  },
-  hwStatNum: {
-    fontFamily: FontFamily.displayExtraBold,
-    fontSize: 18,
-    color: '#0F172A',
-    letterSpacing: -0.6,
-  },
-  hwStatLabel: {
-    fontFamily: FontFamily.sansRegular,
+    fontFamily: FontFamily.sansSemiBold,
     fontSize: 13,
     color: 'rgba(15,23,42,0.55)',
-  },
-  hwStatSep: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 13,
-    color: 'rgba(15,23,42,0.28)',
-  },
-  hwSectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-    marginTop: 8,
+    paddingTop: 12,
+    paddingHorizontal: 6,
   },
   hwSectionLabel: {
     fontFamily: FontFamily.sansSemiBold,
-    fontSize: 8.5,
-    color: 'rgba(15,23,42,0.28)',
-    letterSpacing: 1.2,
-  },
-  hwSectionCount: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 8,
-    color: 'rgba(15,23,42,0.30)',
-    letterSpacing: 0.08,
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.55)',
+    paddingTop: 18,
+    paddingHorizontal: 6,
+    paddingBottom: 8,
   },
   hwRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingVertical: 11,
     paddingHorizontal: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: C.border,
-    borderRadius: 14,
+    borderRadius: RADIUS.card,
     marginBottom: 6,
     ...SHADOW.card,
   },
-  hwRowRendu: {
-    backgroundColor: 'rgba(15,23,42,0.03)',
-  },
-  hwRendusGroup: {
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  hwPillRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginBottom: 3,
-    flexWrap: 'wrap',
-  },
-  hwSubjectPill: {
-    backgroundColor: 'rgba(67,56,202,0.10)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  hwSubjectText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 9,
-    color: '#4338CA',
-    letterSpacing: 0.4,
-  },
-  hwDemainBadge: {
-    backgroundColor: 'rgba(245,158,11,0.12)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 999,
-  },
-  hwDemainText: {
-    fontFamily: FontFamily.sansBold,
-    fontSize: 9,
-    color: '#D97706',
-    letterSpacing: 0.4,
+  hwPastille: {
+    marginLeft: 12,
+    marginRight: 10,
   },
   hwTitle: {
     fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
+    fontSize: 14,
     color: '#0F172A',
-    lineHeight: 18,
+    lineHeight: 19,
+  },
+  hwTitleFait: {
+    color: 'rgba(15,23,42,0.45)',
   },
   hwMeta: {
     fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    color: 'rgba(15,23,42,0.45)',
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  hwCheckEmpty: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: 'rgba(15,23,42,0.25)',
+    fontSize: 12,
+    color: 'rgba(15,23,42,0.55)',
     marginTop: 1,
   },
+  hwSource: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.55)',
+    marginTop: 3,
+  },
+  hwVide: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 13,
+    color: 'rgba(15,23,42,0.55)',
+    textAlign: 'center',
+  },
+  hwCheckEmpty: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.25)',
+  },
   hwCheckFilled: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
   },
 });
 

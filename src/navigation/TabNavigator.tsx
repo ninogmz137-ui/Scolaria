@@ -99,7 +99,6 @@ import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
 // v3.0 — nouveaux écrans
-import HomeworkScreen from '../screens/HomeworkScreen';
 import TimetableScreen from '../screens/TimetableScreen';
 import EventDetailScreen from '../screens/EventDetailScreen';
 import GradeDetailScreen from '../screens/GradeDetailScreen';
@@ -331,11 +330,6 @@ function AccueilStackScreen() {
         options={{ headerShown: false }}
       />
       {/* v3.0 */}
-      <AccueilStack.Screen
-        name="Homework"
-        component={HomeworkScreen}
-        options={{ headerShown: false }}
-      />
       <AccueilStack.Screen
         name="Timetable"
         component={TimetableScreen}

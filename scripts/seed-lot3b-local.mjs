@@ -39,7 +39,7 @@ for (const [cle, c] of Object.entries(COMPTES)) {
     email: c.email,
     password: MDP,
     email_confirm: true,
-    user_metadata: { family_name: c.nom, given_name: c.prenom },
+    user_metadata: { first_name: c.prenom, family_name: c.nom, given_name: c.prenom },
   });
   echoue(`compte ${cle}`, error);
   ids[cle] = data.user.id;

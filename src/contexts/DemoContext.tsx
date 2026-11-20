@@ -74,6 +74,8 @@ export interface DemoAgendaEvent {
   description: string;
   is_completed: boolean;
   color: string;
+  /** Démo (lot 4a) : heure ISO de la coche faite pendant la session, pour « Coché par vous ». */
+  coche_le?: string;
 }
 
 export interface DemoMessage {
@@ -194,9 +196,11 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
     const aVenir = ['sortie', 'reunion', 'evenement', 'activite'].includes(e.type) && date < aujourdHuiIso;
     return { ...e, date: aVenir ? deplacer(date, 7) : date };
   });
+  // Cours (emploi du temps fixe) et devoirs (lot 4a : la vue « Devoirs » n'est jamais vide en fin de semaine)
+  // se répètent la semaine suivante.
   const suivante = semaine
-    .filter((e) => e.type === 'cours')
-    .map((e) => ({ ...e, id: `${e.id}-s2`, date: deplacer(e.date, 7) }));
+    .filter((e) => e.type === 'cours' || e.type === 'devoir')
+    .map((e) => ({ ...e, id: `${e.id}-s2`, date: deplacer(e.date, 7), is_completed: e.type === 'devoir' ? false : e.is_completed }));
   return [...semaine, ...suivante];
 }
 
@@ -235,6 +239,8 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
 
   // Local state for interactive demo data (agenda done, mots signed)
   const [agendaState, setAgendaState] = useState<Record<string, boolean>>({});
+  /** Démo : heure de chaque coche faite pendant la session (« Coché par vous · [heure] »). */
+  const [cochesDemo, setCochesDemo] = useState<Record<string, string>>({});
 
   const getSubjects = useCallback((childId: string): DemoSubject[] => {
     return (demoSubjects as DemoSubject[]).filter((s) => s.childId === childId);
@@ -264,8 +270,9 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     return events.map((e) => ({
       ...e,
       is_completed: agendaState[e.id] !== undefined ? agendaState[e.id] : e.is_completed,
+      coche_le: cochesDemo[e.id],
     }));
-  }, [agenda, agendaState]);
+  }, [agenda, agendaState, cochesDemo]);
 
   const decalage = useMemo(() => decalageMessages(dateAujourdhuiParis()), []);
 
@@ -293,12 +300,23 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     return (demoArchivedGrades as DemoArchivedBulletin[]).filter((b) => b.childId === childId && b.year === year);
   }, []);
 
+  // Coche de démo : en mémoire seulement (jamais en base). Part de l'état réel de l'événement (avant : un
+  // devoir déjà coché dans les données de démo restait coché au premier appui). L'heure de la coche sert à la
+  // ligne « Coché par vous · [heure] » (lot 4a).
   const toggleAgendaDone = useCallback((eventId: string) => {
-    setAgendaState((prev) => ({
-      ...prev,
-      [eventId]: prev[eventId] !== undefined ? !prev[eventId] : true,
-    }));
-  }, []);
+    const base = agenda.find((e) => e.id === eventId)?.is_completed ?? false;
+    setAgendaState((prev) => {
+      const actuel = prev[eventId] !== undefined ? prev[eventId] : base;
+      return { ...prev, [eventId]: !actuel };
+    });
+    setCochesDemo((prev) => {
+      const suivant = { ...prev };
+      const actuel = agendaState[eventId] !== undefined ? agendaState[eventId] : base;
+      if (actuel) delete suivant[eventId];
+      else suivant[eventId] = new Date().toISOString();
+      return suivant;
+    });
+  }, [agenda, agendaState]);
 
   return (
     <DemoContext.Provider
