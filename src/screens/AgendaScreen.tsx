@@ -10,9 +10,9 @@
  * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
-import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour } from '../utils/jourParis';
+import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour, jourParisIso, heureParisIso } from '../utils/jourParis';
 import { grouperDevoirs, libelleCoche, resteAFaire, type Devoir } from '../utils/devoirs';
-import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, type AuteursCoche } from '../services/devoirsService';
+import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, chargerLignesSource, type AuteursCoche } from '../services/devoirsService';
 import PastilleCategorie from '../components/PastilleCategorie';
 import { categorieDiscipline } from '../theme/categories';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -100,6 +100,8 @@ interface AgendaEvent {
   description?: string;
   color: string;
   done?: boolean;
+  /** Devoir coché : ligne source « Coché par [prénom] · [heure] » ou « Fait » (même fonction que l’Accueil). */
+  coche?: string | null;
 }
 
 /**
@@ -568,6 +570,12 @@ function AgendaScreenContent() {
             description: e.description || undefined,
             color: e.color || Colors.violet,
             done: e.is_completed ?? false,
+            coche: e.type === 'devoir'
+              ? libelleCoche(
+                { fait: !!e.is_completed, faitJour: e.coche_le ? jourParisIso(e.coche_le) : null, faitHeure: e.coche_le ? heureParisIso(e.coche_le) : null },
+                e.coche_le ? 'vous' : null, aujourdhuiParis(), decalerJour(aujourdhuiParis(), -1),
+              )
+              : null,
           })));
         }
       }
@@ -600,6 +608,13 @@ function AgendaScreenContent() {
     setErreurAgenda(null);
     const rows = result?.data ?? [];
     if (rows.length === 0) { setEventsByDay({}); return; }
+    let lignesSource = new Map<string, string | null>();
+    try {
+      lignesSource = await chargerLignesSource(selectedChildId, rows as any[]);
+    } catch (e) {
+      setErreurAgenda(classerErreur(e));
+      return;
+    }
 
     const grouped: Record<number, AgendaEvent[]> = {};
     for (const row of rows) {
@@ -620,6 +635,7 @@ function AgendaScreenContent() {
         location: row.location, description: row.description,
         color: row.color ?? DEFAULT_COLOR[type] ?? Colors.violet,
         done: row.is_done ?? false,
+        coche: type === 'devoir' ? lignesSource.get(String(row.id)) ?? null : null,
       };
       if (!grouped[dayNum]) grouped[dayNum] = [];
       grouped[dayNum].push(mapped);
@@ -853,6 +869,7 @@ function AgendaScreenContent() {
             <Text style={st.eventMeta}>
               {quand}{event.location ? ` · ${event.location}` : ''}
             </Text>
+            {isDevoir && event.done && event.coche ? <Text style={st.eventSource}>{event.coche}</Text> : null}
           </View>
 
           {/* Right: exam badge or devoir checkbox */}
@@ -1727,6 +1744,13 @@ const st = StyleSheet.create({
     color: '#FFFFFF',
   },
 
+  // Ligne source d'un devoir coché dans la vue par jour (sur sa propre ligne, sous l'échéance).
+  eventSource: {
+    fontFamily: FontFamily.sansRegular,
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.55)',
+    marginTop: 3,
+  },
   // Vue « Devoirs » (lot 4a, COMPONENTS §18.6)
   hwStats: {
     fontFamily: FontFamily.sansSemiBold,

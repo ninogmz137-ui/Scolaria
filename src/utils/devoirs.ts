@@ -167,6 +167,24 @@ export function construireDevoirs(
   });
 }
 
+/**
+ * Ligne source (« Coché par vous · 15h53 », « Fait », ou null) de chaque devoir d'une liste de lignes de la base.
+ * UNE seule fonction pour l'Accueil, la vue par jour de l'Agenda et sa vue « Devoirs » (défaut du 20 nov. :
+ * la vue par jour n'affichait pas la ligne). Les lignes qui ne sont pas des devoirs sont ignorées.
+ */
+export function lignesSourceDevoirs(
+  lignes: (LigneDevoir & { event_type?: string | null })[],
+  coches: CocheLue[],
+  auteurs: AuteursCoche,
+  jourDe: (iso: string) => string,
+  heureDe: (iso: string) => string,
+  aujourdhui: string,
+  hier: string,
+): Map<string, string | null> {
+  const devoirs = construireDevoirs(lignes.filter((r) => r.event_type === 'devoir'), coches, jourDe, heureDe);
+  return new Map(devoirs.map((d) => [d.id, libelleCoche(d, auteurCoche(d.faitPar, auteurs), aujourdhui, hier)]));
+}
+
 /** Nombre de devoirs restant à faire (non cochés, aujourd'hui et après). */
 export function resteAFaire(groupes: GroupeDevoirs[]): number {
   return groupes.reduce((n, g) => n + g.devoirs.filter((d) => !d.fait).length, 0);

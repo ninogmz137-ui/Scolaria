@@ -10,10 +10,11 @@
 import { supabase } from './supabase';
 import { leverSiErreur } from './erreurs';
 import { toggleEventDone } from './database';
-import { aujourdhuiParis, heureParisIso, jourParisIso, minuitParis } from '../utils/jourParis';
+import { aujourdhuiParis, decalerJour, heureParisIso, jourParisIso, minuitParis } from '../utils/jourParis';
 import {
   auteursDepuisResponsables,
   construireDevoirs,
+  lignesSourceDevoirs,
   type AuteursCoche,
   type CocheLue,
   type Devoir,
@@ -57,6 +58,17 @@ export async function chargerAuteursCoche(childId: string): Promise<AuteursCoche
   const { data, error } = await supabase.rpc('responsables_enfant', { p_child_id: childId });
   leverSiErreur(error);
   return auteursDepuisResponsables((data ?? []) as any[]);
+}
+
+/**
+ * Ligne source de chaque devoir parmi des lignes de agenda_events déjà lues (Accueil, vue par jour de l'Agenda) :
+ * coches et prénoms lus ici, construction commune (utils/devoirs.lignesSourceDevoirs).
+ */
+export async function chargerLignesSource(childId: string, lignes: any[]): Promise<Map<string, string | null>> {
+  if (!lignes.some((r) => r.event_type === 'devoir')) return new Map();
+  const [coches, auteurs] = await Promise.all([chargerCoches(childId), chargerAuteursCoche(childId)]);
+  const auj = aujourdhuiParis();
+  return lignesSourceDevoirs(lignes, coches, auteurs, jourParisIso, heureParisIso, auj, decalerJour(auj, -1));
 }
 
 /**

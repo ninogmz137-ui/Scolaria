@@ -13,9 +13,9 @@ import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
 import {
-  aujourdhuiParis, demainParis, minuitParis, jourParis, bornesParis, decalerJour, jourParisIso, heureParisIso, heureParis,
+  aujourdhuiParis, demainParis, minuitParis, jourParis, bornesParis, decalerJour, jourParisIso, heureParisIso, heureParis, lundiDuJour,
 } from '../src/utils/jourParis.ts';
-import { construireDevoirs, auteursDepuisResponsables, auteurCoche, libelleCoche } from '../src/utils/devoirs.ts';
+import { construireDevoirs, auteursDepuisResponsables, auteurCoche, libelleCoche, lignesSourceDevoirs } from '../src/utils/devoirs.ts';
 
 const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 exigerHoteLocal(statut.API_URL);
@@ -46,17 +46,28 @@ async function lignesAvecCoches(c, childId, requete) {
   if (lignes.error || coches.error || resp.error) throw new Error(lignes.error?.message ?? coches.error?.message ?? resp.error?.message);
   const devoirs = construireDevoirs((lignes.data ?? []).filter((r) => r.event_type === 'devoir'), coches.data ?? [], jourParisIso, heureParisIso);
   const auteurs = auteursDepuisResponsables(resp.data ?? []);
-  return new Map(devoirs.map((d) => [d.id, { ...d, ligne: libelleCoche(d, auteurCoche(d.faitPar, auteurs), AUJ, HIER) }]));
+  // Vue « Devoirs » : construireDevoirs + libelleCoche ; Accueil et vue par jour : lignesSourceDevoirs (chargerLignesSource).
+  const source = lignesSourceDevoirs(lignes.data ?? [], coches.data ?? [], auteurs, jourParisIso, heureParisIso, AUJ, HIER);
+  return new Map(devoirs.map((d) => [d.id, { ...d, ligne: libelleCoche(d, auteurCoche(d.faitPar, auteurs), AUJ, HIER), ligneSemaine: source.get(d.id) }]));
 }
 // Vue « Devoirs » de l'Agenda (devoirsService.chargerDevoirs).
 const vueAgenda = (c, childId) => lignesAvecCoches(c, childId,
   c.from('agenda_events').select('*').eq('child_id', childId).eq('event_type', 'devoir')
     .gte('start_time', minuitParis(AUJ).toISOString()).order('start_time').limit(200));
-// Accueil (useAgendaSemaine : la semaine de Paris).
-const vueAccueil = (c, childId) => {
+// Accueil (useAgendaSemaine : la semaine de Paris) : la ligne affichée est ligneSemaine.
+const vueAccueil = async (c, childId) => {
   const b = bornesParis(AUJ, decalerJour(AUJ, 7));
-  return lignesAvecCoches(c, childId,
+  const m = await lignesAvecCoches(c, childId,
     c.from('agenda_events').select('*').eq('child_id', childId).gte('start_time', b.debut).lte('start_time', b.fin).order('start_time'));
+  return new Map([...m].map(([id, d]) => [id, { ...d, ligne: d.ligneSemaine }]));
+};
+// Vue par jour de l'Agenda (loadEvents : la semaine de Paris du lundi au dimanche) : la ligne affichée est ligneSemaine.
+const vueJour = async (c, childId) => {
+  const lundi = lundiDuJour(AUJ);
+  const b = bornesParis(lundi, decalerJour(lundi, 13));
+  const m = await lignesAvecCoches(c, childId,
+    c.from('agenda_events').select('*').eq('child_id', childId).gte('start_time', b.debut).lte('start_time', b.fin).order('start_time'));
+  return new Map([...m].map(([id, d]) => [id, { ...d, ligne: d.ligneSemaine }]));
 };
 // La seule fonction de coche de l'app (devoirsService.cocherDevoir → updateAgendaEvent).
 const cocher = (c, id, fait) => c.from('agenda_events').update({ is_done: fait }).eq('id', id).select().single();
@@ -92,6 +103,8 @@ const agendaS = (await vueAgenda(sophie, lina)).get(d1.id);
 const accueilS = (await vueAccueil(sophie, lina)).get(d1.id);
 verifier('coche depuis l’Agenda → Agenda : « Coché par vous · [heure] »', /^Coché par vous · \d{1,2}h\d{0,2}$/.test(agendaS?.ligne ?? '') && proche(agendaS?.ligne), agendaS?.ligne);
 verifier('coche depuis l’Agenda → Accueil : même ligne', accueilS?.ligne === agendaS?.ligne && accueilS?.fait, accueilS?.ligne);
+const jourS = (await vueJour(sophie, lina)).get(d1.id);
+verifier('coche depuis l’Agenda → vue par jour : même ligne', jourS?.ligne === agendaS?.ligne && jourS?.fait, jourS?.ligne);
 
 // 2. Coche depuis l'ACCUEIL → même ligne dans les deux vues.
 await cocher(sophie, d2.id, true);
@@ -99,6 +112,8 @@ const accueilS2 = (await vueAccueil(sophie, lina)).get(d2.id);
 const agendaS2 = (await vueAgenda(sophie, lina)).get(d2.id);
 verifier('coche depuis l’Accueil → Accueil : « Coché par vous · [heure] »', /^Coché par vous · /.test(accueilS2?.ligne ?? '') && proche(accueilS2?.ligne), accueilS2?.ligne);
 verifier('coche depuis l’Accueil → Agenda : même ligne', agendaS2?.ligne === accueilS2?.ligne && agendaS2?.fait, agendaS2?.ligne);
+const jourS2 = (await vueJour(sophie, lina)).get(d2.id);
+verifier('coche depuis l’Accueil → vue par jour : même ligne', jourS2?.ligne === accueilS2?.ligne && jourS2?.fait, jourS2?.ligne);
 
 // 3. Marc (même foyer que Sophie) voit l'auteur et l'heure.
 const marcVue = (await vueAgenda(marc, lina)).get(d1.id);
@@ -108,6 +123,9 @@ verifier('Marc (même foyer) lit « Coché par Sophie · [heure] »', /^Coché p
 const julienVue = (await vueAgenda(julien, lina)).get(d1.id);
 verifier('Julien (autre foyer) voit le devoir coché', julienVue?.fait === true);
 verifier('Julien (autre foyer) : ni prénom ni heure, la ligne vaut « Fait »', julienVue?.ligne === 'Fait' && julienVue?.faitPar === null && julienVue?.faitHeure === null, JSON.stringify(julienVue));
+const julienJour = (await vueJour(julien, lina)).get(d1.id);
+const julienAccueil = (await vueAccueil(julien, lina)).get(d1.id);
+verifier('Julien : « Fait » aussi dans la vue par jour et à l’Accueil', julienJour?.ligne === 'Fait' && julienAccueil?.ligne === 'Fait', `${julienJour?.ligne} / ${julienAccueil?.ligne}`);
 
 // 5. Julien coche à son tour : lui voit « Coché par vous », Sophie et Marc (autre foyer pour lui) voient « Fait ».
 await cocher(sophie, d2.id, false);
