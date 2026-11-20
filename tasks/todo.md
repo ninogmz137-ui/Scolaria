@@ -13,6 +13,122 @@
   - Civilité dans le profil enseignant (Mme / M.) ; côté parent, l'enseignant s'affiche partout « Mme Martin » (civilité + nom) ; prénom et nom (« Claire Martin ») seulement si la civilité manque. Source actuelle du nom affiché : `mot_expediteur` (M21) et les écrans qui lisent `profiles` (demandé le 18 nov.).
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 4 — PLAN (20 nov., branche `archi-lot-4` créée depuis main 55a6cdf) — EN ATTENTE DE L'ACCORD DE L'UTILISATEUR, rien de codé
+**Constat (code et schéma lus le 20 nov.)**
+- Compte réel : l'Agenda ne lit que `agenda_events` (`database.ts:326`). Les mots datés, `class_events` et `absences` n'y apparaissent pas.
+- Devoirs = `agenda_events` avec `event_type = 'devoir'` et `is_done`.
+  - La coche est enregistrée dans la vue par jour et à l'Accueil, mais pas dans la vue « Devoirs » (état local `devoirDoneMap`, AgendaScreen 349).
+  - La vue « Devoirs » est un tableau en dur, réservé à la démo (`demoDevoirs` 435-511, compteur « 2 » en dur) : un compte réel la voit vide.
+  - « Coché par » n'existe nulle part (aucune colonne).
+  - `HomeworkScreen.tsx` est entièrement en dur (« Mer. 23 avril », statistiques 5/2/12, suggestion de l'assistant inactive).
+- Absence : `absences` a `date_debut`, `date_fin`, `demi_journee`, `motif` (maladie | maladie_avec_certificat | raison_familiale | autre), `commentaire` et `statut`.
+  - Il manque le motif « rendez-vous » et le justificatif.
+  - **L'enseignant ne peut pas lire `absences`** : ses politiques ont été retirées en M1. `AbsencesEnseignantScreen` ne reçoit donc rien en réel.
+  - Défauts relevés :
+    - `TODAY` et `TOMORROW` sont calculés en UTC au chargement du module ;
+    - `demi_journee` est envoyée même avec « plusieurs jours » ;
+    - une date de fin invalide est ignorée sans message ;
+    - `hasActiveAbsence` bloque toute absence future encore « signalée » ;
+    - le message « L'enseignant principal a été notifié » est faux (la notification n'est qu'un `console.log`) ;
+    - le repli démo se fait sur `isSupabaseConfigured()` et non sur `isDemo` : **la démo écrit dans la vraie table** ;
+    - emojis de motif ;
+    - « absent(e) » écrit sans accord ;
+    - `AbsencesListScreen` est fictif (`MOCK_ABSENCES`).
+- Rendez-vous fixes : rien (ni table, ni code, ni démo).
+- Cartes :
+  - la barre de 3 px existe, mais **le libellé de catégorie est absent** ;
+  - les teintes viennent de `color` (en base ou dans le JSON) et non de `src/theme/categories.ts` ;
+  - EventDetail a sa propre table de couleurs ;
+  - le type `evenement` de la démo n'est pas géré.
+- `EventDetailScreen` :
+  - il n'interroge pas la base, et sans paramètres il affiche une sortie fictive datée « Ven. 9 mai » ;
+  - « Inscrite » est en dur ;
+  - « À prévoir » est en état local ;
+  - les boutons n'ont pas d'action ;
+  - il mentionne encore Aria.
+- La journée type du primaire est encore à l'Accueil (`CorpsCarnet` 215-219, 305-315), alors qu'elle a été retirée de la V1 le 17 nov.
+- La modale « Nouvel événement » de l'Agenda (Devoir / Contrôle / Sortie / Autre) est ouverte par le « + » (`TabNavigator.tsx:684`).
+
+**Découpage : 3 sous-lots, une migration chacun (M41, M42, M43), écrites et testées en LOCAL ; Paris = procédures à part, exécutées par l'utilisateur.** Une seule branche `archi-lot-4`, avec un ou plusieurs commits par sous-lot et un passage sur le Redmi (base locale) à la fin de chaque sous-lot.
+
+**4a — Devoirs (M41)**
+1. M41 `agenda_events` : `fait_par uuid` (FK `profiles`, `ON DELETE SET NULL`) et `fait_le timestamptz`, posés **par un déclencheur** à partir de `auth.uid()` et `now()` quand `is_done` change, et vidés quand on décoche ; jamais écrits par l'app. Inverse dans `migrations_down/`. Tests SQL :
+   - A coche, B (même foyer) voit « fait » et l'auteur ;
+   - un tiers ne voit rien ;
+   - personne ne falsifie `fait_par`.
+2. Service : devoirs réels de l'enfant par **jour d'échéance**, « Pour demain » en premier, puis les jours suivants ; prénom de l'auteur de la coche via `responsables_enfant` (« Vous » pour soi).
+3. AgendaScreen, vue « Devoirs » :
+   - données réelles (fin du tableau en dur, compteur calculé) ;
+   - coche enregistrée partout ;
+   - ligne « Coché par [prénom] · [heure] » sous l'intitulé (ligne source) ;
+   - filtre « Devoirs » toujours masqué en maternelle.
+4. Accueil : sous-titre « Pour demain », pour le même devoir.
+5. `HomeworkScreen` retiré : sa route ouvre la vue « Devoirs » de l'Agenda.
+6. Démo : devoirs relatifs à aujourd'hui, coche « Coché par » simulée (en mémoire, sans base).
+
+**4b — Absence signalée par le parent (M42)**
+1. M42 `absences` :
+   - motif `rendez_vous` ajouté (les anciennes valeurs restent valides en base, `maladie_avec_certificat` n'est plus proposé) ;
+   - `justificatif_path text` facultatif, fichier dans le bucket privé `carnet` sous `{child_id}/absences/…` (même contrôle de chemin que les fichiers du carnet, URL signée d'1 h) ;
+   - **lecture par le titulaire de la classe de l'enfant** (« visible avant l'appel ») : condition ajoutée à la politique SELECT existante (`is_responsable(student_id) OR is_titulaire_annee(academic_year_id)`), une seule politique pour ne pas créer de `multiple_permissive_policies` ;
+   - `(SELECT auth.uid())` dans les politiques modifiées ;
+   - inverse et tests SQL : le titulaire lit, un autre enseignant ne lit pas, un parent d'une autre famille ne lit pas.
+2. SignalerAbsenceScreen :
+   - Quand (aujourd'hui / demain / autre date) avec dates locales et sélecteur de date au lieu de la saisie texte ;
+   - Durée (matin / après-midi / journée / plusieurs jours, avec date de fin vérifiée) ;
+   - Motif (maladie / rendez-vous / raison familiale / autre, sans emoji) ;
+   - justificatif facultatif (photo ou PDF) et mot facultatif ;
+   - message de confirmation vrai (« Absence signalée. Elle est visible de l'enseignant. »), sans « notifié » ;
+   - accord du participe selon l'enfant, sans « absent(e) » ;
+   - garde `isDemo` : la démo n'écrit plus en base.
+3. Agenda : carte catégorie « Absence » (période et motif) aux jours concernés ; **aucun statut « Vu par l'enseignant »** (décision du 17 nov.).
+4. Enseignant : `AbsencesEnseignantScreen` lit les absences réelles de sa classe. Le bouton « prise en compte » est retiré : aucun retour de lecture en V1. L'écran complet de l'appel relève du lot 7.
+5. `AbsencesListScreen` (fictif) : retiré ou branché sur le réel (voir la question 3).
+
+**4c — Rendez-vous fixes hebdomadaires (M43)**
+1. M43, nouvelle table `rendez_vous_fixes` :
+   - colonnes : `id`, `child_id`, `academic_year_id` (déclencheur `set_academic_year`), `titre`, `jour_semaine` 1-7, `heure` facultative, `categorie` (identifiant stable de `categories.ts`), `a_prevoir jsonb` (liste de textes), `cree_par`, `created_at` ;
+   - lecture et écriture par les responsables de l'enfant ; suppression par tout responsable (voir la question 4).
+2. M43, seconde table `rendez_vous_coches` :
+   - colonnes : `rdv_id`, `date_occurrence`, `item`, `coche_par`, `coche_le` (posés par déclencheur), unique sur `(rdv_id, date_occurrence, item)` ;
+   - « À prévoir » est coché **par semaine** et partagé dans le foyer (« Coché par »).
+   - Inverse et tests SQL.
+3. Agenda : la carte du rendez-vous apparaît chaque semaine au bon jour (« Piscine · tous les jeudis »), avec son libellé de catégorie et sa liste « À prévoir » cochable.
+4. Création et modification : depuis la carte (voir la question 2 pour le point d'entrée).
+5. Démo : « Piscine · tous les jeudis » (maillot, bonnet, serviette) et « Bibliothèque · tous les mardis » (livre à rendre).
+
+**4d — Cartes et nettoyage (sans migration, avec 4a à 4c)**
+1. Toutes les cartes Agenda :
+   - barre de 3 px, fond à 8 % et **libellé de catégorie écrit** (Figtree 600, 11 px) ;
+   - teintes et libellés tirés de `src/theme/categories.ts` (discipline ou type de contenu ; type inconnu = ardoise) ;
+   - type `evenement` géré ;
+   - aucun emoji.
+2. `EventDetailScreen` :
+   - lit l'événement réel ;
+   - plus de sortie fictive ni d'« Inscrite » en dur ;
+   - boutons sans action retirés ;
+   - mentions de l'assistant retirées.
+3. Journée type du primaire retirée de l'Accueil (seuls le collège et le lycée gardent leurs cours).
+4. Modale « Nouvel événement » : voir la question 1.
+
+**Paris** : `tasks/lot4-procedures-paris.md`, au modèle du lot 3 :
+- trois cycles M41, M42, M43, avec `--yes` uniquement sur autorisation ;
+- WARN attendus déclarés à l'avance dans `warns-attendus.md` (objectif : 0 nouveau) ;
+- lecture préalable du nombre de lignes de `agenda_events` et `absences` sur Paris (`db query --remote --read-only`, par l'utilisateur).
+
+**Tests** :
+- SQL de M41 à M43 ;
+- `scripts/test-lot4-local.mjs` (appels réels sous RLS : deux responsables, un tiers, le titulaire, un autre enseignant) ;
+- tsc, marque, nom-en-dur, bundle-prod ;
+- Redmi en base locale après chaque sous-lot.
+
+**Questions à trancher avant de coder (mon choix par défaut entre parenthèses)**
+1. Le « + » n'a que six actions, et aucune n'ajoute un devoir ni un rendez-vous fixe. Que devient la modale « Nouvel événement » de l'Agenda (devoir, contrôle, sortie, autre ajoutés par le parent) ? *(Par défaut : je la garde ouverte par le « + » de l'Agenda jusqu'au lot 5, qui fixera la feuille ; les devoirs donnés par l'enseignant relèvent du lot 7.)*
+2. Où le parent crée-t-il un rendez-vous fixe, sans second bouton d'ajout ? *(Par défaut : dans cette même modale de l'Agenda, avec une option « Toutes les semaines ».)*
+3. `AbsencesListScreen` (fictif) : retirer, ou brancher sur le réel ? *(Par défaut : le retirer, puisque les absences apparaissent dans l'Agenda.)*
+4. Rendez-vous fixe : qui peut le modifier ou le supprimer ? *(Par défaut : tout responsable de l'enfant, comme la coche des devoirs.)*
+5. Hors lot, à confirmer : afficher dans l'Agenda les événements des mots datés (`mots_liaison.event_date`, ancien B6) ? *(Par défaut : non, cela relève du lot 7, quand l'enseignant pourra dater un mot ; aucun vrai mot n'a de date aujourd'hui.)*
+
 ### LOT 3c — PLAN (18 nov., branche `archi-lot-3c` créée depuis `archi-lot-3b`) — rien sur Paris, rien dans main
 Constat (base locale, lue le 18 nov.) : **aucune migration nécessaire**. Tout existe depuis M22 / M29 / M12 :
 fil `teacher_conversations` portée « foyer » (unique par enseignant + enfant + foyer ; lu et écrit par les responsables DU foyer, `est_du_foyer` ; un parent séparé = autre foyer = autre fil, ne voit rien), portée « individuel » (« Seulement moi ») ;
