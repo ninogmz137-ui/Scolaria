@@ -38,11 +38,34 @@ $function$;
 REVOKE EXECUTE ON FUNCTION public.fichiers_orphelins(interval) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.fichiers_orphelins(interval) TO service_role;
 
-DROP TRIGGER IF EXISTS absences_controler_justificatif ON public.absences;
-DROP FUNCTION IF EXISTS public.absences_controler_justificatif();
-DROP INDEX IF EXISTS public.idx_absences_justificatif;
-ALTER TABLE public.absences DROP CONSTRAINT IF EXISTS absences_justificatif_dossier_check;
-ALTER TABLE public.absences DROP COLUMN IF EXISTS justificatif_path;
+CREATE OR REPLACE FUNCTION public.fichiers_a_effacer(p_demande_id uuid)
+ RETURNS SETOF text
+ LANGUAGE sql
+ STABLE
+ SECURITY DEFINER
+ SET search_path = public, pg_temp
+AS $function$
+  -- tout le dossier des enfants effacés (chemin = <enfant>/<année>/<fichier>)
+  SELECT o.name FROM storage.objects o
+  WHERE o.bucket_id = 'carnet'
+    AND split_part(o.name, '/', 1) IN (SELECT e::text FROM public.enfants_a_effacer(p_demande_id) e)
+  UNION
+  -- compte : fichiers de ses ajouts PRIVÉS (ses ajouts « foyer » et leurs fichiers sont conservés)
+  SELECT ci.fichier FROM public.carnet_items ci
+  JOIN public.demandes_effacement d ON d.id = p_demande_id AND d.portee = 'compte'
+  WHERE ci.ajoute_par = d.user_id AND ci.visibilite = 'prive' AND ci.fichier IS NOT NULL
+  UNION
+  -- compte : ses dépôts qu'aucun ajout ne référence
+  SELECT o.name FROM storage.objects o
+  JOIN public.demandes_effacement d ON d.id = p_demande_id AND d.portee = 'compte'
+  WHERE o.bucket_id = 'carnet' AND o.owner_id = d.user_id::text
+    AND NOT EXISTS (SELECT 1 FROM public.carnet_items ci WHERE ci.fichier = o.name);
+$function$;
+REVOKE EXECUTE ON FUNCTION public.fichiers_a_effacer(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.fichiers_a_effacer(uuid) TO service_role;
+
+DROP TABLE IF EXISTS public.absences_justificatifs;
+DROP FUNCTION IF EXISTS public.absences_justificatifs_controler();
 
 UPDATE public.absences SET motif = 'autre' WHERE motif = 'rendez_vous';
 ALTER TABLE public.absences DROP CONSTRAINT absences_motif_check;

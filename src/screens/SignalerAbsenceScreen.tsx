@@ -104,7 +104,7 @@ function SignalerAbsenceScreenContent() {
       );
       setEnvoyee(periodeAbsence({ date_debut: debut, date_fin: d.date_fin, demi_journee: d.demi_journee }, auj, dem));
     } catch (e) {
-      Alert.alert('Absence non signalée', e instanceof ErreurAbsence ? e.message : 'L’absence n’a pas pu être signalée. Réessayez.');
+      Alert.alert('Signaler une absence', e instanceof ErreurAbsence ? e.message : 'L’absence n’a pas pu être signalée. Réessayez.');
     } finally {
       setEnvoi(false);
     }

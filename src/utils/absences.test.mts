@@ -1,6 +1,7 @@
 // Tests des règles de l'absence signalée (lot 4b). Lancement : npm run test:absences
 import {
-  MOTIFS, libelleMotif, valeursDuree, periodeAbsence, couvreJour, texteCarteAbsence, aJustifier, CONFIRMATION_ABSENCE,
+  MOTIFS, libelleMotif, valeursDuree, periodeAbsence, couvreJour, texteCarteAbsence, aJustifier, peutJustifier, fusionnerAbsences,
+  CONFIRMATION_ABSENCE,
   type AbsenceLue,
 } from './absences.ts';
 
@@ -38,17 +39,37 @@ egal('un seul jour', couvreJour({ date_debut: AUJ, date_fin: null }, AUJ), true)
 egal('carte matin', texteCarteAbsence({ date_debut: DEM, date_fin: null, demi_journee: 'matin', motif: 'rendez_vous' }), 'Matin · Rendez-vous');
 egal('carte plusieurs jours', texteCarteAbsence({ date_debut: '2026-11-23', date_fin: '2026-11-25', demi_journee: 'journee', motif: 'maladie' }), 'Journée · Maladie');
 
-const abs = (id: string, par: string, debut: string, justif: string | null = null, fin: string | null = null): AbsenceLue =>
-  ({ id, student_id: 'lina', date_debut: debut, date_fin: fin, demi_journee: 'journee', motif: 'maladie', commentaire: null, signalee_par: par, justificatif_path: justif });
+const abs = (id: string, foyer: boolean, debut: string, justif: string | null = null, fin: string | null = null, par = 'sophie'): AbsenceLue =>
+  ({ id, student_id: 'lina', date_debut: debut, date_fin: fin, demi_journee: 'journee', motif: 'maladie', commentaire: null, signalee_par: par, justificatif_path: justif, meme_foyer: foyer });
 const liste = [
-  abs('a', 'moi', DEM),
-  abs('b', 'moi', AUJ, 'lina/an/x.pdf'),
-  abs('c', 'autre', AUJ),
-  abs('d', 'moi', '2026-10-01'),
-  abs('e', 'moi', '2026-10-15', null, '2026-10-25'),
+  abs('a', true, DEM),
+  abs('b', true, AUJ, 'lina/an/x.pdf'),
+  abs('c', false, AUJ, null, null, 'julien'),
+  abs('d', true, '2026-10-01'),
+  abs('e', true, '2026-10-15', null, '2026-10-25'),
+  abs('f', true, AUJ, null, null, 'marc'),
 ];
-egal('à justifier : les miennes, sans justificatif, récentes', aJustifier(liste, 'moi', '2026-10-21').map((a) => a.id), ['e', 'a']);
-egal('à justifier sans compte', aJustifier(liste, null, '2026-10-21'), []);
+egal('à justifier : mon foyer (moi ou un autre responsable), sans justificatif, récentes', aJustifier(liste, '2026-10-21').map((a) => a.id), ['e', 'f', 'a']);
+egal('hors foyer : jamais à justifier', aJustifier([abs('c', false, AUJ)], '2026-10-21'), []);
+egal('peut justifier : foyer sans justificatif', peutJustifier(abs('x', true, AUJ)), true);
+egal('peut justifier : déjà justifiée', peutJustifier(abs('x', true, AUJ, 'p')), false);
+egal('peut justifier : autre foyer', peutJustifier(abs('x', false, AUJ)), false);
+// Fusion : justificatifs visibles et foyer.
+const lignes = [
+  { id: 'a1', student_id: 'lina', date_debut: AUJ, date_fin: null, demi_journee: 'journee' as const, motif: 'maladie' as const, commentaire: null, signalee_par: 'sophie' },
+  { id: 'a2', student_id: 'lina', date_debut: DEM, date_fin: null, demi_journee: 'matin' as const, motif: 'autre' as const, commentaire: null, signalee_par: 'julien' },
+];
+const resp = [
+  { user_id: 'sophie', foyer_id: 'F1' }, { user_id: 'marc', foyer_id: 'F1' }, { user_id: 'julien', foyer_id: 'F2' },
+];
+const pourMarc = fusionnerAbsences(lignes, [{ absence_id: 'a1', chemin: 'lina/an/j.pdf' }], resp, 'marc');
+egal('Marc : absence de Sophie = même foyer, justificatif visible', [pourMarc[0].meme_foyer, pourMarc[0].justificatif_path], [true, 'lina/an/j.pdf']);
+egal('Marc : absence de Julien = autre foyer', [pourMarc[1].meme_foyer, pourMarc[1].justificatif_path], [false, null]);
+const pourJulien = fusionnerAbsences(lignes, [], resp, 'julien');
+egal('Julien : absence de Sophie = autre foyer, sans justificatif (masqué par la base)', [pourJulien[0].meme_foyer, pourJulien[0].justificatif_path, peutJustifier(pourJulien[0])], [false, null, false]);
+egal('Julien : sa propre absence = même foyer', pourJulien[1].meme_foyer, true);
+egal('sans compte : jamais même foyer', fusionnerAbsences(lignes, [], resp, null)[0].meme_foyer, false);
+
 egal('confirmation', CONFIRMATION_ABSENCE, 'Absence signalée à l’école');
 egal('jamais « notifié »', /notifi/i.test(CONFIRMATION_ABSENCE), false);
 

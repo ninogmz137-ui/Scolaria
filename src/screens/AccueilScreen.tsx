@@ -182,11 +182,11 @@ export default function AccueilScreen() {
   const premierDegre = !aDesNotes(selectedChild?.cycle);
   const primaire = selectedChild?.cycle === 'primaire';
   const agenda = useAgendaSemaine(selectedChild?.id, isDemo, premierDegre);
-  // « À justifier » (lot 4b) : mes absences signalées sans justificatif, de moins de 30 jours.
+  // « À justifier » (lot 4b) : absences de mon foyer sans justificatif, de moins de 30 jours.
   const absencesEnfant = useAbsences(selectedChild?.id, isDemo);
   const absencesAJustifier = useMemo(
-    () => aJustifier(absencesEnfant.absences, isDemo ? 'demo-moi' : user?.id, decalerJour(aujourdhuiParis(), -30)),
-    [absencesEnfant.absences, isDemo, user?.id],
+    () => aJustifier(absencesEnfant.absences, decalerJour(aujourdhuiParis(), -30)),
+    [absencesEnfant.absences],
   );
   const anneesEnfant = useAnneesEnfant(selectedChild?.id, isDemo);
   const { coches, basculer: basculerCoche } = useCoches(selectedChild?.id);

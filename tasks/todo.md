@@ -116,6 +116,7 @@
    - mentions de l'assistant retirées.
 3. Journée type du primaire retirée de l'Accueil (seuls le collège et le lycée gardent leurs cours).
 4. Modale « Nouvel événement » : voir la question 1.
+5. (Ajout du 20 nov.) Retirer les promesses non tenues : « Les parents ont été notifiés » (`teacher/VieDeClasseScreen.tsx:292`) et « Vous êtes notifié de son utilisation » (`rgpd/TransfertCodeScreen.tsx:266`), remplacés par des textes qui ne promettent rien (aucune notification n'est envoyée).
 
 **Paris** : `tasks/lot4-procedures-paris.md`, au modèle du lot 3 :
 - trois cycles M41, M42, M43, avec `--yes` uniquement sur autorisation ;
@@ -144,7 +145,7 @@
 
 ### LOT 4b — RÉSULTAT (20 nov., `archi-lot-4`, 33384df, NON poussé) — rien sur Paris, rien dans main
 - [x] Préalable : suite SQL `m31_limite_aria` corrigée (T6 ne contrôle que les compteurs du compte appelant) → 24/24 suites vertes.
-- [x] M42 (locale, aller-retour OK, tests SQL 8/8) :
+- [x] M42 (locale, aller-retour OK, tests SQL 8/8 ; RÉVISÉE le 20 nov. : justificatif par FOYER, table `absences_justificatifs`, lisible et joignable par le foyer de l’auteur, lisible par le titulaire, invisible hors foyer ; test-lot4b-local 23/23) :
   - motif `rendez_vous` ;
   - `absences.justificatif_path`, fichier du bucket privé `carnet`, contrôlé par un déclencheur (déposé par l'auteur, dans le dossier de l'enfant, jamais un fichier du carnet) ;
   - lecture des absences par le titulaire de la classe (une seule politique `absences_select`) ;

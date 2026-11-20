@@ -6,7 +6,9 @@
  * - Durée : matin · après-midi · journée (un jour), ou plusieurs jours (date de fin).
  * - Aucun statut « vu par l'enseignant » (décision du 17 nov.) ; message de confirmation : « Absence signalée à
  *   l'école » (jamais « l'enseignant a été notifié » : aucune notification n'est envoyée).
- * - « À justifier » (À faire de l'Accueil) : absence signalée par MOI, sans justificatif, de moins de 30 jours.
+ * - « À justifier » (Accueil, Agenda) : absence signalée par un responsable de MON FOYER (moi compris), sans
+ *   justificatif, de moins de 30 jours (règle du 20 nov. 2026). Hors foyer (parent séparé) : la carte « Absence »
+ *   seulement, ni justificatif ni « À justifier » (la base ne lui rend pas le justificatif, M42).
  * - Aucun participe accordé (le genre de l'enfant n'est pas connu) : « Absence de Lina », jamais « absent(e) ».
  *
  * Module pur : aucun import (testé par node, src/utils/absences.test.mts). Jours 'AAAA-MM-JJ' en heure de Paris.
@@ -46,7 +48,10 @@ export interface AbsenceLue {
   motif: MotifLu;
   commentaire: string | null;
   signalee_par: string;
+  /** Chemin du justificatif, s'il existe ET que je peux le voir (foyer de l'auteur, titulaire) ; sinon null. */
   justificatif_path?: string | null;
+  /** Je suis responsable du même foyer que l'auteur (ou l'auteur) : je peux joindre le justificatif. */
+  meme_foyer?: boolean;
   created_at?: string;
 }
 
@@ -101,12 +106,37 @@ export function texteCarteAbsence(a: Pick<AbsenceLue, 'date_fin' | 'date_debut' 
   return `${moment} · ${libelleMotif(a.motif)}`;
 }
 
-/** Absences « à justifier » : signalées par moi, sans justificatif, commencées il y a moins de 30 jours (ou à venir). */
-export function aJustifier(absences: AbsenceLue[], moi: string | null | undefined, depuis: string): AbsenceLue[] {
-  if (!moi) return [];
+/** Absence que je peux encore justifier : de mon foyer, sans justificatif. */
+export function peutJustifier(a: Pick<AbsenceLue, 'meme_foyer' | 'justificatif_path'>): boolean {
+  return !!a.meme_foyer && !a.justificatif_path;
+}
+
+/** Absences « à justifier » : de mon foyer, sans justificatif, terminées il y a moins de 30 jours (ou à venir). */
+export function aJustifier(absences: AbsenceLue[], depuis: string): AbsenceLue[] {
   return absences
-    .filter((a) => a.signalee_par === moi && !a.justificatif_path && (a.date_fin ?? a.date_debut) >= depuis)
+    .filter((a) => peutJustifier(a) && (a.date_fin ?? a.date_debut) >= depuis)
     .sort((x, y) => x.date_debut.localeCompare(y.date_debut));
+}
+
+/**
+ * Absences telles que l'app les affiche : lignes de `absences`, justificatifs que la base me laisse voir
+ * (`absences_justificatifs`, M42 : foyer de l'auteur, titulaire), et « même foyer que l'auteur » calculé depuis
+ * `responsables` (lisible par tous les responsables de l'enfant). Même code pour l'app et le test de bout en bout.
+ */
+export function fusionnerAbsences(
+  lignes: Omit<AbsenceLue, 'justificatif_path' | 'meme_foyer'>[],
+  justificatifs: { absence_id: string; chemin: string }[],
+  responsables: { user_id: string; foyer_id: string }[],
+  moi: string | null | undefined,
+): AbsenceLue[] {
+  const chemins = new Map(justificatifs.map((j) => [String(j.absence_id), String(j.chemin)]));
+  const mesFoyers = new Set(responsables.filter((r) => r.user_id === moi).map((r) => r.foyer_id));
+  return lignes.map((a) => ({
+    ...a,
+    justificatif_path: chemins.get(String(a.id)) ?? null,
+    meme_foyer: !!moi && (a.signalee_par === moi
+      || responsables.some((r) => r.user_id === a.signalee_par && mesFoyers.has(r.foyer_id))),
+  }));
 }
 
 /** Message affiché après l'envoi. Jamais une promesse que l'app ne tient pas (aucune notification n'est envoyée). */

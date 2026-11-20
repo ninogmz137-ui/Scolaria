@@ -52,7 +52,7 @@ import { signalerDevoirs } from '../stores/devoirsStore';
 import { useVersionDevoirs } from '../hooks/useVersionDevoirs';
 import { useVersionAbsences } from '../hooks/useVersionAbsences';
 import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
-import { couvreJour, texteCarteAbsence } from '../utils/absences';
+import { couvreJour, peutJustifier, texteCarteAbsence } from '../utils/absences';
 import { TEINTES, categorieDiscipline } from '../theme/categories';
 import { de } from '../utils/francais';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -548,7 +548,6 @@ function AgendaScreenContent() {
       setErreurAgenda(classerErreur(e));
       return;
     }
-    const moiAbsences = isDemoMode ? 'demo-moi' : user?.id;
     const ajouterAbsences = (grouped: Record<number, AgendaEvent[]>) => {
       for (const jour of computed) {
         const iso = jourDeDate(jour.fullDate);
@@ -560,7 +559,7 @@ function AgendaScreenContent() {
             type: 'absence',
             description: a.commentaire ?? undefined,
             color: DEFAULT_COLOR.absence,
-            absence: { id: a.id, aJustifier: a.signalee_par === moiAbsences && !a.justificatif_path },
+            absence: { id: a.id, aJustifier: peutJustifier(a) },
             coche: texteCarteAbsence(a),
           };
           grouped[jour.date] = trierJournee([...(grouped[jour.date] ?? []), carte]);
