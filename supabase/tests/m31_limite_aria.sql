@@ -43,7 +43,11 @@ BEGIN
   IF NOT r.autorise OR r.utilises <> 1 THEN RAISE EXCEPTION 'ÉCHEC T6 nouveau jour : %, %', r.autorise, r.utilises; END IF;
   INSERT INTO public.aria_usage_quotidien (user_id, jour, nb) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', (now() AT TIME ZONE 'Europe/Paris')::date - 10, 5);
   PERFORM public.aria_reserver('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 3);
-  IF EXISTS (SELECT 1 FROM public.aria_usage_quotidien WHERE jour < (now() AT TIME ZONE 'Europe/Paris')::date - 7) THEN RAISE EXCEPTION 'ÉCHEC T6 purge'; END IF;
+  -- La purge porte sur les compteurs DU COMPTE appelant (aria_reserver : WHERE user_id = p_user) : on ne contrôle que
+  -- les siens. (Avant le 20 nov. 2026, le test regardait toute la table et échouait dès qu'un autre compte de la base
+  -- locale avait un compteur ancien, laissé par un autre essai.)
+  IF EXISTS (SELECT 1 FROM public.aria_usage_quotidien WHERE user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+             AND jour < (now() AT TIME ZONE 'Europe/Paris')::date - 7) THEN RAISE EXCEPTION 'ÉCHEC T6 purge'; END IF;
   -- T7 : paramètres invalides.
   BEGIN PERFORM public.aria_reserver('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 0); RAISE EXCEPTION 'ÉCHEC T7 limite 0 acceptée';
   EXCEPTION WHEN SQLSTATE '22023' THEN NULL; END;
