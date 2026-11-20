@@ -13,7 +13,13 @@
   - Civilité dans le profil enseignant (Mme / M.) ; côté parent, l'enseignant s'affiche partout « Mme Martin » (civilité + nom) ; prénom et nom (« Claire Martin ») seulement si la civilité manque. Source actuelle du nom affiché : `mot_expediteur` (M21) et les écrans qui lisent `profiles` (demandé le 18 nov.).
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
-### LOT 4 — PLAN (20 nov., branche `archi-lot-4` créée depuis main 55a6cdf) — EN ATTENTE DE L'ACCORD DE L'UTILISATEUR, rien de codé
+### LOT 4 — PLAN (20 nov., branche `archi-lot-4` créée depuis main 55a6cdf) — VALIDÉ le 20 nov. avec les 5 choix par défaut et ces ajouts :
+- **A1** : les rendez-vous fixes ne s'affichent pas pendant les vacances scolaires. Le calendrier officiel 2026-2027 des zones A, B et C est dans un fichier statique, sans table. La zone est déduite de l'école (Marseille = B ; zone B par défaut si l'école est inconnue).
+- **A2** : un rendez-vous fixe affiche « Ajouté par [prénom] ». Tout responsable de l'enfant peut le modifier ou le supprimer.
+- **A3** : le justificatif d'absence est stocké en privé et lu par URL signée. Il n'est lisible que par les responsables de l'enfant et le titulaire de sa classe. Tests RLS en local : un autre enseignant de l'école et le parent d'un autre enfant sont refusés. Le motif reste « Maladie / Rendez-vous / Raison familiale / Autre », sans champ de détail.
+- **A4** : « aujourd'hui » et « demain » sont calculés en heure de Paris **partout**, pas seulement dans l'Agenda. Les autres endroits corrigés sont à lister.
+- **A5** : « L'enseignant a été notifié » est remplacé par « Absence signalée à l'école ». Aucune promesse que l'app ne tient pas.
+- Méthode : un sous-lot à la fois, migrations en local avec retour arrière testé, Redmi en base locale après chaque sous-lot, procédure Paris des trois migrations à la fin. Rien sur Paris, rien dans main.
 **Constat (code et schéma lus le 20 nov.)**
 - Compte réel : l'Agenda ne lit que `agenda_events` (`database.ts:326`). Les mots datés, `class_events` et `absences` n'y apparaissent pas.
 - Devoirs = `agenda_events` avec `event_type = 'devoir'` et `is_done`.
