@@ -10,7 +10,7 @@
  * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
-import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour, jourParisIso, heureParisIso } from '../utils/jourParis';
+import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour, jourParisIso, heureParisIso, jourSemaine } from '../utils/jourParis';
 import { grouperDevoirs, libelleCoche, resteAFaire, type Devoir } from '../utils/devoirs';
 import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, chargerLignesSource, type AuteursCoche } from '../services/devoirsService';
 import PastilleCategorie from '../components/PastilleCategorie';
@@ -51,6 +51,15 @@ import { getAgendaEvents, createAgendaEvent } from '../services/database';
 import { signalerDevoirs } from '../stores/devoirsStore';
 import { useVersionDevoirs } from '../hooks/useVersionDevoirs';
 import { useVersionAbsences } from '../hooks/useVersionAbsences';
+import { useVersionRendezVous } from '../hooks/useVersionRendezVous';
+import {
+  chargerRendezVous, creerRendezVous, modifierRendezVous, supprimerRendezVous, cocherAPrevoir, ErreurRendezVous,
+  type DonneesRendezVous,
+} from '../services/rendezVousService';
+import {
+  occurrencesSemaine, recurrence, ajoutePar, etatAPrevoir, listeAPrevoir, libelleRendezVous, JOURS_SEMAINE, type RendezVous,
+} from '../utils/rendezVous';
+import { enVacances } from '../utils/vacances';
 import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
 import { couvreJour, peutJustifier, texteCarteAbsence } from '../utils/absences';
 import { TEINTES, categorieDiscipline } from '../theme/categories';
@@ -98,7 +107,9 @@ interface AgendaEvent {
   title: string;
   time: string;
   endTime?: string;
-  type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie' | 'absence';
+  type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie' | 'absence' | 'rendezvous';
+  /** Carte « Rendez-vous fixe » (lot 4c) : le rendez-vous, sa semaine (lundi) et l'état de « À prévoir ». */
+  rendezVous?: { rdv: RendezVous; semaine: string; aPrevoir: { item: string; coche: boolean; source: string | null }[]; ajoutePar: string | null };
   /** Carte « Absence » (lot 4b) : l'absence et si je peux encore la justifier. */
   absence?: { id: string; aJustifier: boolean };
   subject?: string;
@@ -225,10 +236,11 @@ const DEFAULT_COLOR: Record<AgendaEvent['type'], string> = {
   activite: Colors.cyan, reunion: Colors.violet, sortie: Colors.cyan,
   // Absence : teinte « ardoise » des types de contenu (src/theme/categories.ts).
   absence: TEINTES.ardoise.icone,
+  rendezvous: TEINTES.ardoise.icone,
 };
 const TYPE_LABELS: Record<AgendaEvent['type'], string> = {
   cours: 'Cours', devoir: 'Devoir', examen: 'Examen',
-  activite: 'Activité', reunion: 'Réunion', sortie: 'Sortie', absence: 'Absence',
+  activite: 'Activité', reunion: 'Réunion', sortie: 'Sortie', absence: 'Absence', rendezvous: 'Rendez-vous fixe',
 };
 
 // ─── Animated checkbox ────────────────────────────────────
@@ -362,6 +374,15 @@ function AgendaScreenContent() {
   const versionDevoirsPartagee = useVersionDevoirs(selectedChildId);
   // Absence signalée ou justifiée n'importe où : la semaine se recharge.
   const versionAbsencesPartagee = useVersionAbsences(selectedChildId);
+  // Rendez-vous fixes (lot 4c) : rechargés à chaque création, modification ou coche.
+  const versionRendezVousPartagee = useVersionRendezVous(selectedChildId);
+  const [donneesRendezVous, setDonneesRendezVous] = useState<DonneesRendezVous | null>(null);
+  const [rdvEnEdition, setRdvEnEdition] = useState<RendezVous | null>(null);
+  const [rdvTitre, setRdvTitre] = useState('');
+  const [rdvJour, setRdvJour] = useState(1);
+  const [rdvAPrevoir, setRdvAPrevoir] = useState('');
+  const [toutesLesSemaines, setToutesLesSemaines] = useState(false);
+  const [aPrevoirNouveau, setAPrevoirNouveau] = useState('');
   const prenomEnfant = (selectedChild?.name ?? '').split(' ')[0];
 
   const isSelectedToday = useMemo(
@@ -548,7 +569,44 @@ function AgendaScreenContent() {
       setErreurAgenda(classerErreur(e));
       return;
     }
+    // Rendez-vous fixes (lot 4c) : une carte au jour de la semaine, jamais pendant les vacances scolaires.
+    let donneesRdv: DonneesRendezVous | null = null;
+    try {
+      donneesRdv = await chargerRendezVous(selectedChildId, isDemoMode);
+    } catch (e) {
+      setErreurAgenda(classerErreur(e));
+      return;
+    }
+    setDonneesRendezVous(donneesRdv);
+    const lundiSemaine = jourDeDate(computed[0].fullDate);
+    const ajouterRendezVous = (grouped: Record<number, AgendaEvent[]>) => {
+      if (!donneesRdv) return grouped;
+      const d = donneesRdv;
+      const auj = aujourdhuiParis();
+      for (const o of occurrencesSemaine(d.rdvs, lundiSemaine, (j) => enVacances(j, d.zone), decalerJour)) {
+        const jour = computed.find((c) => jourDeDate(c.fullDate) === o.jour);
+        if (!jour) continue;
+        const carte: AgendaEvent = {
+          id: `rdv-${o.rdv.id}-${o.jour}`,
+          title: o.rdv.titre,
+          time: o.rdv.heure ? String(o.rdv.heure).slice(0, 5) : '',
+          type: 'rendezvous',
+          color: DEFAULT_COLOR.rendezvous,
+          coche: recurrence(o.rdv.jour_semaine),
+          rendezVous: {
+            rdv: o.rdv,
+            semaine: lundiSemaine,
+            ajoutePar: ajoutePar(o.rdv.cree_par, d.noms),
+            aPrevoir: etatAPrevoir(o.rdv, lundiSemaine, d.coches, d.auteursCoches, (id) => auteurCoche(id, d.noms), jourParisIso, heureParisIso,
+              (x, a) => libelleCoche(x, a, auj, decalerJour(auj, -1))),
+          },
+        };
+        grouped[jour.date] = trierJournee([...(grouped[jour.date] ?? []), carte]);
+      }
+      return grouped;
+    };
     const ajouterAbsences = (grouped: Record<number, AgendaEvent[]>) => {
+      ajouterRendezVous(grouped);
       for (const jour of computed) {
         const iso = jourDeDate(jour.fullDate);
         for (const a of absences.filter((x) => couvreJour(x, iso))) {
@@ -678,7 +736,7 @@ function AgendaScreenContent() {
     }
     for (const jour of Object.keys(grouped)) grouped[Number(jour)] = trierJournee(grouped[Number(jour)]);
     setEventsByDay(ajouterAbsences(grouped));
-  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours, versionDevoirsPartagee, versionAbsencesPartagee, user?.id, prenomEnfant]);
+  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours, versionDevoirsPartagee, versionAbsencesPartagee, versionRendezVousPartagee, user?.id, prenomEnfant]);
 
   const filtrePrecedent = useRef(activeFilter);
   useEffect(() => {
@@ -705,6 +763,8 @@ function AgendaScreenContent() {
     }
     setNewEventTitle('');
     setNewEventType('devoir');
+    setToutesLesSemaines(false);
+    setAPrevoirNouveau('');
     setAddModalVisible(true);
   }, [selectedChild, selectedChildId, childLoading]);
 
@@ -714,6 +774,24 @@ function AgendaScreenContent() {
       return;
     }
     const currentChildId = selectedChild?.id ?? null;
+    // « Toutes les semaines » (lot 4c) : un rendez-vous fixe, le jour de la semaine du jour choisi.
+    if (toutesLesSemaines && currentChildId) {
+      const jourChoisi = weekDays.find((d) => d.date === selectedDay)?.fullDate ?? dateAujourdhuiParis();
+      setIsSaving(true);
+      try {
+        await creerRendezVous(currentChildId, {
+          titre: newEventTitle.trim().slice(0, 80),
+          jourSemaine: jourSemaine(jourDeDate(jourChoisi)),
+          aPrevoir: listeAPrevoir(aPrevoirNouveau),
+        }, isDemoMode);
+        setAddModalVisible(false);
+      } catch (e) {
+        Alert.alert('Rendez-vous non créé', e instanceof ErreurRendezVous ? e.message : 'Le rendez-vous n’a pas pu être enregistré. Réessayez.');
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
     // Compte réel (jamais la démo) avec un enfant actif.
     const isReal = !!currentChildId && !isDemoMode;
 
@@ -763,7 +841,7 @@ function AgendaScreenContent() {
     } finally {
       setIsSaving(false);
     }
-  }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents]);
+  }, [newEventTitle, newEventType, selectedChild, selectedChildId, user, selectedDay, weekDays, loadEvents, toutesLesSemaines, aPrevoirNouveau, isDemoMode]);
 
   // ─── Calendar panel: toggle with LayoutAnimation ───────
   const toggleCalendar = useCallback(() => {
@@ -860,7 +938,80 @@ function AgendaScreenContent() {
   };
 
   // ─── Render event card ─────────────────────────────────
+  const ouvrirRendezVous = (rdv: RendezVous) => {
+    setRdvEnEdition(rdv);
+    setRdvTitre(rdv.titre);
+    setRdvJour(rdv.jour_semaine);
+    setRdvAPrevoir(rdv.a_prevoir.join(', '));
+  };
+  const enregistrerRendezVous = async () => {
+    if (!rdvEnEdition || !rdvTitre.trim()) return;
+    try {
+      await modifierRendezVous(rdvEnEdition, { titre: rdvTitre.trim().slice(0, 80), jourSemaine: rdvJour, aPrevoir: listeAPrevoir(rdvAPrevoir) }, isDemoMode);
+      setRdvEnEdition(null);
+    } catch (e) {
+      Alert.alert('Non enregistré', e instanceof ErreurRendezVous ? e.message : 'Modification impossible. Réessayez.');
+    }
+  };
+  const supprimerRdv = () => {
+    const rdv = rdvEnEdition;
+    if (!rdv) return;
+    Alert.alert('Supprimer ce rendez-vous ?', `« ${libelleRendezVous(rdv)} » sera retiré de l’Agenda pour toutes les semaines.`, [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await supprimerRendezVous(rdv, isDemoMode);
+            setRdvEnEdition(null);
+          } catch (e) {
+            Alert.alert('Non supprimé', e instanceof ErreurRendezVous ? e.message : 'Suppression impossible. Réessayez.');
+          }
+        },
+      },
+    ]);
+  };
+
   const renderEventCard = (event: AgendaEvent, jour: Date) => {
+    if (event.type === 'rendezvous' && event.rendezVous) {
+      const r = event.rendezVous;
+      return (
+        <View key={event.id} style={[st.eventCard, { borderLeftColor: event.color, backgroundColor: withAlpha(event.color, 0.08) }]}>
+          <Pressable onPress={() => ouvrirRendezVous(r.rdv)} accessibilityRole="button" accessibilityLabel={`Modifier ${libelleRendezVous(r.rdv)}`}>
+            <Text style={st.eventCategorie}>Rendez-vous fixe</Text>
+            <Text style={st.eventTitle}>{event.title}</Text>
+            <Text style={st.eventMeta}>{[event.time, event.coche].filter(Boolean).join(' · ')}</Text>
+            {r.ajoutePar ? <Text style={st.eventSource}>{r.ajoutePar}</Text> : null}
+          </Pressable>
+          {r.aPrevoir.length > 0 ? (
+            <View style={st.rdvListe}>
+              <Text style={st.eventCategorie}>À prévoir</Text>
+              {r.aPrevoir.map((p) => (
+                <Pressable
+                  key={p.item}
+                  onPress={() => cocherAPrevoir(r.rdv, r.semaine, p.item, !p.coche, isDemoMode)
+                    .catch((e) => Alert.alert('Non enregistré', e instanceof ErreurRendezVous ? e.message : 'La coche n’a pas pu être enregistrée. Réessayez.'))}
+                  style={st.rdvItem}
+                  hitSlop={6}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: p.coche }}
+                  accessibilityLabel={p.item}
+                >
+                  <View style={p.coche ? st.hwCheckFilled : st.hwCheckEmpty}>
+                    {p.coche ? <Check size={12} color="#FFFFFF" strokeWidth={3} /> : null}
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={[st.rdvItemTexte, p.coche && { color: 'rgba(15,23,42,0.45)' }]}>{p.item}</Text>
+                    {p.source ? <Text style={st.eventSource}>{p.source}</Text> : null}
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      );
+    }
     if (event.type === 'absence') {
       const justifier = event.absence?.aJustifier;
       return (
@@ -1319,7 +1470,32 @@ function AgendaScreenContent() {
                 style={st.modalInput}
               />
 
+              {/* « Toutes les semaines » (lot 4c) : rendez-vous fixe, le même jour chaque semaine */}
+              <Pressable
+                onPress={() => setToutesLesSemaines((v) => !v)}
+                style={st.rdvOption}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: toutesLesSemaines }}
+              >
+                <Text style={st.rdvOptionTexte}>
+                  {toutesLesSemaines ? recurrence(jourSemaine(jourDeDate(weekDays.find((d) => d.date === selectedDay)?.fullDate ?? dateAujourdhuiParis()))) : 'Toutes les semaines'}
+                </Text>
+                <View style={[st.interrupteur, toutesLesSemaines && st.interrupteurActif]}>
+                  <View style={[st.pastille, toutesLesSemaines && { alignSelf: 'flex-end' }]} />
+                </View>
+              </Pressable>
+              {toutesLesSemaines ? (
+                <TextInput
+                  value={aPrevoirNouveau}
+                  onChangeText={setAPrevoirNouveau}
+                  placeholder="À prévoir (facultatif) : maillot, bonnet…"
+                  placeholderTextColor="#94A3B8"
+                  style={st.modalInput}
+                />
+              ) : null}
+
               {/* Type selector */}
+              {toutesLesSemaines ? null : (
               <View style={st.modalTypeRow}>
                 {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
                   const isActive = newEventType === type;
@@ -1339,6 +1515,7 @@ function AgendaScreenContent() {
                   );
                 })}
               </View>
+              )}
 
               {/* Actions */}
               <View style={st.modalActions}>
@@ -1351,6 +1528,40 @@ function AgendaScreenContent() {
                   style={[st.createBtn, isSaving && { opacity: 0.6 }]}
                 >
                   <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* Rendez-vous fixe : modifier ou supprimer (tout responsable de l'enfant, lot 4c) */}
+      <Modal visible={!!rdvEnEdition} transparent animationType="fade" onRequestClose={() => setRdvEnEdition(null)}>
+        <View style={st.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => { Keyboard.dismiss(); setRdvEnEdition(null); }} />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={st.modalContent}>
+              <View style={st.modalHandle} />
+              <Text style={st.modalTitle}>Rendez-vous fixe</Text>
+              <TextInput value={rdvTitre} onChangeText={setRdvTitre} placeholder="Piscine, bibliothèque…" placeholderTextColor="#94A3B8" style={st.modalInput} maxLength={80} />
+              <View style={st.modalTypeRow}>
+                {JOURS_SEMAINE.map((j, i) => {
+                  const actif = rdvJour === i + 1;
+                  return (
+                    <Pressable key={j} onPress={() => setRdvJour(i + 1)} style={[st.modalTypePill, actif && st.modalTypePillActive]}
+                      accessibilityRole="radio" accessibilityState={{ selected: actif }} accessibilityLabel={j}>
+                      <Text style={[st.modalTypeText, actif && st.modalTypeTextActive]}>{j.slice(0, 3)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <TextInput value={rdvAPrevoir} onChangeText={setRdvAPrevoir} placeholder="À prévoir : maillot, bonnet…" placeholderTextColor="#94A3B8" style={st.modalInput} />
+              <View style={st.modalActions}>
+                <Pressable onPress={supprimerRdv} style={st.cancelBtn} accessibilityRole="button">
+                  <Text style={[st.cancelText, { color: '#EF4444' }]}>Supprimer</Text>
+                </Pressable>
+                <Pressable onPress={enregistrerRendezVous} disabled={!rdvTitre.trim()} style={[st.createBtn, !rdvTitre.trim() && { opacity: 0.6 }]} accessibilityRole="button">
+                  <Text style={st.createText}>Enregistrer</Text>
                 </Pressable>
               </View>
             </View>
@@ -1802,6 +2013,15 @@ const st = StyleSheet.create({
     color: '#FFFFFF',
   },
 
+  // Rendez-vous fixe (lot 4c) : liste « À prévoir » et option « Toutes les semaines ».
+  rdvListe: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.07)' },
+  rdvItem: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6, minHeight: 34 },
+  rdvItemTexte: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: '#0F172A' },
+  rdvOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, marginBottom: 10 },
+  rdvOptionTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#0F172A' },
+  interrupteur: { width: 44, height: 26, borderRadius: 999, backgroundColor: 'rgba(15,23,42,0.15)', padding: 3, justifyContent: 'center' },
+  interrupteurActif: { backgroundColor: '#4338CA' },
+  pastille: { width: 20, height: 20, borderRadius: 999, backgroundColor: '#FFFFFF' },
   // Libellé de catégorie écrit dans la carte (COMPONENTS « Card événement Agenda ») : Figtree 600 · 11 px.
   eventCategorie: {
     fontFamily: FontFamily.sansSemiBold,
