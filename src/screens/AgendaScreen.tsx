@@ -48,7 +48,9 @@ import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useDemoData } from '../contexts/DemoContext';
-import { getAgendaEvents, createAgendaEvent, toggleEventDone } from '../services/database';
+import { getAgendaEvents, createAgendaEvent } from '../services/database';
+import { signalerDevoirs } from '../stores/devoirsStore';
+import { useVersionDevoirs } from '../hooks/useVersionDevoirs';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
@@ -345,6 +347,8 @@ function AgendaScreenContent() {
   const [erreurDevoirs, setErreurDevoirs] = useState<TypeErreur | null>(null);
   const [devoirsCharges, setDevoirsCharges] = useState(false);
   const [versionDevoirs, setVersionDevoirs] = useState(0);
+  // Coches faites n'importe où (Accueil compris) : la semaine et la vue « Devoirs » se rechargent.
+  const versionDevoirsPartagee = useVersionDevoirs(selectedChildId);
 
   const isSelectedToday = useMemo(
     () => weekDays.find((d) => d.date === selectedDay)?.isToday ?? false,
@@ -410,7 +414,8 @@ function AgendaScreenContent() {
       }
       if (isDemoMode) {
         demoToggleDone(eventId);
-      } else if (!eventId.startsWith('local-')) {
+        signalerDevoirs(selectedChildId);
+      } else if (!eventId.startsWith('local-') && selectedChildId) {
         const newDone = !Object.values(prev).flat().find((e) => e.id === eventId)?.done;
         // Échec (réseau coupé…) : la coche est annulée à l'écran et on le dit, jamais d'état faux silencieux.
         const annuler = () => {
@@ -421,13 +426,11 @@ function AgendaScreenContent() {
           });
           Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');
         };
-        toggleEventDone(eventId, newDone)
-          .then((r) => { if (r?.error) annuler(); })
-          .catch(annuler);
+        cocherDevoir(eventId, newDone, selectedChildId).catch(annuler);
       }
       return updated;
     });
-  }, [isDemoMode, demoToggleDone]);
+  }, [isDemoMode, demoToggleDone, selectedChildId]);
 
   // ─── Devoirs (lot 4a) ──────────────────────────────────
   // Démo : devoirs de l'Agenda de démo (dates relatives à aujourd'hui), coche en mémoire, « Coché par vous ».
@@ -477,7 +480,7 @@ function AgendaScreenContent() {
     return () => {
       annule = true;
     };
-  }, [isDemoMode, selectedChildId, avecDevoirs, activeFilter, versionDevoirs]);
+  }, [isDemoMode, selectedChildId, avecDevoirs, activeFilter, versionDevoirs, versionDevoirsPartagee]);
 
   const devoirs = isDemoMode ? devoirsDemo : devoirsReels;
   const auteursDevoirs = isDemoMode ? AUTEURS_DEMO : auteursCoche;
@@ -486,20 +489,22 @@ function AgendaScreenContent() {
   const basculerDevoir = useCallback((id: string) => {
     if (isDemoMode) {
       demoToggleDone(id);
+      signalerDevoirs(selectedChildId);
       return;
     }
     const avant = devoirsReels.find((d) => d.id === id);
+    if (!selectedChildId) return;
     if (!avant) return;
     const fait = !avant.fait;
     // Affiché tout de suite, puis remplacé par la version du serveur (auteur et heure de la coche).
     setDevoirsReels((cur) => cur.map((d) => (d.id === id ? { ...d, fait, faitPar: null, faitJour: null, faitHeure: null } : d)));
-    cocherDevoir(id, fait)
+    cocherDevoir(id, fait, selectedChildId)
       .then((enregistre) => setDevoirsReels((cur) => cur.map((d) => (d.id === id ? enregistre : d))))
       .catch(() => {
         setDevoirsReels((cur) => cur.map((d) => (d.id === id ? avant : d)));
         Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');
       });
-  }, [isDemoMode, demoToggleDone, devoirsReels]);
+  }, [isDemoMode, demoToggleDone, devoirsReels, selectedChildId]);
 
   // ─── Add event modal ───────────────────────────────────
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -621,7 +626,7 @@ function AgendaScreenContent() {
     }
     for (const jour of Object.keys(grouped)) grouped[Number(jour)] = trierJournee(grouped[Number(jour)]);
     setEventsByDay(grouped);
-  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours]);
+  }, [selectedChildId, referenceDate, isDemoMode, avecDevoirs, avecCours, versionDevoirsPartagee]);
 
   const filtrePrecedent = useRef(activeFilter);
   useEffect(() => {

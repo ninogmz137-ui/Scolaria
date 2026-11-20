@@ -9,7 +9,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 import { exigerHoteLocal } from './garde-hote.mjs';
-import { aujourdhuiParis, demainParis, minuitParis, jourParis } from '../src/utils/jourParis.ts';
+import { aujourdhuiParis, demainParis, minuitParis, jourParis, bornesParis, decalerJour } from '../src/utils/jourParis.ts';
 
 const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 exigerHoteLocal(statut.API_URL);
@@ -80,6 +80,24 @@ const { data: vusK } = await chargerDevoirs(karim, lina);
 verifier('Karim ne voit aucun devoir de Lina', (vusK ?? []).length === 0, `${(vusK ?? []).length}`);
 const { data: cocheK } = await karim.from('agenda_events').update({ is_done: false }).eq('id', cree.id).select();
 verifier('Karim ne peut pas décocher', (cocheK ?? []).length === 0);
+
+// Défaut du 20 nov. : l'Accueil et l'Agenda lisent la même donnée. L'Accueil lit la semaine (useAgendaSemaine :
+// agenda_events, bornes des 7 jours de Paris) ; l'Agenda lit la vue « Devoirs » (chargerDevoirs). Une coche faite
+// d'un côté se lit de l'autre.
+const semaineAccueil = (c) => {
+  const b = bornesParis(aujourdhuiParis(), decalerJour(aujourdhuiParis(), 7));
+  return c.from('agenda_events').select('*').eq('child_id', lina).gte('start_time', b.debut).lte('start_time', b.fin).order('start_time');
+};
+await cocher(sophie, cree.id, false);
+const { data: cocheAgenda } = await cocher(sophie, cree.id, true); // coche dans l'Agenda (vue « Devoirs »)
+const { data: lueAccueil } = await semaineAccueil(sophie);
+verifier('coche faite dans l’Agenda, lue par l’Accueil', (lueAccueil ?? []).some((e) => e.id === cree.id && e.is_done && e.fait_par === idSophie), cocheAgenda?.fait_par);
+await cocher(marc, cree.id, false); // décoche depuis l'Accueil (même fonction cocherDevoir, compte de Marc)
+const { data: lueAgenda } = await chargerDevoirs(sophie, lina);
+verifier('décoche faite depuis l’Accueil, lue par l’Agenda', (lueAgenda ?? []).some((e) => e.id === cree.id && !e.is_done && e.fait_par === null));
+await cocher(marc, cree.id, true);
+const { data: lueAgenda2 } = await chargerDevoirs(sophie, lina);
+verifier('coche faite depuis l’Accueil, lue par l’Agenda avec son auteur', (lueAgenda2 ?? []).some((e) => e.id === cree.id && e.is_done && e.fait_par === idMarc));
 
 // Sophie décoche : auteur et heure vidés.
 const { data: decoche } = await cocher(sophie, cree.id, false);

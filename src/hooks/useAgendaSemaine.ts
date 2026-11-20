@@ -4,13 +4,18 @@
  * Mêmes données que l'écran Agenda : démo = DemoContext.getAgenda ; compte réel = agenda_events.
  * Un enfant = un carnet : changer d'enfant vide tout AVANT le chargement ; un échec de chargement est une erreur,
  * jamais « rien de prévu » ; une coche non enregistrée est annulée à l'écran et signalée.
+ * Devoirs (lot 4a) : même source et même fonction de coche que l'Agenda (devoirsService.cocherDevoir) ; toute
+ * coche faite ailleurs (Agenda) recharge l'Accueil (useVersionDevoirs), sans geste particulier.
  */
 
 import { dateAujourdhuiParis, jourParis, heureParis, aujourdhuiParis, bornesParis, decalerJour } from '../utils/jourParis';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useDemoData } from '../contexts/DemoContext';
-import { getAgendaEvents, toggleEventDone } from '../services/database';
+import { getAgendaEvents } from '../services/database';
+import { cocherDevoir } from '../services/devoirsService';
+import { signalerDevoirs } from '../stores/devoirsStore';
+import { useVersionDevoirs } from './useVersionDevoirs';
 import { classerErreur, leverSiErreur, type TypeErreur } from '../services/erreurs';
 import { isoJour } from '../data/demo/accueil';
 
@@ -37,6 +42,7 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
   const [erreur, setErreur] = useState<TypeErreur | null>(null);
   const [version, setVersion] = useState(0);
   const dernierEnfant = useRef<string | undefined>(undefined);
+  const versionDevoirs = useVersionDevoirs(childId);
 
   // Démo : lecture directe du contexte (la coche y est déjà gérée).
   const demo = useMemo(() => {
@@ -96,12 +102,13 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
     return () => {
       annule = true;
     };
-  }, [childId, isDemo, actif, version]);
+  }, [childId, isDemo, actif, version, versionDevoirs]);
 
   const basculer = useCallback(
     (id: string) => {
       if (isDemo) {
         toggleAgendaDone(id);
+        signalerDevoirs(childId);
         return;
       }
       const actuel = reels.find((e) => e.id === id);
@@ -113,13 +120,10 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
         poser(!fait);
         Alert.alert('Non enregistré', 'La modification n’a pas pu être enregistrée (pas de connexion ?). Réessayez.');
       };
-      toggleEventDone(id, fait)
-        .then((r) => {
-          if (r?.error) annuler();
-        })
-        .catch(annuler);
+      if (!childId) return;
+      cocherDevoir(id, fait, childId).catch(annuler);
     },
-    [isDemo, reels, toggleAgendaDone],
+    [isDemo, reels, toggleAgendaDone, childId],
   );
 
   return {

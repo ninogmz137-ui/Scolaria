@@ -10,6 +10,7 @@ import { leverSiErreur } from './erreurs';
 import { toggleEventDone } from './database';
 import { aujourdhuiParis, heureParis, jourParis, minuitParis } from '../utils/jourParis';
 import type { Devoir } from '../utils/devoirs';
+import { signalerDevoirs } from '../stores/devoirsStore';
 
 /** Prénoms des responsables de l'enfant, par identifiant de compte ; « vous » pour le compte connecté. */
 export type AuteursCoche = Record<string, string>;
@@ -55,12 +56,17 @@ export async function chargerAuteursCoche(childId: string): Promise<AuteursCoche
   return auteurs;
 }
 
-/** Coche ou décoche ; renvoie le devoir tel que le serveur l'a enregistré (auteur et heure compris). */
-export async function cocherDevoir(id: string, fait: boolean): Promise<Devoir> {
+/**
+ * Coche ou décoche ; renvoie le devoir tel que le serveur l'a enregistré (auteur et heure compris).
+ * SEULE fonction de coche de l'app (Accueil, Agenda par jour, vue « Devoirs ») : une fois enregistrée, elle
+ * prévient tous les écrans (stores/devoirsStore), qui rechargent leurs devoirs.
+ */
+export async function cocherDevoir(id: string, fait: boolean, childId: string): Promise<Devoir> {
   const res = await toggleEventDone(id, fait);
   leverSiErreur(res?.error);
   // Aucune ligne rendue : devoir supprimé entre-temps ou plus accessible → jamais un faux « enregistré ».
   if (!res?.data) throw new Error('devoir introuvable');
+  signalerDevoirs(childId);
   return versDevoir(res.data);
 }
 
