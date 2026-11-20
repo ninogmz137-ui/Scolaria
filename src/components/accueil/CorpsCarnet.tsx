@@ -9,6 +9,7 @@
  * Aucune section vide n'est affichée ; tout vient de l'enfant sélectionné (jamais d'un autre carnet).
  */
 
+import { aujourdhuiParis, heureParis } from '../../utils/jourParis';
 import { useMemo, type ReactNode } from 'react';
 import { C, RADIUS, SHADOW } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
@@ -140,7 +141,7 @@ export default function CorpsCarnet({
   onOuvrirImport: (e: ElementCarnet) => void;
   onOuvrirSuivi: () => void;
 }) {
-  const aujourdhui = isoJour(new Date());
+  const aujourdhui = aujourdhuiParis();
   // « Signer aussi pour [prénom] » : les autres enfants du foyer (décision 7 du 16 nov. 2026).
   const { children, selectedChild } = useActiveChild();
   const autres = children.filter((c) => c.id !== selectedChild?.id).map((c) => ({ id: c.id, prenom: c.name.split(' ')[0] }));
@@ -193,8 +194,7 @@ export default function CorpsCarnet({
 
   // 2. Cette semaine : prochain événement
   const prochain = useMemo(() => {
-    const maintenant = new Date();
-    const hhmm = `${String(maintenant.getHours()).padStart(2, '0')}:${String(maintenant.getMinutes()).padStart(2, '0')}`;
+    const hhmm = heureParis();
     return evenements
       .filter((e) => TYPES_EVENEMENT.has(e.type) && (e.date > aujourdhui || (e.date === aujourdhui && (e.fin ?? e.debut) >= hhmm)))
       .sort((a, b) => (a.date + a.debut).localeCompare(b.date + b.debut))[0];

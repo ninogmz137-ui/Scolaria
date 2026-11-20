@@ -7,6 +7,7 @@
  * `erreur` (réseau, session, serveur) + `recharger()` (« Réessayer »).
  */
 
+import { aujourdhuiParis, bornesParis, heureParis } from '../utils/jourParis';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAgendaEvents, getGrades } from '../services/database';
 import { chargerCompetencesOuErreur } from '../services/suiviService';
@@ -44,16 +45,14 @@ export function useAccueilReel(childId: string | undefined, isDemo: boolean, cyc
     if (isDemo || !childId) return;
 
     (async () => {
-      const debut = new Date();
-      debut.setHours(0, 0, 0, 0);
-      const fin = new Date(debut);
-      fin.setHours(23, 59, 59, 999);
+      // Le jour de Paris (lot 4 A4), quel que soit le fuseau du téléphone.
+      const jour = bornesParis(aujourdhuiParis());
 
-      const resEvenements = await getAgendaEvents(childId, { startDate: debut.toISOString(), endDate: fin.toISOString() });
+      const resEvenements = await getAgendaEvents(childId, { startDate: jour.debut, endDate: jour.fin });
       leverSiErreur(resEvenements.error);
       const evenements: DemoAujourdhui[] = ((resEvenements.data ?? []) as any[]).map((r) => {
         const d = new Date(r.start_time);
-        const hhmm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const hhmm = heureParis(d);
         return { id: String(r.id), kind: 'event' as const, title: String(r.title), meta: String(r.location || r.subject || ''), time: heureFr(hhmm) };
       });
 

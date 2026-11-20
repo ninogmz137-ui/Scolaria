@@ -1,3 +1,4 @@
+import { dateAujourdhuiParis } from '../utils/jourParis';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -207,7 +208,7 @@ export default function AccueilScreen() {
     if (!selectedChild) return { todo: [], aujourdhui: [], aria: '' };
     // Compte réel : « À faire » = mes mots ; « Aujourd'hui » = les événements de l'Agenda du jour (useAccueilReel).
     if (!isDemo) return { todo: todoDepuisMots(mots), aujourdhui: reel.aujourdhui, aria: '' };
-    const auj = new Date();
+    const auj = dateAujourdhuiParis();
     const demain = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() + 1);
     return construireAccueilDemo({
       prenom: selectedChild.name.split(' ')[0],

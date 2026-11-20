@@ -1,3 +1,4 @@
+import { aujourdhuiParis, demainParis } from '../../utils/jourParis';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   ScrollView,
@@ -81,11 +82,8 @@ export default function AbsencesEnseignantScreen() {
     }
   }, []);
 
-  const today = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(today.getDate() + 1);
-  const todayStr = today.toISOString().slice(0, 10);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+  const todayStr = aujourdhuiParis();
+  const tomorrowStr = demainParis();
 
   const absencesDuJour = absences.filter(
     (a) =>

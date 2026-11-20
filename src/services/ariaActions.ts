@@ -12,6 +12,7 @@
  * écrit par le modèle est ignoré.
  */
 
+import { aujourdhuiParis } from '../utils/jourParis';
 import {
   type CreateAbsencePayload,
   type AbsenceMotif,
@@ -50,7 +51,7 @@ export interface ParseResult {
 
 /** YYYY-MM-DD for today */
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return aujourdhuiParis();
 }
 
 /** Format a YYYY-MM-DD date in long French (e.g. "lundi 16 avril") */

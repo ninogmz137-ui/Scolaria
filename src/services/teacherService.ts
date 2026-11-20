@@ -8,6 +8,7 @@
  * Falls back to empty arrays when Supabase is not configured.
  */
 
+import { aujourdhuiParis, jourParis } from '../utils/jourParis';
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
 
@@ -241,7 +242,7 @@ export async function getClassMeteo(classe: string): Promise<ClassMeteo | null> 
   const byDay: Record<string, number[]> = {};
   for (const c of checkins) {
     const d = new Date(c.created_at);
-    const key = d.toISOString().split('T')[0];
+    const key = jourParis(d);
     if (!byDay[key]) byDay[key] = [];
     byDay[key].push(c.joy_score);
   }
@@ -262,7 +263,7 @@ export async function getClassMeteo(classe: string): Promise<ClassMeteo | null> 
     });
 
   // Emotion distribution from today's checkins
-  const today = new Date().toISOString().split('T')[0];
+  const today = aujourdhuiParis();
   const todayScores = byDay[today] || [];
   const respondedToday = todayScores.length;
 
@@ -573,7 +574,7 @@ export async function getClassEvents(classe: string): Promise<ClassEvent[]> {
   if (!isSupabaseConfigured()) return [];
 
   const teacherId = await getTeacherId();
-  const today = new Date().toISOString().split('T')[0];
+  const today = aujourdhuiParis();
 
   const { data, error } = await supabase
     .from('class_events')

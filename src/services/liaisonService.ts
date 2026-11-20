@@ -5,6 +5,7 @@
  * Falls back to mock data in demo mode.
  */
 
+import { aujourdhuiParis } from '../utils/jourParis';
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
 
@@ -415,7 +416,7 @@ export async function createMotLiaison(mot: {
       type: mot.type,
       titre: mot.titre,
       contenu: mot.contenu,
-      date_envoi: new Date().toISOString().split('T')[0],
+      date_envoi: aujourdhuiParis(),
       date_limite: mot.date_limite ?? null,
       statut: mot.statut,
       requires_signature: mot.type !== 'info',
@@ -435,7 +436,7 @@ export async function createMotLiaison(mot: {
       ...mot,
       type: toDbType(mot.type),
       signature_mode: (mot.type === 'info' ? 'none' : 'one') as SignatureMode,
-      date_envoi: new Date().toISOString().split('T')[0],
+      date_envoi: aujourdhuiParis(),
     })
     .select()
     .single();

@@ -10,6 +10,7 @@
  * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
+import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate } from '../utils/jourParis';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -156,8 +157,7 @@ function getMondayOfWeek(d: Date): Date {
 
 function buildWeekDays(referenceDate: Date): (DayInfo & { fullDate: Date })[] {
   const monday = getMondayOfWeek(referenceDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = dateAujourdhuiParis();
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -182,7 +182,7 @@ function formatDateFR(date: Date): string {
 
 /** Échéance d'un devoir (jamais de plage horaire) : « Pour aujourd'hui », « Pour demain », « Pour lundi 28 sept. ». */
 function echeanceDevoir(jour: Date): string {
-  const t = new Date();
+  const t = dateAujourdhuiParis();
   const aujourdHui = new Date(t.getFullYear(), t.getMonth(), t.getDate()).toDateString();
   const demain = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1).toDateString();
   if (jour.toDateString() === aujourdHui) return 'Pour aujourd’hui';
@@ -307,9 +307,7 @@ function AgendaScreenContent() {
   const insets = useSafeAreaInsets();
   const scrollHandler = useTopbarScrollHandler();
   const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return dateAujourdhuiParis();
   }, []);
 
   // ─── Calendar panel state ──────────────────────────────
@@ -323,12 +321,12 @@ function AgendaScreenContent() {
 
   const [weekOffset, setWeekOffset] = useState(0);
   const referenceDate = useMemo(() => {
-    const d = new Date();
+    const d = dateAujourdhuiParis();
     d.setDate(d.getDate() + weekOffset * 7);
     return d;
   }, [weekOffset]);
 
-  const [weekDays, setWeekDays] = useState(() => buildWeekDays(new Date()));
+  const [weekDays, setWeekDays] = useState(() => buildWeekDays(dateAujourdhuiParis()));
   // Jamais d'événements fictifs : démo = agenda de l'enfant actif, compte réel = la base.
   const [eventsByDay, setEventsByDay] = useState<Record<number, AgendaEvent[]>>({});
   const [erreurAgenda, setErreurAgenda] = useState<TypeErreur | null>(null);
@@ -437,8 +435,7 @@ function AgendaScreenContent() {
     // Primaire : leçons, lecture, poésie, tables — jamais de contenu de collège.
     if (!isDemoMode || !aDesDevoirs(selectedChild?.cycle)) return [];
     const college = aDesNotes(selectedChild?.cycle);
-    const t = new Date();
-    t.setHours(0, 0, 0, 0);
+    const t = dateAujourdhuiParis();
     // Échéances sur des jours d'école : jamais le week-end ; en primaire (démo : semaine de 4 jours),
     // jamais le mercredi non plus.
     const sansEcole = (d: Date) => d.getDay() === 0 || d.getDay() === 6 || (!college && d.getDay() === 3);
@@ -589,14 +586,12 @@ function AgendaScreenContent() {
 
     const monday = computed[0].fullDate;
     const sunday = computed[6].fullDate;
-    const endOfSunday = new Date(sunday);
-    endOfSunday.setHours(23, 59, 59, 999);
 
     let result: Awaited<ReturnType<typeof getAgendaEvents>> | null = null;
     try {
       result = await getAgendaEvents(selectedChildId, {
-        startDate: monday.toISOString(),
-        endDate: endOfSunday.toISOString(),
+        startDate: bornesParis(jourDeDate(monday), jourDeDate(sunday)).debut,
+        endDate: bornesParis(jourDeDate(monday), jourDeDate(sunday)).fin,
       });
     } catch (e) {
       setErreurAgenda(classerErreur(e));
@@ -613,13 +608,13 @@ function AgendaScreenContent() {
 
     const grouped: Record<number, AgendaEvent[]> = {};
     for (const row of rows) {
+      // Jour et heure de l'événement en heure de Paris (lot 4 A4), quel que soit le fuseau du téléphone.
       const d = new Date(row.start_time);
-      const dayNum = d.getDate();
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      const endDate2 = row.end_time ? new Date(row.end_time) : null;
-      const endHH = endDate2 ? String(endDate2.getHours()).padStart(2, '0') : undefined;
-      const endMM = endDate2 ? String(endDate2.getMinutes()).padStart(2, '0') : undefined;
+      const dayNum = Number(jourParis(d).slice(8, 10));
+      const [hh, mm] = heureParis(d).split(':');
+      const finParis = row.end_time ? heureParis(new Date(row.end_time)).split(':') : null;
+      const endHH = finParis ? finParis[0] : undefined;
+      const endMM = finParis ? finParis[1] : undefined;
       const type = (row.event_type ?? 'cours') as AgendaEvent['type'];
       if ((type === 'cours' && !avecCours) || (type === 'devoir' && !avecDevoirs)) continue;
       const mapped: AgendaEvent = {
@@ -670,7 +665,7 @@ function AgendaScreenContent() {
     const isReal = !!currentChildId && !isDemoMode;
 
     const selectedDayInfo = weekDays.find((d) => d.date === selectedDay);
-    const dayDate = selectedDayInfo?.fullDate ?? new Date();
+    const dayDate = selectedDayInfo?.fullDate ?? dateAujourdhuiParis();
     dayDate.setHours(8, 0, 0, 0);
 
     const typeMap: Record<NewEventType, AgendaEvent['type']> = {
@@ -730,7 +725,7 @@ function AgendaScreenContent() {
     setWeekDays(weekContainingDay);
     // Semaine de référence = celle du jour choisi : sinon les événements restent ceux de la semaine en cours.
     const semaines = Math.round(
-      (getMondayOfWeek(fullDate).getTime() - getMondayOfWeek(new Date()).getTime()) / (7 * 86400000),
+      (getMondayOfWeek(fullDate).getTime() - getMondayOfWeek(dateAujourdhuiParis()).getTime()) / (7 * 86400000),
     );
     setWeekOffset(semaines);
 

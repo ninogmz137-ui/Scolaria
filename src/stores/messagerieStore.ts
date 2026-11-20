@@ -10,6 +10,7 @@
  *   subscribe(listener)              → unsubscribe fn
  */
 
+import { aujourdhuiParis, jourParis, heureParis } from '../utils/jourParis';
 import { CONVERSATIONS_BY_CHILD, type Conversation, type Message } from '../data/messagerieData';
 
 // ─── State ───────────────────────────────────────────────
@@ -60,8 +61,8 @@ export function markAllConversationsRead(childId: string): void {
 
 export function sendMessage(conversationId: string, text: string, motCite?: string): void {
   const now = new Date();
-  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const date = now.toISOString().split('T')[0];
+  const time = heureParis(now);
+  const date = jourParis(now);
 
   const newMsg: Message = {
     id: `sent-${Date.now()}`,
@@ -133,7 +134,7 @@ export function repondreAuMotDemo(childId: string, nom: string, text: string, ti
       role: 'Enseignant',
       avatarType: 'initials',
       lastMessage: '',
-      lastDate: new Date().toISOString().split('T')[0],
+      lastDate: aujourdhuiParis(),
       lastTime: '',
       unread: false,
       messages: [],

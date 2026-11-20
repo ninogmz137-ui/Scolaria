@@ -7,6 +7,7 @@
  * Data comes from static JSON files in src/data/demo/.
  */
 
+import { dateAujourdhuiParis } from '../utils/jourParis';
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -201,7 +202,7 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
 
 /** Un événement de l'Agenda de démo (recalé sur aujourd'hui) par son id : mots liés à un événement (B4a). */
 export function evenementDemoParId(id: string): DemoAgendaEvent | undefined {
-  return agendaRecale(new Date()).find((e) => e.id === id);
+  return agendaRecale(dateAujourdhuiParis()).find((e) => e.id === id);
 }
 
 // ─── Messages et mots de démo recalés sur aujourd'hui ─────
@@ -242,7 +243,7 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
   const getGrades = useCallback((childId: string, trimester?: number): DemoGrade[] => {
     // Notes datées comme les messages (référence du 25 sept. 2026) : mêmes jours dans l'Accueil,
     // le Suivi et les Messages.
-    const decal = decalageMessages(new Date());
+    const decal = decalageMessages(dateAujourdhuiParis());
     let grades = (demoGrades as DemoGrade[])
       .filter((g) => g.childId === childId)
       .map((g) => ({ ...g, date: decalerDate(g.date, decal) }));
@@ -252,7 +253,7 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     return grades;
   }, []);
 
-  const agenda = useMemo(() => agendaRecale(new Date()), []);
+  const agenda = useMemo(() => agendaRecale(dateAujourdhuiParis()), []);
 
   const getAgenda = useCallback((childId: string, date?: string): DemoAgendaEvent[] => {
     let events = agenda.filter((e) => e.childId === childId);
@@ -266,7 +267,7 @@ export function DemoProvider({ children: reactChildren }: { children: ReactNode 
     }));
   }, [agenda, agendaState]);
 
-  const decalage = useMemo(() => decalageMessages(new Date()), []);
+  const decalage = useMemo(() => decalageMessages(dateAujourdhuiParis()), []);
 
   const getMessages = useCallback((childId: string): DemoMessage[] => {
     return (demoMessages as DemoMessage[])

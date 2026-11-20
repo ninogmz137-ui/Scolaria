@@ -20,10 +20,10 @@ export function nomFichierArchive(titre: string, date: string | null, id: string
   return `${jour}${base}_${id.replace(/[^a-z0-9]/gi, '').slice(0, 8)}.${ext}`;
 }
 
-/** « carnet-lea-2026-09-28.zip » (prénom sans accent, date du jour). */
-export function nomArchive(prenom: string, jour: Date = new Date()): string {
+/** « carnet-lea-2026-09-28.zip » (prénom sans accent ; `jour` = jour de Paris 'AAAA-MM-JJ', utils/jourParis). */
+export function nomArchive(prenom: string, jour: string): string {
   const p = nomFichierArchive(prenom, null, 'x', 'zip').replace(/_x\.zip$/, '');
-  return `carnet-${p}-${jour.toISOString().slice(0, 10)}.zip`;
+  return `carnet-${p}-${jour}.zip`;
 }
 
 export type FichierArchive = { chemin: string; octets: Uint8Array };

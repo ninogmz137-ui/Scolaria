@@ -11,6 +11,7 @@
  * - No height:'100%' → flex:1
  * - No backdropFilter → semi-opaque colors
  */
+import { dateAujourdhuiParis } from '../utils/jourParis';
 import React, { useState } from 'react';
 import { C } from '../constants/design';
 import {
@@ -158,7 +159,7 @@ function TimetableScreenContent({ childId, college }: { childId: string; college
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { getAgenda } = useDemoData();
-  const aujourdHui = new Date();
+  const aujourdHui = dateAujourdhuiParis();
   const [semaine, setSemaine] = useState(0);
   const lundi = lundiDe(aujourdHui);
   lundi.setDate(lundi.getDate() + semaine * 7);

@@ -17,7 +17,7 @@ verifier('titre vide → « document »', nomFichierArchive('', null, id, 'pdf')
 verifier('pas de chemin possible dans le nom (../)', nomFichierArchive('../../etc/passwd', null, id, 'pdf'), 'etc-passwd_1a2b3c4d.pdf');
 verifier('titre long tronqué à 50 caractères', nomFichierArchive('a'.repeat(80), null, id, 'jpg').length, 50 + 1 + 8 + 4);
 verifier('date invalide ignorée', nomFichierArchive('Livret', 'hier', id, 'pdf'), 'livret_1a2b3c4d.pdf');
-verifier('nom de l’archive', nomArchive('Léa', new Date('2026-09-28T10:00:00Z')), 'carnet-lea-2026-09-28.zip');
+verifier('nom de l’archive', nomArchive('Léa', '2026-09-28'), 'carnet-lea-2026-09-28.zip');
 
 const photo = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 0xff, 0xd9]);
 const lisezmoi = texteLisezmoi({ nomApp: 'App', assistantComplementAvec: 'Assistant d’essai', prenom: 'Léa', genereLe: new Date(), nbFichiers: 1, fichiersManquants: [], sectionsManquantes: [] });

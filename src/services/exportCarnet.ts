@@ -10,6 +10,7 @@
  *   démarrage de l'app.
  */
 
+import { jourParis } from '../utils/jourParis';
 import { Platform } from 'react-native';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -200,7 +201,7 @@ export async function exporterCarnet(
     texteLisezmoi({ nomApp: NOM_APP, assistantComplementAvec: ASSISTANT.complementAvec, prenom, genereLe, nbFichiers: fichiers.length, fichiersManquants, sectionsManquantes }),
     fichiers,
   );
-  const fichierZip = new File(dossier, nomArchive(prenom, genereLe));
+  const fichierZip = new File(dossier, nomArchive(prenom, jourParis(genereLe)));
   fichierZip.write(archive);
 
   progression('Partage…');

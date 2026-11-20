@@ -6,6 +6,7 @@
  * jamais « rien de prévu » ; une coche non enregistrée est annulée à l'écran et signalée.
  */
 
+import { dateAujourdhuiParis, jourParis, heureParis, aujourdhuiParis, bornesParis, decalerJour } from '../utils/jourParis';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useDemoData } from '../contexts/DemoContext';
@@ -40,7 +41,7 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
   // Démo : lecture directe du contexte (la coche y est déjà gérée).
   const demo = useMemo(() => {
     if (!isDemo || !childId || !actif) return [];
-    const debut = new Date();
+    const debut = dateAujourdhuiParis();
     const fin = new Date(debut.getFullYear(), debut.getMonth(), debut.getDate() + JOURS_VUS);
     const [d0, d1] = [isoJour(debut), isoJour(fin)];
     return getAgenda(childId)
@@ -67,22 +68,20 @@ export function useAgendaSemaine(childId: string | undefined, isDemo: boolean, a
     }
     if (isDemo || !childId || !actif) return;
     (async () => {
-      const debut = new Date();
-      debut.setHours(0, 0, 0, 0);
-      const fin = new Date(debut.getFullYear(), debut.getMonth(), debut.getDate() + JOURS_VUS, 23, 59, 59, 999);
-      const res = await getAgendaEvents(childId, { startDate: debut.toISOString(), endDate: fin.toISOString() });
+      const jour0 = aujourdhuiParis();
+      const bornes = bornesParis(jour0, decalerJour(jour0, JOURS_VUS));
+      const res = await getAgendaEvents(childId, { startDate: bornes.debut, endDate: bornes.fin });
       leverSiErreur(res.error);
       const lignes = ((res.data ?? []) as any[]).map<EvtAccueil>((r) => {
         const d = new Date(r.start_time);
         const f = r.end_time ? new Date(r.end_time) : null;
-        const hhmm = (x: Date) => `${String(x.getHours()).padStart(2, '0')}:${String(x.getMinutes()).padStart(2, '0')}`;
         return {
           id: String(r.id),
           titre: String(r.title),
           type: String(r.event_type ?? 'cours'),
-          date: isoJour(d),
-          debut: hhmm(d),
-          fin: f ? hhmm(f) : undefined,
+          date: jourParis(d),
+          debut: heureParis(d),
+          fin: f ? heureParis(f) : undefined,
           matiere: r.subject ? String(r.subject) : undefined,
           lieu: r.location ? String(r.location) : undefined,
           fait: !!r.is_done,

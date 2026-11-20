@@ -5,6 +5,7 @@
  * Falls back to mock data in demo mode.
  */
 
+import { aujourdhuiParis, dateAujourdhuiParis } from '../utils/jourParis';
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
 
@@ -207,7 +208,7 @@ export async function getStudentAbsences(studentId: string): Promise<Absence[]> 
  * Check if the student already has a pending (signalée) absence for today or future.
  */
 export async function hasActiveAbsence(studentId: string): Promise<boolean> {
-  const today = new Date().toISOString().split('T')[0];
+  const today = aujourdhuiParis();
   if (!isSupabaseConfigured()) {
     return runtimeAbsences.some(
       (a) =>
@@ -231,7 +232,7 @@ export async function hasActiveAbsence(studentId: string): Promise<boolean> {
  * Get today's absence for a student (if any) — for the Accueil banner.
  */
 export function getTodayAbsence(studentId: string): Absence | null {
-  const today = new Date().toISOString().split('T')[0];
+  const today = aujourdhuiParis();
   return (
     runtimeAbsences.find(
       (a) =>
@@ -357,8 +358,7 @@ function sendAbsenceNotification(absence: Absence) {
 
 export function formatDateFr(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = dateAujourdhuiParis();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 

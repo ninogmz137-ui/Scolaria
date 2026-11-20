@@ -5,6 +5,7 @@
  * it falls back to mock data so the app works in demo mode.
  */
 
+import { aujourdhuiParis, decalerJour } from '../utils/jourParis';
 import { supabase } from './supabase';
 import { ENV } from './getEnv';
 import { detectEmergency } from '../../supabase/functions/_shared/emergency';
@@ -280,9 +281,7 @@ export async function getCheckins(childId: string, options?: {
     .order('date', { ascending: false });
 
   if (options?.days) {
-    const since = new Date();
-    since.setDate(since.getDate() - options.days);
-    query = query.gte('date', since.toISOString().split('T')[0]);
+    query = query.gte('date', decalerJour(aujourdhuiParis(), -options.days));
   }
   if (options?.limit) {
     query = query.limit(options.limit);

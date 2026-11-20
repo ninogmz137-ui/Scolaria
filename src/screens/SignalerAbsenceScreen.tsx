@@ -36,6 +36,7 @@ import {
 import { Text, TextInput, Pressable } from '../components/ui';
 import { AucunEnfantPage } from '../components/AucunEnfant';
 import { useAuth } from '../contexts/AuthContext';
+import { aujourdhuiParis, demainParis } from '../utils/jourParis';
 
 // ─── Helpers ─────────────────────────────────────────────
 
@@ -49,20 +50,9 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
-// ─── Date helpers ────────────────────────────────────────
-
-function toDateStr(d: Date): string {
-  return d.toISOString().split('T')[0];
-}
-
-function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + n);
-  return toDateStr(d);
-}
-
-const TODAY = toDateStr(new Date());
-const TOMORROW = addDays(TODAY, 1);
+// ─── Dates ───────────────────────────────────────────────
+// « Aujourd'hui » et « demain » en heure de Paris (lot 4 A4), recalculés à chaque choix : jamais figés au
+// chargement du module (avant : UTC, et la veille entre minuit et 1 h ou 2 h).
 
 // ─── Component ───────────────────────────────────────────
 
@@ -84,7 +74,7 @@ function SignalerAbsenceScreenContent() {
 
   // ── Step 1: Date ──
   const [dateChoice, setDateChoice] = useState<'today' | 'tomorrow' | 'custom'>('today');
-  const [dateDebut, setDateDebut] = useState(TODAY);
+  const [dateDebut, setDateDebut] = useState(() => aujourdhuiParis());
   const [multiDay, setMultiDay] = useState(false);
   const [dateFin, setDateFin] = useState<string | null>(null);
   const [demiJournee, setDemiJournee] = useState<DemiJournee>('journee');
@@ -104,8 +94,8 @@ function SignalerAbsenceScreenContent() {
   // ── Date handling ──
   const handleDateChoice = (choice: 'today' | 'tomorrow' | 'custom') => {
     setDateChoice(choice);
-    if (choice === 'today') setDateDebut(TODAY);
-    else if (choice === 'tomorrow') setDateDebut(TOMORROW);
+    if (choice === 'today') setDateDebut(aujourdhuiParis());
+    else if (choice === 'tomorrow') setDateDebut(demainParis());
     // custom: user will type
   };
 

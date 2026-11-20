@@ -9,6 +9,7 @@
  * fil de classe en annonce seule), rangés dans messagerieStore ; démo : conversations de démo. Rien d'inventé.
  */
 
+import { dateAujourdhuiParis } from '../utils/jourParis';
 import { createElement, useCallback, useEffect, useMemo, useState } from 'react';
 import MiniatureCarnet, { aUneImage } from '../components/MiniatureCarnet';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -40,7 +41,7 @@ export const FIL_IMPORTS = 'imports';
 
 /** « Aujourd'hui », « Hier », « Mar. », puis « 12 sept. ». */
 export function dateCourte(iso: string): string {
-  const aujourdHui = new Date();
+  const aujourdHui = dateAujourdhuiParis();
   const j0 = new Date(aujourdHui.getFullYear(), aujourdHui.getMonth(), aujourdHui.getDate());
   const [a, m, j] = iso.split('T')[0].split('-').map(Number);
   const d = new Date(a, m - 1, j);

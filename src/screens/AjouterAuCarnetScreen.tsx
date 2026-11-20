@@ -9,6 +9,7 @@
  * Rangé dans le carnet de l'enfant SÉLECTIONNÉ. Démo : en mémoire pour la session, rien en base.
  */
 
+import { aujourdhuiParis } from '../utils/jourParis';
 import { useEffect, useMemo, useState } from 'react';
 import { C } from '../constants/design';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
@@ -72,7 +73,7 @@ export default function AjouterAuCarnetScreen() {
   const source: SourceAjout = route.params?.source ?? 'jalon';
 
   const [fichier] = useState<FichierPrepare | null>(() => (modification ? null : prendreEnAttente()));
-  const aujourdHui = isoLocal(new Date());
+  const aujourdHui = aujourdhuiParis();
   const [titre, setTitre] = useState(element?.titre ?? '');
   const [note, setNote] = useState(element?.note ?? '');
   const [categorie, setCategorie] = useState<CategorieCarnet>(
