@@ -36,6 +36,7 @@
     "test:nom-en-dur": "node scripts/test-nom-en-dur.mjs",
     "test:marque": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON supabase/functions/_shared/marque.test.mts",
     "test:absences-store": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/stores/absencesStore.test.mts",
+    "test:vacances": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/vacances.test.mts",
     "test:absences": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/absences.test.mts",
     "test:devoirs-store": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/stores/devoirsStore.test.mts",
     "test:devoirs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/devoirs.test.mts",
