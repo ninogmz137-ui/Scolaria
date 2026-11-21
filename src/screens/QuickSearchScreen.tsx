@@ -21,7 +21,7 @@ const TOUS_LES_LIENS = [
   { id: 'profil',   icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },
   { id: 'parcours',  icon: GraduationCap, label: 'Mon Parcours',           screen: 'MonParcours',           tab: 'Accueil' },
   { id: 'bienetre',  icon: Heart,         label: 'Bien-être & Ressenti',   screen: 'BienEtreScreen',        tab: 'Accueil' },
-  { id: 'reglages',  icon: Settings,      label: 'Famille & paramètres',   screen: 'FamilleParametres',     tab: 'Accueil' },
+  { id: 'reglages',  icon: Settings,      label: 'Famille et paramètres', screen: 'FamilleParametres',     tab: 'Accueil' },
   { id: 'rgpd',      icon: Shield,        label: 'RGPD & Confidentialité', screen: 'RGPDScreen',            tab: 'Accueil' },
   { id: 'apropos',   icon: Info,          label: 'À propos',               screen: 'APropos',               tab: 'Accueil' },
 ];

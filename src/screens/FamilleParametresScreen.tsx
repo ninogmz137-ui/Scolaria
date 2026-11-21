@@ -1,96 +1,58 @@
 /**
- * FamilleParametresScreen — écran unique « Famille & paramètres », ouvert par ☰.
+ * FamilleParametresScreen — écran unique « Famille et paramètres », ouvert par ☰ (lot 6 ; CLAUDE.md § Pages profondes).
+ * Page profonde (COMPONENTS §8) : fond Brume, groupes de rows sur blanc, aucune carte.
  *
- * Remplace l'ancien panneau burger, ReglagesScreen et « Mon compte » (EditProfile).
- * Page profonde (COMPONENTS §8) : fond C.bg, groupes blancs, rows simples, aucune glass card.
+ * Groupes (dans l'ordre de CLAUDE.md), en n'affichant QUE ce qui fonctionne aujourd'hui :
+ *   1. Mes enfants → fiche de l'enfant ; Ajouter un enfant.
+ *   2. Responsables → par enfant : inviter, qui voit quoi, me retirer (écran Autorisations).
+ *   3. Mon profil.
+ *   4. Notifications : ABSENT tant qu'aucune notification push n'existe (CLAUDE.md § Notifications : jamais une option
+ *      affichée sans effet).
+ *   5. Assistant → activé ou non (préférence APPLIQUÉE : aucun appel au modèle si désactivé, ariaPreferences).
+ *   6. Confidentialité et données → télécharger un carnet, effacer des données.
+ *   7. À propos · Se déconnecter (pas d'« Aide » : aucun écran d'aide n'existe).
+ * Retirés au lot 6 : Apparence (fonds d'écran supprimés), ton de l'assistant (lu par rien), langue de la saisie vocale
+ * (rien de branché), préférences locales en double (@scolaria:prefs lues désormais par ariaPreferences seul).
  *
- * Espaces enseignant / élève : même écran (route param `espace`), sans les sections famille.
- *
- * N'affiche que ce qui fonctionne : pas de code de déverrouillage ni de retour haptique
- * (aucune implémentation dans l'app), pas d'aide (aucun écran).
+ * Espaces enseignant / élève : même écran (route param `espace`), sans les groupes famille.
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import { C } from '../constants/design';
-import { enregistrerPreferencesAria } from '../services/ariaPreferences';
+import { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  Plus,
-  Image as ImageIcon,
-  Mic,
-  Shield,
-  Trash2,
-  Download,
-  Info,
-  LogOut,
-  Wrench,
-} from 'lucide-react-native';
+import { Plus, Users, Trash2, Download, Info, LogOut, Wrench } from 'lucide-react-native';
+import { C } from '../constants/design';
+import { lirePreferencesAria, enregistrerPreferencesAria, surChangementAria } from '../services/ariaPreferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { getChildInitials } from '../utils/childInitials';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { DeepScreenHeader } from '../components/DeepScreenHeader';
 import EtatErreur from '../components/EtatErreur';
 import { DeepGroup, DeepRow, DeepAvatar } from '../components/DeepList';
 import ScolariaSymbol from '../components/ScolariaSymbol';
-import { Text, Pressable } from '../components/ui';
+import { Text } from '../components/ui';
 import ChildAvatar from '../components/ChildAvatar';
-import { NOM_APP, ASSISTANT } from '../constants/marque';
+import { NOM_APP } from '../constants/marque';
+import { de } from '../utils/francais';
 
-// ─── Tokens (COMPONENTS §8) ────────────────────────────
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
 const RED = '#EF4444';
 const TEXT55 = 'rgba(15,23,42,0.55)';
 const TEXT35 = 'rgba(15,23,42,0.35)';
-const BORDER_L = 'rgba(15,23,42,0.05)';
-const BG = C.bg;
 
 type Espace = 'famille' | 'enseignant' | 'eleve';
 
-// ─── Préférences locales ───────────────────────────────
-// Enregistrées sur l'appareil. « Aria activée » est APPLIQUÉE (ariaPreferences : aucun appel au modèle
-// si désactivée). Aucun réglage de notifications : aucune notification n'existe aujourd'hui (voir tasks/todo.md, push distant).
-const PREFS_KEY = '@scolaria:prefs';
-
-type Prefs = {
-  ariaActive: boolean;
-  ariaTon: string;
-};
-
-const DEFAULT_PREFS: Prefs = {
-  ariaActive: true,
-  ariaTon: 'Calme',
-};
-
-const ARIA_TONS = ['Calme', 'Concis', 'Encourageant', 'Détaillé'];
-
-function usePrefs() {
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
-
+/** « Assistant activé » : la préférence que l'assistant applique réellement (ariaPreferences), suivie en direct. */
+function useAssistantActif(): [boolean, (v: boolean) => void] {
+  const [actif, setActif] = useState(true);
   useEffect(() => {
-    AsyncStorage.getItem(PREFS_KEY)
-      .then((raw) => {
-        if (raw) setPrefs({ ...DEFAULT_PREFS, ...JSON.parse(raw) });
-      })
-      .catch(() => {});
+    lirePreferencesAria().then((p) => setActif(p.ariaActive));
+    return surChangementAria((p) => setActif(p.ariaActive));
   }, []);
-
-  const update = useCallback(<K extends keyof Prefs>(key: K, value: Prefs[K]) => {
-    setPrefs((prev) => {
-      const next = { ...prev, [key]: value };
-      AsyncStorage.setItem(PREFS_KEY, JSON.stringify(next)).catch(() => {});
-      return next;
-    });
-  }, []);
-
-  return { prefs, update };
+  return [actif, (v: boolean) => { setActif(v); enregistrerPreferencesAria({ ariaActive: v }); }];
 }
-
-// ─── Écran ─────────────────────────────────────────────
 
 export default function FamilleParametresScreen() {
   const insets = useSafeAreaInsets();
@@ -101,9 +63,8 @@ export default function FamilleParametresScreen() {
 
   const { user, signOut, isDemo, demoDev } = useAuth();
   const { children: childList, selectChild, erreur: erreurEnfants, reloadChildren } = useActiveChild();
-  const { prefs, update } = usePrefs();
+  const [assistantActif, setAssistantActif] = useAssistantActif();
 
-  const siblingNames = childList.map((c) => c.name);
   const fullName: string =
     user?.user_metadata?.full_name ?? user?.user_metadata?.family_name ?? (isDemo ? 'Parent démo' : 'Mon compte');
   const email: string = user?.email ?? '';
@@ -113,7 +74,6 @@ export default function FamilleParametresScreen() {
     .join('')
     .toUpperCase()
     .slice(0, 2);
-  const prenomsEnfants = childList.map((c) => c.name.split(' ')[0]).join(', ');
 
   const handleLogout = () => {
     Alert.alert(
@@ -126,15 +86,15 @@ export default function FamilleParametresScreen() {
     );
   };
 
-  const openChild = (id: string) => {
+  const ouvrirPour = (id: string, ecran: string) => {
     selectChild(id);
-    navigation.navigate('ProfilEnfant');
+    navigation.navigate(ecran);
   };
 
   return (
     <View style={[st.root, { paddingBottom: insets.bottom }]}>
       <DeepScreenHeader
-        title={isFamille ? 'Famille & paramètres' : 'Paramètres'}
+        title={isFamille ? 'Famille et paramètres' : 'Paramètres'}
         onBack={
           navigation.canGoBack()
             ? () => navigation.goBack()
@@ -145,18 +105,13 @@ export default function FamilleParametresScreen() {
         withTopInset
       />
 
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
-      >
-        {isDemo && (
-          <Text style={st.demoNotice}>Mode démo · les données affichées sont fictives.</Text>
-        )}
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+        {isDemo && <Text style={st.demoNotice}>Mode démo · les données affichées sont fictives.</Text>}
 
         {isFamille && (
           <>
             {erreurEnfants ? <EtatErreur type={erreurEnfants} onReessayer={() => reloadChildren()} compact /> : null}
+            {/* 1. Mes enfants */}
             <DeepGroup title="Mes enfants" first>
               {childList.map((child) => (
                 <DeepRow
@@ -168,7 +123,7 @@ export default function FamilleParametresScreen() {
                   }
                   label={child.name.split(' ')[0]}
                   description={child.classe}
-                  onPress={() => openChild(child.id)}
+                  onPress={() => ouvrirPour(child.id, 'ProfilEnfant')}
                 />
               ))}
               <DeepRow
@@ -180,104 +135,66 @@ export default function FamilleParametresScreen() {
               />
             </DeepGroup>
 
-            <DeepGroup title="Responsables légaux">
+            {/* 2. Responsables : un carnet à la fois (écran Autorisations de l'enfant). */}
+            {childList.length > 0 && (
+              <DeepGroup title="Responsables">
+                {childList.map((child, i) => (
+                  <DeepRow
+                    key={child.id}
+                    icon={<Users size={20} color={TEXT55} strokeWidth={2} />}
+                    label={`Responsables ${de(child.name.split(' ')[0])}`}
+                    description="Inviter, qui voit quoi, me retirer"
+                    last={i === childList.length - 1}
+                    onPress={() => ouvrirPour(child.id, 'PermissionsRGPD')}
+                  />
+                ))}
+              </DeepGroup>
+            )}
+          </>
+        )}
+
+        {/* 3. Mon profil */}
+        <DeepGroup title="Mon profil" first={!isFamille}>
+          <DeepRow leading={<DeepAvatar initials={parentInitials} color={NAVY} />} label={fullName} description={email || undefined} last />
+        </DeepGroup>
+
+        {isFamille && (
+          <>
+            {/* 5. Assistant (4. Notifications : absent tant qu'aucune notification n'existe). */}
+            <DeepGroup title="Assistant">
               <DeepRow
-                leading={<DeepAvatar initials={parentInitials} color={NAVY} />}
-                label={`${fullName} (vous)`}
-                description={prenomsEnfants ? `Responsable de ${prenomsEnfants}` : undefined}
+                icon={<ScolariaSymbol size={18} color={TEXT55} />}
+                label="Assistant activé"
+                description="Désactivé, il n’envoie plus rien et ne propose plus de suggestion."
+                toggle={assistantActif}
+                onToggle={setAssistantActif}
                 last
+              />
+            </DeepGroup>
+
+            {/* 6. Confidentialité et données : export et effacement réels (archive .zip ; M25, exécution serveur). */}
+            <DeepGroup title="Confidentialité et données">
+              <DeepRow
+                icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
+                label="Télécharger un carnet"
+                description="Données, photos et documents, dans une archive"
+                onPress={() => navigation.navigate('ExportDonnees')}
+              />
+              <DeepRow
+                icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}
+                label="Effacer des données"
+                description="Un carnet ou votre compte, annulable 30 jours"
+                last
+                onPress={() => navigation.navigate('Effacement')}
               />
             </DeepGroup>
           </>
         )}
 
-        <DeepGroup title="Mon profil" first={!isFamille}>
-          <DeepRow
-            leading={<DeepAvatar initials={parentInitials} color={NAVY} />}
-            label={fullName}
-            description={email || undefined}
-            last
-          />
-        </DeepGroup>
-
-        {isFamille && (
-          <DeepGroup title={ASSISTANT.nom}>
-            <DeepRow
-              icon={<ScolariaSymbol size={18} color={TEXT55} />}
-              label={`${ASSISTANT.nom} activé${ASSISTANT.e}`}
-              toggle={prefs.ariaActive}
-              onToggle={(v) => {
-                update('ariaActive', v);
-                enregistrerPreferencesAria({ ariaActive: v });
-              }}
-            />
-            <View style={[st.tonesBlock, st.rowBorder]}>
-              <Text style={st.rowLabel}>Personnalité</Text>
-              <Text style={st.rowDescription}>{`Le ton ${ASSISTANT.que} utilise avec vous.`}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={st.tones}
-              >
-                {ARIA_TONS.map((ton, idx) => {
-                  const active = prefs.ariaTon === ton;
-                  return (
-                    <Pressable
-                      key={ton}
-                      onPress={() => update('ariaTon', ton)}
-                      style={[st.tonePill, active && st.tonePillActive, idx < ARIA_TONS.length - 1 && st.tonePillMargin]}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Text style={[st.tonePillText, active && st.tonePillTextActive]}>{ton}</Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
-            <DeepRow
-              icon={<Mic size={20} color={TEXT55} strokeWidth={2} />}
-              label="Langue de la saisie vocale"
-              value="Français"
-              last
-            />
-          </DeepGroup>
-        )}
-
-        {/* Export et effacement : RÉELS depuis L7 (archive .zip partagée ; M25, exécution serveur).
-            Code de transfert : toujours masqué (aucun mécanisme). */}
-        {isFamille && (
-          <DeepGroup title="Confidentialité & données">
-            <DeepRow
-              icon={<Shield size={20} color={TEXT55} strokeWidth={2} />}
-              label="Autorisations"
-              description="Qui a accès au carnet de l’enfant"
-              onPress={() => navigation.navigate('PermissionsRGPD')}
-            />
-            <DeepRow
-              icon={<Download size={20} color={TEXT55} strokeWidth={2} />}
-              label="Télécharger le carnet"
-              description="Données, photos et documents, dans une archive"
-              onPress={() => navigation.navigate('ExportDonnees')}
-            />
-            <DeepRow
-              icon={<Trash2 size={20} color={TEXT55} strokeWidth={2} />}
-              label="Effacer des données"
-              description="Un carnet ou votre compte, annulable 30 jours"
-              last
-              onPress={() => navigation.navigate('Effacement')}
-            />
-          </DeepGroup>
-        )}
-
-        <DeepGroup title="Compte">
-          <DeepRow
-            icon={<Info size={20} color={TEXT55} strokeWidth={2} />}
-            label="À propos"
-            onPress={() => navigation.navigate('APropos')}
-          />
-          {/* Développement uniquement (__DEV__) : démo SANS déconnecter le compte réel. Retiré du
-              bundle de production (preuve : tasks/lessons.md, 27 sept 2026). */}
+        {/* 7. À propos · se déconnecter */}
+        <DeepGroup title="À propos et compte">
+          <DeepRow icon={<Info size={20} color={TEXT55} strokeWidth={2} />} label="À propos" onPress={() => navigation.navigate('APropos')} />
+          {/* Développement uniquement (__DEV__) : démo SANS déconnecter le compte réel. Retiré du bundle de production. */}
           {__DEV__ && demoDev && !isDemo && (
             <DeepRow
               icon={<Wrench size={20} color={TEXT55} strokeWidth={2} />}
@@ -309,78 +226,8 @@ export default function FamilleParametresScreen() {
   );
 }
 
-// ─── Styles ────────────────────────────────────────────
-
 const st = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: BG,
-  },
-  demoNotice: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 12,
-    lineHeight: 16,
-    color: TEXT55,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: BORDER_L,
-  },
-  rowLabel: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 13,
-    lineHeight: 18,
-    color: NAVY,
-  },
-  rowDescription: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    lineHeight: 14,
-    color: TEXT55,
-    marginTop: 1,
-  },
-  tonesBlock: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  tones: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  tonePill: {
-    height: 32,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(15,23,42,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tonePillMargin: {
-    marginRight: 6,
-  },
-  tonePillActive: {
-    backgroundColor: NAVY,
-    borderColor: NAVY,
-  },
-  tonePillText: {
-    fontFamily: FontFamily.sansMedium,
-    fontSize: 12,
-    color: TEXT55,
-  },
-  tonePillTextActive: {
-    color: '#FFFFFF',
-  },
-  footer: {
-    fontFamily: FontFamily.sansRegular,
-    fontSize: 11,
-    lineHeight: 14,
-    color: TEXT35,
-    textAlign: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 16,
-  },
+  root: { flex: 1, backgroundColor: C.bg },
+  demoNotice: { fontFamily: FontFamily.sansRegular, fontSize: 12, lineHeight: 16, color: TEXT55, paddingHorizontal: 16, paddingTop: 12 },
+  footer: { fontFamily: FontFamily.sansRegular, fontSize: 11, lineHeight: 14, color: TEXT35, textAlign: 'center', paddingTop: 20, paddingHorizontal: 16 },
 });

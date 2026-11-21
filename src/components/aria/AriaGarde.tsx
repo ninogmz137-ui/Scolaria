@@ -61,11 +61,11 @@ export default function AriaGarde({ children }: { children: ReactNode }) {
               {`${ASSISTANT.nom} vous aide à suivre le carnet de votre enfant. ${ASSISTANT.Pronom} ne pose aucun diagnostic : ${ASSISTANT.pronom} suggère et informe.`}
             </Text>
             <Text style={st.texte}>{FORMULATION_HEBERGEMENT_ARIA}</Text>
-            <Text style={st.texteDiscret}>{`Vous pourrez désactiver ${ASSISTANT.nomMilieu} à tout moment dans Famille & paramètres.`}</Text>
+            <Text style={st.texteDiscret}>{`Vous pourrez désactiver ${ASSISTANT.nomMilieu} à tout moment dans Famille et paramètres.`}</Text>
           </>
         ) : (
           <Text style={st.texte}>
-            {`Aucun message n’est envoyé ${ASSISTANT.a} tant qu’${ASSISTANT.pronom} est désactivé${ASSISTANT.e}. Vous pouvez ${ASSISTANT.le} réactiver ici ou dans Famille & paramètres.`}
+            {`Aucun message n’est envoyé ${ASSISTANT.a} tant qu’${ASSISTANT.pronom} est désactivé${ASSISTANT.e}. Vous pouvez ${ASSISTANT.le} réactiver ici ou dans Famille et paramètres.`}
           </Text>
         )}
         <Pressable onPress={activer} style={({ pressed }) => [st.primaire, pressed && st.presse]} accessibilityRole="button">

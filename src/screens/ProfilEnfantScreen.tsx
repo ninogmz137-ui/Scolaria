@@ -33,6 +33,7 @@ import ChildAvatar from '../components/ChildAvatar';
 import CouleurEnfantSheet from '../components/CouleurEnfantSheet';
 import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { type ProfileTag } from '../components/profile/SuperPowerBadge';
@@ -505,6 +506,19 @@ function ProfilEnfantScreenContent() {
               <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
             </Pressable>
           ) : null}
+          {/* Nouvelle année ou changement d'école (lot 6) : compte réel seulement (l'écran écrit en base). */}
+          {!isDemoMode ? (
+            <Pressable
+              onPress={() => navigation.navigate('AjouterAnne')}
+              style={styles.lignePhoto}
+              accessibilityRole="button"
+              accessibilityLabel={`Nouvelle année ou changement d’école pour ${selectedChild.name}`}
+            >
+              <GraduationCap size={16} color={NAVY} strokeWidth={2} />
+              <Text style={styles.lignePhotoLibelle}>Nouvelle année ou changement d’école</Text>
+              <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
+            </Pressable>
+          ) : null}
         </View>
 
         <View style={[styles.scaWrap, { marginTop: -6 }]}>
@@ -540,7 +554,8 @@ function ProfilEnfantScreenContent() {
 
           {/* Score de Joie : tendance neutre uniquement, jamais de chiffre ni d'alerte (alertes =
               Aria stade 3, Phase 3). Rien s'il n'y a pas assez de relevés. */}
-          <TendanceJoie jours={data.joy30Days} prenom={data.firstName} />
+          {/* Mon Ressenti masqué en V1 (décision du 21 nov. 2026) : le Score de Joie aussi. */}
+          {RESSENTI_ACTIF ? <TendanceJoie jours={data.joy30Days} prenom={data.firstName} /> : null}
 
           {data.portfolio.length > 0 && (
             <>

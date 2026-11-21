@@ -17,7 +17,6 @@
     { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^Aria$", "nombre": 1, "raison": "préfixe de nom de route (accueilRoute.startsWith) ; titres affichés = « Assistant » depuis le lot 6" },
     { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^aria$", "nombre": 1, "raison": "clé d'onglet actif" },
     { "fichier": "src/screens/AriaScreen.tsx", "motif": "^aria$", "nombre": 5, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
-    { "fichier": "src/screens/FamilleParametresScreen.tsx", "motif": "^@scolaria:prefs$", "nombre": 1, "raison": "clé de stockage des préférences" },
     { "fichier": "src/screens/aria/AriaConversationScreen.tsx", "motif": "^@scolaria_aria_", "nombre": 3, "raison": "clés de stockage des conversations" },
     { "fichier": "src/screens/aria/AriaConversationScreen.tsx", "motif": "^aria$", "nombre": 4, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
     { "fichier": "src/screens/aria/AriaHomeScreen.tsx", "motif": "^@scolaria_aria_", "nombre": 3, "raison": "clés de stockage des conversations" },

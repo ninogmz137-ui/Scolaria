@@ -242,7 +242,7 @@ function AccueilStackScreen() {
       <AccueilStack.Screen
         name="FamilleParametres"
         component={FamilleParametresScreen}
-        options={{ title: 'Famille & paramètres', headerShown: false }}
+        options={{ title: 'Famille et paramètres', headerShown: false }}
       />
       <AccueilStack.Screen
         name="RGPDScreen"

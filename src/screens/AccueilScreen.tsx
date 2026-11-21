@@ -51,6 +51,7 @@ import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
 import { aTraiter, attendReponse } from '../services/motsService';
 import { carnetDemo, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
 import { demanderAjoutCarnet } from '../services/ouvertureAjout';
+import { lirePreferencesAria, surChangementAria } from '../services/ariaPreferences';
 import { NOM_APP } from '../constants/marque';
 import { ENV } from '../services/getEnv';
 import { C, RADIUS, SHADOW } from '../constants/design';
@@ -148,10 +149,18 @@ export default function AccueilScreen() {
       }));
   }, [isDemo, selectedChild, getGrades, getSubjects, reel.notes]);
 
-  // 4. Suggestion de l'assistant
+  // 4. Suggestion de l'assistant : jamais si l'assistant est désactivé (Famille et paramètres › Assistant).
+  const [assistantActif, setAssistantActif] = useState(true);
+  useEffect(() => {
+    lirePreferencesAria().then((p) => setAssistantActif(p.ariaActive));
+    return surChangementAria((p) => setAssistantActif(p.ariaActive));
+  }, []);
   const suggestion = useMemo(
-    () => (selectedChild ? suggestionAccueil({ prenom, elements, aFaire, aujourdhui, demain, heureActuelle: heureParis() }) : null),
-    [selectedChild, prenom, elements, aFaire, aujourdhui, demain],
+    () =>
+      selectedChild && assistantActif
+        ? suggestionAccueil({ prenom, elements, aFaire, aujourdhui, demain, heureActuelle: heureParis() })
+        : null,
+    [selectedChild, assistantActif, prenom, elements, aFaire, aujourdhui, demain],
   );
 
   const ouvrirFichierCarnet = useOuvrirFichierCarnet();
