@@ -8,7 +8,10 @@
 - [x] **Lot 3 TERMINÉ (20 nov.)** — 3a, 3b, 3c vérifiés sur le Redmi ; M38, M39, M40 appliquées sur Paris le 19 nov. (chaque cycle « VERDICT : OK », 97 WARN, 0 ERROR) ; Redmi contre Paris avec le compte réel (20 nov., constat de l'utilisateur) : Accueil, Messages, Scolarité et sélecteur d'enfant s'ouvrent sans erreur ; `archi-lot-3c` fusionnée dans main (avance rapide) et poussée.
 - [x] ~~**Lot 3** — Messages en fils (« À traiter » + un fil par interlocuteur, fil de classe en annonce seule, bascule Général / [Prénom] supprimée) et mot complet (signature + question + réponse privée cumulables, archivage dans Documents, « Signer aussi pour [prénom] ») ; évolution du schéma `mots_liaison` à concevoir.~~
 - [x] **Lot 4 TERMINÉ (21 nov.)** — Agenda : devoirs par jour d'échéance avec coche partagée « Coché par », absence signalée par le parent (quand, durée, motif, justificatif, mot), rendez-vous fixes hebdomadaires avec « À prévoir », libellé de catégorie sur les cartes. 4a, 4b, 4c, 4d vérifiés sur le Redmi (base locale) ; M41, M42, M43 appliquées sur Paris le 21 nov. (chaque cycle « VERDICT : OK », 97 WARN, 0 ERROR) ; assistant bloqué (absence, message) pour un enfant sans classe sur l'app ; `archi-lot-4` fusionnée dans main et poussée.
-- [ ] **Lot 5** — CODÉ le 21 nov. sur `archi-lot-5` (d4f87f6 M44, e6117c8 app), NON fusionné, Redmi NON vu :
+- [x] **Lot 5** — **TERMINÉ le 21 nov. 2026** : validé par l'utilisateur sur le Redmi ; **M44 APPLIQUÉE SUR PARIS**
+  (VERDICT : OK, 97 WARN avant et après, 0 nouveau, 0 disparu ; sauvegarde vérifiée `ScolariaBackups\avant_M44_cycle\2026-11-21_2229` ;
+  0 absence et 0 ressenti sur Paris) ; `archi-lot-5` fusionnée dans main. Historique :
+  CODÉ le 21 nov. sur `archi-lot-5` (d4f87f6 M44, e6117c8 app) :
   M44 locale (aller-retour OK, m44 7/7, 26 suites SQL, test-lot5-local 5/5 : Lina acceptée, enfant sans classe refusé),
   procédure Paris `tasks/lot5-procedures-paris.md` (à exécuter par l'utilisateur) ; « + » unique à SEPT actions
   (« Ajouter à l'agenda » décidée le 21 nov.), champ « Rechercher ou demander », pastille + décompte (actions-ajout 14,
@@ -17,7 +20,7 @@
   ordre Agenda et Messages, formulaire d'absence depuis Accueil et Agenda, « 1 mot à traiter · 2 nouveautés », Noé sans
   classe = pastille rouge). Défaut clavier de la recherche corrigé (1518bcc). Base locale : Noé ajouté à parent-3b et
   separe-3b (scripts/seed-lot5-local.mjs). Écart pour le lot 6 : carte « ARIA » de l'Accueil (nom de personnage).
-  Reste : cycle Paris M44 (par l'utilisateur), puis fusion dans main sur son accord.
+  Cycle Paris M44 et fusion : faits le 21 nov. (autorisation pour M44 uniquement).
   Détail d'origine :
   1. **M44** : la base refuse une absence (`absences`, INSERT par un parent) pour un enfant **sans classe avec un titulaire** pour l'année en cours (`academic_years` active → `classe_id` → `classes.enseignant_id` non nul). Migration en local, aller-retour, tests SQL (refus pour un enfant sans classe ; acceptation pour Lina) ; cycle Paris à PRÉPARER (procédure, avertissements attendus), pas à appliquer.
   2. **« Signaler une absence » et « Écrire à l'enseignant » entrent dans le bouton « + » unique**, masqués selon la même règle (`useEnseignantRattache`) ; le ✏️ de Messages (`QuickActionsSheet`, `BottomBar` `actionMessages`) disparaît.

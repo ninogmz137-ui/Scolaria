@@ -149,6 +149,11 @@ Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
+## Lot 5 (21 nov. 2026) — M44 : AUCUN WARN nouveau
+- **MESURÉ sur Paris le 21 nov. 2026** (M44 appliquée, un cycle) : 0 ERROR, **97 WARN** avant et après, 0 nouveau,
+  0 disparu, VERDICT : OK. Déclencheur `verifier_classe_absence` → fonction `absences_verifier_classe` (SECURITY DEFINER,
+  `search_path` vide, exécutable par personne). Sauvegarde vérifiée : `ScolariaBackups\avant_M44_cycle\2026-11-21_2229`.
+
 ## Lot 4 (déclarés les 20 et 21 nov. 2026) — AUCUN WARN nouveau attendu (97 avant comme après M41, M42, M43)
 - **MESURÉ sur Paris le 21 nov. 2026** (M41, M42, M43 appliquées, un cycle chacune) : 0 ERROR, **97 WARN** avant et
   après chaque cycle, 0 clé nouvelle, 0 clé disparue, VERDICT : OK ×3. La liste de référence reste celle de M40.
