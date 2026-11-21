@@ -3,7 +3,7 @@ import { DOMAINES_CYCLE_1 } from '../data/referentiels/cycle1.ts';
 import { DISCIPLINES_CYCLE_2 } from '../data/referentiels/cycle2.ts';
 import { DISCIPLINES_CYCLE_3 } from '../data/referentiels/cycle3.ts';
 import {
-  DISCIPLINES, INSTITUTION, TEINTES, TYPES_CONTENU, categorieDiscipline, idDiscipline,
+  DISCIPLINES, INSTITUTION, TEINTES, TYPES_CONTENU, categorieDiscipline, idDiscipline, categorieEvenement,
   type Categorie, type TeinteId,
 } from './categories.ts';
 
@@ -95,6 +95,17 @@ for (const l of ['', 'Discipline inventée', null, undefined]) {
   const c = categorieDiscipline(l as string);
   verifier(`libellé inconnu (${JSON.stringify(l)}) → ardoise + book-open`, c.teinte === 'ardoise' && c.icone === 'book-open');
 }
+
+// Cartes de l'Agenda (lot 4d) : libellé écrit ; matière → teinte de la discipline ; type → ardoise.
+const devoirMaths = categorieEvenement('devoir', 'Mathématiques');
+verifier('devoir de maths : teinte des maths, libellé « Devoir · Mathématiques »',
+  devoirMaths.categorie.teinte === categorieDiscipline('Mathématiques').teinte && devoirMaths.libelle === 'Devoir · Mathématiques');
+const sortie = categorieEvenement('sortie', 'Mathématiques');
+verifier('sortie : ardoise (jamais une teinte de discipline pour un type), libellé « Sortie »', sortie.categorie.teinte === 'ardoise' && sortie.libelle === 'Sortie');
+verifier('contrôle en primaire : « Évaluation »', categorieEvenement('examen', null, true).libelle === 'Évaluation');
+verifier('contrôle au collège : « Contrôle · Français »', categorieEvenement('examen', 'Français').libelle === 'Contrôle · Français');
+verifier('type inconnu : « Événement », ardoise', categorieEvenement('xyz', null).libelle === 'Événement' && categorieEvenement('xyz', null).categorie.teinte === 'ardoise');
+verifier('absence : ardoise + calendar-x', categorieEvenement('absence', null).categorie.icone === 'calendar-x');
 
 console.log(`\n${ok} réussis, ${echecs} échec(s)`);
 process.exit(echecs ? 1 : 0);

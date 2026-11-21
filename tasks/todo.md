@@ -118,6 +118,13 @@
 3. Journée type du primaire retirée de l'Accueil (seuls le collège et le lycée gardent leurs cours).
 4. Modale « Nouvel événement » : voir la question 1.
 5. (Ajout du 20 nov.) Retirer les promesses non tenues : « Les parents ont été notifiés » (`teacher/VieDeClasseScreen.tsx:292`) et « Vous êtes notifié de son utilisation » (`rgpd/TransfertCodeScreen.tsx:266`), remplacés par des textes qui ne promettent rien (aucune notification n'est envoyée).
+   - **FAIT (21 nov.)** : les deux textes sont remplacés (« Votre … est visible dans le fil de la classe. » ; « Le code n’est plus utilisable après 90 jours »).
+   - **Autres promesses de notification non tenues, relevées le 21 nov. (NON corrigées, à décider)** :
+     - `teacher/VieDeClasseScreen.tsx:490` : interrupteur « Notifier les parents » (enregistré dans `notify_parents`, aucun envoi) ;
+     - `teacher/CahierLiaisonScreen.tsx:117-127` : « Relancer » puis « Relance envoyée · N parents relancés » (`sendRelanceNotification` n’écrit qu’une ligne de journal) ; `sendNewMotNotification` à la création d’un mot, même cas (`liaisonService.ts:573-588`) ;
+     - `AProposScreen.tsx:59` : « observe une tendance sur 5 jours avant de vous prévenir » (aucune alerte en V1) ; `:70` : « au plus une alerte non urgente toutes les 48 heures » (aucune notification envoyée) ;
+     - `SignSuccessScreen.tsx:100` : « ajouter … à l’agenda avec un rappel la veille ? », et quatre boutons sans action (« Ajouter à l’agenda », « Non merci », « Télécharger le PDF », « Voir dans l’agenda ») ;
+     - `rgpd/TransfertCodeScreen.tsx` : tout l’écran « Code de transfert » est à vérifier (table `transfer_codes` sans droit depuis M32).
 
 **Paris** : `tasks/lot4-procedures-paris.md`, au modèle du lot 3 :
 - trois cycles M41, M42, M43, avec `--yes` uniquement sur autorisation ;

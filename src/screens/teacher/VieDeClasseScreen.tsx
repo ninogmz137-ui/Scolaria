@@ -289,10 +289,10 @@ export default function VieDeClasseScreen() {
       notify_parents: notifyParents,
     });
 
-    const notifMsg = notifyParents ? '\nLes parents ont été notifiés.' : '';
+    // Aucune notification n'est envoyée aux parents (pas de push en V1, lot 4d) : le message ne promet rien.
     Alert.alert(
-      'Publié !',
-      `Votre ${POST_TYPE_CONFIG[newType].label.toLowerCase()} a été partagée avec la classe.${notifMsg}`,
+      'Publié',
+      `Votre ${POST_TYPE_CONFIG[newType].label.toLowerCase()} est visible dans le fil de la classe.`,
     );
     setNewTitle('');
     setNewContent('');

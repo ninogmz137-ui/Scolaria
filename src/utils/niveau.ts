@@ -35,7 +35,8 @@ export function aDesDevoirs(cycle: Cycle | null | undefined): boolean {
   return cycle === 'primaire' || aDesNotes(cycle);
 }
 
-/** Emploi du temps : dès le CP (en primaire, journée type identique chaque semaine). */
+/** Emploi du temps : collège / lycée seulement. La journée type du primaire est retirée de la V1 (décision du
+ * 17 nov. 2026, lot 4d) ; l’emploi du temps complet est en Phase 2 : l’Agenda ne le propose qu’en démo. */
 export function aUnEmploiDuTemps(cycle: Cycle | null | undefined): boolean {
-  return cycle === 'primaire' || aDesNotes(cycle);
+  return aDesNotes(cycle);
 }

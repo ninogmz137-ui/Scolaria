@@ -263,7 +263,7 @@ export default function TransfertCodeScreen() {
               { text: 'Générez un code unique pour votre enfant', Icon: Key },
               { text: 'Communiquez le code au nouvel établissement', Icon: ExternalLink },
               { text: "L’établissement saisit le code pour recevoir le dossier", Icon: School },
-              { text: 'Vous êtes notifié de son utilisation', Icon: Bell },
+              { text: 'Le code n’est plus utilisable après 90 jours', Icon: Key },
             ].map((s, i) => (
               <View key={i} style={styles.howRow}>
                 <View style={styles.howIcon}>

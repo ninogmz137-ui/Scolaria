@@ -66,7 +66,7 @@ import { jourCourt as jourCourtAbsence } from '../utils/absences';
 import { ChevronLeft as ChevronLeftIcone, ChevronRight as ChevronRightIcone } from 'lucide-react-native';
 import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
 import { couvreJour, peutJustifier, texteCarteAbsence } from '../utils/absences';
-import { TEINTES, categorieDiscipline } from '../theme/categories';
+import { TEINTES, categorieDiscipline, categorieEvenement } from '../theme/categories';
 import { de } from '../utils/francais';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -1123,31 +1123,28 @@ function AgendaScreenContent() {
     const quand = isDevoir
       ? echeanceDevoir(jour)
       : event.endTime && event.endTime !== event.time ? `${event.time} — ${event.endTime}` : event.time;
+    // Lot 4d : catégorie ÉCRITE et teinte de src/theme/categories.ts (discipline si matière, sinon ardoise).
+    const cat = categorieEvenement(event.type, event.subject, !avecCours);
+    const teinte = TEINTES[cat.categorie.teinte].icone;
 
     return (
       <TouchableOpacity
         key={event.id}
         onPress={() =>
           event.modifiable && !['cours', 'absence', 'rendezvous'].includes(event.type) ? ouvrirEdition(event) :
-          navigation.navigate('EventDetail', {
-            eventId: event.id,
-            eventTitle: event.title,
-            eventCategory: evaluationPremierDegre ? 'Évaluation' : TYPE_LABELS[event.type] ?? event.type,
-            eventTime: quand,
-            eventLocation: event.location,
-            eventDescription: event.description,
-          })
+          navigation.navigate('EventDetail', { eventId: event.id, eventCategory: cat.libelle, eventTime: quand })
         }
         activeOpacity={0.8}
         style={[
           st.eventCard,
-          { borderLeftColor: event.color, backgroundColor: withAlpha(event.color, 0.08) },
+          { borderLeftColor: teinte, backgroundColor: withAlpha(teinte, 0.08) },
           isDevoir && event.done && { opacity: 0.55 },
         ]}
       >
         <View style={st.eventInner}>
           {/* Title + time */}
           <View style={{ flex: 1 }}>
+            <Text style={st.eventCategorie}>{cat.libelle}</Text>
             <Text
               style={[
                 st.eventTitle,
@@ -1163,14 +1160,7 @@ function AgendaScreenContent() {
             {isDevoir && event.done && event.coche ? <Text style={st.eventSource}>{event.coche}</Text> : null}
           </View>
 
-          {/* Right: exam badge or devoir checkbox */}
-          {isExam && (
-            <View style={evaluationPremierDegre ? st.evalBadge : st.examBadge}>
-              <Text style={evaluationPremierDegre ? st.evalBadgeText : st.examBadgeText}>
-                {evaluationPremierDegre ? 'Évaluation' : 'Examen'}
-              </Text>
-            </View>
-          )}
+          {/* Devoir : case à cocher (le libellé de catégorie remplace l'ancien badge « Évaluation / Examen »). */}
           {isDevoir && (
             <AnimatedCheckbox
               done={event.done ?? false}
@@ -1299,7 +1289,7 @@ function AgendaScreenContent() {
         </View>
         {/* Ligne dédiée : « Septembre 2026 ⌄ » + le bouton ne tiennent pas sur 393 dp (Redmi).
             Zone tactile 44 px (pill visible de 30 px centrée dedans). */}
-        {aUnEmploiDuTemps(selectedChild?.cycle) && (
+        {isDemoMode && aUnEmploiDuTemps(selectedChild?.cycle) && (
           <View style={st.timetableRow}>
             <Pressable
               onPress={() => navigation.navigate('Timetable')}

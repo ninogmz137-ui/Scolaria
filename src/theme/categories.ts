@@ -137,5 +137,38 @@ export const TYPES_CONTENU: Record<TypeContenu, Categorie> = {
   absence: { teinte: 'ardoise', icone: 'calendar-x' },
 };
 
+// ─── Cartes de l'Agenda (lot 4d) ───────────────────────────────────────────
+
+/** Libellé de catégorie ÉCRIT sur chaque carte de l'Agenda (la couleur seule ne suffit jamais). */
+export const LIBELLES_EVENEMENT: Record<string, string> = {
+  cours: 'Cours',
+  devoir: 'Devoir',
+  examen: 'Contrôle',
+  sortie: 'Sortie',
+  reunion: 'Réunion',
+  activite: 'Activité',
+  evenement: 'Événement',
+  absence: 'Absence',
+  rendezvous: 'Rendez-vous fixe',
+};
+
+/**
+ * Catégorie d'une carte de l'Agenda : devoir, contrôle ou cours AVEC matière → teinte de la discipline (la même
+ * partout) ; sinon type de contenu → ardoise (jamais une teinte de discipline pour un type). Premier degré : un
+ * contrôle s'appelle « Évaluation ».
+ */
+export function categorieEvenement(
+  type: string,
+  matiere: string | null | undefined,
+  premierDegre = false,
+): { categorie: Categorie; libelle: string } {
+  const base = type === 'examen' && premierDegre ? 'Évaluation' : LIBELLES_EVENEMENT[type] ?? 'Événement';
+  const avecMatiere = (type === 'devoir' || type === 'examen' || type === 'cours') && !!matiere;
+  return {
+    categorie: avecMatiere ? categorieDiscipline(matiere) : { teinte: 'ardoise', icone: type === 'absence' ? 'calendar-x' : 'book-open' },
+    libelle: avecMatiere ? `${base} · ${matiere}` : base,
+  };
+}
+
 /** École, direction, mairie (liste de messages) : ardoise + building-2. Les personnes n'ont aucune teinte propre. */
 export const INSTITUTION: Categorie = { teinte: 'ardoise', icone: 'building-2' };

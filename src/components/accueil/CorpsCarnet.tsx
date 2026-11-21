@@ -4,8 +4,8 @@
  *                     « À prévoir » (cochables, mémorisés sur l'appareil) ;
  *   2. « Cette semaine » : prochain événement de l'Agenda ;
  *   3. « Nouveau dans le carnet » : observations (pastille de leur domaine) et mots importés (miniature des photos) ;
- *   4. « Aujourd'hui » (primaire seulement) : journée type du jour, discipline par discipline.
- * La carte Aria est posée après ce bloc par l'écran. Maternelle : ni devoirs, ni journée type.
+ * La journée type fixe du primaire est RETIRÉE de la V1 (décision du 17 nov. 2026, lot 4d), comme l'emploi du
+ * temps complet (Phase 2). La carte Aria est posée après ce bloc par l'écran. Maternelle : pas de devoirs.
  * Aucune section vide n'est affichée ; tout vient de l'enfant sélectionné (jamais d'un autre carnet).
  */
 
@@ -235,11 +235,6 @@ export default function CorpsCarnet({
     [apprentissages, imports],
   );
 
-  // 4. Aujourd'hui : journée type (primaire)
-  const journee = useMemo(
-    () => (primaire ? evenements.filter((e) => e.type === 'cours' && e.date === aujourdhui).sort((a, b) => a.debut.localeCompare(b.debut)) : []),
-    [primaire, evenements, aujourdhui],
-  );
 
   return (
     <>
@@ -325,20 +320,6 @@ export default function CorpsCarnet({
         </>
       )}
 
-      {journee.length > 0 && (
-        <>
-          <LibelleSurFondu texte="Aujourd’hui" hauteur={hauteurFondu} premier={lignes.length === 0 && !prochain && nouveaux.length === 0} />
-          <Carte>
-            {journee.map((c, i) => (
-              <View key={c.id} style={[st.cours, i < journee.length - 1 && st.ligneFiletee]}>
-                <Text style={st.heure}>{heureCourte(c.debut)}</Text>
-                <PastilleCategorie categorie={categorieDiscipline(c.matiere ?? c.titre)} taille={34} rayon={11} />
-                <Text style={st.nomCours} numberOfLines={1}>{c.matiere ?? c.titre}</Text>
-              </View>
-            ))}
-          </Carte>
-        </>
-      )}
     </>
   );
 }
