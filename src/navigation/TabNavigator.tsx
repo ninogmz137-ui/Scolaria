@@ -83,7 +83,6 @@ import InvitationsRecues from '../components/InvitationsRecues';
 import CompteEnEffacement from '../components/CompteEnEffacement';
 import { surDemandeAjout, type OngletAjout } from '../services/ouvertureAjout';
 import type { CategorieCarnet } from '../services/carnetService';
-import QuickActionsSheet from '../components/QuickActionsSheet';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import { ScolariteProvider } from '../hooks/useScolarite';
 import AjouterAuCarnetScreen from '../screens/AjouterAuCarnetScreen';
@@ -455,6 +454,12 @@ function NotesStackScreen() {
         component={AjouterAuCarnetScreen}
         options={{ headerShown: false }}
       />
+      {/* « Signaler une absence » depuis le « + » de Scolarité (lot 5). */}
+      <NotesStack.Screen
+        name="SignalerAbsence"
+        component={SignalerAbsenceScreen}
+        options={{ headerShown: false }}
+      />
     </NotesStack.Navigator></ScolariteProvider></ErrorBoundary>
   );
 }
@@ -477,6 +482,17 @@ function AgendaStackScreen() {
       <AgendaStack.Screen
         name="Timetable"
         component={TimetableScreen}
+        options={{ headerShown: false }}
+      />
+      {/* « + » unique depuis l'Agenda (lot 5) : formulaires empilés dans la pile de l'onglet. */}
+      <AgendaStack.Screen
+        name="SignalerAbsence"
+        component={SignalerAbsenceScreen}
+        options={{ headerShown: false }}
+      />
+      <AgendaStack.Screen
+        name="AjouterAuCarnet"
+        component={AjouterAuCarnetScreen}
         options={{ headerShown: false }}
       />
     </AgendaStack.Navigator></ErrorBoundary>
@@ -647,7 +663,6 @@ const SWIPE_DISTANCE = 70;
 
 const ariaNavRef: { current: (() => void) | null } = { current: null };
 const searchNavRef: { current: (() => void) | null } = { current: null };
-const agendaActionRef: { current: (() => void) | null } = { current: null };
 const navActiveTabRef: { current: ActiveTab } = { current: 'accueil' };
 
 // ─── TabContentWithNav ───────────────────────────────────
@@ -668,13 +683,6 @@ function TabContentWithNav() {
     navigation.navigate('MainPager', {
       screen: 'Accueil',
       params: { screen: 'AriaHome' },
-    } as any);
-  };
-
-  agendaActionRef.current = () => {
-    navigation.navigate('MainPager', {
-      screen: 'Agenda',
-      params: { screen: 'AgendaHome', params: { openAddModal: true } },
     } as any);
   };
 
@@ -702,9 +710,6 @@ export default function TabNavigator() {
       }),
     [],
   );
-  // ✏️ de Messages : actions rapides, seulement si l'enfant a un enseignant rattaché.
-  const [actionsMessagesVisible, setActionsMessagesVisible] = useState(false);
-  const enseignantRattache = useEnseignantRattache();
 
   // ── Défilement de l'écran visible → voiles haut/bas (ScrollVeil) ────
   const scrollY = useSharedValue(0);
@@ -801,18 +806,15 @@ export default function TabNavigator() {
               <BottomBar
                 activeTab={navActiveTab}
                 onSearchPress={() => setSearchVisible(true)}
-                actionMessages={enseignantRattache}
                 onActionPress={() => {
-                  if (navActiveTab === 'messages') {
-                    // ✏️ : écrire à un enseignant / signaler une absence (masqué sans enseignant rattaché).
-                    setActionsMessagesVisible(true);
-                  } else if (navActiveTab === 'agenda') {
-                    agendaActionRef.current?.();
-                  } else if (navActiveTab === 'accueil' || navActiveTab === 'notes') {
-                    // « + » (Accueil) et ⊞ (Suivi) : Ajouter au carnet (lot B5).
-                    setCarnetCategorie(undefined);
-                    setCarnetDepuis(navActiveTab === 'notes' ? 'Notes' : 'Accueil');
-                  }
+                  // « + » unique (lot 5) : la même feuille sur tous les onglets ; l'ordre suit l'onglet.
+                  setCarnetCategorie(undefined);
+                  setCarnetDepuis(
+                    navActiveTab === 'notes' ? 'Notes'
+                      : navActiveTab === 'agenda' ? 'Agenda'
+                      : navActiveTab === 'messages' ? 'MessagerieTab'
+                      : 'Accueil',
+                  );
                 }}
               />
             )}
@@ -820,10 +822,6 @@ export default function TabNavigator() {
             <QuickSearchScreen
               visible={searchVisible}
               onClose={() => setSearchVisible(false)}
-            />
-            <QuickActionsSheet
-              visible={actionsMessagesVisible}
-              onClose={() => setActionsMessagesVisible(false)}
             />
             {/* Invitations reçues par ce compte (L4) : Accepter / Refuser. */}
             <InvitationsRecues />

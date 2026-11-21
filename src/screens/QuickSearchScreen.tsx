@@ -8,12 +8,12 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, X, Settings, Heart, GraduationCap,
+import { X, Settings, Heart, GraduationCap,
          Shield, Info, Palette, User } from 'lucide-react-native';
+import ScolariaSymbol from '../components/ScolariaSymbol';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
-import { NOM_APP } from '../constants/marque';
 import { RESSENTI_ACTIF } from '../constants/ressenti';
 
 const TOUS_LES_LIENS = [
@@ -44,6 +44,19 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
       : QUICK_LINKS,
   [query]);
 
+  // Recherche et assistant fusionnés (lot 5) : la première ligne envoie la saisie à l'assistant (ou l'ouvre).
+  const demander = () => {
+    const question = query.trim();
+    onClose();
+    setQuery('');
+    setTimeout(() => {
+      navigation.navigate('MainPager', {
+        screen: 'Accueil',
+        params: { screen: 'AriaHome', params: question ? { question, jeton: Date.now() } : undefined, initial: false },
+      });
+    }, 150);
+  };
+
   const handlePress = (item: typeof QUICK_LINKS[0]) => {
     onClose();
     setQuery('');
@@ -68,13 +81,15 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
         <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
           <View style={styles.handle} />
           <View style={styles.searchRow}>
-            <Search size={18} color="rgba(15,23,42,0.40)" strokeWidth={2} />
+            <ScolariaSymbol size={16} color="#6366F1" />
             <TextInput
               style={[styles.input, { marginLeft: 8 }]}
-              placeholder={`Rechercher dans ${NOM_APP}…`}
+              placeholder="Rechercher ou demander"
               placeholderTextColor="rgba(15,23,42,0.35)"
               value={query}
               onChangeText={setQuery}
+              onSubmitEditing={demander}
+              returnKeyType="send"
               autoFocus
               autoCorrect={false}
             />
@@ -84,7 +99,19 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
               </Pressable>
             )}
           </View>
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <Pressable
+              onPress={demander}
+              style={({ pressed }) => [styles.row, pressed && { backgroundColor: 'rgba(15,23,42,0.04)' }]}
+              accessibilityRole="button"
+            >
+              <View style={styles.iconWrap}>
+                <ScolariaSymbol size={18} color="#6366F1" />
+              </View>
+              <Text style={[styles.label, { flex: 1 }]} numberOfLines={2}>
+                {query.trim() ? `Demander à l’assistant : « ${query.trim()} »` : 'Demander à l’assistant'}
+              </Text>
+            </Pressable>
             {filtered.length === 0 ? (
               <Text style={styles.empty}>Aucun résultat</Text>
             ) : (

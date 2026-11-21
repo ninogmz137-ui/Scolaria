@@ -23,6 +23,7 @@ import {
   Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   MessagesSquare,
@@ -327,6 +328,16 @@ function AriaHomeScreenContenu() {
       persist, updateConvPreview, scrollToEnd, isDemo, selectedChild?.name, enseignantRattache,
     ],
   );
+
+  // ─── Question venue du champ « Rechercher ou demander » (lot 5) : envoyée une seule fois ─────
+  const route = useRoute<RouteProp<{ AriaHome: { question?: string; jeton?: number } | undefined }, 'AriaHome'>>();
+  const dernierJeton = useRef<number | null>(null);
+  useEffect(() => {
+    const p = route.params;
+    if (!p?.question || !p.jeton || dernierJeton.current === p.jeton || isTyping) return;
+    dernierJeton.current = p.jeton;
+    void sendMessage(p.question);
+  }, [route.params, sendMessage, isTyping]);
 
   // ─── Action card callbacks ────────────────────────────────
   const handleConfirmAction = useCallback(async () => {

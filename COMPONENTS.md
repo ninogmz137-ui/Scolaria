@@ -434,13 +434,15 @@ Row action: flex · alignItems center · gap 12px · padding 13px 16px
 ## 11 bis. FEUILLE « AJOUTER » (bouton « + » de la barre du bas)
 
 ```
-Bottom sheet (§11). Six actions, icône lucide 20px + libellé :
+Bottom sheet (§11). Sept actions (21 nov. : « Ajouter à l'agenda » ajoutée), icône lucide + libellé :
   Photographier (camera) · Importer une capture (image) · Ajouter un document (file-text)
-  · Noter une première fois (star) · Signaler une absence (calendar-x) · Écrire à l'enseignant (pencil)
-  (icônes validées le 17 nov.)
-Ordre selon l'onglet d'où on l'ouvre (décision du 17 nov.) :
+  · Noter une première fois (star) · Ajouter à l'agenda (calendar-plus) · Signaler une absence (calendar-x)
+  · Écrire à l'enseignant (pencil)
+  (icônes validées le 17 nov. ; calendar-plus le 21 nov.)
+  Absence et Écrire : masquées si l'enfant n'a pas de classe sur l'app (useEnseignantRattache)
+Ordre selon l'onglet d'où on l'ouvre (décision du 17 nov.) — source : src/utils/actionsAjout.ts :
   Accueil, Scolarité : l'ordre ci-dessus
-  Agenda : « Signaler une absence » en premier, puis l'ordre ci-dessus
+  Agenda : « Signaler une absence » puis « Ajouter à l'agenda » en premier, puis l'ordre ci-dessus
   Messages : « Écrire à l'enseignant » en premier, puis l'ordre ci-dessus
 Toujours pour l'enfant sélectionné (titre de la feuille : « Ajouter au carnet de [prénom] »)
 

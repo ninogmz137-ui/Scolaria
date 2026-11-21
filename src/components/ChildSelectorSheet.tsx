@@ -19,13 +19,16 @@ import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from './ui';
 import ChildAvatar from './ChildAvatar';
+import type { Decompte } from '../utils/decompteEnfant';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
+  /** Décompte en clair par enfant (« 1 mot à signer · 2 nouveautés » / « À jour ») ; absent = non chargé. */
+  decomptes?: Map<string, Decompte>;
 }
 
-export default function ChildSelectorSheet({ visible, onClose }: Props) {
+export default function ChildSelectorSheet({ visible, onClose, decomptes }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { children, selectedChild, selectChild } = useActiveChild();
@@ -62,6 +65,7 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
           {children.map((child) => {
             const isActive = child.id === selectedChild?.id;
             const firstName = child.name.split(' ')[0];
+            const decompte = decomptes?.get(child.id);
 
             return (
               <TouchableOpacity
@@ -82,6 +86,11 @@ export default function ChildSelectorSheet({ visible, onClose }: Props) {
                   <Text style={styles.childNiveau} numberOfLines={1}>
                     {child.classe}
                   </Text>
+                  {decompte && (
+                    <Text style={[styles.decompte, decompte.pastille && styles.decompteActif]} numberOfLines={1}>
+                      {decompte.texte}
+                    </Text>
+                  )}
                 </View>
 
                 {isActive && (
@@ -161,6 +170,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(15,23,42,0.55)',
     marginTop: 1,
+  },
+  decompte: {
+    fontFamily: 'Figtree_500Medium',
+    fontSize: 11,
+    color: 'rgba(15,23,42,0.45)',
+    marginTop: 2,
+  },
+  decompteActif: {
+    color: '#0F172A',
+    fontFamily: 'Figtree_600SemiBold',
   },
   addRow: {
     flexDirection: 'row',

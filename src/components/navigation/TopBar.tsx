@@ -9,7 +9,8 @@
  * - Sur le fond de page C.bg (tous les onglets, et l'Accueil dès que le voile apparaît) : couleurs ci-dessus.
  * - Sur le header coloré de l'Accueil, au repos : même forme, couleurs claires (pill active
  *   blanc 22 %, icônes et libellé blancs, inactifs SANS fond) + barre d'état claire.
- * - Avatar enfant 34px droite → ouvre ChildSelectorSheet
+ * - Avatar enfant 34px droite → ouvre ChildSelectorSheet ; pastille rouge quand un AUTRE enfant du foyer a du
+ *   nouveau (useDecomptesEnfants, lot 5)
  * - Badge rouge 6px sur Messages si hasUnreadMessages
  */
 
@@ -27,6 +28,8 @@ import { FontFamily } from '../../hooks/useSolariaFonts';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import ChildSelectorSheet from '../ChildSelectorSheet';
 import ChildAvatar from '../ChildAvatar';
+import { useDecomptesEnfants } from '../../hooks/useDecomptesEnfants';
+import { pastilleAutresEnfants } from '../../utils/decompteEnfant';
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -75,6 +78,9 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
   const navigation = useNavigation<any>();
   const { selectedChild, children } = useActiveChild();
   const [showChildSelector, setShowChildSelector] = useState(false);
+  // Pastille rouge : un AUTRE enfant du foyer a du nouveau (mot à traiter, message non lu, devoir pour demain).
+  const { decomptes, recharger: rechargerDecomptes } = useDecomptesEnfants();
+  const pastille = pastilleAutresEnfants(decomptes, selectedChild?.id);
 
   // Accueil au repos : la barre est posée sur le header coloré → couleurs claires.
   const scrollY = useTopbarScrollY();
@@ -168,9 +174,12 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
 
         {/* Avatar enfant actif — droite */}
         <Pressable
-          onPress={() => setShowChildSelector(true)}
+          onPress={() => {
+            rechargerDecomptes();
+            setShowChildSelector(true);
+          }}
           accessibilityRole="button"
-          accessibilityLabel="Changer d'enfant"
+          accessibilityLabel={pastille ? 'Changer d’enfant, du nouveau chez un autre enfant' : 'Changer d’enfant'}
           hitSlop={5} // 34 → 44 dp ; marge libre de 12 dp à droite, rien à gauche
           style={styles.childAvatarBtn}
         >
@@ -182,10 +191,12 @@ export default function TopBar({ activeTab, hasUnreadMessages }: TopBarProps) {
               borderColor={onHeader ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.15)'}
             />
           </View>
+          {pastille && <View style={styles.pastilleAvatar} />}
         </Pressable>
       </View>
 
       <ChildSelectorSheet
+        decomptes={decomptes}
         visible={showChildSelector}
         onClose={() => setShowChildSelector(false)}
       />
@@ -274,6 +285,19 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     color: '#0F172A',
     lineHeight: Platform.OS === 'android' ? 20 : undefined,
+  },
+
+  // ── Pastille de l'avatar (un autre enfant a du nouveau) ──
+  pastilleAvatar: {
+    position: 'absolute',
+    top: -1,
+    right: -1,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#EF4444',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
 
   // ── Badge ────────────────────────────────────────────

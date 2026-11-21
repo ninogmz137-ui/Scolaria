@@ -153,7 +153,7 @@ Accueil (maintenant) · Scolarité (ce qui reste) · Agenda (ce qui arrive) · M
   L'icône loupe séparée est supprimée.
 - « + » à droite : 34×34px cercle, background rgba(15,23,42,0.08)
   SEUL bouton d'ajout de toute l'application, présent sur tous les onglets.
-  Ouvre la feuille « Ajouter » (six actions, § Ajouter au carnet).
+  Ouvre la feuille « Ajouter » (sept actions, § Ajouter au carnet).
 - Supprimés : FAB de l'Agenda et des Messages, icône crayon (✏️), icône scanner (⊞),
   actions contextuelles différentes par onglet.
 ```
@@ -292,7 +292,7 @@ Scale 0.97 sur press
 
 ### Bottom bar (persistant, identique sur tous les onglets)
 - **Champ « Rechercher ou demander »** — recherche et assistant fusionnés ; ouvre la recherche / l'écran de l'assistant (topbar historique/nouveau, suggestions pills, input)
-- **« + »** — seul bouton d'ajout de l'application (feuille de six actions)
+- **« + »** — seul bouton d'ajout de l'application (feuille de sept actions)
 
 ### Overlays transversaux
 - **Sélecteur d'enfant** — bottom sheet via l'avatar : liste des enfants, décompte en clair par enfant (« 1 mot à signer · 2 nouveautés » ou « À jour »), ajouter un enfant. Rien d'autre (pas de réglages, pas de déconnexion).
@@ -350,9 +350,9 @@ Apprentissages s'adapte **automatiquement au niveau de l'enfant sélectionné** 
 Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 - **Un seul point d'entrée dans toute l'application** : le « + » à droite de la barre du bas, sur tous les onglets.
-- Il ouvre une feuille de **six actions** : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Signaler une absence** · **Écrire à l'enseignant** (ces deux dernières masquées si l'enfant n'a pas de classe sur l'app, § Agenda › Absence).
-- L'ordre s'adapte à l'onglet (décision du 17 nov.) : Accueil et Scolarité = l'ordre ci-dessus ; Agenda = « Signaler une absence » en premier ; Messages = « Écrire à l'enseignant » en premier.
-- Icônes (lucide) : camera · image · file-text · star · calendar-x · pencil.
+- Il ouvre une feuille de **sept actions** (décision du 21 nov. 2026 : « Ajouter à l'agenda » s'ajoute aux six, seul accès à la création d'un événement ou d'un rendez-vous fixe) : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Ajouter à l'agenda** (événement ou rendez-vous fixe) · **Signaler une absence** · **Écrire à l'enseignant** (ces deux dernières masquées si l'enfant n'a pas de classe sur l'app, § Agenda › Absence ; la base refuse aussi l'absence, M44).
+- L'ordre s'adapte à l'onglet (décision du 17 nov.) : Accueil et Scolarité = l'ordre ci-dessus ; Agenda = « Signaler une absence » puis « Ajouter à l'agenda » en premier ; Messages = « Écrire à l'enseignant » en premier. Source unique : `src/utils/actionsAjout.ts`.
+- Icônes (lucide) : camera · image · file-text · star · calendar-plus · calendar-x · pencil.
 - **V1 :** pour un import, le parent choisit la catégorie (Mot / Document / Souvenir / Jalon) et la date. Rangé dans le carnet de l'enfant sélectionné. (En base, `carnet_items.categorie` garde ses valeurs `mot|livret|souvenir|jalon`.)
 - **Phase 2 (assistant stade 2) :** l'assistant reconnaît le document et propose la catégorie ; le parent valide toujours.
 - Visibilité : foyer (défaut) ou privé.

@@ -5,7 +5,7 @@
 
 import type { CategorieCarnet } from './carnetService';
 
-export type OngletAjout = 'Accueil' | 'Notes' | 'MessagerieTab';
+export type OngletAjout = 'Accueil' | 'Notes' | 'Agenda' | 'MessagerieTab';
 export type DemandeAjout = { onglet: OngletAjout; categorie?: CategorieCarnet };
 
 let ecouteur: ((d: DemandeAjout) => void) | null = null;

@@ -1,16 +1,13 @@
 /**
- * BottomBar — Barre inférieure contextuelle Scolaria
+ * BottomBar — barre du bas, identique sur tous les onglets (lot 5 ; CLAUDE.md § Navigation, COMPONENTS §0).
  *
- * Structure : [🔍 Recherche] [◉ Demander à Aria…] [Action contextuelle]
+ * Structure : [◉ Rechercher ou demander…] [+]
  *
- * - Bouton Recherche (gauche) : rond 34px
- * - Pill Aria (centre, flex:1) : ScolariaSymbol 14px + texte placeholder
- * - Bouton action droite (contextuel) :
- *     Accueil  → Plus (Ajouter au carnet)
- *     Suivi    → ScanLine ⊞ (Ajouter au carnet)
- *     Agenda   → Plus (ouvre formulaire ajout événement)
- *     Messages → Edit ✏️ (écrire à un enseignant, signaler une absence) si un enseignant est rattaché
- *     Aria     → invisible (espace gardé)
+ * - Champ unique « Rechercher ou demander » (flex:1) : recherche et assistant fusionnés ; ouvre la feuille de
+ *   recherche (QuickSearchScreen), dont la première ligne envoie la saisie à l'assistant. Plus de loupe séparée.
+ * - « + » à droite : SEUL bouton d'ajout de l'application, sur tous les onglets → feuille « Ajouter »
+ *   (AjouterAuCarnetSheet, ordre selon l'onglet). Plus de ⊞, de ✏️ ni d'action différente par onglet.
+ * - Écran de l'assistant : pas de « + » (l'écran a son propre champ), espace gardé.
  *
  * - Position : absolute bottom, respecte insets.bottom
  * - Constante BOTTOM_BAR_HEIGHT exportée pour le paddingBottom des écrans
@@ -24,11 +21,9 @@ import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { Pressable, Text } from '../ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Edit, Plus, ScanLine } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Plus } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import ScolariaSymbol from '../ScolariaSymbol';
-import { ASSISTANT } from '../../constants/marque';
 import type { ActiveTab } from './TopBar';
 
 // ─── Constantes exportées ────────────────────────────────
@@ -36,7 +31,6 @@ import type { ActiveTab } from './TopBar';
 /** Hauteur de la barre hors safe area (paddingTop + bouton + paddingBottom fixe) */
 export const BOTTOM_BAR_HEIGHT = 70;
 
-/** Padding bottom pour les ScrollView derrière la BottomBar */
 /** Hauteur visible de la rangée (paddingTop 4 + boutons 40). */
 export const BOTTOM_BAR_ROW_HEIGHT = 44;
 
@@ -58,7 +52,7 @@ export function getBottomBarScrollPadding(insetsBottom: number): number {
   return getBottomChromeHeight(insetsBottom) + 12;
 }
 
-/** Boutons ronds de 40 dp → zone tactile de 44 dp (2 de chaque côté ; 8 d'écart avec la pill : aucun chevauchement). */
+/** Bouton rond de 40 dp → zone tactile de 44 dp (2 de chaque côté ; 8 d'écart avec le champ : aucun chevauchement). */
 const ZONE_TACTILE = { top: 2, bottom: 2, left: 2, right: 2 } as const;
 const MARGE_BASSE = 4;
 
@@ -66,89 +60,50 @@ const MARGE_BASSE = 4;
 
 export interface BottomBarProps {
   activeTab: ActiveTab;
+  /** Champ « Rechercher ou demander ». */
   onSearchPress: () => void;
+  /** « + » : feuille « Ajouter ». */
   onActionPress?: () => void;
-  /** Messages : ✏️ affiché seulement si l'enfant a un enseignant rattaché (sinon, rien à ouvrir). */
-  actionMessages?: boolean;
-}
-
-// ─── Action contextuelle par onglet ─────────────────────
-
-type LucideIcon = typeof Edit;
-
-function getActionIcon(activeTab: ActiveTab, actionMessages: boolean): LucideIcon | null {
-  switch (activeTab) {
-    case 'accueil':  return Plus;      // Ajouter au carnet (CLAUDE.md : « + »)
-    case 'notes':    return ScanLine;  // ⊞ Ajouter au carnet (réactivé au lot B5)
-    case 'agenda':   return Plus;      // Nouvel événement
-    case 'aria':     return null;
-    // ✏️ : « Écrire à un enseignant » · « Signaler une absence » — seulement si l'enfant a un
-    // enseignant rattaché (sinon ces actions n'atteignent personne : jamais de bouton inactif).
-    default:         return actionMessages ? Edit : null;
-  }
 }
 
 // ─── Composant ───────────────────────────────────────────
 
-export default function BottomBar({ activeTab, onSearchPress, onActionPress, actionMessages = false }: BottomBarProps) {
+export default function BottomBar({ activeTab, onSearchPress, onActionPress }: BottomBarProps) {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>();
-
-  const ActionIcon = getActionIcon(activeTab, actionMessages);
-
-  const handleAriaPress = () => {
-    // useNavigation() ici = RootStack → passer par MainPager
-    (navigation as any).navigate('MainPager', {
-      screen: 'Accueil',
-      params: { screen: 'AriaHome' },
-    });
-  };
-
-  const handleActionPress = () => onActionPress?.();
+  const avecPlus = activeTab !== 'aria';
 
   return (
     // box-none : la marge transparente basse (voir styles.container) laisse passer les appuis au contenu dessous.
     // Le décalage de -MARGE_BASSE compense le paddingBottom : la barre ne bouge pas d'un pixel.
     <View pointerEvents="box-none" style={[styles.container, { bottom: getBottomBarOffset(insets.bottom) - MARGE_BASSE }]}>
 
-      {/* ── Bouton Recherche (gauche) ── */}
+      {/* ── Champ unique « Rechercher ou demander » ── */}
       <Pressable
         onPress={onSearchPress}
-        hitSlop={ZONE_TACTILE}
-        style={styles.roundBtn}
-        accessibilityRole="button"
-        accessibilityLabel="Rechercher"
-      >
-        <Search size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
-      </Pressable>
-
-      {/* ── Pill Aria (centre) ── */}
-      <Pressable
-        onPress={handleAriaPress}
         hitSlop={{ top: 2, bottom: 2 }}
-        style={styles.ariaPill}
-        accessibilityRole="button"
-        accessibilityLabel={`Demander ${ASSISTANT.a}`}
+        style={styles.champ}
+        accessibilityRole="search"
+        accessibilityLabel="Rechercher ou demander"
       >
         <ScolariaSymbol size={15} color="#6366F1" />
-        <Text style={styles.ariaText} numberOfLines={1}>
-          {`Demander ${ASSISTANT.a}…`}
+        <Text style={styles.champTexte} numberOfLines={1}>
+          Rechercher ou demander
         </Text>
       </Pressable>
 
-      {/* ── Bouton action droite (contextuel) ── */}
-      {ActionIcon ? (
+      {/* ── « + » : seul bouton d'ajout ── */}
+      {avecPlus ? (
         <Pressable
-          onPress={handleActionPress}
+          onPress={() => onActionPress?.()}
           hitSlop={ZONE_TACTILE}
           style={styles.roundBtn}
           accessibilityRole="button"
-          accessibilityLabel={activeTab === 'accueil' || activeTab === 'notes' ? 'Ajouter au carnet' : activeTab === 'agenda' ? 'Nouvel événement' : 'Écrire ou signaler une absence'}
+          accessibilityLabel="Ajouter"
         >
-          <ActionIcon size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
+          <Plus size={22} strokeWidth={2} color="rgba(15,23,42,0.55)" />
         </Pressable>
       ) : (
-        /* Espace gardé mais invisible (Agenda / Aria) */
+        /* Espace gardé mais invisible (assistant) */
         <View style={styles.roundBtnPlaceholder} />
       )}
     </View>
@@ -179,7 +134,7 @@ const styles = StyleSheet.create({
     }),
   },
 
-  // ── Bouton rond (Recherche / Action) ────────────────
+  // ── Bouton rond « + » ─────────────────────────────────
   roundBtn: {
     width: 40,
     height: 40,
@@ -189,14 +144,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /** Espace réservé transparent (Agenda / Aria) */
+  /** Espace réservé transparent (assistant) */
   roundBtnPlaceholder: {
     width: 40,
     height: 40,
   },
 
-  // ── Pill Aria ────────────────────────────────────────
-  ariaPill: {
+  // ── Champ « Rechercher ou demander » ──────────────────
+  champ: {
     flex: 1,
     height: 40,
     borderRadius: 999,
@@ -204,10 +159,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
-    marginLeft: 8,
     marginRight: 8,
   },
-  ariaText: {
+  champTexte: {
     marginLeft: 8,
     flex: 1,
     fontFamily: FontFamily.sansRegular,
