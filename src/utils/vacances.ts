@@ -21,6 +21,34 @@ export type Zone = 'A' | 'B' | 'C';
 
 export const ANNEE_COUVERTE = { rentree: '2026-09-01', ete: '2027-07-03' };
 
+/** Années scolaires dont le calendrier est dans ce fichier (garde-fou : src/utils/vacances-garde.test.mts). */
+export const ANNEES_COUVERTES = ['2026-2027'];
+
+/** Année scolaire d'un jour : de septembre à août (« 2026-2027 » du 1er sept. 2026 au 31 août 2027). */
+export function anneeScolaire(jour: string): string {
+  const [a, m] = jour.split('-').map(Number);
+  return m >= 9 ? `${a}-${a + 1}` : `${a - 1}-${a}`;
+}
+
+/**
+ * Années dont le calendrier doit être présent à cette date : l'année en cours, et la suivante à partir du 1er juin
+ * (l'arrêté de l'année suivante est publié bien avant ; l'app doit le connaître avant la rentrée).
+ */
+export function anneesRequises(jour: string): string[] {
+  const enCours = anneeScolaire(jour);
+  const [, m] = jour.split('-').map(Number);
+  if (m >= 6 && m <= 8) {
+    const fin = Number(enCours.slice(5));
+    return [enCours, `${fin}-${fin + 1}`];
+  }
+  return [enCours];
+}
+
+/** Années requises absentes du fichier (vide = tout va bien). */
+export function calendriersManquants(jour: string): string[] {
+  return anneesRequises(jour).filter((a) => !ANNEES_COUVERTES.includes(a));
+}
+
 /** [départ, reprise] : les jours strictement entre les deux sont des jours de vacances. */
 const VACANCES: Record<Zone, [string, string][]> = {
   A: [['2026-10-17', '2026-11-02'], ['2026-12-19', '2027-01-04'], ['2027-02-13', '2027-03-01'], ['2027-04-10', '2027-04-26']],

@@ -38,6 +38,7 @@
     "test:absences-store": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/stores/absencesStore.test.mts",
     "test:foyer": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/foyer.test.mts",
     "test:rendez-vous": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/rendezVous.test.mts",
+    "test:calendrier-vacances": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/vacances-garde.test.mts",
     "test:vacances": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/vacances.test.mts",
     "test:absences": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/utils/absences.test.mts",
     "test:devoirs-store": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON src/stores/devoirsStore.test.mts",
