@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { C, SHADOW } from '../constants/design';
 import {
   View,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Settings, Heart, GraduationCap,
@@ -37,6 +38,19 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [query, setQuery] = useState('');
+  // Clavier : une Modal Android (statusBarTranslucent) n'est pas redimensionnée par adjustResize ; sans ce décalage,
+  // le clavier recouvre toute la feuille, champ compris (vu sur le Redmi le 21 nov.).
+  const [clavier, setClavier] = useState(0);
+  useEffect(() => {
+    const ouvert = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', (e) =>
+      setClavier(e.endCoordinates.height),
+    );
+    const ferme = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setClavier(0));
+    return () => {
+      ouvert.remove();
+      ferme.remove();
+    };
+  }, []);
 
   const filtered = useMemo(() =>
     query.trim()
@@ -78,7 +92,7 @@ export default function QuickSearchScreen({ visible, onClose }: Props) {
     >
       <View style={styles.overlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={() => { onClose(); setQuery(''); }} />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={[styles.sheet, { paddingBottom: clavier > 0 ? 12 : insets.bottom + 16, marginBottom: clavier }]}>
           <View style={styles.handle} />
           <View style={styles.searchRow}>
             <ScolariaSymbol size={16} color="#6366F1" />
