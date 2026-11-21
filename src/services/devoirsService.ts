@@ -1,9 +1,9 @@
 /**
  * devoirsService — devoirs réels d'un enfant (lot 4a) : agenda_events de type « devoir », du jour de Paris à
- * venir, avec l'auteur et l'heure de chaque coche lus par coches_devoirs (M41) : la base ne les rend qu'aux
- * responsables du foyer de l'auteur (règle des parents séparés) ; hors foyer → « Fait ».
+ * venir, avec l'auteur et l'heure de chaque coche lus dans agenda_coches (M41) : la base (RLS) ne rend la ligne
+ * qu'à l'auteur et aux responsables de son foyer (règle des parents séparés) ; hors foyer → « Fait ».
  *
- * Un enfant = un carnet : toujours UN child_id. Base sans M41 (Paris avant le cycle) : coches_devoirs n'existe
+ * Un enfant = un carnet : toujours UN child_id. Base sans M41 (Paris avant le cycle) : agenda_coches n'existe
  * pas → aucune coche lue, chaque devoir coché s'affiche « Fait » ; rien ne casse.
  * La construction des devoirs (utils/devoirs.construireDevoirs) est la même pour l'Agenda, l'Accueil et les tests.
  */
@@ -23,34 +23,37 @@ import { signalerDevoirs } from '../stores/devoirsStore';
 
 export { auteurCoche, type AuteursCoche } from '../utils/devoirs';
 
-/** Fonction absente (base sans M41) : PostgREST rend PGRST202. */
-function fonctionAbsente(error: { code?: string } | null): boolean {
-  return !!error && (error.code === 'PGRST202' || error.code === '42883');
+/** Table absente (base sans M41) : PostgREST rend PGRST205 / 42P01. */
+function tableAbsente(error: { code?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST205' || error.code === '42P01');
 }
 
-/** Coches de l'enfant (auteur et heure masqués hors du foyer de l'auteur). Lève en cas d'échec réel. */
-export async function chargerCoches(childId: string): Promise<CocheLue[]> {
-  const { data, error } = await supabase.rpc('coches_devoirs', { p_child_id: childId });
-  if (fonctionAbsente(error)) return [];
+/**
+ * Auteur et heure des coches de ces événements, tels que la base me les rend : seulement dans le foyer de l'auteur
+ * (une coche d'un autre foyer n'a pas de ligne → « Fait »). Lève en cas d'échec réel.
+ */
+export async function chargerCoches(eventIds: string[]): Promise<CocheLue[]> {
+  if (eventIds.length === 0) return [];
+  const { data, error } = await supabase.from('agenda_coches').select('event_id, fait_par, fait_le').in('event_id', eventIds);
+  if (tableAbsente(error)) return [];
   leverSiErreur(error);
   return (data ?? []) as CocheLue[];
 }
 
 /** Devoirs de l'enfant à partir d'aujourd'hui (heure de Paris), par échéance. Lève en cas d'échec. */
 export async function chargerDevoirs(childId: string): Promise<Devoir[]> {
-  const [lignes, coches] = await Promise.all([
-    supabase
-      .from('agenda_events')
-      .select('*')
-      .eq('child_id', childId)
-      .eq('event_type', 'devoir')
-      .gte('start_time', minuitParis(aujourdhuiParis()).toISOString())
-      .order('start_time')
-      .limit(200),
-    chargerCoches(childId),
-  ]);
+  const lignes = await supabase
+    .from('agenda_events')
+    .select('*')
+    .eq('child_id', childId)
+    .eq('event_type', 'devoir')
+    .gte('start_time', minuitParis(aujourdhuiParis()).toISOString())
+    .order('start_time')
+    .limit(200);
   leverSiErreur(lignes.error);
-  return construireDevoirs((lignes.data ?? []) as any[], coches, jourParisIso, heureParisIso);
+  const donnees = (lignes.data ?? []) as any[];
+  const coches = await chargerCoches(donnees.filter((r) => r.is_done).map((r) => String(r.id)));
+  return construireDevoirs(donnees, coches, jourParisIso, heureParisIso);
 }
 
 /** Prénoms des responsables de l'enfant (« vous » pour soi), pour la ligne « Coché par ». */
@@ -66,7 +69,8 @@ export async function chargerAuteursCoche(childId: string): Promise<AuteursCoche
  */
 export async function chargerLignesSource(childId: string, lignes: any[]): Promise<Map<string, string | null>> {
   if (!lignes.some((r) => r.event_type === 'devoir')) return new Map();
-  const [coches, auteurs] = await Promise.all([chargerCoches(childId), chargerAuteursCoche(childId)]);
+  const cochees = lignes.filter((r) => r.event_type === 'devoir' && r.is_done).map((r) => String(r.id));
+  const [coches, auteurs] = await Promise.all([chargerCoches(cochees), chargerAuteursCoche(childId)]);
   const auj = aujourdhuiParis();
   return lignesSourceDevoirs(lignes, coches, auteurs, jourParisIso, heureParisIso, auj, decalerJour(auj, -1));
 }

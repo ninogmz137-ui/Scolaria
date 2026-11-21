@@ -28,9 +28,9 @@ INSERT INTO public.foyers (nom, created_by) VALUES ('Foyer de J', 'dddddddd-dddd
 INSERT INTO public.responsables (foyer_id, user_id, child_id) VALUES (:'foyer_j', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', :'eva');
 SELECT set_config('test.eva', :'eva', true) \gset
 
--- Lecture d'une coche, par le compte courant, via coches_devoirs.
+-- Lecture d'une coche par le compte courant, sous RLS (comme l'app) : invisible hors du foyer de l'auteur.
 CREATE FUNCTION pg_temp.coche(p_event uuid) RETURNS TABLE (fait_par uuid, fait_le timestamptz) LANGUAGE sql AS $$
-  SELECT c.fait_par, c.fait_le FROM public.coches_devoirs(current_setting('test.eva')::uuid) c WHERE c.event_id = p_event $$;
+  SELECT c.fait_par, c.fait_le FROM public.agenda_coches c WHERE c.event_id = p_event $$;
 
 -- T1 : A crée un devoir non fait → aucune coche.
 SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
@@ -77,7 +77,7 @@ DO $$ BEGIN
   IF NOT (SELECT is_done FROM public.agenda_events WHERE id = current_setting('test.d')::uuid) THEN
     RAISE EXCEPTION 'T4 : J ne voit pas la coche partagée';
   END IF;
-  IF (SELECT count(*) FROM pg_temp.coche(current_setting('test.d')::uuid) WHERE fait_par IS NULL AND fait_le IS NULL) <> 1 THEN
+  IF (SELECT count(*) FROM pg_temp.coche(current_setting('test.d')::uuid)) <> 0 THEN
     RAISE EXCEPTION 'T4 : J (autre foyer) lit l''auteur ou l''heure de la coche';
   END IF;
   RAISE NOTICE 'T4 OK : J (autre foyer) voit « Fait », sans auteur ni heure';
@@ -97,7 +97,7 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$ BEGIN
-  IF (SELECT count(*) FROM pg_temp.coche(current_setting('test.dj')::uuid) WHERE fait_par IS NULL AND fait_le IS NULL) <> 1 THEN
+  IF (SELECT count(*) FROM pg_temp.coche(current_setting('test.dj')::uuid)) <> 0 THEN
     RAISE EXCEPTION 'T5 : B lit l''auteur ou l''heure de la coche de J (autre foyer)';
   END IF;
   RAISE NOTICE 'T5 OK : B voit la coche de J comme « Fait »';
@@ -109,7 +109,7 @@ DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_temp.coche(current_setting('test.d')::uuid)) THEN RAISE EXCEPTION 'T6 : décoche sans effacer la coche'; END IF;
   RAISE NOTICE 'T6 OK : décoché, auteur et heure effacés';
 END $$;
--- T7 : modifier le titre ne touche pas à la coche ; aucun accès direct à agenda_coches.
+-- T7 : modifier le titre ne touche pas à la coche ; aucune écriture directe dans agenda_coches.
 UPDATE public.agenda_events SET is_done = true WHERE id = :'d';
 SELECT fait_le AS heure_avant FROM pg_temp.coche(:'d') \gset
 UPDATE public.agenda_events SET title = 'Lire p. 12 et 13' WHERE id = :'d';
@@ -119,16 +119,11 @@ DO $$ BEGIN
     RAISE EXCEPTION 'T7 : modifier le titre a changé l''heure de la coche';
   END IF;
   BEGIN
-    PERFORM 1 FROM public.agenda_coches;
-    RAISE EXCEPTION 'T7 : lecture directe de agenda_coches permise';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
-  END;
-  BEGIN
     INSERT INTO public.agenda_coches (event_id, fait_par) VALUES (current_setting('test.dj')::uuid, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
     RAISE EXCEPTION 'T7 : écriture directe dans agenda_coches permise (falsification de l''auteur)';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
-  RAISE NOTICE 'T7 OK : titre modifié sans toucher à la coche ; agenda_coches ni lisible ni modifiable directement';
+  RAISE NOTICE 'T7 OK : titre modifié sans toucher à la coche ; agenda_coches non modifiable directement';
 END $$;
 RESET ROLE;
 
@@ -136,7 +131,7 @@ RESET ROLE;
 SELECT set_config('request.jwt.claims', '{"sub":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","role":"authenticated"}', true) \gset
 SET LOCAL ROLE authenticated;
 DO $$ DECLARE n integer; BEGIN
-  SELECT count(*) INTO n FROM public.coches_devoirs(current_setting('test.eva')::uuid);
+  SELECT count(*) INTO n FROM public.agenda_coches;
   IF n <> 0 THEN RAISE EXCEPTION 'T8 : C lit % coche(s) d''Eva', n; END IF;
   SELECT count(*) INTO n FROM public.agenda_events WHERE child_id = current_setting('test.eva')::uuid;
   IF n <> 0 THEN RAISE EXCEPTION 'T8 : C voit % devoir(s) d''Eva', n; END IF;
@@ -236,13 +231,14 @@ END $$;
 DO $$ BEGIN
   IF has_function_privilege('authenticated', 'public.agenda_events_poser_coche()', 'execute')
      OR has_function_privilege('anon', 'public.agenda_events_poser_coche()', 'execute')
-     OR has_function_privilege('anon', 'public.coches_devoirs(uuid)', 'execute')
-     OR NOT has_function_privilege('authenticated', 'public.coches_devoirs(uuid)', 'execute')
-     OR has_table_privilege('authenticated', 'public.agenda_coches', 'select')
+     OR EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'coches_devoirs')
+     OR has_table_privilege('authenticated', 'public.agenda_coches', 'insert')
+     OR has_table_privilege('authenticated', 'public.agenda_coches', 'update')
+     OR has_table_privilege('authenticated', 'public.agenda_coches', 'delete')
      OR has_table_privilege('anon', 'public.agenda_coches', 'select') THEN
     RAISE EXCEPTION 'T10 : droits inattendus';
   END IF;
-  RAISE NOTICE 'T10 OK : déclencheur non exécutable, coches_devoirs pour authenticated seul, agenda_coches fermée';
+  RAISE NOTICE 'T10 OK : déclencheurs non exécutables, aucune fonction privilégiée, agenda_coches en lecture seule (RLS)';
 END $$;
 
 ROLLBACK;

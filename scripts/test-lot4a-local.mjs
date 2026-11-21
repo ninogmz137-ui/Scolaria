@@ -1,5 +1,5 @@
 // Essai de bout en bout du lot 4a (devoirs, « Coché par ») contre le Supabase LOCAL (jamais la production), avec
-// les MÊMES requêtes et la MÊME construction que l'app (devoirsService : agenda_events + coches_devoirs +
+// les MÊMES requêtes et la MÊME construction que l'app (devoirsService : agenda_events + agenda_coches (RLS) +
 // responsables_enfant → utils/devoirs.construireDevoirs → libelleCoche), sous RLS, avec les comptes de
 // scripts/seed-lot3b-local.mjs :
 //   parent-3b (Sophie) et coparent-3b (Marc) : responsables de Lina, MÊME foyer ;
@@ -40,7 +40,8 @@ const HIER = decalerJour(AUJ, -1);
 async function lignesAvecCoches(c, childId, requete) {
   const [lignes, coches, resp] = await Promise.all([
     requete,
-    c.rpc('coches_devoirs', { p_child_id: childId }),
+    // agenda_coches sous RLS (comme devoirsService.chargerCoches) : lignes du foyer de l'auteur seulement.
+    c.from('agenda_coches').select('event_id, fait_par, fait_le'),
     c.rpc('responsables_enfant', { p_child_id: childId }),
   ]);
   if (lignes.error || coches.error || resp.error) throw new Error(lignes.error?.message ?? coches.error?.message ?? resp.error?.message);
@@ -83,7 +84,7 @@ const proche = (ligne) => {
 
 const { c: sophie, moi: idSophie } = await connecter('parent-3b@exemple.test');
 const { c: marc } = await connecter('coparent-3b@exemple.test');
-const { c: julien } = await connecter('separe-3b@exemple.test');
+const { c: julien, moi: idJulien } = await connecter('separe-3b@exemple.test');
 const { c: karim } = await connecter('parent2-3b@exemple.test');
 const { data: enfants } = await sophie.from('responsables').select('child_id').eq('user_id', idSophie);
 const lina = enfants[0].child_id;
@@ -138,12 +139,15 @@ verifier('Sophie (autre foyer que Julien) lit « Fait »', sophieVue2?.ligne ===
 // 6. Falsification : écrire l'auteur directement est impossible.
 const { error: eFalsif } = await sophie.from('agenda_coches').insert({ event_id: d2.id, fait_par: idSophie });
 verifier('écriture directe de l’auteur refusée', !!eFalsif, 'insertion acceptée');
-const { data: lecDirecte, error: eLec } = await sophie.from('agenda_coches').select('*');
-verifier('lecture directe de agenda_coches refusée', !!eLec || (lecDirecte ?? []).length === 0, `${(lecDirecte ?? []).length} ligne(s)`);
+// Masquage par la base (RLS, sans fonction privilégiée) : la coche de Julien n'a aucune ligne lisible par Sophie.
+const { data: lecDirecte, error: eLec } = await sophie.from('agenda_coches').select('event_id, fait_par').eq('event_id', d2.id);
+verifier('Sophie : aucune ligne d’auteur pour la coche de Julien (masquée par la base)', !eLec && (lecDirecte ?? []).length === 0, eLec?.message ?? `${(lecDirecte ?? []).length} ligne(s)`);
+const { data: lecJulien } = await julien.from('agenda_coches').select('fait_par').eq('event_id', d2.id);
+verifier('Julien lit la ligne de sa propre coche', (lecJulien ?? [])[0]?.fait_par === idJulien);
 
 // 7. Karim (autre famille) : rien.
 const { data: vusK } = await karim.from('agenda_events').select('id').eq('child_id', lina);
-const { data: cochesK } = await karim.rpc('coches_devoirs', { p_child_id: lina });
+const { data: cochesK } = await karim.from('agenda_coches').select('event_id').in('event_id', [d1.id, d2.id]);
 verifier('Karim ne voit ni devoir ni coche de Lina', (vusK ?? []).length === 0 && (cochesK ?? []).length === 0);
 const { data: cocheK } = await karim.from('agenda_events').update({ is_done: false }).eq('id', d1.id).select();
 verifier('Karim ne peut pas décocher', (cocheK ?? []).length === 0);

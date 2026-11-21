@@ -110,7 +110,7 @@ export interface LigneDevoir {
   is_done?: boolean | null;
 }
 
-/** Ligne de coches_devoirs (M41) : auteur et heure à null hors du foyer de l'auteur. */
+/** Ligne de agenda_coches (M41) : rendue par la base seulement dans le foyer de l'auteur (sinon absente → « Fait »). */
 export interface CocheLue {
   event_id: string;
   fait_par: string | null;
@@ -140,7 +140,7 @@ export function auteurCoche(faitPar: string | null | undefined, auteurs: Auteurs
 }
 
 /**
- * Devoirs de l'app à partir des lignes de agenda_events et des coches lues par coches_devoirs.
+ * Devoirs de l'app à partir des lignes de agenda_events et des coches lues dans agenda_coches (RLS).
  * `jourDe` / `heureDe` : jour 'AAAA-MM-JJ' et heure 'HH:MM' de Paris d'un horodatage ISO de la base
  * (utils/jourParis), passés en paramètre pour garder ce module pur.
  */

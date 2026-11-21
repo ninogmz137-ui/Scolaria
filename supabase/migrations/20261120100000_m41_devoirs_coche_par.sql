@@ -11,14 +11,14 @@
 -- Mise en œuvre :
 --   - agenda_coches : auteur et heure de la coche, une ligne par événement coché. Écrite par le SERVEUR seul
 --     (déclencheur sur agenda_events.is_done : cocher pose (auth.uid(), now()), décocher efface la ligne) ;
---     AUCUNE lecture ni écriture directe par un compte (RLS active, politique qui refuse tout, droits retirés).
---   - coches_devoirs(p_child_id) : les coches de l'enfant pour un de ses responsables, auteur et heure à null
---     quand l'auteur n'est pas du même foyer que le lecteur (pour cet enfant) — sauf si c'est le lecteur lui-même.
+--     aucune écriture par un compte. LECTURE par RLS : la ligne n'est rendue qu'à l'auteur et aux responsables de
+--     son foyer pour cet enfant ; ailleurs elle est invisible, et l'app affiche « Fait » (agenda_events.is_done).
+--     Pas de fonction SECURITY DEFINER (21 nov. 2026 : même modèle que M43, aucun avertissement).
 --   - agenda_events n'est PAS modifiée : `select('*')` de l'app (et d'une app plus ancienne) reste valide.
 -- Événements créés par un parent : contenu modifié et suppression par le foyer de l’auteur seulement (règle du
 -- 21 nov. 2026, en fin de fichier).
--- Advisors : 1 WARN attendu (authenticated_security_definer_function_executable sur coches_devoirs), à déclarer
--- dans tasks/warns-attendus.md avant le cycle. Le déclencheur (SECURITY DEFINER) n'est exécutable par personne.
+-- Advisors : AUCUN WARN nouveau attendu (lecture par RLS avec (SELECT auth.uid()), une seule politique ; les deux
+-- déclencheurs SECURITY DEFINER ne sont exécutables par personne).
 
 CREATE TABLE public.agenda_coches (
   event_id uuid PRIMARY KEY REFERENCES public.agenda_events(id) ON DELETE CASCADE,
@@ -28,10 +28,22 @@ CREATE TABLE public.agenda_coches (
 CREATE INDEX idx_agenda_coches_fait_par ON public.agenda_coches USING btree (fait_par);
 ALTER TABLE public.agenda_coches ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.agenda_coches FROM PUBLIC, anon, authenticated;
--- Politique explicite qui refuse tout (lecture par coches_devoirs seulement) : pas de table « RLS sans politique ».
-CREATE POLICY agenda_coches_aucun_acces ON public.agenda_coches FOR ALL TO authenticated USING (false) WITH CHECK (false);
+GRANT SELECT ON TABLE public.agenda_coches TO authenticated;
+-- Lecture : l'auteur, ou un responsable du même foyer que l'auteur pour l'enfant de l'événement.
+CREATE POLICY agenda_coches_select ON public.agenda_coches FOR SELECT TO authenticated
+  USING (
+    fait_par = (SELECT auth.uid())
+    OR EXISTS (
+      SELECT 1
+      FROM public.agenda_events e
+      JOIN public.responsables moi ON moi.child_id = e.child_id AND moi.user_id = (SELECT auth.uid())
+      JOIN public.responsables auteur ON auteur.child_id = e.child_id AND auteur.user_id = agenda_coches.fait_par
+                                     AND auteur.foyer_id = moi.foyer_id
+      WHERE e.id = agenda_coches.event_id
+    )
+  );
 COMMENT ON TABLE public.agenda_coches IS
-  'Auteur et heure de la coche « fait » d''un événement (devoir). Écrite par le déclencheur agenda_events_poser_coche, lue par coches_devoirs (auteur et heure masqués hors du foyer de l''auteur). M41.';
+  'Auteur et heure de la coche « fait » d''un événement (devoir). Écrite par le déclencheur agenda_events_poser_coche ; lisible par l''auteur et son foyer seulement (règle des parents séparés), invisible ailleurs. M41.';
 
 -- Déclencheur : la coche pose l'auteur et l'heure, la décoche les efface. Jamais une valeur venue du client.
 CREATE OR REPLACE FUNCTION public.agenda_events_poser_coche()
@@ -58,40 +70,6 @@ REVOKE ALL ON FUNCTION public.agenda_events_poser_coche() FROM PUBLIC, anon, aut
 CREATE TRIGGER agenda_events_poser_coche AFTER INSERT OR UPDATE OF is_done ON public.agenda_events
   FOR EACH ROW EXECUTE FUNCTION public.agenda_events_poser_coche();
 
--- Lecture : les coches de l'enfant, pour un de ses responsables seulement ; auteur et heure dans le foyer de
--- l'auteur seulement (ou pour l'auteur lui-même), sinon null (« Fait »).
-CREATE OR REPLACE FUNCTION public.coches_devoirs(p_child_id uuid)
-RETURNS TABLE (event_id uuid, fait_par uuid, fait_le timestamptz)
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT c.event_id,
-         CASE WHEN v.visible THEN c.fait_par END,
-         CASE WHEN v.visible THEN c.fait_le END
-  FROM public.agenda_coches c
-  JOIN public.agenda_events e ON e.id = c.event_id
-  CROSS JOIN LATERAL (
-    SELECT c.fait_par = (SELECT auth.uid())
-        OR EXISTS (
-             SELECT 1
-             FROM public.responsables moi
-             JOIN public.responsables auteur
-               ON auteur.foyer_id = moi.foyer_id
-              AND auteur.child_id = p_child_id
-              AND auteur.user_id = c.fait_par
-             WHERE moi.user_id = (SELECT auth.uid())
-               AND moi.child_id = p_child_id
-           ) AS visible
-  ) v
-  WHERE e.child_id = p_child_id
-    AND public.is_responsable(p_child_id);
-$$;
-REVOKE ALL ON FUNCTION public.coches_devoirs(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.coches_devoirs(uuid) TO authenticated;
-COMMENT ON FUNCTION public.coches_devoirs(uuid) IS
-  'Coches « fait » des événements d''un enfant, pour un de ses responsables. Auteur et heure seulement dans le foyer de l''auteur (règle des parents séparés, 20 nov. 2026), sinon null. M41.';
 
 -- ─── Événements créés par un parent : modifiés et supprimés par le FOYER DE L'AUTEUR (règle du 21 nov. 2026) ───
 -- Tout responsable de l'enfant voit l'événement et coche « fait » (coche partagée, ci-dessus). Le CONTENU (titre,
