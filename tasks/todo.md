@@ -41,6 +41,13 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
+### LOT 6 — CODÉ (21 nov.) sur `archi-lot-6` : 6a e5a9cfe, 6b 4fee72c, 6c 1751713, 6d 025d019 (+ docs). NON fusionné.
+M45 locale seulement (procédure `tasks/lot6-procedures-paris.md`, 97 → 96 annoncé). Tests : tsc, accueil 26, entete 7,
+absences 39, m45 8/8, 27 suites SQL, test-lot6-local 10/10, bundle 12/12. **Redmi : à regarder par l'utilisateur**
+(`tasks/lot6-verification-redmi.md`). Supprimés : WallpaperContext, WallpaperPickerScreen, assets/wallpapers,
+TransfertCodeScreen, CarnetVide (+ useCarnetVide, utils/carnetVide et ses tests : remplacé par l'invitation de
+« Nouveau dans le carnet »).
+
 ### LOT 6 — PLAN (21 nov., branche `archi-lot-6` créée depuis main 972a8bf)
 Source : prompt du 16 nov. + ajouts inscrits au lot 6 depuis. Rien sur Paris, rien dans main. Un commit par sous-étape.
 - **6a — Nom et fonds** :

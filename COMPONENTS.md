@@ -256,7 +256,7 @@ Seul champ de recherche des onglets principaux : plus de loupe séparée.
 ```
 Composant : HeaderFondu (src/components/HeaderFondu.tsx), couche absolue en tête du contenu défilant
 Pleine largeur, derrière la barre d'état, la top bar et les premières cartes (« À faire » flotte dessus)
-Hauteur : insets.top + 340px · aucun arrondi · aucune coupure
+Hauteur : insets.top + 290px (lot 6 ; 340 avant) · aucun arrondi · aucune coupure
 Couleur de l'enfant : rgba(c, a) avec le MÊME RGB à chaque arrêt (withAlpha, src/utils/couleur.ts)
   arrêts [position, opacité] : [0,1] [.40,1] [.50,.94] [.58,.84] [.66,.68] [.74,.50]
                                [.82,.32] [.89,.17] [.95,.06] [1,0]   (ease-out, pas de bande)
@@ -701,30 +701,36 @@ Accessibilité : l'en-tête porte le label « [domaine], N observations »
 
 ### 18.3 En-tête de carnet (Accueil)
 ```
-Sur le HeaderFondu (§6) : hauteur insets.top + 340, même logique (même RGB à chaque arrêt, jamais 'transparent')
-Ligne d'identité : paddingTop insets.top + 64 · paddingHorizontal 20 · row · alignItems center · gap 14
-Cercle photo : 78 · borderRadius 999 · bordure 3px #FFFFFF · fond rgba(255,255,255,0.30)
-  sans photo : initiale Figtree 800 · 30px · blanc + badge appareil photo 26px (fond #0F172A, icône camera 14 blanche,
-  hitSlop pour 44px) qui ouvre la feuille de photo (§11, 3 lignes)
+(Lot 6, prompt du 16 nov. : en-tête réduit, la 1re carte commence avant 30 % de l'écran — 24 % sur le Redmi.)
+Sur le HeaderFondu (§6) : hauteur insets.top + 290 (FONDU_ACCUEIL, src/utils/fondu.ts, choisi par test:entete pour l'AA)
+Ligne d'identité : paddingTop insets.top + 64 · paddingHorizontal 20 · row · alignItems center · gap 12
+Rond photo : 52 · borderRadius 999 · bordure 2px rgba(255,255,255,0.9) · fond blanc translucide rgba(255,255,255,0.25)
+  sans photo : initiale Figtree 800 · 22px · blanc ; toucher le rond = feuille de photo (« Ajouter une photo ») ;
+  démo : rond non pressable (jamais de photo en démo). Photo facultative, jamais exigée.
 À droite :
-  prénom ..... Figtree 900 · 30px · letterSpacing -1.1 · #FFFFFF
-  ligne ...... Figtree 500 · 14px · rgba(255,255,255,0.95) · « classe · enseignant · école »
+  prénom ..... Figtree 800 · 24px · letterSpacing -0.6 · #FFFFFF
+  ligne ...... Figtree 500 · 13px · rgba(255,255,255,0.95) · « classe · enseignant · école »
+               enseignant : démo = l'enseignant des fils de démo ; compte réel = nom du fil existant avec le titulaire,
+               sinon omis (jamais deviné) ; civilité au lot 7
                (« CE1 · Mme Durand · École Jules Ferry » ; un élément absent est omis avec son séparateur)
   (la pilule « [École] · année » est supprimée de l'en-tête : l'année vit dans Scolarité, §17)
 Contraste AA sur les 6 couleurs d'enfant ; fond photo : voile existant conservé
 Avatar de la top bar = photo sinon initiale ; il reste le sélecteur d'enfant. Aucun bouton « Changer »,
 aucune pastille d'enfants sur l'Accueil.
 
-Corps, dans l'ordre (décision du 16 nov.) :
- 1. « À faire » : carte blanche ; lignes = pastille 38 (type, §18.1) + titre 600 14 + sous-titre 12.
-    Mot à traiter : pilule d'action à droite (§2 variante liste). « À prévoir » : case ronde 22px,
-    bordure 1.5px rgba(15,23,42,0.25), cochable.
- 2. « Aujourd'hui et demain » : événements (carte §7 Agenda, avec libellé de catégorie), « À prévoir », devoirs
-    (case ronde cochable, teinte de DISCIPLINE, « Coché par [prénom] · [heure] »).
-    Un mot n'y figure JAMAIS comme un événement horaire.
- 3. « Nouveau dans le carnet » : carte blanche ; observation + pastille de son domaine ; photo + miniature 48×48 à droite.
+Corps, dans l'ordre (décision du 16 nov., construit au lot 6 : CorpsCarnet + src/utils/accueil.ts, tous niveaux) :
+ 1. « À faire · N » : carte blanche ; lignes = étiquette d'action (Signer · Autoriser · Répondre · Justifier · Lire ;
+    pilule indigo 10 %, texte indigo 12 px 600) + titre 600 14 + sous-titre 12 « échéance · [prénom] a signé »
+    (sinon l'expéditeur) + chevron ; toute la ligne ouvre le mot ou la page d'absence. Absente si vide.
+ 2. « Aujourd'hui et demain » : événements et rendez-vous fixes (barre indigo 3px + libellé de catégorie écrit),
+    « À prévoir » (mots et rendez-vous fixes) et devoirs : case ronde 22px, bordure 1.5px rgba(15,23,42,0.25),
+    cochable, « Coché par [prénom] · [heure] » sur sa propre ligne. Un mot n'y figure JAMAIS comme un événement.
+    Vide : « Rien de prévu aujourd'hui ni demain. »
+ 3. « Nouveau dans le carnet » : carte blanche ; observation / compétence + pastille de son domaine ; note
+    (collège / lycée) ; photo + miniature 48×48 à droite ; document. Rien : carte d'invitation
+    « Ajoutez la première pièce du carnet. » + pilule « Ajouter » (ouvre la feuille du « + »).
  4. Suggestion de l'assistant : UNE ligne (Figtree 500 · 13px), symbole 14px, puis sa source sur sa propre ligne
-    (§17 Ligne source) ; données de l'enfant sélectionné seulement. Plus de carte.
+    (§17 Ligne source) ; données de l'enfant sélectionné seulement ; absente si rien d'utile ou assistant désactivé.
 SUPPRIMÉS : « Cette semaine » (remplacé par « Aujourd'hui et demain »), « Aujourd'hui » journée type fixe,
             carte de l'assistant, fonds d'écran.
 Niveaux : maternelle = pas de devoirs ; primaire = tout ; collège / lycée = mêmes blocs.

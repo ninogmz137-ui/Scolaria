@@ -206,12 +206,12 @@ Accueil :   header PLEINE LARGEUR en FONDU (décision du 24 sept 2026 ; ni carte
             passe DERRIÈRE la barre d'état, la top bar et les premières cartes, qui flottent sur sa fin
             couleur de l'enfant en dégradé vertical vers la TRANSPARENCE : rgba(c,1) → rgba(c,0),
             même RGB à chaque arrêt (jamais couleur → #F3F4FA, jamais 'transparent')
-            ~340px sous la barre d'état, 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
+            ~290px sous la barre d'état (lot 6 : 1re carte avant 30 % de l'écran), 10 arrêts en courbe ease-out ; aucun arrondi, aucune coupure
             fond = couleur de l'enfant, ou sa photo (photo + voile sombre, même courbe de disparition) ;
             les fonds d'écran (forêt, océan, coucher de soleil) sont supprimés
             compte sans enfant : même fondu, indigo
-            EN-TÊTE DU CARNET : photo de l'enfant en cercle (initiale + badge appareil photo sans photo),
-            prénom, puis « classe · enseignant · école » ; blanc sur la partie pleine ;
+            EN-TÊTE DU CARNET : rond 52 (photo, ou initiale sur blanc translucide ; toucher sans photo = « Ajouter une photo »),
+            prénom (800 · 24), puis « classe · enseignant · école » (13 px) ; blanc sur la partie pleine ;
             barre d'état claire au repos (détail : COMPONENTS §6, §18.3)
             libellés posés sur le fondu : blanc si opacité ≥ 0,6, sinon #0F172A 55 %
             au défilement : le fondu part avec le contenu, ScrollVeil apparaît, top bar en §0.
@@ -305,6 +305,7 @@ Scale 0.97 sur press
 - **Famille et paramètres** (écran unique, ouvert par ☰), **sept entrées** :
   Mes enfants · Responsables · Mon profil · Notifications (trois réglages) · Assistant · Confidentialité et données · Aide, à propos, se déconnecter.
   La rubrique « Apparence » est supprimée. **Toute option affichée mais non branchée est retirée** (donc « Notifications » n'apparaît qu'une fois le push réel en place, § Notifications).
+  **État au lot 6 (21 nov. 2026)** : Mes enfants (fiche) · Responsables (par enfant : inviter, qui voit quoi, me retirer) · Mon profil · Assistant (activé ou non, seul réglage appliqué ; désactivé = aucune suggestion sur l'Accueil) · Confidentialité et données (télécharger, effacer) · À propos et compte. **Absents** faute de réalité : Notifications (pas de push), journal d'accès (pas construit), Aide (aucun écran), ton de l'assistant (lu par rien), code de la classe (aucun mécanisme).
 - Profil enfant → avatar & couleur / niveau / école / matières / suppression
 - Personnaliser matières → **couleur** par matière (pas d'emoji)
 
@@ -456,6 +457,7 @@ Email + mot de passe → Supabase Auth identifie le rôle →
 ### Garde partagée
 - **Partagé entre responsables** : tout ce qui vient de l'école (mots, annonces du fil de classe, photos, documents, statuts de signature), la coche « fait » des devoirs
 - **Coche « fait » d'un devoir (règle des parents séparés, 20 nov. 2026)** : la coche est partagée entre **TOUS** les responsables de l'enfant, y compris d'un autre foyer. **L'auteur et l'heure** (« Coché par [prénom] · [heure] ») ne sont visibles **qu'à l'intérieur du foyer de celui qui a coché** ; un responsable d'un autre foyer voit seulement « Fait ». Le masquage est fait **par la base** (M41 : `agenda_coches`, lue par `coches_devoirs`, qui rend l'auteur et l'heure à null hors du foyer de l'auteur).
+- **Annuler une absence (21 nov. 2026, M45)** : par un responsable du **foyer de l'auteur** seulement, jusqu'au **début** de l'absence (8 h 00 le premier jour, 13 h 00 pour un après-midi, heure de Paris), **règle appliquée par la base** ; statut « annulée » (jamais de suppression), justificatif retiré ; disparaît de l'Agenda, de « À faire » et de « À justifier » ; le titulaire lit « Annulée par la famille ». Après le début : aucune annulation, le parent écrit à l'enseignant.
 - **Justificatif d'absence (20 nov. 2026)** : joint et lu par tout responsable du **foyer de l'auteur** de l'absence (et lu par le titulaire de la classe) ; un responsable d'un autre foyer voit l'absence, mais ni le justificatif ni « À justifier » (M42 : `absences_justificatifs`).
 - **Rendez-vous fixe (21 nov. 2026)** : vu, créé et sa liste « À prévoir » cochée par tout responsable de l'enfant ; **modifié et supprimé seulement par le foyer de son auteur** (par tous si l'auteur n'est plus responsable) ; « Ajouté par [prénom] » visible dans le foyer de l'auteur seulement, rien hors foyer ; coches « À prévoir » : même règle que les devoirs (M43, masquage par la base).
 - **Privé à chaque responsable** : ses conversations privées avec l'enseignant (dont ses réponses privées à un mot ou à une annonce de classe), ses notes personnelles, ses ajouts marqués privés
