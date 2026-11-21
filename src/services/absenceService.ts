@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 import { classerErreur } from './erreurs';
 import type { FichierPrepare } from './carnetImport';
 import { fusionnerAbsences, type AbsenceLue, type DemiJournee, type MotifAbsence } from '../utils/absences';
-import { absencesDemo, ajouterAbsenceDemo, remplacerAbsenceDemo, signalerAbsences } from '../stores/absencesStore';
+import { absencesDemo, ajouterAbsenceDemo, remplacerAbsenceDemo, retirerAbsenceDemo, signalerAbsences } from '../stores/absencesStore';
 
 export type { AbsenceLue } from '../utils/absences';
 
@@ -37,7 +37,7 @@ function uuid(): string {
 
 // ─── Lecture ─────────────────────────────────────────────
 
-const COLONNES = 'id, student_id, date_debut, date_fin, demi_journee, motif, commentaire, signalee_par, created_at';
+const COLONNES = 'id, student_id, date_debut, date_fin, demi_journee, motif, commentaire, signalee_par, created_at, statut';
 
 /** Table absente (base sans M42) : PostgREST rend PGRST205 / 42P01. */
 function tableAbsente(error: { code?: string } | null): boolean {
@@ -63,7 +63,8 @@ export async function chargerAbsences(childId: string, demo: boolean): Promise<A
   ]);
   if (lignes.error) throw lignes.error;
   if (responsables.error) throw responsables.error;
-  const absences = (lignes.data ?? []) as Omit<AbsenceLue, 'justificatif_path' | 'meme_foyer'>[];
+  // Une absence annulée (M45) disparaît du carnet côté parent : Agenda, « À faire », « À justifier » (le titulaire la voit).
+  const absences = ((lignes.data ?? []) as Omit<AbsenceLue, 'justificatif_path' | 'meme_foyer'>[]).filter((a) => a.statut !== 'annulée');
   const justificatifs = await justificatifsVisibles(absences.map((a) => a.id));
   return fusionnerAbsences(absences, justificatifs, (responsables.data ?? []) as { user_id: string; foyer_id: string }[], auth.data.user?.id);
 }
@@ -189,6 +190,36 @@ export async function ajouterJustificatif(absence: AbsenceLue, f: FichierPrepare
     return;
   }
   await joindre(absence.id, absence.student_id, f, await moi());
+  signalerAbsences(absence.student_id);
+}
+
+/**
+ * Annule une absence signalée par erreur (lot 6, M45) : statut « annulée », par un responsable du foyer de l'auteur,
+ * avant son début (8 h / 13 h, heure de Paris). La base applique ces règles ; elle retire aussi la ligne du justificatif,
+ * dont l'app supprime le fichier si ce compte en est le dépôt (sinon le nettoyage des fichiers orphelins s'en charge).
+ */
+export async function annulerAbsence(absence: AbsenceLue, demo: boolean): Promise<void> {
+  if (demo) {
+    retirerAbsenceDemo<AbsenceLue>(absence.student_id, absence.id);
+    return;
+  }
+  const { data, error } = await supabase.from('absences').update({ statut: 'annulée' }).eq('id', absence.id).select('id');
+  if (error) {
+    const message = String((error as { message?: string }).message ?? '');
+    if (/commencée/.test(message)) {
+      throw new ErreurAbsence('L’absence a déjà commencé : elle ne peut plus être annulée. Écrivez à l’enseignant.');
+    }
+    if (/check constraint|absences_statut_check/.test(message)) {
+      throw new ErreurAbsence('L’annulation n’est pas encore possible sur ce serveur. Écrivez à l’enseignant.');
+    }
+    throw erreurEcriture(error, 'L’absence n’a pas pu être annulée. Réessayez.');
+  }
+  if (!data || data.length === 0) {
+    throw new ErreurAbsence('Seul le foyer qui a signalé l’absence peut l’annuler.');
+  }
+  if (absence.justificatif_path) {
+    await supabase.storage.from('carnet').remove([absence.justificatif_path]).catch(() => undefined);
+  }
   signalerAbsences(absence.student_id);
 }
 

@@ -64,8 +64,8 @@ import { modifiableParMonFoyer, type ResponsableFoyer } from '../utils/foyer';
 import { chargerResponsablesFoyer, modifierEvenement, supprimerEvenement, ErreurEvenement } from '../services/evenementsService';
 import { jourCourt as jourCourtAbsence } from '../utils/absences';
 import { ChevronLeft as ChevronLeftIcone, ChevronRight as ChevronRightIcone } from 'lucide-react-native';
-import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
-import { couvreJour, peutJustifier, texteCarteAbsence } from '../utils/absences';
+import { annulerAbsence, chargerAbsences, type AbsenceLue } from '../services/absenceService';
+import { couvreJour, peutAnnuler, peutJustifier, texteCarteAbsence } from '../utils/absences';
 import { TEINTES, categorieDiscipline, categorieEvenement } from '../theme/categories';
 import { de } from '../utils/francais';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
@@ -119,7 +119,7 @@ interface AgendaEvent {
   /** Jour de Paris 'AAAA-MM-JJ' de l'événement (modification). */
   jourIso?: string;
   /** Carte « Absence » (lot 4b) : l'absence et si je peux encore la justifier. */
-  absence?: { id: string; aJustifier: boolean };
+  absence?: { id: string; aJustifier: boolean; lue: AbsenceLue };
   subject?: string;
   location?: string;
   description?: string;
@@ -625,7 +625,7 @@ function AgendaScreenContent() {
             type: 'absence',
             description: a.commentaire ?? undefined,
             color: DEFAULT_COLOR.absence,
-            absence: { id: a.id, aJustifier: peutJustifier(a) },
+            absence: { id: a.id, aJustifier: peutJustifier(a), lue: a },
             coche: texteCarteAbsence(a),
           };
           grouped[jour.date] = trierJournee([...(grouped[jour.date] ?? []), carte]);
@@ -1094,6 +1094,26 @@ function AgendaScreenContent() {
     }
     if (event.type === 'absence') {
       const justifier = event.absence?.aJustifier;
+      const lue = event.absence?.lue;
+      // Lot 6 (M45) : annulable par le foyer de l'auteur jusqu'au début (8 h / 13 h, heure de Paris) ; la base vérifie aussi.
+      const annulable = !!lue && peutAnnuler(lue, aujourdhuiParis(), heureParis());
+      const annuler = () =>
+        Alert.alert(
+          'Annuler l’absence ?',
+          'L’enseignant verra « Annulée par la famille ». Le justificatif éventuel sera supprimé.',
+          [
+            { text: 'Garder', style: 'cancel' },
+            {
+              text: 'Annuler l’absence',
+              style: 'destructive',
+              onPress: () =>
+                lue &&
+                annulerAbsence(lue, isDemoMode).catch((e: unknown) =>
+                  Alert.alert('Absence non annulée', e instanceof Error ? e.message : 'Réessayez.'),
+                ),
+            },
+          ],
+        );
       return (
         <TouchableOpacity
           key={event.id}
@@ -1109,6 +1129,17 @@ function AgendaScreenContent() {
               <Text style={st.eventTitle}>{event.title}</Text>
               <Text style={st.eventMeta}>{event.coche}</Text>
               {justifier ? <Text style={st.eventSource}>À justifier · ajouter un justificatif</Text> : null}
+              {annulable ? (
+                <Pressable
+                  onPress={annuler}
+                  hitSlop={{ top: 6, bottom: 6 }}
+                  style={st.piluleAnnuler}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Annuler l’absence ${de(prenomEnfant)}`}
+                >
+                  <Text style={st.piluleAnnulerTexte}>Annuler l’absence</Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </TouchableOpacity>
@@ -2161,6 +2192,19 @@ const st = StyleSheet.create({
     color: 'rgba(15,23,42,0.55)',
     marginTop: 3,
   },
+  // « Annuler l'absence » (lot 6) : pilule secondaire (contour), 32 px + hitSlop → zone 44.
+  piluleAnnuler: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    height: 32,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  piluleAnnulerTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 13, lineHeight: 17, color: '#0F172A' },
   // Vue « Devoirs » (lot 4a, COMPONENTS §18.6)
   hwStats: {
     fontFamily: FontFamily.sansSemiBold,

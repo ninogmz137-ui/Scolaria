@@ -53,6 +53,30 @@ export interface AbsenceLue {
   /** Je suis responsable du même foyer que l'auteur (ou l'auteur) : je peux joindre le justificatif. */
   meme_foyer?: boolean;
   created_at?: string;
+  /** « signalée », « prise_en_compte » ou « annulée » (M45). */
+  statut?: string;
+}
+
+/**
+ * Heure de début d'une absence (heure de Paris) : 8 h le premier jour (matin, journée, plusieurs jours), 13 h pour une
+ * absence de l'après-midi. Même règle que la base (M45, déclencheur absences_controler_modification).
+ */
+export function heureDebutAbsence(a: Pick<AbsenceLue, 'demi_journee'>): string {
+  return a.demi_journee === 'apres_midi' ? '13:00' : '08:00';
+}
+
+/**
+ * Annulation possible (lot 6, règles du 21 nov. 2026) : absence de MON FOYER, pas déjà annulée, pas encore commencée
+ * (`aujourdhui` et `heure` = maintenant, heure de Paris). La base applique la même règle (M45) : l'écran ne fait que
+ * ne pas proposer un bouton qui serait refusé.
+ */
+export function peutAnnuler(
+  a: Pick<AbsenceLue, 'meme_foyer' | 'statut' | 'date_debut' | 'demi_journee'>,
+  aujourdhui: string,
+  heure: string,
+): boolean {
+  if (!a.meme_foyer || a.statut === 'annulée') return false;
+  return a.date_debut > aujourdhui || (a.date_debut === aujourdhui && heure < heureDebutAbsence(a));
 }
 
 /** Valeurs à enregistrer pour une durée choisie (« plusieurs jours » = journées entières jusqu'à la date de fin). */

@@ -93,7 +93,16 @@ export default function AbsencesEnseignantScreen() {
         <VStack className="flex-1">
           <Text className="text-[15px] font-bold mb-[3px]" style={{ color: '#0F172A' }}>{absence.student_name || 'Élève'}</Text>
           <Text className="text-xs mb-[3px]" style={{ color: '#64748B' }}>{periodeAbsence(absence, auj, dem)}</Text>
-          <Text className="text-[13px] mb-0.5" style={{ color: '#0F172A' }}>{libelleMotif(absence.motif)}</Text>
+          {/* Lot 6 (M45) : une absence annulée par le foyer reste visible, avec ce statut. */}
+          {absence.statut === 'annulée' ? (
+            <Text className="text-[13px] font-semibold mb-0.5" style={{ color: '#0F172A' }}>Annulée par la famille</Text>
+          ) : null}
+          <Text
+            className="text-[13px] mb-0.5"
+            style={[{ color: '#0F172A' }, absence.statut === 'annulée' ? { textDecorationLine: 'line-through', color: 'rgba(15,23,42,0.45)' } : null]}
+          >
+            {libelleMotif(absence.motif)}
+          </Text>
           {absence.commentaire ? (
             <Text className="text-xs mt-1" style={{ color: 'rgba(15,23,42,0.55)' }}>{absence.commentaire}</Text>
           ) : null}

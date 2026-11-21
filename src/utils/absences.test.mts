@@ -1,7 +1,7 @@
 // Tests des règles de l'absence signalée (lot 4b). Lancement : npm run test:absences
 import {
   MOTIFS, libelleMotif, valeursDuree, periodeAbsence, couvreJour, texteCarteAbsence, aJustifier, peutJustifier, fusionnerAbsences,
-  CONFIRMATION_ABSENCE,
+  CONFIRMATION_ABSENCE, peutAnnuler, heureDebutAbsence,
   type AbsenceLue,
 } from './absences.ts';
 
@@ -69,6 +69,18 @@ const pourJulien = fusionnerAbsences(lignes, [], resp, 'julien');
 egal('Julien : absence de Sophie = autre foyer, sans justificatif (masqué par la base)', [pourJulien[0].meme_foyer, pourJulien[0].justificatif_path, peutJustifier(pourJulien[0])], [false, null, false]);
 egal('Julien : sa propre absence = même foyer', pourJulien[1].meme_foyer, true);
 egal('sans compte : jamais même foyer', fusionnerAbsences(lignes, [], resp, null)[0].meme_foyer, false);
+
+// Annulation (lot 6, M45) : foyer de l'auteur, avant 8 h (13 h pour l'après-midi) le premier jour, heure de Paris.
+const aAnnuler = { meme_foyer: true, statut: 'signalée', date_debut: '2026-11-23', demi_journee: 'journee' as const };
+egal('annuler : la veille, à 22 h → oui', peutAnnuler(aAnnuler, '2026-11-22', '22:00'), true);
+egal('annuler : le jour même à 7 h 59 → oui', peutAnnuler(aAnnuler, '2026-11-23', '07:59'), true);
+egal('annuler : le jour même à 8 h → non (commencée)', peutAnnuler(aAnnuler, '2026-11-23', '08:00'), false);
+egal('annuler : après-midi, à 12 h 30 → oui', peutAnnuler({ ...aAnnuler, demi_journee: 'apres_midi' }, '2026-11-23', '12:30'), true);
+egal('annuler : après-midi, à 13 h → non', peutAnnuler({ ...aAnnuler, demi_journee: 'apres_midi' }, '2026-11-23', '13:00'), false);
+egal('annuler : le lendemain → non', peutAnnuler(aAnnuler, '2026-11-24', '07:00'), false);
+egal('annuler : autre foyer → non', peutAnnuler({ ...aAnnuler, meme_foyer: false }, '2026-11-22', '10:00'), false);
+egal('annuler : déjà annulée → non', peutAnnuler({ ...aAnnuler, statut: 'annulée' }, '2026-11-22', '10:00'), false);
+egal('heure de début : matin 8 h, après-midi 13 h', [heureDebutAbsence({ demi_journee: 'matin' }), heureDebutAbsence({ demi_journee: 'apres_midi' })], ['08:00', '13:00']);
 
 egal('confirmation', CONFIRMATION_ABSENCE, 'Absence signalée à l’école');
 egal('jamais « notifié »', /notifi/i.test(CONFIRMATION_ABSENCE), false);

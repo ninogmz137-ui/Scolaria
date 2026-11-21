@@ -46,6 +46,12 @@ export function remplacerAbsenceDemo<T extends { id: string }>(childId: string, 
   signalerAbsences(childId);
 }
 
+/** Démo : absence annulée (lot 6) — elle disparaît du carnet, comme en base (statut « annulée »). */
+export function retirerAbsenceDemo<T extends { id: string }>(childId: string, id: string): void {
+  demo.set(childId, (demo.get(childId) ?? []).filter((x) => (x as T).id !== id));
+  signalerAbsences(childId);
+}
+
 /** Tests seulement. */
 export function reinitialiserAbsencesStore(): void {
   versions.clear();

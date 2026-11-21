@@ -149,6 +149,12 @@ Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
+## Lot 6 (déclaré le 21 nov. 2026, NON appliqué) — M45 : 0 nouveau, 1 DISPARITION ANNONCÉE (97 → 96)
+- Disparaît : `auth_rls_initplan` sur la politique `absences_parent_update` (`public.absences`) : M45 la réécrit avec
+  `(SELECT auth.uid())`. Mesuré en local : 61 → 60 WARN, aucune mention des objets de M45 (déclencheur
+  `absences_controler_modification` exécutable par personne, clé étrangère `annulee_par` indexée).
+- Procédure : `tasks/lot6-procedures-paris.md`. Toute autre différence = arrêt.
+
 ## Lot 5 (21 nov. 2026) — M44 : AUCUN WARN nouveau
 - **MESURÉ sur Paris le 21 nov. 2026** (M44 appliquée, un cycle) : 0 ERROR, **97 WARN** avant et après, 0 nouveau,
   0 disparu, VERDICT : OK. Déclencheur `verifier_classe_absence` → fonction `absences_verifier_classe` (SECURITY DEFINER,
