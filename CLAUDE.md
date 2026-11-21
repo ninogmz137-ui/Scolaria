@@ -455,6 +455,8 @@ Email + mot de passe → Supabase Auth identifie le rôle →
 ### Garde partagée
 - **Partagé entre responsables** : tout ce qui vient de l'école (mots, annonces du fil de classe, photos, documents, statuts de signature), la coche « fait » des devoirs
 - **Coche « fait » d'un devoir (règle des parents séparés, 20 nov. 2026)** : la coche est partagée entre **TOUS** les responsables de l'enfant, y compris d'un autre foyer. **L'auteur et l'heure** (« Coché par [prénom] · [heure] ») ne sont visibles **qu'à l'intérieur du foyer de celui qui a coché** ; un responsable d'un autre foyer voit seulement « Fait ». Le masquage est fait **par la base** (M41 : `agenda_coches`, lue par `coches_devoirs`, qui rend l'auteur et l'heure à null hors du foyer de l'auteur).
+- **Justificatif d'absence (20 nov. 2026)** : joint et lu par tout responsable du **foyer de l'auteur** de l'absence (et lu par le titulaire de la classe) ; un responsable d'un autre foyer voit l'absence, mais ni le justificatif ni « À justifier » (M42 : `absences_justificatifs`).
+- **Rendez-vous fixe (21 nov. 2026)** : vu, créé et sa liste « À prévoir » cochée par tout responsable de l'enfant ; **modifié et supprimé seulement par le foyer de son auteur** (par tous si l'auteur n'est plus responsable) ; « Ajouté par [prénom] » visible dans le foyer de l'auteur seulement, rien hors foyer ; coches « À prévoir » : même règle que les devoirs (M43, masquage par la base).
 - **Privé à chaque responsable** : ses conversations privées avec l'enseignant (dont ses réponses privées à un mot ou à une annonce de classe), ses notes personnelles, ses ajouts marqués privés
 
 ### ENFANT MATERNELLE / PRIMAIRE (3-10 ans)

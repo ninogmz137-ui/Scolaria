@@ -978,11 +978,18 @@ function AgendaScreenContent() {
       const r = event.rendezVous;
       return (
         <View key={event.id} style={[st.eventCard, { borderLeftColor: event.color, backgroundColor: withAlpha(event.color, 0.08) }]}>
-          <Pressable onPress={() => ouvrirRendezVous(r.rdv)} accessibilityRole="button" accessibilityLabel={`Modifier ${libelleRendezVous(r.rdv)}`}>
+          {/* Modifier / supprimer : foyer de l'auteur seulement (règle du 21 nov.) ; un parent séparé ne voit pas l'action. */}
+          <Pressable
+            onPress={() => ouvrirRendezVous(r.rdv)}
+            disabled={!r.rdv.peut_modifier}
+            accessibilityRole={r.rdv.peut_modifier ? 'button' : undefined}
+            accessibilityLabel={r.rdv.peut_modifier ? `Modifier ${libelleRendezVous(r.rdv)}` : libelleRendezVous(r.rdv)}
+          >
             <Text style={st.eventCategorie}>Rendez-vous fixe</Text>
             <Text style={st.eventTitle}>{event.title}</Text>
             <Text style={st.eventMeta}>{[event.time, event.coche].filter(Boolean).join(' · ')}</Text>
             {r.ajoutePar ? <Text style={st.eventSource}>{r.ajoutePar}</Text> : null}
+            {r.rdv.peut_modifier ? <Text style={st.rdvModifier}>Modifier</Text> : null}
           </Pressable>
           {r.aPrevoir.length > 0 ? (
             <View style={st.rdvListe}>
@@ -2014,6 +2021,7 @@ const st = StyleSheet.create({
   },
 
   // Rendez-vous fixe (lot 4c) : liste « À prévoir » et option « Toutes les semaines ».
+  rdvModifier: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#4338CA', marginTop: 4 },
   rdvListe: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.07)' },
   rdvItem: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6, minHeight: 34 },
   rdvItemTexte: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: '#0F172A' },

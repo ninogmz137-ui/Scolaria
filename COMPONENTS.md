@@ -774,7 +774,9 @@ Absence signalée : carte §7 Agenda, catégorie « Absence », période + motif
   (aucune lecture par l'enseignant n'est enregistrée : rien qui ne soit vrai ; décision du 17 nov.)
 Journée type fixe du primaire : RETIRÉE de la V1 (décision du 17 nov.), comme l'emploi du temps complet (Phase 2)
 Rendez-vous fixes hebdomadaires (V1) : « Piscine · tous les jeudis », « Bibliothèque · tous les mardis »
-  carte §7 Agenda avec libellé de catégorie + liste « À prévoir » cochable
+  carte §7 Agenda avec libellé de catégorie + liste « À prévoir » cochable SEMAINE PAR SEMAINE ; jamais pendant les vacances
+  scolaires (zone de l’école, B par défaut) ; « Ajouté par [prénom] » et action « Modifier » dans le foyer de l’auteur
+  seulement (un parent séparé voit la carte et coche, sans « Ajouté par » ni « Modifier » ; règle du 21 nov. 2026)
 Emploi du temps complet : Phase 2 (aucune grille horaire en V1)
 ```
 

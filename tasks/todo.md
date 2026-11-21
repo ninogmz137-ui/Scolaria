@@ -162,7 +162,7 @@
   - démo en mémoire.
 
   Tests : rendezVous 15, test-lot4c-local 19/19.
-- [ ] [UNCLEAR] « Ajouté par [prénom] » est visible de tous les responsables, y compris d'un autre foyer : la règle des parents séparés n'a été demandée que pour l'auteur des coches. À confirmer.
+- [x] Règles du 21 nov. (M43 révisée, `rendez_vous_auteurs`, aller-retour OK, tests SQL 8/8, 25 suites) : « Ajouté par » masqué hors foyer par la base, sans texte de remplacement ; modification et suppression par le foyer de l’auteur seulement (tout responsable si l’auteur est parti) ; le parent séparé voit et coche. test-lot4c-local 27/27.
 - [ ] Redmi (base locale) : à vérifier par l'utilisateur.
 
 ### LOT 4b — RÉSULTAT (20 nov., `archi-lot-4`, 33384df, NON poussé) — rien sur Paris, rien dans main

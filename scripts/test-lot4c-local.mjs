@@ -41,8 +41,12 @@ async function zoneEnfant(c, childId) {
   return zoneDepuisEcole(ec);
 }
 async function vueAgenda(c, childId, lundi) {
-  const { data: rdvs } = await c.from('rendez_vous_fixes').select('id, child_id, titre, jour_semaine, heure, categorie, a_prevoir, cree_par').eq('child_id', childId);
-  const ids = (rdvs ?? []).map((r) => r.id);
+  const { data: lignes } = await c.from('rendez_vous_fixes').select('id, child_id, titre, jour_semaine, heure, categorie, a_prevoir').eq('child_id', childId);
+  const ids = (lignes ?? []).map((r) => r.id);
+  // Auteurs que la base me rend (foyer de l'auteur) : « Ajouté par » et droit de modifier (même code que le service).
+  const { data: auteursRdv } = ids.length ? await c.from('rendez_vous_auteurs').select('rdv_id, cree_par').in('rdv_id', ids) : { data: [] };
+  const visibles = new Map((auteursRdv ?? []).map((a) => [a.rdv_id, a.cree_par]));
+  const rdvs = (lignes ?? []).map((x) => ({ ...x, cree_par: visibles.get(x.id) ?? null, peut_modifier: visibles.has(x.id) }));
   const [coches, auteurs, resp, zone] = await Promise.all([
     ids.length ? c.from('rendez_vous_coches').select('rdv_id, semaine, item').in('rdv_id', ids) : { data: [] },
     ids.length ? c.from('rendez_vous_coches_auteurs').select('rdv_id, semaine, item, fait_par, fait_le').in('rdv_id', ids) : { data: [] },
@@ -84,10 +88,25 @@ verifier('« Ajouté par Sophie » pour Marc', (await vueAgenda(marc, lina, lund
 // Vacances : la Toussaint 2026 (zone B) ne montre rien.
 verifier('aucune carte pendant les vacances (semaine du 19 oct. 2026)', (await vueAgenda(sophie, lina, '2026-10-19')).length === 0);
 
-// 2. Tout responsable modifie (Julien, autre foyer, compris) ; l'auteur ne change pas.
-const { data: modJ } = await julien.from('rendez_vous_fixes').update({ titre: 'Piscine (bassin 2)', a_prevoir: ['Maillot', 'Bonnet', 'Serviette', 'Gel douche'] }).eq('id', rdv.id).select('titre, cree_par');
-verifier('Julien (autre foyer) modifie le rendez-vous', (modJ ?? [])[0]?.titre === 'Piscine (bassin 2)');
-verifier('l’auteur reste Sophie', (modJ ?? [])[0]?.cree_par === idSophie);
+// 2. Règle du 21 nov. : Julien (autre foyer) voit « Piscine » sans « Ajouté par », peut cocher, mais ne peut ni
+//    modifier ni supprimer (refusé par la base) ; Marc (foyer de Sophie) modifie.
+const vueJ = await vueAgenda(julien, lina, lundi);
+verifier('Julien voit « Piscine »', vueJ.length === 1 && vueJ[0].rdv.titre === 'Piscine');
+verifier('Julien : sans « Ajouté par »', vueJ[0]?.ajoutePar === null, vueJ[0]?.ajoutePar);
+verifier('Julien : pas d’action « Modifier » (peut_modifier faux)', vueJ[0]?.rdv.peut_modifier === false);
+const { data: modJ, error: eModJ } = await julien.from('rendez_vous_fixes').update({ titre: 'Piscine (Julien)' }).eq('id', rdv.id).select('id');
+verifier('Julien : modification refusée par la base', !eModJ && (modJ ?? []).length === 0, eModJ?.message ?? `${(modJ ?? []).length} ligne(s)`);
+const { data: supJ } = await julien.from('rendez_vous_fixes').delete().eq('id', rdv.id).select('id');
+verifier('Julien : suppression refusée par la base', (supJ ?? []).length === 0 && (await vueAgenda(sophie, lina, lundi)).length === 1);
+const { error: eCocheJ } = await julien.from('rendez_vous_coches').insert({ rdv_id: rdv.id, semaine: lundi, item: 'Serviette' });
+verifier('Julien : peut cocher « Serviette »', !eCocheJ, eCocheJ?.message);
+const serviettePourSophie = (await vueAgenda(sophie, lina, lundi))[0]?.aPrevoir.find((p) => p.item === 'Serviette');
+verifier('Sophie voit la coche de Julien comme « Fait »', serviettePourSophie?.coche && serviettePourSophie?.source === 'Fait', serviettePourSophie?.source);
+await julien.from('rendez_vous_coches').delete().eq('rdv_id', rdv.id).eq('semaine', lundi).eq('item', 'Serviette');
+verifier('Marc : action « Modifier » présente', (await vueAgenda(marc, lina, lundi))[0]?.rdv.peut_modifier === true);
+const { data: modM, error: eModM } = await marc.from('rendez_vous_fixes').update({ titre: 'Piscine (bassin 2)', a_prevoir: ['Maillot', 'Bonnet', 'Serviette', 'Gel douche'] }).eq('id', rdv.id).select('titre');
+verifier('Marc (foyer de Sophie) modifie le rendez-vous', !eModM && (modM ?? [])[0]?.titre === 'Piscine (bassin 2)', eModM?.message);
+verifier('« Ajouté par » reste Sophie après la modification de Marc', (await vueAgenda(marc, lina, lundi))[0]?.ajoutePar === 'Ajouté par Sophie');
 
 // 3. « À prévoir » : Marc coche « Maillot » cette semaine ; partagé ; auteur dans le foyer seulement.
 const { error: eC } = await marc.from('rendez_vous_coches').insert({ rdv_id: rdv.id, semaine: lundi, item: 'Maillot' });
@@ -114,7 +133,7 @@ const { data: modK } = await karim.from('rendez_vous_fixes').update({ titre: 'pi
 verifier('Karim ne peut rien modifier', (modK ?? []).length === 0);
 verifier('l’enseignant ne voit pas les rendez-vous de la famille', ((await titulaire.from('rendez_vous_fixes').select('id')).data ?? []).length === 0);
 
-// 5. Marc supprime (tout responsable).
+// 5. Marc (foyer de l'auteur) supprime.
 const { error: eSuppr } = await marc.from('rendez_vous_fixes').delete().eq('id', rdv.id);
 verifier('Marc supprime le rendez-vous', !eSuppr && (await vueAgenda(sophie, lina, lundi)).length === 0, eSuppr?.message);
 

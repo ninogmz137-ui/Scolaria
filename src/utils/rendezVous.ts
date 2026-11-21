@@ -3,7 +3,9 @@
  *
  * - « Piscine · tous les jeudis », avec sa liste « À prévoir » cochée SEMAINE PAR SEMAINE (semaine = son lundi).
  * - Jamais affiché un jour de vacances scolaires (utils/vacances, zone de l'école ; fonction passée en paramètre).
- * - « Ajouté par [prénom] » (« vous » pour soi) ; modifiable et supprimable par tout responsable de l'enfant.
+ * - « Ajouté par [prénom] » (« vous » pour soi) dans le foyer de l'auteur seulement ; hors foyer, rien (la base ne
+ *   rend pas l'auteur, M43). Modifiable et supprimable par le foyer de l'auteur seulement (règle du 21 nov. 2026) :
+ *   `peut_modifier` vient de la base (ligne d'auteur visible).
  * - Coche « À prévoir » partagée entre tous les responsables ; sous l'élément coché, « Coché par [prénom] · [heure] »
  *   dans le foyer de l'auteur seulement, « Fait » ailleurs (la base ne rend l'auteur qu'au foyer, M43).
  *
@@ -19,7 +21,10 @@ export interface RendezVous {
   heure?: string | null;
   categorie?: string | null;
   a_prevoir: string[];
+  /** Auteur (rendez_vous_auteurs) : seulement si la base me le rend (foyer de l'auteur), sinon null. */
   cree_par?: string | null;
+  /** Je peux modifier et supprimer (foyer de l'auteur, ou auteur parti) : ligne d'auteur visible. */
+  peut_modifier?: boolean;
 }
 
 export interface CocheLueRdv {

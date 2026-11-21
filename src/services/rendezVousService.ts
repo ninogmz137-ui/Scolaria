@@ -2,7 +2,8 @@
  * rendezVousService — rendez-vous fixes hebdomadaires d'un enfant (lot 4c, M43).
  *
  * - Un enfant = un carnet : toujours UN child_id.
- * - Tout responsable de l'enfant lit, crée, modifie, supprime (RLS M43). « Ajouté par » : cree_par posé par le serveur.
+ * - Tout responsable de l'enfant lit, crée et coche ; seul le FOYER DE L'AUTEUR modifie et supprime (RLS M43, règle
+ *   du 21 nov.). « Ajouté par » : rendez_vous_auteurs, que la base ne rend qu'au foyer de l'auteur (hors foyer : rien).
  * - Coches « À prévoir » par semaine (lundi), partagées ; auteur et heure lus dans rendez_vous_coches_auteurs, que la
  *   base ne rend qu'au foyer de l'auteur (règle des parents séparés) → hors foyer, « Fait ».
  * - Zone de vacances : école de l'année active (code UAI, ville), zone B par défaut (utils/vacances).
@@ -44,8 +45,8 @@ function tableAbsente(error: { code?: string } | null): boolean {
 function initialDemo(childId: string): EtatDemo<RendezVous, AuteurCocheRdv> {
   return {
     rdvs: [
-      { id: `demo-rdv-piscine-${childId}`, child_id: childId, titre: 'Piscine', jour_semaine: 4, categorie: 'eps', a_prevoir: ['Maillot', 'Bonnet', 'Serviette'], cree_par: MOI_DEMO },
-      { id: `demo-rdv-biblio-${childId}`, child_id: childId, titre: 'Bibliothèque', jour_semaine: 2, categorie: null, a_prevoir: ['Livre à rendre'], cree_par: MOI_DEMO },
+      { id: `demo-rdv-piscine-${childId}`, child_id: childId, titre: 'Piscine', jour_semaine: 4, categorie: 'eps', a_prevoir: ['Maillot', 'Bonnet', 'Serviette'], cree_par: MOI_DEMO, peut_modifier: true },
+      { id: `demo-rdv-biblio-${childId}`, child_id: childId, titre: 'Bibliothèque', jour_semaine: 2, categorie: null, a_prevoir: ['Livre à rendre'], cree_par: MOI_DEMO, peut_modifier: true },
     ],
     coches: [],
   };
@@ -67,11 +68,21 @@ export async function chargerRendezVous(childId: string, demo: boolean): Promise
     const e = etatDemo<RendezVous, AuteurCocheRdv>(childId, () => initialDemo(childId));
     return { rdvs: e.rdvs, coches: e.coches, auteursCoches: e.coches, noms: { [MOI_DEMO]: 'vous' }, zone: 'B' };
   }
-  const r = await supabase.from('rendez_vous_fixes').select('id, child_id, titre, jour_semaine, heure, categorie, a_prevoir, cree_par').eq('child_id', childId).order('jour_semaine');
+  const r = await supabase.from('rendez_vous_fixes').select('id, child_id, titre, jour_semaine, heure, categorie, a_prevoir').eq('child_id', childId).order('jour_semaine');
   if (tableAbsente(r.error)) return { rdvs: [], coches: [], auteursCoches: [], noms: {}, zone: 'B' };
   leverSiErreur(r.error);
-  const rdvs = ((r.data ?? []) as any[]).map((x) => ({ ...x, a_prevoir: Array.isArray(x.a_prevoir) ? x.a_prevoir.map(String) : [] })) as RendezVous[];
-  const ids = rdvs.map((x) => x.id);
+  const lignes = (r.data ?? []) as any[];
+  const ids = lignes.map((x) => String(x.id));
+  // Auteurs que la base me rend (foyer de l'auteur, ou auteur parti) : « Ajouté par » et droit de modifier.
+  const auteursRdv = ids.length ? await supabase.from('rendez_vous_auteurs').select('rdv_id, cree_par').in('rdv_id', ids) : { data: [], error: null };
+  leverSiErreur(auteursRdv.error);
+  const visibles = new Map(((auteursRdv.data ?? []) as any[]).map((a) => [String(a.rdv_id), a.cree_par ? String(a.cree_par) : null]));
+  const rdvs = lignes.map((x) => ({
+    ...x,
+    a_prevoir: Array.isArray(x.a_prevoir) ? x.a_prevoir.map(String) : [],
+    cree_par: visibles.get(String(x.id)) ?? null,
+    peut_modifier: visibles.has(String(x.id)),
+  })) as RendezVous[];
   const [coches, auteurs, noms, zone] = await Promise.all([
     ids.length ? supabase.from('rendez_vous_coches').select('rdv_id, semaine, item').in('rdv_id', ids) : Promise.resolve({ data: [], error: null }),
     ids.length ? supabase.from('rendez_vous_coches_auteurs').select('rdv_id, semaine, item, fait_par, fait_le').in('rdv_id', ids) : Promise.resolve({ data: [], error: null }),
@@ -98,7 +109,7 @@ export interface SaisieRendezVous {
 export async function creerRendezVous(childId: string, s: SaisieRendezVous, demo: boolean): Promise<void> {
   if (demo) {
     const e = etatDemo<RendezVous, AuteurCocheRdv>(childId, () => initialDemo(childId));
-    majDemo(childId, { ...e, rdvs: [...e.rdvs, { id: `demo-rdv-${Date.now()}`, child_id: childId, titre: s.titre, jour_semaine: s.jourSemaine, a_prevoir: s.aPrevoir, cree_par: MOI_DEMO }] });
+    majDemo(childId, { ...e, rdvs: [...e.rdvs, { id: `demo-rdv-${Date.now()}`, child_id: childId, titre: s.titre, jour_semaine: s.jourSemaine, a_prevoir: s.aPrevoir, cree_par: MOI_DEMO, peut_modifier: true }] });
     return;
   }
   const { error } = await supabase.from('rendez_vous_fixes').insert({ child_id: childId, titre: s.titre, jour_semaine: s.jourSemaine, a_prevoir: s.aPrevoir });
@@ -114,7 +125,7 @@ export async function modifierRendezVous(rdv: RendezVous, s: SaisieRendezVous, d
   }
   const { data, error } = await supabase.from('rendez_vous_fixes')
     .update({ titre: s.titre, jour_semaine: s.jourSemaine, a_prevoir: s.aPrevoir }).eq('id', rdv.id).select('id');
-  if (error || !data?.length) throw error ? erreurEcriture(error, 'Modification impossible. Réessayez.') : new ErreurRendezVous('Ce rendez-vous n’existe plus.');
+  if (error || !data?.length) throw error ? erreurEcriture(error, 'Modification impossible. Réessayez.') : new ErreurRendezVous('Seul le foyer qui a ajouté ce rendez-vous peut le modifier.');
   signalerRendezVous(rdv.child_id);
 }
 
@@ -124,8 +135,9 @@ export async function supprimerRendezVous(rdv: RendezVous, demo: boolean): Promi
     majDemo(rdv.child_id, { rdvs: e.rdvs.filter((x) => x.id !== rdv.id), coches: e.coches.filter((c) => c.rdv_id !== rdv.id) });
     return;
   }
-  const { error } = await supabase.from('rendez_vous_fixes').delete().eq('id', rdv.id);
+  const { data, error } = await supabase.from('rendez_vous_fixes').delete().eq('id', rdv.id).select('id');
   if (error) throw erreurEcriture(error, 'Suppression impossible. Réessayez.');
+  if (!data?.length) throw new ErreurRendezVous('Seul le foyer qui a ajouté ce rendez-vous peut le supprimer.');
   signalerRendezVous(rdv.child_id);
 }
 
