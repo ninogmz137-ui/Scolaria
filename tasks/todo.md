@@ -10,7 +10,9 @@
 - [ ] **Lot 4** — Agenda : devoirs par jour d'échéance avec coche partagée « Coché par », absence signalée par le parent (quand, durée, motif, justificatif, mot), rendez-vous fixes hebdomadaires avec « À prévoir », libellé de catégorie sur les cartes.
 - [ ] **Lot 5** — Bouton « + » unique (six actions, ordre selon l'onglet ; FAB, crayon, scanner supprimés), champ unique « Rechercher ou demander » (loupe supprimée, « Assistant » sans nom de personnage), pastille rouge sur l'avatar + décompte en clair dans le sélecteur.
 - [ ] **Lot 6** — Accueil (en-tête « classe · enseignant · école », À faire, Aujourd'hui et demain, Nouveau dans le carnet, suggestion sur une ligne avec source ; fonds d'écran supprimés) et Famille et paramètres (sept entrées, « Apparence » supprimée, options non branchées retirées).
+  - Code de transfert (`rgpd/TransfertCodeScreen.tsx`) : NE FONCTIONNE PAS (table `transfer_codes` sans aucun droit pour un compte depuis M32 : lecture et création échouent) ; accès déjà masqué (aucun lien depuis le 26 sept. : `RGPDScreen`, Famille et paramètres) ; seule la route reste déclarée (parent, élève, enseignant). Au lot 6 : retirer l'écran et ses routes, ou le reconstruire sur un vrai mécanisme (décision à prendre).
 - [ ] **Lot 7** — Espace enseignant en miroir : onglets Classe · Mots · Élèves · Messages ; « + » : Nouveau mot · Donner des devoirs · Faire l'appel · Observation.
+  - Promesses de notification à retirer ou à brancher (relevé du 21 nov.) : interrupteur « Notifier les parents » (`teacher/VieDeClasseScreen.tsx:490`) ; « Relance envoyée » (`teacher/CahierLiaisonScreen.tsx:117-127`) ; `sendRelanceNotification` / `sendNewMotNotification` (`liaisonService.ts:573-588`), qui n’envoient rien.
   - Civilité dans le profil enseignant (Mme / M.) ; côté parent, l'enseignant s'affiche partout « Mme Martin » (civilité + nom) ; prénom et nom (« Claire Martin ») seulement si la civilité manque. Source actuelle du nom affiché : `mot_expediteur` (M21) et les écrans qui lisent `profiles` (demandé le 18 nov.).
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
@@ -119,12 +121,10 @@
 4. Modale « Nouvel événement » : voir la question 1.
 5. (Ajout du 20 nov.) Retirer les promesses non tenues : « Les parents ont été notifiés » (`teacher/VieDeClasseScreen.tsx:292`) et « Vous êtes notifié de son utilisation » (`rgpd/TransfertCodeScreen.tsx:266`), remplacés par des textes qui ne promettent rien (aucune notification n'est envoyée).
    - **FAIT (21 nov.)** : les deux textes sont remplacés (« Votre … est visible dans le fil de la classe. » ; « Le code n’est plus utilisable après 90 jours »).
-   - **Autres promesses de notification non tenues, relevées le 21 nov. (NON corrigées, à décider)** :
-     - `teacher/VieDeClasseScreen.tsx:490` : interrupteur « Notifier les parents » (enregistré dans `notify_parents`, aucun envoi) ;
-     - `teacher/CahierLiaisonScreen.tsx:117-127` : « Relancer » puis « Relance envoyée · N parents relancés » (`sendRelanceNotification` n’écrit qu’une ligne de journal) ; `sendNewMotNotification` à la création d’un mot, même cas (`liaisonService.ts:573-588`) ;
-     - `AProposScreen.tsx:59` : « observe une tendance sur 5 jours avant de vous prévenir » (aucune alerte en V1) ; `:70` : « au plus une alerte non urgente toutes les 48 heures » (aucune notification envoyée) ;
-     - `SignSuccessScreen.tsx:100` : « ajouter … à l’agenda avec un rappel la veille ? », et quatre boutons sans action (« Ajouter à l’agenda », « Non merci », « Télécharger le PDF », « Voir dans l’agenda ») ;
-     - `rgpd/TransfertCodeScreen.tsx` : tout l’écran « Code de transfert » est à vérifier (table `transfer_codes` sans droit depuis M32).
+   - **Autres promesses de notification non tenues, relevées le 21 nov.** :
+     - **FAIT (21 nov., côté parent)** : `AProposScreen.tsx`, plus aucune promesse d’alerte (« Le carnet ne vous envoie aucune alerte sur l’humeur ou les résultats de votre enfant. » ; bloc « Silence de 20h à 7h… » retiré) ; `SignSuccessScreen.tsx`, question « avec un rappel la veille ? » et ses quatre boutons sans action retirés.
+     - **AU LOT 7 (côté enseignant)** : `teacher/VieDeClasseScreen.tsx:490`, interrupteur « Notifier les parents » (aucun envoi) ; `teacher/CahierLiaisonScreen.tsx:117-127`, « Relancer » puis « Relance envoyée · N parents relancés » ; `liaisonService.ts:573-588`, `sendRelanceNotification` et `sendNewMotNotification` n’écrivent qu’une ligne de journal.
+     - **AU LOT 6** : `rgpd/TransfertCodeScreen.tsx`, voir la ligne du lot 6 en tête de fichier (l’écran ne fonctionne pas, accès déjà masqué).
 
 **Paris** : `tasks/lot4-procedures-paris.md` RÉDIGÉE le 21 nov. (contrôles vérifiés sur la base locale ; WARN attendus : M41 97 → 98, M42 98 → 98, M43 98 → 98), au modèle du lot 3 :
 - trois cycles M41, M42, M43, avec `--yes` uniquement sur autorisation ;

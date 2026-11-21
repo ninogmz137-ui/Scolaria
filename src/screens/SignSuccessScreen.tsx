@@ -15,10 +15,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import type { DemoDoc } from '../data/demo/accueil';
-import { Check, Download, Calendar } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { C, SHADOW, STICKY_CTA_BOTTOM_GAP, getStickyCtaScrollPadding } from '../constants/design';
 import { FontFamily } from '../hooks/useSolariaFonts';
-import AriaInlineCard from '../components/AriaInlineCard';
 import { Text } from '../components/ui';
 import { de } from '../utils/francais';
 
@@ -93,36 +92,8 @@ export default function SignSuccessScreen() {
           </View>
         </View>
 
-        {/* Aria */}
-        <View style={{ marginTop: 8 }}>
-          <AriaInlineCard>
-            <Text style={styles.ariaText}>
-              Voulez-vous ajouter « {doc.title} » à l’agenda {de(prenom)} avec un rappel la veille ?
-            </Text>
-            <View style={styles.ariaActions}>
-              <TouchableOpacity style={styles.ariaPillMain}>
-                <Text style={styles.ariaPillMainText}>Ajouter à l'agenda</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.ariaPillSecond, { marginLeft: 8 }]}>
-                <Text style={styles.ariaPillSecondText}>Non merci</Text>
-              </TouchableOpacity>
-            </View>
-          </AriaInlineCard>
-        </View>
-
-        {/* Actions secondaires */}
-        <View style={[styles.cardOuter, { marginTop: 8 }]}>
-          <View style={styles.cardInner}>
-            <TouchableOpacity style={[styles.actionRow, styles.receiptBorder]} activeOpacity={0.7}>
-              <Download size={16} color={C.text55} strokeWidth={1.8} />
-              <Text style={[styles.actionText, { marginLeft: 12 }]}>Télécharger le PDF</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionRow} activeOpacity={0.7}>
-              <Calendar size={16} color={C.text55} strokeWidth={1.8} />
-              <Text style={[styles.actionText, { marginLeft: 12 }]}>Voir dans l'agenda</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Lot 4d (21 nov. 2026) : retirés, faute d'action réelle — la question « avec un rappel la veille ? » et ses
+            boutons « Ajouter à l'agenda » / « Non merci », « Télécharger le PDF », « Voir dans l'agenda ». */}
       </ScrollView>
 
       {/* Bouton retour fixe */}

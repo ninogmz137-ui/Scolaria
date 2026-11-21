@@ -54,9 +54,9 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
     Icon: ShieldCheck,
   },
   {
-    titre: 'Gradation, jamais de panique',
-    texte:
-      `Aucune alerte sur un signal isolé : ${ASSISTANT.nomMilieu} observe une tendance sur 5 jours avant de vous prévenir.`,
+    // Lot 4d (21 nov. 2026) : plus aucune promesse d'alerte. En V1, aucune alerte n'existe (CLAUDE.md § Score de Joie).
+    titre: 'Jamais de panique',
+    texte: 'Le carnet ne vous envoie aucune alerte sur l’humeur ou les résultats de votre enfant.',
     Icon: Activity,
   },
   {
@@ -64,11 +64,6 @@ const PRINCIPES: { titre: string; texte: string; Icon: typeof Ban }[] = [
     texte:
       'Aucune comparaison entre enfants. Les filières professionnelles valent les filières générales. Un enfant peut être comparé à lui-même sur plusieurs années, en tendance et sources citées.',
     Icon: Scale,
-  },
-  {
-    titre: 'Protection contre l’hyper-connexion',
-    texte: 'Silence de 20h à 7h, et au plus une alerte non urgente toutes les 48 heures.',
-    Icon: Moon,
   },
   {
     titre: 'Protocole d’urgence',

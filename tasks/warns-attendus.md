@@ -149,8 +149,10 @@ Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
-## À VALIDER avant application (déclaré le 20 nov. 2026, lot 4a — PAS encore dans la liste ci-dessus)
-- **M41** `coches_devoirs` — 1 WARN attendu :
+## Lot 4 (déclarés les 20 et 21 nov. 2026) — AUCUN WARN nouveau attendu (97 avant comme après M41, M42, M43)
+- **Révision du 21 nov.** : `coches_devoirs` est SUPPRIMÉE de M41 ; `agenda_coches` se lit par RLS (une politique,
+  `(SELECT auth.uid())`), dans le foyer de l'auteur seulement, comme M43. Le WARN annoncé ci-dessous n'existe donc plus.
+- *(Historique, caduc)* **M41** `coches_devoirs` — 1 WARN attendu :
   `authenticated_security_definer_function_executable | public.coches_devoirs(p_child_id uuid) / authenticated`
   Raison : règle des parents séparés (20 nov.) : l'auteur et l'heure d'une coche ne sont visibles que dans le foyer de
   l'auteur ; ils sont rangés dans `agenda_coches`, que personne ne lit directement (RLS + politique qui refuse tout,
