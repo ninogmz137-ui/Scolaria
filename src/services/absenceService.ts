@@ -165,6 +165,10 @@ export async function signalerAbsence(a: NouvelleAbsence, demo: boolean): Promis
     })
     .select('id')
     .single();
+  // M44 : la base refuse une absence si l'enfant n'a pas de classe avec un titulaire pour l'année en cours.
+  if (error && /pas sur l'app/.test(String((error as { message?: string }).message ?? ''))) {
+    throw new ErreurAbsence('L’école de votre enfant n’est pas encore sur l’app : rien n’a été envoyé. Prévenez l’école directement.');
+  }
   if (error || !data) throw erreurEcriture(error, 'L’absence n’a pas pu être signalée. Réessayez.');
   signalerAbsences(a.childId);
   if (a.justificatif) {
