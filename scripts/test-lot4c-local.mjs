@@ -13,6 +13,7 @@ import { aujourdhuiParis, decalerJour, lundiDuJour, jourParisIso, heureParisIso 
 import { occurrencesSemaine, etatAPrevoir, ajoutePar } from '../src/utils/rendezVous.ts';
 import { enVacances, zoneDepuisEcole } from '../src/utils/vacances.ts';
 import { libelleCoche, auteursDepuisResponsables, auteurCoche } from '../src/utils/devoirs.ts';
+import { modifiableParMonFoyer } from '../src/utils/foyer.ts';
 
 const statut = JSON.parse(execSync('npx supabase@3.2.0 status -o json', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
 exigerHoteLocal(statut.API_URL);
@@ -136,6 +137,58 @@ verifier('l’enseignant ne voit pas les rendez-vous de la famille', ((await tit
 // 5. Marc (foyer de l'auteur) supprime.
 const { error: eSuppr } = await marc.from('rendez_vous_fixes').delete().eq('id', rdv.id);
 verifier('Marc supprime le rendez-vous', !eSuppr && (await vueAgenda(sophie, lina, lundi)).length === 0, eSuppr?.message);
+
+
+// 6. Défaut du 21 nov. : ce que Sophie crée depuis l'app (événement simple, rendez-vous fixe) est modifiable et
+//    supprimable par Sophie et par Marc (même foyer), pas par Julien (autre foyer) — dans la base ET à l'écran.
+const { data: respFoyer } = await sophie.from('responsables').select('user_id, foyer_id').eq('child_id', lina);
+const ecran = (moi, auteur) => modifiableParMonFoyer(auteur, moi, respFoyer ?? []);
+const idMarc = (await marc.auth.getUser()).data.user.id;
+const idJulien = (await julien.auth.getUser()).data.user.id;
+const creerEvenement = async (titre) => (await sophie.from('agenda_events')
+  .insert({ child_id: lina, parent_id: idSophie, title: titre, event_type: 'sortie', start_time: new Date(Date.now() + 9 * 86400000).toISOString() })
+  .select('id').single()).data;
+const creerRdv = async (titre) => (await sophie.from('rendez_vous_fixes')
+  .insert({ child_id: lina, titre, jour_semaine: 5, a_prevoir: [] }).select('id').single()).data;
+const modifier = (c, table, id, champs) => c.from(table).update(champs).eq('id', id).select('id');
+const supprimer = (c, table, id) => c.from(table).delete().eq('id', id).select('id');
+const nb = (r) => (r.data ?? []).length;
+
+verifier('écran : Sophie peut modifier ce qu’elle a créé', ecran(idSophie, idSophie));
+verifier('écran : Marc (même foyer) peut modifier', ecran(idMarc, idSophie));
+verifier('écran : Julien (autre foyer) n’a pas l’action', !ecran(idJulien, idSophie));
+
+const ev = await creerEvenement('Zoo');
+let r = await modifier(julien, 'agenda_events', ev.id, { title: 'Zoo (Julien)' });
+verifier('événement simple : modification de Julien refusée par la base', !!r.error || nb(r) === 0, r.error?.message);
+r = await supprimer(julien, 'agenda_events', ev.id);
+verifier('événement simple : suppression de Julien refusée par la base', nb(r) === 0);
+r = await julien.from('agenda_events').update({ is_done: true }).eq('id', ev.id).select('id');
+verifier('événement simple : Julien peut quand même cocher (coche partagée)', !r.error && nb(r) === 1, r.error?.message);
+r = await modifier(sophie, 'agenda_events', ev.id, { title: 'Zoo de Vincennes' });
+verifier('événement simple : Sophie modifie', !r.error && nb(r) === 1, r.error?.message);
+r = await modifier(marc, 'agenda_events', ev.id, { title: 'Zoo de Vincennes (car à 8 h)' });
+verifier('événement simple : Marc modifie', !r.error && nb(r) === 1, r.error?.message);
+r = await supprimer(marc, 'agenda_events', ev.id);
+verifier('événement simple : Marc supprime', !r.error && nb(r) === 1, r.error?.message);
+const ev2 = await creerEvenement('Musée');
+r = await supprimer(sophie, 'agenda_events', ev2.id);
+verifier('événement simple : Sophie supprime', !r.error && nb(r) === 1, r.error?.message);
+
+const rv = await creerRdv('Théâtre');
+r = await modifier(julien, 'rendez_vous_fixes', rv.id, { titre: 'Théâtre (Julien)' });
+verifier('rendez-vous créé par Sophie : modification de Julien refusée', nb(r) === 0);
+r = await supprimer(julien, 'rendez_vous_fixes', rv.id);
+verifier('rendez-vous créé par Sophie : suppression de Julien refusée', nb(r) === 0);
+r = await modifier(sophie, 'rendez_vous_fixes', rv.id, { titre: 'Théâtre (salle 2)' });
+verifier('rendez-vous créé par Sophie : Sophie modifie', !r.error && nb(r) === 1, r.error?.message);
+r = await modifier(marc, 'rendez_vous_fixes', rv.id, { titre: 'Théâtre (salle 3)' });
+verifier('rendez-vous créé par Sophie : Marc modifie', !r.error && nb(r) === 1, r.error?.message);
+r = await supprimer(marc, 'rendez_vous_fixes', rv.id);
+verifier('rendez-vous créé par Sophie : Marc supprime', !r.error && nb(r) === 1, r.error?.message);
+const rv2 = await creerRdv('Chorale');
+r = await supprimer(sophie, 'rendez_vous_fixes', rv2.id);
+verifier('rendez-vous créé par Sophie : Sophie supprime', !r.error && nb(r) === 1, r.error?.message);
 
 console.log(`\nLot 4c local : ${ok} OK, ${echecs} échec(s)`);
 process.exit(echecs ? 1 : 0);

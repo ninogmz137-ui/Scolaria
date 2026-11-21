@@ -10,7 +10,7 @@
  * - Ajout d'événement : bouton + de la bottom bar (pas de FAB, voir tasks/todo.md Phase B)
  */
 
-import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour, jourParisIso, heureParisIso, jourSemaine } from '../utils/jourParis';
+import { dateAujourdhuiParis, jourParis, heureParis, bornesParis, jourDeDate, aujourdhuiParis, demainParis, decalerJour, jourParisIso, heureParisIso, jourSemaine, minuitParis } from '../utils/jourParis';
 import { grouperDevoirs, libelleCoche, resteAFaire, type Devoir } from '../utils/devoirs';
 import { chargerDevoirs, chargerAuteursCoche, cocherDevoir, auteurCoche, chargerLignesSource, type AuteursCoche } from '../services/devoirsService';
 import PastilleCategorie from '../components/PastilleCategorie';
@@ -60,6 +60,10 @@ import {
   occurrencesSemaine, recurrence, ajoutePar, etatAPrevoir, listeAPrevoir, libelleRendezVous, JOURS_SEMAINE, type RendezVous,
 } from '../utils/rendezVous';
 import { enVacances } from '../utils/vacances';
+import { modifiableParMonFoyer, type ResponsableFoyer } from '../utils/foyer';
+import { chargerResponsablesFoyer, modifierEvenement, supprimerEvenement, ErreurEvenement } from '../services/evenementsService';
+import { jourCourt as jourCourtAbsence } from '../utils/absences';
+import { ChevronLeft as ChevronLeftIcone, ChevronRight as ChevronRightIcone } from 'lucide-react-native';
 import { chargerAbsences, type AbsenceLue } from '../services/absenceService';
 import { couvreJour, peutJustifier, texteCarteAbsence } from '../utils/absences';
 import { TEINTES, categorieDiscipline } from '../theme/categories';
@@ -110,6 +114,10 @@ interface AgendaEvent {
   type: 'cours' | 'devoir' | 'examen' | 'activite' | 'reunion' | 'sortie' | 'absence' | 'rendezvous';
   /** Carte « Rendez-vous fixe » (lot 4c) : le rendez-vous, sa semaine (lundi) et l'état de « À prévoir ». */
   rendezVous?: { rdv: RendezVous; semaine: string; aPrevoir: { item: string; coche: boolean; source: string | null }[]; ajoutePar: string | null };
+  /** Créé par un parent de MON foyer (ou auteur parti) : modifiable et supprimable (règle du 21 nov., M41). */
+  modifiable?: boolean;
+  /** Jour de Paris 'AAAA-MM-JJ' de l'événement (modification). */
+  jourIso?: string;
   /** Carte « Absence » (lot 4b) : l'absence et si je peux encore la justifier. */
   absence?: { id: string; aJustifier: boolean };
   subject?: string;
@@ -702,6 +710,8 @@ function AgendaScreenContent() {
     setErreurAgenda(null);
     const rows = result?.data ?? [];
     if (rows.length === 0) { setEventsByDay(ajouterAbsences({})); return; }
+    // Règle du 21 nov. : un événement se modifie dans le foyer de son auteur (la base l'impose, M41).
+    const responsablesFoyer = await chargerResponsablesFoyer(selectedChildId).catch(() => [] as ResponsableFoyer[]);
     let lignesSource = new Map<string, string | null>();
     try {
       lignesSource = await chargerLignesSource(selectedChildId, rows as any[]);
@@ -730,6 +740,8 @@ function AgendaScreenContent() {
         color: row.color ?? DEFAULT_COLOR[type] ?? Colors.violet,
         done: row.is_done ?? false,
         coche: type === 'devoir' ? lignesSource.get(String(row.id)) ?? null : null,
+        modifiable: modifiableParMonFoyer(row.parent_id, user?.id, responsablesFoyer),
+        jourIso: jourParis(d),
       };
       if (!grouped[dayNum]) grouped[dayNum] = [];
       grouped[dayNum].push(mapped);
@@ -826,6 +838,8 @@ function AgendaScreenContent() {
       } else {
         const hh = dayDate.getHours().toString().padStart(2, '0');
         const localEvent: AgendaEvent = {
+          modifiable: true,
+          jourIso: jourDeDate(dayDate),
           id: `local-${Date.now()}`,
           title: newEventTitle.trim(),
           time: `${hh}h00`,
@@ -938,6 +952,65 @@ function AgendaScreenContent() {
   };
 
   // ─── Render event card ─────────────────────────────────
+  // ─── Modifier / supprimer un événement créé par mon foyer (règle du 21 nov.) ───
+  const [evtEdition, setEvtEdition] = useState<{ id: string; titre: string; type: NewEventType; jour: string; heure: string } | null>(null);
+  const ouvrirEdition = (event: AgendaEvent) => {
+    const type: NewEventType = event.type === 'devoir' ? 'devoir' : event.type === 'examen' ? 'controle' : event.type === 'sortie' ? 'sortie' : 'autre';
+    setEvtEdition({ id: event.id, titre: event.title, type, jour: event.jourIso ?? aujourdhuiParis(), heure: /^\d{2}:\d{2}$/.test(event.time) ? event.time : '08:00' });
+  };
+  const typeBase: Record<NewEventType, AgendaEvent['type']> = { devoir: 'devoir', controle: 'examen', sortie: 'sortie', autre: 'activite' };
+  const enregistrerEdition = async () => {
+    if (!evtEdition || !evtEdition.titre.trim() || !selectedChildId) return;
+    const [h, m] = evtEdition.heure.split(':').map(Number);
+    const debut = new Date(minuitParis(evtEdition.jour).getTime() + (h * 60 + m) * 60000).toISOString();
+    try {
+      if (evtEdition.id.startsWith('local-')) {
+        // Démo : événement de la session, en mémoire seulement.
+        setEventsByDay((prev) => {
+          const sans: Record<number, AgendaEvent[]> = {};
+          let ancien: AgendaEvent | undefined;
+          for (const [j, evs] of Object.entries(prev)) {
+            ancien = ancien ?? evs.find((x) => x.id === evtEdition.id);
+            sans[Number(j)] = evs.filter((x) => x.id !== evtEdition.id);
+          }
+          const jourNum = Number(evtEdition.jour.slice(8, 10));
+          const maj: AgendaEvent = { ...(ancien as AgendaEvent), title: evtEdition.titre.trim(), type: typeBase[evtEdition.type], jourIso: evtEdition.jour };
+          return { ...sans, [jourNum]: trierJournee([...(sans[jourNum] ?? []), maj]) };
+        });
+      } else {
+        await modifierEvenement(evtEdition.id, selectedChildId, { title: evtEdition.titre.trim(), event_type: typeBase[evtEdition.type], start_time: debut });
+        loadEvents();
+      }
+      setEvtEdition(null);
+    } catch (e) {
+      Alert.alert('Non enregistré', e instanceof ErreurEvenement ? e.message : 'Modification impossible. Réessayez.');
+    }
+  };
+  const supprimerEdition = () => {
+    const ev = evtEdition;
+    if (!ev || !selectedChildId) return;
+    Alert.alert('Supprimer cet événement ?', `« ${ev.titre} » sera retiré de l’Agenda.`, [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            if (ev.id.startsWith('local-')) {
+              setEventsByDay((prev) => Object.fromEntries(Object.entries(prev).map(([j, evs]) => [j, evs.filter((x) => x.id !== ev.id)])));
+            } else {
+              await supprimerEvenement(ev.id, selectedChildId);
+              loadEvents();
+            }
+            setEvtEdition(null);
+          } catch (e) {
+            Alert.alert('Non supprimé', e instanceof ErreurEvenement ? e.message : 'Suppression impossible. Réessayez.');
+          }
+        },
+      },
+    ]);
+  };
+
   const ouvrirRendezVous = (rdv: RendezVous) => {
     setRdvEnEdition(rdv);
     setRdvTitre(rdv.titre);
@@ -1055,6 +1128,7 @@ function AgendaScreenContent() {
       <TouchableOpacity
         key={event.id}
         onPress={() =>
+          event.modifiable && !['cours', 'absence', 'rendezvous'].includes(event.type) ? ouvrirEdition(event) :
           navigation.navigate('EventDetail', {
             eventId: event.id,
             eventTitle: event.title,
@@ -1085,6 +1159,7 @@ function AgendaScreenContent() {
             <Text style={st.eventMeta}>
               {quand}{event.location ? ` · ${event.location}` : ''}
             </Text>
+            {event.modifiable && !['cours', 'absence', 'rendezvous'].includes(event.type) ? <Text style={st.rdvModifier}>Modifier</Text> : null}
             {isDevoir && event.done && event.coche ? <Text style={st.eventSource}>{event.coche}</Text> : null}
           </View>
 
@@ -1535,6 +1610,55 @@ function AgendaScreenContent() {
                   style={[st.createBtn, isSaving && { opacity: 0.6 }]}
                 >
                   <Text style={st.createText}>{isSaving ? 'Création…' : 'Créer'}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* Événement créé par mon foyer : modifier ou supprimer (règle du 21 nov.) */}
+      <Modal visible={!!evtEdition} transparent animationType="fade" onRequestClose={() => setEvtEdition(null)}>
+        <View style={st.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => { Keyboard.dismiss(); setEvtEdition(null); }} />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={st.modalContent}>
+              <View style={st.modalHandle} />
+              <Text style={st.modalTitle}>Modifier l’événement</Text>
+              <TextInput
+                value={evtEdition?.titre ?? ''}
+                onChangeText={(v) => setEvtEdition((e) => (e ? { ...e, titre: v } : e))}
+                placeholder="Titre"
+                placeholderTextColor="#94A3B8"
+                style={st.modalInput}
+                maxLength={120}
+              />
+              <View style={st.modalTypeRow}>
+                {(Object.keys(NEW_EVENT_TYPE_LABELS) as NewEventType[]).map((type) => {
+                  const actif = evtEdition?.type === type;
+                  return (
+                    <Pressable key={type} onPress={() => setEvtEdition((e) => (e ? { ...e, type } : e))} style={[st.modalTypePill, actif && st.modalTypePillActive]}
+                      accessibilityRole="radio" accessibilityState={{ selected: actif }}>
+                      <Text style={[st.modalTypeText, actif && st.modalTypeTextActive]}>{NEW_EVENT_TYPE_LABELS[type]}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <View style={st.editionDate}>
+                <Pressable onPress={() => setEvtEdition((e) => (e ? { ...e, jour: decalerJour(e.jour, -1) } : e))} style={st.editionFleche} accessibilityLabel="Jour précédent">
+                  <ChevronLeftIcone size={20} color="#0F172A" strokeWidth={2} />
+                </Pressable>
+                <Text style={st.editionDateTexte}>{evtEdition ? jourCourtAbsence(evtEdition.jour) : ''}</Text>
+                <Pressable onPress={() => setEvtEdition((e) => (e ? { ...e, jour: decalerJour(e.jour, 1) } : e))} style={st.editionFleche} accessibilityLabel="Jour suivant">
+                  <ChevronRightIcone size={20} color="#0F172A" strokeWidth={2} />
+                </Pressable>
+              </View>
+              <View style={st.modalActions}>
+                <Pressable onPress={supprimerEdition} style={st.cancelBtn} accessibilityRole="button">
+                  <Text style={[st.cancelText, { color: '#EF4444' }]}>Supprimer</Text>
+                </Pressable>
+                <Pressable onPress={enregistrerEdition} disabled={!evtEdition?.titre.trim()} style={[st.createBtn, !evtEdition?.titre.trim() && { opacity: 0.6 }]} accessibilityRole="button">
+                  <Text style={st.createText}>Enregistrer</Text>
                 </Pressable>
               </View>
             </View>
@@ -2021,6 +2145,9 @@ const st = StyleSheet.create({
   },
 
   // Rendez-vous fixe (lot 4c) : liste « À prévoir » et option « Toutes les semaines ».
+  editionDate: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(15,23,42,0.08)', marginBottom: 12 },
+  editionFleche: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  editionDateTexte: { flex: 1, textAlign: 'center', fontFamily: FontFamily.sansSemiBold, fontSize: 14, color: '#0F172A' },
   rdvModifier: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, color: '#4338CA', marginTop: 4 },
   rdvListe: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(15,23,42,0.07)' },
   rdvItem: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6, minHeight: 34 },

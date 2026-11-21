@@ -163,7 +163,7 @@
 
   Tests : rendezVous 15, test-lot4c-local 19/19.
 - [x] Règles du 21 nov. (M43 révisée, `rendez_vous_auteurs`, aller-retour OK, tests SQL 8/8, 25 suites) : « Ajouté par » masqué hors foyer par la base, sans texte de remplacement ; modification et suppression par le foyer de l’auteur seulement (tout responsable si l’auteur est parti) ; le parent séparé voit et coche. test-lot4c-local 27/27.
-- [ ] Redmi (base locale) : à vérifier par l'utilisateur.
+- [x] Redmi (21 nov.) : 4c bon, sauf un défaut corrigé : un événement simple (« Zoo ») ouvrait le détail sans action. M41 complétée (règle du 21 nov. : contenu et suppression d’un événement créé par un parent par le foyer de l’auteur ; la coche reste à tous), tests M41 12, aller-retour OK, 25 suites ; fenêtre « Modifier l’événement » (titre, type, jour, Supprimer) ; test-lot4c-local 43/43.
 
 ### LOT 4b — RÉSULTAT (20 nov., `archi-lot-4`, 33384df, NON poussé) — rien sur Paris, rien dans main
 - [x] Préalable : suite SQL `m31_limite_aria` corrigée (T6 ne contrôle que les compteurs du compte appelant) → 24/24 suites vertes.

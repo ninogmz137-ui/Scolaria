@@ -144,6 +144,81 @@ DO $$ DECLARE n integer; BEGIN
 END $$;
 RESET ROLE;
 
+-- T11 : règle du 21 nov. — événement créé par A : B (même foyer) le modifie ; J (autre foyer) le voit et le coche,
+-- mais ni ne le modifie ni ne le supprime.
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+INSERT INTO public.agenda_events (child_id, parent_id, title, event_type, start_time)
+VALUES (:'eva', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Zoo', 'sortie', now() + interval '9 days')
+RETURNING id AS ev \gset
+SELECT set_config('test.ev', :'ev', true) \gset
+RESET ROLE;
+SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+UPDATE public.agenda_events SET title = 'Zoo de Vincennes' WHERE id = :'ev';
+RESET ROLE;
+SELECT set_config('request.jwt.claims', '{"sub":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE n integer; BEGIN
+  IF (SELECT title FROM public.agenda_events WHERE id = current_setting('test.ev')::uuid) <> 'Zoo de Vincennes' THEN
+    RAISE EXCEPTION 'T11 : B (foyer de l''auteur) n''a pas pu modifier, ou J ne voit pas l''événement';
+  END IF;
+  BEGIN
+    UPDATE public.agenda_events SET title = 'Zoo (J)' WHERE id = current_setting('test.ev')::uuid;
+    RAISE EXCEPTION 'T11 : J (autre foyer) a modifié l''événement';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  UPDATE public.agenda_events SET is_done = true WHERE id = current_setting('test.ev')::uuid;
+  IF NOT (SELECT is_done FROM public.agenda_events WHERE id = current_setting('test.ev')::uuid) THEN
+    RAISE EXCEPTION 'T11 : J n''a pas pu cocher (coche partagée)';
+  END IF;
+  DELETE FROM public.agenda_events WHERE id = current_setting('test.ev')::uuid;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 0 THEN RAISE EXCEPTION 'T11 : J (autre foyer) a supprimé l''événement'; END IF;
+  RAISE NOTICE 'T11 OK : événement de A : B (même foyer) le modifie ; J le voit et le coche, ne le modifie ni ne le supprime';
+END $$;
+-- J crée son propre événement.
+INSERT INTO public.agenda_events (child_id, parent_id, title, event_type, start_time)
+VALUES (:'eva', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'Judo', 'activite', now() + interval '3 days')
+RETURNING id AS ev_j \gset
+SELECT set_config('test.ev_j', :'ev_j', true) \gset
+RESET ROLE;
+
+-- T12 : A ne modifie pas l'événement de J ; J quitte l'enfant → l'événement devient modifiable ; B supprime celui de A.
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN
+  BEGIN
+    UPDATE public.agenda_events SET title = 'Judo (A)' WHERE id = current_setting('test.ev_j')::uuid;
+    RAISE EXCEPTION 'T12 : A a modifié l''événement de J (autre foyer)';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END $$;
+RESET ROLE;
+DELETE FROM public.responsables WHERE user_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd' AND child_id = :'eva';
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE n integer; BEGIN
+  UPDATE public.agenda_events SET title = 'Judo (repris)' WHERE id = current_setting('test.ev_j')::uuid;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'T12 : événement d''un auteur parti non modifiable'; END IF;
+END $$;
+RESET ROLE;
+SELECT set_config('request.jwt.claims', '{"sub":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+DO $$ DECLARE n integer; BEGIN
+  DELETE FROM public.agenda_events WHERE id = current_setting('test.ev')::uuid;
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 1 THEN RAISE EXCEPTION 'T12 : B (foyer de l''auteur) n''a pas pu supprimer'; END IF;
+  RAISE NOTICE 'T12 OK : A ne modifie pas l''événement de J ; auteur parti : modifiable ; B supprime l''événement de A';
+END $$;
+RESET ROLE;
+DO $$ BEGIN
+  IF has_function_privilege('authenticated', 'public.agenda_events_verrou_foyer()', 'execute') THEN
+    RAISE EXCEPTION 'T12 : verrou exécutable par un compte';
+  END IF;
+END $$;
+
 -- T9 : effacement du compte de B (serveur) → auteur vidé, coche conservée (affichée « Fait »).
 SELECT set_config('request.jwt.claims', '', true) \gset
 UPDATE public.agenda_events SET parent_id = NULL WHERE parent_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';

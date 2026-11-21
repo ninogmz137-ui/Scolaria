@@ -15,6 +15,8 @@
 --   - coches_devoirs(p_child_id) : les coches de l'enfant pour un de ses responsables, auteur et heure à null
 --     quand l'auteur n'est pas du même foyer que le lecteur (pour cet enfant) — sauf si c'est le lecteur lui-même.
 --   - agenda_events n'est PAS modifiée : `select('*')` de l'app (et d'une app plus ancienne) reste valide.
+-- Événements créés par un parent : contenu modifié et suppression par le foyer de l’auteur seulement (règle du
+-- 21 nov. 2026, en fin de fichier).
 -- Advisors : 1 WARN attendu (authenticated_security_definer_function_executable sur coches_devoirs), à déclarer
 -- dans tasks/warns-attendus.md avant le cycle. Le déclencheur (SECURITY DEFINER) n'est exécutable par personne.
 
@@ -90,3 +92,72 @@ REVOKE ALL ON FUNCTION public.coches_devoirs(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.coches_devoirs(uuid) TO authenticated;
 COMMENT ON FUNCTION public.coches_devoirs(uuid) IS
   'Coches « fait » des événements d''un enfant, pour un de ses responsables. Auteur et heure seulement dans le foyer de l''auteur (règle des parents séparés, 20 nov. 2026), sinon null. M41.';
+
+-- ─── Événements créés par un parent : modifiés et supprimés par le FOYER DE L'AUTEUR (règle du 21 nov. 2026) ───
+-- Tout responsable de l'enfant voit l'événement et coche « fait » (coche partagée, ci-dessus). Le CONTENU (titre,
+-- type, date, lieu…) n'est modifié, et l'événement n'est supprimé, que par l'auteur (parent_id) ou un responsable de
+-- son foyer pour cet enfant. Auteur inconnu (parent_id vide) ou qui n'est plus responsable de l'enfant : tout
+-- responsable (sinon plus personne ne pourrait modifier). Pas de seconde politique de mise à jour (la coche doit
+-- rester permise à tous) : un déclencheur refuse les changements de contenu hors foyer.
+
+CREATE OR REPLACE FUNCTION public.agenda_events_verrou_foyer()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path = ''
+AS $function$
+DECLARE
+  v_moi uuid := (SELECT auth.uid());
+BEGIN
+  -- Serveur (effacement, maintenance) : pas de contrôle.
+  IF v_moi IS NULL OR OLD.parent_id IS NULL OR OLD.parent_id = v_moi THEN
+    RETURN NEW;
+  END IF;
+  -- Coche seule (is_done, fait_* hors table) ou rien de visible : permis à tout responsable.
+  IF NEW.title IS NOT DISTINCT FROM OLD.title
+     AND NEW.description IS NOT DISTINCT FROM OLD.description
+     AND NEW.event_type IS NOT DISTINCT FROM OLD.event_type
+     AND NEW.subject IS NOT DISTINCT FROM OLD.subject
+     AND NEW.color IS NOT DISTINCT FROM OLD.color
+     AND NEW.location IS NOT DISTINCT FROM OLD.location
+     AND NEW.start_time IS NOT DISTINCT FROM OLD.start_time
+     AND NEW.end_time IS NOT DISTINCT FROM OLD.end_time
+     AND NEW.is_all_day IS NOT DISTINCT FROM OLD.is_all_day
+     AND NEW.reminder_minutes IS NOT DISTINCT FROM OLD.reminder_minutes
+     AND NEW.child_id IS NOT DISTINCT FROM OLD.child_id THEN
+    RETURN NEW;
+  END IF;
+  IF EXISTS (
+       SELECT 1
+       FROM public.responsables moi
+       JOIN public.responsables auteur ON auteur.child_id = moi.child_id AND auteur.foyer_id = moi.foyer_id
+       WHERE moi.child_id = OLD.child_id AND moi.user_id = v_moi AND auteur.user_id = OLD.parent_id
+     )
+     OR NOT EXISTS (SELECT 1 FROM public.responsables r WHERE r.child_id = OLD.child_id AND r.user_id = OLD.parent_id) THEN
+    RETURN NEW;
+  END IF;
+  RAISE EXCEPTION 'seul le foyer qui a ajouté cet événement peut le modifier' USING ERRCODE = '42501';
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.agenda_events_verrou_foyer() FROM PUBLIC, anon, authenticated;
+CREATE TRIGGER agenda_events_verrou_foyer BEFORE UPDATE ON public.agenda_events
+  FOR EACH ROW EXECUTE FUNCTION public.agenda_events_verrou_foyer();
+
+ALTER POLICY agenda_delete ON public.agenda_events
+  USING (
+    public.is_responsable(child_id)
+    AND (
+      parent_id IS NULL
+      OR parent_id = (SELECT auth.uid())
+      OR EXISTS (
+        SELECT 1
+        FROM public.responsables moi
+        JOIN public.responsables auteur ON auteur.child_id = moi.child_id AND auteur.foyer_id = moi.foyer_id
+        WHERE moi.child_id = agenda_events.child_id AND moi.user_id = (SELECT auth.uid())
+          AND auteur.user_id = agenda_events.parent_id
+      )
+      OR NOT EXISTS (
+        SELECT 1 FROM public.responsables r WHERE r.child_id = agenda_events.child_id AND r.user_id = agenda_events.parent_id
+      )
+    )
+  );
