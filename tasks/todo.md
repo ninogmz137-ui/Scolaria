@@ -41,6 +41,118 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
+### LOT 7a — NOTIFICATIONS — PLAN (21 nov., branche `archi-lot-7a` depuis main f5ca9f7) — EN ATTENTE DE L'ACCORD DE L'UTILISATEUR
+Aucun code écrit. Rien sur Paris, rien dans main.
+
+**Ce qui existe déjà** : `expo-notifications` 55 installé et déclaré dans `app.config.js` (UIBackgroundModes
+`remote-notification`, projectId EAS) ; `NotificationsRouteur` ouvre le bon mot du bon enfant à l'appui (aussi au
+démarrage à froid) ; Paris a `pg_cron`, `pg_net` et le coffre (`supabase_vault`), déjà utilisés par la tâche nocturne
+d'effacement (M26 : cron → `net.http_post` → Edge Function, clé dans le coffre). Aucun jeton, aucun envoi distant.
+
+#### 1. Ce que VOUS devez créer ou payer (je ne peux rien faire de cela : comptes, paiements, clés privées, 2FA)
+1. **Firebase (gratuit)** — console.firebase.google.com : créer un projet ; y ajouter l'app Android `com.scolaria.app`
+   (et `com.scolaria.app.demo` si l'APK de démo doit recevoir des notifications : je propose NON) ; télécharger
+   `google-services.json`. Ne PAS le committer : le déposer comme variable d'environnement de type fichier dans EAS
+   (`GOOGLE_SERVICES_JSON`, visibilité « secret ») ; je branche `app.config.js` dessus (je ne peux pas écrire ce fichier :
+   le garde-fou bloque les préfixes de clés, et c'est voulu).
+2. **Clé de compte de service FCM v1 (gratuit)** — Firebase › Paramètres du projet › Comptes de service › « Générer
+   une nouvelle clé privée » (fichier JSON) ; puis `eas credentials` › Android › production/development › « Google
+   Service Account Key for Push Notifications (FCM V1) » › envoyer ce fichier. Ensuite, supprimez le fichier du disque.
+3. **Jeton d'accès Expo pour l'envoi (gratuit)** — expo.dev › Account settings › Access tokens › créer
+   « envoi-notifications » ; activer « Enhanced security for push notifications » ; je vous donnerai la commande
+   `npx supabase@3.2.0 secrets set --remote EXPO_ACCESS_TOKEN=…` à taper vous-même (jamais dans un fichier).
+4. **Apple Developer Program — 99 € par an** — obligatoire pour toute notification sur iPhone ET pour installer un
+   build de développement sur un iPhone. Puis : `eas device:create` (enregistrer l'iPhone), et au premier build iOS,
+   `eas build` vous demande de vous connecter à Apple (2FA) et crée la clé APNs lui-même.
+5. **Builds EAS** (offre gratuite : 15 Android + 15 iOS par mois, file basse priorité) : un nouveau build de
+   développement Android est nécessaire (l'actuel n'a pas FCM, aucun jeton ne peut être obtenu) ; un build iOS pour
+   l'iPhone. Vous lancez `eas build --profile development --platform android` (ou vous m'autorisez build par build).
+6. **Politique de confidentialité** : ajouter que le prénom de l'enfant, le type de notification et le nom de
+   l'expéditeur transitent par Expo (États-Unis), Google (Android) et Apple (iPhone) ; jamais le contenu. Texte à
+   valider par vous (je le rédige).
+
+#### 2. Architecture (migrations en local d'abord, une par cycle sur Paris, comme toujours)
+- **M46 — `appareils_push`** (un compte = plusieurs téléphones) : `id`, `user_id`, `jeton` (UNIQUE), `plateforme`,
+  `cree_le`, `vu_le`, `actif`. RLS : chacun lit, ajoute et supprime SES lignes seulement. À la déconnexion, l'app
+  supprime la ligne de CE téléphone AVANT `signOut` ; un jeton refusé par Expo (« DeviceNotRegistered ») est désactivé
+  par le serveur. **`preferences_notifications`** : `user_id` (PK), `essentielles`, `resume_18h`, `silence` (vrai par
+  défaut) ; RLS : soi seulement. Les réglages vivent en base (c'est le serveur qui décide d'envoyer), plus sur l'appareil.
+- **M47 — file d'attente + déclencheurs** : table `notifications_file` (`destinataire`, `child_id`, `type` ∈ mot,
+  message, absence_a_justifier, relance ; `expediteur` lisible ; `ref_id` ; `cree_le` ; `envoyer_apres` ; `envoyee_le`),
+  RLS activée SANS politique (aucun compte ne la lit : seul le serveur). Déclencheurs AFTER INSERT, fonctions SECURITY
+  DEFINER exécutables par personne :
+  - `mot_carnets` → une ligne par responsable de CET enfant (mot reçu ; une copie par carnet = une notification par
+    enfant, comme la règle « chaque push nomme l'enfant ») ;
+  - `teacher_messages` (expéditeur enseignant) → fil foyer : les responsables DE CE FOYER ; fil individuel (« Seulement
+    moi ») : ce parent seul ; jamais l'autre foyer (règle des parents séparés) ;
+  - `absences` signalées par l'enseignant (appel, lot 7b) sans justificatif → responsables de l'enfant ; l'absence
+    signalée par un parent ne notifie personne (il le sait) ;
+  - relance : fonction `relancer_mot(mot)` appelée par l'enseignant (lot 7b) → les responsables qui n'ont pas traité.
+  - Rien pour une photo, une compétence, un document (aucun déclencheur sur ces tables).
+  - `envoyer_apres` : maintenant, ou 7 h 00 heure de Paris le lendemain matin si la ligne arrive entre 20 h et 7 h et
+    que le destinataire a le silence activé (calcul en base, `AT TIME ZONE 'Europe/Paris'`).
+- **Edge Function `envoyer-notifications`** (nouvelle, clé de service, jamais appelable par un compte) : lit les lignes
+  dues, regroupe par destinataire et par enfant (plusieurs lignes = « Laia · 3 nouveautés »), applique
+  `essentielles`, envoie à Expo (`exp.host/--/api/v2/push/send`, jeton d'accès Expo), lit les accusés, désactive les
+  jetons morts, marque `envoyee_le`. Contenu : titre = prénom, corps = « Nouveau mot de Mme Martin » / « Message de
+  Mme Martin » / « Absence à justifier » / « Rappel : mot de Mme Martin » ; données = cible (`mot`, `agenda`, `fil`) +
+  identifiants. **Jamais** le texte d'un message, un motif d'absence, un justificatif (test qui le prouve).
+- **Résumé de 18 h** : dans la même fonction, mode `resume` : pour chaque parent qui l'a activé et chaque enfant qui a
+  quelque chose (mots à traiter, absences à justifier, devoirs pour demain non cochés) : UNE notification « Lucas · 1 mot
+  à signer · 2 devoirs pour demain » ; rien si tout est à jour. Idempotent (une fois par jour et par parent).
+- **Ce qui tourne où** : déclencheurs = base Paris ; `pg_cron` = base Paris : (a) chaque minute → `pg_net` appelle
+  `envoyer-notifications` (clé dans le coffre, comme M26) ; (b) 16 h 00 ET 17 h 00 UTC → mode `resume`, la fonction ne
+  fait rien si l'heure de Paris n'est pas 18 h (passage heure d'été / d'hiver) ; le « 7 h » n'a pas de tâche propre :
+  ce sont les lignes dont `envoyer_apres` est 7 h. Envoi = Edge Function (Supabase, région Paris) → Expo (USA) → FCM
+  (Google) / APNs (Apple) → téléphone. **M48 — tâches cron** (séparée : c'est elle qui « allume » l'envoi).
+- **App** : `inscrireAppareil()` (permission + `getExpoPushTokenAsync` + upsert du jeton), `retirerAppareil()` à la
+  déconnexion ; Famille et paramètres › **Notifications** : trois interrupteurs lus et écrits en base (réapparaît
+  maintenant, puisque branché) ; permission demandée **après l'ajout du premier enfant**, précédée d'une page qui
+  explique pourquoi (jamais au premier lancement) ; pour un compte qui a déjà des enfants : proposition unique à
+  l'ouverture de l'Accueil, à décider (question Q2) ; démo : rien (aucun serveur). Le routeur existant gagne la cible
+  `fil` (message) et `absence`.
+- **Avertissements attendus** : aucun nouveau WARN (politiques en `(SELECT auth.uid())`, fonctions non exécutables) ;
+  une INFO possible « RLS sans politique » sur `notifications_file` (voulu). À mesurer en local avant chaque cycle.
+
+#### 3. Tester
+- **Local, sans téléphone** : tests SQL (destinataires : même foyer, autre foyer, fil individuel ; silence ; 7 h ;
+  résumé ; rien pour photo/compétence/document) ; Edge Function servie en local (`supabase functions serve`) avec un
+  faux envoi (on lit le message préparé : prénom en tête, aucun texte de message).
+- **Redmi** (après le nouveau build Android) : app sur la base locale (redmi-local), jeton inscrit en local, fonction
+  locale qui envoie vraiment via Expo (jeton d'accès Expo dans `supabase/functions/.env`, hors dépôt) ; vous regardez :
+  arrivée, écran verrouillé (prénom + type + expéditeur seulement), appui = bon mot du bon enfant, réglages, silence
+  (j'avance l'heure de test côté serveur, pas le téléphone), déconnexion = plus rien.
+- **iPhone** (après l'Apple Developer Program) : même liste, build iOS de développement ; essai contre Paris après les
+  cycles, avec votre compte réel (aucune donnée inventée : un mot de test envoyé depuis un compte enseignant de test, à
+  décider).
+
+#### 4. Ce qui changerait dans vos règles (propositions, vous décidez)
+- R1 : « Aucun build EAS » devient « build EAS sur votre demande ou votre autorisation, build par build, profil
+  `development` ; jamais `production` sans vous » (quota affiché avant chaque build).
+- R2 : nouveaux secrets, jamais dans un fichier du dépôt : `EXPO_ACCESS_TOKEN` (secret Supabase), `GOOGLE_SERVICES_JSON`
+  (fichier EAS), clé FCM v1 (identifiants EAS), clé APNs (identifiants EAS) ; dans le coffre : une clé de service pour
+  la tâche cron (réutiliser `cle_service_effacements` ou en créer une dédiée : je propose dédiée).
+- R3 : un déploiement d'Edge Function sur Paris suit la même règle qu'une migration (sur autorisation, une à la fois).
+- R4 : le contenu d'une notification est figé par un test (prénom, type, expéditeur ; rien d'autre) ; toute évolution
+  du texte passe par ce test.
+- R5 : mention dans la politique de confidentialité AVANT la première notification réelle.
+
+#### 5. Estimation : 9 sous-étapes, 3 migrations
+7a-1 M46 jetons + préférences (local) · 7a-2 M47 file + déclencheurs + tests SQL · 7a-3 Edge Function d'envoi + test
+du contenu · 7a-4 M48 tâches cron + résumé de 18 h · 7a-5 app (permission au bon moment, jeton, déconnexion, 3
+réglages, routeur) · 7a-6 build Android (vous) + essai Redmi en local · 7a-7 procédure Paris (M46 → M47 → M48, secrets,
+déploiement de la fonction) · 7a-8 build iOS (vous) + essai iPhone · 7a-9 politique de confidentialité et docs.
+Les déclencheurs « absence à justifier » et « relance » sont prêts dès 7a-2 mais ne se déclenchent qu'avec le lot 7b
+(appel et relance côté enseignant).
+
+#### Questions
+- Q1 : Expo comme intermédiaire d'envoi (recommandé : un seul secret, accusés gérés) ou FCM/APNs en direct depuis
+  l'Edge Function (pas d'intermédiaire américain de plus, mais signature APNs et OAuth FCM à coder) ?
+- Q2 : compte qui a DÉJÀ des enfants (le vôtre) : une proposition unique à l'ouverture de l'Accueil, ou seulement via
+  Famille et paramètres › Notifications ?
+- Q3 : l'APK de démo reçoit-il des notifications ? (je propose non)
+- Q4 : « essentielles » désactivé coupe-t-il aussi le résumé de 18 h ? (je propose non : réglages indépendants)
+
 ### LOT 6 — **TERMINÉ le 21 nov. 2026** : vu et validé par l'utilisateur sur le Redmi ; **M45 APPLIQUÉE SUR PARIS**
 (VERDICT : OK, 97 → 96 WARN, 0 nouveau, 1 disparu annoncé ; sauvegarde vérifiée `ScolariaBackups\avant_M45_cycle\2026-11-21_2343` ;
 0 absence sur Paris) ; `archi-lot-6` fusionnée dans main. Historique :
