@@ -149,7 +149,9 @@ Raison : SECURITY DEFINER appelées par l'application, EXECUTE retiré à PUBLIC
 l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étranger, un enseignant, un invité et une invitation inconnue ; testées par
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
-## Lot 6 (déclaré le 21 nov. 2026, NON appliqué) — M45 : 0 nouveau, 1 DISPARITION ANNONCÉE (97 → 96)
+## Lot 6 — M45 APPLIQUÉE sur Paris le 21 nov. 2026 : 0 ERROR, **97 → 96 WARN**, 0 nouveau, 1 disparu (celui annoncé), VERDICT : OK
+Sauvegarde vérifiée : `ScolariaBackups\avant_M45_cycle\2026-11-21_2343`. **État de référence de Paris désormais : 96 WARN.**
+Déclaration d'origine (avant application) :
 - Disparaît : `auth_rls_initplan` sur la politique `absences_parent_update` (`public.absences`) : M45 la réécrit avec
   `(SELECT auth.uid())`. Mesuré en local : 61 → 60 WARN, aucune mention des objets de M45 (déclencheur
   `absences_controler_modification` exécutable par personne, clé étrangère `annulee_par` indexée).

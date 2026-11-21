@@ -25,7 +25,7 @@
   1. **M44** : la base refuse une absence (`absences`, INSERT par un parent) pour un enfant **sans classe avec un titulaire** pour l'année en cours (`academic_years` active → `classe_id` → `classes.enseignant_id` non nul). Migration en local, aller-retour, tests SQL (refus pour un enfant sans classe ; acceptation pour Lina) ; cycle Paris à PRÉPARER (procédure, avertissements attendus), pas à appliquer.
   2. **« Signaler une absence » et « Écrire à l'enseignant » entrent dans le bouton « + » unique**, masqués selon la même règle (`useEnseignantRattache`) ; le ✏️ de Messages (`QuickActionsSheet`, `BottomBar` `actionMessages`) disparaît.
   Puis : Bouton « + » unique (six actions, ordre selon l'onglet ; FAB, crayon, scanner supprimés), champ unique « Rechercher ou demander » (loupe supprimée, « Assistant » sans nom de personnage), pastille rouge sur l'avatar + décompte en clair dans le sélecteur.
-- [ ] **Lot 6** — Accueil (en-tête « classe · enseignant · école », À faire, Aujourd'hui et demain, Nouveau dans le carnet, suggestion sur une ligne avec source ; fonds d'écran supprimés) et Famille et paramètres (sept entrées, « Apparence » supprimée, options non branchées retirées).
+- [x] **Lot 6** — **TERMINÉ le 21 nov. 2026** (détail : § LOT 6 ci-dessous). Accueil (en-tête « classe · enseignant · école », À faire, Aujourd'hui et demain, Nouveau dans le carnet, suggestion sur une ligne avec source ; fonds d'écran supprimés) et Famille et paramètres (sept entrées, « Apparence » supprimée, options non branchées retirées).
   - Décidé le 21 nov. : l'onglet Notes ne lit plus `WallpaperContext` (image de fond retirée avec les fonds d'écran) ; les préférences Notifications et Assistant (`@scolaria:prefs`, `FamilleParametresScreen`), lues par rien, sont retirées jusqu'au push réel.
   - Code de transfert (`rgpd/TransfertCodeScreen.tsx`) : NE FONCTIONNE PAS (table `transfer_codes` sans aucun droit pour un compte depuis M32 : lecture et création échouent) ; accès déjà masqué (aucun lien depuis le 26 sept. : `RGPDScreen`, Famille et paramètres) ; seule la route reste déclarée (parent, élève, enseignant). Au lot 6 : retirer l'écran et ses routes, ou le reconstruire sur un vrai mécanisme (décision à prendre).
   - **Annuler une absence signalée par erreur** (demande du 21 nov. 2026, règles tranchées le 21 nov.). Aujourd'hui `absences` n'a AUCUNE règle de suppression pour un parent (M42) : une absence de test resterait en production (l'utilisateur n'en crée donc aucune sur Paris). Règles :
@@ -41,8 +41,11 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
-### LOT 6 — CODÉ (21 nov.) sur `archi-lot-6` : 6a e5a9cfe, 6b 4fee72c, 6c 1751713, 6d 025d019 (+ docs). NON fusionné.
-M45 locale seulement (procédure `tasks/lot6-procedures-paris.md`, 97 → 96 annoncé). Tests : tsc, accueil 26, entete 7,
+### LOT 6 — **TERMINÉ le 21 nov. 2026** : vu et validé par l'utilisateur sur le Redmi ; **M45 APPLIQUÉE SUR PARIS**
+(VERDICT : OK, 97 → 96 WARN, 0 nouveau, 1 disparu annoncé ; sauvegarde vérifiée `ScolariaBackups\avant_M45_cycle\2026-11-21_2343` ;
+0 absence sur Paris) ; `archi-lot-6` fusionnée dans main. Historique :
+CODÉ (21 nov.) sur `archi-lot-6` : 6a e5a9cfe, 6b 4fee72c, 6c 1751713, 6d 025d019 (+ docs).
+Procédure : `tasks/lot6-procedures-paris.md`. Tests : tsc, accueil 26, entete 7,
 absences 39, m45 8/8, 27 suites SQL, test-lot6-local 10/10, bundle 12/12. **Redmi : à regarder par l'utilisateur**
 (`tasks/lot6-verification-redmi.md`). Supprimés : WallpaperContext, WallpaperPickerScreen, assets/wallpapers,
 TransfertCodeScreen, CarnetVide (+ useCarnetVide, utils/carnetVide et ses tests : remplacé par l'invitation de
