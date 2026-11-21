@@ -159,6 +159,10 @@ supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_ex
   (`is_responsable`), testée (supabase/tests/m41_devoirs_coche_par.sql T1-T10, scripts/test-lot4a-local.mjs).
   Le déclencheur `agenda_events_poser_coche` (SECURITY DEFINER) n'est exécutable par personne : pas de WARN.
   `agenda_coches` a une politique (qui refuse tout) : pas d'INFO « RLS sans politique ».
+- **M41 (complément du 21 nov.)** : verrou de contenu `agenda_events_verrou_foyer` (SECURITY DEFINER, exécutable par personne) et politique `agenda_delete` réécrite avec `(SELECT auth.uid())` : aucun WARN de plus.
+- **M42** : aucun WARN nouveau attendu, aucune disparition (table `absences_justificatifs` : trois politiques avec `(SELECT auth.uid())`, une par commande ; déclencheur `absences_justificatifs_controler` exécutable par personne ; politique `absences_parent_select` renommée `absences_select`, sans WARN avant comme après).
+- **M43** : aucun WARN nouveau attendu, aucune disparition (quatre tables, une politique par commande et par table, `(SELECT auth.uid())` ; trois déclencheurs exécutables par personne).
+- Contrôle local du 21 nov. (base avec M41 à M43) : aucun WARN sur les objets du lot 4 (la base locale ne signale pas les fonctions SECURITY DEFINER exposées : le +1 de `coches_devoirs` ne se voit que sur Paris).
 
 ## Lot 3b (déclarés le 18 nov. 2026, appliqués le 19 nov. 2026 : M38 → M39 → M40, chaque cycle « VERDICT : OK »)
 WARN de M38 validé par l'utilisateur le 18-19 nov. (« garde M38 telle quelle ») et déplacé en section 1. M39 : 0 nouveau, 0 disparu.

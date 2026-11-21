@@ -126,7 +126,7 @@
      - `SignSuccessScreen.tsx:100` : « ajouter … à l’agenda avec un rappel la veille ? », et quatre boutons sans action (« Ajouter à l’agenda », « Non merci », « Télécharger le PDF », « Voir dans l’agenda ») ;
      - `rgpd/TransfertCodeScreen.tsx` : tout l’écran « Code de transfert » est à vérifier (table `transfer_codes` sans droit depuis M32).
 
-**Paris** : `tasks/lot4-procedures-paris.md`, au modèle du lot 3 :
+**Paris** : `tasks/lot4-procedures-paris.md` RÉDIGÉE le 21 nov. (contrôles vérifiés sur la base locale ; WARN attendus : M41 97 → 98, M42 98 → 98, M43 98 → 98), au modèle du lot 3 :
 - trois cycles M41, M42, M43, avec `--yes` uniquement sur autorisation ;
 - WARN attendus déclarés à l'avance dans `warns-attendus.md` (objectif : 0 nouveau) ;
 - lecture préalable du nombre de lignes de `agenda_events` et `absences` sur Paris (`db query --remote --read-only`, par l'utilisateur).
