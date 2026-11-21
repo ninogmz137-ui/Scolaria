@@ -3,6 +3,12 @@
  * (src/utils/fondu.test.mts) : HeaderFondu s'en sert pour dessiner, les tests pour calculer les contrastes.
  */
 
+/**
+ * Longueur du fondu de l'Accueil sous la barre d'état (lot 6 : en-tête réduit, 1re carte ≤ 30 % de l'écran). Choisie par
+ * `npm run test:entete` : la plus courte qui garde l'AA de la ligne « classe · enseignant · école » sur les 6 couleurs.
+ */
+export const FONDU_ACCUEIL = 290;
+
 /** [position 0 → 1, opacité de la couleur]. Plein sur ~40 %, puis décroissance ease-out (10 arrêts). */
 export const ARRETS_FONDU: [number, number][] = [
   [0, 1],

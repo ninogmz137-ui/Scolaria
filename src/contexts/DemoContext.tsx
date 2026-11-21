@@ -201,8 +201,35 @@ function agendaRecale(aujourdHui: Date): DemoAgendaEvent[] {
   const suivante = semaine
     .filter((e) => e.type === 'cours' || e.type === 'devoir')
     .map((e) => ({ ...e, id: `${e.id}-s2`, date: deplacer(e.date, 7), is_completed: e.type === 'devoir' ? false : e.is_completed }));
-  return [...semaine, ...suivante];
+  // Lot 6 : l'Accueil montre « Aujourd'hui et demain » ; quel que soit le jour (week-end compris), chaque enfant de
+  // démo a au moins un élément aujourd'hui et un demain (fictifs, propres à SON carnet).
+  const jour = (n: number) => isoLocal(new Date(aujourdHui.getFullYear(), aujourdHui.getMonth(), aujourdHui.getDate() + n));
+  const duJour: DemoAgendaEvent[] = JOUR_DEMO.map((e) => ({
+    id: e.id,
+    childId: e.childId,
+    title: e.title,
+    type: e.type,
+    date: jour(e.dans),
+    startTime: e.startTime,
+    endTime: e.endTime ?? '',
+    subject: e.subject ?? '',
+    room: e.room ?? '',
+    description: '',
+    is_completed: false,
+    color: '#4338CA',
+  }));
+  return [...semaine, ...suivante, ...duJour];
 }
+
+/** Éléments de démo relatifs à aujourd'hui (0) et demain (1), un carnet à la fois ; maternelle : jamais de devoir. */
+const JOUR_DEMO: { id: string; childId: string; dans: 0 | 1; title: string; type: string; startTime: string; endTime?: string; subject?: string; room?: string }[] = [
+  { id: 'demo-jour-lea-1', childId: 'demo-lea', dans: 0, title: 'Atelier peinture', type: 'activite', startTime: '16:30', endTime: '17:30', room: 'Maison de quartier' },
+  { id: 'demo-jour-lea-2', childId: 'demo-lea', dans: 1, title: 'Spectacle de la classe', type: 'evenement', startTime: '10:00', room: 'Salle de motricité' },
+  { id: 'demo-jour-lucas-1', childId: 'demo-lucas', dans: 0, title: 'Entraînement de basket', type: 'activite', startTime: '17:00', endTime: '18:30', room: 'Gymnase Voltaire' },
+  { id: 'demo-jour-lucas-2', childId: 'demo-lucas', dans: 1, title: 'Réciter la poésie', type: 'devoir', startTime: '08:30', subject: 'Français' },
+  { id: 'demo-jour-emma-1', childId: 'demo-emma', dans: 0, title: 'Répétition de théâtre', type: 'activite', startTime: '14:00', endTime: '16:00', room: 'Salle polyvalente' },
+  { id: 'demo-jour-emma-2', childId: 'demo-emma', dans: 1, title: 'Exercices 4 et 5 p. 82', type: 'devoir', startTime: '08:00', subject: 'Mathématiques' },
+];
 
 /** Un événement de l'Agenda de démo (recalé sur aujourd'hui) par son id : mots liés à un événement (B4a). */
 export function evenementDemoParId(id: string): DemoAgendaEvent | undefined {

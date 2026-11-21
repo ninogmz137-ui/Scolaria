@@ -1,248 +1,177 @@
-import { dateAujourdhuiParis } from '../utils/jourParis';
+/**
+ * AccueilScreen — « maintenant », pour l'enfant sélectionné (lot 6 ; CLAUDE.md § Accueil, COMPONENTS §6 et §18.3).
+ *
+ * En-tête : fondu pleine largeur de la couleur de l'enfant (plus court : la 1re carte commence avant 30 % de l'écran),
+ * rond 52 (photo ou initiale), prénom, « classe · enseignant · école ». Plus de « Bonjour », de pilule d'année, de fond
+ * d'écran.
+ * Corps (CorpsCarnet), le même pour tous les niveaux : À faire · Aujourd'hui et demain · Nouveau dans le carnet ·
+ * suggestion de l'assistant sur une ligne. UNE seule source de vérité : mots (useMotsEnfant, comme Messages), Agenda
+ * (useAgendaSemaine + useRendezVousJours, comme l'Agenda), absences, carnet et Scolarité ; l'Accueil ne possède aucune
+ * donnée propre. Démo et compte réel passent par les mêmes fonctions (src/utils/accueil.ts, testé par node).
+ */
+
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Linking,
-} from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { MessageCircle, Calendar, ChevronRight } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated from 'react-native-reanimated';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useDemoData } from '../contexts/DemoContext';
+import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getSuiviDemo } from '../data/demo/suivi';
+import { heureFr } from '../data/demo/accueil';
 import { jourMois } from '../utils/competences';
 import { aDesNotes, libelleClasse } from '../utils/niveau';
+import { getChildInitials } from '../utils/childInitials';
+import { aJustifier, periodeAbsence } from '../utils/absences';
+import { aujourdhuiParis, decalerJour, demainParis, heureParis } from '../utils/jourParis';
+import { FONDU_ACCUEIL } from '../utils/fondu';
+import { aujourdhuiEtDemain, lignesAFaire, suggestionAccueil, type LigneAFaire } from '../utils/accueil';
 import AucunEnfant from '../components/AucunEnfant';
 import HeaderFondu from '../components/HeaderFondu';
-import Animated from 'react-native-reanimated';
-import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
-import ScolariaSymbol from '../components/ScolariaSymbol';
 import EnteteCarnet from '../components/accueil/EnteteCarnet';
 import CorpsCarnet from '../components/accueil/CorpsCarnet';
-import SurFondu, { LibelleSurFondu } from '../components/accueil/SurFondu';
+import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
+import EtatErreur from '../components/EtatErreur';
+import { jourCourt } from '../components/messages/CarteATraiter';
 import { useAnneesEnfant } from '../hooks/useAnneesEnfant';
 import { useAgendaSemaine } from '../hooks/useAgendaSemaine';
+import { useRendezVousJours } from '../hooks/useRendezVousJours';
 import { useCoches } from '../hooks/useCoches';
-import { getChildInitials } from '../utils/childInitials';
-import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import { usePhotoUrl } from '../hooks/usePhotoUrl';
-import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
-import { monNomComplet, type MotCarnet } from '../services/motsService';
 import { useAbsences } from '../hooks/useAbsences';
-import { aJustifier, periodeAbsence } from '../utils/absences';
-import { aujourdhuiParis, decalerJour, demainParis } from '../utils/jourParis';
+import { useMotsEnfant } from '../hooks/useMotsEnfant';
+import { useCarnetReel } from '../hooks/useCarnetReel';
+import { useAccueilReel, type NoteAccueil } from '../hooks/useAccueilReel';
+import { useNomEnseignant } from '../hooks/useNomEnseignant';
+import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
+import { PHOTO_ENFANT_ACTIVE } from '../constants/photoEnfant';
+import { aTraiter, attendReponse } from '../services/motsService';
+import { carnetDemo, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
+import { demanderAjoutCarnet } from '../services/ouvertureAjout';
+import { NOM_APP } from '../constants/marque';
+import { ENV } from '../services/getEnv';
 import { C, RADIUS, SHADOW } from '../constants/design';
 import { Text } from '../components/ui';
-import { de } from '../utils/francais';
-import { useDemoData } from '../contexts/DemoContext';
-import { getConversations } from '../stores/messagerieStore';
-import { construireAccueilDemo, isoJour, todoDepuisMots, type DemoTodo } from '../data/demo/accueil';
-import { useMotsEnfant } from '../hooks/useMotsEnfant';
-import EtatErreur from '../components/EtatErreur';
-import { useCarnetReel } from '../hooks/useCarnetReel';
-import { useAccueilReel } from '../hooks/useAccueilReel';
-import { carnetDemo, lienFichier, surChangementCarnet, type ElementCarnet } from '../services/carnetService';
-import { LIBELLES_TYPE, ligneSourceCarnet } from './suivi/CarnetVue';
-import { NOM_APP, ASSISTANT } from '../constants/marque';
-import CarnetVide from '../components/accueil/CarnetVide';
-import { useCarnetVide } from '../hooks/useCarnetVide';
-import { ENV } from '../services/getEnv';
-import { useOuvrirFichierCarnet } from '../hooks/useOuvrirFichierCarnet';
 
-// ─── Data démo ────────────────────────────────────────────
-
-const ACTION_PILLS: Record<string, { label: string; bg: string; color: string }> = {
-  signer:    { label: 'SIGNER',    bg: 'rgba(67,56,202,0.10)', color: '#4338CA' },
-  repondre:  { label: 'RÉPONDRE',  bg: 'rgba(67,56,202,0.10)', color: '#4338CA' },
-  lire:      { label: 'LIRE',      bg: '#E0E7FF', color: '#4338CA' },
-  justifier: { label: 'JUSTIFIER', bg: '#FEF3C7', color: '#B45309' },
-};
-
-/** Hauteur réservée à la top bar au-dessus de la ligne d'identité de l'en-tête du carnet (insets.top + 64). */
+/** Hauteur réservée à la top bar au-dessus de la ligne d'identité de l'en-tête (insets.top + 64). */
 const HERO_TOPBAR_RESERVE = 64;
-/** Longueur du fondu sous la barre d'état : les premières cartes flottent sur sa fin (COMPONENTS §6). */
-const HERO_FONDU = 340;
-
-// ─── Sous-composants (collège / lycée : contenu inchangé) ─────────────
-
-function ActionRow({
-  kind, title, deadline, last, onPress,
-}: { kind: string; title: string; deadline: string; last?: boolean; onPress?: () => void }) {
-  const p = ACTION_PILLS[kind];
-  return (
-    <TouchableOpacity
-      style={[styles.row, !last && styles.rowBorder]}
-      activeOpacity={0.85}
-      accessibilityRole="button"
-      onPress={onPress}
-    >
-      <View style={[styles.actionBadge, { backgroundColor: p.bg }]}>
-        <Text style={[styles.actionBadgeText, { color: p.color }]}>{p.label}</Text>
-      </View>
-      <Text style={styles.actionTitle} numberOfLines={1}>{title}</Text>
-      <Text style={styles.deadlineText}>{deadline}</Text>
-      <ChevronRight size={14} color="rgba(15,23,42,0.35)" strokeWidth={2} />
-    </TouchableOpacity>
-  );
-}
-
-function TodayRow({
-  icon, title, meta, time, last, onPress,
-}: { icon: React.ReactNode; title: string; meta: string; time?: string; last?: boolean; onPress?: () => void }) {
-  return (
-    <TouchableOpacity
-      style={[styles.row, !last && styles.rowBorder]}
-      activeOpacity={0.75}
-      onPress={onPress}
-    >
-      <View style={styles.todayIconTile}>{icon}</View>
-      <View style={styles.todayTexts}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.metaText}>{meta}</Text>
-      </View>
-      {!!time && <Text style={styles.timeText}>{time}</Text>}
-    </TouchableOpacity>
-  );
-}
-
-function GradeRow({
-  subject, grade, scale, date, last, onPress,
-}: { subject: string; grade: string; scale: string; date: string; last?: boolean; onPress?: () => void }) {
-  return (
-    <TouchableOpacity
-      style={[styles.gradeRow, !last && styles.rowBorder]}
-      activeOpacity={0.75}
-      onPress={onPress}
-    >
-      <Text style={styles.gradeSubject}>{subject}</Text>
-      <Text style={styles.gradeNumber}>
-        {grade}<Text style={styles.gradeScale}>/{scale}</Text>
-      </Text>
-      <Text style={styles.gradeDate}>{date}</Text>
-    </TouchableOpacity>
-  );
-}
-
-// ─── Écran principal ──────────────────────────────────────
 
 export default function AccueilScreen() {
   const nav = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { selectedChild, children: enfants } = useActiveChild();
-  const { isDemo, user } = useAuth();
+  const { isDemo } = useAuth();
   const scrollHandler = useTopbarScrollHandler();
+  const { getGrades, getSubjects } = useDemoData();
+  const childId = selectedChild?.id;
+  const prenom = selectedChild?.name?.split(' ')[0] ?? '';
 
-  // Un enfant = un carnet : uniquement les données de l'enfant actif. Compte réel : vide tant que
-  // ces données ne sont pas branchées sur la base (jamais la démo).
-  // UNE seule source de vérité : l'Accueil ne possède aucune donnée propre.
-  //  - « Dernières notes » : les notes de l'enfant (mêmes données que le Suivi collège) ;
-  //  - « Derniers apprentissages » : src/data/demo/suivi.ts (même source que le Suivi) ;
-  //  - « À faire », « Aujourd'hui », Aria : Agenda, mots et Messages de l'enfant.
-  const { getAgenda, getGrades, getSubjects } = useDemoData();
-  // Mots du carnet : la MÊME donnée que Messages › Général « À traiter » (démo et compte réel).
-  const { mots, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(selectedChild?.id);
-  // Compte réel : agenda du jour, derniers apprentissages et dernières notes lus dans la base (useAccueilReel).
-  const reel = useAccueilReel(selectedChild?.id, isDemo, selectedChild?.cycle);
-  const dernieresNotes = useMemo(() => {
-    if (!selectedChild) return [];
+  // Sources (les mêmes que les autres onglets).
+  const { mots, erreur: erreurMots, recharger: rechargerMots } = useMotsEnfant(childId);
+  const agenda = useAgendaSemaine(childId, isDemo, true);
+  const rendezVous = useRendezVousJours(childId, isDemo);
+  const absencesEnfant = useAbsences(childId, isDemo);
+  const reel = useAccueilReel(childId, isDemo, selectedChild?.cycle);
+  const anneesEnfant = useAnneesEnfant(childId, isDemo);
+  const enseignant = useNomEnseignant(childId, isDemo);
+  const { coches, basculer: basculerCoche } = useCoches(childId);
+  const [versionCarnet, setVersionCarnet] = useState(0);
+  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
+  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(childId, isDemo, versionCarnet);
+
+  const erreurAccueil =
+    erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur ?? absencesEnfant.erreur ?? rendezVous.erreur;
+  const reessayer = () => {
+    reel.recharger();
+    agenda.recharger();
+    absencesEnfant.recharger();
+    rendezVous.recharger();
+    rechargerMots();
+    rechargerCarnet();
+  };
+
+  const aujourdhui = aujourdhuiParis();
+  const demain = demainParis();
+
+  // 1. À faire
+  const aFaire = useMemo(() => {
+    const absences = aJustifier(absencesEnfant.absences, decalerJour(aujourdhui, -30)).map((a) => ({
+      id: a.id,
+      periode: periodeAbsence(a, aujourdhui, demain),
+    }));
+    return lignesAFaire({ mots, absencesAJustifier: absences, aTraiter, attendReponse, jourCourt });
+  }, [mots, absencesEnfant.absences, aujourdhui, demain]);
+
+  // 2. Aujourd'hui et demain
+  const elements = useMemo(
+    () =>
+      aujourdhuiEtDemain({
+        evenements: agenda.evenements,
+        mots,
+        rendezVous: rendezVous.occurrences,
+        coches,
+        aujourdhui,
+        demain,
+        quand: (d) => (d === aujourdhui ? 'Aujourd’hui' : 'Demain'),
+        heure: heureFr,
+      }),
+    [agenda.evenements, mots, rendezVous.occurrences, coches, aujourdhui, demain],
+  );
+
+  // 3. Nouveau dans le carnet : ajouts de la famille (toutes catégories), observations / compétences, notes.
+  const imports: ElementCarnet[] = useMemo(
+    () => (isDemo ? carnetDemo(childId) : carnetReel),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- carnetDemo relu à chaque changement du carnet
+    [isDemo, childId, carnetReel, versionCarnet],
+  );
+  const apprentissages = useMemo(
+    () => (!childId ? [] : isDemo ? getSuiviDemo(childId).slice(0, 3) : reel.apprentissages),
+    [isDemo, childId, reel.apprentissages],
+  );
+  const notes: NoteAccueil[] = useMemo(() => {
+    if (!selectedChild || !aDesNotes(selectedChild.cycle)) return [];
     if (!isDemo) return reel.notes;
     const matieres = getSubjects(selectedChild.id);
     return [...getGrades(selectedChild.id)]
       .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 3)
+      .slice(0, 2)
       .map((g) => ({
         id: g.id,
         subject: matieres.find((m) => m.id === g.subjectId)?.name ?? '',
         grade: String(g.value),
         scale: String(g.outOf),
         date: jourMois(g.date),
+        iso: g.date.slice(0, 10),
       }));
   }, [isDemo, selectedChild, getGrades, getSubjects, reel.notes]);
-  const derniersApprentissages = useMemo(
-    () => (!selectedChild ? [] : isDemo ? getSuiviDemo(selectedChild.id).slice(0, 2) : reel.apprentissages),
-    [isDemo, selectedChild, reel.apprentissages],
+
+  // 4. Suggestion de l'assistant
+  const suggestion = useMemo(
+    () => (selectedChild ? suggestionAccueil({ prenom, elements, aFaire, aujourdhui, demain, heureActuelle: heureParis() }) : null),
+    [selectedChild, prenom, elements, aFaire, aujourdhui, demain],
   );
 
-  // « Nouveau dans le carnet » : mots importés par la famille (lot B5). Démo : ajouts de la session ;
-  // compte réel : carnet_items. Livrets → Suivi › Livrets ; souvenirs et jalons → Suivi › Souvenirs.
-  const [versionCarnet, setVersionCarnet] = useState(0);
-  useEffect(() => surChangementCarnet(() => setVersionCarnet((v) => v + 1)), []);
-  const { items: carnetReel, erreur: erreurCarnet, recharger: rechargerCarnet } = useCarnetReel(selectedChild?.id, isDemo, versionCarnet);
-  const motsReels = useMemo(() => carnetReel.filter((e) => e.categorie === 'mot'), [carnetReel]);
-  // Chargement en échec (réseau coupé, session expirée…) : message + « Réessayer », jamais « Rien à faire » à tort.
-  // Maternelle / primaire : Agenda des 7 jours (devoirs, prochain événement, journée type), années de l'enfant
-  // (pilule de l'en-tête), cases « À prévoir » (mémorisées sur l'appareil), nom du responsable (signature).
-  const premierDegre = !aDesNotes(selectedChild?.cycle);
-  const primaire = selectedChild?.cycle === 'primaire';
-  const agenda = useAgendaSemaine(selectedChild?.id, isDemo, premierDegre);
-  // « À justifier » (lot 4b) : absences de mon foyer sans justificatif, de moins de 30 jours.
-  const absencesEnfant = useAbsences(selectedChild?.id, isDemo);
-  const absencesAJustifier = useMemo(
-    () => aJustifier(absencesEnfant.absences, decalerJour(aujourdhuiParis(), -30)),
-    [absencesEnfant.absences],
-  );
-  const anneesEnfant = useAnneesEnfant(selectedChild?.id, isDemo);
-  const { coches, basculer: basculerCoche } = useCoches(selectedChild?.id);
-  const [monNom, setMonNom] = useState('vous');
-  useEffect(() => {
-    if (selectedChild?.id) monNomComplet(selectedChild.id, isDemo).then(setMonNom);
-  }, [selectedChild?.id, isDemo]);
-  const erreurAccueil = erreurMots ?? erreurCarnet ?? reel.erreur ?? agenda.erreur ?? anneesEnfant.erreur ?? absencesEnfant.erreur;
-  // Carnet ENTIÈREMENT vide (toutes les tables du carnet à 0, chargement fini, aucune erreur) : compte réel seulement.
-  const carnetVide = useCarnetVide(selectedChild?.id, isDemo, !!erreurAccueil, versionCarnet);
-  const reessayerAccueil = () => {
-    reel.recharger();
-    agenda.recharger();
-    absencesEnfant.recharger();
-    rechargerMots();
-    rechargerCarnet();
-  };
-  const nouveauxMots = (isDemo ? carnetDemo(selectedChild?.id).filter((e) => e.categorie === 'mot') : motsReels).slice(0, 3);
   const ouvrirFichierCarnet = useOuvrirFichierCarnet();
-  const ouvrirAjout = async (e: ElementCarnet) => {
+  const ouvrirImport = async (e: ElementCarnet) => {
     if (e.deMoi) {
       nav.navigate('AjouterAuCarnet', { element: e });
       return;
     }
     await ouvrirFichierCarnet(e);
   };
-  const accueil = useMemo(() => {
-    if (!selectedChild) return { todo: [], aujourdhui: [], aria: '' };
-    // Compte réel : « À faire » = mes mots ; « Aujourd'hui » = les événements de l'Agenda du jour (useAccueilReel).
-    if (!isDemo) return { todo: todoDepuisMots(mots), aujourdhui: reel.aujourdhui, aria: '' };
-    const auj = dateAujourdhuiParis();
-    const demain = new Date(auj.getFullYear(), auj.getMonth(), auj.getDate() + 1);
-    return construireAccueilDemo({
-      prenom: selectedChild.name.split(' ')[0],
-      cycle: selectedChild.cycle,
-      aujourdHui: auj,
-      evenementsDuJour: getAgenda(selectedChild.id, isoJour(auj)),
-      evenementsDeDemain: getAgenda(selectedChild.id, isoJour(demain)),
-      mots,
-      conversations: getConversations(selectedChild.id),
-    });
-  }, [isDemo, selectedChild, getAgenda, mots, reel.aujourdhui]);
-  // Collège / lycée : absences à justifier en tête de « À faire » (lot 4b).
-  const todoAffiche: DemoTodo[] = [
-    ...absencesAJustifier.map((a) => ({ kind: 'justifier' as const, title: 'Absence à justifier', deadline: periodeAbsence(a, aujourdhuiParis(), demainParis()), absenceId: a.id })),
-    ...accueil.todo,
-  ];
-  const avecNotes = aDesNotes(selectedChild?.cycle);
-  const ouvrirSuivi = () => nav.getParent()?.navigate('Notes');
+  const ouvrirAFaire = (l: LigneAFaire) => {
+    if (l.absenceId) nav.navigate('SignalerAbsenceScreen', { absenceId: l.absenceId });
+    else if (l.motId && childId) nav.navigate('MotDetailScreen', { motId: l.motId, childId });
+  };
 
-  // Photo de l'enfant : comptes réels seulement (démo : initiales). Le badge de l'en-tête suffit, aucune relance.
+  // Photo de l'enfant : comptes réels seulement (démo : initiale).
   const [photoVisible, setPhotoVisible] = useState(false);
   const photoUri = usePhotoUrl(selectedChild);
-
-  const prenom = selectedChild?.name?.split(' ')[0] ?? '';
   const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
-  const hauteurFondu = insets.top + HERO_FONDU;
+  const hauteurFondu = insets.top + FONDU_ACCUEIL;
 
   return (
     <View style={styles.root}>
@@ -253,21 +182,16 @@ export default function AccueilScreen() {
         scrollEventThrottle={16}
         onScroll={scrollHandler}
       >
-        {/* Header pleine largeur en FONDU : couleur de l'enfant (ou sa photo) qui disparaît vers la
-            transparence, derrière la barre d'état, la top bar et les premières cartes. Part avec le
-            contenu au défilement. Aucun arrondi, aucune coupure. */}
+        {/* Fondu pleine largeur de la couleur de l'enfant, derrière la barre d'état, la top bar et les premières cartes. */}
         <HeaderFondu couleur={heroColor} hauteur={hauteurFondu} />
         {selectedChild ? (
-          // En-tête du carnet (COMPONENTS §18.3) : photo ou initiale, prénom, classe, pilule « [École] · année ».
           <EnteteCarnet
             paddingTop={insets.top + HERO_TOPBAR_RESERVE}
             prenom={prenom}
             initiale={getChildInitials(selectedChild.name, enfants.map((c) => c.name))}
             classe={libelleClasse(selectedChild.niveau)}
+            enseignant={enseignant}
             ecole={anneesEnfant.enCours?.etablissement || selectedChild.ecole}
-            enCours={anneesEnfant.enCours}
-            archives={anneesEnfant.archives}
-            onParcours={() => nav.navigate('MonParcours')}
             photoUri={photoUri}
             anneePhoto={selectedChild.photoAnterieure}
             onPhoto={isDemo || !PHOTO_ENFANT_ACTIVE ? undefined : () => setPhotoVisible(true)}
@@ -281,193 +205,45 @@ export default function AccueilScreen() {
 
         {/* Compte réel sans enfant : état vide, rien d'autre (aucune donnée de démo). */}
         {!selectedChild && (
-          <View style={styles.cardOuter}>
-            <View style={styles.cardInner}>
-              <AucunEnfant compact />
-            </View>
+          <View style={styles.carte}>
+            <AucunEnfant compact />
           </View>
         )}
 
-        {selectedChild && (<>
-
-        {erreurAccueil && (
-          <View style={styles.cardOuter}>
-            <View style={styles.cardInner}>
-              <EtatErreur type={erreurAccueil} onReessayer={reessayerAccueil} compact />
-            </View>
-          </View>
-        )}
-
-        {carnetVide ? (
-          <CarnetVide prenom={prenom} />
-        ) : premierDegre ? (
-          // Maternelle / primaire : À faire · Cette semaine · Nouveau dans le carnet · Aujourd'hui (primaire seulement).
-          <CorpsCarnet
-            primaire={primaire}
-            hauteurFondu={hauteurFondu}
-            mots={mots}
-            monNom={monNom}
-            demo={isDemo}
-            evenements={agenda.evenements}
-            onBasculerDevoir={agenda.basculer}
-            aJustifier={absencesAJustifier}
-            onJustifier={(a) => nav.navigate('SignalerAbsenceScreen', { absenceId: a.id })}
-            coches={coches}
-            onBasculerCoche={basculerCoche}
-            apprentissages={derniersApprentissages}
-            imports={nouveauxMots}
-            onOuvrirMot={(m: MotCarnet) => nav.navigate('MotDetailScreen', { motId: m.id, childId: selectedChild.id })}
-            onOuvrirAgenda={() => nav.getParent()?.navigate('Agenda')}
-            onOuvrirImport={ouvrirAjout}
-            onOuvrirSuivi={ouvrirSuivi}
-          />
-        ) : (
+        {selectedChild && (
           <>
-        {/* À faire (collège / lycée : contenu inchangé) */}
-        {todoAffiche.length > 0 && (
-          <>
-            <LibelleSurFondu texte="À faire" hauteur={hauteurFondu} />
-            <View style={styles.cardOuter}>
-              <View style={styles.cardInner}>
-                {todoAffiche.map((it, i) => (
-                  <ActionRow
-                    key={i}
-                    {...it}
-                    last={i === todoAffiche.length - 1}
-                    onPress={
-                      it.kind === 'justifier' && it.absenceId ? () => nav.navigate('SignalerAbsenceScreen', { absenceId: it.absenceId }) :
-                      it.motId ? () => nav.navigate('MotDetailScreen', { motId: it.motId, childId: selectedChild.id }) :
-                      undefined
-                    }
-                  />
-                ))}
+            {erreurAccueil && (
+              <View style={styles.carte}>
+                <EtatErreur type={erreurAccueil} onReessayer={reessayer} compact />
               </View>
-            </View>
-          </>
-        )}
-
-        {/* Aujourd'hui */}
-        <LibelleSurFondu texte="Aujourd’hui" hauteur={hauteurFondu} />
-        {accueil.aujourdhui.length > 0 ? (
-          <View style={styles.cardOuter}>
-            <View style={styles.cardInner}>
-              {accueil.aujourdhui.map((it, i) => (
-                <TodayRow
-                  key={it.id}
-                  icon={
-                    it.kind === 'event'
-                      ? <Calendar size={14} color="rgba(15,23,42,0.55)" strokeWidth={1.8} />
-                      : <MessageCircle size={14} color="rgba(15,23,42,0.55)" strokeWidth={1.8} />
-                  }
-                  title={it.title}
-                  meta={it.meta}
-                  time={it.time}
-                  last={i === accueil.aujourdhui.length - 1}
-                  onPress={
-                    it.kind === 'event'
-                      ? () => nav.getParent()?.navigate('Agenda')
-                      : () => nav.getParent()?.navigate('MessagerieTab')
-                  }
-                />
-              ))}
-            </View>
-          </View>
-        ) : (
-          <SurFondu hauteur={hauteurFondu}>
-            {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Rien de prévu aujourd’hui.'}</Text>}
-          </SurFondu>
-        )}
-
-        {/* Dernières notes : collège / lycée uniquement */}
-        <LibelleSurFondu texte="Dernières notes" hauteur={hauteurFondu} />
-        {dernieresNotes.length > 0 ? (
-          <View style={styles.cardOuter}>
-            <View style={styles.cardInner}>
-              {dernieresNotes.map((it, i) => (
-                <GradeRow
-                  key={it.id}
-                  subject={it.subject}
-                  grade={it.grade}
-                  scale={it.scale}
-                  date={it.date}
-                  last={i === dernieresNotes.length - 1}
-                  onPress={ouvrirSuivi}
-                />
-              ))}
-            </View>
-          </View>
-        ) : (
-          <SurFondu hauteur={hauteurFondu}>
-            {(ton) => <Text style={[styles.emptyState, ton]}>{erreurAccueil ? '' : 'Aucune note pour l’instant.'}</Text>}
-          </SurFondu>
-        )}
-        <TouchableOpacity style={styles.ghostLink} activeOpacity={0.7} onPress={ouvrirSuivi}>
-          <Text style={styles.ghostLinkText}>Voir le suivi →</Text>
-        </TouchableOpacity>
-
-        {/* Nouveau dans le carnet : mots importés (section absente tant qu'il n'y en a pas) */}
-        {nouveauxMots.length > 0 ? (
-          <>
-            <LibelleSurFondu texte="Nouveau dans le carnet" hauteur={hauteurFondu} />
-            <View style={styles.cardOuter}>
-              <View style={styles.cardInner}>
-                {nouveauxMots.map((e, i) => (
-                  <TouchableOpacity
-                    key={e.id}
-                    style={[styles.apprRow, i < nouveauxMots.length - 1 && styles.rowBorder]}
-                    activeOpacity={0.75}
-                    onPress={() => ouvrirAjout(e)}
-                  >
-                    <Text style={styles.apprDomaine}>{LIBELLES_TYPE[e.type]}</Text>
-                    <Text style={styles.apprTexte}>{e.titre}</Text>
-                    <Text style={styles.apprSource}>
-                      {`${ligneSourceCarnet(e)}${e.visibilite === 'prive' ? ' · visible par vous seul' : ''}`}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </>
-        ) : null}
-          </>
-        )}
-
-        <View style={{ height: 14 }} />
-
-        {/* Aria */}
-        <View style={{ paddingHorizontal: 14, marginTop: 4 }}>
-          <TouchableOpacity
-            style={styles.ariaCard}
-            activeOpacity={0.9}
-            accessibilityRole="button"
-            onPress={() => nav.navigate('AriaHome')}
-          >
-            <LinearGradient
-              colors={['#EEF2FF', '#F0FDFA']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+            )}
+            <CorpsCarnet
+              hauteurFondu={hauteurFondu}
+              primaire={selectedChild.cycle === 'primaire'}
+              aFaire={aFaire}
+              onOuvrirAFaire={ouvrirAFaire}
+              elements={elements}
+              onBasculerDevoir={agenda.basculer}
+              onBasculerPrevoir={(e) => {
+                if ('motId' in e.prevoir) basculerCoche(`${e.prevoir.motId}|${e.prevoir.item}`);
+                else rendezVous.basculer(e.prevoir.rdvId, e.prevoir.semaine, e.prevoir.item, !e.fait);
+              }}
+              onOuvrirAgenda={() => nav.getParent()?.navigate('Agenda')}
+              apprentissages={apprentissages}
+              imports={imports}
+              notes={notes}
+              onOuvrirScolarite={() => nav.getParent()?.navigate('Notes')}
+              onOuvrirImport={ouvrirImport}
+              onAjouter={() => demanderAjoutCarnet({ onglet: 'Accueil' })}
+              suggestion={erreurAccueil ? null : suggestion}
+              onOuvrirAssistant={() => nav.navigate('AriaHome')}
             />
-            <View style={{ marginRight: 10 }}>
-              <ScolariaSymbol size={18} color={C.indigo} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.ariaLabel}>{ASSISTANT.nom.toUpperCase()}</Text>
-              <Text style={styles.ariaMessage}>
-                {accueil.aria ||
-                  (isDemo
-                    ? `Posez une question ${ASSISTANT.a}.`
-                    : `Posez une question ${ASSISTANT.a}. ${ASSISTANT.Pronom} ne lit pas le carnet ${de(prenom)} : ${ASSISTANT.pronom} reçoit seulement son prénom, son niveau et vos messages.`)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        </>)}
+          </>
+        )}
+
         {/* APK de démonstration (APP_VARIANT=demo) : dit que tout est fictif, discrètement, tout en bas du défilement. */}
         {ENV.VARIANTE_DEMO ? (
-          <Text style={{ fontFamily: 'Figtree_300Light', fontSize: 11, color: 'rgba(15,23,42,0.35)', textAlign: 'center', marginTop: 20, paddingHorizontal: 24 }}>
-            Démonstration : famille et données fictives.
-          </Text>
+          <Text style={styles.mentionDemo}>Démonstration : famille et données fictives.</Text>
         ) : null}
       </Animated.ScrollView>
 
@@ -478,230 +254,29 @@ export default function AccueilScreen() {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bg,
-  },
-
-  // ── ScrollView transparent ───────────────────────────
-  scroll: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-
-  // ── Contenu hero ─────────────────────────────────────
-  // Texte du header, posé sur la partie pleine du fondu (HeaderFondu, couche absolue).
-  hero: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  heroHello: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 13,
-    // 95 % : contraste AA ≥ 5,1 sur les 6 couleurs d'enfant (pire cas : sarcelle)
-    color: 'rgba(255,255,255,0.95)',
-    marginBottom: 1,
-  },
-  heroPrenom: {
-    fontFamily: 'Figtree_900Black',
-    fontSize: 32,
-    color: '#FFFFFF',
-    letterSpacing: -1.2,
-    lineHeight: 36,
-  },
-
-  // ── Card wrapper (outer shadow + inner clip) ─────────
-  cardOuter: {
+  root: { flex: 1, backgroundColor: C.bg },
+  scroll: { flex: 1, backgroundColor: 'transparent' },
+  // Compte sans enfant : texte posé sur la partie pleine du fondu (indigo).
+  hero: { paddingHorizontal: 20, paddingBottom: 16 },
+  heroHello: { fontFamily: 'Figtree_500Medium', fontSize: 13, color: 'rgba(255,255,255,0.95)', marginBottom: 1 },
+  heroPrenom: { fontFamily: 'Figtree_900Black', fontSize: 32, color: '#FFFFFF', letterSpacing: -1.2, lineHeight: 36 },
+  carte: {
     marginHorizontal: 14,
+    marginBottom: 8,
     borderRadius: RADIUS.card,
     backgroundColor: '#FFFFFF',
-    ...SHADOW.card,
-  },
-  cardInner: {
-    borderRadius: RADIUS.card,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: C.border,
-  },
-
-  // ── Lignes (base partagée) ───────────────────────────
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(15,23,42,0.05)',
-  },
-  rowTitle: {
-    fontFamily: 'Figtree_600SemiBold',
-    fontSize: 14,
-    color: '#0F172A',
-    letterSpacing: -0.15,
-  },
-
-  // ── ActionRow ────────────────────────────────────────
-  actionBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 6,
-    flexShrink: 0,
-  },
-  actionBadgeText: {
-    fontFamily: 'Figtree_700Bold',
-    fontSize: 9,
-    letterSpacing: 0.7,
-  },
-  actionTitle: {
-    flex: 1,
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 14,
-    color: '#0F172A',
-    letterSpacing: -0.15,
-    marginLeft: 10,
-  },
-  deadlineText: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 12,
-    color: 'rgba(15,23,42,0.55)',
-    flexShrink: 0,
-    marginRight: 4,
-  },
-
-  // ── TodayRow ─────────────────────────────────────────
-  todayIconTile: {
-    width: 28,
-    height: 28,
-    borderRadius: 9,
-    backgroundColor: 'rgba(15,23,42,0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    flexShrink: 0,
-  },
-  todayTexts: { flex: 1 },
-  metaText: {
-    fontFamily: 'Figtree_400Regular',
-    fontSize: 11,
-    color: 'rgba(15,23,42,0.55)',
-    marginTop: 1,
-  },
-  timeText: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 12,
-    color: 'rgba(15,23,42,0.55)',
-    flexShrink: 0,
-  },
-
-  // ── GradeRow ─────────────────────────────────────────
-  gradeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  gradeSubject: {
-    flex: 1,
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 14,
-    color: '#0F172A',
-    letterSpacing: -0.15,
-  },
-  gradeNumber: {
-    fontFamily: 'Figtree_700Bold',
-    fontSize: 20,
-    color: '#0F172A',
-    letterSpacing: -0.5,
-    marginLeft: 10,
-  },
-  gradeScale: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 12,
-    color: 'rgba(15,23,42,0.35)',
-  },
-  gradeDate: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 12,
-    color: 'rgba(15,23,42,0.55)',
-    flexShrink: 0,
-    minWidth: 52,
-    textAlign: 'right',
-    marginLeft: 8,
-  },
-
-  // ── Ghost link ───────────────────────────────────────
-  ghostLink: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 2,
-  },
-  ghostLinkText: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 13,
-    color: 'rgba(15,23,42,0.55)',
-  },
-
-  // ── Aria card ────────────────────────────────────────
-  ariaCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(67,56,202,0.10)',
-    borderRadius: 16,
-    padding: 12,
-    flexDirection: 'row',
     overflow: 'hidden',
+    ...SHADOW.card,
   },
-  ariaLabel: {
-    fontFamily: 'Figtree_700Bold',
+  mentionDemo: {
+    fontFamily: 'Figtree_300Light',
     fontSize: 11,
-    letterSpacing: 0.3,
-    color: C.indigo,
-    marginBottom: 3,
-    textTransform: 'uppercase',
-  },
-  ariaMessage: {
-    fontFamily: 'Figtree_400Regular',
-    fontSize: 12.5,
-    color: '#0F172A',
-    lineHeight: 18,
-  },
-
-  // ── Apprentissages (maternelle / primaire) ───────────
-  apprRow: {
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-  },
-  apprDomaine: {
-    fontFamily: 'Figtree_600SemiBold',
-    fontSize: 11,
-    lineHeight: 14,
-    color: 'rgba(15,23,42,0.55)',
-  },
-  apprTexte: {
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 14,
-    lineHeight: 19,
-    color: '#0F172A',
-    marginTop: 2,
-  },
-  apprSource: {
-    fontFamily: 'Figtree_400Regular',
-    fontSize: 11,
-    lineHeight: 14,
-    color: 'rgba(15,23,42,0.55)',
-  },
-
-  // ── Empty state ──────────────────────────────────────
-  emptyState: {
-    marginHorizontal: 14,
-    paddingVertical: 14,
-    fontFamily: 'Figtree_500Medium',
-    fontSize: 14,
-    color: 'rgba(15,23,42,0.55)',
-    letterSpacing: -0.1,
+    color: 'rgba(15,23,42,0.35)',
+    textAlign: 'center',
+    marginTop: 20,
+    paddingHorizontal: 24,
   },
 });

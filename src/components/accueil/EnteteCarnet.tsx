@@ -1,33 +1,33 @@
 /**
- * EnteteCarnet — ligne d'identité de l'en-tête du carnet (Accueil), posée sur la partie pleine du fondu
- * (COMPONENTS §18.3). Remplace « Bonjour » + prénom.
+ * EnteteCarnet — ligne d'identité de l'en-tête de l'Accueil (lot 6, prompt du 16 nov. ; COMPONENTS §18.3), posée sur la
+ * partie pleine du fondu de la couleur de l'enfant :
  *
- *  [cercle photo 78]  prénom (Figtree 900, 30)
- *                     classe (500, 14)
- *                     pilule « [École] · 2026–2027 ⌄ »  → menu des années (même menu que le Suivi)
+ *  [rond 52]  prénom (Figtree 800 · 24 · blanc)
+ *             « classe · enseignant · école » (13 px, blanc 95 %) — un élément absent est omis avec son séparateur
  *
- * Sans photo : initiale + badge appareil photo (ouvre la feuille de photo) ; avec photo : le cercle lui-même l'ouvre.
- * Pas de bouton « Changer », pas de pastille d'enfants : le sélecteur d'enfant reste l'avatar de la top bar.
- * Tout est blanc sur la couleur de l'enfant (contrastes AA vérifiés : npm run test:entete).
+ * Rond : la photo de l'enfant, sinon son initiale sur blanc translucide. Photo facultative, jamais exigée : sans photo,
+ * toucher le rond propose « Ajouter une photo » (feuille de photo) ; avec photo, il ouvre la même feuille. Démo : pas de
+ * photo, le rond n'est pas pressable (aucun faux bouton). Pas de « Bonjour », pas de pilule d'année (l'année vit dans
+ * Scolarité), pas de sélecteur : l'avatar de la top bar reste le sélecteur d'enfant.
+ * Contrastes AA sur les 6 couleurs d'enfant : npm run test:entete.
  */
 
 import { View, Image, StyleSheet } from 'react-native';
-import { Camera } from 'lucide-react-native';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
-import BoutonAnnee from '../../screens/suivi/BoutonAnnee';
-import type { AnneeParcours } from '../../data/demo/parcours';
 
-const TAILLE = 78;
+const TAILLE = 52;
+
+export function ligneIdentite(classe?: string | null, enseignant?: string | null, ecole?: string | null): string {
+  return [classe, enseignant, ecole].map((x) => (x ?? '').trim()).filter(Boolean).join(' · ');
+}
 
 export default function EnteteCarnet({
   prenom,
   initiale,
   classe,
+  enseignant,
   ecole,
-  enCours,
-  archives,
-  onParcours,
   photoUri,
   onPhoto,
   anneePhoto,
@@ -36,21 +36,20 @@ export default function EnteteCarnet({
   prenom: string;
   initiale: string;
   classe: string;
+  enseignant?: string | null;
   ecole?: string;
-  enCours?: AnneeParcours;
-  archives: AnneeParcours[];
-  onParcours: () => void;
-  /** Photo de l'enfant (URL signée ou fichier local) ; absente : initiale sur la couleur de l'enfant. */
+  /** Photo de l'enfant (URL signée courte ou fichier local) ; absente : initiale. */
   photoUri?: string | null;
-  /** Ouvre la feuille de photo ; absent : le cercle n'est pas pressable (aucun faux bouton). */
+  /** Ouvre la feuille de photo ; absent : le rond n'est pas pressable. */
   onPhoto?: () => void;
-  /** Variante A : la photo affichée est celle d'une année passée (N−1) : libellé « 2025–2026 », signe discret sur le cercle. */
+  /** Variante A : la photo affichée est celle de l'année N−1 (libellé d'accessibilité seulement à cette taille). */
   anneePhoto?: string | null;
   /** insets.top + 64 */
   paddingTop: number;
 }) {
-  const cercle = (
-    <View style={st.cercle}>
+  const ligne = ligneIdentite(classe, enseignant, ecole);
+  const rond = (
+    <View style={st.rond}>
       {photoUri ? (
         <Image source={{ uri: photoUri }} style={st.photo} resizeMode="cover" accessibilityIgnoresInvertColors />
       ) : (
@@ -61,43 +60,24 @@ export default function EnteteCarnet({
 
   return (
     <View style={[st.ligne, { paddingTop }]}>
-      <View style={st.cercleZone}>
-        {onPhoto ? (
-          <Pressable
-            onPress={onPhoto}
-            accessibilityRole="button"
-            accessibilityLabel={anneePhoto ? `Photo de ${prenom} de ${anneePhoto}. Ajouter la photo de cette année` : photoUri ? `Photo de ${prenom}. Modifier` : `Ajouter une photo de ${prenom}`}
-          >
-            {cercle}
-          </Pressable>
-        ) : (
-          cercle
-        )}
-        {onPhoto && !photoUri ? (
-          <Pressable
-            onPress={onPhoto}
-            style={st.badge}
-            hitSlop={9}
-            accessibilityRole="button"
-            accessibilityLabel={`Ajouter une photo de ${prenom}`}
-          >
-            <Camera size={14} color="#FFFFFF" strokeWidth={2} />
-          </Pressable>
-        ) : null}
-        {photoUri && anneePhoto ? (
-          <View style={st.signeAnnee} pointerEvents="none" accessible={false}>
-            <Text style={st.signeAnneeTexte} numberOfLines={1}>{anneePhoto.replace(/(d{4})–(d{2})(d{2})/, '$1–$3')}</Text>
-          </View>
-        ) : null}
-      </View>
+      {onPhoto ? (
+        <Pressable
+          onPress={onPhoto}
+          hitSlop={4}
+          style={st.rondZone}
+          accessibilityRole="button"
+          accessibilityLabel={
+            anneePhoto ? `Photo de ${prenom} de ${anneePhoto}. Ajouter celle de cette année` : photoUri ? `Photo de ${prenom}. Modifier` : `Ajouter une photo de ${prenom}`
+          }
+        >
+          {rond}
+        </Pressable>
+      ) : (
+        <View style={st.rondZone}>{rond}</View>
+      )}
       <View style={st.textes}>
-        <Text style={st.prenom} numberOfLines={1}>{prenom}</Text>
-        {classe ? <Text style={st.classe} numberOfLines={1}>{classe}</Text> : null}
-        {enCours ? (
-          <View style={st.piluleZone}>
-            <BoutonAnnee enCours={enCours} archives={archives} onParcours={onParcours} pilule={{ ecole }} />
-          </View>
-        ) : null}
+        <Text style={st.prenom} numberOfLines={1} accessibilityRole="header">{prenom}</Text>
+        {ligne ? <Text style={st.sousLigne} numberOfLines={2}>{ligne}</Text> : null}
       </View>
     </View>
   );
@@ -105,53 +85,21 @@ export default function EnteteCarnet({
 
 const st = StyleSheet.create({
   ligne: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 16 },
-  cercleZone: { width: TAILLE, height: TAILLE, marginRight: 14 },
-  cercle: {
+  rondZone: { width: TAILLE, height: TAILLE, marginRight: 12 },
+  rond: {
     width: TAILLE,
     height: TAILLE,
     borderRadius: 999,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
-    backgroundColor: 'rgba(255,255,255,0.30)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  photo: { width: TAILLE - 6, height: TAILLE - 6 },
-  initiale: { fontFamily: FontFamily.displayBold, fontSize: 30, lineHeight: 36, color: '#FFFFFF' },
-  // Badge appareil photo 26 px, zone tactile 44 par hitSlop (le cercle entier ouvre aussi la feuille).
-  badge: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 26,
-    height: 26,
-    borderRadius: 999,
-    backgroundColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // Signe discret d'une photo d'une année passée (variante A) : pastille blanche, texte 11 px sombre, en bas du cercle.
-  signeAnnee: {
-    position: 'absolute',
-    bottom: -4,
-    alignSelf: 'center',
-    paddingHorizontal: 7,
-    height: 18,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  signeAnneeTexte: { fontFamily: FontFamily.sansMedium, fontSize: 11, lineHeight: 14, color: 'rgba(15,23,42,0.75)' },
+  photo: { width: TAILLE - 4, height: TAILLE - 4 },
+  initiale: { fontFamily: FontFamily.displayBold, fontSize: 22, lineHeight: 26, color: '#FFFFFF' },
   textes: { flex: 1, minWidth: 0 },
-  prenom: {
-    fontFamily: FontFamily.displaySemiBold, // Figtree 900
-    fontSize: 30,
-    lineHeight: 34,
-    letterSpacing: -1.1,
-    color: '#FFFFFF',
-  },
-  classe: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 18, color: 'rgba(255,255,255,0.95)' },
-  piluleZone: { marginTop: 6 },
+  prenom: { fontFamily: FontFamily.displayBold, fontSize: 24, lineHeight: 28, letterSpacing: -0.6, color: '#FFFFFF' },
+  sousLigne: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 17, color: 'rgba(255,255,255,0.95)', marginTop: 1 },
 });

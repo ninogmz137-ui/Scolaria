@@ -1,6 +1,6 @@
 // En-tête du carnet : courbe du fondu et contrastes AA des textes posés dessus, sur les 6 couleurs d'enfant.
 // npm run test:entete
-import { opaciteFondu, tonSurFondu } from './fondu.ts';
+import { FONDU_ACCUEIL, opaciteFondu, tonSurFondu } from './fondu.ts';
 
 let ok = 0;
 let echecs = 0;
@@ -30,27 +30,32 @@ verifier('opacité 1 en haut, 0 au bas du fondu', opaciteFondu(0, 380) === 1 && 
 verifier('plein jusqu\'à 40 % de la hauteur', opaciteFondu(0.4 * 380, 380) === 1);
 verifier('ton clair tant que l\'opacité ≥ 0,6, foncé ensuite', tonSurFondu(100, 380) === 'clair' && tonSurFondu(300, 380) === 'fonce' && tonSurFondu(380, 380) === null);
 
-// Géométrie de la ligne d'identité (COMPONENTS §18.3) : haut = insets.top + 64 ; colonne de texte : prénom (34) → bas à +34,
-// classe (18) → bas à +54, pilule (26 + 6 d'écart) → bas à +86 ; fondu = insets.top + 340. Chaque texte est évalué à SON ordonnée.
-// Barres d'état de 24 à 56 dp.
+// Géométrie de la ligne d'identité (lot 6, COMPONENTS §18.3) : haut = insets.top + 64 ; rond 52 ; colonne de texte centrée
+// sur le rond : prénom 24 (ligne 28) → bas à +32, ligne « classe · enseignant · école » 13 (ligne 17) → bas à +50 ;
+// fondu = insets.top + FONDU_ACCUEIL (fondu.ts). Chaque texte est évalué à SON ordonnée. Barres d'état de 24 à 56 dp.
 const HAUT = 64;
-const BAS_PRENOM = 34;
-const BAS_CLASSE = 54;
-const BAS_PILULE = 86;
-const FONDU = 340;
+const BAS_PRENOM = 32;
+const BAS_LIGNE = 50;
+const FONDU = FONDU_ACCUEIL;
 for (const top of [24, 32, 40, 48, 56]) {
   const op = (dy: number) => opaciteFondu(top + HAUT + dy, top + FONDU);
   for (const [nom, c] of Object.entries(COULEURS)) {
     const fondA = (dy: number) => mix(PAGE, hex(c), op(dy));
-    const classe = contraste(mix(fondA(BAS_CLASSE), [255, 255, 255], 0.95), fondA(BAS_CLASSE));
-    const pilule = contraste([255, 255, 255], mix(fondA(BAS_PILULE), [15, 23, 42], 0.16));
+    const ligne = contraste(mix(fondA(BAS_LIGNE), [255, 255, 255], 0.95), fondA(BAS_LIGNE));
     const prenom = contraste([255, 255, 255], fondA(BAS_PRENOM));
-    if (!(classe >= 4.5 && pilule >= 4.5 && prenom >= 3)) {
-      verifier(`barre d'état ${top} dp, ${nom}`, false, `classe ${classe.toFixed(2)} pilule ${pilule.toFixed(2)} prénom ${prenom.toFixed(2)} `);
+    if (!(ligne >= 4.5 && prenom >= 3)) {
+      verifier(`barre d'état ${top} dp, ${nom}`, false, `ligne ${ligne.toFixed(2)} prénom ${prenom.toFixed(2)} `);
     }
   }
 }
-verifier('contrastes AA (classe, pilule, prénom) sur les 6 couleurs d\'enfant, barres d\'état de 24 à 56 dp', echecs === 0);
+verifier('contrastes AA (ligne 13 px, prénom 24 px) sur les 6 couleurs d\'enfant, barres d\'état de 24 à 56 dp', echecs === 0);
+
+// Hauteur de l'en-tête (prompt du 16 nov.) : la 1re carte commence au plus tard à 30 % de l'écran. Haut de carte = insets.top
+// + 64 + 52 (rond) + 16 (marge) + 44 (libellé de section « À faire ») ; écran du Redmi = 873 dp, petit écran = 690 dp.
+for (const [ecran, top] of [[873, 32], [690, 24]] as const) {
+  const hautCarte = top + 64 + 52 + 16 + 44;
+  verifier(`1re carte à ${(100 * hautCarte / ecran).toFixed(0)} % d'un écran de ${ecran} dp (≤ 30 %)`, hautCarte <= 0.3 * ecran, String(hautCarte));
+}
 
 // Contre-épreuve : le voile BLANC à 22 % demandé d'abord ne passe PAS (c'est pourquoi le voile est sombre).
 const pireBlanc22 = Math.min(...Object.values(COULEURS).map((c) => contraste([255, 255, 255], mix(hex(c), [255, 255, 255], 0.22))));

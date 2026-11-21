@@ -47,6 +47,27 @@ async function classeActive(childId: string): Promise<{ id: string; nom: string;
   return classe ?? null;
 }
 
+/**
+ * Nom du titulaire de la classe de l'enfant, pour l'en-tête de l'Accueil (lot 6) : lu par le fil existant avec lui
+ * (`fil_enseignant`, sous RLS), sans créer de fil ni de fonction nouvelle en base. Null si l'enfant n'a pas de classe
+ * avec titulaire, ou si aucun fil n'existe encore avec lui : l'en-tête omet alors l'enseignant (jamais un nom deviné).
+ */
+export async function nomEnseignantReel(childId: string): Promise<string | null> {
+  const classe = await classeActive(childId);
+  if (!classe?.enseignant_id) return null;
+  const { data: fil } = await supabase
+    .from('teacher_conversations')
+    .select('id')
+    .eq('student_id', childId)
+    .eq('teacher_id', classe.enseignant_id)
+    .limit(1)
+    .maybeSingle();
+  if (!fil?.id) return null;
+  const { data: nom } = await supabase.rpc('fil_enseignant', { p_conversation_id: fil.id });
+  const texte = typeof nom === 'string' ? nom.trim() : '';
+  return texte && texte !== 'Enseignant' ? texte : null;
+}
+
 /** Tous les fils réels de l'enfant (enseignant + classe), dans la forme du magasin. Lève en cas d'échec. */
 export async function chargerFilsReels(childId: string): Promise<Conversation[]> {
   const uid = await moi();

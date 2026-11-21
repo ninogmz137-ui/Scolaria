@@ -1,18 +1,16 @@
 /**
- * useAccueilReel — ce que l'Accueil d'un COMPTE RÉEL affiche en plus des mots : l'agenda du jour, les derniers
- * apprentissages (compétences, primaire) et les dernières notes (collège / lycée), de l'enfant actif, lus dans la
- * base (mêmes tables que l'Agenda et le Suivi). Démo : toujours vide (l'Accueil lit ses données de démo).
- * « Rien de prévu aujourd'hui » n'apparaît donc que si l'Agenda est réellement vide ce jour-là.
+ * useAccueilReel — ce que « Nouveau dans le carnet » d'un COMPTE RÉEL lit en plus des ajouts de la famille : les derniers
+ * apprentissages (compétences, observations) et les dernières notes (collège / lycée) de l'enfant actif, dans la base
+ * (mêmes tables que Scolarité). Démo : toujours vide (l'Accueil lit ses données de démo). L'agenda du jour et du
+ * lendemain vient de useAgendaSemaine (même source que l'Agenda), plus d'ici (lot 6).
  * Un échec de chargement ne laisse JAMAIS les données d'un autre enfant et n'est jamais pris pour un vide :
  * `erreur` (réseau, session, serveur) + `recharger()` (« Réessayer »).
  */
 
-import { aujourdhuiParis, bornesParis, heureParis } from '../utils/jourParis';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getAgendaEvents, getGrades } from '../services/database';
+import { getGrades } from '../services/database';
 import { chargerCompetencesOuErreur } from '../services/suiviService';
 import { classerErreur, leverSiErreur, type TypeErreur } from '../services/erreurs';
-import { heureFr, type DemoAujourdhui } from '../data/demo/accueil';
 import { jourMois, type ElementSuivi } from '../utils/competences';
 import { aDesNotes, type Cycle } from '../utils/niveau';
 
@@ -21,11 +19,13 @@ export interface NoteAccueil {
   subject: string;
   grade: string;
   scale: string;
+  /** « 12 nov. » */
   date: string;
+  /** AAAA-MM-JJ, pour le tri de « Nouveau dans le carnet ». */
+  iso: string;
 }
 
 export function useAccueilReel(childId: string | undefined, isDemo: boolean, cycle: Cycle | null | undefined) {
-  const [aujourdhui, setAujourdhui] = useState<DemoAujourdhui[]>([]);
   const [apprentissages, setApprentissages] = useState<ElementSuivi[]>([]);
   const [notes, setNotes] = useState<NoteAccueil[]>([]);
   const [erreur, setErreur] = useState<TypeErreur | null>(null);
@@ -37,7 +37,6 @@ export function useAccueilReel(childId: string | undefined, isDemo: boolean, cyc
     // Un enfant = un carnet : changer d'enfant vide tout AVANT le chargement.
     if (dernierEnfant.current !== childId) {
       dernierEnfant.current = childId;
-      setAujourdhui([]);
       setApprentissages([]);
       setNotes([]);
       setErreur(null);
@@ -45,33 +44,25 @@ export function useAccueilReel(childId: string | undefined, isDemo: boolean, cyc
     if (isDemo || !childId) return;
 
     (async () => {
-      // Le jour de Paris (lot 4 A4), quel que soit le fuseau du téléphone.
-      const jour = bornesParis(aujourdhuiParis());
-
-      const resEvenements = await getAgendaEvents(childId, { startDate: jour.debut, endDate: jour.fin });
-      leverSiErreur(resEvenements.error);
-      const evenements: DemoAujourdhui[] = ((resEvenements.data ?? []) as any[]).map((r) => {
-        const d = new Date(r.start_time);
-        const hhmm = heureParis(d);
-        return { id: String(r.id), kind: 'event' as const, title: String(r.title), meta: String(r.location || r.subject || ''), time: heureFr(hhmm) };
-      });
-
       const comp = await chargerCompetencesOuErreur(childId, cycle);
       let lignesNotes: NoteAccueil[] = [];
       if (aDesNotes(cycle)) {
         const res = await getGrades(childId, { limit: 3 });
         leverSiErreur(res.error);
-        lignesNotes = ((res.data ?? []) as any[]).map((g) => ({
-          id: String(g.id),
-          subject: String(g.subjects?.name ?? ''),
-          grade: String(g.value),
-          scale: String(g.max_value ?? 20),
-          date: jourMois(String(g.date ?? '').slice(0, 10)),
-        }));
+        lignesNotes = ((res.data ?? []) as any[]).map((g) => {
+          const iso = String(g.date ?? '').slice(0, 10);
+          return {
+            id: String(g.id),
+            subject: String(g.subjects?.name ?? ''),
+            grade: String(g.value),
+            scale: String(g.max_value ?? 20),
+            date: jourMois(iso),
+            iso,
+          };
+        });
       }
       if (annule) return;
-      setAujourdhui(evenements);
-      setApprentissages(comp.slice(0, 2));
+      setApprentissages(comp.slice(0, 3));
       setNotes(lignesNotes);
       setErreur(null);
     })().catch((e) => {
@@ -83,5 +74,5 @@ export function useAccueilReel(childId: string | undefined, isDemo: boolean, cyc
   }, [childId, isDemo, cycle, version]);
 
   const recharger = useCallback(() => setVersion((v) => v + 1), []);
-  return { aujourdhui, apprentissages, notes, erreur, recharger };
+  return { apprentissages, notes, erreur, recharger };
 }

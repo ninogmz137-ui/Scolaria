@@ -1,40 +1,34 @@
 /**
- * CorpsCarnet — corps de l'Accueil de MATERNELLE et de PRIMAIRE (COMPONENTS §18.3), dans l'ordre :
- *   1. « À faire »  : mots à traiter (pilule « Signer »), devoirs (primaire, cochables, teintés par discipline),
- *                     « À prévoir » (cochables, mémorisés sur l'appareil) ;
- *   2. « Cette semaine » : prochain événement de l'Agenda ;
- *   3. « Nouveau dans le carnet » : observations (pastille de leur domaine) et mots importés (miniature des photos) ;
- * La journée type fixe du primaire est RETIRÉE de la V1 (décision du 17 nov. 2026, lot 4d), comme l'emploi du
- * temps complet (Phase 2). La carte Aria est posée après ce bloc par l'écran. Maternelle : pas de devoirs.
- * Aucune section vide n'est affichée ; tout vient de l'enfant sélectionné (jamais d'un autre carnet).
+ * CorpsCarnet — corps de l'Accueil, le MÊME pour tous les niveaux (lot 6 ; CLAUDE.md § Accueil, COMPONENTS §18.3), dans
+ * cet ordre :
+ *   1. « À faire · N » : Signer, Autoriser, Répondre, Justifier, Lire — étiquette, titre, « échéance · [prénom] a signé »,
+ *      chevron ; ouvre le détail du mot ou la page d'absence. Absente si vide.
+ *   2. « Aujourd'hui et demain » : événements et rendez-vous fixes (barre de couleur + libellé de catégorie), « À prévoir »
+ *      et devoirs cochables (« Coché par [prénom] · [heure] » sur sa propre ligne). Jamais un mot comme événement.
+ *   3. « Nouveau dans le carnet » : observations et compétences, notes (collège / lycée), photos (vignette), documents,
+ *      avec leur source. Carnet vide : carte d'invitation « Ajoutez la première pièce du carnet » + « Ajouter ».
+ *   4. Suggestion de l'assistant : une ligne, sa source dessous, sans titre ni nom de personnage ; absente si rien.
+ * Maternelle : pas de devoirs (useAgendaSemaine n'en a pas). Tout vient de l'enfant sélectionné (jamais d'un autre carnet).
  */
 
-import { aujourdhuiParis, demainParis, heureParis } from '../../utils/jourParis';
-import { periodeAbsence, type AbsenceLue } from '../../utils/absences';
-import { useMemo, type ReactNode } from 'react';
-import { C, RADIUS, SHADOW } from '../../constants/design';
 import { View, StyleSheet } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
+import { C, RADIUS, SHADOW } from '../../constants/design';
 import { FontFamily } from '../../hooks/useSolariaFonts';
 import { Text, Pressable } from '../ui';
 import PastilleCategorie from '../PastilleCategorie';
 import MiniatureCarnet, { aUneImage } from '../MiniatureCarnet';
+import ScolariaSymbol from '../ScolariaSymbol';
 import { LibelleSurFondu } from './SurFondu';
-import { demanderSignature } from '../messages/ActionsMot';
-import { useActiveChild } from '../../contexts/ActiveChildContext';
-import { jourCourt, heureCourte } from '../messages/CarteATraiter';
 import { Segments } from '../../screens/suivi/ApprentissagesVue';
-import { aTraiter, attendParticipation, attendReponse, type MotCarnet } from '../../services/motsService';
 import type { ElementCarnet } from '../../services/carnetService';
 import { ligneSourceCarnet } from '../../screens/suivi/CarnetVue';
-import { categorieDiscipline, TYPES_CONTENU, type Categorie } from '../../theme/categories';
+import { categorieDiscipline, LIBELLES_EVENEMENT, TYPES_CONTENU } from '../../theme/categories';
 import { libelleNiveau, ligneSource, type ElementSuivi } from '../../utils/competences';
-import { isoJour } from '../../data/demo/accueil';
-import type { EvtAccueil } from '../../hooks/useAgendaSemaine';
+import type { ElementJour, LigneAFaire, Suggestion } from '../../utils/accueil';
+import type { NoteAccueil } from '../../hooks/useAccueilReel';
 
 const NAVY = '#0F172A';
-const TYPES_EVENEMENT = new Set(['evenement', 'sortie', 'examen', 'reunion', 'activite']);
-
-// ─── Cases rondes ────────────────────────────────────────────────────────────
 
 function CaseRonde({ cochee, onPress, libelle }: { cochee: boolean; onPress: () => void; libelle: string }) {
   return (
@@ -51,282 +45,226 @@ function CaseRonde({ cochee, onPress, libelle }: { cochee: boolean; onPress: () 
   );
 }
 
-// ─── Lignes « À faire » ──────────────────────────────────────────────────────
-
-interface LigneAFaire {
-  cle: string;
-  categorie: Categorie;
-  titre: string;
-  sousTitre: string;
-  /** Mot à signer : pilule « Signer » à droite. */
-  signer?: () => void;
-  /** Devoir coché : ligne source « Coché par [prénom] · [heure] », sur sa propre ligne (lot 4a). */
-  source?: string | null;
-  /** Devoir / À prévoir : case ronde cochable. */
-  case?: { cochee: boolean; basculer: () => void };
-  /** Ouvre le détail (mots). */
-  ouvrir?: () => void;
-}
-
-function Ligne({ l, dernier }: { l: LigneAFaire; dernier: boolean }) {
-  const contenu = (
-    <>
-      <PastilleCategorie categorie={l.categorie} />
-      <View style={st.textes}>
-        <Text style={[st.titre, l.case?.cochee && st.titreFait]} numberOfLines={2}>{l.titre}</Text>
-        <Text style={st.sousTitre} numberOfLines={2}>{l.sousTitre}</Text>
-        {l.source ? <Text style={st.source} numberOfLines={1}>{l.source}</Text> : null}
-      </View>
-    </>
-  );
-  return (
-    <View style={[st.ligne, !dernier && st.ligneFiletee]}>
-      {l.ouvrir ? (
-        <Pressable onPress={l.ouvrir} style={st.ligneCorps} accessibilityRole="button" accessibilityLabel={`${l.titre}. ${l.sousTitre}`}>
-          {contenu}
-        </Pressable>
-      ) : (
-        <View style={st.ligneCorps}>{contenu}</View>
-      )}
-      {l.signer ? (
-        <Pressable
-          onPress={l.signer}
-          hitSlop={{ top: 7, bottom: 7 }}
-          style={st.pilule}
-          accessibilityRole="button"
-          accessibilityLabel={`Signer « ${l.titre} »`}
-        >
-          <Text style={st.piluleTexte}>Signer</Text>
-        </Pressable>
-      ) : null}
-      {l.case ? (
-        <CaseRonde cochee={l.case.cochee} onPress={l.case.basculer} libelle={`${l.titre}${l.case.cochee ? ', fait' : ', à faire'}`} />
-      ) : null}
-    </View>
-  );
-}
-
-function Carte({ children }: { children: ReactNode }) {
+function Carte({ children }: { children: React.ReactNode }) {
   return <View style={st.carte}>{children}</View>;
 }
 
-// ─── Corps ───────────────────────────────────────────────────────────────────
+type Nouveau =
+  | { cle: string; date: string; obs: ElementSuivi }
+  | { cle: string; date: string; imp: ElementCarnet }
+  | { cle: string; date: string; note: NoteAccueil };
 
 export default function CorpsCarnet({
-  primaire,
   hauteurFondu,
-  mots,
-  monNom,
-  demo,
-  evenements,
+  primaire,
+  aFaire,
+  onOuvrirAFaire,
+  elements,
   onBasculerDevoir,
-  aJustifier,
-  onJustifier,
-  coches,
-  onBasculerCoche,
+  onBasculerPrevoir,
+  onOuvrirAgenda,
   apprentissages,
   imports,
-  onOuvrirMot,
-  onOuvrirAgenda,
+  notes,
+  onOuvrirScolarite,
   onOuvrirImport,
-  onOuvrirSuivi,
+  onAjouter,
+  suggestion,
+  onOuvrirAssistant,
 }: {
-  primaire: boolean;
   hauteurFondu: number;
-  mots: MotCarnet[];
-  monNom: string;
-  demo: boolean;
-  evenements: EvtAccueil[];
-  onBasculerDevoir: (id: string) => void;
-  /** Absences à justifier (lot 4b). */
-  aJustifier: AbsenceLue[];
-  onJustifier: (a: AbsenceLue) => void;
-  coches: string[];
-  onBasculerCoche: (id: string) => void;
+  /** Primaire : segments de niveau des compétences. */
+  primaire: boolean;
+  aFaire: LigneAFaire[];
+  onOuvrirAFaire: (l: LigneAFaire) => void;
+  elements: ElementJour[];
+  onBasculerDevoir: (evtId: string) => void;
+  onBasculerPrevoir: (e: Extract<ElementJour, { sorte: 'prevoir' }>) => void;
+  onOuvrirAgenda: () => void;
   apprentissages: ElementSuivi[];
   imports: ElementCarnet[];
-  onOuvrirMot: (m: MotCarnet) => void;
-  onOuvrirAgenda: () => void;
+  notes: NoteAccueil[];
+  onOuvrirScolarite: () => void;
   onOuvrirImport: (e: ElementCarnet) => void;
-  onOuvrirSuivi: () => void;
+  onAjouter: () => void;
+  suggestion: Suggestion | null;
+  onOuvrirAssistant: () => void;
 }) {
-  const aujourdhui = aujourdhuiParis();
-  // « Signer aussi pour [prénom] » : les autres enfants du foyer (décision 7 du 16 nov. 2026).
-  const { children, selectedChild } = useActiveChild();
-  const autres = children.filter((c) => c.id !== selectedChild?.id).map((c) => ({ id: c.id, prenom: c.name.split(' ')[0] }));
+  // 3. Nouveau dans le carnet : du plus récent au plus ancien, quatre au plus.
+  const nouveaux: Nouveau[] = [
+    ...apprentissages.map((o) => ({ cle: `o-${o.id}`, date: o.date, obs: o })),
+    ...imports.map((e) => ({ cle: `i-${e.id}`, date: e.date, imp: e })),
+    ...notes.map((n) => ({ cle: `n-${n.id}`, date: n.iso, note: n })),
+  ]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 4);
 
-  // 1. À faire
-  const lignes = useMemo<LigneAFaire[]>(() => {
-    const res: LigneAFaire[] = [];
-    for (const m of mots.filter(aTraiter)) {
-      const reponse = attendReponse(m);
-      const delai = m.echeance ? `avant le ${jourCourt(m.echeance)}` : reponse ? 'à répondre' : 'à signer';
-      res.push({
-        cle: `mot-${m.id}`,
-        categorie: TYPES_CONTENU[m.type === 'autorisation' ? 'autorisation' : attendParticipation(m) ? 'a-repondre' : 'mot'],
-        titre: m.titre,
-        sousTitre: [m.expediteur, delai].join(' · '),
-        ouvrir: () => onOuvrirMot(m),
-        signer: reponse ? undefined : () => demanderSignature(m, monNom, demo, undefined, autres),
-      });
-    }
-    // Absences à justifier (lot 4b) : ligne « Absence · [période] · à justifier », ouvre le formulaire.
-    for (const a of aJustifier) {
-      res.push({
-        cle: `absence-${a.id}`,
-        categorie: TYPES_CONTENU.absence,
-        titre: 'Absence à justifier',
-        sousTitre: periodeAbsence(a, aujourdhui, demainParis()),
-        ouvrir: () => onJustifier(a),
-      });
-    }
-    if (primaire) {
-      const devoirs = evenements
-        .filter((e) => e.type === 'devoir')
-        .sort((a, b) => Number(a.fait) - Number(b.fait) || a.date.localeCompare(b.date));
-      for (const e of devoirs) {
-        res.push({
-          cle: `devoir-${e.id}`,
-          categorie: categorieDiscipline(e.matiere),
-          titre: e.titre,
-          sousTitre: [
-            e.matiere,
-            e.date === aujourdhui ? 'pour aujourd’hui' : e.date === demainParis() ? 'pour demain' : `pour le ${jourCourt(e.date)}`,
-          ].filter(Boolean).join(' · '),
-          source: e.coche ?? null,
-          case: { cochee: e.fait, basculer: () => onBasculerDevoir(e.id) },
-        });
-      }
-    }
-    for (const m of mots) {
-      if (!m.evenement || m.evenement.date < aujourdhui) continue;
-      for (const item of m.aPrevoir) {
-        const id = `${m.id}|${item}`;
-        res.push({
-          cle: `prevoir-${id}`,
-          categorie: TYPES_CONTENU['a-prevoir'],
-          titre: item,
-          sousTitre: `À prévoir · ${m.evenement.titre}, ${jourCourt(m.evenement.date)}`,
-          case: { cochee: coches.includes(id), basculer: () => onBasculerCoche(id) },
-        });
-      }
-    }
-    return res;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `autres` suivi par sa clé (ids des enfants)
-  }, [mots, primaire, evenements, coches, monNom, demo, aujourdhui, onOuvrirMot, onBasculerDevoir, onBasculerCoche, autres.map((a) => a.id).join(',')]);
-
-  // 2. Cette semaine : prochain événement
-  const prochain = useMemo(() => {
-    const hhmm = heureParis();
-    return evenements
-      .filter((e) => TYPES_EVENEMENT.has(e.type) && (e.date > aujourdhui || (e.date === aujourdhui && (e.fin ?? e.debut) >= hhmm)))
-      .sort((a, b) => (a.date + a.debut).localeCompare(b.date + b.debut))[0];
-  }, [evenements, aujourdhui]);
-
-  // 3. Nouveau dans le carnet : observations + mots importés, du plus récent au plus ancien
-  const nouveaux = useMemo(
-    () =>
-      [
-        ...apprentissages.map((e) => ({ date: e.date, obs: e, imp: undefined as ElementCarnet | undefined })),
-        ...imports.map((e) => ({ date: e.date, obs: undefined as ElementSuivi | undefined, imp: e })),
-      ]
-        .sort((a, b) => b.date.localeCompare(a.date))
-        .slice(0, 4),
-    [apprentissages, imports],
-  );
-
+  let premier = true;
+  const libelle = (texte: string) => {
+    const l = <LibelleSurFondu texte={texte} hauteur={hauteurFondu} premier={premier} />;
+    premier = false;
+    return l;
+  };
 
   return (
     <>
-      {lignes.length > 0 && (
+      {aFaire.length > 0 && (
         <>
-          <LibelleSurFondu texte="À faire" hauteur={hauteurFondu} premier />
+          {libelle(`À faire · ${aFaire.length}`)}
           <Carte>
-            {lignes.map((l, i) => (
-              <Ligne key={l.cle} l={l} dernier={i === lignes.length - 1} />
+            {aFaire.map((l, i) => (
+              <Pressable
+                key={l.cle}
+                onPress={() => onOuvrirAFaire(l)}
+                style={[st.ligne, i < aFaire.length - 1 && st.ligneFiletee]}
+                accessibilityRole="button"
+                accessibilityLabel={`${l.etiquette} : ${l.titre}. ${l.sousTitre}`}
+              >
+                <View style={st.etiquette}>
+                  <Text style={st.etiquetteTexte}>{l.etiquette}</Text>
+                </View>
+                <View style={st.textes}>
+                  <Text style={st.titre} numberOfLines={2}>{l.titre}</Text>
+                  <Text style={st.sousTitre} numberOfLines={2}>{l.sousTitre}</Text>
+                </View>
+                <ChevronRight size={16} color="rgba(15,23,42,0.35)" strokeWidth={2} />
+              </Pressable>
             ))}
           </Carte>
         </>
       )}
 
-      {prochain && (
-        <>
-          <LibelleSurFondu texte="Cette semaine" hauteur={hauteurFondu} premier={lignes.length === 0} />
-          <Pressable
-            onPress={onOuvrirAgenda}
-            style={st.evenement}
-            accessibilityRole="button"
-            accessibilityLabel={`${prochain.titre}, ${jourCourt(prochain.date)}. Ouvrir l’agenda`}
-          >
-            <Text style={st.titre} numberOfLines={2}>{prochain.titre}</Text>
-            <Text style={st.sousTitre} numberOfLines={2}>
-              {[
-                jourCourt(prochain.date),
-                `${heureCourte(prochain.debut)}${prochain.fin ? `–${heureCourte(prochain.fin)}` : ''}`,
-                prochain.lieu,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </Text>
-          </Pressable>
-        </>
-      )}
-
-      {nouveaux.length > 0 && (
-        <>
-          <LibelleSurFondu texte="Nouveau dans le carnet" hauteur={hauteurFondu} premier={lignes.length === 0 && !prochain} />
-          <Carte>
-            {nouveaux.map((n, i) => {
-              const dernier = i === nouveaux.length - 1;
-              if (n.obs) {
-                const o = n.obs;
-                return (
-                  <Pressable key={`o-${o.id}`} onPress={onOuvrirSuivi} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button">
-                    <PastilleCategorie categorie={categorieDiscipline(o.domaine)} />
-                    <View style={st.textes}>
-                      <Text style={st.sousTitre} numberOfLines={2}>{o.domaine}</Text>
-                      <Text style={st.texteObs}>{o.texte}</Text>
-                      {primaire && o.niveau && o.echelle ? (
-                        <View style={st.niveau}>
-                          <Segments niveau={o.niveau} echelle={o.echelle} />
-                          <Text style={st.niveauTexte}>{libelleNiveau(o.niveau, o.echelle)}</Text>
-                        </View>
-                      ) : null}
-                      <Text style={st.source}>{ligneSource(o)}</Text>
-                    </View>
-                  </Pressable>
-                );
-              }
-              const e = n.imp!;
-              const photo = aUneImage(e);
+      {libelle('Aujourd’hui et demain')}
+      {elements.length > 0 ? (
+        <Carte>
+          {elements.map((e, i) => {
+            const dernier = i === elements.length - 1;
+            if (e.sorte === 'evenement' || e.sorte === 'rendezvous') {
+              const categorie = e.sorte === 'rendezvous' ? 'Rendez-vous' : LIBELLES_EVENEMENT[e.typeEvt] ?? 'Événement';
               return (
-                <Pressable key={`i-${e.id}`} onPress={() => onOuvrirImport(e)} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button">
-                  <PastilleCategorie categorie={TYPES_CONTENU[photo ? 'photo' : 'document']} />
+                <Pressable key={e.cle} onPress={onOuvrirAgenda} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button" accessibilityLabel={`${e.titre}. ${e.sousTitre}. Ouvrir l’agenda`}>
+                  <View style={st.barre} />
                   <View style={st.textes}>
                     <Text style={st.titre} numberOfLines={2}>{e.titre}</Text>
-                    <Text style={st.source}>
-                      {`${ligneSourceCarnet(e)}${e.visibilite === 'prive' ? ' · visible par vous seul' : ''}`}
-                    </Text>
+                    <Text style={st.sousTitre} numberOfLines={2}>{`${categorie} · ${e.sousTitre}`}</Text>
                   </View>
-                  {photo ? (
-                    <View style={st.miniature}>
-                      <MiniatureCarnet element={e} taille={48} rayon={10} />
-                    </View>
-                  ) : null}
                 </Pressable>
               );
-            })}
-          </Carte>
-        </>
+            }
+            if (e.sorte === 'devoir') {
+              return (
+                <View key={e.cle} style={[st.ligne, !dernier && st.ligneFiletee]}>
+                  <PastilleCategorie categorie={categorieDiscipline(e.matiere)} />
+                  <View style={st.textes}>
+                    <Text style={[st.titre, e.fait && st.titreFait]} numberOfLines={2}>{e.titre}</Text>
+                    <Text style={st.sousTitre} numberOfLines={1}>{`Devoir · ${e.sousTitre}`}</Text>
+                    {e.source ? <Text style={st.source} numberOfLines={1}>{e.source}</Text> : null}
+                  </View>
+                  <CaseRonde cochee={e.fait} onPress={() => onBasculerDevoir(e.evtId)} libelle={`${e.titre}${e.fait ? ', fait' : ', à faire'}`} />
+                </View>
+              );
+            }
+            return (
+              <View key={e.cle} style={[st.ligne, !dernier && st.ligneFiletee]}>
+                <PastilleCategorie categorie={TYPES_CONTENU['a-prevoir']} />
+                <View style={st.textes}>
+                  <Text style={[st.titre, e.fait && st.titreFait]} numberOfLines={2}>{e.titre}</Text>
+                  <Text style={st.sousTitre} numberOfLines={2}>{e.sousTitre}</Text>
+                  {e.source ? <Text style={st.source} numberOfLines={1}>{e.source}</Text> : null}
+                </View>
+                <CaseRonde cochee={e.fait} onPress={() => onBasculerPrevoir(e)} libelle={`${e.titre}${e.fait ? ', prévu' : ', à prévoir'}`} />
+              </View>
+            );
+          })}
+        </Carte>
+      ) : (
+        <Text style={st.vide}>Rien de prévu aujourd’hui ni demain.</Text>
       )}
 
+      {libelle('Nouveau dans le carnet')}
+      {nouveaux.length > 0 ? (
+        <Carte>
+          {nouveaux.map((n, i) => {
+            const dernier = i === nouveaux.length - 1;
+            if ('obs' in n) {
+              const o = n.obs;
+              return (
+                <Pressable key={n.cle} onPress={onOuvrirScolarite} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button">
+                  <PastilleCategorie categorie={categorieDiscipline(o.domaine)} />
+                  <View style={st.textes}>
+                    <Text style={st.sousTitre} numberOfLines={2}>{o.domaine}</Text>
+                    <Text style={st.texteObs}>{o.texte}</Text>
+                    {primaire && o.niveau && o.echelle ? (
+                      <View style={st.niveau}>
+                        <Segments niveau={o.niveau} echelle={o.echelle} />
+                        <Text style={st.niveauTexte}>{libelleNiveau(o.niveau, o.echelle)}</Text>
+                      </View>
+                    ) : null}
+                    <Text style={st.source}>{ligneSource(o)}</Text>
+                  </View>
+                </Pressable>
+              );
+            }
+            if ('note' in n) {
+              const g = n.note;
+              return (
+                <Pressable key={n.cle} onPress={onOuvrirScolarite} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button">
+                  <PastilleCategorie categorie={categorieDiscipline(g.subject)} />
+                  <View style={st.textes}>
+                    <Text style={st.titre} numberOfLines={1}>{g.subject}</Text>
+                    <Text style={st.source}>{`Note du ${g.date}`}</Text>
+                  </View>
+                  <Text style={st.note}>
+                    {g.grade}
+                    <Text style={st.bareme}>{`/${g.scale}`}</Text>
+                  </Text>
+                </Pressable>
+              );
+            }
+            const e = n.imp;
+            const photo = aUneImage(e);
+            return (
+              <Pressable key={n.cle} onPress={() => onOuvrirImport(e)} style={[st.ligne, !dernier && st.ligneFiletee]} accessibilityRole="button">
+                <PastilleCategorie categorie={TYPES_CONTENU[photo ? 'photo' : 'document']} />
+                <View style={st.textes}>
+                  <Text style={st.titre} numberOfLines={2}>{e.titre}</Text>
+                  <Text style={st.source}>{`${ligneSourceCarnet(e)}${e.visibilite === 'prive' ? ' · visible par vous seul' : ''}`}</Text>
+                </View>
+                {photo ? (
+                  <View style={st.miniature}>
+                    <MiniatureCarnet element={e} taille={48} rayon={10} />
+                  </View>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </Carte>
+      ) : (
+        <View style={st.invitation}>
+          <Text style={st.invitationTexte}>Ajoutez la première pièce du carnet.</Text>
+          <Pressable onPress={onAjouter} style={st.pilule} accessibilityRole="button">
+            <Text style={st.piluleTexte}>Ajouter</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {suggestion ? (
+        <Pressable onPress={onOuvrirAssistant} style={st.suggestion} accessibilityRole="button" accessibilityLabel={`${suggestion.texte} ${suggestion.source}. Ouvrir l’assistant`}>
+          <View style={st.suggestionSymbole}>
+            <ScolariaSymbol size={14} color={C.indigo} />
+          </View>
+          <View style={st.textes}>
+            <Text style={st.suggestionTexte}>{suggestion.texte}</Text>
+            <Text style={st.source}>{suggestion.source}</Text>
+          </View>
+        </Pressable>
+      ) : null}
     </>
   );
 }
 
 const st = StyleSheet.create({
-  // Carte blanche d'écran principal : fond OPAQUE, ombre iOS seulement (leçon du 26 sept : élévation sous fond
-  // translucide = rectangle gris sur Android).
+  // Carte blanche d'écran principal : fond OPAQUE, ombre iOS seulement (leçon du 26 sept).
   carte: {
     marginHorizontal: 14,
     borderRadius: RADIUS.card,
@@ -337,7 +275,6 @@ const st = StyleSheet.create({
   },
   ligne: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, minHeight: 58 },
   ligneFiletee: { borderBottomWidth: 1, borderBottomColor: 'rgba(15,23,42,0.06)' },
-  ligneCorps: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   textes: { flex: 1, marginLeft: 12, marginRight: 8 },
   titre: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, lineHeight: 19, color: NAVY },
   titreFait: { color: 'rgba(15,23,42,0.45)', textDecorationLine: 'line-through' },
@@ -347,16 +284,21 @@ const st = StyleSheet.create({
   niveau: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
   niveauTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 11, lineHeight: 14, color: NAVY },
   miniature: { marginLeft: 4 },
-  // Pilule « Signer » de liste : 30 px, 14 de marge, 12 px 600 ; zone tactile 44 par hitSlop.
-  pilule: {
-    height: 30,
-    paddingHorizontal: 14,
+  note: { fontFamily: FontFamily.sansBold, fontSize: 18, lineHeight: 22, color: NAVY },
+  bareme: { fontFamily: FontFamily.sansMedium, fontSize: 12, color: 'rgba(15,23,42,0.45)' },
+  // Étiquette d'action (indigo = la seule couleur d'action), à gauche de la ligne.
+  etiquette: {
+    minWidth: 70,
+    height: 24,
+    paddingHorizontal: 8,
     borderRadius: 999,
-    backgroundColor: NAVY,
+    backgroundColor: 'rgba(67,56,202,0.10)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  piluleTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, lineHeight: 16, color: '#FFFFFF' },
+  etiquetteTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 12, lineHeight: 16, color: '#4338CA' },
+  // Événement / rendez-vous : barre de couleur (indigo) + libellé de catégorie écrit (COMPONENTS §7 : jamais la couleur seule).
+  barre: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: '#4338CA', marginLeft: 2, marginRight: 4 },
   case: {
     width: 22,
     height: 22,
@@ -368,17 +310,31 @@ const st = StyleSheet.create({
   },
   caseCochee: { backgroundColor: NAVY, borderColor: NAVY },
   coche: { fontFamily: FontFamily.sansBold, fontSize: 13, lineHeight: 16, color: '#FFFFFF' },
-  // Événement de l'Agenda (COMPONENTS §7) : barre indigo, fond indigo 8 %, sans emoji.
-  evenement: {
+  vide: { marginHorizontal: 20, paddingVertical: 6, fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: 'rgba(15,23,42,0.55)' },
+  // Carte d'invitation (rubrique vide : jamais masquée) — une phrase + une pilule.
+  invitation: {
     marginHorizontal: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderLeftWidth: 3,
-    borderLeftColor: '#4338CA',
-    backgroundColor: 'rgba(67,56,202,0.08)',
+    padding: 16,
+    borderRadius: RADIUS.card,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: C.border,
+    ...SHADOW.card,
   },
-  cours: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, minHeight: 50 },
-  heure: { width: 40, fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 17, color: 'rgba(15,23,42,0.6)' },
-  nomCours: { flex: 1, marginLeft: 10, fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 19, color: NAVY },
+  invitationTexte: { fontFamily: FontFamily.sansMedium, fontSize: 14, lineHeight: 20, color: NAVY },
+  pilule: {
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    height: 40,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    backgroundColor: NAVY,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  piluleTexte: { fontFamily: FontFamily.sansSemiBold, fontSize: 14, lineHeight: 18, color: '#FFFFFF' },
+  // Suggestion de l'assistant : UNE ligne, symbole 14 px, source dessous ; pas de carte (COMPONENTS §18.3).
+  suggestion: { flexDirection: 'row', alignItems: 'flex-start', marginHorizontal: 14, marginTop: 18, paddingHorizontal: 6, paddingVertical: 6, minHeight: 44 },
+  suggestionSymbole: { marginTop: 2 },
+  suggestionTexte: { fontFamily: FontFamily.sansMedium, fontSize: 13, lineHeight: 18, color: NAVY },
 });
