@@ -56,6 +56,8 @@ import { sendToAria, type ClaudeMessage } from '../../services/ariaApi';
 import { conclureEchange, texteBulleParent } from '../../services/ariaEchange';
 import { detectEmergency } from '../../../supabase/functions/_shared/emergency';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
+import { filtrerReponseAssistant } from '../../utils/actionAssistant';
+import { useEnseignantRattache } from '../../hooks/useEnseignantRattache';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
@@ -147,6 +149,8 @@ function AriaHomeScreenContenu() {
   const insets = useSafeAreaInsets();
   const inputPadBottom = useKeyboardInputPadding(insets.bottom);
   const { selectedChild } = useActiveChild();
+  // École hors de l'app : ni absence ni message à l'enseignant par l'assistant (CLAUDE.md § Agenda › Absence).
+  const enseignantRattache = useEnseignantRattache();
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
 
@@ -287,7 +291,17 @@ function AriaHomeScreenContenu() {
       try {
         const response = await sendToAria(trimmed, historyRef.current, childId, { isDemo });
 
-        const { cleanText, action } = parseAriaResponse(response.text);
+        const brut = parseAriaResponse(response.text);
+        // Hors urgence seulement (le protocole d'urgence garde toujours son texte fixe).
+        const { texte: cleanText, action } = response.urgence
+          ? { texte: brut.cleanText, action: brut.action }
+          : filtrerReponseAssistant({
+              texte: brut.cleanText,
+              action: brut.action,
+              demande: trimmed,
+              rattache: enseignantRattache,
+              prenom: selectedChild?.name ?? '',
+            });
         await conclure(cleanText, response.urgence, true);
 
         if (action && !response.urgence) {
@@ -309,7 +323,7 @@ function AriaHomeScreenContenu() {
     },
     [
       childId, input, isTyping, messages, conversationId, conversations,
-      persist, updateConvPreview, scrollToEnd, isDemo, selectedChild?.name,
+      persist, updateConvPreview, scrollToEnd, isDemo, selectedChild?.name, enseignantRattache,
     ],
   );
 

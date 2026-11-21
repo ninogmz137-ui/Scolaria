@@ -23,6 +23,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Text, Pressable } from '../components/ui';
 import { de } from '../utils/francais';
 import { parseAriaResponse } from '../services/ariaActions';
+import { filtrerReponseAssistant } from '../utils/actionAssistant';
+import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
 import { ASSISTANT } from '../constants/marque';
 
 // ─── Helper: build welcome & suggestions per child ───────
@@ -82,6 +84,8 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 export default function AriaScreen() {
   const navigation = useNavigation<any>();
   const { selectedChild } = useActiveChild();
+  // École hors de l'app : ni absence ni message à l'enseignant par l'assistant (CLAUDE.md § Agenda › Absence).
+  const enseignantRattache = useEnseignantRattache();
   const { mode } = useSchoolMode();
   const { isDemo } = useAuth();
   const insets = useSafeAreaInsets();
@@ -159,10 +163,19 @@ export default function AriaScreen() {
           heure: now(),
         }).history;
 
-        // Add Aria response to UI
+        // Add Aria response to UI (hors urgence : contrôle « école sur l'app » avant d'afficher un bouton d'action).
+        const texteAffiche = response.urgence
+          ? response.text
+          : filtrerReponseAssistant({
+              texte: response.text,
+              action: null,
+              demande: trimmed,
+              rattache: enseignantRattache,
+              prenom: selectedChild?.name ?? '',
+            }).texte;
         const ariaMsg: Message = {
           id: (Date.now() + 1).toString(),
-          text: response.text,
+          text: texteAffiche,
           sender: 'aria',
           timestamp: now(),
         };
@@ -181,7 +194,7 @@ export default function AriaScreen() {
         scrollToEnd();
       }
     },
-    [input, isTyping, scrollToEnd, childId],
+    [input, isTyping, scrollToEnd, childId, enseignantRattache, selectedChild?.name],
   );
 
   const handleSuggestionPress = useCallback(
