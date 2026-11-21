@@ -350,7 +350,7 @@ Apprentissages s'adapte **automatiquement au niveau de l'enfant sélectionné** 
 Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 - **Un seul point d'entrée dans toute l'application** : le « + » à droite de la barre du bas, sur tous les onglets.
-- Il ouvre une feuille de **six actions** : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Signaler une absence** · **Écrire à l'enseignant**.
+- Il ouvre une feuille de **six actions** : **Photographier** (dessin, cahier, livret papier) · **Importer une capture** (mot d'une autre appli) · **Ajouter un document** (PDF) · **Noter une première fois** (jalon) · **Signaler une absence** · **Écrire à l'enseignant** (ces deux dernières masquées si l'enfant n'a pas de classe sur l'app, § Agenda › Absence).
 - L'ordre s'adapte à l'onglet (décision du 17 nov.) : Accueil et Scolarité = l'ordre ci-dessus ; Agenda = « Signaler une absence » en premier ; Messages = « Écrire à l'enseignant » en premier.
 - Icônes (lucide) : camera · image · file-text · star · calendar-x · pencil.
 - **V1 :** pour un import, le parent choisit la catégorie (Mot / Document / Souvenir / Jalon) et la date. Rangé dans le carnet de l'enfant sélectionné. (En base, `carnet_items.categorie` garde ses valeurs `mot|livret|souvenir|jalon`.)
@@ -384,6 +384,7 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 - Justificatif facultatif, mot facultatif.
 - Visible de l'enseignant **avant l'appel**.
 - Pas de statut « Vu par l'enseignant » en V1 (aucune lecture n'est enregistrée ; décision du 17 nov.).
+- **Seulement pour un enfant dont l'école est sur l'app (règle confirmée le 21 nov. 2026, décision d'origine du 26 sept.)** : « Signaler une absence » n'est proposé que si l'année active de l'enfant a une classe (`academic_years.classe_id`) ; sinon il est **masqué, jamais grisé** : on ne propose pas de prévenir une école qui n'est pas sur l'app. Même règle pour « Écrire à l'enseignant ». Source unique : `useEnseignantRattache`. La règle vaut pour **tout** accès, assistant compris.
 
 ### Devoirs et emploi du temps selon le niveau
 - **Maternelle** : pas de devoirs, pas de filtre « Devoirs », pas d'emploi du temps.
