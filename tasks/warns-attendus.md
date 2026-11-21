@@ -150,6 +150,8 @@ l'appelant (responsable de l'enfant) à l'intérieur, même erreur pour un étra
 supabase/tests/m34_invitations_expirees.sql (9 groupes). `invitations_liberer_expirees()` (déclencheur) n'est exécutable par personne : pas de WARN.*
 
 ## Lot 4 (déclarés les 20 et 21 nov. 2026) — AUCUN WARN nouveau attendu (97 avant comme après M41, M42, M43)
+- **MESURÉ sur Paris le 21 nov. 2026** (M41, M42, M43 appliquées, un cycle chacune) : 0 ERROR, **97 WARN** avant et
+  après chaque cycle, 0 clé nouvelle, 0 clé disparue, VERDICT : OK ×3. La liste de référence reste celle de M40.
 - **Révision du 21 nov.** : `coches_devoirs` est SUPPRIMÉE de M41 ; `agenda_coches` se lit par RLS (une politique,
   `(SELECT auth.uid())`), dans le foyer de l'auteur seulement, comme M43. Le WARN annoncé ci-dessous n'existe donc plus.
 - *(Historique, caduc)* **M41** `coches_devoirs` — 1 WARN attendu :

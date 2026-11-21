@@ -16,6 +16,8 @@
   - Civilité dans le profil enseignant (Mme / M.) ; côté parent, l'enseignant s'affiche partout « Mme Martin » (civilité + nom) ; prénom et nom (« Claire Martin ») seulement si la civilité manque. Source actuelle du nom affiché : `mot_expediteur` (M21) et les écrans qui lisent `profiles` (demandé le 18 nov.).
 - Points non tranchés relevés au lot 0 (à décider avant le lot concerné) : marqués [UNCLEAR] dans CLAUDE.md / COMPONENTS.md.
 
+### LOT 4 — PARIS (21 nov.) : **M41, M42, M43 APPLIQUÉES**, une par cycle, VERDICT : OK chacune (97 WARN avant et après, 0 nouveau, 0 disparu). Sauvegardes vérifiées : `ScolariaBackups\avant_M41_cycle\2026-11-21_1219`, `avant_M42_cycle\2026-11-21_1221`, `avant_M43_cycle\2026-11-21_1223`. Reste : vérification Redmi contre Paris (compte réel), puis décision de fusion d'`archi-lot-4` dans main.
+
 ### LOT 4 — PLAN (20 nov., branche `archi-lot-4` créée depuis main 55a6cdf) — VALIDÉ le 20 nov. avec les 5 choix par défaut et ces ajouts :
 - **A1** : les rendez-vous fixes ne s'affichent pas pendant les vacances scolaires. Le calendrier officiel 2026-2027 des zones A, B et C est dans un fichier statique, sans table. La zone est déduite de l'école (Marseille = B ; zone B par défaut si l'école est inconnue).
 - **A2** : un rendez-vous fixe affiche « Ajouté par [prénom] ». Tout responsable de l'enfant peut le modifier ou le supprimer.
