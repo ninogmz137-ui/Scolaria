@@ -46,8 +46,6 @@ export type Child = {
   birthDate?: string;
   /** Couleur personnelle (#RRGGBB) : avatar + header de l'Accueil uniquement (CLAUDE.md). */
   color?: string;
-  /** Fond de l'Accueil choisi pour cet enfant (id d'image intégrée) ; null = sa couleur (M13). */
-  fond?: string | null;
   /** Photo de l'enfant : chemin dans le bucket privé « child-photos » (M35) ; absent / null = initiale sur sa couleur. */
   photoPath?: string | null;
   /** Date de dernière écriture de la ligne qui porte photoPath (année ou, en transition, enfant) : avec photoPath, clé du cache des URL signées. */
@@ -98,8 +96,6 @@ interface ActiveChildContextValue {
   reloadChildren: (preferId?: string) => Promise<void>;
   /** Couleur de l'enfant : en base (compte réel) ou sur l'appareil (démo). */
   setChildColor: (childId: string, color: string) => Promise<void>;
-  /** Fond de l'Accueil de l'enfant (null = sa couleur) : en base (compte réel) ou sur l'appareil (démo). */
-  setChildFond: (childId: string, fond: string | null) => Promise<void>;
   /**
    * Photo de l'enfant (compte réel seulement) : chemin après envoi, null après suppression. Écrit academic_years.photo_path de
    * l'année EN COURS (M36) ou, si la base n'a pas encore M36, children.photo_path (ancien modèle).
@@ -118,7 +114,6 @@ const ActiveChildContext = createContext<ActiveChildContextValue>({
   selectChild: () => {},
   reloadChildren: async () => {},
   setChildColor: async () => {},
-  setChildFond: async () => {},
   setChildPhoto: async () => {},
   fadeAnim: new Animated.Value(1),
   loading: false,
@@ -133,7 +128,6 @@ type ChildRow = {
   classe?: string;
   school?: string;
   color?: string;
-  fond?: string | null;
   photo_path?: string | null;
   updated_at?: string | null;
 };
@@ -150,7 +144,6 @@ function mapRow(row: ChildRow): Child {
     ecole: row.school || undefined,
     birthDate: row.birth_date,
     color: row.color || DEFAULT_CHILD_COLOR,
-    fond: row.fond ?? null,
     photoPath: row.photo_path ?? null,
     photoUpdatedAt: row.updated_at ?? null,
   };
@@ -191,9 +184,9 @@ async function appliquerPhotosParAnnee(enfants: Child[]): Promise<Child[]> {
   }
 }
 
-/** Démo : couleur / fond modifiés, gardés sur l'appareil (équivalent local de children.color / fond). */
+/** Démo : couleur modifiée, gardée sur l'appareil (équivalent local de children.color). Fonds d'écran retirés (lot 6). */
 const demoKey = (childId: string) => `@scolaria:demo_enfant:${childId}`;
-type DemoOverride = { color?: string; fond?: string | null };
+type DemoOverride = { color?: string };
 
 async function lireDemoOverrides(list: Child[]): Promise<Child[]> {
   return Promise.all(
@@ -307,7 +300,7 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
     else if (selectedChild.birthDate) setModeFromBirthDate(selectedChild.birthDate);
   }, [selectedChild, setMode, setModeFromBirthDate]);
 
-  // ─── Couleur et fond (avatar + header de l'Accueil) ─────
+  // ─── Couleur (avatar + header de l'Accueil) ─────
   const majEnfant = useCallback(
     async (childId: string, patch: DemoOverride) => {
       setChildList((prev) => prev.map((c) => (c.id === childId ? { ...c, ...patch } : c)));
@@ -332,7 +325,6 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
   );
 
   const setChildColor = useCallback((id: string, color: string) => majEnfant(id, { color }), [majEnfant]);
-  const setChildFond = useCallback((id: string, fond: string | null) => majEnfant(id, { fond }), [majEnfant]);
 
   // Photo : écrite en base seulement (jamais en démo : initiales). L'objet de stockage est géré par services/photoEnfant ;
   // ici la colonne photo_path (contrainte : <id>/avatar.jpg) et l'état affiché. Échec : on recharge, pas de valeur fausse.
@@ -390,7 +382,6 @@ export function ActiveChildProvider({ children: reactChildren }: { children: Rea
         selectChild,
         reloadChildren,
         setChildColor,
-        setChildFond,
         setChildPhoto,
         fadeAnim,
         loading,

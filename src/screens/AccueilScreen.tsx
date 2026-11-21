@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarScrollPadding } from '../components/navigation/BottomBar';
 import { useActiveChild, DEFAULT_CHILD_COLOR } from '../contexts/ActiveChildContext';
 import { useAuth } from '../contexts/AuthContext';
-import { WALLPAPERS } from '../contexts/WallpaperContext';
 import { getSuiviDemo } from '../data/demo/suivi';
 import { jourMois } from '../utils/competences';
 import { aDesNotes, libelleClasse } from '../utils/niveau';
@@ -244,8 +243,6 @@ export default function AccueilScreen() {
   const prenom = selectedChild?.name?.split(' ')[0] ?? '';
   const heroColor = selectedChild?.color ?? DEFAULT_CHILD_COLOR;
   const hauteurFondu = insets.top + HERO_FONDU;
-  // Fond choisi pour CET enfant (image intégrée à l'app) ; sinon sa couleur.
-  const heroPhoto = selectedChild?.fond ? WALLPAPERS.find((w) => w.id === selectedChild.fond) : undefined;
 
   return (
     <View style={styles.root}>
@@ -259,7 +256,7 @@ export default function AccueilScreen() {
         {/* Header pleine largeur en FONDU : couleur de l'enfant (ou sa photo) qui disparaît vers la
             transparence, derrière la barre d'état, la top bar et les premières cartes. Part avec le
             contenu au défilement. Aucun arrondi, aucune coupure. */}
-        <HeaderFondu couleur={heroColor} photo={heroPhoto?.source} hauteur={hauteurFondu} />
+        <HeaderFondu couleur={heroColor} hauteur={hauteurFondu} />
         {selectedChild ? (
           // En-tête du carnet (COMPONENTS §18.3) : photo ou initiale, prénom, classe, pilule « [École] · année ».
           <EnteteCarnet

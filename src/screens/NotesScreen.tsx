@@ -49,7 +49,6 @@ import {
 import { useSchoolMode } from '../contexts/SchoolModeContext';
 import { useActiveChild } from '../contexts/ActiveChildContext';
 import { useDemoData } from '../contexts/DemoContext';
-import { useWallpaper } from '../contexts/WallpaperContext';
 import { useTopbarScrollHandler } from '../contexts/TopbarScrollContext';
 import { getSubjects, getGrades } from '../services/database';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -157,9 +156,6 @@ function getCurrentTrimester(): string {
 }
 
 const COLOR_PALETTE = ['#4A90D9', '#4338CA', '#F59E0B', '#10B981', '#EC4899', '#EF4444'];
-
-/** Wallpaper visible only behind the top area — clipped; scroll body uses C.bg. */
-const NOTES_WALLPAPER_HEADER_HEIGHT = Math.min(Dimensions.get('window').height * 0.42, 380);
 
 const FRENCH_MONTHS: Record<string, string> = {
   '01': 'jan', '02': 'fév', '03': 'mars', '04': 'avr',
@@ -903,7 +899,6 @@ function CompetencyDot({ level }: { level: CompetencyLevel }) {
 function NotesScreenContent() {
   const { selectedChild } = useActiveChild();
   const { mode } = useSchoolMode();
-  const { wallpaperSource } = useWallpaper();
   const { isDemoMode, getSubjects: getDemoSubjects, getGrades: getDemoGrades } = useDemoData();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -1263,11 +1258,6 @@ function NotesScreenContent() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.wallpaperClip} pointerEvents="none">
-        <Image source={wallpaperSource.source} style={styles.wallpaperFill} resizeMode="cover" />
-        <View style={styles.wallpaperFade} />
-      </View>
-
       <Reanimated.ScrollView
         style={styles.mainScroll}
         showsVerticalScrollIndicator={false}
@@ -1598,22 +1588,6 @@ function NotesScreenContent() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: DC.bg },
-  wallpaperClip: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: NOTES_WALLPAPER_HEADER_HEIGHT,
-    overflow: 'hidden',
-    zIndex: 0,
-  },
-  wallpaperFill: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  wallpaperFade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(248,249,250,0.88)',
-  },
   mainScroll: {
     flex: 1,
     zIndex: 1,

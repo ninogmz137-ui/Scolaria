@@ -59,7 +59,6 @@ import AjouterAnneScreen from '../screens/AjouterAnneScreen';
 import MonParcoursScreen from '../screens/MonParcoursScreen';
 import FamilleParametresScreen from '../screens/FamilleParametresScreen';
 // Legacy AriaScreen has been superseded by AriaHome/AriaConversation.
-import WallpaperPickerScreen from '../screens/WallpaperPickerScreen';
 import AriaHomeScreen from '../screens/aria/AriaHomeScreen';
 import AriaConversationScreen from '../screens/aria/AriaConversationScreen';
 
@@ -93,7 +92,6 @@ import RGPDScreen from '../screens/RGPDScreen';
 
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
-import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
@@ -123,18 +121,16 @@ const SCREEN_TITLES: Record<string, string> = {
   ScolariteApprentissages: 'Apprentissages',
   ScolariteSouvenirs: 'Souvenirs',
   ScolariteDocuments: 'Documents',
-  FamilleParametres: 'Famille & paramètres',
+  FamilleParametres: 'Famille et paramètres',
   RGPDScreen: 'RGPD & Confidentialité',
   PermissionsRGPD: 'Permissions',
-  TransfertCode: 'Code de transfert',
   Effacement: 'Effacement',
   ExportDonnees: 'Export de données',
   APropos: 'À propos',
-  AriaScreen: 'Aria',
-  AriaHome: 'Aria',
-  AriaConversation: 'Aria',
-  MessagerieAriaScreen: 'Aria',
-  WallpaperPicker: 'Fond de l’Accueil',
+  AriaScreen: 'Assistant',
+  AriaHome: 'Assistant',
+  AriaConversation: 'Assistant',
+  MessagerieAriaScreen: 'Assistant',
   MessagesListScreen: 'Messages',
   EcoleListScreen: 'École',
   ConversationDetailScreen: 'Conversation',
@@ -160,7 +156,6 @@ function AccueilStackScreen() {
           const isReglagesModal =
             routeName === 'FamilleParametres' ||
             routeName === 'PermissionsRGPD' ||
-            routeName === 'TransfertCode' ||
             routeName === 'ExportDonnees' ||
             routeName === 'Effacement';
           const hasScreenHeaderBack =
@@ -266,17 +261,6 @@ function AccueilStackScreen() {
         }}
       />
       <AccueilStack.Screen
-        name="TransfertCode"
-        component={TransfertCodeScreen}
-        options={{
-          title: 'Code de transfert',
-          headerShown: false,
-          presentation: 'transparentModal',
-          animation: 'slide_from_bottom',
-          contentStyle: { backgroundColor: 'transparent', flex: 1 },
-        }}
-      />
-      <AccueilStack.Screen
         name="Effacement"
         component={EffacementScreen}
         options={{
@@ -318,11 +302,6 @@ function AccueilStackScreen() {
         name="AriaConversation"
         component={AriaConversationScreen}
         options={{ headerShown: false }}
-      />
-      <AccueilStack.Screen
-        name="WallpaperPicker"
-        component={WallpaperPickerScreen}
-        options={{ headerShown: false, title: 'Fond de l’Accueil' }}
       />
       <AccueilStack.Screen
         name="ArchivedYearDetail"

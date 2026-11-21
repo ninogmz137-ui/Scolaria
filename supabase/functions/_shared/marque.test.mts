@@ -41,7 +41,8 @@ verifier('générique : le nom propre configuré reste disponible', generique.no
 // ── La configuration actuelle et la source partagée ───────────────────────────────────────────────────────────────
 const json = JSON.parse(readFileSync(join(racine, 'supabase', 'functions', '_shared', 'marque.json'), 'utf8'));
 verifier('NOM_APP vient de marque.json', NOM_APP, json.nomApp);
-verifier('ASSISTANT vient de marque.json (non générique aujourd\'hui)', [ASSISTANT.nomPropre, ASSISTANT.generique, NOM_ASSISTANT], [json.assistant.nom, false, ASSISTANT.nom]);
+// Générique depuis le lot 6 (21 nov. 2026) : « Assistant » partout dans l'interface, aucun nom de personnage (CLAUDE.md).
+verifier('ASSISTANT vient de marque.json (générique : « L’assistant »)', [ASSISTANT.nomPropre, ASSISTANT.generique, NOM_ASSISTANT], [json.assistant.nom, true, 'L’assistant']);
 verifier('permissions iOS : gabarits avec {app}', [PERMISSIONS_IOS.appareilPhoto.includes('{app}'), PERMISSIONS_IOS.photos.includes('{app}')], [true, true]);
 verifier('permission appareil photo : cite l\'appareil photo ET la photo de l\'enfant', /appareil photo/.test(PERMISSIONS_IOS.appareilPhoto) && /photo de l'enfant/.test(PERMISSIONS_IOS.appareilPhoto), true);
 verifier('permission photothèque : cite les photos ET la photo de l\'enfant', /vos photos/.test(PERMISSIONS_IOS.photos) && /photo de l'enfant/.test(PERMISSIONS_IOS.photos), true);

@@ -26,7 +26,6 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext'; import { ENV
 import { I18nProvider } from './src/contexts/I18nContext';
 import { SchoolModeProvider } from './src/contexts/SchoolModeContext';
 import { ActiveChildProvider } from './src/contexts/ActiveChildContext';
-import { WallpaperProvider } from './src/contexts/WallpaperContext';
 import { DemoProvider } from './src/contexts/DemoContext';
 import { cancelConseilDuMatin } from './src/services/notifications';
 import { useSolariaFonts } from './src/hooks/useSolariaFonts';
@@ -195,7 +194,6 @@ export default function App() {
         <AuthProvider>
           <SchoolModeProvider>
             <ActiveChildProvider>
-                <WallpaperProvider>
                 <DemoProvider>
                   <NavigationContainer ref={navigationRef} theme={NAV_THEME}>
                     <StatusBar style="dark" />
@@ -204,7 +202,6 @@ export default function App() {
                     </ErrorBoundary>
                   </NavigationContainer>
                 </DemoProvider>
-                </WallpaperProvider>
             </ActiveChildProvider>
           </SchoolModeProvider>
         </AuthProvider>

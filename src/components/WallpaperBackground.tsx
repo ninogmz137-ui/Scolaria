@@ -24,6 +24,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(248, 249, 252, 1)',
+    backgroundColor: '#F3F4FA', // Brume (CLAUDE.md : fond de page partout)
   },
 });

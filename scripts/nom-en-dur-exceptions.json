@@ -14,7 +14,7 @@
     { "fichier": "src/contexts/AuthContext.tsx", "motif": "@scolaria\\.fr$", "nombre": 2, "raison": "adresses des comptes de démonstration : jamais affichées (variante démo : adresse neutre)" },
     { "fichier": "src/i18n/index.ts", "motif": "^@scolaria_language$", "nombre": 1, "raison": "clé de stockage de la langue" },
     { "fichier": "src/navigation/EleveTabNavigator.tsx", "motif": "^Aria$", "nombre": 2, "raison": "nom de route et clé d'icône (non affichés)" },
-    { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^Aria$", "nombre": 5, "raison": "noms de routes et correspondances d'onglets" },
+    { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^Aria$", "nombre": 1, "raison": "préfixe de nom de route (accueilRoute.startsWith) ; titres affichés = « Assistant » depuis le lot 6" },
     { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^aria$", "nombre": 1, "raison": "clé d'onglet actif" },
     { "fichier": "src/screens/AriaScreen.tsx", "motif": "^aria$", "nombre": 5, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
     { "fichier": "src/screens/FamilleParametresScreen.tsx", "motif": "^@scolaria:prefs$", "nombre": 1, "raison": "clé de stockage des préférences" },

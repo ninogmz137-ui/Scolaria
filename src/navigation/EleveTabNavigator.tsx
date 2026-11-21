@@ -21,7 +21,6 @@ import AProposScreen from '../screens/AProposScreen';
 
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
-import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 import ScolariaSymbol from '../components/ScolariaSymbol';
@@ -125,11 +124,6 @@ function ReglagesEleveStackScreen() {
         options={{ title: "Permissions d'accès" }}
       />
       <ReglagesEleveStack.Screen
-        name="TransfertCode"
-        component={TransfertCodeScreen}
-        options={{ title: 'Code de transfert' }}
-      />
-      <ReglagesEleveStack.Screen
         name="Effacement"
         component={EffacementScreen}
         options={{ title: "Droit à l'effacement" }}
@@ -211,6 +205,7 @@ export default function EleveTabNavigator() {
           headerTintColor: theme.textPrimary,
           headerTitleStyle: { fontFamily: 'Figtree_700Bold' },
           headerTitle: theme.ariaLabel,
+          tabBarLabel: 'Assistant',
         }}
       />
       <Tab.Screen name="Réglages" component={ReglagesEleveStackScreen} />

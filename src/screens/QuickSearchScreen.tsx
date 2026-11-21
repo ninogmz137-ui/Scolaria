@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Settings, Heart, GraduationCap,
-         Shield, Info, Palette, User } from 'lucide-react-native';
+         Shield, Info, User } from 'lucide-react-native';
 import ScolariaSymbol from '../components/ScolariaSymbol';
 import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
@@ -22,7 +22,6 @@ const TOUS_LES_LIENS = [
   { id: 'parcours',  icon: GraduationCap, label: 'Mon Parcours',           screen: 'MonParcours',           tab: 'Accueil' },
   { id: 'bienetre',  icon: Heart,         label: 'Bien-être & Ressenti',   screen: 'BienEtreScreen',        tab: 'Accueil' },
   { id: 'reglages',  icon: Settings,      label: 'Famille & paramètres',   screen: 'FamilleParametres',     tab: 'Accueil' },
-  { id: 'wallpaper', icon: Palette,       label: 'Fond de l’Accueil',      screen: 'WallpaperPicker',       tab: 'Accueil' },
   { id: 'rgpd',      icon: Shield,        label: 'RGPD & Confidentialité', screen: 'RGPDScreen',            tab: 'Accueil' },
   { id: 'apropos',   icon: Info,          label: 'À propos',               screen: 'APropos',               tab: 'Accueil' },
 ];

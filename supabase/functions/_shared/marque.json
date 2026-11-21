@@ -3,7 +3,7 @@
   "assistant": {
     "nom": "Aria",
     "genre": "f",
-    "generique": false
+    "generique": true
   },
   "permissionsIos": {
     "appareilPhoto": "{app} utilise l'appareil photo pour photographier les documents du carnet (bulletins, livrets, dessins) et pour la photo de l'enfant.",

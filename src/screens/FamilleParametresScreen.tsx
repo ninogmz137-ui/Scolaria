@@ -201,17 +201,6 @@ export default function FamilleParametresScreen() {
         </DeepGroup>
 
         {isFamille && (
-          <DeepGroup title="Apparence">
-            <DeepRow
-              icon={<ImageIcon size={20} color={TEXT55} strokeWidth={2} />}
-              label="Fond de l’Accueil"
-              last
-              onPress={() => navigation.navigate('WallpaperPicker')}
-            />
-          </DeepGroup>
-        )}
-
-        {isFamille && (
           <DeepGroup title={ASSISTANT.nom}>
             <DeepRow
               icon={<ScolariaSymbol size={18} color={TEXT55} />}

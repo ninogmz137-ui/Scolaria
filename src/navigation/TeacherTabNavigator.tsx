@@ -19,7 +19,6 @@ import AProposScreen from '../screens/AProposScreen';
 
 // RGPD screens
 import PermissionsScreen from '../screens/rgpd/PermissionsScreen';
-import TransfertCodeScreen from '../screens/rgpd/TransfertCodeScreen';
 import EffacementScreen from '../screens/rgpd/EffacementScreen';
 import ExportDonneesScreen from '../screens/rgpd/ExportDonneesScreen';
 
@@ -93,7 +92,6 @@ function ReglagesTeacherStackScreen() {
     <ReglagesTeacherStack.Navigator screenOptions={STACK_OPTS}>
       <ReglagesTeacherStack.Screen name="ReglagesHome" component={FamilleParametresScreen} initialParams={{ espace: 'enseignant' }} options={{ headerShown: false }} />
       <ReglagesTeacherStack.Screen name="PermissionsRGPD" component={PermissionsScreen} options={{ title: "Permissions d'accès" }} />
-      <ReglagesTeacherStack.Screen name="TransfertCode" component={TransfertCodeScreen} options={{ title: 'Code de transfert' }} />
       <ReglagesTeacherStack.Screen name="Effacement" component={EffacementScreen} options={{ title: "Droit à l'effacement" }} />
       <ReglagesTeacherStack.Screen name="ExportDonnees" component={ExportDonneesScreen} options={{ title: 'Export des données' }} />
       <ReglagesTeacherStack.Screen name="APropos" component={AProposScreen} options={{ headerShown: false }} />
