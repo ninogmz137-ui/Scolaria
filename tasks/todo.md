@@ -12,7 +12,12 @@
   M44 locale (aller-retour OK, m44 7/7, 26 suites SQL, test-lot5-local 5/5 : Lina acceptée, enfant sans classe refusé),
   procédure Paris `tasks/lot5-procedures-paris.md` (à exécuter par l'utilisateur) ; « + » unique à SEPT actions
   (« Ajouter à l'agenda » décidée le 21 nov.), champ « Rechercher ou demander », pastille + décompte (actions-ajout 14,
-  decompte-enfant 9). Reste : vérification Redmi (compte réel Paris : Laia/Evan sans classe ; base locale : Lina).
+  decompte-enfant 9). **VÉRIFIÉ SUR LE REDMI le 21 nov.** : compte réel Paris (Evan sans classe : 5 actions, « Ajouter à
+  l'agenda » → Nouvel événement, champ fusionné, Bien-être absent, « À jour ») ; base locale (separe-3b : Lina = 7 actions,
+  ordre Agenda et Messages, formulaire d'absence depuis Accueil et Agenda, « 1 mot à traiter · 2 nouveautés », Noé sans
+  classe = pastille rouge). Défaut clavier de la recherche corrigé (1518bcc). Base locale : Noé ajouté à parent-3b et
+  separe-3b (scripts/seed-lot5-local.mjs). Écart pour le lot 6 : carte « ARIA » de l'Accueil (nom de personnage).
+  Reste : cycle Paris M44 (par l'utilisateur), puis fusion dans main sur son accord.
   Détail d'origine :
   1. **M44** : la base refuse une absence (`absences`, INSERT par un parent) pour un enfant **sans classe avec un titulaire** pour l'année en cours (`academic_years` active → `classe_id` → `classes.enseignant_id` non nul). Migration en local, aller-retour, tests SQL (refus pour un enfant sans classe ; acceptation pour Lina) ; cycle Paris à PRÉPARER (procédure, avertissements attendus), pas à appliquer.
   2. **« Signaler une absence » et « Écrire à l'enseignant » entrent dans le bouton « + » unique**, masqués selon la même règle (`useEnseignantRattache`) ; le ✏️ de Messages (`QuickActionsSheet`, `BottomBar` `actionMessages`) disparaît.
