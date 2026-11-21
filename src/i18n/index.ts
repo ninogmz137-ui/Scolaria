@@ -39,6 +39,15 @@ export const SUPPORTED_LANGUAGES = [
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code'];
 
+/**
+ * Langues masquées (décision du 21 nov. 2026) : le wolof n'est ni proposé, ni détecté, ni restauré tant qu'une
+ * personne qui le parle n'a pas relu `locales/wo.ts`. Le fichier est gardé.
+ */
+const LANGUES_MASQUEES: readonly LanguageCode[] = ['wo'];
+
+/** Langues réellement proposées (choix de langue, détection du téléphone, langue enregistrée). */
+export const LANGUES_PROPOSEES = SUPPORTED_LANGUAGES.filter((l) => !LANGUES_MASQUEES.includes(l.code));
+
 // ─── Create i18n instance ─────────────────────────────────
 
 const i18n = new I18n({
@@ -65,7 +74,7 @@ function detectDeviceLanguage(): LanguageCode {
     const locales = getLocales();
     if (locales.length > 0) {
       const deviceLang = locales[0].languageCode;
-      if (deviceLang && SUPPORTED_LANGUAGES.some((l) => l.code === deviceLang)) {
+      if (deviceLang && LANGUES_PROPOSEES.some((l) => l.code === deviceLang)) {
         return deviceLang as LanguageCode;
       }
     }
@@ -82,7 +91,7 @@ const LANG_STORAGE_KEY = '@scolaria_language';
 export async function loadSavedLanguage(): Promise<void> {
   try {
     const saved = await AsyncStorage.getItem(LANG_STORAGE_KEY);
-    if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
+    if (saved && LANGUES_PROPOSEES.some((l) => l.code === saved)) {
       setLanguage(saved as LanguageCode);
     } else {
       setLanguage(detectDeviceLanguage());

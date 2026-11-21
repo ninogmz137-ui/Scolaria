@@ -19,6 +19,7 @@ import {
   getCurrentLanguage,
   isRTL as checkRTL,
   SUPPORTED_LANGUAGES,
+  LANGUES_PROPOSEES,
   type LanguageCode,
 } from '../i18n';
 
@@ -27,7 +28,8 @@ interface I18nContextValue {
   locale: LanguageCode;
   setLocale: (code: LanguageCode) => void;
   isRTL: boolean;
-  languages: typeof SUPPORTED_LANGUAGES;
+  /** Langues proposées au choix (le wolof est masqué jusqu'à relecture). */
+  languages: typeof LANGUES_PROPOSEES;
   ready: boolean;
 }
 
@@ -36,7 +38,7 @@ const I18nContext = createContext<I18nContextValue>({
   locale: 'fr',
   setLocale: () => {},
   isRTL: false,
-  languages: SUPPORTED_LANGUAGES,
+  languages: LANGUES_PROPOSEES,
   ready: false,
 });
 
@@ -78,7 +80,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   return (
     <I18nContext.Provider
-      value={{ t, locale, setLocale, isRTL, languages: SUPPORTED_LANGUAGES, ready }}
+      value={{ t, locale, setLocale, isRTL, languages: LANGUES_PROPOSEES, ready }}
     >
       {children}
     </I18nContext.Provider>

@@ -13,6 +13,7 @@ import AriaScreen from '../screens/AriaScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import FamilleParametresScreen from '../screens/FamilleParametresScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 
 // About screen
@@ -198,7 +199,9 @@ export default function EleveTabNavigator() {
     >
       <Tab.Screen name="Profil" component={ProfilStackScreen} options={{ tabBarLabel: 'Mon profil' }} />
       <Tab.Screen name="Notes" component={NotesEleveStackScreen} options={{ tabBarLabel: 'Mes notes' }} />
-      <Tab.Screen name="Ressenti" component={RessentiStackScreen} options={{ tabBarLabel: 'Ressenti' }} />
+      {RESSENTI_ACTIF && (
+        <Tab.Screen name="Ressenti" component={RessentiStackScreen} options={{ tabBarLabel: 'Ressenti' }} />
+      )}
       <Tab.Screen
         name="Aria"
         component={AriaScreen}

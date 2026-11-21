@@ -58,6 +58,7 @@ import { detectEmergency } from '../../../supabase/functions/_shared/emergency';
 import { parseAriaResponse, executeAriaAction, type AriaAction } from '../../services/ariaActions';
 import { filtrerReponseAssistant } from '../../utils/actionAssistant';
 import { useEnseignantRattache } from '../../hooks/useEnseignantRattache';
+import { RESSENTI_ACTIF } from '../../constants/ressenti';
 import { defaultNewAriaConversationTitle } from '../../utils/ariaConversationTitle';
 import { Text, TextInput, Pressable } from '../../components/ui';
 import { de } from '../../utils/francais';
@@ -124,7 +125,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
     return [
       `🌈 Comment va ${childName} aujourd'hui ?`,
       '🎨 Activités de la semaine',
-      `💛 Bien-être ${de(childName)}`,
+      ...(RESSENTI_ACTIF ? [`💛 Bien-être ${de(childName)}`] : []), // Mon Ressenti masqué en V1
       '🌱 Progrès récents',
     ];
   }

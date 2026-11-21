@@ -141,7 +141,8 @@ function buildFallbackResponses(childId: string): string[] {
     return [
       intro,
       `${name} a une semaine bien remplie : ses activités (${activitiesStr}) contribuent à son épanouissement.`,
-      `Le Score de Joie est une tendance, pas une note : pour ${name}, elle paraît stable ces derniers jours. Vous pouvez en parler ensemble si vous le souhaitez.`,
+      // Mon Ressenti (Score de Joie) masqué en V1 : la démo n'affirme aucune tendance.
+    `Le carnet ne suit pas le bien-être ${de(name)} pour l'instant. Le plus simple reste d'en parler ensemble, avec des questions ouvertes sur sa journée.`,
       upcomingEvents.length > 0
         ? `Prochain événement pour ${name} : ${upcomingEvents[0]}.`
         : `Pas d'événement particulier prévu pour ${name} cette semaine.`,
@@ -156,7 +157,8 @@ function buildFallbackResponses(childId: string): string[] {
   return [
     intro,
     `D'après le carnet ${de(name)}, la moyenne générale est de ${overallAvg}/20. Point fort : ${best.subject.toLowerCase()} (${best.average}/20) ; à consolider : ${weakest.subject.toLowerCase()} (${weakest.average}/20). Voulez-vous un plan de révision ?`,
-    `Le Score de Joie est une tendance, pas une note : pour ${name}, elle paraît stable ces derniers jours. Vous pouvez en parler ensemble si vous le souhaitez.`,
+    // Mon Ressenti (Score de Joie) masqué en V1 : la démo n'affirme aucune tendance.
+    `Le carnet ne suit pas le bien-être ${de(name)} pour l'instant. Le plus simple reste d'en parler ensemble, avec des questions ouvertes sur sa journée.`,
     upcomingEvents.length > 0
       ? `${name} a un événement à venir : ${upcomingEvents[0]}. Je vous conseille des révisions courtes et régulières d'ici là.`
       : `Pas de contrôle imminent pour ${name} : c'est un bon moment pour consolider les acquis en ${weakest.subject.toLowerCase()}.`,

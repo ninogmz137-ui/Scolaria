@@ -25,6 +25,7 @@ import { de } from '../utils/francais';
 import { parseAriaResponse } from '../services/ariaActions';
 import { filtrerReponseAssistant } from '../utils/actionAssistant';
 import { useEnseignantRattache } from '../hooks/useEnseignantRattache';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 import { ASSISTANT } from '../constants/marque';
 
 // ─── Helper: build welcome & suggestions per child ───────
@@ -46,7 +47,7 @@ function makeSuggestions(childName: string, mode: string): string[] {
     return [
       `🌈 Comment va ${childName} aujourd'hui ?`,
       '🎨 Activités de la semaine',
-      `💛 Bien-être ${de(childName)}`,
+      ...(RESSENTI_ACTIF ? [`💛 Bien-être ${de(childName)}`] : []), // Mon Ressenti masqué en V1
       '🌱 Progrès récents',
       '👩‍🏫 Observation de la maîtresse',
     ];

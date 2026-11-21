@@ -52,6 +52,7 @@ import MessagerieScreen from '../screens/MessagerieScreen';
 // Stacked screens
 import SignalerAbsenceScreen from '../screens/SignalerAbsenceScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AjouterEnfantScreen from '../screens/AjouterEnfantScreen';
 import AjouterAnneScreen from '../screens/AjouterAnneScreen';
@@ -207,11 +208,13 @@ function AccueilStackScreen() {
         component={SignalerAbsenceScreen}
         options={{ title: 'Signaler une absence' }}
       />
-      <AccueilStack.Screen
-        name="BienEtreScreen"
-        component={MonRessentiScreen}
-        options={{ title: 'Bien-être', headerShown: false }}
-      />
+      {RESSENTI_ACTIF && (
+        <AccueilStack.Screen
+          name="BienEtreScreen"
+          component={MonRessentiScreen}
+          options={{ title: 'Bien-être', headerShown: false }}
+        />
+      )}
       <AccueilStack.Screen
         name="ProfilEnfant"
         component={ProfilEnfantScreen}

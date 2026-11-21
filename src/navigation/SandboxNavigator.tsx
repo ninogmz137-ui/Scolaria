@@ -37,6 +37,7 @@ import { SCREEN_BACKGROUND } from '../constants/colors';
 import AccueilScreen from '../screens/AccueilScreen';
 import AgendaScreen from '../screens/AgendaScreen';
 import MonRessentiScreen from '../screens/MonRessentiScreen';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 import ProfilEnfantScreen from '../screens/ProfilEnfantScreen';
 import AriaScreen from '../screens/AriaScreen';
 
@@ -336,7 +337,9 @@ export default function SandboxNavigator() {
     >
       <Tab.Screen name="Accueil" component={AccueilStackScreen} />
       <Tab.Screen name="Agenda" component={AgendaStackScreen} />
-      <Tab.Screen name="Ressenti" component={RessentiStackScreen} options={{ tabBarLabel: 'Ressenti' }} />
+      {RESSENTI_ACTIF && (
+        <Tab.Screen name="Ressenti" component={RessentiStackScreen} options={{ tabBarLabel: 'Ressenti' }} />
+      )}
       <Tab.Screen name="Profil" component={ProfilStackScreen} options={{ tabBarLabel: 'Mon profil' }} />
       <Tab.Screen name="Plus" component={SettingsStackScreen} options={{ tabBarLabel: 'Plus' }} />
     </Tab.Navigator>

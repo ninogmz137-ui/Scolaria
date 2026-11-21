@@ -14,9 +14,10 @@ import { useNavigation } from '@react-navigation/native';
 import { FontFamily } from '../hooks/useSolariaFonts';
 import { Text, TextInput, Pressable } from '../components/ui';
 import { NOM_APP } from '../constants/marque';
+import { RESSENTI_ACTIF } from '../constants/ressenti';
 
-const QUICK_LINKS = [
-  { id: 'profil',    icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },
+const TOUS_LES_LIENS = [
+  { id: 'profil',   icon: User,          label: 'Profil élève',           screen: 'ProfilEnfant',          tab: 'Accueil' },
   { id: 'parcours',  icon: GraduationCap, label: 'Mon Parcours',           screen: 'MonParcours',           tab: 'Accueil' },
   { id: 'bienetre',  icon: Heart,         label: 'Bien-être & Ressenti',   screen: 'BienEtreScreen',        tab: 'Accueil' },
   { id: 'reglages',  icon: Settings,      label: 'Famille & paramètres',   screen: 'FamilleParametres',     tab: 'Accueil' },
@@ -24,6 +25,8 @@ const QUICK_LINKS = [
   { id: 'rgpd',      icon: Shield,        label: 'RGPD & Confidentialité', screen: 'RGPDScreen',            tab: 'Accueil' },
   { id: 'apropos',   icon: Info,          label: 'À propos',               screen: 'APropos',               tab: 'Accueil' },
 ];
+// Mon Ressenti masqué en V1 (RESSENTI_ACTIF) : son lien n'existe pas.
+const QUICK_LINKS = TOUS_LES_LIENS.filter((l) => RESSENTI_ACTIF || l.id !== 'bienetre');
 
 interface Props {
   visible: boolean;
