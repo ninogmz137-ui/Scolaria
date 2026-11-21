@@ -1,0 +1,12 @@
+{
+  "nomApp": "Scolaria",
+  "assistant": {
+    "nom": "Aria",
+    "genre": "f",
+    "generique": true
+  },
+  "permissionsIos": {
+    "appareilPhoto": "{app} utilise l'appareil photo pour photographier les documents du carnet (bulletins, livrets, dessins) et pour la photo de l'enfant.",
+    "photos": "{app} accède à vos photos pour importer des documents dans le carnet et choisir la photo de l'enfant."
+  }
+}

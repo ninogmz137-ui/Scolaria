@@ -1,0 +1,88 @@
+/**
+ * devoirsService — devoirs réels d'un enfant (lot 4a) : agenda_events de type « devoir », du jour de Paris à
+ * venir, avec l'auteur et l'heure de chaque coche lus dans agenda_coches (M41) : la base (RLS) ne rend la ligne
+ * qu'à l'auteur et aux responsables de son foyer (règle des parents séparés) ; hors foyer → « Fait ».
+ *
+ * Un enfant = un carnet : toujours UN child_id. Base sans M41 (Paris avant le cycle) : agenda_coches n'existe
+ * pas → aucune coche lue, chaque devoir coché s'affiche « Fait » ; rien ne casse.
+ * La construction des devoirs (utils/devoirs.construireDevoirs) est la même pour l'Agenda, l'Accueil et les tests.
+ */
+import { supabase } from './supabase';
+import { leverSiErreur } from './erreurs';
+import { toggleEventDone } from './database';
+import { aujourdhuiParis, decalerJour, heureParisIso, jourParisIso, minuitParis } from '../utils/jourParis';
+import {
+  auteursDepuisResponsables,
+  construireDevoirs,
+  lignesSourceDevoirs,
+  type AuteursCoche,
+  type CocheLue,
+  type Devoir,
+} from '../utils/devoirs';
+import { signalerDevoirs } from '../stores/devoirsStore';
+
+export { auteurCoche, type AuteursCoche } from '../utils/devoirs';
+
+/** Table absente (base sans M41) : PostgREST rend PGRST205 / 42P01. */
+function tableAbsente(error: { code?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST205' || error.code === '42P01');
+}
+
+/**
+ * Auteur et heure des coches de ces événements, tels que la base me les rend : seulement dans le foyer de l'auteur
+ * (une coche d'un autre foyer n'a pas de ligne → « Fait »). Lève en cas d'échec réel.
+ */
+export async function chargerCoches(eventIds: string[]): Promise<CocheLue[]> {
+  if (eventIds.length === 0) return [];
+  const { data, error } = await supabase.from('agenda_coches').select('event_id, fait_par, fait_le').in('event_id', eventIds);
+  if (tableAbsente(error)) return [];
+  leverSiErreur(error);
+  return (data ?? []) as CocheLue[];
+}
+
+/** Devoirs de l'enfant à partir d'aujourd'hui (heure de Paris), par échéance. Lève en cas d'échec. */
+export async function chargerDevoirs(childId: string): Promise<Devoir[]> {
+  const lignes = await supabase
+    .from('agenda_events')
+    .select('*')
+    .eq('child_id', childId)
+    .eq('event_type', 'devoir')
+    .gte('start_time', minuitParis(aujourdhuiParis()).toISOString())
+    .order('start_time')
+    .limit(200);
+  leverSiErreur(lignes.error);
+  const donnees = (lignes.data ?? []) as any[];
+  const coches = await chargerCoches(donnees.filter((r) => r.is_done).map((r) => String(r.id)));
+  return construireDevoirs(donnees, coches, jourParisIso, heureParisIso);
+}
+
+/** Prénoms des responsables de l'enfant (« vous » pour soi), pour la ligne « Coché par ». */
+export async function chargerAuteursCoche(childId: string): Promise<AuteursCoche> {
+  const { data, error } = await supabase.rpc('responsables_enfant', { p_child_id: childId });
+  leverSiErreur(error);
+  return auteursDepuisResponsables((data ?? []) as any[]);
+}
+
+/**
+ * Ligne source de chaque devoir parmi des lignes de agenda_events déjà lues (Accueil, vue par jour de l'Agenda) :
+ * coches et prénoms lus ici, construction commune (utils/devoirs.lignesSourceDevoirs).
+ */
+export async function chargerLignesSource(childId: string, lignes: any[]): Promise<Map<string, string | null>> {
+  if (!lignes.some((r) => r.event_type === 'devoir')) return new Map();
+  const cochees = lignes.filter((r) => r.event_type === 'devoir' && r.is_done).map((r) => String(r.id));
+  const [coches, auteurs] = await Promise.all([chargerCoches(cochees), chargerAuteursCoche(childId)]);
+  const auj = aujourdhuiParis();
+  return lignesSourceDevoirs(lignes, coches, auteurs, jourParisIso, heureParisIso, auj, decalerJour(auj, -1));
+}
+
+/**
+ * Coche ou décoche. SEULE fonction de coche de l'app (Accueil, Agenda par jour, vue « Devoirs ») : une fois
+ * enregistrée, elle prévient tous les écrans (stores/devoirsStore), qui relisent devoirs ET coches (auteur, heure).
+ */
+export async function cocherDevoir(id: string, fait: boolean, childId: string): Promise<void> {
+  const res = await toggleEventDone(id, fait);
+  leverSiErreur(res?.error);
+  // Aucune ligne rendue : devoir supprimé entre-temps ou plus accessible → jamais un faux « enregistré ».
+  if (!res?.data) throw new Error('devoir introuvable');
+  signalerDevoirs(childId);
+}

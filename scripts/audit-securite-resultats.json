@@ -1,0 +1,5362 @@
+[
+ {
+  "table": "absences",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "absences",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "access_journal",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "agenda_events",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "alertes_urgence",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "appreciations",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_conversations",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "aria_messages",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "bulletins",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "carnet_items",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "checkins",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_events",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_reactions",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_post_seen",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "class_posts",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "competences",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "deletion_requests",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "export_history",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "grades",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "invitations_responsable",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "messages",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "person_permissions",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "read_receipts",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "reponses_mot",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "signatures",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subjects",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_conversations",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "teacher_messages",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "transfer_codes",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "academic_years",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "classes",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "ecoles",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "LIT la ligne de A (attendu : rôle enseignant)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "foyers",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (23505)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "profiles",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "responsables",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "demandes_effacement",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "INSERT",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "UPDATE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "DELETE",
+  "acteur": "B",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "INSERT",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "UPDATE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "DELETE",
+  "acteur": "T0",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "INSERT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "UPDATE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "DELETE",
+  "acteur": "ANON",
+  "resultat": "refusé / 0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "departs_foyer",
+  "operation": "SELECT",
+  "acteur": "TE",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "child_overview (vue)",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "child_overview (vue)",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "child_overview (vue)",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subject_averages (vue)",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subject_averages (vue)",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "subject_averages (vue)",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets_statut (vue)",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets_statut (vue)",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mot_carnets_statut (vue)",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison_enriched (vue)",
+  "operation": "SELECT",
+  "acteur": "B",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison_enriched (vue)",
+  "operation": "SELECT",
+  "acteur": "T0",
+  "resultat": "0 ligne",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison_enriched (vue)",
+  "operation": "SELECT",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc responsables_enfant",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc responsables_enfant",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc responsables_enfant",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_depart_carnet",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([{\"nb_prives\":0,\"nb_partages\":0,\"nb_resp)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_depart_carnet",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([{\"nb_prives\":0,\"nb_partages\":0,\"nb_resp)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_depart_carnet",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc quitter_carnet",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc quitter_carnet",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc quitter_carnet",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc est_titulaire_enfant",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : « ce prof est titulaire de cet enfant ? »"
+ },
+ {
+  "table": "rpc est_titulaire_enfant",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : « ce prof est titulaire de cet enfant ? »"
+ },
+ {
+  "table": "rpc est_titulaire_enfant",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "oracle : « ce prof est titulaire de cet enfant ? »"
+ },
+ {
+  "table": "rpc est_du_foyer",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc est_du_foyer",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc est_du_foyer",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc is_responsable",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc is_responsable",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc is_responsable",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc decoupage_annee",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc decoupage_annee",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc decoupage_annee",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc echelle_competences_annee",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc echelle_competences_annee",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc echelle_competences_annee",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc nb_responsables_carnet",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc nb_responsables_carnet",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc nb_responsables_carnet",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mot_expediteur",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mot_expediteur",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mot_expediteur",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fil_enseignant",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fil_enseignant",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fil_enseignant",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc peut_lire_fil",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc peut_lire_fil",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc peut_lire_fil",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc role_dans_fil",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc role_dans_fil",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc role_dans_fil",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc depart_du_fil",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc depart_du_fil",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (null)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc depart_du_fil",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoye_aussi_a",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoye_aussi_a",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoye_aussi_a",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc distribuer_mot",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc distribuer_mot",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc distribuer_mot",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoyer_a_tous_les_representants",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoyer_a_tous_les_representants",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc envoyer_a_tous_les_representants",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc demander_effacement_enfant",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc demander_effacement_enfant",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc demander_effacement_enfant",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc annuler_effacement",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (P0002)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc annuler_effacement",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (P0002)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc annuler_effacement",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc respond_invitation",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc respond_invitation",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc respond_invitation",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc mes_invitations",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mes_invitations",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mes_invitations",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mes_effacements",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mes_effacements",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc mes_effacements",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_effacement_compte",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa ([{\"prenom_enfant\":\"Zoé\",\"carnet_efface\":)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_effacement_compte",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa ([])",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc apercu_effacement_compte",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc carnet_chemin_autorise",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc carnet_chemin_autorise",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc carnet_chemin_autorise",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc effacements_dus",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc effacements_dus",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc effacements_dus",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc enfants_a_effacer",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc enfants_a_effacer",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc enfants_a_effacer",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_a_effacer",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_a_effacer",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_a_effacer",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_orphelins",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_orphelins",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc fichiers_orphelins",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "rpc executer_effacement",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc executer_effacement",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc executer_effacement",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc marquer_effacement_execute",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc marquer_effacement_execute",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc marquer_effacement_execute",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc lancer_executer_effacements",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc lancer_executer_effacements",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc lancer_executer_effacements",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc journaliser_executions_effacement",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc journaliser_executions_effacement",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc journaliser_executions_effacement",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "doit être une erreur"
+ },
+ {
+  "table": "rpc compte_en_effacement",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement du compte de A"
+ },
+ {
+  "table": "rpc compte_en_effacement",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement du compte de A"
+ },
+ {
+  "table": "rpc compte_en_effacement",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement du compte de A"
+ },
+ {
+  "table": "rpc enfant_en_effacement",
+  "operation": "APPEL",
+  "acteur": "B",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement de l'enfant"
+ },
+ {
+  "table": "rpc enfant_en_effacement",
+  "operation": "APPEL",
+  "acteur": "T0",
+  "resultat": "appel accepté, aucune donnée de Léa (false)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement de l'enfant"
+ },
+ {
+  "table": "rpc enfant_en_effacement",
+  "operation": "APPEL",
+  "acteur": "ANON",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": "oracle : état d'effacement de l'enfant"
+ },
+ {
+  "table": "contrôle après les appels RPC",
+  "operation": "ÉTAT",
+  "acteur": "B/T0/ANON",
+  "resultat": "enfant présent: 1, fils intrus: 0, copies du mot: 1",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison → mot_carnets",
+  "operation": "INJECTION mot envoyé à la classe d'un autre",
+  "acteur": "B",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "mots_liaison → mot_carnets",
+  "operation": "INJECTION mot envoyé à la classe d'un autre",
+  "acteur": "T0",
+  "resultat": "refusé (42501)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT (tout)",
+  "acteur": "T0",
+  "resultat": "0 enfant(s) visible(s)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "children",
+  "operation": "SELECT (tout)",
+  "acteur": "TE",
+  "resultat": "0 enfant(s) visible(s) (titulaire : l'accès aux enfants passe par les fils et les mots, pas par la fiche)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT par le propriétaire (A)",
+  "acteur": "A",
+  "resultat": "accepté",
+  "ecart": false,
+  "detail": "attendu : accepté"
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LECTURE (URL signée) du fichier de A",
+  "acteur": "B",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "TÉLÉCHARGEMENT du fichier de A",
+  "acteur": "B",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LISTE du dossier de Léa",
+  "acteur": "B",
+  "resultat": "0 entrée(s)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT sous le dossier de Léa",
+  "acteur": "B",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "SUPPRESSION du fichier de A",
+  "acteur": "B",
+  "resultat": "refusé / sans effet",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LECTURE (URL signée) du fichier de A",
+  "acteur": "T0",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "TÉLÉCHARGEMENT du fichier de A",
+  "acteur": "T0",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LISTE du dossier de Léa",
+  "acteur": "T0",
+  "resultat": "0 entrée(s)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT sous le dossier de Léa",
+  "acteur": "T0",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "SUPPRESSION du fichier de A",
+  "acteur": "T0",
+  "resultat": "refusé / sans effet",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LECTURE (URL signée) du fichier de A",
+  "acteur": "ANON",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "TÉLÉCHARGEMENT du fichier de A",
+  "acteur": "ANON",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "LISTE du dossier de Léa",
+  "acteur": "ANON",
+  "resultat": "0 entrée(s)",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT sous le dossier de Léa",
+  "acteur": "ANON",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "SUPPRESSION du fichier de A",
+  "acteur": "ANON",
+  "resultat": "refusé / sans effet",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT type MIME text/html (extension .jpg)",
+  "acteur": "A",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT extension .exe",
+  "acteur": "A",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT de 11 Mo (limite annoncée : 10 Mo)",
+  "acteur": "A",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT d'un contenu HTML déclaré application/pdf",
+  "acteur": "A",
+  "resultat": "ACCEPTÉ (le contenu n'est pas inspecté)",
+  "ecart": false,
+  "detail": "signalé, pas une faille d'accès : le bucket est privé, les fichiers sont servis par URL signée"
+ },
+ {
+  "table": "storage carnet",
+  "operation": "DÉPÔT avec chemin « ../ »",
+  "acteur": "A",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage",
+  "operation": "DÉPÔT dans un bucket inexistant",
+  "acteur": "A",
+  "resultat": "refusé",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "storage",
+  "operation": "LISTE des buckets",
+  "acteur": "B",
+  "resultat": "0 bucket(s) visibles",
+  "ecart": false,
+  "detail": ""
+ },
+ {
+  "table": "colonne profiles.role",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "le rôle ne doit pas être modifiable"
+ },
+ {
+  "table": "colonne profiles.plan",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "le forfait ne doit pas être modifiable par l'utilisateur"
+ },
+ {
+  "table": "colonne profiles.email",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "adresse affichée du profil"
+ },
+ {
+  "table": "colonne children.parent_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "créateur de la fiche (FK en cascade)"
+ },
+ {
+  "table": "colonne children.scolaria_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "identifiant public de l'enfant"
+ },
+ {
+  "table": "colonne agenda_events.parent_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "auteur d'un événement"
+ },
+ {
+  "table": "colonne carnet_items.ajoute_par",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "auteur d'un ajout"
+ },
+ {
+  "table": "colonne carnet_items.child_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "déplacer un ajout vers un autre enfant"
+ },
+ {
+  "table": "colonne competences.source",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée",
+  "ecart": false,
+  "detail": "origine d'une compétence"
+ },
+ {
+  "table": "colonne absences.signalee_par",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "auteur d'un signalement"
+ },
+ {
+  "table": "colonne messages.sender_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "expéditeur d'un message"
+ },
+ {
+  "table": "colonne signatures.parent_name",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée",
+  "ecart": false,
+  "detail": "nom du signataire"
+ },
+ {
+  "table": "colonne signatures.signed_at",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée",
+  "ecart": false,
+  "detail": "date de signature"
+ },
+ {
+  "table": "colonne reponses_mot.responsable_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "auteur d'une réponse"
+ },
+ {
+  "table": "colonne academic_years.classe_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "rattachement à la classe"
+ },
+ {
+  "table": "colonne academic_years.statut",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "statut de l'année"
+ },
+ {
+  "table": "colonne foyers.created_by",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "créateur du foyer"
+ },
+ {
+  "table": "colonne invitations_responsable.statut",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée",
+  "ecart": false,
+  "detail": "statut d'une invitation"
+ },
+ {
+  "table": "colonne invitations_responsable.expires_at",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée",
+  "ecart": false,
+  "detail": "expiration d'une invitation"
+ },
+ {
+  "table": "colonne teacher_messages.sender_id",
+  "operation": "UPDATE par le propriétaire",
+  "acteur": "A",
+  "resultat": "verrouillée (42501)",
+  "ecart": false,
+  "detail": "auteur d'un message de fil (parent)"
+ },
+ {
+  "table": "colonne invitations_responsable.expires_at",
+  "operation": "INSERT avec expiration 2099",
+  "acteur": "A",
+  "resultat": "accepté, mais expiration forcée par le serveur à 7 jours",
+  "ecart": false,
+  "detail": "durée de validité normale : 7 jours"
+ }
+]

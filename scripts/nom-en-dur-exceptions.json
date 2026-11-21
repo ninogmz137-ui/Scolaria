@@ -1,0 +1,31 @@
+{
+  "documentation": "Exceptions du test de garde « aucun nom en dur » (scripts/test-nom-en-dur.mjs). Chaque entrée : fichier, motif (regex SENSIBLE À LA CASSE, appliquée au littéral), nombre EXACT d'occurrences, raison. Aucune de ces occurrences n'est un texte affiché : ce sont des identifiants techniques (clés de stockage, schéma d'URL, identifiant de paquet, noms de routes et de fonctions, valeurs internes) ou des journaux de développeur. Ils changent dans le lot de renommage technique (tasks/renommage.md), jamais par NOM_APP ni ASSISTANT. Tout NOUVEAU texte visible doit passer par supabase/functions/_shared/marque.json.",
+  "exceptions": [
+    { "fichier": "app.config.js", "motif": "^Scolaria$", "nombre": 1, "raison": "slug du projet EAS (identifiant technique, ARRÊT NOM)" },
+    { "fichier": "app.config.js", "motif": "^scolaria$", "nombre": 1, "raison": "schéma d'URL de l'application (identifiant technique)" },
+    { "fichier": "app.config.js", "motif": "^com\\.scolaria\\.app$", "nombre": 2, "raison": "identifiants de paquet iOS et Android (définitifs sur les stores)" },
+    { "fichier": "src/components/InvitationsRecues.tsx", "motif": "^@scolaria:", "nombre": 1, "raison": "clé de stockage local" },
+    { "fichier": "src/components/NotificationsRouteur.tsx", "motif": "^scolaria://$", "nombre": 1, "raison": "schéma d'URL retiré avant lecture des paramètres de lien" },
+    { "fichier": "src/components/UniversalInputBar.tsx", "motif": "^aria$", "nombre": 5, "raison": "valeur interne du variant ('human' | 'aria')" },
+    { "fichier": "src/components/chat/ChatBubble.tsx", "motif": "^aria$", "nombre": 2, "raison": "valeur interne de l'expéditeur d'un message ('aria' | 'parent')" },
+    { "fichier": "src/components/navigation/BottomBar.tsx", "motif": "^aria$", "nombre": 1, "raison": "clé d'onglet actif" },
+    { "fichier": "src/components/navigation/TopBar.tsx", "motif": "^aria$", "nombre": 1, "raison": "type ActiveTab (clé d'onglet)" },
+    { "fichier": "src/contexts/ActiveChildContext.tsx", "motif": "^@scolaria:", "nombre": 2, "raison": "clés de stockage local (enfant actif, démo)" },
+    { "fichier": "src/contexts/AuthContext.tsx", "motif": "@scolaria\\.fr$", "nombre": 2, "raison": "adresses des comptes de démonstration : jamais affichées (variante démo : adresse neutre)" },
+    { "fichier": "src/i18n/index.ts", "motif": "^@scolaria_language$", "nombre": 1, "raison": "clé de stockage de la langue" },
+    { "fichier": "src/navigation/EleveTabNavigator.tsx", "motif": "^Aria$", "nombre": 2, "raison": "nom de route et clé d'icône (non affichés)" },
+    { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^Aria$", "nombre": 1, "raison": "préfixe de nom de route (accueilRoute.startsWith) ; titres affichés = « Assistant » depuis le lot 6" },
+    { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^aria$", "nombre": 1, "raison": "clé d'onglet actif" },
+    { "fichier": "src/screens/AriaScreen.tsx", "motif": "^aria$", "nombre": 5, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
+    { "fichier": "src/screens/aria/AriaConversationScreen.tsx", "motif": "^@scolaria_aria_", "nombre": 3, "raison": "clés de stockage des conversations" },
+    { "fichier": "src/screens/aria/AriaConversationScreen.tsx", "motif": "^aria$", "nombre": 4, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
+    { "fichier": "src/screens/aria/AriaHomeScreen.tsx", "motif": "^@scolaria_aria_", "nombre": 3, "raison": "clés de stockage des conversations" },
+    { "fichier": "src/screens/aria/AriaHomeScreen.tsx", "motif": "^aria$", "nombre": 4, "raison": "expéditeur interne des messages et variant de la barre de saisie" },
+    { "fichier": "src/services/ariaEchange.ts", "motif": "^@scolaria_aria_", "nombre": 1, "raison": "préfixe des clés de stockage des conversations (nettoyage des messages de détresse)" },
+    { "fichier": "src/services/ariaEchange.ts", "motif": "^aria$", "nombre": 2, "raison": "expéditeur interne des messages" },
+    { "fichier": "src/services/ariaApi.ts", "motif": "^aria$", "nombre": 1, "raison": "nom de l'Edge Function appelée (identifiant technique)" },
+    { "fichier": "src/services/ariaApi.ts", "motif": "^\\[Aria\\] ", "nombre": 2, "raison": "journaux de développeur (console.warn), jamais affichés" },
+    { "fichier": "src/services/ariaPreferences.ts", "motif": "^@scolaria:prefs$", "nombre": 1, "raison": "clé de stockage des préférences" },
+    { "fichier": "supabase/functions/aria/index.ts", "motif": "^\\[aria\\] ", "nombre": 12, "raison": "journaux serveur (étiquette technique, sans donnée)" }
+  ]
+}

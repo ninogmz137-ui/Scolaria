@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+assets/
+dist/
+.git/
+docs/
+scripts/
+supabase/
+scolaria-design-workspace/
+.agents/
+plugins/
+tasks/
