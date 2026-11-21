@@ -41,6 +41,47 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
+### LOT 6 — PLAN (21 nov., branche `archi-lot-6` créée depuis main 972a8bf)
+Source : prompt du 16 nov. + ajouts inscrits au lot 6 depuis. Rien sur Paris, rien dans main. Un commit par sous-étape.
+- **6a — Nom et fonds** :
+  - `marque.json` `assistant.generique: true` → « l'assistant » / « Assistant » PARTOUT (Accueil, paramètres, écrans de
+    l'assistant, aides) sans toucher au code ; restes en dur cherchés par grep et `test:nom-en-dur`. Le serveur (Edge
+    Function « aria ») ne change qu'à son prochain déploiement (rien ici).
+  - Fonds d'écran retirés : `WallpaperContext`, `WallpaperPickerScreen`, `assets/wallpapers/*`, route et lien de recherche,
+    image de fond de l'onglet Notes, fond photo de l'Accueil (`children.fond` n'est plus lu ; colonne laissée en base,
+    aucune migration). `WallpaperBackground` (fond uni) passe à Brume.
+  - Code de transfert retiré : `TransfertCodeScreen` et ses routes (parent, élève, enseignant), titres et chrome.
+- **6b — Accueil** (tous niveaux, un seul corps) :
+  - En-tête : fondu gardé, plus court (1re carte ≤ 30 % de l'écran) ; rond 52 (photo, ou initiale sur blanc translucide ;
+    toucher sans photo = « Ajouter une photo ») ; prénom Figtree 800 · 24 · blanc ; ligne 13 px « classe · enseignant ·
+    école » (élément absent omis) ; pilule école · année retirée (l'année vit dans Scolarité).
+    Enseignant : démo = l'enseignant des fils de démo ; compte réel = nom du fil existant avec le titulaire
+    (`fil_enseignant`), sinon omis (aucune nouvelle fonction en base).
+  - Corps : 1. « À faire · N » (Signer, Autoriser, Répondre, Justifier, Lire : étiquette, titre, « échéance · [prénom] a
+    signé », chevron ; ouvre le mot ou l'absence ; absent si vide). 2. « Aujourd'hui et demain » (événements, À prévoir
+    cochables, devoirs pour demain cochables ; jamais un mot). 3. « Nouveau dans le carnet » (photos avec vignette,
+    compétences, documents, source ; carte d'invitation « Ajoutez la première pièce du carnet » + « Ajouter » si vide).
+    4. Suggestion de l'assistant : une ligne + source, sans titre, absente si rien à dire.
+  - Supprimés : « Cette semaine », « Dernières notes », « Derniers apprentissages » séparés, « Voir le suivi », carte
+    « ARIA ». Démo : Léa, Lucas, Emma remplis dans les quatre sections, sans le prénom d'un autre enfant.
+- **6c — Famille et paramètres** (sept groupes, rows de page profonde) : Mes enfants (→ fiche) · Responsables (inviter,
+  qui voit quoi, me retirer → Autorisations) · Mon profil · Assistant (activé ou non, lu depuis `ariaPreferences`) ·
+  Confidentialité et données (télécharger, effacer) · Aide, à propos, se déconnecter. Retirés : Apparence, ton de
+  l'assistant (lu par rien), langue de la saisie vocale (rien de branché), préférences `@scolaria:prefs`.
+  Fiche enfant : Score de Joie masqué (Mon Ressenti masqué en V1), ligne « Nouvelle année ou changement d'école ».
+- **6d — Annuler une absence** : **M45 locale** (statut « annulée », `annulee_le`, `annulee_par` ; mise à jour réservée
+  au foyer de l'auteur ; déclencheur : avant 8 h / 13 h heure de Paris le premier jour, seul passage autorisé pour un
+  non-auteur = l'annulation, plus rien après ; ligne de justificatif supprimée, fichier repris par le nettoyage des
+  orphelins et supprimé tout de suite par l'app si j'en suis le dépôt) ; bouton « Annuler l'absence » de la carte
+  Absence ; disparaît de l'Agenda, de « À faire », de « À justifier » ; titulaire : « Annulée par la famille ».
+  Tests SQL + essai local ; procédure Paris préparée, non appliquée.
+- **Écarts avec le prompt du 16 nov. (décisions plus récentes)** : « + » unique déjà fait (lot 5) ; Mon Ressenti masqué
+  (aucun accès, fiche comprise) ; Notifications ABSENTES (aucun push réel : CLAUDE.md, une option non branchée est
+  retirée) ; « journal d'accès » ABSENT (pas construit) ; « Aide » ABSENTE (aucun écran) ; « code de la classe » ABSENT
+  (aucun mécanisme) ; ton de l'assistant retiré (rien ne le lit).
+- Vérification : tsc, tests existants, nouveaux tests purs (à faire, suggestion, en-tête), bundle ; liste de contrôle
+  Redmi pour l'utilisateur (lot visuel).
+
 ### LOT 4 — PARIS (21 nov.) : **M41, M42, M43 APPLIQUÉES**, une par cycle, VERDICT : OK chacune (97 WARN avant et après, 0 nouveau, 0 disparu). Sauvegardes vérifiées : `ScolariaBackups\avant_M41_cycle\2026-11-21_1219`, `avant_M42_cycle\2026-11-21_1221`, `avant_M43_cycle\2026-11-21_1223`. Reste : vérification Redmi contre Paris (compte réel), puis décision de fusion d'`archi-lot-4` dans main.
 
 ### LOT 4 — PLAN (20 nov., branche `archi-lot-4` créée depuis main 55a6cdf) — VALIDÉ le 20 nov. avec les 5 choix par défaut et ces ajouts :
