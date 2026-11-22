@@ -47,6 +47,13 @@
 - [ ] Mettre à jour la **politique de confidentialité** (notifications : prénom de l'enfant, type et expéditeur transitent
   par Expo, Google, Apple ; jamais le contenu) — règle R5 du lot 7a.
 
+### LOT 7a — AVANCEMENT (22 nov.) : étape (1) FAITE en local — 7a-1 M46 (0025651), 7a-2 M47 (ac6f4f7), 7a-3 textes
+verrouillés + Edge Function `envoyer-notifications` (16975bf), 7a-4 M48 (b718408). Tests : m46-m47 10/10, m48 5/5,
+notifications 25/25, test-lot7a-local 16/16 (envoi simulé), 29 suites SQL, aller-retour OK, 60 WARN locaux inchangés.
+Étape (2) : marche à suivre écrite, `tasks/lot7a-marche-a-suivre.md` (Firebase, google-services.json dans EAS, clé
+FCM v1, jeton Expo) — À FAIRE PAR L'UTILISATEUR. Reste : sous-étape app (7a-5), build Android (autorisation), essai
+Redmi, procédure Paris. RIEN sur Paris, rien dans main.
+
 ### LOT 7a — NOTIFICATIONS — PLAN (21 nov., branche `archi-lot-7a` depuis main f5ca9f7) — **VALIDÉ le 22 nov. 2026**
 avec R1 à R5. Décisions : **Q1 Expo** ; **Q3 aucune notification dans l'APK de démo** ; **Q4 réglages indépendants** ;
 **Q2 carte unique sur l'Accueil** « Recevoir les mots de l'école sur ce téléphone », boutons « Activer » et « Plus tard » :
