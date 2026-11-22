@@ -80,16 +80,57 @@ END;
 $function$;
 REVOKE ALL ON FUNCTION public.notifications_ajouter(uuid, uuid, text, text, uuid) FROM PUBLIC, anon, authenticated;
 
--- Nom lisible d'un profil (enseignant) : « Prénom Nom », sinon « l'enseignant ». La civilité arrive au lot 7.
+-- Nom d'AFFICHAGE d'un enseignant : UNE SEULE fonction pour l'app (mot_expediteur, fil_enseignant) ET les notifications
+-- (demande du 22 nov. 2026) : la civilité du lot 7 (« Mme Martin ») s'écrira ICI et s'appliquera partout d'office.
+-- « Prénom Nom » aujourd'hui ; null si le profil n'a pas de nom (chaque appelant garde son repli).
+CREATE OR REPLACE FUNCTION public.nom_affiche_enseignant(p_profil uuid)
+ RETURNS text
+ LANGUAGE sql
+ STABLE
+ SET search_path = ''
+AS $function$
+  SELECT nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.family_name, '')), '')
+  FROM public.profiles p WHERE p.id = p_profil;
+$function$;
+REVOKE ALL ON FUNCTION public.nom_affiche_enseignant(uuid) FROM PUBLIC, anon, authenticated;
+
+-- L'app passe par la même fonction (comportement inchangé : mêmes replis « Enseignant »).
+CREATE OR REPLACE FUNCTION public.mot_expediteur(p_mot_id uuid)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT COALESCE(public.nom_affiche_enseignant(m.teacher_id), 'Enseignant')
+  FROM public.mots_liaison m
+  WHERE m.id = p_mot_id
+    AND m.statut <> 'brouillon'
+    AND EXISTS (
+      SELECT 1 FROM public.mot_carnets mc
+      WHERE mc.mot_id = m.id AND public.is_responsable(mc.child_id)
+    );
+$function$;
+
+CREATE OR REPLACE FUNCTION public.fil_enseignant(p_conversation_id uuid)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+  SELECT COALESCE(public.nom_affiche_enseignant(c.teacher_id), 'Enseignant')
+  FROM public.teacher_conversations c
+  WHERE c.id = p_conversation_id
+    AND (public.peut_lire_fil(c.id) OR public.depart_du_fil(c.id) IS NOT NULL);
+$function$;
+
+-- Notifications : la même fonction, repli « l'enseignant » dans une phrase (« Nouveau mot de l'enseignant »).
 CREATE OR REPLACE FUNCTION public.notifications_nom(p_profil uuid)
  RETURNS text
  LANGUAGE sql
  STABLE
- SECURITY DEFINER
  SET search_path = ''
 AS $function$
-  SELECT coalesce(nullif(btrim(coalesce(p.first_name, '') || ' ' || coalesce(p.family_name, '')), ''), 'l’enseignant')
-  FROM (SELECT p_profil AS id) x LEFT JOIN public.profiles p ON p.id = x.id;
+  SELECT coalesce(public.nom_affiche_enseignant(p_profil), 'l’enseignant');
 $function$;
 REVOKE ALL ON FUNCTION public.notifications_nom(uuid) FROM PUBLIC, anon, authenticated;
 

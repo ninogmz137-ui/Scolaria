@@ -125,8 +125,28 @@ DO $$ BEGIN
     RAISE EXCEPTION 'N5 : destinataires du mot pour Félix faux';
   END IF;
   IF EXISTS (SELECT 1 FROM public.notifications_file WHERE expediteur <> 'Claire Martin' AND type = 'mot') THEN RAISE EXCEPTION 'N5 : expéditeur faux'; END IF;
+  -- Même nom que l'app (mot_expediteur et notifications passent par nom_affiche_enseignant) : la civilité suivra partout.
+  UPDATE public.profiles SET first_name = 'Mme', family_name = 'Martin' WHERE id = '11111111-1111-4111-8111-111111111111';
+  IF public.notifications_nom('11111111-1111-4111-8111-111111111111') <> public.nom_affiche_enseignant('11111111-1111-4111-8111-111111111111')
+     OR public.nom_affiche_enseignant('11111111-1111-4111-8111-111111111111') <> 'Mme Martin' THEN
+    RAISE EXCEPTION 'N5 : nom des notifications différent du nom d''affichage';
+  END IF;
+  UPDATE public.profiles SET first_name = 'Claire', family_name = 'Martin' WHERE id = '11111111-1111-4111-8111-111111111111';
   IF (SELECT count(*) FROM public.notifications_file WHERE type = 'mot') <> 4 THEN RAISE EXCEPTION 'N5 : un brouillon a été notifié'; END IF;
   RAISE NOTICE 'N5 OK : mot → chaque carnet notifie SES responsables (deux foyers pour Eva), expéditeur « Claire Martin », brouillon ignoré';
+END $$;
+
+-- N5 bis : vu par A dans l'app, l'expéditeur du mot est le même que dans la notification.
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","role":"authenticated"}', true) \gset
+SET LOCAL ROLE authenticated;
+SELECT public.mot_expediteur(:'mot') AS vu_app \gset
+RESET ROLE;
+SELECT set_config('test.vu_app', :'vu_app', true) \gset
+DO $$ BEGIN
+  IF current_setting('test.vu_app') <> (SELECT DISTINCT expediteur FROM public.notifications_file WHERE ref_id = current_setting('test.mot')::uuid) THEN
+    RAISE EXCEPTION 'N5 bis : l''app affiche « % », la notification un autre nom', current_setting('test.vu_app');
+  END IF;
+  RAISE NOTICE 'N5 bis OK : même nom d''expéditeur dans l''app et dans la notification';
 END $$;
 
 -- ─── M47 : messages — fil foyer de A (A et M seulement), fil individuel de J (J seul), message d'un parent (rien) ───
@@ -196,7 +216,7 @@ RESET ROLE;
 DO $$ DECLARE f text; BEGIN
   FOREACH f IN ARRAY ARRAY['public.notifications_moment(uuid,timestamptz)', 'public.notifications_ajouter(uuid,uuid,text,text,uuid)',
     'public.notifications_nom(uuid)', 'public.notifications_sur_mot()', 'public.notifications_sur_message()',
-    'public.notifications_sur_absence()', 'public.appareils_push_un_compte()'] LOOP
+    'public.notifications_sur_absence()', 'public.appareils_push_un_compte()', 'public.nom_affiche_enseignant(uuid)'] LOOP
     IF has_function_privilege('authenticated', f, 'EXECUTE') OR has_function_privilege('anon', f, 'EXECUTE') THEN
       RAISE EXCEPTION 'N10 : % exécutable par un compte', f;
     END IF;

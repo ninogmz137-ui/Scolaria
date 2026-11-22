@@ -64,6 +64,26 @@ verifier('Expo : forme « Prénom · type »', /^[^·]+ · (Nouveau mot de|Messa
 const fuite = composerNotification('Laia', 'c1', [{ type: 'message', expediteur: 'Bonjour, Laia a été malade toute la matinée et je pense que', ref_id: 'f' }]);
 verifier('garde-fou : 40 caractères au plus pour l’expéditeur', fuite.corps.length <= 'Laia · Message de '.length + 40, fuite.corps);
 
+// 7 bis. L'expéditeur vient de la MÊME fonction d'affichage que l'app (demande du 22 nov. 2026) : la civilité du lot 7
+//        s'applique d'office. Ce module le reprend tel quel (pas de reformatage), et la base le produit par
+//        nom_affiche_enseignant, que mot_expediteur et fil_enseignant (l'app) appellent aussi.
+egal('civilité reprise telle quelle : « Laia · Nouveau mot de Mme Martin »',
+  composerNotification('Laia', 'c1', [{ type: 'mot', expediteur: 'Mme Martin', ref_id: 'm1' }]).corps, 'Laia · Nouveau mot de Mme Martin');
+egal('civilité « M. » reprise telle quelle', composerNotification('Evan', 'c2', [{ type: 'message', expediteur: 'M. Petit', ref_id: 'f' }]).corps, 'Evan · Message de M. Petit');
+{
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const sql = readFileSync(join(import.meta.dirname, '..', '..', 'migrations', '20261123110000_m47_file_notifications.sql'), 'utf8');
+  const corps = (nom: string) => {
+    const i = sql.indexOf(`FUNCTION public.${nom}(`);
+    return i < 0 ? '' : sql.slice(i, sql.indexOf('$function$;', sql.indexOf('$function$', i) + 10));
+  };
+  verifier('base : mot_expediteur (app) passe par nom_affiche_enseignant', corps('mot_expediteur').includes('public.nom_affiche_enseignant('));
+  verifier('base : fil_enseignant (app) passe par nom_affiche_enseignant', corps('fil_enseignant').includes('public.nom_affiche_enseignant('));
+  verifier('base : notifications_nom passe par nom_affiche_enseignant', corps('notifications_nom').includes('public.nom_affiche_enseignant('));
+  verifier('base : aucune autre construction « first_name || family_name » dans la file', (sql.match(/first_name/g) ?? []).length === 1);
+}
+
 // 8. Heure de Paris (résumé de 18 h, hiver et été).
 egal('hiver : 17 h UTC = 18 h à Paris', heureDeParis(new Date('2026-11-23T17:00:00Z')), 18);
 egal('été : 16 h UTC = 18 h à Paris', heureDeParis(new Date('2027-06-10T16:00:00Z')), 18);
