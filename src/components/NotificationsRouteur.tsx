@@ -5,6 +5,8 @@
  * - « mot » : sélectionne l'enfant, ouvre Messages › le mot (MotDetail). Mot retiré : l'écran affiche
  *   « [Expéditeur] a retiré ce mot », jamais d'erreur.
  * - « agenda » : sélectionne l'enfant, ouvre son Agenda.
+ * - « fil » (message de l'enseignant, lot 7a) : sélectionne l'enfant, ouvre ses Messages.
+ * - « accueil » (plusieurs nouveautés regroupées, résumé de 18 h, lot 7a) : sélectionne l'enfant, ouvre son Accueil.
  * Un enfant absent du compte (plus rattaché) n'est jamais ouvert : l'app reste sur l'écran courant.
  *
  * Développement : « scolaria://dev/notif-mot?childId=…&motId=…&expediteur=…&titre=…&prenom=… »
@@ -16,7 +18,8 @@ import { Linking, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { navigationRef } from '../navigation/navigationRef';
 import { useActiveChild } from '../contexts/ActiveChildContext';
-import { notifierMot, type CibleNotification } from '../services/notifications';
+import { notifierMot } from '../services/notifications';
+import { cibleDepuisDonnees } from '../utils/notificationsApp';
 
 /** Attend que la navigation principale soit montée (connexion, chargement), puis agit. */
 function quandPret(action: () => void, essais = 20) {
@@ -52,8 +55,9 @@ export default function NotificationsRouteur() {
       ouvrir(r.notification.request.content.data);
     };
     const ouvrir = (data: unknown) => {
-      const cible = data as CibleNotification | undefined;
-      if (!cible?.childId) return;
+      // Forme du serveur (lot 7a : `cible`) ou locale de développement (`type`) : utils/notificationsApp, testé.
+      const cible = cibleDepuisDonnees(data);
+      if (!cible) return;
       quandPret(() => {
         if (!enfantsRef.current.some((c) => c.id === cible.childId)) return;
         selectChildRef.current(cible.childId);
@@ -66,8 +70,14 @@ export default function NotificationsRouteur() {
               initial: false,
             },
           });
+        } else if (cible.type === 'fil') {
+          // Message de l'enseignant : l'onglet Messages de l'enfant (ses fils y sont relus au focus).
+          navigationRef.navigate('MainPager', { screen: 'MessagerieTab', params: { screen: 'MessagerieHome' } });
         } else if (cible.type === 'agenda') {
           navigationRef.navigate('MainPager', { screen: 'Agenda' });
+        } else {
+          // Plusieurs nouveautés, résumé de 18 h : l'Accueil de l'enfant (À faire, Aujourd'hui et demain).
+          navigationRef.navigate('MainPager', { screen: 'Accueil', params: { screen: 'AccueilHome' } });
         }
       });
     };

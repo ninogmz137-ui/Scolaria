@@ -1,11 +1,9 @@
 /**
- * Notifications — NON IMPLÉMENTÉ en production (6 oct 2026) : aucune notification n'est envoyée ni programmée, aucun jeton
- * de push distant n'est enregistré. Ce fichier ne garde que ce qui sert déjà :
+ * Notifications locales (héritage) — le push DISTANT est au lot 7a : jeton et permission dans services/appareilPush.ts,
+ * envoi par le serveur (Edge Function envoyer-notifications), ouverture par NotificationsRouteur. Ce fichier ne garde que :
+ *  - l'affichage des notifications reçues app ouverte (setNotificationHandler) ;
  *  - `notifierMot` (appelée seulement par un lien de développement `__DEV__`) ;
- * - l'ouverture du bon carnet au toucher d'une notification (NotificationsRouteur) ;
  *  - l'annulation des anciennes notifications locales programmées par des versions antérieures.
- * Les rappels d'examen et de devoir ont été supprimés (aucun appelant). Le push distant (APNs, FCM) est un chantier à part :
- * tasks/todo.md.
  */
 
 import * as Notifications from 'expo-notifications';

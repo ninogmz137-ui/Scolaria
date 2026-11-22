@@ -13,6 +13,8 @@
     { "fichier": "src/contexts/ActiveChildContext.tsx", "motif": "^@scolaria:", "nombre": 2, "raison": "clés de stockage local (enfant actif, démo)" },
     { "fichier": "src/contexts/AuthContext.tsx", "motif": "@scolaria\\.fr$", "nombre": 2, "raison": "adresses des comptes de démonstration : jamais affichées (variante démo : adresse neutre)" },
     { "fichier": "src/i18n/index.ts", "motif": "^@scolaria_language$", "nombre": 1, "raison": "clé de stockage de la langue" },
+    { "fichier": "src/services/appareilPush.ts", "motif": "^@scolaria:jeton_push$", "nombre": 1, "raison": "clé de stockage du jeton de notification de ce téléphone (lot 7a ; renommage technique : tasks/renommage.md)" },
+    { "fichier": "src/services/appareilPush.ts", "motif": "^@scolaria:notifications_plus_tard:$", "nombre": 1, "raison": "préfixe de la clé « Plus tard » de la carte des notifications, par compte (lot 7a ; renommage technique)" },
     { "fichier": "src/navigation/EleveTabNavigator.tsx", "motif": "^Aria$", "nombre": 2, "raison": "nom de route et clé d'icône (non affichés)" },
     { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^Aria$", "nombre": 1, "raison": "préfixe de nom de route (accueilRoute.startsWith) ; titres affichés = « Assistant » depuis le lot 6" },
     { "fichier": "src/navigation/TabNavigator.tsx", "motif": "^aria$", "nombre": 1, "raison": "clé d'onglet actif" },

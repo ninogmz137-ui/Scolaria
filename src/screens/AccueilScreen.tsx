@@ -33,6 +33,7 @@ import AucunEnfant from '../components/AucunEnfant';
 import HeaderFondu from '../components/HeaderFondu';
 import EnteteCarnet from '../components/accueil/EnteteCarnet';
 import CorpsCarnet from '../components/accueil/CorpsCarnet';
+import CarteNotifications from '../components/accueil/CarteNotifications';
 import FeuillePhotoEnfant from '../components/FeuillePhotoEnfant';
 import EtatErreur from '../components/EtatErreur';
 import { jourCourt } from '../components/messages/CarteATraiter';
@@ -226,6 +227,8 @@ export default function AccueilScreen() {
                 <EtatErreur type={erreurAccueil} onReessayer={reessayer} compact />
               </View>
             )}
+            {/* Lot 7a : carte unique « Recevoir les mots de l'école sur ce téléphone » (compte réel, Activer / Plus tard). */}
+            <CarteNotifications />
             <CorpsCarnet
               hauteurFondu={hauteurFondu}
               primaire={selectedChild.cycle === 'primaire'}

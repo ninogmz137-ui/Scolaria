@@ -19,6 +19,7 @@ import { urlRetourAuth } from '../services/liensAuthApp';
 import { lireRoleProfil } from '../services/roleProfilBase';
 import { deconnexionVolontaire, marquerEvenementAuth } from '../services/sessionExpiree';
 import { viderCachePhotos } from '../services/photoEnfant';
+import { retirerAppareil } from '../services/appareilPush';
 
 // ─── Types ────────────────────────────────────────────────
 
@@ -249,6 +250,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // révoque toutes les sessions du compte, sur tous les appareils (diagnostic du 26 sept 2026 :
     // tasks/lessons.md, déconnexion du Redmi).
     viderCachePhotos(); // aucune URL signée de photo d'enfant ne survit à la session
+    // Lot 7a : ce téléphone ne reçoit plus les notifications de ce compte (jeton retiré tant que la session le permet).
+    await retirerAppareil();
     deconnexionVolontaire(); const { error } = await supabase.auth.signOut({ scope: 'local' });
     if (error) throw error;
     setRole(null);

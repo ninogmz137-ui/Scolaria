@@ -6,8 +6,8 @@
  *   1. Mes enfants → fiche de l'enfant ; Ajouter un enfant.
  *   2. Responsables → par enfant : inviter, qui voit quoi, me retirer (écran Autorisations).
  *   3. Mon profil.
- *   4. Notifications : ABSENT tant qu'aucune notification push n'existe (CLAUDE.md § Notifications : jamais une option
- *      affichée sans effet).
+ *   4. Notifications (lot 7a) : trois réglages BRANCHÉS (lus et appliqués par le serveur) + activation de ce téléphone ;
+ *      compte réel seulement.
  *   5. Assistant → activé ou non (préférence APPLIQUÉE : aucun appel au modèle si désactivé, ariaPreferences).
  *   6. Confidentialité et données → télécharger un carnet, effacer des données.
  *   7. À propos · Se déconnecter (pas d'« Aide » : aucun écran d'aide n'existe).
@@ -35,6 +35,8 @@ import { Text } from '../components/ui';
 import ChildAvatar from '../components/ChildAvatar';
 import { NOM_APP } from '../constants/marque';
 import { de } from '../utils/francais';
+import ReglagesNotifications from '../components/ReglagesNotifications';
+import { ENV } from '../services/getEnv';
 
 const NAVY = '#0F172A';
 const INDIGO = '#4338CA';
@@ -158,9 +160,12 @@ export default function FamilleParametresScreen() {
           <DeepRow leading={<DeepAvatar initials={parentInitials} color={NAVY} />} label={fullName} description={email || undefined} last />
         </DeepGroup>
 
+        {/* 4. Notifications (lot 7a) : branchées sur le serveur ; compte réel seulement (ni démo, ni APK de démo). */}
+        {isFamille && !isDemo && !ENV.VARIANTE_DEMO && user?.id ? <ReglagesNotifications userId={user.id} /> : null}
+
         {isFamille && (
           <>
-            {/* 5. Assistant (4. Notifications : absent tant qu'aucune notification n'existe). */}
+            {/* 5. Assistant */}
             <DeepGroup title="Assistant">
               <DeepRow
                 icon={<ScolariaSymbol size={18} color={TEXT55} />}

@@ -73,6 +73,10 @@ const config = {
       },
       permissions: ['CAMERA', 'READ_EXTERNAL_STORAGE'],
       predictiveBackGestureEnabled: false,
+      /* Lot 7a : notifications (FCM). Le fichier google-services.json n'est JAMAIS dans le dépôt (règle R2) : EAS le fournit
+         au build par la variable d'environnement de type fichier GOOGLE_SERVICES_JSON (tasks/lot7a-marche-a-suivre.md, B).
+         Sans elle (build local, aperçu web), aucune ligne : l'app se construit, sans notifications. */
+      ...(process.env.GOOGLE_SERVICES_JSON ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON } : {}),
     },
     plugins: [
       [
@@ -117,6 +121,7 @@ const config = {
 if (process.env.APP_VARIANT === 'demo') {
   const { expo } = config;
   expo.android.package += '.demo';
+  delete expo.android.googleServicesFile; // décision Q3 : aucune notification dans l'APK de démo
   expo.name = process.env.APP_LIBELLE_DEMO || 'Démo';
   delete expo.scheme;
   expo.ios.infoPlist = { ...expo.ios.infoPlist, ...permissionsIos(expo.name) }; // mêmes textes, au libellé de la variante

@@ -32,6 +32,7 @@ import { useSolariaFonts } from './src/hooks/useSolariaFonts';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NotificationsRouteur from './src/components/NotificationsRouteur';
+import InscriptionAppareil from './src/components/InscriptionAppareil';
 import { viderFichiersOuverts } from './src/services/ouvertureFichier';
 import { viderExport } from './src/services/exportCarnet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -152,6 +153,8 @@ function AppContent({ navigationRef }: { navigationRef: NavigationContainerRef<R
     <>
     {/* Appui sur une notification → l'élément exact, dans le carnet du bon enfant (B4a). */}
     <NotificationsRouteur />
+    {/* Lot 7a : jeton de ce téléphone réinscrit à chaque ouverture (permission déjà accordée seulement). */}
+    <InscriptionAppareil />
     {/* Liens des emails (confirmation, mot de passe oublié) → l'app (L3). */}
     <LiensAuthRouteur />
     <RootStack.Navigator screenOptions={{ headerShown: false }}>

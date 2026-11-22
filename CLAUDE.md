@@ -415,8 +415,15 @@ Le carnet doit se remplir **même si l'école n'utilise pas encore Scolaria**.
 
 ---
 
-## Notifications — NON IMPLÉMENTÉ (6 oct 2026)
-> Rien de ce qui suit n'existe encore : aucune notification n'est envoyée, aucun réglage n'est affiché. L'entrée « Notifications » de Famille et paramètres (une des sept, décision du 16 nov.) n'apparaît que lorsque ses trois réglages sont branchés sur un push réel ; d'ici là elle reste retirée, jamais grisée. Le push distant (APNs, FCM) est BLOQUANT avant tout enseignant réel ; le prénom de l'enfant transitera alors par Apple et Google (à dire dans la politique de confidentialité). Spécification cible :
+## Notifications — EN COURS (lot 7a, branche `archi-lot-7a`, pas encore sur Paris)
+> **État au 22 nov. 2026** : base (M46 téléphones et réglages, M47 file et déclencheurs, M48 envoi planifié), Edge
+> Function `envoyer-notifications` (via Expo) et app (carte « Recevoir les mots de l'école sur ce téléphone » avec
+> Activer / Plus tard, jeton inscrit et retiré à la déconnexion, trois réglages dans Famille et paramètres ›
+> Notifications, routeur) codées et testées en LOCAL. Rien n'est encore envoyé à une famille : il manque le projet
+> Firebase, le build Android, les cycles Paris. Textes figés par test (`supabase/functions/_shared/notifications.ts`) :
+> prénom · type · expéditeur, jamais de contenu. Le nom de l'expéditeur vient de `nom_affiche_enseignant`, la même
+> fonction que l'app. APK de démo : aucune notification.
+> Texte historique (6 oct 2026) : rien de ce qui suit n'existait alors : aucune notification n'était envoyée, aucun réglage n'était affiché. L'entrée « Notifications » de Famille et paramètres (une des sept, décision du 16 nov.) n'apparaît que lorsque ses trois réglages sont branchés sur un push réel ; d'ici là elle reste retirée, jamais grisée. Le push distant (APNs, FCM) est BLOQUANT avant tout enseignant réel ; le prénom de l'enfant transitera alors par Apple et Google (à dire dans la politique de confidentialité). Spécification cible :
 - **Activées par défaut** : mots à signer, messages enseignant, messages direction.
 - **Résumé unique à 18h** : photos, annonces, informations.
 - **Silence 20h – 7h**, sauf urgence école.

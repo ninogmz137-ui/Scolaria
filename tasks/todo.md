@@ -41,6 +41,13 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
+### IDENTITÉ (nom, logo, identifiants — nom de l'app en ARRÊT, voir tasks/renommage.md)
+- [ ] **Identifiant Android `com.scolaria.app`** (ajouté le 22 nov. 2026) : il devient **définitif à la première
+  publication sur le Play Store** (impossible à changer ensuite). À décider AVEC le nouveau nom, avant toute publication.
+  S'il change : recréer l'app Android dans **Firebase** (nouveau `google-services.json`, à redéposer dans EAS) et
+  regénérer la clé FCM v1 si le projet Firebase change (tasks/lot7a-marche-a-suivre.md, A à C). Même question pour
+  l'identifiant iOS `com.scolaria.app` (définitif à la première soumission à l'App Store).
+
 ### AVANT D'OUVRIR À D'AUTRES FAMILLES (ajouté le 22 nov. 2026)
 - [ ] Passer Supabase au **plan Pro** : le plan gratuit met le projet en pause après une semaine d'inactivité, ce qui
   couperait les notifications (et l'app entière).
