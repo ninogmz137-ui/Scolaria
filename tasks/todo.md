@@ -41,8 +41,20 @@
 - [CADUC 21 nov.] Points non tranchés relevés au lot 0 : CLAUDE.md et COMPONENTS.md n'ont plus aucun point ouvert (tous tranchés le 17 nov.).
 - **Points ouverts : tous tranchés le 21 nov. 2026** (6 décidés, 11 caducs, notés à leur ligne). Plus aucun point ouvert sans décision dans ce fichier.
 
-### LOT 7a — NOTIFICATIONS — PLAN (21 nov., branche `archi-lot-7a` depuis main f5ca9f7) — EN ATTENTE DE L'ACCORD DE L'UTILISATEUR
-Aucun code écrit. Rien sur Paris, rien dans main.
+### AVANT D'OUVRIR À D'AUTRES FAMILLES (ajouté le 22 nov. 2026)
+- [ ] Passer Supabase au **plan Pro** : le plan gratuit met le projet en pause après une semaine d'inactivité, ce qui
+  couperait les notifications (et l'app entière).
+- [ ] Mettre à jour la **politique de confidentialité** (notifications : prénom de l'enfant, type et expéditeur transitent
+  par Expo, Google, Apple ; jamais le contenu) — règle R5 du lot 7a.
+
+### LOT 7a — NOTIFICATIONS — PLAN (21 nov., branche `archi-lot-7a` depuis main f5ca9f7) — **VALIDÉ le 22 nov. 2026**
+avec R1 à R5. Décisions : **Q1 Expo** ; **Q3 aucune notification dans l'APK de démo** ; **Q4 réglages indépendants** ;
+**Q2 carte unique sur l'Accueil** « Recevoir les mots de l'école sur ce téléphone », boutons « Activer » et « Plus tard » :
+la demande système n'apparaît qu'après « Activer » ; « Plus tard » fait disparaître la carte ; toujours disponible dans
+Famille et paramètres › Notifications.
+**Ordre décidé** : (1) M46, M47, M48 et la fonction d'envoi, en local, tests SQL, envoi simulé, textes verrouillés par
+test ; (2) marche à suivre Firebase / clé FCM / jeton Expo (l'utilisateur la fait à part) ; (3) build de développement
+Android sur autorisation ; compte Apple REPOUSSÉ (tout se valide sur le Redmi d'abord). Rien sur Paris, rien dans main.
 
 **Ce qui existe déjà** : `expo-notifications` 55 installé et déclaré dans `app.config.js` (UIBackgroundModes
 `remote-notification`, projectId EAS) ; `NotificationsRouteur` ouvre le bon mot du bon enfant à l'appui (aussi au
