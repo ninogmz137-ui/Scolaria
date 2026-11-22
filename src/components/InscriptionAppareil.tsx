@@ -9,6 +9,7 @@ import { AppState } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { ENV } from '../services/getEnv';
 import { inscrireAppareil } from '../services/appareilPush';
+// Serveur sans la table (Paris avant M46) : l'inscription échoue en silence, rien n'est affiché.
 
 export default function InscriptionAppareil() {
   const { user, isDemo } = useAuth();

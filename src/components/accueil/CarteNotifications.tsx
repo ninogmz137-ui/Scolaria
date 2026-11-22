@@ -16,7 +16,7 @@ import { Text, Pressable } from '../ui';
 import { useAuth } from '../../contexts/AuthContext';
 import { useActiveChild } from '../../contexts/ActiveChildContext';
 import { ENV } from '../../services/getEnv';
-import { activerNotifications, choisirPlusTard, etatPermission, plusTardChoisi } from '../../services/appareilPush';
+import { activerNotifications, choisirPlusTard, etatPermission, notificationsDisponibles, plusTardChoisi } from '../../services/appareilPush';
 import { doitProposerCarte, type EtatPermission } from '../../utils/notificationsApp';
 
 export default function CarteNotifications() {
@@ -30,8 +30,18 @@ export default function CarteNotifications() {
 
   useEffect(() => {
     if (!userId || demo) return;
-    etatPermission().then(setPermission);
-    plusTardChoisi(userId).then(setPlusTard);
+    let annule = false;
+    (async () => {
+      // Serveur sans notifications (Paris avant M46-M48) : aucune carte.
+      if (!(await notificationsDisponibles())) return;
+      const [p, t] = await Promise.all([etatPermission(), plusTardChoisi(userId)]);
+      if (annule) return;
+      setPermission(p);
+      setPlusTard(t);
+    })();
+    return () => {
+      annule = true;
+    };
   }, [userId, demo]);
 
   if (!userId || !doitProposerCarte({ demo, nbEnfants: children.length, permission, plusTard })) return null;

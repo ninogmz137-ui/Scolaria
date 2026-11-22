@@ -23,6 +23,17 @@ import { reglagesDepuisLigne, type EtatPermission, type ReglagesNotifications } 
 const CLE_JETON = '@scolaria:jeton_push';
 const cleePlusTard = (userId: string) => `@scolaria:notifications_plus_tard:${userId}`;
 
+/**
+ * Le serveur a-t-il les notifications (M46) ? Faux tant que la table n'existe pas (Paris avant le cycle) : la carte et
+ * les réglages n'apparaissent pas — jamais une option affichée sans effet. Une autre erreur (réseau) : vrai (on ne cache
+ * pas un réglage réel pour une coupure passagère ; l'écriture dira alors « non enregistré »).
+ */
+export async function notificationsDisponibles(): Promise<boolean> {
+  const { error } = await supabase.from('appareils_push').select('id', { head: true, count: 'exact' }).limit(1);
+  if (!error) return true;
+  return !(error.code === 'PGRST205' || error.code === '42P01');
+}
+
 export async function etatPermission(): Promise<EtatPermission> {
   try {
     const p = await Notifications.getPermissionsAsync();

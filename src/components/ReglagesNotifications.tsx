@@ -16,6 +16,7 @@ import {
   enregistrerReglage,
   etatPermission,
   lireReglages,
+  notificationsDisponibles,
 } from '../services/appareilPush';
 import { reglagesDepuisLigne, type EtatPermission, type ReglagesNotifications as Reglages } from '../utils/notificationsApp';
 
@@ -25,15 +26,20 @@ export default function ReglagesNotifications({ userId }: { userId: string }) {
   const [permission, setPermission] = useState<EtatPermission | null>(null);
   const [reglages, setReglages] = useState<Reglages>(reglagesDepuisLigne(null));
   const [charges, setCharges] = useState(false);
+  const [disponible, setDisponible] = useState(false);
 
   const relire = useCallback(() => {
-    etatPermission().then(setPermission);
-    lireReglages(userId)
-      .then((r) => {
-        setReglages(r);
-        setCharges(true);
-      })
-      .catch(() => setCharges(true));
+    notificationsDisponibles().then((ok) => {
+      setDisponible(ok);
+      if (!ok) return;
+      etatPermission().then(setPermission);
+      lireReglages(userId)
+        .then((r) => {
+          setReglages(r);
+          setCharges(true);
+        })
+        .catch(() => setCharges(true));
+    });
   }, [userId]);
   useEffect(relire, [relire]);
 
@@ -56,6 +62,8 @@ export default function ReglagesNotifications({ userId }: { userId: string }) {
     if (r === 'erreur') Alert.alert('Notifications', 'Ce téléphone n’a pas pu être inscrit. Réessayez.');
   };
 
+  // Serveur sans notifications (Paris avant M46-M48) : le groupe n'existe pas (jamais une option sans effet).
+  if (!disponible) return null;
   return (
     <DeepGroup title="Notifications">
       {permission && permission !== 'accordee' ? (
